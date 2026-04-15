@@ -31,9 +31,9 @@ final class SleepEntry {
         let hours = totalMins / 60
         let mins = totalMins % 60
         if hours > 0 {
-            return "\(hours) ч \(mins) мин"
+            return String(format: "duration.h_min".l, hours, mins)
         }
-        return "\(mins) мин"
+        return String(format: "duration.min_only".l, mins)
     }
 
     var isActive: Bool { endTime == nil }
@@ -42,16 +42,17 @@ final class SleepEntry {
         case nap = "nap"
         case night = "night"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .nap: return "Дневной сон"
-            case .night: return "Ночной сон"
+            case .nap:   return "sleep.type.nap"
+            case .night: return "sleep.type.night"
             }
         }
 
         var icon: String {
             switch self {
-            case .nap: return "sun.max.fill"
+            case .nap:   return "sun.max.fill"
             case .night: return "moon.fill"
             }
         }
@@ -62,19 +63,20 @@ final class SleepEntry {
         case stroller = "stroller"
         case arms = "arms"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .crib: return "Кроватка"
-            case .stroller: return "Коляска"
-            case .arms: return "На руках"
+            case .crib:     return "sleep.location.crib"
+            case .stroller: return "sleep.location.stroller"
+            case .arms:     return "sleep.location.arms"
             }
         }
 
         var icon: String {
             switch self {
-            case .crib: return "bed.double.fill"
+            case .crib:     return "bed.double.fill"
             case .stroller: return "figure.walk.motion"
-            case .arms: return "hands.and.sparkles.fill"
+            case .arms:     return "hands.and.sparkles.fill"
             }
         }
     }

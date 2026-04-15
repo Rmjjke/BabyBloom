@@ -16,7 +16,6 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            // Gradient background
             LinearGradient(
                 colors: [BBTheme.Colors.background, BBTheme.Colors.primary.opacity(0.08)],
                 startPoint: .top,
@@ -25,7 +24,6 @@ struct OnboardingView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Page indicators
                 HStack(spacing: 6) {
                     ForEach(0..<totalPages, id: \.self) { index in
                         Capsule()
@@ -36,7 +34,6 @@ struct OnboardingView: View {
                 }
                 .padding(.top, 20)
 
-                // Pages
                 TabView(selection: $currentPage) {
                     OnboardingWelcomePage()
                         .tag(0)
@@ -52,7 +49,6 @@ struct OnboardingView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: currentPage)
 
-                // Bottom actions
                 VStack(spacing: BBTheme.Spacing.sm) {
                     if currentPage < totalPages - 1 {
                         BBPrimaryButton(
@@ -65,14 +61,14 @@ struct OnboardingView: View {
                         .opacity(canAdvance ? 1 : 0.5)
 
                         if currentPage > 0 {
-                            Button("Назад") {
+                            Button("button.back".l) {
                                 withAnimation { currentPage -= 1 }
                             }
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                     } else {
-                        BBPrimaryButton("Начать", icon: "sparkles", isLoading: isCreating) {
+                        BBPrimaryButton("button.start".l, icon: "sparkles", isLoading: isCreating) {
                             createBabyAndFinish()
                         }
                     }
@@ -85,11 +81,9 @@ struct OnboardingView: View {
 
     private var nextButtonTitle: String {
         switch currentPage {
-        case 0: return "Начать"
-        case 1: return "Далее"
-        case 2: return "Далее"
-        case 3: return "Почти готово"
-        default: return "Далее"
+        case 0: return "button.start".l
+        case 3: return "button.almost_done".l
+        default: return "button.next".l
         }
     }
 
@@ -110,7 +104,7 @@ struct OnboardingView: View {
         isCreating = true
         let name = babyName.trimmingCharacters(in: .whitespaces)
         let baby = Baby(
-            name: name.isEmpty ? "Малыш" : name,
+            name: name.isEmpty ? "baby.default_name".l : name,
             birthDate: birthDate,
             gender: gender,
             feedingType: feedingType
@@ -131,7 +125,6 @@ private struct OnboardingWelcomePage: View {
         VStack(spacing: BBTheme.Spacing.xl) {
             Spacer()
 
-            // Logo / Hero
             ZStack {
                 Circle()
                     .fill(BBTheme.Colors.primary.opacity(0.12))
@@ -148,23 +141,22 @@ private struct OnboardingWelcomePage: View {
                     .font(.system(size: 38, weight: .bold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.primary)
 
-                Text("Ваш умный помощник\nв уходе за малышом")
+                Text("onboarding.tagline".l)
                     .font(.system(size: 20, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Трекинг кормления, сна и развития ребёнка в одном приложении")
+                Text("onboarding.subtitle".l)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, BBTheme.Spacing.xl)
             }
 
-            // Feature pills
             VStack(spacing: BBTheme.Spacing.sm) {
-                OnboardingFeatureRow(icon: "heart.fill", color: BBTheme.Colors.feeding, text: "Трекинг кормления")
-                OnboardingFeatureRow(icon: "moon.fill", color: BBTheme.Colors.sleep, text: "Контроль сна")
-                OnboardingFeatureRow(icon: "chart.line.uptrend.xyaxis", color: BBTheme.Colors.growth, text: "График роста по ВОЗ")
+                OnboardingFeatureRow(icon: "heart.fill", color: BBTheme.Colors.feeding, text: "onboarding.feature.feeding".l)
+                OnboardingFeatureRow(icon: "moon.fill", color: BBTheme.Colors.sleep, text: "onboarding.feature.sleep".l)
+                OnboardingFeatureRow(icon: "chart.line.uptrend.xyaxis", color: BBTheme.Colors.growth, text: "onboarding.feature.growth".l)
             }
             .padding(.horizontal, BBTheme.Spacing.xl)
 
@@ -213,16 +205,16 @@ private struct OnboardingNamePage: View {
                 .font(.system(size: 64))
 
             VStack(spacing: BBTheme.Spacing.sm) {
-                Text("Как зовут малыша?")
+                Text("onboarding.name_title".l)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text("Это поможет персонализировать приложение")
+                Text("onboarding.name_hint".l)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
-            TextField("Имя ребёнка", text: $name)
+            TextField("onboarding.name_placeholder".l, text: $name)
                 .font(.system(size: 22, weight: .semibold, design: .rounded))
                 .multilineTextAlignment(.center)
                 .padding(BBTheme.Spacing.md)
@@ -253,15 +245,14 @@ private struct OnboardingBirthPage: View {
                 .font(.system(size: 64))
 
             VStack(spacing: BBTheme.Spacing.sm) {
-                Text("Дата рождения и пол")
+                Text("onboarding.birth_title".l)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text("Для расчёта перцентилей роста по ВОЗ")
+                Text("onboarding.birth_hint".l)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
 
-            // Gender selector
             HStack(spacing: BBTheme.Spacing.md) {
                 ForEach(Baby.Gender.allCases, id: \.self) { g in
                     Button {
@@ -270,7 +261,7 @@ private struct OnboardingBirthPage: View {
                         VStack(spacing: 6) {
                             Text(g == .female ? "👧" : "👦")
                                 .font(.system(size: 36))
-                            Text(g.displayName)
+                            Text(g.displayName.l)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundStyle(gender == g ? .white : BBTheme.Colors.textPrimary)
                         }
@@ -284,8 +275,7 @@ private struct OnboardingBirthPage: View {
                 }
             }
 
-            // Date picker
-            DatePicker("Дата рождения", selection: $birthDate, in: ...Date(), displayedComponents: .date)
+            DatePicker("onboarding.birth_label".l, selection: $birthDate, in: ...Date(), displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .tint(BBTheme.Colors.primary)
                 .padding(BBTheme.Spacing.sm)
@@ -311,10 +301,10 @@ private struct OnboardingFeedingPage: View {
                 .font(.system(size: 64))
 
             VStack(spacing: BBTheme.Spacing.sm) {
-                Text("Тип вскармливания")
+                Text("onboarding.feeding_title".l)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text("Для персонализированных советов")
+                Text("onboarding.feeding_hint".l)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
@@ -332,7 +322,7 @@ private struct OnboardingFeedingPage: View {
                                 .background(feedingType == type ? .white.opacity(0.25) : BBTheme.Colors.primary.opacity(0.1))
                                 .cornerRadius(12)
 
-                            Text(type.displayName)
+                            Text(type.displayName.l)
                                 .font(.system(size: 17, weight: .semibold, design: .rounded))
                                 .foregroundStyle(feedingType == type ? .white : BBTheme.Colors.textPrimary)
 
@@ -376,16 +366,18 @@ private struct OnboardingReadyPage: View {
             }
 
             VStack(spacing: BBTheme.Spacing.sm) {
-                Text("Всё готово!")
+                Text("onboarding.ready_title".l)
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.primary)
 
-                Text("Добро пожаловать в BabyBloom\(babyName.isEmpty ? "" : ", \(babyName) ждёт вас")!")
+                Text(babyName.isEmpty
+                    ? "onboarding.ready_welcome_plain".l
+                    : String(format: "onboarding.ready_welcome_fmt".l, babyName))
                     .font(.system(size: 20, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Начинайте фиксировать события нажатием одной кнопки на главном экране.")
+                Text("onboarding.ready_body".l)
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)

@@ -42,7 +42,6 @@ final class Baby {
     var ageDescription: String {
         let months = ageInMonths
         let days = ageInDays
-
         if days < 7 {
             return "\(days) \(days.dayWord)"
         } else if days < 30 {
@@ -57,10 +56,11 @@ final class Baby {
         case male = "male"
         case female = "female"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .male: return "Мальчик"
-            case .female: return "Девочка"
+            case .male: return "baby.gender.male"
+            case .female: return "baby.gender.female"
             }
         }
 
@@ -77,11 +77,12 @@ final class Baby {
         case formula = "formula"
         case mixed = "mixed"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .breast: return "Грудное"
-            case .formula: return "Смесь"
-            case .mixed: return "Смешанное"
+            case .breast: return "baby.feeding.breast"
+            case .formula: return "baby.feeding.formula"
+            case .mixed: return "baby.feeding.mixed"
             }
         }
 
@@ -95,11 +96,19 @@ final class Baby {
     }
 }
 
-// MARK: - Int word forms (Russian)
+// MARK: - Int word forms (language-aware)
 extension Int {
-    var dayWord: String { pluralize(one: "день", few: "дня", many: "дней") }
-    var weekWord: String { pluralize(one: "неделя", few: "недели", many: "недель") }
-    var monthWord: String { pluralize(one: "месяц", few: "месяца", many: "месяцев") }
+    var dayWord: String   { ageWord(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
+    var weekWord: String  { ageWord(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
+    var monthWord: String { ageWord(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
+
+    private func ageWord(one: String, few: String, many: String) -> String {
+        let lang = LocalizationManager.shared.currentLanguage
+        if lang == "en" {
+            return self == 1 ? one.l : few.l
+        }
+        return pluralize(one: one.l, few: few.l, many: many.l)
+    }
 
     private func pluralize(one: String, few: String, many: String) -> String {
         let n = abs(self) % 100

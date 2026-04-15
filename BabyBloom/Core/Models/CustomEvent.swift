@@ -29,33 +29,34 @@ final class CustomEvent {
         case mood = "mood"
         case custom = "custom"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .bath: return "Купание"
-            case .walk: return "Прогулка"
-            case .medication: return "Лекарство"
-            case .mood: return "Настроение"
-            case .custom: return "Событие"
+            case .bath:       return "event.type.bath"
+            case .walk:       return "event.type.walk"
+            case .medication: return "event.type.medication"
+            case .mood:       return "event.type.mood"
+            case .custom:     return "event.type.custom"
             }
         }
 
         var icon: String {
             switch self {
-            case .bath: return "drop.fill"
-            case .walk: return "figure.walk"
+            case .bath:       return "drop.fill"
+            case .walk:       return "figure.walk"
             case .medication: return "pills.fill"
-            case .mood: return "face.smiling.fill"
-            case .custom: return "star.fill"
+            case .mood:       return "face.smiling.fill"
+            case .custom:     return "star.fill"
             }
         }
 
         var colorHex: String {
             switch self {
-            case .bath: return "#B0C4F5"
-            case .walk: return "#A8D5C2"
+            case .bath:       return "#B0C4F5"
+            case .walk:       return "#A8D5C2"
             case .medication: return "#F5D6A0"
-            case .mood: return "#E8A0BF"
-            case .custom: return "#D4A8D5"
+            case .mood:       return "#E8A0BF"
+            case .custom:     return "#D4A8D5"
             }
         }
     }
@@ -65,18 +66,19 @@ final class CustomEvent {
         case fussy = 2
         case crying = 3
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .calm: return "Спокойный"
-            case .fussy: return "Беспокойный"
-            case .crying: return "Плачет"
+            case .calm:   return "mood.calm"
+            case .fussy:  return "mood.fussy"
+            case .crying: return "mood.crying"
             }
         }
 
         var icon: String {
             switch self {
-            case .calm: return "face.smiling.fill"
-            case .fussy: return "face.dashed"
+            case .calm:   return "face.smiling.fill"
+            case .fussy:  return "face.dashed"
             case .crying: return "drop.fill"
             }
         }

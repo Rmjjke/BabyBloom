@@ -1,0 +1,195 @@
+// MARK: - Navigation & Tabs
+"Главная" = "Home";
+"Кормление" = "Feeding";
+"Сон" = "Sleep";
+"Рост" = "Growth";
+"Ещё" = "More";
+"Подгузники" = "Diapers";
+"События" = "Events";
+"Настройки" = "Settings";
+
+// MARK: - Section Headers
+"Быстрый ввод" = "Quick Actions";
+"Быстро добавить" = "Quick Add";
+"Сегодня" = "Today";
+"История" = "History";
+"Текущие показатели" = "Current Measurements";
+"График веса" = "Weight Chart";
+"Перцентили ВОЗ" = "WHO Percentiles";
+"История измерений" = "Measurement History";
+"Последние события" = "Recent Events";
+"График дня" = "Day Chart";
+
+// MARK: - Stat Card Labels
+"Мокрых" = "Wet";
+"Грязных" = "Dirty";
+"Норма в день" = "Daily Goal";
+"Кормлений" = "Feedings";
+"Суммарно" = "Total";
+"Эпизодов сна" = "Sleep Episodes";
+"Вес" = "Weight";
+"Голова" = "Head";
+"Измерений" = "Measurements";
+"Подгузников" = "Diapers";
+
+// MARK: - Buttons
+"Начать" = "Start";
+"Начать кормление" = "Start Feeding";
+"Сохранить" = "Save";
+"Отмена" = "Cancel";
+"Завершить" = "Stop";
+"Проснулся" = "Woke Up";
+"Удалить" = "Delete";
+"Закрыть" = "Close";
+"Все" = "All";
+
+// MARK: - Form Labels
+"Тип" = "Type";
+"Цвет стула" = "Stool Color";
+"Заметки (необязательно)" = "Notes (optional)";
+"Заметки" = "Notes";
+"Время" = "Time";
+"Тип кормления" = "Feeding Type";
+"Грудь" = "Breast Side";
+"Объём (мл)" = "Volume (ml)";
+"Запустить таймер" = "Start Timer";
+"Зафиксируйте длительность кормления" = "Track feeding duration";
+"Тип сна" = "Sleep Type";
+"Место" = "Location";
+"Начало" = "Start";
+"Конец" = "End";
+"Название лекарства" = "Medication name";
+"Доза" = "Dosage";
+"Настроение" = "Mood";
+"Дата измерения" = "Measurement Date";
+"Вес (кг)" = "Weight (kg)";
+"Рост (см)" = "Height (cm)";
+"Окружность головы (см)" = "Head Circumference (cm)";
+"Напр. 4.25" = "e.g. 4.25";
+"Напр. 56.5" = "e.g. 56.5";
+"Напр. 38.0" = "e.g. 38.0";
+"Введите мл" = "Enter ml";
+
+// MARK: - Sheet Titles
+"Подгузник" = "Diaper";
+"Новое событие" = "New Event";
+"Новое кормление" = "New Feeding";
+"Добавить сон" = "Add Sleep";
+"Новое измерение" = "New Measurement";
+
+// MARK: - DiaperType
+"Мокрый" = "Wet";
+"Грязный" = "Dirty";
+"Оба" = "Both";
+
+// MARK: - FeedingType
+"ГВ" = "BF";
+"Смесь" = "Formula";
+"Сцеженное" = "Pumped";
+
+// MARK: - BreastSide
+"Левая" = "Left";
+"Правая" = "Right";
+"Обе" = "Both sides";
+
+// MARK: - SleepType
+"Дневной сон" = "Nap";
+"Ночной сон" = "Night Sleep";
+
+// MARK: - SleepLocation
+"Кроватка" = "Crib";
+"Коляска" = "Stroller";
+"На руках" = "In Arms";
+
+// MARK: - StoolColor
+"Жёлтый" = "Yellow";
+"Зелёный" = "Green";
+"Чёрный" = "Black";
+"Коричневый" = "Brown";
+"Оранжевый" = "Orange";
+"Красный" = "Red";
+"Белый" = "White";
+
+// MARK: - EventType
+"Купание" = "Bath";
+"Прогулка" = "Walk";
+"Лекарство" = "Medication";
+"Другое" = "Other";
+
+// MARK: - MoodLevel
+"Спокойный" = "Calm";
+"Капризный" = "Fussy";
+"Плачет" = "Crying";
+
+// MARK: - FeedingEntry display titles
+"ГВ — Левая" = "BF — Left";
+"ГВ — Правая" = "BF — Right";
+"ГВ — Обе" = "BF — Both";
+"Кормление идёт" = "Feeding in progress";
+"Ребёнок спит" = "Baby is sleeping";
+"В процессе..." = "In progress...";
+"Спит сейчас..." = "Sleeping now...";
+
+// MARK: - Greetings
+"Ночное дежурство 🌙" = "Night Duty 🌙";
+"Доброе утро ☀️" = "Good Morning ☀️";
+"Добрый день 🌤" = "Good Afternoon 🌤";
+"Добрый вечер 🌙" = "Good Evening 🌙";
+
+// MARK: - Empty States
+"Нет записей" = "No Records";
+"Нажмите кнопку выше, чтобы добавить запись" = "Tap the button above to add a record";
+"Нет событий" = "No Events";
+"Фиксируйте купание, прогулки, лекарства и настроение малыша" = "Track baths, walks, medications and baby's mood";
+"Нет измерений" = "No Measurements";
+"Добавьте первое измерение роста и веса" = "Add the first growth and weight measurement";
+"Нажмите + чтобы добавить первое кормление" = "Tap + to add the first feeding";
+"Нажмите кнопку выше, чтобы начать отслеживание сна" = "Tap the button above to start tracking sleep";
+"Нет записей за сегодня. Нажмите кнопку выше, чтобы добавить первую запись." = "No records today. Tap the button above to add the first entry.";
+
+// MARK: - WHO Percentile
+"Перцентиль по весу" = "Weight Percentile";
+"По стандартам ВОЗ для ребёнка" = "Per WHO standards for a baby";
+"Что такое перцентиль?" = "What is a percentile?";
+"Норма" = "Normal";
+"Ниже нормы" = "Below Normal";
+"Выше нормы" = "Above Normal";
+"Очень низкий" = "Very Low";
+"Очень высокий" = "Very High";
+
+// MARK: - Percentile Info Text
+"percentile_info_title" = "About Weight Percentile";
+"percentile_info_body" = "A percentile shows how a child's weight compares to other children of the same age and sex.\n\n• 50th percentile means your baby's weight is right in the middle.\n• 15–85th percentile is the normal range.\n• Below 3rd or above 97th percentile warrants a consultation with a pediatrician.\n\nPercentiles are based on WHO international growth standards. Each measurement alone is less important than the overall growth trend over time.";
+
+// MARK: - Diaper Norm
+"Изменить норму" = "Edit Goal";
+"Норма:" = "Goal:";
+"шт" = "pcs";
+"мин назад" = "min ago";
+"ч назад" = "h ago";
+"ч" = "h";
+"раз" = "times";
+"кг" = "kg";
+"см" = "cm";
+
+// MARK: - Settings
+"Язык" = "Language";
+"Русский" = "Russian";
+"English" = "English";
+"Уведомления" = "Notifications";
+"Настроить напоминания" = "Configure Reminders";
+"Данные" = "Data";
+"Экспорт данных" = "Export Data";
+"Синхронизация iCloud" = "iCloud Sync";
+"Приложение" = "App";
+"О приложении" = "About";
+"BabyBloom Premium" = "BabyBloom Premium";
+
+// MARK: - Onboarding
+"BabyBloom" = "BabyBloom";
+"Ваш умный помощник\nв уходе за малышом" = "Your smart assistant\nfor baby care";
+"Трекинг кормления, сна и развития\nребёнка в одном приложении" = "Track feeding, sleep and development\nall in one app";
+"Трекинг кормлений" = "Feeding Tracker";
+"Контроль сна" = "Sleep Tracker";
+"График роста по ВОЗ" = "WHO Growth Charts";
+"→ Начать" = "→ Get Started";

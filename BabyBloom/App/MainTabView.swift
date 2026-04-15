@@ -9,31 +9,31 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
-                    Label("Главная", systemImage: "house.fill")
+                    Label("tab.home".l, systemImage: "house.fill")
                 }
                 .tag(Tab.dashboard)
 
             FeedingView()
                 .tabItem {
-                    Label("Кормление", systemImage: "heart.fill")
+                    Label("tab.feeding".l, systemImage: "heart.fill")
                 }
                 .tag(Tab.feeding)
 
             SleepView()
                 .tabItem {
-                    Label("Сон", systemImage: "moon.fill")
+                    Label("tab.sleep".l, systemImage: "moon.fill")
                 }
                 .tag(Tab.sleep)
 
             GrowthView()
                 .tabItem {
-                    Label("Рост", systemImage: "chart.line.uptrend.xyaxis")
+                    Label("tab.growth".l, systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(Tab.growth)
 
             MoreView()
                 .tabItem {
-                    Label("Ещё", systemImage: "ellipsis.circle.fill")
+                    Label("tab.more".l, systemImage: "ellipsis.circle.fill")
                 }
                 .tag(Tab.more)
         }
@@ -56,48 +56,68 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - More Tab (placeholder for Diaper, Events, Settings)
+// MARK: - More Tab
 struct MoreView: View {
-    @State private var showDiaper = false
-    @State private var showEvents = false
-
     var body: some View {
         NavigationStack {
             List {
                 NavigationLink(destination: DiaperView()) {
-                    Label("Подгузники", systemImage: "circle.lefthalf.filled")
+                    Label("nav.diapers".l, systemImage: "circle.lefthalf.filled")
                         .foregroundStyle(BBTheme.Colors.diaper)
                 }
                 NavigationLink(destination: EventsView()) {
-                    Label("События", systemImage: "star.fill")
+                    Label("nav.events".l, systemImage: "star.fill")
                         .foregroundStyle(BBTheme.Colors.events)
                 }
                 NavigationLink(destination: SettingsView()) {
-                    Label("Настройки", systemImage: "gearshape.fill")
+                    Label("nav.settings".l, systemImage: "gearshape.fill")
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
-            .navigationTitle("Ещё")
+            .navigationTitle("tab.more".l)
             .navigationBarTitleDisplayMode(.large)
         }
     }
 }
 
+// MARK: - Settings View
 struct SettingsView: View {
+    @AppStorage("appLanguage") private var appLanguage = "ru"
+
     var body: some View {
         List {
-            Section("Уведомления") {
-                Label("Настроить напоминания", systemImage: "bell.fill")
+            Section {
+                HStack {
+                    Label("settings.language".l, systemImage: "globe")
+                    Spacer()
+                    Picker("", selection: $appLanguage) {
+                        Text("🇷🇺 Рус").tag("ru")
+                        Text("🇬🇧 Eng").tag("en")
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 130)
+                }
+            } header: {
+                Text("settings.language".l)
             }
-            Section("Данные") {
-                Label("Экспорт данных", systemImage: "arrow.up.doc.fill")
-                Label("Синхронизация iCloud", systemImage: "icloud.fill")
+
+            Section("settings.notifications".l) {
+                Label("settings.reminders".l, systemImage: "bell.fill")
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
             }
-            Section("Приложение") {
-                Label("О приложении", systemImage: "info.circle.fill")
-                Label("BabyBloom Premium", systemImage: "star.fill")
+            Section("settings.data".l) {
+                Label("settings.export".l, systemImage: "arrow.up.doc.fill")
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Label("settings.icloud".l, systemImage: "icloud.fill")
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+            }
+            Section("settings.app_section".l) {
+                Label("settings.about".l, systemImage: "info.circle.fill")
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Label("settings.premium".l, systemImage: "star.fill")
+                    .foregroundStyle(BBTheme.Colors.primary)
             }
         }
-        .navigationTitle("Настройки")
+        .navigationTitle("nav.settings".l)
     }
 }

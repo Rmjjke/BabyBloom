@@ -6,6 +6,7 @@ struct GrowthView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
+    @State private var showPercentileInfo = false
 
     private var baby: Baby? { babies.first }
     private var latest: GrowthEntry? { entries.first }
@@ -38,7 +39,7 @@ struct GrowthView: View {
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Рост")
+            .navigationTitle("tab.growth".l)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -60,36 +61,36 @@ struct GrowthView: View {
     // MARK: - Latest
     private var latestSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Текущие показатели") {
+            BBSectionHeader(title: "section.current_stats") {
                 showAddSheet = true
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 BBStatCard(
-                    title: "Вес",
+                    title: "stat.weight",
                     value: latest.flatMap { $0.weightKg.map { String(format: "%.2f", $0) } } ?? "—",
-                    unit: "кг",
+                    unit: "unit.kg",
                     icon: "scalemass.fill",
                     color: BBTheme.Colors.growth
                 )
                 BBStatCard(
-                    title: "Рост",
+                    title: "stat.height",
                     value: latest.flatMap { $0.heightCm.map { String(format: "%.1f", $0) } } ?? "—",
-                    unit: "см",
+                    unit: "unit.cm",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary
                 )
                 BBStatCard(
-                    title: "Голова",
+                    title: "stat.head",
                     value: latest.flatMap { $0.headCircumferenceCm.map { String(format: "%.1f", $0) } } ?? "—",
-                    unit: "см",
+                    unit: "unit.cm",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent
                 )
                 BBStatCard(
-                    title: "Измерений",
+                    title: "stat.measurements",
                     value: "\(entries.count)",
-                    unit: "раз",
+                    unit: "unit.times",
                     icon: "calendar",
                     color: BBTheme.Colors.diaper
                 )
@@ -100,7 +101,7 @@ struct GrowthView: View {
     // MARK: - Chart
     private var chartSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "График веса")
+            BBSectionHeader(title: "section.weight_chart")
             WeightChartView(entries: Array(entries.reversed()))
         }
     }
@@ -114,12 +115,27 @@ struct GrowthView: View {
         let color = Color(hex: WHOPercentile.percentileColor(percentile))
 
         return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Перцентили ВОЗ")
+            HStack {
+                Text("section.who_percentiles".l)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Spacer()
+                Button {
+                    showPercentileInfo = true
+                } label: {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
+                }
+                .sheet(isPresented: $showPercentileInfo) {
+                    PercentileInfoSheet()
+                }
+            }
 
             VStack(spacing: BBTheme.Spacing.md) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Перцентиль по весу")
+                        Text("percentile.weight".l)
                             .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                         Text(label)
@@ -142,7 +158,7 @@ struct GrowthView: View {
                     }
                 }
 
-                Text("По стандартам ВОЗ для ребёнка \(months) \(months.monthWord)")
+                Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
@@ -156,23 +172,30 @@ struct GrowthView: View {
     // MARK: - History
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "История измерений")
+            BBSectionHeader(title: "section.measurement_history")
 
             if entries.isEmpty {
                 EmptyStateView(
                     icon: "ruler.fill",
                     color: BBTheme.Colors.growth,
-                    title: "Нет измерений",
-                    subtitle: "Добавьте первое измерение роста и веса"
+                    title: "empty.no_measurements",
+                    subtitle: "empty.measurements_hint"
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
                     ForEach(entries) { entry in
-                        GrowthEntryRow(entry: entry)
+                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
+                            GrowthEntryRow(entry: entry)
+                        }
                     }
                 }
             }
         }
+    }
+
+    private func delete(_ entry: GrowthEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
     }
 }
 
@@ -233,9 +256,9 @@ struct WeightChartView: View {
 
             // Labels
             HStack {
-                Text(String(format: "%.2f кг", minWeight))
+                Text(String(format: "%.2f \("unit.kg".l)", minWeight))
                 Spacer()
-                Text(String(format: "%.2f кг", maxWeight))
+                Text(String(format: "%.2f \("unit.kg".l)", maxWeight))
             }
             .font(.system(size: 11, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -265,18 +288,18 @@ struct GrowthEntryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: BBTheme.Spacing.md) {
                     if let w = entry.weightKg {
-                        Label(String(format: "%.2f кг", w), systemImage: "scalemass")
+                        Label(String(format: "%.2f \("unit.kg".l)", w), systemImage: "scalemass")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                     }
                     if let h = entry.heightCm {
-                        Label(String(format: "%.0f см", h), systemImage: "ruler")
+                        Label(String(format: "%.0f \("unit.cm".l)", h), systemImage: "ruler")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                     }
                 }
                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
                 if let head = entry.headCircumferenceCm {
-                    Label(String(format: "Голова: %.1f см", head), systemImage: "circle.dotted")
+                    Label(String(format: "growth.head_fmt".l, head), systemImage: "circle.dotted")
                         .font(.system(size: 12, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
@@ -292,6 +315,44 @@ struct GrowthEntryRow: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
+    }
+}
+
+// MARK: - Percentile Info Sheet
+struct PercentileInfoSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
+                    Text("📊")
+                        .font(.system(size: 56))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, BBTheme.Spacing.lg)
+
+                    Text("percentile.info_title".l)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+
+                    Text("percentile.info_body".l)
+                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                        .lineSpacing(4)
+
+                    Spacer()
+                }
+                .padding(BBTheme.Spacing.lg)
+            }
+            .background(BBTheme.Colors.background.ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("button.close".l) { dismiss() }
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+            }
+        }
     }
 }
 
@@ -311,11 +372,11 @@ struct AddGrowthSheet: View {
                     Text("📏")
                         .font(.system(size: 48))
 
-                    measureField(title: "Вес (кг)", placeholder: "Напр. 4.25", text: $weightText)
-                    measureField(title: "Рост (см)", placeholder: "Напр. 56.5", text: $heightText)
-                    measureField(title: "Окружность головы (см)", placeholder: "Напр. 38.0", text: $headText)
+                    measureField(title: "form.weight_kg".l, placeholder: "form.weight_placeholder".l, text: $weightText)
+                    measureField(title: "form.height_cm".l, placeholder: "form.height_placeholder".l, text: $heightText)
+                    measureField(title: "form.head_cm".l, placeholder: "form.head_placeholder".l, text: $headText)
 
-                    DatePicker("Дата измерения", selection: $date, displayedComponents: .date)
+                    DatePicker("form.measurement_date".l, selection: $date, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md)
@@ -323,17 +384,17 @@ struct AddGrowthSheet: View {
                         .cornerRadius(BBTheme.Radius.md)
                         .bbShadow(BBTheme.Shadow.card)
 
-                    BBPrimaryButton("Сохранить", icon: "checkmark") { save() }
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
                         .disabled(weightText.isEmpty && heightText.isEmpty)
                 }
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Новое измерение")
+            .navigationTitle("sheet.new_measurement".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Отмена") { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
         }

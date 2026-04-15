@@ -5,9 +5,25 @@ struct DiaperView: View {
     @Query(sort: \DiaperEntry.time, order: .reverse) private var entries: [DiaperEntry]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
+    @State private var showNormEditor = false
+    @State private var historyFilter: HistoryFilter = .day
+    @AppStorage("diaperDailyNorm") private var dailyNorm = 8
 
     private var todayEntries: [DiaperEntry] {
         entries.filter { Calendar.current.isDateInToday($0.time) }
+    }
+
+    private var isOverNorm: Bool { todayEntries.count > dailyNorm }
+
+    private var filteredEntries: [DiaperEntry] {
+        let cutoff = historyFilter.startDate()
+        return entries.filter { $0.time >= cutoff }
+    }
+
+    private var weeklyChartData: [BBWeeklyBarChart.Day] {
+        BBWeeklyBarChart.lastSevenDays { date in
+            Double(entries.filter { Calendar.current.isDate($0.time, inSameDayAs: date) }.count)
+        }
     }
 
     var body: some View {
@@ -15,22 +31,22 @@ struct DiaperView: View {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
 
-                    // Quick add
                     quickAddSection
                         .padding(.horizontal, BBTheme.Spacing.md)
 
-                    // Today stats
                     todaySection
                         .padding(.horizontal, BBTheme.Spacing.md)
 
-                    // History
+                    weeklyChartSection
+                        .padding(.horizontal, BBTheme.Spacing.md)
+
                     historySection
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Подгузники")
+            .navigationTitle("nav.diapers".l)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -52,7 +68,7 @@ struct DiaperView: View {
     // MARK: - Quick Add
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Быстро добавить")
+            BBSectionHeader(title: "section.quick_add")
 
             HStack(spacing: BBTheme.Spacing.md) {
                 ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
@@ -63,7 +79,7 @@ struct DiaperView: View {
                             Image(systemName: type.icon)
                                 .font(.system(size: 28))
                                 .foregroundStyle(BBTheme.Colors.diaper)
-                            Text(type.displayName)
+                            Text(type.displayName.l)
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                         }
@@ -85,36 +101,72 @@ struct DiaperView: View {
     // MARK: - Today
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Сегодня")
+            HStack {
+                Text("section.today".l)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Spacer()
+                Button {
+                    showNormEditor = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "target")
+                            .font(.system(size: 13))
+                        Text(String(format: "diaper.norm.fmt".l, dailyNorm))
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                    }
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(BBTheme.Colors.primary.opacity(0.1))
+                    .cornerRadius(BBTheme.Radius.pill)
+                }
+                .sheet(isPresented: $showNormEditor) {
+                    DiaperNormEditorSheet(dailyNorm: $dailyNorm)
+                }
+            }
 
             let wetCount = todayEntries.filter { $0.type == .wet || $0.type == .both }.count
             let dirtyCount = todayEntries.filter { $0.type == .dirty || $0.type == .both }.count
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 BBStatCard(
-                    title: "Мокрых",
+                    title: "stat.wet",
                     value: "\(wetCount)",
-                    unit: "шт",
+                    unit: "unit.pcs",
                     icon: "drop.fill",
-                    color: Color(hex: "#B0C4F5")
+                    color: Color(hex: "#B0C4F5"),
+                    overLimit: false
                 )
                 BBStatCard(
-                    title: "Грязных",
+                    title: "stat.dirty",
                     value: "\(dirtyCount)",
-                    unit: "шт",
+                    unit: "unit.pcs",
                     icon: "circle.fill",
-                    color: BBTheme.Colors.diaper
+                    color: BBTheme.Colors.diaper,
+                    overLimit: false
                 )
             }
 
-            // Daily norm progress
             BBProgressCard(
-                title: "Норма в день",
+                title: "stat.daily_norm",
                 current: Double(todayEntries.count),
-                target: 8,
-                unit: "шт",
+                target: Double(dailyNorm),
+                unit: "unit.pcs",
                 color: BBTheme.Colors.diaper,
-                icon: "checkmark.circle.fill"
+                icon: "checkmark.circle.fill",
+                overLimit: isOverNorm
+            )
+        }
+    }
+
+    // MARK: - Weekly Chart
+    private var weeklyChartSection: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            BBSectionHeader(title: "section.weekly_chart")
+            BBWeeklyBarChart(
+                days: weeklyChartData,
+                color: BBTheme.Colors.diaper
             )
         }
     }
@@ -122,20 +174,27 @@ struct DiaperView: View {
     // MARK: - History
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "История")
+            BBSectionHeader(title: "section.history")
+            BBHistoryFilterPicker(selected: $historyFilter)
 
-            if entries.isEmpty {
+            if filteredEntries.isEmpty {
                 EmptyStateView(
                     icon: "drop.fill",
                     color: BBTheme.Colors.diaper,
-                    title: "Нет записей",
-                    subtitle: "Нажмите кнопку выше, чтобы добавить запись"
+                    title: "empty.no_records",
+                    subtitle: "empty.add_above"
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(entries.prefix(20)) { entry in
-                        DiaperEntryRow(entry: entry)
+                    ForEach(filteredEntries) { entry in
+                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
+                            DiaperEntryRow(entry: entry)
+                        }
                     }
+                }
+
+                BBDeleteHistoryButton {
+                    deleteFiltered()
                 }
             }
         }
@@ -145,6 +204,88 @@ struct DiaperView: View {
         let entry = DiaperEntry(time: Date(), type: type)
         modelContext.insert(entry)
         try? modelContext.save()
+    }
+
+    private func delete(_ entry: DiaperEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+    }
+
+    private func deleteFiltered() {
+        filteredEntries.forEach { modelContext.delete($0) }
+        try? modelContext.save()
+    }
+}
+
+// MARK: - Norm Editor Sheet
+struct DiaperNormEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var dailyNorm: Int
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: BBTheme.Spacing.xl) {
+                Text("💧")
+                    .font(.system(size: 56))
+                    .padding(.top, BBTheme.Spacing.xl)
+
+                VStack(spacing: BBTheme.Spacing.sm) {
+                    Text("diaper.norm.label".l)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Text("diaper.norm.hint".l)
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                HStack(spacing: BBTheme.Spacing.xl) {
+                    Button {
+                        if dailyNorm > 1 { dailyNorm -= 1 }
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
+                    }
+                    .disabled(dailyNorm <= 1)
+
+                    Text("\(dailyNorm)")
+                        .font(.system(size: 64, weight: .bold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .frame(minWidth: 80)
+
+                    Button {
+                        if dailyNorm < 20 { dailyNorm += 1 }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
+                    }
+                    .disabled(dailyNorm >= 20)
+                }
+                .padding(.vertical, BBTheme.Spacing.lg)
+                .padding(.horizontal, BBTheme.Spacing.xl)
+                .background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.lg)
+                .bbShadow(BBTheme.Shadow.card)
+                .padding(.horizontal, BBTheme.Spacing.xl)
+
+                BBPrimaryButton("button.save".l, icon: "checkmark") { dismiss() }
+                    .padding(.horizontal, BBTheme.Spacing.xl)
+
+                Spacer()
+            }
+            .background(BBTheme.Colors.background.ignoresSafeArea())
+            .navigationTitle("diaper.norm.edit".l)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("button.cancel".l) { dismiss() }
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+            }
+        }
     }
 }
 
@@ -165,7 +306,7 @@ struct DiaperEntryRow: View {
 
     private var colorSubtitle: String {
         if let color = entry.color {
-            return color.isWarning ? "⚠️ \(color.displayName)" : color.displayName
+            return color.isWarning ? "⚠️ \(color.displayName.l)" : color.displayName.l
         }
         return entry.notes ?? ""
     }
@@ -186,14 +327,14 @@ struct AddDiaperSheet: View {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                        Text("Тип").font(.system(size: 16, weight: .semibold, design: .rounded))
+                        Text("form.type".l).font(.system(size: 16, weight: .semibold, design: .rounded))
                         HStack(spacing: BBTheme.Spacing.sm) {
                             ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
                                         Image(systemName: type.icon).font(.system(size: 22))
                                             .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.diaper)
-                                        Text(type.displayName).font(.system(size: 13, weight: .medium, design: .rounded))
+                                        Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
                                             .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
@@ -208,7 +349,7 @@ struct AddDiaperSheet: View {
                     // Stool color
                     if selectedType == .dirty || selectedType == .both {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            Text("Цвет стула").font(.system(size: 16, weight: .semibold, design: .rounded))
+                            Text("form.stool_color".l).font(.system(size: 16, weight: .semibold, design: .rounded))
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: BBTheme.Spacing.sm) {
                                 ForEach(DiaperEntry.StoolColor.allCases, id: \.self) { color in
                                     Button {
@@ -218,16 +359,13 @@ struct AddDiaperSheet: View {
                                             Circle()
                                                 .fill(Color(hex: color.hexColor))
                                                 .frame(width: 36, height: 36)
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(selectedColor == color ? BBTheme.Colors.primary : .clear, lineWidth: 2.5)
-                                                )
+                                                .overlay(Circle().stroke(selectedColor == color ? BBTheme.Colors.primary : .clear, lineWidth: 2.5))
                                                 .overlay(
                                                     selectedColor == color
                                                     ? Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
                                                     : nil
                                                 )
-                                            Text(color.displayName)
+                                            Text(color.displayName.l)
                                                 .font(.system(size: 10, weight: .medium, design: .rounded))
                                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                                         }
@@ -237,9 +375,8 @@ struct AddDiaperSheet: View {
                             }
                             if let c = selectedColor, c.isWarning {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundStyle(.orange)
-                                    Text("Этот цвет стула требует внимания врача")
+                                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                                    Text("diaper.color.warning".l)
                                         .font(.system(size: 13, weight: .regular, design: .rounded))
                                         .foregroundStyle(.orange)
                                 }
@@ -250,32 +387,25 @@ struct AddDiaperSheet: View {
                         }
                     }
 
-                    // Notes
-                    TextField("Заметки (необязательно)", text: $notes, axis: .vertical)
-                        .lineLimit(3)
-                        .padding(BBTheme.Spacing.md)
-                        .background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md)
-                        .bbShadow(BBTheme.Shadow.card)
+                    TextField("form.notes_optional".l, text: $notes, axis: .vertical)
+                        .lineLimit(3).padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
-                    // Time
-                    DatePicker("Время", selection: $time, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("form.time".l, selection: $time, displayedComponents: [.date, .hourAndMinute])
                         .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
-                        .padding(BBTheme.Spacing.md)
-                        .background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md)
-                        .bbShadow(BBTheme.Shadow.card)
+                        .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
-                    BBPrimaryButton("Сохранить", icon: "checkmark") { save() }
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
                 }
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Подгузник")
+            .navigationTitle("sheet.diaper".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Отмена") { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
         }

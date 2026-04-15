@@ -20,11 +20,12 @@ final class DiaperEntry {
         self.createdAt = Date()
     }
 
+    /// Localized display title
     var displayTitle: String {
         switch type {
-        case .wet: return "Мокрый"
-        case .dirty: return "Грязный"
-        case .both: return "Мокрый и грязный"
+        case .wet:   return "diaper.title.wet".l
+        case .dirty: return "diaper.title.dirty".l
+        case .both:  return "diaper.title.both".l
         }
     }
 
@@ -33,19 +34,20 @@ final class DiaperEntry {
         case dirty = "dirty"
         case both = "both"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .wet: return "Мокрый"
-            case .dirty: return "Грязный"
-            case .both: return "Оба"
+            case .wet:   return "diaper.type.wet"
+            case .dirty: return "diaper.type.dirty"
+            case .both:  return "diaper.type.both"
             }
         }
 
         var icon: String {
             switch self {
-            case .wet: return "drop.fill"
+            case .wet:   return "drop.fill"
             case .dirty: return "circle.fill"
-            case .both: return "circle.lefthalf.filled"
+            case .both:  return "circle.lefthalf.filled"
             }
         }
     }
@@ -59,27 +61,28 @@ final class DiaperEntry {
         case red = "red"
         case white = "white"
 
+        /// Localization key — use `.l` in views
         var displayName: String {
             switch self {
-            case .yellow: return "Жёлтый"
-            case .green: return "Зелёный"
-            case .black: return "Чёрный"
-            case .brown: return "Коричневый"
-            case .orange: return "Оранжевый"
-            case .red: return "Красный"
-            case .white: return "Белый"
+            case .yellow: return "diaper.color.yellow"
+            case .green:  return "diaper.color.green"
+            case .black:  return "diaper.color.black"
+            case .brown:  return "diaper.color.brown"
+            case .orange: return "diaper.color.orange"
+            case .red:    return "diaper.color.red"
+            case .white:  return "diaper.color.white"
             }
         }
 
         var hexColor: String {
             switch self {
             case .yellow: return "#F5D55F"
-            case .green: return "#6BBF6B"
-            case .black: return "#2C2C2C"
-            case .brown: return "#8B5E3C"
+            case .green:  return "#6BBF6B"
+            case .black:  return "#2C2C2C"
+            case .brown:  return "#8B5E3C"
             case .orange: return "#F5A45F"
-            case .red: return "#E05A5A"
-            case .white: return "#F0F0F0"
+            case .red:    return "#E05A5A"
+            case .white:  return "#F0F0F0"
             }
         }
 

@@ -5,7 +5,8 @@ struct FeedingView: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var entries: [FeedingEntry]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
-    @State private var activeEntry: FeedingEntry?
+    @State private var quickAddType: FeedingEntry.FeedingType = .breast
+    @State private var historyFilter: HistoryFilter = .day
 
     private var todayEntries: [FeedingEntry] {
         entries.filter { Calendar.current.isDateInToday($0.startTime) }
@@ -13,6 +14,17 @@ struct FeedingView: View {
 
     private var activeTimer: FeedingEntry? {
         entries.first(where: { $0.isActive })
+    }
+
+    private var filteredEntries: [FeedingEntry] {
+        let cutoff = historyFilter.startDate()
+        return entries.filter { $0.startTime >= cutoff }
+    }
+
+    private var weeklyChartData: [BBWeeklyBarChart.Day] {
+        BBWeeklyBarChart.lastSevenDays { date in
+            Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }.count)
+        }
     }
 
     var body: some View {
@@ -28,8 +40,18 @@ struct FeedingView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                     }
 
+                    // Quick add (hidden while timer is running)
+                    if activeTimer == nil {
+                        quickAddSection
+                            .padding(.horizontal, BBTheme.Spacing.md)
+                    }
+
                     // Today stats
                     todayStatsSection
+                        .padding(.horizontal, BBTheme.Spacing.md)
+
+                    // Weekly chart
+                    weeklyChartSection
                         .padding(.horizontal, BBTheme.Spacing.md)
 
                     // History
@@ -39,7 +61,7 @@ struct FeedingView: View {
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Кормление")
+            .navigationTitle("tab.feeding".l)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -54,27 +76,63 @@ struct FeedingView: View {
             }
         }
         .sheet(isPresented: $showAddSheet) {
-            AddFeedingSheet()
+            AddFeedingSheet(initialType: quickAddType)
+        }
+    }
+
+    // MARK: - Quick Add
+    private var quickAddSection: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            BBSectionHeader(title: "section.quick_add")
+
+            HStack(spacing: BBTheme.Spacing.md) {
+                ForEach(FeedingEntry.FeedingType.allCases, id: \.self) { type in
+                    Button {
+                        quickStart(type)
+                    } label: {
+                        VStack(spacing: BBTheme.Spacing.sm) {
+                            Image(systemName: type.icon)
+                                .font(.system(size: 28))
+                                .foregroundStyle(BBTheme.Colors.feeding)
+                            Text(type.displayName.l)
+                                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textPrimary)
+                            Text(type == .breast ? "button.start".l : "button.add_manually".l)
+                                .font(.system(size: 11, weight: .regular, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(BBTheme.Spacing.md)
+                        .background(BBTheme.Colors.feeding.opacity(0.1))
+                        .cornerRadius(BBTheme.Radius.md)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                .stroke(BBTheme.Colors.feeding.opacity(0.4), lineWidth: 1.5)
+                        )
+                    }
+                    .buttonStyle(BBScaleButtonStyle())
+                }
+            }
         }
     }
 
     // MARK: - Today Stats
     private var todayStatsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Сегодня")
+            BBSectionHeader(title: "section.today")
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 BBStatCard(
-                    title: "Кормлений",
+                    title: "stat.feedings",
                     value: "\(todayEntries.count)",
-                    unit: "раз",
+                    unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding
                 )
                 BBStatCard(
-                    title: "Суммарно",
+                    title: "stat.total",
                     value: totalMinutesToday,
-                    unit: "мин",
+                    unit: "unit.min",
                     icon: "clock.fill",
                     color: BBTheme.Colors.primary
                 )
@@ -87,30 +145,69 @@ struct FeedingView: View {
         return "\(Int(total / 60))"
     }
 
+    // MARK: - Weekly Chart
+    private var weeklyChartSection: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            BBSectionHeader(title: "section.weekly_chart")
+            BBWeeklyBarChart(
+                days: weeklyChartData,
+                color: BBTheme.Colors.feeding
+            )
+        }
+    }
+
     // MARK: - History
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "История")
+            BBSectionHeader(title: "section.history")
+            BBHistoryFilterPicker(selected: $historyFilter)
 
-            if entries.isEmpty {
+            if filteredEntries.isEmpty {
                 EmptyStateView(
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
-                    title: "Нет записей",
-                    subtitle: "Нажмите + чтобы добавить первое кормление"
+                    title: "empty.no_records",
+                    subtitle: "empty.add_first_feeding"
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(entries.prefix(30)) { entry in
-                        FeedingEntryRow(entry: entry)
+                    ForEach(filteredEntries) { entry in
+                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
+                            FeedingEntryRow(entry: entry)
+                        }
                     }
+                }
+
+                BBDeleteHistoryButton {
+                    deleteFiltered()
                 }
             }
         }
     }
 
+    private func quickStart(_ type: FeedingEntry.FeedingType) {
+        if type == .breast {
+            let entry = FeedingEntry(startTime: Date(), type: .breast, side: .left, volumeML: nil)
+            modelContext.insert(entry)
+            try? modelContext.save()
+        } else {
+            quickAddType = type
+            showAddSheet = true
+        }
+    }
+
     private func stopFeeding(_ entry: FeedingEntry) {
         entry.endTime = Date()
+        try? modelContext.save()
+    }
+
+    private func delete(_ entry: FeedingEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+    }
+
+    private func deleteFiltered() {
+        filteredEntries.forEach { modelContext.delete($0) }
         try? modelContext.save()
     }
 }
@@ -127,7 +224,7 @@ struct FeedingTimerCard: View {
         VStack(spacing: BBTheme.Spacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Кормление")
+                    Text("tab.feeding".l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.feeding)
                     Text(entry.displayTitle)
@@ -147,7 +244,7 @@ struct FeedingTimerCard: View {
                         Button {
                             entry.side = side
                         } label: {
-                            Text(side.displayName)
+                            Text(side.displayName.l)
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                                 .foregroundStyle(entry.side == side ? .white : BBTheme.Colors.feeding)
                                 .padding(.horizontal, 14)
@@ -160,7 +257,7 @@ struct FeedingTimerCard: View {
                 }
             }
 
-            BBPrimaryButton("Завершить", icon: "stop.fill") {
+            BBPrimaryButton("button.finish".l, icon: "stop.fill") {
                 onStop()
             }
         }
@@ -193,7 +290,7 @@ struct FeedingEntryRow: View {
             icon: entry.type.icon,
             iconColor: Color(hex: entry.type.color),
             title: entry.displayTitle,
-            subtitle: entry.isActive ? "В процессе..." : entry.durationFormatted,
+            subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
             time: entry.startTime.formatted(.dateTime.hour().minute()),
             trailing: entry.startTime.formatted(.dateTime.day().month())
         )
@@ -204,11 +301,14 @@ struct FeedingEntryRow: View {
 struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @State private var selectedType: FeedingEntry.FeedingType = .breast
+    @State private var selectedType: FeedingEntry.FeedingType
     @State private var selectedSide: FeedingEntry.BreastSide = .left
     @State private var volumeML: Double = 0
-    @State private var volumeText = ""
-    @State private var startTimer = true
+    @State private var startTimer = false
+
+    init(initialType: FeedingEntry.FeedingType = .breast) {
+        _selectedType = State(initialValue: initialType)
+    }
 
     var body: some View {
         NavigationStack {
@@ -217,7 +317,7 @@ struct AddFeedingSheet: View {
 
                     // Type selector
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                        Text("Тип кормления")
+                        Text("form.feeding_type".l)
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textPrimary)
 
@@ -230,7 +330,7 @@ struct AddFeedingSheet: View {
                                         Image(systemName: type.icon)
                                             .font(.system(size: 22))
                                             .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.primary)
-                                        Text(type.displayName)
+                                        Text(type.displayName.l)
                                             .font(.system(size: 12, weight: .medium, design: .rounded))
                                             .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
                                     }
@@ -248,7 +348,7 @@ struct AddFeedingSheet: View {
                     // Breast side (if breast)
                     if selectedType == .breast {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            Text("Грудь")
+                            Text("form.breast".l)
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
@@ -259,7 +359,7 @@ struct AddFeedingSheet: View {
                                     } label: {
                                         HStack {
                                             Image(systemName: side.icon)
-                                            Text(side.displayName)
+                                            Text(side.displayName.l)
                                         }
                                         .font(.system(size: 15, weight: .medium, design: .rounded))
                                         .foregroundStyle(selectedSide == side ? .white : BBTheme.Colors.textPrimary)
@@ -278,27 +378,38 @@ struct AddFeedingSheet: View {
                     // Volume (if formula/pumped)
                     if selectedType == .formula || selectedType == .pumped {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            Text("Объём (мл)")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-
-                            TextField("Введите мл", text: $volumeText)
-                                .keyboardType(.numberPad)
-                                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                                .padding(BBTheme.Spacing.md)
-                                .background(BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.md)
-                                .bbShadow(BBTheme.Shadow.card)
+                            HStack {
+                                Text("form.volume_ml".l)
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Spacer()
+                                Text("\(Int(volumeML)) \("unit.ml".l)")
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.feeding)
+                            }
+                            Slider(value: $volumeML, in: 0...500, step: 10)
+                                .tint(BBTheme.Colors.feeding)
+                            HStack {
+                                Text("0")
+                                Spacer()
+                                Text("500 \("unit.ml".l)")
+                            }
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
+                        .padding(BBTheme.Spacing.md)
+                        .background(BBTheme.Colors.surface)
+                        .cornerRadius(BBTheme.Radius.md)
+                        .bbShadow(BBTheme.Shadow.card)
                     }
 
                     // Timer toggle
                     Toggle(isOn: $startTimer) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Запустить таймер")
+                            Text("form.start_timer".l)
                                 .font(.system(size: 16, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Text("Зафиксируйте длительность кормления")
+                            Text("form.timer_hint".l)
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
@@ -310,18 +421,18 @@ struct AddFeedingSheet: View {
                     .bbShadow(BBTheme.Shadow.card)
 
                     // Start button
-                    BBPrimaryButton(startTimer ? "Начать кормление" : "Сохранить", icon: startTimer ? "play.fill" : "checkmark") {
+                    BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l, icon: startTimer ? "play.fill" : "checkmark") {
                         save()
                     }
                 }
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("Новое кормление")
+            .navigationTitle("sheet.new_feeding".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Отмена") { dismiss() }
+                    Button("button.cancel".l) { dismiss() }
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
@@ -329,7 +440,7 @@ struct AddFeedingSheet: View {
     }
 
     private func save() {
-        let ml = Double(volumeText)
+        let ml: Double? = (selectedType == .formula || selectedType == .pumped) ? volumeML : nil
         let entry = FeedingEntry(
             startTime: Date(),
             type: selectedType,
@@ -362,10 +473,10 @@ struct EmptyStateView: View {
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(color.opacity(0.6))
             }
-            Text(title)
+            Text(title.l)
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
-            Text(subtitle)
+            Text(subtitle.l)
                 .font(.system(size: 14, weight: .regular, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
                 .multilineTextAlignment(.center)

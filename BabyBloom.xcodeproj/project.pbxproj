@@ -11,15 +11,19 @@
 		0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */; };
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
 		2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */; };
+		37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
+		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
 		572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB805D407641AF177BE0FD7 /* NotificationService.swift */; };
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
+		5FC6419793C71B2704538F73 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 35CC038C14DBB4D68AC2E233 /* ru.json */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
+		A14EA757A4D4691342173695 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE8685CB2AD18166EE41F8A8 /* Localizable.strings */; };
 		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
 		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
@@ -28,6 +32,7 @@
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
+		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
 /* End PBXBuildFile section */
@@ -68,8 +73,11 @@
 		01F832BBE867DF06E7EE6F2E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		03DCB1384549675BD1DE563D /* BabyBloomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomTests.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
+		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
+		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
+		35CC038C14DBB4D68AC2E233 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEntry.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
 		4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomApp.swift; sourceTree = "<group>"; };
@@ -77,11 +85,14 @@
 		50258D2BEF608D26A2639534 /* CustomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEvent.swift; sourceTree = "<group>"; };
 		524A26B846E0DB91693FCBE6 /* Baby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Baby.swift; sourceTree = "<group>"; };
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		644515209EA60A36FDBED57B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		746386F98BFD0DD10C3A862C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		756CA42B2B02154C7E93929D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BabyBloomWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		82422A5254915B1796A78F89 /* BBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCard.swift; sourceTree = "<group>"; };
+		A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCharts.swift; sourceTree = "<group>"; };
 		A6176EDF7A3620F3F51143E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
@@ -122,6 +133,7 @@
 			children = (
 				4E466FD0062F3779056BB259 /* BBButton.swift */,
 				82422A5254915B1796A78F89 /* BBCard.swift */,
+				A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -192,11 +204,22 @@
 			path = BabyBloomTests;
 			sourceTree = "<group>";
 		};
+		60F5AC726CF1B044A235C50A /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				140757E978AEAF89BAD65699 /* en.json */,
+				35CC038C14DBB4D68AC2E233 /* ru.json */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
 		6739808506A0F7AE578251DB /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				5A003916D83216166C88BE0C /* Assets.xcassets */,
 				A6176EDF7A3620F3F51143E3 /* Info.plist */,
+				EE8685CB2AD18166EE41F8A8 /* Localizable.strings */,
+				60F5AC726CF1B044A235C50A /* Localization */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -224,6 +247,14 @@
 				01F832BBE867DF06E7EE6F2E /* MainTabView.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		77F93CE06E083049FB882844 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */,
+			);
+			path = Localization;
 			sourceTree = "<group>";
 		};
 		893024288CF2BB8807270934 /* Diaper */ = {
@@ -289,6 +320,7 @@
 			isa = PBXGroup;
 			children = (
 				EA5091329F3ECEB4441E6860 /* Extensions */,
+				77F93CE06E083049FB882844 /* Localization */,
 				28C9C1E0E311C9496C19DE5B /* Models */,
 				75B9D7F6367D55D957BA72F9 /* Services */,
 			);
@@ -377,6 +409,7 @@
 			knownRegions = (
 				Base,
 				en,
+				ru,
 			);
 			mainGroup = CE505E1442B8AAE18EE0FAD3;
 			minimizedProjectReferenceProxies = 1;
@@ -398,6 +431,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */,
+				A14EA757A4D4691342173695 /* Localizable.strings in Resources */,
+				4B45B0E6CF5B3905BE60A520 /* en.json in Resources */,
+				5FC6419793C71B2704538F73 /* ru.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -418,6 +454,7 @@
 			files = (
 				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
 				03C7164075FA330097A87835 /* BBCard.swift in Sources */,
+				E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */,
 				45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */,
 				CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */,
 				FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */,
@@ -430,6 +467,7 @@
 				CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */,
 				49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */,
 				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
+				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
 				572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */,
 				B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */,
@@ -460,6 +498,18 @@
 			targetProxy = 367CCF15278947BA0A4C557B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		EE8685CB2AD18166EE41F8A8 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				644515209EA60A36FDBED57B /* en */,
+				746386F98BFD0DD10C3A862C /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		13D5C4E7EE87EFB39AB56C11 /* Debug */ = {

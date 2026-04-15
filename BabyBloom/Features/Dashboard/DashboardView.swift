@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var showQuickFeedingSheet = false
     @State private var showQuickSleepSheet = false
     @State private var showQuickDiaperSheet = false
+    @State private var showQuickEventSheet = false
 
     private var baby: Baby? { babies.first }
 
@@ -39,11 +40,17 @@ struct DashboardView: View {
         sleeps.first(where: { $0.isActive })
     }
 
-    private var recentEvents: [any TimeStampedEvent] {
-        var events: [any TimeStampedEvent] = []
-        events += feedings.prefix(3).map { AnyEvent($0) }
-        events += sleeps.prefix(3).map { AnyEvent($0) }
-        events += diapers.prefix(3).map { AnyEvent($0) }
+    private var recentEvents: [AnyEvent] {
+        var events: [AnyEvent] = []
+        events += feedings.prefix(3).map { entry in
+            AnyEvent(entry, onDelete: { deleteEntry(entry) })
+        }
+        events += sleeps.prefix(3).map { entry in
+            AnyEvent(entry, onDelete: { deleteEntry(entry) })
+        }
+        events += diapers.prefix(3).map { entry in
+            AnyEvent(entry, onDelete: { deleteEntry(entry) })
+        }
         return events.sorted { $0.eventTime > $1.eventTime }.prefix(6).map { $0 }
     }
 
@@ -51,24 +58,13 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    // Header
                     headerSection
-
-                    // Active timers
                     if activeFeeding != nil || activeSleep != nil {
                         activeTimersSection
                     }
-
-                    // Quick actions
                     quickActionsSection
-
-                    // Stats grid
                     statsSection
-
-                    // Progress
                     progressSection
-
-                    // Recent events
                     recentEventsSection
                 }
                 .padding(.horizontal, BBTheme.Spacing.md)
@@ -77,15 +73,10 @@ struct DashboardView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationBarHidden(true)
         }
-        .sheet(isPresented: $showQuickFeedingSheet) {
-            FeedingQuickSheet()
-        }
-        .sheet(isPresented: $showQuickSleepSheet) {
-            SleepQuickSheet()
-        }
-        .sheet(isPresented: $showQuickDiaperSheet) {
-            DiaperQuickSheet()
-        }
+        .sheet(isPresented: $showQuickFeedingSheet) { FeedingQuickSheet() }
+        .sheet(isPresented: $showQuickSleepSheet)   { SleepQuickSheet() }
+        .sheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
+        .sheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
     }
 
     // MARK: - Header
@@ -112,10 +103,7 @@ struct DashboardView: View {
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
             }
-
             Spacer()
-
-            // Avatar
             ZStack {
                 Circle()
                     .fill(
@@ -136,10 +124,10 @@ struct DashboardView: View {
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 0..<6: return "Ночное дежурство 🌙"
-        case 6..<12: return "Доброе утро ☀️"
-        case 12..<18: return "Добрый день 🌤"
-        default: return "Добрый вечер 🌙"
+        case 0..<6:  return "greeting.night".l
+        case 6..<12: return "greeting.morning".l
+        case 12..<18: return "greeting.afternoon".l
+        default:     return "greeting.evening".l
         }
     }
 
@@ -150,7 +138,7 @@ struct DashboardView: View {
                 ActiveTimerCard(
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
-                    title: "Кормление идёт",
+                    title: "status.feeding_going".l,
                     subtitle: feeding.displayTitle,
                     startTime: feeding.startTime
                 )
@@ -159,8 +147,8 @@ struct DashboardView: View {
                 ActiveTimerCard(
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep,
-                    title: "Ребёнок спит",
-                    subtitle: sleep.type.displayName,
+                    title: "status.baby_sleeping".l,
+                    subtitle: sleep.type.displayName.l,
                     startTime: sleep.startTime
                 )
             }
@@ -170,21 +158,12 @@ struct DashboardView: View {
     // MARK: - Quick Actions
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Быстрый ввод")
-
+            BBSectionHeader(title: "section.quick_input")
             HStack(spacing: 0) {
-                BBQuickActionButton(icon: "heart.fill", title: "Кормление", color: BBTheme.Colors.feeding) {
-                    showQuickFeedingSheet = true
-                }
-                BBQuickActionButton(icon: "moon.fill", title: "Сон", color: BBTheme.Colors.sleep) {
-                    showQuickSleepSheet = true
-                }
-                BBQuickActionButton(icon: "drop.fill", title: "Подгузник", color: BBTheme.Colors.diaper) {
-                    showQuickDiaperSheet = true
-                }
-                BBQuickActionButton(icon: "plus.circle.fill", title: "Событие", color: BBTheme.Colors.events) {
-                    // TODO: events
-                }
+                BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
+                BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
+                BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
+                BBQuickActionButton(icon: "plus.circle.fill", title: "nav.events".l, color: BBTheme.Colors.events)  { showQuickEventSheet = true }
             }
             .padding(BBTheme.Spacing.md)
             .background(BBTheme.Colors.surface)
@@ -196,42 +175,41 @@ struct DashboardView: View {
     // MARK: - Stats Grid
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Сегодня")
-
+            BBSectionHeader(title: "section.today")
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 BBStatCard(
-                    title: "Кормлений",
+                    title: "stat.feedings",
                     value: "\(todayFeedings.count)",
-                    unit: "раз",
+                    unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
                     trend: lastFeedingText
                 )
                 BBStatCard(
-                    title: "Сон",
+                    title: "stat.sleep",
                     value: String(format: "%.1f", totalSleepToday),
-                    unit: "часов",
+                    unit: "unit.hours",
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep
                 )
                 BBStatCard(
-                    title: "Подгузников",
+                    title: "stat.diapers",
                     value: "\(todayDiapers.count)",
-                    unit: "шт",
+                    unit: "unit.pcs",
                     icon: "drop.fill",
                     color: BBTheme.Colors.diaper
                 )
                 if let latest = growthEntries.first {
                     BBStatCard(
-                        title: "Вес",
+                        title: "stat.weight",
                         value: String(format: "%.2f", latest.weightKg ?? 0),
-                        unit: "кг",
+                        unit: "unit.kg",
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth
                     )
                 } else {
                     BBStatCard(
-                        title: "Рост",
+                        title: "tab.growth",
                         value: "—",
                         unit: "",
                         icon: "chart.line.uptrend.xyaxis",
@@ -245,8 +223,8 @@ struct DashboardView: View {
     private var lastFeedingText: String? {
         guard let last = feedings.first else { return nil }
         let mins = Int(Date().timeIntervalSince(last.startTime) / 60)
-        if mins < 60 { return "\(mins) мин назад" }
-        return "\(mins / 60) ч назад"
+        if mins < 60 { return String(format: "stats.min_ago".l, mins) }
+        return String(format: "stats.h_ago".l, mins / 60)
     }
 
     // MARK: - Progress
@@ -256,40 +234,18 @@ struct DashboardView: View {
             let targetFeedings: Double = ageMonths < 1 ? 10 : (ageMonths < 3 ? 8 : 6)
             let targetSleep: Double = ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
 
-            BBProgressCard(
-                title: "Кормления",
-                current: Double(todayFeedings.count),
-                target: targetFeedings,
-                unit: "раз",
-                color: BBTheme.Colors.feeding,
-                icon: "heart.fill"
-            )
-            BBProgressCard(
-                title: "Сон",
-                current: totalSleepToday,
-                target: targetSleep,
-                unit: "ч",
-                color: BBTheme.Colors.sleep,
-                icon: "moon.fill"
-            )
-            BBProgressCard(
-                title: "Подгузники",
-                current: Double(todayDiapers.count),
-                target: ageMonths < 1 ? 8 : 6,
-                unit: "шт",
-                color: BBTheme.Colors.diaper,
-                icon: "drop.fill"
-            )
+            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: targetFeedings, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
+            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: targetSleep, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
+            BBProgressCard(title: "nav.diapers", current: Double(todayDiapers.count), target: ageMonths < 1 ? 8 : 6, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
     }
 
     // MARK: - Recent Events
     private var recentEventsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "Последние события")
-
+            BBSectionHeader(title: "section.recent_events")
             if recentEvents.isEmpty {
-                Text("Нет записей за сегодня. Нажмите кнопку выше, чтобы добавить первую запись.")
+                Text("empty.today_no_records".l)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -301,12 +257,19 @@ struct DashboardView: View {
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
                     ForEach(recentEvents.indices, id: \.self) { index in
-                        recentEvents[index].rowView
+                        SwipeToDeleteRow(onDelete: recentEvents[index].deleteAction) {
+                            recentEvents[index].rowView
+                        }
                     }
                 }
             }
         }
     }
+
+    // MARK: - Delete
+    private func deleteEntry(_ entry: FeedingEntry) { modelContext.delete(entry); try? modelContext.save() }
+    private func deleteEntry(_ entry: SleepEntry)   { modelContext.delete(entry); try? modelContext.save() }
+    private func deleteEntry(_ entry: DiaperEntry)  { modelContext.delete(entry); try? modelContext.save() }
 }
 
 // MARK: - Active Timer Card
@@ -330,7 +293,6 @@ struct ActiveTimerCard: View {
                     .font(.system(size: 20))
                     .foregroundStyle(color)
             }
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
@@ -339,9 +301,7 @@ struct ActiveTimerCard: View {
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
-
             Spacer()
-
             Text(elapsedFormatted)
                 .font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit())
                 .foregroundStyle(color)
@@ -349,13 +309,8 @@ struct ActiveTimerCard: View {
         .padding(BBTheme.Spacing.md)
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
-        .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                .stroke(color.opacity(0.3), lineWidth: 1.5)
-        )
-        .onReceive(timer) { _ in
-            elapsed = Date().timeIntervalSince(startTime)
-        }
+        .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
+        .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(startTime) }
         .onAppear { elapsed = Date().timeIntervalSince(startTime) }
     }
 
@@ -375,60 +330,52 @@ protocol TimeStampedEvent {
 struct AnyEvent: TimeStampedEvent {
     let eventTime: Date
     let rowView: AnyView
+    let deleteAction: () -> Void
 
-    init(_ feeding: FeedingEntry) {
+    init(_ feeding: FeedingEntry, onDelete: @escaping () -> Void) {
         self.eventTime = feeding.startTime
-        self.rowView = AnyView(
-            BBEventRow(
-                icon: "heart.fill",
-                iconColor: BBTheme.Colors.feeding,
-                title: feeding.displayTitle,
-                subtitle: feeding.isActive ? "В процессе..." : feeding.durationFormatted,
-                time: feeding.startTime.formatted(.dateTime.hour().minute())
-            )
-        )
+        self.deleteAction = onDelete
+        self.rowView = AnyView(BBEventRow(
+            icon: "heart.fill",
+            iconColor: BBTheme.Colors.feeding,
+            title: feeding.displayTitle,
+            subtitle: feeding.isActive ? "status.feeding_active".l : feeding.durationFormatted,
+            time: feeding.startTime.formatted(.dateTime.hour().minute())
+        ))
     }
 
-    init(_ sleep: SleepEntry) {
+    init(_ sleep: SleepEntry, onDelete: @escaping () -> Void) {
         self.eventTime = sleep.startTime
-        self.rowView = AnyView(
-            BBEventRow(
-                icon: "moon.fill",
-                iconColor: BBTheme.Colors.sleep,
-                title: sleep.type.displayName,
-                subtitle: sleep.isActive ? "Спит сейчас..." : sleep.durationFormatted,
-                time: sleep.startTime.formatted(.dateTime.hour().minute())
-            )
-        )
+        self.deleteAction = onDelete
+        self.rowView = AnyView(BBEventRow(
+            icon: "moon.fill",
+            iconColor: BBTheme.Colors.sleep,
+            title: sleep.type.displayName.l,
+            subtitle: sleep.isActive ? "status.sleeping_now".l : sleep.durationFormatted,
+            time: sleep.startTime.formatted(.dateTime.hour().minute())
+        ))
     }
 
-    init(_ diaper: DiaperEntry) {
+    init(_ diaper: DiaperEntry, onDelete: @escaping () -> Void) {
         self.eventTime = diaper.time
-        self.rowView = AnyView(
-            BBEventRow(
-                icon: "drop.fill",
-                iconColor: BBTheme.Colors.diaper,
-                title: diaper.displayTitle,
-                subtitle: diaper.color?.displayName ?? "",
-                time: diaper.time.formatted(.dateTime.hour().minute())
-            )
-        )
+        self.deleteAction = onDelete
+        self.rowView = AnyView(BBEventRow(
+            icon: "drop.fill",
+            iconColor: BBTheme.Colors.diaper,
+            title: diaper.displayTitle,
+            subtitle: diaper.color?.displayName.l ?? "",
+            time: diaper.time.formatted(.dateTime.hour().minute())
+        ))
     }
 }
 
-// MARK: - Quick Sheets (minimal for dashboard)
+// MARK: - Quick Sheets
 struct FeedingQuickSheet: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         NavigationStack {
             FeedingView()
-                .navigationTitle("Кормление")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Закрыть") { dismiss() }
-                    }
-                }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
         }
     }
 }
@@ -438,13 +385,7 @@ struct SleepQuickSheet: View {
     var body: some View {
         NavigationStack {
             SleepView()
-                .navigationTitle("Сон")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Закрыть") { dismiss() }
-                    }
-                }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
         }
     }
 }
@@ -454,13 +395,7 @@ struct DiaperQuickSheet: View {
     var body: some View {
         NavigationStack {
             DiaperView()
-                .navigationTitle("Подгузник")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Закрыть") { dismiss() }
-                    }
-                }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
         }
     }
 }

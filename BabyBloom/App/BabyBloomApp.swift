@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct BabyBloomApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("appLanguage") private var appLanguage = "ru"
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -24,14 +25,23 @@ struct BabyBloomApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                MainTabView()
+            Group {
+                if hasCompletedOnboarding {
+                    MainTabView()
+                        .preferredColorScheme(nil)
+                } else {
+                    OnboardingView(onComplete: {
+                        hasCompletedOnboarding = true
+                    })
                     .preferredColorScheme(nil)
-            } else {
-                OnboardingView(onComplete: {
-                    hasCompletedOnboarding = true
-                })
-                .preferredColorScheme(nil)
+                }
+            }
+            .id(appLanguage)
+            .onAppear {
+                LocalizationManager.shared.setLanguage(appLanguage)
+            }
+            .onChange(of: appLanguage) { _, newValue in
+                LocalizationManager.shared.setLanguage(newValue)
             }
         }
         .modelContainer(sharedModelContainer)

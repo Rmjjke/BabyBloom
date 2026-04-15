@@ -27,6 +27,8 @@ targets:
           - "**/.DS_Store"
     resources:
       - path: BabyBloom/Resources/Assets.xcassets
+      - path: BabyBloom/Resources/Localization
+        buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.babybloom.app
       INFOPLIST_FILE: BabyBloom/Resources/Info.plist
