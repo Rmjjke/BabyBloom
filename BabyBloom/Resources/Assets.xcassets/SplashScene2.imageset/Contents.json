@@ -1,0 +1,23 @@
+{
+  "images": [
+    {
+      "filename": "SplashScene2.png",
+      "idiom": "universal",
+      "scale": "1x"
+    },
+    {
+      "filename": "SplashScene2@2x.png",
+      "idiom": "universal",
+      "scale": "2x"
+    },
+    {
+      "filename": "SplashScene2@3x.png",
+      "idiom": "universal",
+      "scale": "3x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

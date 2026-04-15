@@ -21,6 +21,7 @@
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
 		5FC6419793C71B2704538F73 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 35CC038C14DBB4D68AC2E233 /* ru.json */; };
+		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
 		A14EA757A4D4691342173695 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE8685CB2AD18166EE41F8A8 /* Localizable.strings */; };
@@ -77,6 +78,7 @@
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
+		32ED719AD860A85B4498F539 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		35CC038C14DBB4D68AC2E233 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEntry.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
@@ -105,6 +107,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		01DFC2F72C0D5C0408FD753E /* Splash */ = {
+			isa = PBXGroup;
+			children = (
+				32ED719AD860A85B4498F539 /* SplashView.swift */,
+			);
+			path = Splash;
+			sourceTree = "<group>";
+		};
 		149B6A330624519CAFEC5B20 /* BabyBloomWidget */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +134,7 @@
 				6DFB21261F800A5C3DC87E17 /* Growth */,
 				D851906517EB5B72EE7C1409 /* Onboarding */,
 				91064D7429990DB8A739AB65 /* Sleep */,
+				01DFC2F72C0D5C0408FD753E /* Splash */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -473,6 +484,7 @@
 				B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */,
 				40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */,
 				9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */,
+				73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
