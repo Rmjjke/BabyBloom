@@ -1,0 +1,748 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03C7164075FA330097A87835 /* BBCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82422A5254915B1796A78F89 /* BBCard.swift */; };
+		0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */; };
+		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
+		2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */; };
+		3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
+		40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
+		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
+		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
+		572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB805D407641AF177BE0FD7 /* NotificationService.swift */; };
+		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
+		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
+		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
+		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
+		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
+		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
+		BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4832FE37F4C6031CD491FC1 /* EventsView.swift */; };
+		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
+		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
+		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
+		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
+		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
+		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		367CCF15278947BA0A4C557B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 922BA19260D5394951FA96E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ECF575830BB605F17ED07516;
+			remoteInfo = BabyBloom;
+		};
+		9C5B30E0ED4C01AF8040ADC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 922BA19260D5394951FA96E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1783A135DACD15C119109A60;
+			remoteInfo = BabyBloomWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		83CE97F8D83911DAF538D5BF /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		010391C632EC1AAB7BD0D0CB /* FeedingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingView.swift; sourceTree = "<group>"; };
+		01F832BBE867DF06E7EE6F2E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		03DCB1384549675BD1DE563D /* BabyBloomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomTests.swift; sourceTree = "<group>"; };
+		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
+		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
+		1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
+		3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEntry.swift; sourceTree = "<group>"; };
+		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
+		4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomApp.swift; sourceTree = "<group>"; };
+		4E466FD0062F3779056BB259 /* BBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBButton.swift; sourceTree = "<group>"; };
+		50258D2BEF608D26A2639534 /* CustomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEvent.swift; sourceTree = "<group>"; };
+		524A26B846E0DB91693FCBE6 /* Baby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Baby.swift; sourceTree = "<group>"; };
+		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		756CA42B2B02154C7E93929D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BabyBloomWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		82422A5254915B1796A78F89 /* BBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCard.swift; sourceTree = "<group>"; };
+		A6176EDF7A3620F3F51143E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
+		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
+		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
+		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
+		E13B287AD50BA47C84999317 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EEB805D407641AF177BE0FD7 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		149B6A330624519CAFEC5B20 /* BabyBloomWidget */ = {
+			isa = PBXGroup;
+			children = (
+				C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */,
+				E13B287AD50BA47C84999317 /* Info.plist */,
+			);
+			path = BabyBloomWidget;
+			sourceTree = "<group>";
+		};
+		17540F66815E1EE0F0BAADBD /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				EF21AD435913022A2133F46A /* Dashboard */,
+				893024288CF2BB8807270934 /* Diaper */,
+				389AD0CB35706DC0F776B43A /* Events */,
+				3C24252EDB4A4D826AD7218A /* Feeding */,
+				6DFB21261F800A5C3DC87E17 /* Growth */,
+				D851906517EB5B72EE7C1409 /* Onboarding */,
+				91064D7429990DB8A739AB65 /* Sleep */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		222DE017E594D98F05EB951F /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				4E466FD0062F3779056BB259 /* BBButton.swift */,
+				82422A5254915B1796A78F89 /* BBCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		237F02AA95883162FD7039DD /* {Components} */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "{Components}";
+			sourceTree = "<group>";
+		};
+		28C9C1E0E311C9496C19DE5B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				524A26B846E0DB91693FCBE6 /* Baby.swift */,
+				50258D2BEF608D26A2639534 /* CustomEvent.swift */,
+				F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */,
+				C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */,
+				445916578FF3112912C0E02D /* GrowthEntry.swift */,
+				3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2D2C9BFC44AE66EF909BCBA7 /* BabyBloom */ = {
+			isa = PBXGroup;
+			children = (
+				7644C105FD97171A61C50F78 /* App */,
+				F6FA1ADAA53F1B6620BF953B /* Core */,
+				3C9DD7E8B5B3311A24E9F7DB /* DesignSystem */,
+				17540F66815E1EE0F0BAADBD /* Features */,
+				6739808506A0F7AE578251DB /* Resources */,
+			);
+			path = BabyBloom;
+			sourceTree = "<group>";
+		};
+		389AD0CB35706DC0F776B43A /* Events */ = {
+			isa = PBXGroup;
+			children = (
+				B4832FE37F4C6031CD491FC1 /* EventsView.swift */,
+			);
+			path = Events;
+			sourceTree = "<group>";
+		};
+		3C24252EDB4A4D826AD7218A /* Feeding */ = {
+			isa = PBXGroup;
+			children = (
+				010391C632EC1AAB7BD0D0CB /* FeedingView.swift */,
+			);
+			path = Feeding;
+			sourceTree = "<group>";
+		};
+		3C9DD7E8B5B3311A24E9F7DB /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				141E9D25B87B2C358EFCE05E /* BBTheme.swift */,
+				237F02AA95883162FD7039DD /* {Components} */,
+				222DE017E594D98F05EB951F /* Components */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		41995158B343DA1FF9CAB2F3 /* BabyBloomTests */ = {
+			isa = PBXGroup;
+			children = (
+				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
+			);
+			path = BabyBloomTests;
+			sourceTree = "<group>";
+		};
+		6739808506A0F7AE578251DB /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5A003916D83216166C88BE0C /* Assets.xcassets */,
+				A6176EDF7A3620F3F51143E3 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		6DFB21261F800A5C3DC87E17 /* Growth */ = {
+			isa = PBXGroup;
+			children = (
+				0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */,
+			);
+			path = Growth;
+			sourceTree = "<group>";
+		};
+		75B9D7F6367D55D957BA72F9 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				EEB805D407641AF177BE0FD7 /* NotificationService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		7644C105FD97171A61C50F78 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */,
+				01F832BBE867DF06E7EE6F2E /* MainTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		893024288CF2BB8807270934 /* Diaper */ = {
+			isa = PBXGroup;
+			children = (
+				1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */,
+			);
+			path = Diaper;
+			sourceTree = "<group>";
+		};
+		8CFD0A01BB430C53661F3F10 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */,
+				DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */,
+				78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		91064D7429990DB8A739AB65 /* Sleep */ = {
+			isa = PBXGroup;
+			children = (
+				DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */,
+			);
+			path = Sleep;
+			sourceTree = "<group>";
+		};
+		CE505E1442B8AAE18EE0FAD3 = {
+			isa = PBXGroup;
+			children = (
+				2D2C9BFC44AE66EF909BCBA7 /* BabyBloom */,
+				41995158B343DA1FF9CAB2F3 /* BabyBloomTests */,
+				149B6A330624519CAFEC5B20 /* BabyBloomWidget */,
+				8CFD0A01BB430C53661F3F10 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D851906517EB5B72EE7C1409 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				7F983790E90D48BBE646AF78 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		EA5091329F3ECEB4441E6860 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		EF21AD435913022A2133F46A /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				756CA42B2B02154C7E93929D /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		F6FA1ADAA53F1B6620BF953B /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				EA5091329F3ECEB4441E6860 /* Extensions */,
+				28C9C1E0E311C9496C19DE5B /* Models */,
+				75B9D7F6367D55D957BA72F9 /* Services */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00D95F5EE2E8B681F336DE2C /* BabyBloomTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E951EC46E7588ECFF33F37FD /* Build configuration list for PBXNativeTarget "BabyBloomTests" */;
+			buildPhases = (
+				E9F5D1EE45BD8820F3C0894C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36484089DB8FAE83EEE9E52E /* PBXTargetDependency */,
+			);
+			name = BabyBloomTests;
+			packageProductDependencies = (
+			);
+			productName = BabyBloomTests;
+			productReference = DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1783A135DACD15C119109A60 /* BabyBloomWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0ADA1710D1E281DDC29D03B5 /* Build configuration list for PBXNativeTarget "BabyBloomWidget" */;
+			buildPhases = (
+				2F2C1BD2D3C3A9D6BD951E28 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BabyBloomWidget;
+			packageProductDependencies = (
+			);
+			productName = BabyBloomWidget;
+			productReference = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		ECF575830BB605F17ED07516 /* BabyBloom */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7D9A3D25B5AC4B427F8FE10B /* Build configuration list for PBXNativeTarget "BabyBloom" */;
+			buildPhases = (
+				4B3558915ABF2353ADB81A8C /* Sources */,
+				4C004AB52023ABDC332BEE8B /* Resources */,
+				83CE97F8D83911DAF538D5BF /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				03FC87CEC7E4155ED09A3F35 /* PBXTargetDependency */,
+			);
+			name = BabyBloom;
+			packageProductDependencies = (
+			);
+			productName = BabyBloom;
+			productReference = 71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		922BA19260D5394951FA96E0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					1783A135DACD15C119109A60 = {
+						ProvisioningStyle = Automatic;
+					};
+					ECF575830BB605F17ED07516 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A910E85B4A749C8E7FBAE2FE /* Build configuration list for PBXProject "BabyBloom" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CE505E1442B8AAE18EE0FAD3;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8CFD0A01BB430C53661F3F10 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				ECF575830BB605F17ED07516 /* BabyBloom */,
+				00D95F5EE2E8B681F336DE2C /* BabyBloomTests */,
+				1783A135DACD15C119109A60 /* BabyBloomWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4C004AB52023ABDC332BEE8B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2F2C1BD2D3C3A9D6BD951E28 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4B3558915ABF2353ADB81A8C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
+				03C7164075FA330097A87835 /* BBCard.swift in Sources */,
+				45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */,
+				CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */,
+				FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */,
+				3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */,
+				E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */,
+				5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */,
+				AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */,
+				BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */,
+				0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */,
+				CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */,
+				49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */,
+				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
+				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
+				572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */,
+				B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */,
+				40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */,
+				9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E9F5D1EE45BD8820F3C0894C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		03FC87CEC7E4155ED09A3F35 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1783A135DACD15C119109A60 /* BabyBloomWidget */;
+			targetProxy = 9C5B30E0ED4C01AF8040ADC5 /* PBXContainerItemProxy */;
+		};
+		36484089DB8FAE83EEE9E52E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ECF575830BB605F17ED07516 /* BabyBloom */;
+			targetProxy = 367CCF15278947BA0A4C557B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		13D5C4E7EE87EFB39AB56C11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = BabyBloomWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.widget;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		45634FED93A1818248E93051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		57F6F498D257C877549545A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEW_CONTENT = YES;
+				INFOPLIST_FILE = BabyBloom/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5E82EDD754178737A4088C27 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		6CD6E641EEFA1F6E8091801D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabyBloom.app/BabyBloom";
+			};
+			name = Debug;
+		};
+		B47C9DCE5735BB3A41A33803 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEW_CONTENT = YES;
+				INFOPLIST_FILE = BabyBloom/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app;
+				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CF207BB8BF7AC6894DA5404A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabyBloom.app/BabyBloom";
+			};
+			name = Release;
+		};
+		D22DD2CE2D2C98E6192D792F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = BabyBloomWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.widget;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0ADA1710D1E281DDC29D03B5 /* Build configuration list for PBXNativeTarget "BabyBloomWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				13D5C4E7EE87EFB39AB56C11 /* Debug */,
+				D22DD2CE2D2C98E6192D792F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7D9A3D25B5AC4B427F8FE10B /* Build configuration list for PBXNativeTarget "BabyBloom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				57F6F498D257C877549545A0 /* Debug */,
+				B47C9DCE5735BB3A41A33803 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A910E85B4A749C8E7FBAE2FE /* Build configuration list for PBXProject "BabyBloom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				45634FED93A1818248E93051 /* Debug */,
+				5E82EDD754178737A4088C27 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E951EC46E7588ECFF33F37FD /* Build configuration list for PBXNativeTarget "BabyBloomTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6CD6E641EEFA1F6E8091801D /* Debug */,
+				CF207BB8BF7AC6894DA5404A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 922BA19260D5394951FA96E0 /* Project object */;
+}
