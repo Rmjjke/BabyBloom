@@ -234,6 +234,7 @@
   "onboarding.fact.body": "Новорождённые нуждаются в кормлении до 12 раз в день. В первые недели помнить каждый раз практически невозможно. BabyBloom записывает всё — одним касанием.",
   "onboarding.fact.cta": "Создать мой трекер",
   "onboarding.gen.title": "Настраиваем BabyBloom…",
+  "onboarding.gen.title_named": "Настраиваем BabyBloom для %@…",
   "onboarding.gen.step1": "Персонализируем трекер кормлений",
   "onboarding.gen.step2": "Настраиваем графики роста по ВОЗ",
   "onboarding.gen.step3": "Подготавливаем аналитику сна",

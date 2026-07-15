@@ -234,6 +234,7 @@
   "onboarding.fact.body": "Newborns need feeding up to 12 times a day. In the first weeks it's nearly impossible to remember every session. BabyBloom logs it all — in one tap.",
   "onboarding.fact.cta": "Build My Tracker",
   "onboarding.gen.title": "Setting up BabyBloom…",
+  "onboarding.gen.title_named": "Setting up BabyBloom for %@…",
   "onboarding.gen.step1": "Personalising your feeding tracker",
   "onboarding.gen.step2": "Setting up WHO growth charts",
   "onboarding.gen.step3": "Preparing sleep insights",
