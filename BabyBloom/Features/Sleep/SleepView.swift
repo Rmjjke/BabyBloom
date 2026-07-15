@@ -189,19 +189,31 @@ struct SleepView: View {
     }
 
     private func stopSleep(_ entry: SleepEntry) {
-        entry.endTime = Date()
+        let endedAt = Date()
+        entry.endTime = endedAt
         try? modelContext.save()
-        NotificationManager.shared.onSleepEnded(ageMonths: baby?.ageInMonths ?? 0)
+        NotificationManager.shared.onSleepEnded(
+            ageMonths: baby?.ageInMonths ?? 0,
+            endedAt: endedAt
+        )
     }
 
     private func delete(_ entry: SleepEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+        )
     }
 
     private func deleteAll(_ items: [SleepEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: remaining.contains { $0.isActive }
+        )
     }
 }
 
@@ -328,7 +340,10 @@ struct AddSleepSheet: View {
         entry.endTime = endTime
         modelContext.insert(entry)
         try? modelContext.save()
-        NotificationManager.shared.onSleepEnded(ageMonths: babies.first?.ageInMonths ?? 0)
+        NotificationManager.shared.onSleepEnded(
+            ageMonths: babies.first?.ageInMonths ?? 0,
+            endedAt: endTime
+        )
         dismiss()
     }
 }

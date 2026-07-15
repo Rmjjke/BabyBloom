@@ -19,6 +19,11 @@ struct FeedingView: View {
         entries.first(where: { $0.isActive })
     }
 
+    /// Start times of the most recent ≤7 feedings, for smart-interval reminders.
+    private var recentFeedingTimes: [Date] {
+        Array(entries.prefix(7).map(\.startTime))
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -181,7 +186,8 @@ struct FeedingView: View {
             NotificationManager.shared.onFeedingSaved(
                 ageMonths: baby?.ageInMonths ?? 0,
                 babyName: baby?.name ?? "baby.default_name".l,
-                isActiveBF: true
+                isActiveBF: true,
+                recentFeedingTimes: recentFeedingTimes
             )
         } else {
             quickAddType = type
@@ -198,11 +204,19 @@ struct FeedingView: View {
     private func delete(_ entry: FeedingEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+        )
     }
 
     private func deleteAll(_ items: [FeedingEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: remaining.contains { $0.isActive }
+        )
     }
 }
 
@@ -281,6 +295,7 @@ struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @State private var selectedType: FeedingEntry.FeedingType
     @State private var selectedSide: FeedingEntry.BreastSide = .left
     @State private var volumeML: Double = 0
@@ -434,7 +449,8 @@ struct AddFeedingSheet: View {
         NotificationManager.shared.onFeedingSaved(
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l,
-            isActiveBF: selectedType == .breast && startTimer
+            isActiveBF: selectedType == .breast && startTimer,
+            recentFeedingTimes: Array(feedings.prefix(7).map(\.startTime))
         )
         dismiss()
     }

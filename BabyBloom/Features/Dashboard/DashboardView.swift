@@ -298,9 +298,28 @@ struct DashboardView: View {
         }
     }
 
-    private func deleteEntry(_ entry: FeedingEntry) { modelContext.delete(entry); try? modelContext.save() }
-    private func deleteEntry(_ entry: SleepEntry)   { modelContext.delete(entry); try? modelContext.save() }
-    private func deleteEntry(_ entry: DiaperEntry)  { modelContext.delete(entry); try? modelContext.save() }
+    private func deleteEntry(_ entry: FeedingEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: feedings.contains { $0 !== entry && $0.isActive }
+        )
+    }
+
+    private func deleteEntry(_ entry: SleepEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: sleeps.contains { $0 !== entry && $0.isActive }
+        )
+    }
+
+    private func deleteEntry(_ entry: DiaperEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
+    }
 }
 
 // MARK: - Active Timer Card

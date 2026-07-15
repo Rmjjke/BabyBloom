@@ -194,11 +194,13 @@ struct DiaperView: View {
     private func delete(_ entry: DiaperEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
     }
 
     private func deleteAll(_ items: [DiaperEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
     }
 }
 
