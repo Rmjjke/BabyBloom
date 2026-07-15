@@ -42,6 +42,9 @@ final class NotificationManager: @unchecked Sendable {
     // MARK: - App lifecycle
 
     func onAppForegrounded() {
+        // Weekly summary is idempotent (fixed ID, cancel-before-add); (re)schedule it
+        // here so users who granted permission after launch still get it.
+        scheduleWeeklySummary()
         guard UserDefaults.standard.bool(forKey: kFirstFeeding) ||
               UserDefaults.standard.bool(forKey: kFirstSleep) else { return }
         let name = storedBabyName
@@ -64,19 +67,11 @@ final class NotificationManager: @unchecked Sendable {
         if isFirst {
             UserDefaults.standard.set(true, forKey: kFirstFeeding)
             scheduleMeasurementsPrompt(babyName: babyName)
-            scheduleDiaperReminderIfNeeded(ageMonths: ageMonths, babyName: babyName)
+            scheduleDiaperReminderIfNeeded(ageMonths: ageMonths, babyName: babyName, isFirstActivation: isFirst)
         }
         // Re-schedule feeding reminder from now.
-        // Smart interval: with ≥3 recent feedings use the measured average + 10 min buffer,
-        // otherwise fall back to the age-based table.
         cancel(.feedingReminder)
-        let smartInterval: TimeInterval?
-        if recentFeedingTimes.count >= 3 {
-            smartInterval = calculateAverageIntervalMinutes(times: recentFeedingTimes) * 60 + 10 * 60
-        } else {
-            smartInterval = feedingInterval(ageMonths: ageMonths)
-        }
-        if let interval = smartInterval {
+        if let interval = feedingReminderInterval(ageMonths: ageMonths, recentFeedingTimes: recentFeedingTimes) {
             post(id: .feedingReminder,
                  title: "notification.feeding_title".l,
                  body:  "notification.feeding_body".l,
@@ -113,7 +108,7 @@ final class NotificationManager: @unchecked Sendable {
         let isFirst = !UserDefaults.standard.bool(forKey: kFirstSleep)
         if isFirst {
             UserDefaults.standard.set(true, forKey: kFirstSleep)
-            scheduleDiaperReminderIfNeeded(ageMonths: ageMonths, babyName: babyName)
+            scheduleDiaperReminderIfNeeded(ageMonths: ageMonths, babyName: babyName, isFirstActivation: isFirst)
         }
         cancel(.sleepWakeWindow)
         cancel(.sleepActive)
@@ -125,15 +120,25 @@ final class NotificationManager: @unchecked Sendable {
     }
 
     /// Call when sleep ends (timer stopped or manual entry with endTime).
-    func onSleepEnded(ageMonths: Int) {
+    /// The wake-window reminder is scheduled relative to `endedAt`, not "now",
+    /// so a sleep logged after the fact still fires at the correct moment.
+    func onSleepEnded(ageMonths: Int, endedAt: Date) {
         cancel(.sleepActive)
         cancel(.sleepWakeWindow)
-        if let ww = wakeWindow(ageMonths: ageMonths) {
-            post(id: .sleepWakeWindow,
-                 title: "notification.sleep_title".l,
-                 body:  "notification.sleep_body".l,
-                 in:    ww)
-        }
+        guard let ww = wakeWindow(ageMonths: ageMonths) else { return }
+        let remaining = ww - Date().timeIntervalSince(endedAt)
+        guard remaining > 0 else { return }
+        post(id: .sleepWakeWindow,
+             title: "notification.sleep_title".l,
+             body:  "notification.sleep_body".l,
+             in:    remaining)
+    }
+
+    /// Deprecated: retained so existing call-sites compile until Workstream C
+    /// wires in the real end time. Assumes the sleep ended just now.
+    @available(*, deprecated, message: "Use onSleepEnded(ageMonths:endedAt:) with the real end time.")
+    func onSleepEnded(ageMonths: Int) {
+        onSleepEnded(ageMonths: ageMonths, endedAt: Date())
     }
 
     // MARK: - Diaper events
@@ -142,6 +147,34 @@ final class NotificationManager: @unchecked Sendable {
     func onDiaperSaved(ageMonths: Int, babyName: String) {
         storeBabyName(babyName)
         scheduleDiaperReminder(ageMonths: ageMonths, babyName: babyName)
+    }
+
+    // MARK: - Delete events
+
+    /// Call when a feeding entry is deleted.
+    /// - Parameter remainingActive: whether an active breastfeeding session still exists.
+    ///   The generic feeding reminder is always cancelled; the active-BF alert is
+    ///   cancelled only when no active session remains.
+    func onFeedingDeleted(remainingActive: Bool) {
+        cancel(.feedingReminder)
+        if !remainingActive {
+            cancel(.feedingActiveBF)
+        }
+    }
+
+    /// Call when a sleep entry is deleted.
+    /// - Parameter remainingActive: whether an active sleep session still exists.
+    ///   The active-sleep and wake-window reminders are cancelled when none remain.
+    func onSleepDeleted(remainingActive: Bool) {
+        if !remainingActive {
+            cancel(.sleepActive)
+            cancel(.sleepWakeWindow)
+        }
+    }
+
+    /// Call when a diaper entry is deleted.
+    func onDiaperDeleted() {
+        cancel(.diaperReminder)
     }
 
     // MARK: - Growth events
@@ -155,13 +188,12 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Private: Diaper
 
-    private func scheduleDiaperReminderIfNeeded(ageMonths: Int, babyName: String) {
-        // Only start diaper reminders once (when first feeding OR sleep is logged)
-        let alreadyActive = UserDefaults.standard.bool(forKey: kFirstFeeding) ||
-                            UserDefaults.standard.bool(forKey: kFirstSleep)
-        if !alreadyActive {
-            scheduleDiaperReminder(ageMonths: ageMonths, babyName: babyName)
-        }
+    /// Start diaper reminders once, on the first feeding OR sleep activation.
+    /// The caller passes `isFirstActivation` because the `kFirstFeeding`/`kFirstSleep`
+    /// flags are already set by the time this runs, so they can't be checked here.
+    private func scheduleDiaperReminderIfNeeded(ageMonths: Int, babyName: String, isFirstActivation: Bool) {
+        guard isFirstActivation else { return }
+        scheduleDiaperReminder(ageMonths: ageMonths, babyName: babyName)
     }
 
     private func scheduleDiaperReminder(ageMonths: Int, babyName: String) {
@@ -201,7 +233,8 @@ final class NotificationManager: @unchecked Sendable {
     }
 
     private func scheduleWeeklySummary() {
-        guard !UserDefaults.standard.bool(forKey: kWeeklyScheduled) else { return }
+        // Idempotent: fixed ID, cancel-before-add. Safe to call repeatedly
+        // (e.g. from onAppForegrounded) so a late-granted permission still gets it.
         UserDefaults.standard.set(true, forKey: kWeeklyScheduled)
         cancel(.engageWeekly)
         let content      = UNMutableNotificationContent()
@@ -249,10 +282,20 @@ final class NotificationManager: @unchecked Sendable {
         return intervals.reduce(0, +) / Double(intervals.count)
     }
 
-    // MARK: - Private: Age-based interval tables
+    // MARK: - Interval tables (internal for @testable access)
+
+    /// Resolved feeding-reminder interval: the measured average (+10 min buffer)
+    /// when ≥3 recent feedings are available, otherwise the age-based table.
+    /// Returns nil when reminders are disabled for this age group.
+    func feedingReminderInterval(ageMonths: Int, recentFeedingTimes: [Date]) -> TimeInterval? {
+        if recentFeedingTimes.count >= 3 {
+            return calculateAverageIntervalMinutes(times: recentFeedingTimes) * 60 + 10 * 60
+        }
+        return feedingInterval(ageMonths: ageMonths)
+    }
 
     /// Returns nil when reminders should be disabled for this age group.
-    private func feedingInterval(ageMonths: Int) -> TimeInterval? {
+    func feedingInterval(ageMonths: Int) -> TimeInterval? {
         switch ageMonths {
         case 0:      return 2.5 * 3600   // 0–4 weeks: every ~2–3 h
         case 1...2:  return 3.0 * 3600
@@ -263,7 +306,7 @@ final class NotificationManager: @unchecked Sendable {
         }
     }
 
-    private func wakeWindow(ageMonths: Int) -> TimeInterval? {
+    func wakeWindow(ageMonths: Int) -> TimeInterval? {
         switch ageMonths {
         case 0:       return 1.0 * 3600
         case 1...2:   return 1.5 * 3600
@@ -275,7 +318,7 @@ final class NotificationManager: @unchecked Sendable {
         }
     }
 
-    private func diaperInterval(ageMonths: Int) -> TimeInterval? {
+    func diaperInterval(ageMonths: Int) -> TimeInterval? {
         switch ageMonths {
         case 0:      return 4 * 3600
         case 1...5:  return 6 * 3600
