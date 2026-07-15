@@ -18,11 +18,6 @@ struct DiaperView: View {
 
     private var isOverNorm: Bool { todayEntries.count > dailyNorm }
 
-    private var filteredEntries: [DiaperEntry] {
-        let cutoff = historyFilter.startDate()
-        return entries.filter { $0.time >= cutoff }
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -172,31 +167,18 @@ struct DiaperView: View {
 
     // MARK: - History
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.history")
-            BBHistoryFilterPicker(selected: $historyFilter)
-
-            if filteredEntries.isEmpty {
-                EmptyStateView(
-                    icon: "drop.fill",
-                    color: BBTheme.Colors.diaper,
-                    title: "empty.no_records",
-                    subtitle: "empty.add_above"
-                )
-            } else {
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filteredEntries) { entry in
-                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
-                            DiaperEntryRow(entry: entry)
-                        }
-                    }
-                }
-
-                BBDeleteHistoryButton {
-                    deleteFiltered()
-                }
-            }
-        }
+        BBHistorySection(
+            entries: entries,
+            filter: $historyFilter,
+            dateKeyPath: \.time,
+            emptyIcon: "drop.fill",
+            emptyColor: BBTheme.Colors.diaper,
+            emptyTitle: "empty.no_records",
+            emptySubtitle: "empty.add_above",
+            row: { DiaperEntryRow(entry: $0) },
+            onDelete: { delete($0) },
+            onDeleteAll: { deleteAll($0) }
+        )
     }
 
     private func quickAdd(_ type: DiaperEntry.DiaperType) {
@@ -205,18 +187,20 @@ struct DiaperView: View {
         try? modelContext.save()
         NotificationManager.shared.onDiaperSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby"
+            babyName: baby?.name ?? "baby.default_name".l
         )
     }
 
     private func delete(_ entry: DiaperEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
     }
 
-    private func deleteFiltered() {
-        filteredEntries.forEach { modelContext.delete($0) }
+    private func deleteAll(_ items: [DiaperEntry]) {
+        items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
     }
 }
 
@@ -422,7 +406,7 @@ struct AddDiaperSheet: View {
         let baby = babies.first
         NotificationManager.shared.onDiaperSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby"
+            babyName: baby?.name ?? "baby.default_name".l
         )
         dismiss()
     }

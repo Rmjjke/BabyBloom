@@ -30,7 +30,7 @@ struct DashboardView: View {
     }
 
     private var totalSleepToday: Double {
-        todaySleeps.reduce(0) { $0 + $1.duration / 3600 }
+        todaySleeps.filter { !$0.isActive }.reduce(0) { $0 + $1.duration / 3600 }
     }
 
     private var activeFeeding: FeedingEntry? {
@@ -41,18 +41,12 @@ struct DashboardView: View {
         sleeps.first(where: { $0.isActive })
     }
 
-    private var recentEvents: [AnyEvent] {
-        var events: [AnyEvent] = []
-        events += feedings.prefix(3).map { entry in
-            AnyEvent(entry, onDelete: { deleteEntry(entry) })
-        }
-        events += sleeps.prefix(3).map { entry in
-            AnyEvent(entry, onDelete: { deleteEntry(entry) })
-        }
-        events += diapers.prefix(3).map { entry in
-            AnyEvent(entry, onDelete: { deleteEntry(entry) })
-        }
-        return events.sorted { $0.eventTime > $1.eventTime }.prefix(6).map { $0 }
+    private var recentEvents: [RecentEvent] {
+        let all: [RecentEvent] =
+            feedings.map(RecentEvent.feeding)
+            + sleeps.map(RecentEvent.sleep)
+            + diapers.map(RecentEvent.diaper)
+        return Array(all.sorted { $0.eventTime > $1.eventTime }.prefix(6))
     }
 
     var body: some View {
@@ -240,9 +234,10 @@ struct DashboardView: View {
 
     // MARK: - Recent Events
     private var recentEventsSection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+        let events = recentEvents
+        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.recent_events")
-            if recentEvents.isEmpty {
+            if events.isEmpty {
                 Text("empty.today_no_records".l)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -254,9 +249,9 @@ struct DashboardView: View {
                     .bbShadow(BBTheme.Shadow.card)
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(recentEvents.indices, id: \.self) { index in
-                        SwipeToDeleteRow(onDelete: recentEvents[index].deleteAction) {
-                            recentEvents[index].rowView
+                    ForEach(events) { event in
+                        SwipeToDeleteRow(onDelete: { delete(event) }) {
+                            row(for: event)
                         }
                     }
                 }
@@ -264,10 +259,67 @@ struct DashboardView: View {
         }
     }
 
+    @ViewBuilder
+    private func row(for event: RecentEvent) -> some View {
+        switch event {
+        case .feeding(let entry):
+            BBEventRow(
+                icon: "heart.fill",
+                iconColor: BBTheme.Colors.feeding,
+                title: entry.displayTitle,
+                subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
+                time: entry.startTime.formatted(.dateTime.hour().minute())
+            )
+        case .sleep(let entry):
+            BBEventRow(
+                icon: "moon.fill",
+                iconColor: BBTheme.Colors.sleep,
+                title: entry.type.displayName.l,
+                subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
+                time: entry.startTime.formatted(.dateTime.hour().minute())
+            )
+        case .diaper(let entry):
+            BBEventRow(
+                icon: "drop.fill",
+                iconColor: BBTheme.Colors.diaper,
+                title: entry.displayTitle,
+                subtitle: entry.color?.displayName.l ?? "",
+                time: entry.time.formatted(.dateTime.hour().minute())
+            )
+        }
+    }
+
     // MARK: - Delete
-    private func deleteEntry(_ entry: FeedingEntry) { modelContext.delete(entry); try? modelContext.save() }
-    private func deleteEntry(_ entry: SleepEntry)   { modelContext.delete(entry); try? modelContext.save() }
-    private func deleteEntry(_ entry: DiaperEntry)  { modelContext.delete(entry); try? modelContext.save() }
+    private func delete(_ event: RecentEvent) {
+        switch event {
+        case .feeding(let entry): deleteEntry(entry)
+        case .sleep(let entry):   deleteEntry(entry)
+        case .diaper(let entry):  deleteEntry(entry)
+        }
+    }
+
+    private func deleteEntry(_ entry: FeedingEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: feedings.contains { $0 !== entry && $0.isActive }
+        )
+    }
+
+    private func deleteEntry(_ entry: SleepEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: sleeps.contains { $0 !== entry && $0.isActive }
+        )
+    }
+
+    private func deleteEntry(_ entry: DiaperEntry) {
+        modelContext.delete(entry)
+        try? modelContext.save()
+        NotificationManager.shared.onDiaperDeleted()
+    }
 }
 
 // MARK: - Active Timer Card
@@ -277,9 +329,6 @@ struct ActiveTimerCard: View {
     let title: String
     let subtitle: String
     let startTime: Date
-
-    @State private var elapsed: TimeInterval = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         HStack(spacing: BBTheme.Spacing.md) {
@@ -300,70 +349,39 @@ struct ActiveTimerCard: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             Spacer()
-            Text(elapsedFormatted)
-                .font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit())
-                .foregroundStyle(color)
+            BBElapsedTimer(
+                startTime: startTime,
+                font: .system(size: 22, weight: .bold, design: .rounded).monospacedDigit(),
+                color: color
+            )
         }
         .padding(BBTheme.Spacing.md)
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
         .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
-        .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(startTime) }
-        .onAppear { elapsed = Date().timeIntervalSince(startTime) }
-    }
-
-    private var elapsedFormatted: String {
-        let mins = Int(elapsed) / 60
-        let secs = Int(elapsed) % 60
-        return String(format: "%02d:%02d", mins, secs)
     }
 }
 
-// MARK: - Event Protocol for Dashboard
-protocol TimeStampedEvent {
-    var eventTime: Date { get }
-    var rowView: AnyView { get }
-}
+// MARK: - Recent Event for Dashboard
+enum RecentEvent: Identifiable {
+    case feeding(FeedingEntry)
+    case sleep(SleepEntry)
+    case diaper(DiaperEntry)
 
-struct AnyEvent: TimeStampedEvent {
-    let eventTime: Date
-    let rowView: AnyView
-    let deleteAction: () -> Void
-
-    init(_ feeding: FeedingEntry, onDelete: @escaping () -> Void) {
-        self.eventTime = feeding.startTime
-        self.deleteAction = onDelete
-        self.rowView = AnyView(BBEventRow(
-            icon: "heart.fill",
-            iconColor: BBTheme.Colors.feeding,
-            title: feeding.displayTitle,
-            subtitle: feeding.isActive ? "status.feeding_active".l : feeding.durationFormatted,
-            time: feeding.startTime.formatted(.dateTime.hour().minute())
-        ))
+    var id: PersistentIdentifier {
+        switch self {
+        case .feeding(let entry): return entry.persistentModelID
+        case .sleep(let entry):   return entry.persistentModelID
+        case .diaper(let entry):  return entry.persistentModelID
+        }
     }
 
-    init(_ sleep: SleepEntry, onDelete: @escaping () -> Void) {
-        self.eventTime = sleep.startTime
-        self.deleteAction = onDelete
-        self.rowView = AnyView(BBEventRow(
-            icon: "moon.fill",
-            iconColor: BBTheme.Colors.sleep,
-            title: sleep.type.displayName.l,
-            subtitle: sleep.isActive ? "status.sleeping_now".l : sleep.durationFormatted,
-            time: sleep.startTime.formatted(.dateTime.hour().minute())
-        ))
-    }
-
-    init(_ diaper: DiaperEntry, onDelete: @escaping () -> Void) {
-        self.eventTime = diaper.time
-        self.deleteAction = onDelete
-        self.rowView = AnyView(BBEventRow(
-            icon: "drop.fill",
-            iconColor: BBTheme.Colors.diaper,
-            title: diaper.displayTitle,
-            subtitle: diaper.color?.displayName.l ?? "",
-            time: diaper.time.formatted(.dateTime.hour().minute())
-        ))
+    var eventTime: Date {
+        switch self {
+        case .feeding(let entry): return entry.startTime
+        case .sleep(let entry):   return entry.startTime
+        case .diaper(let entry):  return entry.time
+        }
     }
 }
 

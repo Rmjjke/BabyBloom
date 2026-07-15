@@ -32,16 +32,21 @@ struct PaywallView: View {
                         activeBadge
                     }
 
-                    // Plan selector
+                    // Plan selector (or load-error retry state)
                     if !store.isPremium {
-                        planSelector
+                        if store.purchaseError != nil && store.monthlyProduct == nil {
+                            loadErrorView
+                        } else {
+                            planSelector
+                        }
                     }
 
                     // Features
                     featuresCard
 
-                    // CTA
-                    if !store.isPremium {
+                    // CTA (hidden while in load-error retry state)
+                    if !store.isPremium
+                        && !(store.purchaseError != nil && store.monthlyProduct == nil) {
                         ctaSection
                     }
 
@@ -68,8 +73,8 @@ struct PaywallView: View {
             showRestoreAlert = new != nil
         }
         .task {
-            await store.loadProducts()
             await store.refreshEntitlements()
+            await reloadProducts()
         }
     }
 
@@ -77,10 +82,7 @@ struct PaywallView: View {
 
     private var heroHeader: some View {
         ZStack {
-            LinearGradient(
-                colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8FD8")],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
+            BBTheme.Colors.premiumGradient
 
             VStack(spacing: BBTheme.Spacing.md) {
                 Image(systemName: "crown.fill")
@@ -128,6 +130,39 @@ struct PaywallView: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(BBTheme.Colors.primary.opacity(0.25), lineWidth: 1.5)
         )
+    }
+
+    // MARK: - Load Error
+
+    private var loadErrorView: some View {
+        VStack(spacing: BBTheme.Spacing.md) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 34))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+            Text("premium.error_load".l)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+            Button {
+                Task { await reloadProducts() }
+            } label: {
+                Text("premium.retry".l)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .padding(.horizontal, BBTheme.Spacing.lg)
+                    .padding(.vertical, 10)
+                    .overlay(
+                        Capsule().stroke(BBTheme.Colors.primary, lineWidth: 1.5)
+                    )
+            }
+            .disabled(store.isLoading)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, BBTheme.Spacing.lg)
+        .padding(.horizontal, BBTheme.Spacing.md)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.lg)
+        .bbShadow(BBTheme.Shadow.card)
     }
 
     // MARK: - Plan Selector
@@ -266,8 +301,16 @@ struct PaywallView: View {
             .disabled(store.isLoading || selectedProduct == nil)
             .opacity(selectedProduct == nil ? 0.5 : 1)
 
-            // Error
-            if let err = store.purchaseError {
+            // Pending approval (Ask to Buy / SCA)
+            if store.purchasePending {
+                Text("premium.pending_message".l)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            // Purchase error (load errors are handled by loadErrorView above)
+            if let err = store.purchaseError, selectedProduct != nil {
                 Text(err)
                     .font(.system(size: 12, design: .rounded))
                     .foregroundStyle(.red)
@@ -306,5 +349,14 @@ struct PaywallView: View {
         selectedID == SubscriptionManager.yearlyID
             ? store.yearlyProduct
             : store.monthlyProduct
+    }
+
+    /// Loads products and, if the yearly plan is unavailable while monthly
+    /// loaded, falls back the selection so the CTA stays enabled.
+    private func reloadProducts() async {
+        await store.loadProducts()
+        if store.yearlyProduct == nil && store.monthlyProduct != nil {
+            selectedID = SubscriptionManager.monthlyID
+        }
     }
 }

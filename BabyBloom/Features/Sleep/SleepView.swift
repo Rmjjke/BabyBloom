@@ -19,14 +19,8 @@ struct SleepView: View {
     }
 
     private var totalSleepToday: TimeInterval {
-        todayEntries.reduce(0) { $0 + $1.duration }
+        todayEntries.filter { !$0.isActive }.reduce(0) { $0 + $1.duration }
     }
-
-    private var filteredEntries: [SleepEntry] {
-        let cutoff = historyFilter.startDate()
-        return entries.filter { $0.startTime >= cutoff }
-    }
-
 
     var body: some View {
         NavigationStack {
@@ -160,38 +154,27 @@ struct SleepView: View {
 
     // MARK: - History
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.history")
-            BBHistoryFilterPicker(selected: $historyFilter)
-
-            if filteredEntries.isEmpty {
-                EmptyStateView(
-                    icon: "moon.fill",
-                    color: BBTheme.Colors.sleep,
-                    title: "empty.no_records",
-                    subtitle: "empty.add_sleep"
+        BBHistorySection(
+            entries: entries,
+            filter: $historyFilter,
+            dateKeyPath: \.startTime,
+            emptyIcon: "moon.fill",
+            emptyColor: BBTheme.Colors.sleep,
+            emptyTitle: "empty.no_records",
+            emptySubtitle: "empty.add_sleep",
+            row: { entry in
+                BBEventRow(
+                    icon: entry.type.icon,
+                    iconColor: BBTheme.Colors.sleep,
+                    title: entry.type.displayName.l,
+                    subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
+                    time: entry.startTime.formatted(.dateTime.hour().minute()),
+                    trailing: entry.startTime.formatted(.dateTime.day().month())
                 )
-            } else {
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filteredEntries) { entry in
-                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
-                            BBEventRow(
-                                icon: entry.type.icon,
-                                iconColor: BBTheme.Colors.sleep,
-                                title: entry.type.displayName.l,
-                                subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
-                                time: entry.startTime.formatted(.dateTime.hour().minute()),
-                                trailing: entry.startTime.formatted(.dateTime.day().month())
-                            )
-                        }
-                    }
-                }
-
-                BBDeleteHistoryButton {
-                    deleteFiltered()
-                }
-            }
-        }
+            },
+            onDelete: { delete($0) },
+            onDeleteAll: { deleteAll($0) }
+        )
     }
 
     private func startSleep(type: SleepEntry.SleepType) {
@@ -200,25 +183,37 @@ struct SleepView: View {
         try? modelContext.save()
         NotificationManager.shared.onSleepStarted(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby",
+            babyName: baby?.name ?? "baby.default_name".l,
             isNight: type == .night
         )
     }
 
     private func stopSleep(_ entry: SleepEntry) {
-        entry.endTime = Date()
+        let endedAt = Date()
+        entry.endTime = endedAt
         try? modelContext.save()
-        NotificationManager.shared.onSleepEnded(ageMonths: baby?.ageInMonths ?? 0)
+        NotificationManager.shared.onSleepEnded(
+            ageMonths: baby?.ageInMonths ?? 0,
+            endedAt: endedAt
+        )
     }
 
     private func delete(_ entry: SleepEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+        )
     }
 
-    private func deleteFiltered() {
-        filteredEntries.forEach { modelContext.delete($0) }
+    private func deleteAll(_ items: [SleepEntry]) {
+        items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
+        NotificationManager.shared.onSleepDeleted(
+            remainingActive: remaining.contains { $0.isActive }
+        )
     }
 }
 
@@ -226,9 +221,6 @@ struct SleepView: View {
 struct SleepTimerCard: View {
     let entry: SleepEntry
     let onStop: () -> Void
-
-    @State private var elapsed: TimeInterval = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
@@ -242,9 +234,7 @@ struct SleepTimerCard: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Spacer()
-                Text(elapsedFormatted)
-                    .font(.system(size: 36, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(BBTheme.Colors.sleep)
+                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.sleep, showsHours: true)
             }
 
             BBPrimaryButton("button.woke_up".l, icon: "sun.max.fill") {
@@ -258,18 +248,6 @@ struct SleepTimerCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(BBTheme.Colors.sleep.opacity(0.3), lineWidth: 1.5)
         )
-        .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(entry.startTime) }
-        .onAppear { elapsed = Date().timeIntervalSince(entry.startTime) }
-    }
-
-    private var elapsedFormatted: String {
-        let hours = Int(elapsed) / 3600
-        let mins = Int(elapsed) % 3600 / 60
-        let secs = Int(elapsed) % 60
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, mins, secs)
-        }
-        return String(format: "%02d:%02d", mins, secs)
     }
 }
 
@@ -362,7 +340,10 @@ struct AddSleepSheet: View {
         entry.endTime = endTime
         modelContext.insert(entry)
         try? modelContext.save()
-        NotificationManager.shared.onSleepEnded(ageMonths: babies.first?.ageInMonths ?? 0)
+        NotificationManager.shared.onSleepEnded(
+            ageMonths: babies.first?.ageInMonths ?? 0,
+            endedAt: endTime
+        )
         dismiss()
     }
 }

@@ -19,9 +19,9 @@ struct FeedingView: View {
         entries.first(where: { $0.isActive })
     }
 
-    private var filteredEntries: [FeedingEntry] {
-        let cutoff = historyFilter.startDate()
-        return entries.filter { $0.startTime >= cutoff }
+    /// Start times of the most recent ≤7 feedings, for smart-interval reminders.
+    private var recentFeedingTimes: [Date] {
+        Array(entries.prefix(7).map(\.startTime))
     }
 
     var body: some View {
@@ -145,7 +145,7 @@ struct FeedingView: View {
     }
 
     private var totalMinutesToday: String {
-        let total = todayEntries.reduce(0.0) { $0 + $1.duration }
+        let total = todayEntries.filter { !$0.isActive }.reduce(0.0) { $0 + $1.duration }
         return "\(Int(total / 60))"
     }
 
@@ -155,7 +155,7 @@ struct FeedingView: View {
             BBSectionHeader(title: "section.weekly_chart")
             BBWeeklyBarChart(
                 valueFor: { date in
-                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }.count)
+                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive }.count)
                 },
                 color: BBTheme.Colors.feeding
             )
@@ -164,31 +164,18 @@ struct FeedingView: View {
 
     // MARK: - History
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.history")
-            BBHistoryFilterPicker(selected: $historyFilter)
-
-            if filteredEntries.isEmpty {
-                EmptyStateView(
-                    icon: "heart.fill",
-                    color: BBTheme.Colors.feeding,
-                    title: "empty.no_records",
-                    subtitle: "empty.add_first_feeding"
-                )
-            } else {
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filteredEntries) { entry in
-                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
-                            FeedingEntryRow(entry: entry)
-                        }
-                    }
-                }
-
-                BBDeleteHistoryButton {
-                    deleteFiltered()
-                }
-            }
-        }
+        BBHistorySection(
+            entries: entries,
+            filter: $historyFilter,
+            dateKeyPath: \.startTime,
+            emptyIcon: "heart.fill",
+            emptyColor: BBTheme.Colors.feeding,
+            emptyTitle: "empty.no_records",
+            emptySubtitle: "empty.add_first_feeding",
+            row: { FeedingEntryRow(entry: $0) },
+            onDelete: { delete($0) },
+            onDeleteAll: { deleteAll($0) }
+        )
     }
 
     private func quickStart(_ type: FeedingEntry.FeedingType) {
@@ -198,8 +185,9 @@ struct FeedingView: View {
             try? modelContext.save()
             NotificationManager.shared.onFeedingSaved(
                 ageMonths: baby?.ageInMonths ?? 0,
-                babyName: baby?.name ?? "Baby",
-                isActiveBF: true
+                babyName: baby?.name ?? "baby.default_name".l,
+                isActiveBF: true,
+                recentFeedingTimes: recentFeedingTimes
             )
         } else {
             quickAddType = type
@@ -216,11 +204,19 @@ struct FeedingView: View {
     private func delete(_ entry: FeedingEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+        )
     }
 
-    private func deleteFiltered() {
-        filteredEntries.forEach { modelContext.delete($0) }
+    private func deleteAll(_ items: [FeedingEntry]) {
+        items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
+        NotificationManager.shared.onFeedingDeleted(
+            remainingActive: remaining.contains { $0.isActive }
+        )
     }
 }
 
@@ -228,9 +224,6 @@ struct FeedingView: View {
 struct FeedingTimerCard: View {
     let entry: FeedingEntry
     let onStop: () -> Void
-
-    @State private var elapsed: TimeInterval = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
@@ -244,9 +237,7 @@ struct FeedingTimerCard: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Spacer()
-                Text(elapsedFormatted)
-                    .font(.system(size: 36, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(BBTheme.Colors.feeding)
+                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.feeding)
             }
 
             // Breast side switcher (for breast feeding)
@@ -280,16 +271,6 @@ struct FeedingTimerCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
         )
-        .onReceive(timer) { _ in
-            elapsed = Date().timeIntervalSince(entry.startTime)
-        }
-        .onAppear { elapsed = Date().timeIntervalSince(entry.startTime) }
-    }
-
-    private var elapsedFormatted: String {
-        let mins = Int(elapsed) / 60
-        let secs = Int(elapsed) % 60
-        return String(format: "%02d:%02d", mins, secs)
     }
 }
 
@@ -314,6 +295,7 @@ struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @State private var selectedType: FeedingEntry.FeedingType
     @State private var selectedSide: FeedingEntry.BreastSide = .left
     @State private var volumeML: Double = 0
@@ -466,8 +448,9 @@ struct AddFeedingSheet: View {
         let baby = babies.first
         NotificationManager.shared.onFeedingSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby",
-            isActiveBF: selectedType == .breast && startTimer
+            babyName: baby?.name ?? "baby.default_name".l,
+            isActiveBF: selectedType == .breast && startTimer,
+            recentFeedingTimes: Array(feedings.prefix(7).map(\.startTime))
         )
         dismiss()
     }
