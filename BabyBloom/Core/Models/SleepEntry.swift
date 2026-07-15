@@ -4,13 +4,14 @@ import SwiftData
 // MARK: - Sleep Entry
 @Model
 final class SleepEntry {
-    var id: UUID
-    var startTime: Date
+    var id: UUID = UUID()
+    var startTime: Date = Date()
     var endTime: Date?
-    var type: SleepType
+    var type: SleepType = SleepType.nap
     var location: SleepLocation?
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
+    var baby: Baby?
 
     init(startTime: Date = Date(), type: SleepType, location: SleepLocation? = nil) {
         self.id = UUID()

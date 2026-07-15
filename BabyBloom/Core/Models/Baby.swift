@@ -4,20 +4,20 @@ import SwiftData
 // MARK: - Baby Profile
 @Model
 final class Baby {
-    var id: UUID
-    var name: String
-    var birthDate: Date
-    var gender: Gender
-    var feedingType: FeedingType
+    var id: UUID = UUID()
+    var name: String = ""
+    var birthDate: Date = Date()
+    var gender: Gender = Gender.female
+    var feedingType: FeedingType = FeedingType.breast
     var photoData: Data?
-    var createdAt: Date
+    var createdAt: Date = Date()
 
     // Relationships
-    @Relationship(deleteRule: .cascade) var feedingEntries: [FeedingEntry] = []
-    @Relationship(deleteRule: .cascade) var sleepEntries: [SleepEntry] = []
-    @Relationship(deleteRule: .cascade) var diaperEntries: [DiaperEntry] = []
-    @Relationship(deleteRule: .cascade) var growthEntries: [GrowthEntry] = []
-    @Relationship(deleteRule: .cascade) var customEvents: [CustomEvent] = []
+    @Relationship(deleteRule: .cascade, inverse: \FeedingEntry.baby) var feedingEntries: [FeedingEntry]? = []
+    @Relationship(deleteRule: .cascade, inverse: \SleepEntry.baby) var sleepEntries: [SleepEntry]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DiaperEntry.baby) var diaperEntries: [DiaperEntry]? = []
+    @Relationship(deleteRule: .cascade, inverse: \GrowthEntry.baby) var growthEntries: [GrowthEntry]? = []
+    @Relationship(deleteRule: .cascade, inverse: \CustomEvent.baby) var customEvents: [CustomEvent]? = []
 
     init(name: String, birthDate: Date, gender: Gender, feedingType: FeedingType) {
         self.id = UUID()

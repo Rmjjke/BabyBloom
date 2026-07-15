@@ -4,15 +4,16 @@ import SwiftData
 // MARK: - Feeding Entry
 @Model
 final class FeedingEntry {
-    var id: UUID
-    var startTime: Date
+    var id: UUID = UUID()
+    var startTime: Date = Date()
     var endTime: Date?
-    var type: FeedingType
+    var type: FeedingType = FeedingType.breast
     var side: BreastSide?
     var volumeML: Double?
     var durationSeconds: Int?
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
+    var baby: Baby?
 
     init(
         startTime: Date = Date(),

@@ -4,12 +4,13 @@ import SwiftData
 // MARK: - Diaper Entry
 @Model
 final class DiaperEntry {
-    var id: UUID
-    var time: Date
-    var type: DiaperType
+    var id: UUID = UUID()
+    var time: Date = Date()
+    var type: DiaperType = DiaperType.wet
     var color: StoolColor?
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
+    var baby: Baby?
 
     init(time: Date = Date(), type: DiaperType, color: StoolColor? = nil, notes: String? = nil) {
         self.id = UUID()

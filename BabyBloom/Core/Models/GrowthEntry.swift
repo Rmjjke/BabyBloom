@@ -4,13 +4,14 @@ import SwiftData
 // MARK: - Growth Entry
 @Model
 final class GrowthEntry {
-    var id: UUID
-    var date: Date
+    var id: UUID = UUID()
+    var date: Date = Date()
     var weightKg: Double?
     var heightCm: Double?
     var headCircumferenceCm: Double?
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
+    var baby: Baby?
 
     init(
         date: Date = Date(),

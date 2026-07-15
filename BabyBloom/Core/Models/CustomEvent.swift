@@ -4,16 +4,17 @@ import SwiftData
 // MARK: - Custom / Misc Event
 @Model
 final class CustomEvent {
-    var id: UUID
-    var time: Date
-    var type: EventType
+    var id: UUID = UUID()
+    var time: Date = Date()
+    var type: EventType = EventType.bath
     var mood: MoodLevel?
     var medicationName: String?
     var medicationDose: String?
     var weatherNote: String?
     var durationMinutes: Int?
     var notes: String?
-    var createdAt: Date
+    var createdAt: Date = Date()
+    var baby: Baby?
 
     init(time: Date = Date(), type: EventType) {
         self.id = UUID()
