@@ -70,23 +70,29 @@ Femtech Wellness iOS — мягкие пастельные тона, округ�
 BabyBloom/
 ├── App/                    # Entry point, navigation
 ├── Core/
-│   ├── Models/             # SwiftData models: Baby, FeedingEntry, SleepEntry...
-│   ├── Services/           # NotificationService
-│   └── Extensions/
+│   ├── Models/             # SwiftData models (CloudKit-compatible): Baby, FeedingEntry...
+│   └── Localization/       # JSON-based LocalizationManager (ru/en)
+├── Services/               # NotificationManager, SubscriptionManager (StoreKit 2)
 ├── DesignSystem/
 │   ├── BBTheme.swift       # Colors, spacing, typography, shadows
-│   └── Components/         # BBButton, BBCard, BBStatCard...
+│   └── Components/         # BBButton, BBCard, BBCharts, BBHistorySection...
 ├── Features/
-│   ├── Onboarding/         # 5-screen onboarding
+│   ├── Onboarding/         # 8-page onboarding (Pages/ + typed steps)
 │   ├── Dashboard/          # Main screen
 │   ├── Feeding/            # Feeding tracker + timer
 │   ├── Sleep/              # Sleep tracker + timeline
 │   ├── Diaper/             # Diaper tracker
-│   ├── Growth/             # Growth charts + WHO percentiles
-│   └── Events/             # Bath, walks, medication, mood
-BabyBloomWidget/            # WidgetKit extension
+│   ├── Growth/             # Growth charts + WHO percentiles (z-score, 0–24 mo)
+│   ├── Events/             # Bath, walks, medication, mood
+│   ├── Export/             # PDF/CSV export (premium)
+│   ├── Premium/            # Paywall, subscriptions
+│   └── Profile/            # Baby profile editing
+BabyBloomWidget/            # WidgetKit extension (live data via App Group)
+WidgetResources/            # Widget copies of localization JSONs (keep in sync!)
 BabyBloomTests/             # Unit tests
 ```
+
+Документация уведомлений: [NOTIFICATIONS.md](NOTIFICATIONS.md). План MVP-работ: [docs/superpowers/plans/](docs/superpowers/plans/).
 
 ## Запуск
 

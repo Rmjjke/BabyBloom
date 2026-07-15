@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import BabyBloom
 
 final class BabyBloomTests: XCTestCase {
@@ -119,5 +120,27 @@ final class BabyBloomTests: XCTestCase {
         XCTAssertEqual(WHOPercentile.percentileLabel(50), "15–50")
         XCTAssertEqual(WHOPercentile.percentileLabel(1), "< 3-й")
         XCTAssertEqual(WHOPercentile.percentileLabel(98), "> 97-го")
+    }
+
+    // MARK: - Schema Validity
+    // Guards the CloudKit-compatibility invariants (defaults on stored
+    // properties, optional inverse relationships): a regression here would
+    // otherwise only surface as a fatalError at app launch.
+    func testModelContainerSchemaIsValid() throws {
+        let schema = Schema([
+            Baby.self,
+            FeedingEntry.self,
+            SleepEntry.self,
+            DiaperEntry.self,
+            GrowthEntry.self,
+            CustomEvent.self
+        ])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        let baby = Baby(name: "Тест", birthDate: Date(), gender: .female, feedingType: .breast)
+        context.insert(baby)
+        try context.save()
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<Baby>()), 1)
     }
 }
