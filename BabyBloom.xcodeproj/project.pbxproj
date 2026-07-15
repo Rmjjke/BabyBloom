@@ -25,6 +25,7 @@
 		6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */; };
 		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
+		9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
 		A14EA757A4D4691342173695 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE8685CB2AD18166EE41F8A8 /* Localizable.strings */; };
@@ -100,6 +101,7 @@
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		644515209EA60A36FDBED57B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportGeneratorTests.swift; sourceTree = "<group>"; };
 		746386F98BFD0DD10C3A862C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		756CA42B2B02154C7E93929D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BabyBloomWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,6 +229,7 @@
 			isa = PBXGroup;
 			children = (
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
+				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
 			);
 			path = BabyBloomTests;
@@ -524,6 +527,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
+				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

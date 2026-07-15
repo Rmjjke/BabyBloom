@@ -342,5 +342,22 @@
   "export.col.height": "Рост",
   "export.col.head": "Голова",
   "export.col.color": "Цвет",
-  "export.col.notes": "Заметки"
+  "export.col.notes": "Заметки",
+  "export.csv.date": "Дата",
+  "export.csv.time": "Время",
+  "export.csv.type": "Тип",
+  "export.csv.side": "Сторона",
+  "export.csv.volume_ml": "Объём (мл)",
+  "export.csv.duration_min": "Длительность (мин)",
+  "export.csv.start": "Начало",
+  "export.csv.end": "Конец",
+  "export.csv.location": "Место",
+  "export.csv.duration_h": "Длительность (ч)",
+  "export.csv.stool_color": "Цвет стула",
+  "export.csv.notes": "Заметки",
+  "export.csv.weight_kg": "Вес (кг)",
+  "export.csv.height_cm": "Рост (см)",
+  "export.csv.head_cm": "Окружность головы (см)",
+  "export.error_title": "Ошибка экспорта",
+  "export.error_body": "Не удалось создать файл экспорта. Попробуйте ещё раз."
 }
