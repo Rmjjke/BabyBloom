@@ -78,6 +78,15 @@ targets:
       - path: BabyBloomWidget
         excludes:
           - "**/.DS_Store"
+      - path: BabyBloom/Core/Models
+        excludes:
+          - "**/.DS_Store"
+      - path: BabyBloom/Core/Localization
+        excludes:
+          - "**/.DS_Store"
+    resources:
+      - path: BabyBloom/Resources/Localization
+        buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.babybloom.app.widget
       INFOPLIST_FILE: BabyBloomWidget/Info.plist

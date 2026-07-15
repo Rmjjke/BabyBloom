@@ -12,9 +12,55 @@ struct BabyBloomEntry: TimelineEntry {
     let isAsleep: Bool
 }
 
+// MARK: - Shared SwiftData Store (App Group)
+/// Lazily-opened, read-only container over the shared App Group store.
+/// Created once per process to avoid re-opening the same store on repeated
+/// timeline reloads. Widget extensions must NOT enable CloudKit sync, so the
+/// container is opened with `cloudKitDatabase: .none`; the app target owns
+/// sync. The models were made CloudKit-compatible in A1, so `.none` reads the
+/// same store without any schema mismatch.
+enum WidgetDataStore {
+    static let appGroupIdentifier = "group.com.babybloom.app"
+
+    private static let schema = Schema([
+        Baby.self, FeedingEntry.self, SleepEntry.self,
+        DiaperEntry.self, GrowthEntry.self, CustomEvent.self
+    ])
+
+    // ModelContainer is Sendable, so this can be a plain (non-isolated) static.
+    static let shared: ModelContainer? = {
+        let config = ModelConfiguration(
+            schema: schema,
+            groupContainer: .identifier(appGroupIdentifier),
+            cloudKitDatabase: .none
+        )
+        return try? ModelContainer(for: schema, configurations: [config])
+    }()
+}
+
 // MARK: - Widget Provider
 struct BabyBloomProvider: TimelineProvider {
     func placeholder(in context: Context) -> BabyBloomEntry {
+        Self.placeholderEntry()
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (BabyBloomEntry) -> Void) {
+        completion(Self.fetchEntry())
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<BabyBloomEntry>) -> Void) {
+        let entry = Self.fetchEntry()
+        // Reload roughly every 15 minutes to keep "time ago" values fresh.
+        let nextUpdate = Date().addingTimeInterval(15 * 60)
+        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
+        completion(timeline)
+    }
+
+    // MARK: Data
+
+    /// Static placeholder used for the widget gallery and as a graceful
+    /// fallback whenever the shared store is unavailable or empty.
+    static func placeholderEntry() -> BabyBloomEntry {
         BabyBloomEntry(
             date: Date(),
             babyName: "Малыш",
@@ -25,23 +71,48 @@ struct BabyBloomProvider: TimelineProvider {
         )
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (BabyBloomEntry) -> Void) {
-        completion(placeholder(in: context))
-    }
+    /// Reads live data from the shared App Group container. Any failure
+    /// (missing App Group, unopenable store, empty database) falls back to the
+    /// placeholder so the widget never crashes.
+    static func fetchEntry() -> BabyBloomEntry {
+        guard let container = WidgetDataStore.shared else {
+            return placeholderEntry()
+        }
+        // A fresh context (not `mainContext`) so this works from any thread the
+        // WidgetKit timeline machinery calls us on, without an actor hop.
+        let ctx = ModelContext(container)
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<BabyBloomEntry>) -> Void) {
-        // Reload every 15 minutes
-        let entry = BabyBloomEntry(
-            date: Date(),
-            babyName: "Малыш",
-            lastFeedingTime: nil,
-            lastSleepDuration: nil,
-            todayFeedingCount: 0,
-            isAsleep: false
+        // Baby profile (first created).
+        var babyDescriptor = FetchDescriptor<Baby>(sortBy: [SortDescriptor(\.createdAt)])
+        babyDescriptor.fetchLimit = 1
+        guard let baby = (try? ctx.fetch(babyDescriptor))?.first else {
+            // No baby set up yet — nothing meaningful to show.
+            return placeholderEntry()
+        }
+
+        // Recent feedings (cap the fetch; only need today's count + the latest).
+        var feedingDescriptor = FetchDescriptor<FeedingEntry>(
+            sortBy: [SortDescriptor(\.startTime, order: .reverse)]
         )
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date()) ?? Date()
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
+        feedingDescriptor.fetchLimit = 50
+        let feedings = (try? ctx.fetch(feedingDescriptor)) ?? []
+        let todayCount = feedings.filter { Calendar.current.isDateInToday($0.startTime) }.count
+
+        // Latest sleep entry.
+        var sleepDescriptor = FetchDescriptor<SleepEntry>(
+            sortBy: [SortDescriptor(\.startTime, order: .reverse)]
+        )
+        sleepDescriptor.fetchLimit = 1
+        let lastSleep = (try? ctx.fetch(sleepDescriptor))?.first
+
+        return BabyBloomEntry(
+            date: Date(),
+            babyName: baby.name.isEmpty ? "Малыш" : baby.name,
+            lastFeedingTime: feedings.first?.startTime,
+            lastSleepDuration: lastSleep?.durationFormatted,
+            todayFeedingCount: todayCount,
+            isAsleep: lastSleep?.isActive ?? false
+        )
     }
 }
 

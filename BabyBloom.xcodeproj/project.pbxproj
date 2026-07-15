@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02CAE4B039DE1A0A44D31600 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		03C7164075FA330097A87835 /* BBCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82422A5254915B1796A78F89 /* BBCard.swift */; };
 		0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */; };
+		1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
+		2545546E391C7F033313B63D /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
 		2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */; };
 		37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
+		4038A39F0C8358CFC87AFFF6 /* FeedingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */; };
 		40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
@@ -24,6 +28,7 @@
 		616AE957C3EFF4537B3958DB /* ExportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6BD8327747E4A21D3AF60A7 /* ExportGenerator.swift */; };
 		6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */; };
 		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
+		7B6FC7DF616E116021B47307 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
@@ -37,6 +42,8 @@
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
+		D5B62D6C3442249FD0AD3BEE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
+		D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
 		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
@@ -493,7 +500,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B6FC7DF616E116021B47307 /* Baby.swift in Sources */,
 				2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */,
+				2545546E391C7F033313B63D /* CustomEvent.swift in Sources */,
+				D5B62D6C3442249FD0AD3BEE /* DiaperEntry.swift in Sources */,
+				4038A39F0C8358CFC87AFFF6 /* FeedingEntry.swift in Sources */,
+				02CAE4B039DE1A0A44D31600 /* GrowthEntry.swift in Sources */,
+				D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */,
+				1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
