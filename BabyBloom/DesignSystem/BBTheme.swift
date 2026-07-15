@@ -26,6 +26,12 @@ enum BBTheme {
         static let diaper = Color(hex: "#F5D6A0")
         static let growth = Color(hex: "#A8D5C2")
         static let events = Color(hex: "#D4A8D5")
+
+        // Premium hero gradient (lavender purple → soft violet)
+        static let premiumGradient = LinearGradient(
+            colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8FD8")],
+            startPoint: .topLeading, endPoint: .bottomTrailing
+        )
     }
 
     // MARK: Typography

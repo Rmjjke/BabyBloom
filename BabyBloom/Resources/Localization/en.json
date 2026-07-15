@@ -279,6 +279,10 @@
   "premium.restore_nothing": "No active subscription found. Make sure you're using the same Apple ID.",
   "premium.terms": "Terms of Use",
   "premium.privacy": "Privacy Policy",
+  "premium.pending_message": "Your purchase is awaiting approval. We'll unlock Premium as soon as it's confirmed.",
+  "premium.error_verification": "Purchase verification failed. Please try again.",
+  "premium.error_load": "Couldn't load subscription options. Check your connection and try again.",
+  "premium.retry": "Retry",
 
   "notification.feeding_title": "Feeding Time 🍼",
   "notification.feeding_body": "Your baby hasn't fed in a while. Don't forget to log the next feeding.",
