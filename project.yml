@@ -90,5 +90,6 @@ targets:
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.babybloom.app.tests
       SWIFT_VERSION: 6.0
+      GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: BabyBloom
