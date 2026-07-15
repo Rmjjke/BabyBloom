@@ -76,64 +76,83 @@ struct ExportGenerator {
         return files
     }
 
+    /// Escapes a single CSV field per RFC 4180: fields containing a comma,
+    /// double-quote or newline are wrapped in quotes with inner quotes doubled.
+    static func csvField(_ raw: String) -> String {
+        if raw.contains(",") || raw.contains("\"") || raw.contains("\n") {
+            return "\"" + raw.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return raw
+    }
+
+    /// Joins fields into one escaped CSV row.
+    private static func csvRow(_ fields: [String]) -> String {
+        fields.map(csvField).joined(separator: ",")
+    }
+
     private static func feedingCSV(_ entries: [FeedingEntry]) -> String {
-        var rows = ["Date,Time,Type,Side,Volume (ml),Duration (min)"]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
+                            "export.csv.side".l, "export.csv.volume_ml".l, "export.csv.duration_min".l])]
         let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
         let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
         for e in entries {
-            let type = e.type.rawValue
-            let side = e.side?.rawValue ?? ""
+            let type = e.type.displayName.l
+            let side = e.side?.displayName.l ?? ""
             let vol  = e.volumeML.map { String(Int($0)) } ?? ""
             let dur  = String(Int(e.duration / 60))
-            rows.append("\(fmt.string(from: e.startTime)),\(tfmt.string(from: e.startTime)),\(type),\(side),\(vol),\(dur)")
+            rows.append(csvRow([fmt.string(from: e.startTime), tfmt.string(from: e.startTime), type, side, vol, dur]))
         }
         return rows.joined(separator: "\n")
     }
 
     private static func sleepCSV(_ entries: [SleepEntry]) -> String {
-        var rows = ["Date,Start,End,Type,Location,Duration (h)"]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.start".l, "export.csv.end".l,
+                            "export.csv.type".l, "export.csv.location".l, "export.csv.duration_h".l])]
         let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
         let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
         for e in entries {
             let end = e.endTime.map { tfmt.string(from: $0) } ?? ""
-            let loc = e.location?.rawValue ?? ""
+            let loc = e.location?.displayName.l ?? ""
             let dur = String(format: "%.2f", e.duration / 3600)
-            rows.append("\(fmt.string(from: e.startTime)),\(tfmt.string(from: e.startTime)),\(end),\(e.type.rawValue),\(loc),\(dur)")
+            rows.append(csvRow([fmt.string(from: e.startTime), tfmt.string(from: e.startTime), end, e.type.displayName.l, loc, dur]))
         }
         return rows.joined(separator: "\n")
     }
 
     private static func diaperCSV(_ entries: [DiaperEntry]) -> String {
-        var rows = ["Date,Time,Type,Stool Color,Notes"]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
+                            "export.csv.stool_color".l, "export.csv.notes".l])]
         let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
         let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
         for e in entries {
-            let color = e.color?.rawValue ?? ""
+            let color = e.color?.displayName.l ?? ""
             let notes = e.notes ?? ""
-            rows.append("\(fmt.string(from: e.time)),\(tfmt.string(from: e.time)),\(e.type.rawValue),\(color),\"\(notes)\"")
+            rows.append(csvRow([fmt.string(from: e.time), tfmt.string(from: e.time), e.type.displayName.l, color, notes]))
         }
         return rows.joined(separator: "\n")
     }
 
     private static func growthCSV(_ entries: [GrowthEntry]) -> String {
-        var rows = ["Date,Weight (kg),Height (cm),Head (cm)"]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.weight_kg".l,
+                            "export.csv.height_cm".l, "export.csv.head_cm".l])]
         let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
         for e in entries {
             let w = e.weightKg.map { String(format: "%.2f", $0) } ?? ""
             let h = e.heightCm.map { String(format: "%.1f", $0) } ?? ""
             let hc = e.headCircumferenceCm.map { String(format: "%.1f", $0) } ?? ""
-            rows.append("\(fmt.string(from: e.date)),\(w),\(h),\(hc)")
+            rows.append(csvRow([fmt.string(from: e.date), w, h, hc]))
         }
         return rows.joined(separator: "\n")
     }
 
     private static func eventsCSV(_ entries: [CustomEvent]) -> String {
-        var rows = ["Date,Time,Type,Notes"]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.time".l,
+                            "export.csv.type".l, "export.csv.notes".l])]
         let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
         let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
         for e in entries {
             let notes = e.notes ?? ""
-            rows.append("\(fmt.string(from: e.time)),\(tfmt.string(from: e.time)),\(e.type.rawValue),\"\(notes)\"")
+            rows.append(csvRow([fmt.string(from: e.time), tfmt.string(from: e.time), e.type.displayName.l, notes]))
         }
         return rows.joined(separator: "\n")
     }
@@ -179,11 +198,11 @@ struct ExportGenerator {
         // Summary stats
         let totalFeedMin = Int(feedings.filter { !$0.isActive }.reduce(0) { $0 + $1.duration } / 60)
         let totalSleepH  = String(format: "%.1f", sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600)
-        let avgFeedPerDay: Double = {
-            guard !feedings.isEmpty else { return 0 }
-            let days = max(1, (range.startDate().map { Calendar.current.dateComponents([.day], from: $0, to: Date()).day ?? 1 } ?? 30))
-            return Double(feedings.count) / Double(days)
-        }()
+        let avgFeedPerDay = averagePerDay(
+            count: feedings.count,
+            range: range,
+            earliest: feedings.map(\.startTime).min()
+        )
 
         var sections = ""
 
@@ -318,7 +337,7 @@ struct ExportGenerator {
         </head>
         <body>
           <div class="header">
-            <h1>BabyBloom — \(babyName)</h1>
+            <h1>BabyBloom — \(htmlEscape(babyName))</h1>
             <p>\("export.pdf.subtitle".l)</p>
             <div class="meta">
               <span>📅 \(rangeLabel)</span>
@@ -333,10 +352,29 @@ struct ExportGenerator {
         """
     }
 
+    /// Escapes HTML-significant characters in user-supplied values. `&` must
+    /// be replaced first so already-escaped entities aren't double-encoded.
+    static func htmlEscape(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "&", with: "&amp;")
+           .replacingOccurrences(of: "<", with: "&lt;")
+           .replacingOccurrences(of: ">", with: "&gt;")
+    }
+
+    /// Average number of entries per day. For a bounded `range` the span is the
+    /// range length; for `.all` it is measured from the earliest entry so the
+    /// figure isn't diluted by an arbitrary 30-day assumption.
+    static func averagePerDay(count: Int, range: ExportDateRange, earliest: Date?, now: Date = Date()) -> Double {
+        guard count > 0 else { return 0 }
+        let start = range.startDate() ?? earliest
+        guard let start else { return Double(count) }
+        let days = max(1, Calendar.current.dateComponents([.day], from: start, to: now).day ?? 1)
+        return Double(count) / Double(days)
+    }
+
     private static func tableSection(title: String, headers: [String], rows: [[String]]) -> String {
-        let ths = headers.map { "<th>\($0)</th>" }.joined()
+        let ths = headers.map { "<th>\(htmlEscape($0))</th>" }.joined()
         let trs = rows.map { row in
-            "<tr>" + row.map { "<td>\($0)</td>" }.joined() + "</tr>"
+            "<tr>" + row.map { "<td>\(htmlEscape($0))</td>" }.joined() + "</tr>"
         }.joined()
         return """
         <div class="card">
@@ -374,14 +412,35 @@ struct ExportGenerator {
 
     // MARK: - Temp file helpers
 
+    /// Dedicated subfolder for generated exports so we can wipe stale files
+    /// without touching the rest of the temp directory.
+    static func exportsDirectory() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("exports", isDirectory: true)
+    }
+
+    /// Removes previously generated export files. Call once before writing a
+    /// new batch so old PDFs/CSVs don't linger or get re-shared.
+    static func cleanupExports() {
+        try? FileManager.default.removeItem(at: exportsDirectory())
+    }
+
+    /// Writes `data` into the exports folder. Returns nil on failure so callers
+    /// never hand a URL to a file that doesn't exist.
     static func writeTempFile(name: String, data: Data) -> URL? {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
-        try? data.write(to: url)
-        return url
+        let dir = exportsDirectory()
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let url = dir.appendingPathComponent(name)
+            try? FileManager.default.removeItem(at: url)
+            try data.write(to: url)
+            return url
+        } catch {
+            return nil
+        }
     }
 
     static func writeTempCSV(name: String, content: String) -> URL? {
-        let data = content.data(using: .utf8) ?? Data()
+        guard let data = content.data(using: .utf8) else { return nil }
         return writeTempFile(name: name, data: data)
     }
 }

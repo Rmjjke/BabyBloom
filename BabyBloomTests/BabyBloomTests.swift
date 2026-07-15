@@ -37,22 +37,22 @@ final class BabyBloomTests: XCTestCase {
         XCTAssertEqual(12.monthWord, "месяцев")
     }
 
-    // MARK: - Notification Service Tests
-    func testAverageIntervalCalculation() async {
-        let service = NotificationService.shared
+    // MARK: - Notification Manager Tests
+    func testAverageIntervalCalculation() {
+        let manager = NotificationManager.shared
         let now = Date()
         let times = [
             now.addingTimeInterval(-3600 * 4),
             now.addingTimeInterval(-3600 * 2),
             now
         ]
-        let avg = await service.calculateAverageIntervalMinutes(times: times)
+        let avg = manager.calculateAverageIntervalMinutes(times: times)
         XCTAssertEqual(avg, 120, accuracy: 1)
     }
 
-    func testAverageIntervalWithSingleEntry() async {
-        let service = NotificationService.shared
-        let avg = await service.calculateAverageIntervalMinutes(times: [Date()])
+    func testAverageIntervalWithSingleEntry() {
+        let manager = NotificationManager.shared
+        let avg = manager.calculateAverageIntervalMinutes(times: [Date()])
         XCTAssertEqual(avg, 120) // default
     }
 

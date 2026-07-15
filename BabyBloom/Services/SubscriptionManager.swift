@@ -24,6 +24,7 @@ final class SubscriptionManager {
     private(set) var isPremium    = false
     private(set) var isLoading    = false
     private(set) var purchaseError: String?
+    private(set) var purchasePending = false
     private(set) var restoreState: RestoreState?
 
     enum RestoreState {
@@ -57,6 +58,7 @@ final class SubscriptionManager {
     func purchase(_ product: Product) async {
         isLoading = true
         purchaseError = nil
+        purchasePending = false
         restoreState = nil
         defer { isLoading = false }
         do {
@@ -69,7 +71,9 @@ final class SubscriptionManager {
             case .userCancelled:
                 break
             case .pending:
-                break
+                // Ask to Buy / Strong Customer Authentication: the purchase is
+                // awaiting external approval. Surface this so the user gets feedback.
+                purchasePending = true
             @unknown default:
                 break
             }
@@ -112,7 +116,7 @@ final class SubscriptionManager {
     // MARK: - Private
 
     private func listenForTransactions() -> Task<Void, Never> {
-        Task.detached(priority: .background) { [weak self] in
+        Task { [weak self] in
             for await result in Transaction.updates {
                 guard case .verified(let tx) = result else { continue }
                 await self?.refreshEntitlements()
@@ -131,5 +135,5 @@ final class SubscriptionManager {
 
 enum SubscriptionError: LocalizedError {
     case verificationFailed
-    var errorDescription: String? { "Purchase verification failed." }
+    var errorDescription: String? { "premium.error_verification".l }
 }

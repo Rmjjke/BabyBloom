@@ -18,6 +18,7 @@ struct ExportView: View {
     @State private var shareItems: [Any] = []
     @State private var showShareSheet = false
     @State private var showEmptyAlert = false
+    @State private var showWriteError = false
 
     private var baby: Baby? { babies.first }
 
@@ -75,6 +76,11 @@ struct ExportView: View {
             Button("button.close".l, role: .cancel) {}
         } message: {
             Text("export.empty_body".l)
+        }
+        .alert("export.error_title".l, isPresented: $showWriteError) {
+            Button("button.close".l, role: .cancel) {}
+        } message: {
+            Text("export.error_body".l)
         }
     }
 
@@ -140,6 +146,8 @@ struct ExportView: View {
 
     private func categoryToggle(_ cat: ExportCategory, isLast: Bool) -> some View {
         let isOn = categories.contains(cat)
+        let count = recordCount(cat)
+        let isEmpty = count == 0
         return Button {
             if isOn { categories.remove(cat) } else { categories.insert(cat) }
         } label: {
@@ -154,15 +162,38 @@ struct ExportView: View {
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
-                Image(systemName: isOn ? "checkmark.square.fill" : "square")
+                if isEmpty {
+                    Text("0")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+                Image(systemName: isOn && !isEmpty ? "checkmark.square.fill" : "square")
                     .font(.system(size: 20))
-                    .foregroundStyle(isOn ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.4))
+                    .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.4))
             }
             .padding(.vertical, 10)
+            .opacity(isEmpty ? 0.4 : 1)
         }
         .buttonStyle(.plain)
+        .disabled(isEmpty)
         if !isLast {
             Divider()
+        }
+    }
+
+    /// Number of records for a category within the currently selected range.
+    private func recordCount(_ cat: ExportCategory) -> Int {
+        let cutoff = selectedRange.startDate()
+        func cnt<T>(_ items: [T], _ date: (T) -> Date) -> Int {
+            guard let cutoff else { return items.count }
+            return items.filter { date($0) >= cutoff }.count
+        }
+        switch cat {
+        case .feeding: return cnt(allFeedings) { $0.startTime }
+        case .sleep:   return cnt(allSleeps)   { $0.startTime }
+        case .diapers: return cnt(allDiapers)  { $0.time }
+        case .growth:  return cnt(allGrowths)  { $0.date }
+        case .events:  return cnt(allEvents)   { $0.time }
         }
     }
 
@@ -212,12 +243,18 @@ struct ExportView: View {
                       !diapers.isEmpty  || !growths.isEmpty || !events.isEmpty
         guard hasData else { showEmptyAlert = true; return }
 
+        // Only export categories that actually have records in this range.
+        let cats = categories.filter { recordCount($0) > 0 }
+        guard !cats.isEmpty else { showEmptyAlert = true; return }
+
         // Capture all values before leaving main actor
         let fmt        = selectedFormat
-        let cats       = categories
         let range      = selectedRange
         let babySnap   = baby
         let slug       = "\(babySlug())_\(rangeSlug())"
+
+        // Wipe stale exports so we never re-share a previous file.
+        ExportGenerator.cleanupExports()
 
         isExporting = true
         Task { @MainActor in
@@ -248,7 +285,12 @@ struct ExportView: View {
 
             isExporting = false
             shareItems = items
-            if !items.isEmpty { showShareSheet = true }
+            // Never hand the share sheet a URL to a file that failed to write.
+            if items.isEmpty {
+                showWriteError = true
+            } else {
+                showShareSheet = true
+            }
         }
     }
 
