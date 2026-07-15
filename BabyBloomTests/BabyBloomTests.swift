@@ -3,6 +3,13 @@ import XCTest
 
 final class BabyBloomTests: XCTestCase {
 
+    override func setUp() {
+        super.setUp()
+        // Pin the language so localized formatters (units, percentile bands) are
+        // deterministic regardless of the host's saved preference.
+        LocalizationManager.shared.setLanguage("ru")
+    }
+
     // MARK: - Baby Model Tests
     func testBabyAgeCalculation() {
         let birthDate = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
@@ -86,9 +93,26 @@ final class BabyBloomTests: XCTestCase {
 
     // MARK: - WHO Percentile Tests
     func testWHOPercentileNormal() {
-        let percentile = WHOPercentile.weightPercentile(ageMonths: 3, weightKg: 6.4, isMale: false)
+        // 6.4 kg is the WHO median weight for a 3-month-old boy → should land near the
+        // 50th percentile (a median weight falls comfortably inside the 40–70 range).
+        let percentile = WHOPercentile.weightPercentile(ageMonths: 3, weightKg: 6.4, isMale: true)
         XCTAssertGreaterThan(percentile, 40)
         XCTAssertLessThan(percentile, 70)
+    }
+
+    func testWHOPercentileAt18Months() {
+        // Regression: before the z-score fix the table stopped at 12 months, so an
+        // 18-month-old was scored against the 12-month median and read far too high.
+        // A median-weight 18-month boy (10.9 kg) must sit near the 50th percentile.
+        let percentile = WHOPercentile.weightPercentile(ageMonths: 18, weightKg: 10.9, isMale: true)
+        XCTAssertGreaterThan(percentile, 30)
+        XCTAssertLessThan(percentile, 70)
+    }
+
+    func testWHOPercentileMedianGirlIs50() {
+        // Sanity check: a median-weight 3-month-old girl (5.8 kg) is the 50th percentile.
+        let percentile = WHOPercentile.weightPercentile(ageMonths: 3, weightKg: 5.8, isMale: false)
+        XCTAssertEqual(percentile, 50, accuracy: 1)
     }
 
     func testWHOPercentileLabel() {
