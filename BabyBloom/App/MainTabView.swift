@@ -138,7 +138,17 @@ struct SettingsView: View {
                 HStack {
                     Label("settings.language".l, systemImage: "globe")
                     Spacer()
-                    Picker("", selection: $appLanguage) {
+                    // Update the localization dictionary BEFORE @AppStorage
+                    // triggers the view-tree rebuild — otherwise views rebuilt
+                    // by .id(appLanguage) (incl. UIKit-cached tab bar items)
+                    // read `.l` from the previous language's dictionary.
+                    Picker("", selection: Binding(
+                        get: { appLanguage },
+                        set: { newValue in
+                            LocalizationManager.shared.setLanguage(newValue)
+                            appLanguage = newValue
+                        }
+                    )) {
                         Text("🇷🇺 Рус").tag("ru")
                         Text("🇬🇧 Eng").tag("en")
                     }
