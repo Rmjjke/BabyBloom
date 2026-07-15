@@ -145,7 +145,7 @@ struct FeedingView: View {
     }
 
     private var totalMinutesToday: String {
-        let total = todayEntries.reduce(0.0) { $0 + $1.duration }
+        let total = todayEntries.filter { !$0.isActive }.reduce(0.0) { $0 + $1.duration }
         return "\(Int(total / 60))"
     }
 
@@ -155,7 +155,7 @@ struct FeedingView: View {
             BBSectionHeader(title: "section.weekly_chart")
             BBWeeklyBarChart(
                 valueFor: { date in
-                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }.count)
+                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive }.count)
                 },
                 color: BBTheme.Colors.feeding
             )

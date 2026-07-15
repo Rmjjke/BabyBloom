@@ -30,7 +30,7 @@ struct DashboardView: View {
     }
 
     private var totalSleepToday: Double {
-        todaySleeps.reduce(0) { $0 + $1.duration / 3600 }
+        todaySleeps.filter { !$0.isActive }.reduce(0) { $0 + $1.duration / 3600 }
     }
 
     private var activeFeeding: FeedingEntry? {

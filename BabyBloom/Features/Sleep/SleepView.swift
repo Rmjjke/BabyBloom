@@ -19,7 +19,7 @@ struct SleepView: View {
     }
 
     private var totalSleepToday: TimeInterval {
-        todayEntries.reduce(0) { $0 + $1.duration }
+        todayEntries.filter { !$0.isActive }.reduce(0) { $0 + $1.duration }
     }
 
     private var filteredEntries: [SleepEntry] {

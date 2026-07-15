@@ -177,7 +177,7 @@ struct ExportGenerator {
         let generatedDate = dateFmt.string(from: Date())
 
         // Summary stats
-        let totalFeedMin = Int(feedings.reduce(0) { $0 + $1.duration } / 60)
+        let totalFeedMin = Int(feedings.filter { !$0.isActive }.reduce(0) { $0 + $1.duration } / 60)
         let totalSleepH  = String(format: "%.1f", sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600)
         let avgFeedPerDay: Double = {
             guard !feedings.isEmpty else { return 0 }
