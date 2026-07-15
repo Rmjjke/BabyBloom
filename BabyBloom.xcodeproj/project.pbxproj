@@ -17,7 +17,6 @@
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
-		572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEB805D407641AF177BE0FD7 /* NotificationService.swift */; };
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
 		5FC6419793C71B2704538F73 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 35CC038C14DBB4D68AC2E233 /* ru.json */; };
@@ -114,7 +113,6 @@
 		DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
 		E13B287AD50BA47C84999317 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E6BD8327747E4A21D3AF60A7 /* ExportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportGenerator.swift; sourceTree = "<group>"; };
-		EEB805D407641AF177BE0FD7 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -172,13 +170,6 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
-		237F02AA95883162FD7039DD /* {Components} */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "{Components}";
-			sourceTree = "<group>";
-		};
 		28C9C1E0E311C9496C19DE5B /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -225,7 +216,6 @@
 			isa = PBXGroup;
 			children = (
 				141E9D25B87B2C358EFCE05E /* BBTheme.swift */,
-				237F02AA95883162FD7039DD /* {Components} */,
 				222DE017E594D98F05EB951F /* Components */,
 			);
 			path = DesignSystem;
@@ -282,14 +272,6 @@
 				347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */,
 			);
 			path = Profile;
-			sourceTree = "<group>";
-		};
-		75B9D7F6367D55D957BA72F9 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				EEB805D407641AF177BE0FD7 /* NotificationService.swift */,
-			);
-			path = Services;
 			sourceTree = "<group>";
 		};
 		7644C105FD97171A61C50F78 /* App */ = {
@@ -362,13 +344,6 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		EA5091329F3ECEB4441E6860 /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
 		EF21AD435913022A2133F46A /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -380,10 +355,8 @@
 		F6FA1ADAA53F1B6620BF953B /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				EA5091329F3ECEB4441E6860 /* Extensions */,
 				77F93CE06E083049FB882844 /* Localization */,
 				28C9C1E0E311C9496C19DE5B /* Models */,
-				75B9D7F6367D55D957BA72F9 /* Services */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -534,7 +507,6 @@
 				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
 				CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */,
-				572FEF62454F6380A66F0466 /* NotificationService.swift in Sources */,
 				B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */,
 				A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */,
 				40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */,

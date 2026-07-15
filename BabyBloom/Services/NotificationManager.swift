@@ -55,7 +55,10 @@ final class NotificationManager: @unchecked Sendable {
     // MARK: - Feeding events
 
     /// Call every time a feeding entry is created.
-    func onFeedingSaved(ageMonths: Int, babyName: String, isActiveBF: Bool) {
+    /// - Parameter recentFeedingTimes: dates of the last ≤7 feedings (supplied by the view).
+    ///   When ≥3 are available, the reminder uses the observed average interval
+    ///   (+10 min buffer); otherwise it falls back to the age-based table.
+    func onFeedingSaved(ageMonths: Int, babyName: String, isActiveBF: Bool, recentFeedingTimes: [Date] = []) {
         storeBabyName(babyName)
         let isFirst = !UserDefaults.standard.bool(forKey: kFirstFeeding)
         if isFirst {
@@ -63,9 +66,17 @@ final class NotificationManager: @unchecked Sendable {
             scheduleMeasurementsPrompt(babyName: babyName)
             scheduleDiaperReminderIfNeeded(ageMonths: ageMonths, babyName: babyName)
         }
-        // Re-schedule feeding reminder from now
+        // Re-schedule feeding reminder from now.
+        // Smart interval: with ≥3 recent feedings use the measured average + 10 min buffer,
+        // otherwise fall back to the age-based table.
         cancel(.feedingReminder)
-        if let interval = feedingInterval(ageMonths: ageMonths) {
+        let smartInterval: TimeInterval?
+        if recentFeedingTimes.count >= 3 {
+            smartInterval = calculateAverageIntervalMinutes(times: recentFeedingTimes) * 60 + 10 * 60
+        } else {
+            smartInterval = feedingInterval(ageMonths: ageMonths)
+        }
+        if let interval = smartInterval {
             post(id: .feedingReminder,
                  title: "notification.feeding_title".l,
                  body:  "notification.feeding_body".l,
@@ -77,7 +88,8 @@ final class NotificationManager: @unchecked Sendable {
             post(id: .feedingActiveBF,
                  title: "notification.feeding_long_title".l,
                  body:  "notification.feeding_long_body".l,
-                 in:    40 * 60)
+                 in:    40 * 60,
+                 timeSensitive: true)
         }
     }
 
@@ -108,7 +120,8 @@ final class NotificationManager: @unchecked Sendable {
         post(id: .sleepActive,
              title: "notification.sleep_active_title".l,
              body:  "notification.sleep_active_body".l,
-             in:    activeSleepInterval(isNight: isNight, ageMonths: ageMonths))
+             in:    activeSleepInterval(isNight: isNight, ageMonths: ageMonths),
+             timeSensitive: true)
     }
 
     /// Call when sleep ends (timer stopped or manual entry with endTime).
@@ -215,6 +228,27 @@ final class NotificationManager: @unchecked Sendable {
         UserDefaults.standard.set(name, forKey: kBabyName)
     }
 
+    // MARK: - Average interval
+
+    /// Average interval (in minutes) between the most recent feedings.
+    /// Uses the last 7 entries, ignores gaps > 8 h, and defaults to 120 min
+    /// when there is not enough usable data. Ported 1:1 from the former
+    /// NotificationService for smart feeding reminders.
+    func calculateAverageIntervalMinutes(times: [Date]) -> Double {
+        guard times.count >= 2 else { return 120 } // default 2h
+        let sorted = times.sorted()
+        let recent = Array(sorted.suffix(7))
+        var intervals: [Double] = []
+        for i in 1..<recent.count {
+            let interval = recent[i].timeIntervalSince(recent[i-1]) / 60
+            if interval > 0 && interval < 480 { // ignore > 8h gaps
+                intervals.append(interval)
+            }
+        }
+        guard !intervals.isEmpty else { return 120 }
+        return intervals.reduce(0, +) / Double(intervals.count)
+    }
+
     // MARK: - Private: Age-based interval tables
 
     /// Returns nil when reminders should be disabled for this age group.
@@ -257,11 +291,14 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Private: Core post / cancel
 
-    private func post(id: NID, title: String, body: String, in seconds: TimeInterval) {
+    private func post(id: NID, title: String, body: String, in seconds: TimeInterval, timeSensitive: Bool = false) {
         let content      = UNMutableNotificationContent()
         content.title    = title
         content.body     = body
         content.sound    = .default
+        if timeSensitive {
+            content.interruptionLevel = .timeSensitive
+        }
         let trigger  = UNTimeIntervalNotificationTrigger(timeInterval: max(1, seconds), repeats: false)
         let request  = UNNotificationRequest(identifier: id.rawValue, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
