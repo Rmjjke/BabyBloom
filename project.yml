@@ -84,8 +84,14 @@ targets:
       - path: BabyBloom/Core/Localization
         excludes:
           - "**/.DS_Store"
-    resources:
-      - path: BabyBloom/Resources/Localization
+      # Separate physical copy of the localization JSONs (kept in sync with
+      # BabyBloom/Resources/Localization). This MUST live in `sources` with
+      # buildPhase: resources — XcodeGen has no target-level `resources` key,
+      # build phases are driven purely by the `sources` scan. A DISTINCT path
+      # outside any other scanned source root is required so XcodeGen does not
+      # dedupe the file references with the app target; otherwise the .appex
+      # gets NO Resources build phase and the widget renders raw i18n keys.
+      - path: WidgetResources/Localization
         buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.babybloom.app.widget
