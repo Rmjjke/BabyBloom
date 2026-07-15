@@ -3,10 +3,13 @@ import SwiftData
 
 struct FeedingView: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var entries: [FeedingEntry]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
     @State private var quickAddType: FeedingEntry.FeedingType = .breast
     @State private var historyFilter: HistoryFilter = .day
+
+    private var baby: Baby? { babies.first }
 
     private var todayEntries: [FeedingEntry] {
         entries.filter { Calendar.current.isDateInToday($0.startTime) }
@@ -19,12 +22,6 @@ struct FeedingView: View {
     private var filteredEntries: [FeedingEntry] {
         let cutoff = historyFilter.startDate()
         return entries.filter { $0.startTime >= cutoff }
-    }
-
-    private var weeklyChartData: [BBWeeklyBarChart.Day] {
-        BBWeeklyBarChart.lastSevenDays { date in
-            Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }.count)
-        }
     }
 
     var body: some View {
@@ -90,24 +87,31 @@ struct FeedingView: View {
                     Button {
                         quickStart(type)
                     } label: {
-                        VStack(spacing: BBTheme.Spacing.sm) {
+                        VStack(spacing: 6) {
                             Image(systemName: type.icon)
-                                .font(.system(size: 28))
+                                .font(.system(size: 22, weight: .medium))
                                 .foregroundStyle(BBTheme.Colors.feeding)
+                                .frame(width: 44, height: 44)
+                                .background(BBTheme.Colors.feeding.opacity(0.15))
+                                .cornerRadius(12)
                             Text(type.displayName.l)
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                             Text(type == .breast ? "button.start".l : "button.add_manually".l)
                                 .font(.system(size: 11, weight: .regular, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .frame(height: 30, alignment: .top)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(BBTheme.Spacing.md)
-                        .background(BBTheme.Colors.feeding.opacity(0.1))
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, BBTheme.Spacing.sm)
+                        .background(BBTheme.Colors.feeding.opacity(0.07))
                         .cornerRadius(BBTheme.Radius.md)
                         .overlay(
                             RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                .stroke(BBTheme.Colors.feeding.opacity(0.4), lineWidth: 1.5)
+                                .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
                         )
                     }
                     .buttonStyle(BBScaleButtonStyle())
@@ -150,7 +154,9 @@ struct FeedingView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.weekly_chart")
             BBWeeklyBarChart(
-                days: weeklyChartData,
+                valueFor: { date in
+                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) }.count)
+                },
                 color: BBTheme.Colors.feeding
             )
         }
@@ -190,6 +196,11 @@ struct FeedingView: View {
             let entry = FeedingEntry(startTime: Date(), type: .breast, side: .left, volumeML: nil)
             modelContext.insert(entry)
             try? modelContext.save()
+            NotificationManager.shared.onFeedingSaved(
+                ageMonths: baby?.ageInMonths ?? 0,
+                babyName: baby?.name ?? "Baby",
+                isActiveBF: true
+            )
         } else {
             quickAddType = type
             showAddSheet = true
@@ -199,6 +210,7 @@ struct FeedingView: View {
     private func stopFeeding(_ entry: FeedingEntry) {
         entry.endTime = Date()
         try? modelContext.save()
+        NotificationManager.shared.onFeedingTimerStopped(ageMonths: baby?.ageInMonths ?? 0)
     }
 
     private func delete(_ entry: FeedingEntry) {
@@ -301,6 +313,7 @@ struct FeedingEntryRow: View {
 struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: FeedingEntry.FeedingType
     @State private var selectedSide: FeedingEntry.BreastSide = .left
     @State private var volumeML: Double = 0
@@ -447,11 +460,15 @@ struct AddFeedingSheet: View {
             side: selectedType == .breast ? selectedSide : nil,
             volumeML: ml
         )
-        if !startTimer {
-            entry.endTime = Date()
-        }
+        if !startTimer { entry.endTime = Date() }
         modelContext.insert(entry)
         try? modelContext.save()
+        let baby = babies.first
+        NotificationManager.shared.onFeedingSaved(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "Baby",
+            isActiveBF: selectedType == .breast && startTimer
+        )
         dismiss()
     }
 }

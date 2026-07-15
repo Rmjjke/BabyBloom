@@ -71,28 +71,32 @@ struct GrowthView: View {
                     value: latest.flatMap { $0.weightKg.map { String(format: "%.2f", $0) } } ?? "—",
                     unit: "unit.kg",
                     icon: "scalemass.fill",
-                    color: BBTheme.Colors.growth
+                    color: BBTheme.Colors.growth,
+                    action: { showAddSheet = true }
                 )
                 BBStatCard(
                     title: "stat.height",
                     value: latest.flatMap { $0.heightCm.map { String(format: "%.1f", $0) } } ?? "—",
                     unit: "unit.cm",
                     icon: "ruler.fill",
-                    color: BBTheme.Colors.primary
+                    color: BBTheme.Colors.primary,
+                    action: { showAddSheet = true }
                 )
                 BBStatCard(
                     title: "stat.head",
                     value: latest.flatMap { $0.headCircumferenceCm.map { String(format: "%.1f", $0) } } ?? "—",
                     unit: "unit.cm",
                     icon: "circle.dotted",
-                    color: BBTheme.Colors.accent
+                    color: BBTheme.Colors.accent,
+                    action: { showAddSheet = true }
                 )
                 BBStatCard(
                     title: "stat.measurements",
                     value: "\(entries.count)",
                     unit: "unit.times",
                     icon: "calendar",
-                    color: BBTheme.Colors.diaper
+                    color: BBTheme.Colors.diaper,
+                    action: { showAddSheet = true }
                 )
             }
         }
@@ -360,9 +364,11 @@ struct PercentileInfoSheet: View {
 struct AddGrowthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @State private var weightText = ""
-    @State private var heightText = ""
-    @State private var headText = ""
+    @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
+    @State private var weightKg: Double = 3.5
+    @State private var heightCm: Double = 50.0
+    @State private var headCm: Double = 34.0
+    @State private var includeHead: Bool = false
     @State private var date = Date()
 
     var body: some View {
@@ -372,9 +378,69 @@ struct AddGrowthSheet: View {
                     Text("📏")
                         .font(.system(size: 48))
 
-                    measureField(title: "form.weight_kg".l, placeholder: "form.weight_placeholder".l, text: $weightText)
-                    measureField(title: "form.height_cm".l, placeholder: "form.height_placeholder".l, text: $heightText)
-                    measureField(title: "form.head_cm".l, placeholder: "form.head_placeholder".l, text: $headText)
+                    measureSlider(
+                        title: "form.weight_kg".l,
+                        value: $weightKg,
+                        in: 1.0...20.0, step: 0.1,
+                        display: String(format: "%.1f \("unit.kg".l)", weightKg),
+                        color: BBTheme.Colors.growth,
+                        minLabel: "1 \("unit.kg".l)",
+                        maxLabel: "20 \("unit.kg".l)"
+                    )
+
+                    measureSlider(
+                        title: "form.height_cm".l,
+                        value: $heightCm,
+                        in: 30.0...130.0, step: 0.5,
+                        display: String(format: "%.0f \("unit.cm".l)", heightCm),
+                        color: BBTheme.Colors.primary,
+                        minLabel: "30 \("unit.cm".l)",
+                        maxLabel: "130 \("unit.cm".l)"
+                    )
+
+                    // Head circumference (optional)
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("form.head_cm".l)
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text("form.notes_optional".l
+                                    .components(separatedBy: "(")
+                                    .dropFirst()
+                                    .first
+                                    .map { "(\($0)" } ?? "")
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $includeHead)
+                                .labelsHidden()
+                                .tint(BBTheme.Colors.accent)
+                        }
+                        if includeHead {
+                            HStack {
+                                Spacer()
+                                Text(String(format: "%.1f \("unit.cm".l)", headCm))
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.accent)
+                            }
+                            Slider(value: $headCm, in: 25.0...55.0, step: 0.5)
+                                .tint(BBTheme.Colors.accent)
+                            HStack {
+                                Text("25 \("unit.cm".l)")
+                                Spacer()
+                                Text("55 \("unit.cm".l)")
+                            }
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                        }
+                    }
+                    .padding(BBTheme.Spacing.md)
+                    .background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md)
+                    .bbShadow(BBTheme.Shadow.card)
+                    .animation(.easeInOut(duration: 0.25), value: includeHead)
 
                     DatePicker("form.measurement_date".l, selection: $date, displayedComponents: .date)
                         .datePickerStyle(.compact)
@@ -385,7 +451,6 @@ struct AddGrowthSheet: View {
                         .bbShadow(BBTheme.Shadow.card)
 
                     BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                        .disabled(weightText.isEmpty && heightText.isEmpty)
                 }
                 .padding(BBTheme.Spacing.md)
             }
@@ -400,30 +465,49 @@ struct AddGrowthSheet: View {
         }
     }
 
-    private func measureField(title: String, placeholder: String, text: Binding<String>) -> some View {
+    private func measureSlider(title: String, value: Binding<Double>,
+                                in range: ClosedRange<Double>, step: Double,
+                                display: String, color: Color,
+                                minLabel: String, maxLabel: String) -> some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            Text(title)
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-            TextField(placeholder, text: text)
-                .keyboardType(.decimalPad)
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .padding(BBTheme.Spacing.md)
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.md)
-                .bbShadow(BBTheme.Shadow.card)
+            HStack {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Spacer()
+                Text(display)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(color)
+            }
+            Slider(value: value, in: range, step: step)
+                .tint(color)
+            HStack {
+                Text(minLabel)
+                Spacer()
+                Text(maxLabel)
+            }
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
         }
+        .padding(BBTheme.Spacing.md)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.md)
+        .bbShadow(BBTheme.Shadow.card)
     }
 
     private func save() {
+        let isFirst = growthEntries.isEmpty
         let entry = GrowthEntry(
             date: date,
-            weightKg: Double(weightText),
-            heightCm: Double(heightText),
-            headCircumferenceCm: Double(headText)
+            weightKg: weightKg,
+            heightCm: heightCm,
+            headCircumferenceCm: includeHead ? headCm : nil
         )
         modelContext.insert(entry)
         try? modelContext.save()
+        if isFirst {
+            NotificationManager.shared.onFirstGrowthEntrySaved()
+        }
         dismiss()
     }
 }

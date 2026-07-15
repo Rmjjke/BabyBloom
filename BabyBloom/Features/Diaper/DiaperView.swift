@@ -3,11 +3,14 @@ import SwiftData
 
 struct DiaperView: View {
     @Query(sort: \DiaperEntry.time, order: .reverse) private var entries: [DiaperEntry]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
     @State private var showNormEditor = false
     @State private var historyFilter: HistoryFilter = .day
     @AppStorage("diaperDailyNorm") private var dailyNorm = 8
+
+    private var baby: Baby? { babies.first }
 
     private var todayEntries: [DiaperEntry] {
         entries.filter { Calendar.current.isDateInToday($0.time) }
@@ -18,12 +21,6 @@ struct DiaperView: View {
     private var filteredEntries: [DiaperEntry] {
         let cutoff = historyFilter.startDate()
         return entries.filter { $0.time >= cutoff }
-    }
-
-    private var weeklyChartData: [BBWeeklyBarChart.Day] {
-        BBWeeklyBarChart.lastSevenDays { date in
-            Double(entries.filter { Calendar.current.isDate($0.time, inSameDayAs: date) }.count)
-        }
     }
 
     var body: some View {
@@ -165,7 +162,9 @@ struct DiaperView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.weekly_chart")
             BBWeeklyBarChart(
-                days: weeklyChartData,
+                valueFor: { date in
+                    Double(entries.filter { Calendar.current.isDate($0.time, inSameDayAs: date) }.count)
+                },
                 color: BBTheme.Colors.diaper
             )
         }
@@ -204,6 +203,10 @@ struct DiaperView: View {
         let entry = DiaperEntry(time: Date(), type: type)
         modelContext.insert(entry)
         try? modelContext.save()
+        NotificationManager.shared.onDiaperSaved(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "Baby"
+        )
     }
 
     private func delete(_ entry: DiaperEntry) {
@@ -316,6 +319,7 @@ struct DiaperEntryRow: View {
 struct AddDiaperSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: DiaperEntry.DiaperType = .wet
     @State private var selectedColor: DiaperEntry.StoolColor? = nil
     @State private var notes = ""
@@ -415,6 +419,11 @@ struct AddDiaperSheet: View {
         let entry = DiaperEntry(time: time, type: selectedType, color: selectedColor, notes: notes.isEmpty ? nil : notes)
         modelContext.insert(entry)
         try? modelContext.save()
+        let baby = babies.first
+        NotificationManager.shared.onDiaperSaved(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "Baby"
+        )
         dismiss()
     }
 }

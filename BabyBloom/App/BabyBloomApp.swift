@@ -6,7 +6,9 @@ struct BabyBloomApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("hasShownSplash") private var hasShownSplash = false
     @AppStorage("appLanguage") private var appLanguage = "ru"
-    @State private var showSplash = false
+
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var subscriptionManager = SubscriptionManager.shared
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -28,10 +30,9 @@ struct BabyBloomApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if showSplash {
+                if !hasShownSplash {
                     SplashView {
                         withAnimation(.easeInOut(duration: 0.4)) {
-                            showSplash = false
                             hasShownSplash = true
                         }
                     }
@@ -41,20 +42,23 @@ struct BabyBloomApp: App {
                 } else {
                     OnboardingView(onComplete: {
                         hasCompletedOnboarding = true
+                        NotificationManager.shared.requestPermission()
                     })
                     .preferredColorScheme(nil)
                 }
             }
             .id(appLanguage)
+            .environment(subscriptionManager)
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
-                // Show splash only on very first launch
-                if !hasShownSplash {
-                    showSplash = true
-                }
             }
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                NotificationManager.shared.onAppForegrounded()
             }
         }
         .modelContainer(sharedModelContainer)

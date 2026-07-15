@@ -57,5 +57,7 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Используется для быстрой разблокировки приложения.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Используется для выбора фото профиля ребёнка.</string>
 </dict>
 </plist>

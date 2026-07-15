@@ -13,6 +13,7 @@ struct DashboardView: View {
     @State private var showQuickSleepSheet = false
     @State private var showQuickDiaperSheet = false
     @State private var showQuickEventSheet = false
+    @State private var showQuickGrowthSheet = false
 
     private var baby: Baby? { babies.first }
 
@@ -77,6 +78,7 @@ struct DashboardView: View {
         .sheet(isPresented: $showQuickSleepSheet)   { SleepQuickSheet() }
         .sheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
         .sheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
+        .sheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
     }
 
     // MARK: - Header
@@ -104,19 +106,10 @@ struct DashboardView: View {
                 }
             }
             Spacer()
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [BBTheme.Colors.accent.opacity(0.5), BBTheme.Colors.primary.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
-                Text(baby?.gender == .male ? "👦" : "👶")
-                    .font(.system(size: 28))
-            }
+            BabyAvatarView(photoData: baby?.photoData,
+                           gender: baby?.gender,
+                           size: 52)
+                .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
         }
         .padding(.top, BBTheme.Spacing.md)
     }
@@ -183,21 +176,24 @@ struct DashboardView: View {
                     unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
-                    trend: lastFeedingText
+                    trend: lastFeedingText,
+                    action: { showQuickFeedingSheet = true }
                 )
                 BBStatCard(
                     title: "stat.sleep",
                     value: String(format: "%.1f", totalSleepToday),
                     unit: "unit.hours",
                     icon: "moon.fill",
-                    color: BBTheme.Colors.sleep
+                    color: BBTheme.Colors.sleep,
+                    action: { showQuickSleepSheet = true }
                 )
                 BBStatCard(
                     title: "stat.diapers",
                     value: "\(todayDiapers.count)",
                     unit: "unit.pcs",
                     icon: "drop.fill",
-                    color: BBTheme.Colors.diaper
+                    color: BBTheme.Colors.diaper,
+                    action: { showQuickDiaperSheet = true }
                 )
                 if let latest = growthEntries.first {
                     BBStatCard(
@@ -205,7 +201,8 @@ struct DashboardView: View {
                         value: String(format: "%.2f", latest.weightKg ?? 0),
                         unit: "unit.kg",
                         icon: "scalemass.fill",
-                        color: BBTheme.Colors.growth
+                        color: BBTheme.Colors.growth,
+                        action: { showQuickGrowthSheet = true }
                     )
                 } else {
                     BBStatCard(
@@ -213,7 +210,8 @@ struct DashboardView: View {
                         value: "—",
                         unit: "",
                         icon: "chart.line.uptrend.xyaxis",
-                        color: BBTheme.Colors.growth
+                        color: BBTheme.Colors.growth,
+                        action: { showQuickGrowthSheet = true }
                     )
                 }
             }

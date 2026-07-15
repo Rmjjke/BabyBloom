@@ -3,9 +3,12 @@ import SwiftData
 
 struct SleepView: View {
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var entries: [SleepEntry]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
+
+    private var baby: Baby? { babies.first }
 
     private var todayEntries: [SleepEntry] {
         entries.filter { Calendar.current.isDateInToday($0.startTime) }
@@ -24,14 +27,6 @@ struct SleepView: View {
         return entries.filter { $0.startTime >= cutoff }
     }
 
-    private var weeklyChartData: [BBWeeklyBarChart.Day] {
-        BBWeeklyBarChart.lastSevenDays { date in
-            let dayEntries = entries.filter {
-                Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive
-            }
-            return dayEntries.reduce(0) { $0 + $1.duration } / 3600
-        }
-    }
 
     var body: some View {
         NavigationStack {
@@ -151,11 +146,14 @@ struct SleepView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.weekly_chart")
             BBWeeklyBarChart(
-                days: weeklyChartData,
+                valueFor: { date in
+                    let dayEntries = entries.filter {
+                        Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive
+                    }
+                    return dayEntries.reduce(0) { $0 + $1.duration } / 3600
+                },
                 color: BBTheme.Colors.sleep,
-                formatValue: { v in
-                    v == 0 ? "0" : String(format: "%.1f", v)
-                }
+                formatValue: { v in v == 0 ? "0" : String(format: "%.1f", v) }
             )
         }
     }
@@ -200,11 +198,17 @@ struct SleepView: View {
         let entry = SleepEntry(startTime: Date(), type: type)
         modelContext.insert(entry)
         try? modelContext.save()
+        NotificationManager.shared.onSleepStarted(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "Baby",
+            isNight: type == .night
+        )
     }
 
     private func stopSleep(_ entry: SleepEntry) {
         entry.endTime = Date()
         try? modelContext.save()
+        NotificationManager.shared.onSleepEnded(ageMonths: baby?.ageInMonths ?? 0)
     }
 
     private func delete(_ entry: SleepEntry) {
@@ -273,6 +277,7 @@ struct SleepTimerCard: View {
 struct AddSleepSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: SleepEntry.SleepType = .nap
     @State private var selectedLocation: SleepEntry.SleepLocation = .crib
     @State private var startTime = Date()
@@ -357,6 +362,7 @@ struct AddSleepSheet: View {
         entry.endTime = endTime
         modelContext.insert(entry)
         try? modelContext.save()
+        NotificationManager.shared.onSleepEnded(ageMonths: babies.first?.ageInMonths ?? 0)
         dismiss()
     }
 }
