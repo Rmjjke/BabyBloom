@@ -311,9 +311,6 @@ struct ActiveTimerCard: View {
     let subtitle: String
     let startTime: Date
 
-    @State private var elapsed: TimeInterval = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
     var body: some View {
         HStack(spacing: BBTheme.Spacing.md) {
             ZStack {
@@ -333,22 +330,16 @@ struct ActiveTimerCard: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             Spacer()
-            Text(elapsedFormatted)
-                .font(.system(size: 22, weight: .bold, design: .rounded).monospacedDigit())
-                .foregroundStyle(color)
+            BBElapsedTimer(
+                startTime: startTime,
+                font: .system(size: 22, weight: .bold, design: .rounded).monospacedDigit(),
+                color: color
+            )
         }
         .padding(BBTheme.Spacing.md)
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
         .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
-        .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(startTime) }
-        .onAppear { elapsed = Date().timeIntervalSince(startTime) }
-    }
-
-    private var elapsedFormatted: String {
-        let mins = Int(elapsed) / 60
-        let secs = Int(elapsed) % 60
-        return String(format: "%02d:%02d", mins, secs)
     }
 }
 

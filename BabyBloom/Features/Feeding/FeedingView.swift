@@ -19,11 +19,6 @@ struct FeedingView: View {
         entries.first(where: { $0.isActive })
     }
 
-    private var filteredEntries: [FeedingEntry] {
-        let cutoff = historyFilter.startDate()
-        return entries.filter { $0.startTime >= cutoff }
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -164,32 +159,18 @@ struct FeedingView: View {
 
     // MARK: - History
     private var historySection: some View {
-        let filtered = filteredEntries
-        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.history")
-            BBHistoryFilterPicker(selected: $historyFilter)
-
-            if filtered.isEmpty {
-                EmptyStateView(
-                    icon: "heart.fill",
-                    color: BBTheme.Colors.feeding,
-                    title: "empty.no_records",
-                    subtitle: "empty.add_first_feeding"
-                )
-            } else {
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filtered) { entry in
-                        SwipeToDeleteRow(onDelete: { delete(entry) }) {
-                            FeedingEntryRow(entry: entry)
-                        }
-                    }
-                }
-
-                BBDeleteHistoryButton {
-                    deleteFiltered()
-                }
-            }
-        }
+        BBHistorySection(
+            entries: entries,
+            filter: $historyFilter,
+            dateKeyPath: \.startTime,
+            emptyIcon: "heart.fill",
+            emptyColor: BBTheme.Colors.feeding,
+            emptyTitle: "empty.no_records",
+            emptySubtitle: "empty.add_first_feeding",
+            row: { FeedingEntryRow(entry: $0) },
+            onDelete: { delete($0) },
+            onDeleteAll: { deleteAll($0) }
+        )
     }
 
     private func quickStart(_ type: FeedingEntry.FeedingType) {
@@ -219,8 +200,8 @@ struct FeedingView: View {
         try? modelContext.save()
     }
 
-    private func deleteFiltered() {
-        filteredEntries.forEach { modelContext.delete($0) }
+    private func deleteAll(_ items: [FeedingEntry]) {
+        items.forEach { modelContext.delete($0) }
         try? modelContext.save()
     }
 }
@@ -229,9 +210,6 @@ struct FeedingView: View {
 struct FeedingTimerCard: View {
     let entry: FeedingEntry
     let onStop: () -> Void
-
-    @State private var elapsed: TimeInterval = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
@@ -245,9 +223,7 @@ struct FeedingTimerCard: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Spacer()
-                Text(elapsedFormatted)
-                    .font(.system(size: 36, weight: .bold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(BBTheme.Colors.feeding)
+                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.feeding)
             }
 
             // Breast side switcher (for breast feeding)
@@ -281,16 +257,6 @@ struct FeedingTimerCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
         )
-        .onReceive(timer) { _ in
-            elapsed = Date().timeIntervalSince(entry.startTime)
-        }
-        .onAppear { elapsed = Date().timeIntervalSince(entry.startTime) }
-    }
-
-    private var elapsedFormatted: String {
-        let mins = Int(elapsed) / 60
-        let secs = Int(elapsed) % 60
-        return String(format: "%02d:%02d", mins, secs)
     }
 }
 

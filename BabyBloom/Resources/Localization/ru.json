@@ -67,6 +67,7 @@
   "form.weight_kg": "Вес (кг)",
   "form.height_cm": "Рост (см)",
   "form.head_cm": "Окружность головы (см)",
+  "form.head_optional_hint": "(необязательно)",
   "form.weight_placeholder": "Напр. 4.25",
   "form.height_placeholder": "Напр. 56.5",
   "form.head_placeholder": "Напр. 38.0",

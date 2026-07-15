@@ -510,65 +510,37 @@ private struct GrowthPage: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    growthSlider(
+                    BBMeasureSlider(
                         title: "form.weight_kg".l,
                         value: $weightKg,
-                        in: 1.0...20.0, step: 0.1,
+                        range: 1.0...20.0, step: 0.1,
                         display: String(format: "%.1f \("unit.kg".l)", weightKg),
                         color: BBTheme.Colors.growth,
                         minLabel: "1 \("unit.kg".l)",
                         maxLabel: "20 \("unit.kg".l)"
                     )
 
-                    growthSlider(
+                    BBMeasureSlider(
                         title: "form.height_cm".l,
                         value: $heightCm,
-                        in: 30.0...130.0, step: 0.5,
+                        range: 30.0...130.0, step: 0.5,
                         display: String(format: "%.0f \("unit.cm".l)", heightCm),
                         color: BBTheme.Colors.primary,
                         minLabel: "30 \("unit.cm".l)",
                         maxLabel: "130 \("unit.cm".l)"
                     )
 
-                    // Head circumference (optional)
-                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("form.head_cm".l)
-                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                                Text("onboarding.growth_head_optional".l)
-                                    .font(.system(size: 12, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                            }
-                            Spacer()
-                            Toggle("", isOn: $includeHead)
-                                .labelsHidden()
-                                .tint(BBTheme.Colors.accent)
-                        }
-                        if includeHead {
-                            HStack {
-                                Spacer()
-                                Text(String(format: "%.1f \("unit.cm".l)", headCm))
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.accent)
-                            }
-                            Slider(value: $headCm, in: 25.0...55.0, step: 0.5)
-                                .tint(BBTheme.Colors.accent)
-                            HStack {
-                                Text("25 \("unit.cm".l)")
-                                Spacer()
-                                Text("55 \("unit.cm".l)")
-                            }
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                        }
-                    }
-                    .padding(BBTheme.Spacing.md)
-                    .background(BBTheme.Colors.surface)
-                    .cornerRadius(BBTheme.Radius.md)
-                    .bbShadow(BBTheme.Shadow.card)
-                    .animation(.easeInOut(duration: 0.25), value: includeHead)
+                    BBOptionalMeasureToggle(
+                        title: "form.head_cm".l,
+                        hint: "onboarding.growth_head_optional".l,
+                        isOn: $includeHead,
+                        value: $headCm,
+                        range: 25.0...55.0, step: 0.5,
+                        display: String(format: "%.1f \("unit.cm".l)", headCm),
+                        minLabel: "25 \("unit.cm".l)",
+                        maxLabel: "55 \("unit.cm".l)",
+                        color: BBTheme.Colors.accent
+                    )
 
                     Spacer(minLength: BBTheme.Spacing.xl)
                 }
@@ -578,35 +550,6 @@ private struct GrowthPage: View {
         }
     }
 
-    private func growthSlider(title: String, value: Binding<Double>,
-                               in range: ClosedRange<Double>, step: Double,
-                               display: String, color: Color,
-                               minLabel: String, maxLabel: String) -> some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                Text(title)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                Text(display)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(color)
-            }
-            Slider(value: value, in: range, step: step)
-                .tint(color)
-            HStack {
-                Text(minLabel)
-                Spacer()
-                Text(maxLabel)
-            }
-            .font(.system(size: 11, weight: .medium, design: .rounded))
-            .foregroundStyle(BBTheme.Colors.textSecondary)
-        }
-        .padding(BBTheme.Spacing.md)
-        .background(BBTheme.Colors.surface)
-        .cornerRadius(BBTheme.Radius.md)
-        .bbShadow(BBTheme.Shadow.card)
-    }
 }
 
 // MARK: - Page 5: Fact / Delight
@@ -922,22 +865,3 @@ private func backButton(action: @escaping () -> Void) -> some View {
     }
 }
 
-// Corner radius helper for specific corners
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-private struct RoundedCorner: Shape {
-    var radius: CGFloat
-    var corners: UIRectCorner
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
-    }
-}

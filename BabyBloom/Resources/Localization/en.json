@@ -67,6 +67,7 @@
   "form.weight_kg": "Weight (kg)",
   "form.height_cm": "Height (cm)",
   "form.head_cm": "Head Circumference (cm)",
+  "form.head_optional_hint": "(optional)",
   "form.weight_placeholder": "e.g. 4.25",
   "form.height_placeholder": "e.g. 56.5",
   "form.head_placeholder": "e.g. 38.0",
