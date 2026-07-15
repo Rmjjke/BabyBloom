@@ -83,9 +83,57 @@ struct MoreView: View {
 // MARK: - Settings View
 struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = "ru"
+    @Environment(SubscriptionManager.self) private var store
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @State private var showProfileEdit = false
+
+    private var baby: Baby? { babies.first }
+
+    @ViewBuilder
+    private var exportDestination: some View {
+        if store.isPremium {
+            ExportView()
+        } else {
+            PaywallView()
+        }
+    }
 
     var body: some View {
         List {
+            // ── Baby profile card ─────────────────────────────────────
+            if let baby {
+                Section {
+                    Button {
+                        showProfileEdit = true
+                    } label: {
+                        HStack(spacing: BBTheme.Spacing.md) {
+                            BabyAvatarView(photoData: baby.photoData,
+                                           gender: baby.gender,
+                                           size: 56)
+                                .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(baby.name)
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text(baby.ageDescription)
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                } header: {
+                    Text("settings.profile".l)
+                }
+            }
+
+            // ── Language ──────────────────────────────────────────────
             Section {
                 HStack {
                     Label("settings.language".l, systemImage: "globe")
@@ -105,19 +153,44 @@ struct SettingsView: View {
                 Label("settings.reminders".l, systemImage: "bell.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
             }
+
             Section("settings.data".l) {
-                Label("settings.export".l, systemImage: "arrow.up.doc.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                NavigationLink(destination: exportDestination) {
+                    Label("settings.export".l, systemImage: "arrow.up.doc.fill")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
                 Label("settings.icloud".l, systemImage: "icloud.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
             }
+
             Section("settings.app_section".l) {
                 Label("settings.about".l, systemImage: "info.circle.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Label("settings.premium".l, systemImage: "star.fill")
-                    .foregroundStyle(BBTheme.Colors.primary)
+
+                NavigationLink(destination: PaywallView()) {
+                    HStack {
+                        Label("settings.premium".l, systemImage: "crown.fill")
+                            .foregroundStyle(BBTheme.Colors.primary)
+                        Spacer()
+                        if store.isPremium {
+                            Text("premium.active_badge".l)
+                                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(BBTheme.Colors.primary)
+                                .cornerRadius(BBTheme.Radius.pill)
+                        }
+                    }
+                }
             }
         }
         .navigationTitle("nav.settings".l)
+        .task { await store.refreshEntitlements() }
+        .sheet(isPresented: $showProfileEdit) {
+            if let baby {
+                BabyProfileEditSheet(baby: baby)
+            }
+        }
     }
 }

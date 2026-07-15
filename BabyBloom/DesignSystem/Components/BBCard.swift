@@ -9,10 +9,22 @@ struct BBStatCard: View {
     let color: Color
     var trend: String? = nil
     var overLimit: Bool = false
+    var action: (() -> Void)? = nil
 
     private var displayColor: Color { overLimit ? .red.opacity(0.85) : color }
 
     var body: some View {
+        if let action {
+            Button(action: action) {
+                cardContent
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        } else {
+            cardContent
+        }
+    }
+
+    private var cardContent: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             HStack {
                 ZStack {
@@ -37,6 +49,11 @@ struct BBStatCard: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .font(.system(size: 14))
                         .foregroundStyle(.red.opacity(0.85))
+                }
+                if action != nil {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
                 }
             }
 

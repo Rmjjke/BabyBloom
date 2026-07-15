@@ -12,12 +12,16 @@ struct OnboardingView: View {
     @State private var birthDate = Date()
     @State private var gender: Baby.Gender = .female
     @State private var feedingType: Baby.FeedingType = .breast
+    @State private var growthWeightKg: Double = 3.5
+    @State private var growthHeightCm: Double = 50.0
+    @State private var growthHeadCm: Double = 34.0
+    @State private var growthIncludeHead: Bool = false
     @State private var isCreating = false
 
-    // Quiz pages: 1, 2, 3  →  progress 0.30, 0.65, 1.0 (Goal Gradient Effect)
-    private let quizPages: [Int] = [1, 2, 3]
+    // Quiz pages: 1, 2, 3, 4  →  progress 0.22, 0.50, 0.78, 1.0 (Goal Gradient Effect)
+    private let quizPages: [Int] = [1, 2, 3, 4]
     private func quizProgress(for p: Int) -> Double {
-        switch p { case 1: return 0.30; case 2: return 0.65; case 3: return 1.0; default: return 0 }
+        switch p { case 1: return 0.22; case 2: return 0.50; case 3: return 0.78; case 4: return 1.0; default: return 0 }
     }
 
     var body: some View {
@@ -41,9 +45,12 @@ struct OnboardingView: View {
                     case 1: NamePage(name: $babyName, onBack: back)
                     case 2: BirthPage(birthDate: $birthDate, gender: $gender, onBack: back)
                     case 3: FeedingPage(feedingType: $feedingType, babyName: babyName, onBack: back)
-                    case 4: FactPage(onContinue: next)
-                    case 5: GeneratingPage(babyName: babyName, onDone: next)
-                    case 6: PremiumPage(babyName: babyName,
+                    case 4: GrowthPage(weightKg: $growthWeightKg, heightCm: $growthHeightCm,
+                                       headCm: $growthHeadCm, includeHead: $growthIncludeHead,
+                                       onBack: back)
+                    case 5: FactPage(onContinue: next)
+                    case 6: GeneratingPage(babyName: babyName, onDone: next)
+                    case 7: PremiumPage(babyName: babyName,
                                         onTrial:   { createAndFinish() },
                                         onSkip:    { createAndFinish() })
                     default: EmptyView()
@@ -115,6 +122,13 @@ struct OnboardingView: View {
             feedingType: feedingType
         )
         modelContext.insert(baby)
+        let growth = GrowthEntry(
+            date: Date(),
+            weightKg: growthWeightKg,
+            heightCm: growthHeightCm,
+            headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil
+        )
+        modelContext.insert(growth)
         try? modelContext.save()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 400_000_000)
@@ -467,7 +481,135 @@ private struct FeedingPage: View {
     }
 }
 
-// MARK: - Page 4: Fact / Delight
+// MARK: - Page 4: Growth measurements
+
+private struct GrowthPage: View {
+    @Binding var weightKg: Double
+    @Binding var heightCm: Double
+    @Binding var headCm: Double
+    @Binding var includeHead: Bool
+    let onBack: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            backButton(action: onBack)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: BBTheme.Spacing.lg) {
+                    Text("📏")
+                        .font(.system(size: 64))
+                        .padding(.top, BBTheme.Spacing.md)
+
+                    VStack(spacing: BBTheme.Spacing.sm) {
+                        Text("onboarding.growth_title".l)
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                        Text("onboarding.growth_hint".l)
+                            .font(.system(size: 14, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    growthSlider(
+                        title: "form.weight_kg".l,
+                        value: $weightKg,
+                        in: 1.0...20.0, step: 0.1,
+                        display: String(format: "%.1f \("unit.kg".l)", weightKg),
+                        color: BBTheme.Colors.growth,
+                        minLabel: "1 \("unit.kg".l)",
+                        maxLabel: "20 \("unit.kg".l)"
+                    )
+
+                    growthSlider(
+                        title: "form.height_cm".l,
+                        value: $heightCm,
+                        in: 30.0...130.0, step: 0.5,
+                        display: String(format: "%.0f \("unit.cm".l)", heightCm),
+                        color: BBTheme.Colors.primary,
+                        minLabel: "30 \("unit.cm".l)",
+                        maxLabel: "130 \("unit.cm".l)"
+                    )
+
+                    // Head circumference (optional)
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("form.head_cm".l)
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text("onboarding.growth_head_optional".l)
+                                    .font(.system(size: 12, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $includeHead)
+                                .labelsHidden()
+                                .tint(BBTheme.Colors.accent)
+                        }
+                        if includeHead {
+                            HStack {
+                                Spacer()
+                                Text(String(format: "%.1f \("unit.cm".l)", headCm))
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.accent)
+                            }
+                            Slider(value: $headCm, in: 25.0...55.0, step: 0.5)
+                                .tint(BBTheme.Colors.accent)
+                            HStack {
+                                Text("25 \("unit.cm".l)")
+                                Spacer()
+                                Text("55 \("unit.cm".l)")
+                            }
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                        }
+                    }
+                    .padding(BBTheme.Spacing.md)
+                    .background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md)
+                    .bbShadow(BBTheme.Shadow.card)
+                    .animation(.easeInOut(duration: 0.25), value: includeHead)
+
+                    Spacer(minLength: BBTheme.Spacing.xl)
+                }
+                .padding(.horizontal, BBTheme.Spacing.lg)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+
+    private func growthSlider(title: String, value: Binding<Double>,
+                               in range: ClosedRange<Double>, step: Double,
+                               display: String, color: Color,
+                               minLabel: String, maxLabel: String) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            HStack {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Spacer()
+                Text(display)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(color)
+            }
+            Slider(value: value, in: range, step: step)
+                .tint(color)
+            HStack {
+                Text(minLabel)
+                Spacer()
+                Text(maxLabel)
+            }
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+        }
+        .padding(BBTheme.Spacing.md)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.md)
+        .bbShadow(BBTheme.Shadow.card)
+    }
+}
+
+// MARK: - Page 5: Fact / Delight
 
 private struct FactPage: View {
     let onContinue: () -> Void
