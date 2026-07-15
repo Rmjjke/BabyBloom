@@ -183,7 +183,7 @@ struct SleepView: View {
         try? modelContext.save()
         NotificationManager.shared.onSleepStarted(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby",
+            babyName: baby?.name ?? "baby.default_name".l,
             isNight: type == .night
         )
     }

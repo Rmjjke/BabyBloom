@@ -180,7 +180,7 @@ struct FeedingView: View {
             try? modelContext.save()
             NotificationManager.shared.onFeedingSaved(
                 ageMonths: baby?.ageInMonths ?? 0,
-                babyName: baby?.name ?? "Baby",
+                babyName: baby?.name ?? "baby.default_name".l,
                 isActiveBF: true
             )
         } else {
@@ -433,7 +433,7 @@ struct AddFeedingSheet: View {
         let baby = babies.first
         NotificationManager.shared.onFeedingSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby",
+            babyName: baby?.name ?? "baby.default_name".l,
             isActiveBF: selectedType == .breast && startTimer
         )
         dismiss()

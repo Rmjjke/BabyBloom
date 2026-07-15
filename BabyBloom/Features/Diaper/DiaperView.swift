@@ -187,7 +187,7 @@ struct DiaperView: View {
         try? modelContext.save()
         NotificationManager.shared.onDiaperSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby"
+            babyName: baby?.name ?? "baby.default_name".l
         )
     }
 
@@ -404,7 +404,7 @@ struct AddDiaperSheet: View {
         let baby = babies.first
         NotificationManager.shared.onDiaperSaved(
             ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "Baby"
+            babyName: baby?.name ?? "baby.default_name".l
         )
         dismiss()
     }
