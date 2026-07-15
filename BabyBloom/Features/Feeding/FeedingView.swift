@@ -164,11 +164,12 @@ struct FeedingView: View {
 
     // MARK: - History
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+        let filtered = filteredEntries
+        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.history")
             BBHistoryFilterPicker(selected: $historyFilter)
 
-            if filteredEntries.isEmpty {
+            if filtered.isEmpty {
                 EmptyStateView(
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
@@ -177,7 +178,7 @@ struct FeedingView: View {
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filteredEntries) { entry in
+                    ForEach(filtered) { entry in
                         SwipeToDeleteRow(onDelete: { delete(entry) }) {
                             FeedingEntryRow(entry: entry)
                         }

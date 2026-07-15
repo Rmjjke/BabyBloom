@@ -172,11 +172,12 @@ struct DiaperView: View {
 
     // MARK: - History
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+        let filtered = filteredEntries
+        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.history")
             BBHistoryFilterPicker(selected: $historyFilter)
 
-            if filteredEntries.isEmpty {
+            if filtered.isEmpty {
                 EmptyStateView(
                     icon: "drop.fill",
                     color: BBTheme.Colors.diaper,
@@ -185,7 +186,7 @@ struct DiaperView: View {
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(filteredEntries) { entry in
+                    ForEach(filtered) { entry in
                         SwipeToDeleteRow(onDelete: { delete(entry) }) {
                             DiaperEntryRow(entry: entry)
                         }
