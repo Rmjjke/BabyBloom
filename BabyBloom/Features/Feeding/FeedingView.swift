@@ -335,7 +335,7 @@ struct AddFeedingSheet: View {
     /// Volume of the most recent saved feeding of `type`, or nil if none.
     /// `feedings` is sorted startTime-descending, so `.first` is the latest.
     private func lastVolume(for type: FeedingEntry.FeedingType) -> Double? {
-        feedings.first { $0.type == type && $0.volumeML != nil }?.volumeML
+        feedings.first { $0.type == type && ($0.volumeML ?? 0) > 0 }?.volumeML
     }
 
     /// Seed the slider with the last-used volume for the current type (100ml
