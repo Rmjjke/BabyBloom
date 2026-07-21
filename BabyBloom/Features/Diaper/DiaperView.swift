@@ -37,7 +37,7 @@ struct DiaperView: View {
                 }
                 // Extra bottom clearance so the history period-selector / delete-all
                 // button never tucks under the tab bar. (D2 bugfix)
-                .padding(.bottom, BBTheme.Spacing.xxl)
+                .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
@@ -218,8 +218,9 @@ struct DiaperNormEditorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: BBTheme.Spacing.xl) {
-                Text("💧")
+                Image(systemName: "drop.fill")
                     .font(.system(size: 56))
+                    .foregroundStyle(BBTheme.Colors.diaper)
                     .padding(.top, BBTheme.Spacing.xl)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
@@ -300,7 +301,7 @@ struct DiaperEntryRow: View {
 
     private var colorSubtitle: String {
         if let color = entry.color {
-            return color.isWarning ? "⚠️ \(color.displayName.l)" : color.displayName.l
+            return color.displayName.l
         }
         return entry.notes ?? ""
     }

@@ -20,8 +20,7 @@ struct FeedingPage: View {
             Spacer()
 
             VStack(spacing: BBTheme.Spacing.xl) {
-                Text("🤱")
-                    .font(.system(size: 64))
+                onboardingHeroIcon("heart.fill", color: BBTheme.Colors.feeding)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.title1("onboarding.feeding_title".l)

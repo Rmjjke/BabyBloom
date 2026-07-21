@@ -13,8 +13,7 @@ struct BirthPage: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: BBTheme.Spacing.xl) {
-                    Text("📅")
-                        .font(.system(size: 64))
+                    onboardingHeroIcon("calendar", color: BBTheme.Colors.primary)
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
@@ -33,8 +32,9 @@ struct BirthPage: View {
                                 withAnimation(.spring(response: 0.3)) { gender = g }
                             } label: {
                                 VStack(spacing: 8) {
-                                    Text(g == .female ? "👧" : "👦")
-                                        .font(.system(size: 38))
+                                    Image(systemName: g == .female ? "figure.stand.dress" : "figure.stand")
+                                        .font(.system(size: 34))
+                                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
                                     Text(g.displayName.l)
                                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                                         .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)

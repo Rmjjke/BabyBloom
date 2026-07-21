@@ -30,7 +30,7 @@ struct PremiumPage: View {
                     .ignoresSafeArea(edges: .top)
 
                     VStack(spacing: BBTheme.Spacing.md) {
-                        Image(systemName: "crown.fill")
+                        Image(systemName: "laurel.leading")
                             .font(.system(size: 48))
                             .foregroundStyle(.white.opacity(0.9))
                             .padding(.top, 36)
@@ -67,7 +67,7 @@ struct PremiumPage: View {
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(BBTheme.Colors.primary)
+                                .foregroundStyle(BBTheme.Colors.success)
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, BBTheme.Spacing.md)
@@ -95,7 +95,7 @@ struct PremiumPage: View {
 
                 // CTAs
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    BBPrimaryButton("onboarding.premium.trial".l, icon: "sparkles") {
+                    BBPrimaryButton("onboarding.premium.trial".l, icon: "arrow.right") {
                         onTrial()
                     }
 

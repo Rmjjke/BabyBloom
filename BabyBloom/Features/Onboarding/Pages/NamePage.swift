@@ -14,8 +14,7 @@ struct NamePage: View {
             Spacer()
 
             VStack(spacing: BBTheme.Spacing.xl) {
-                Text("🍼")
-                    .font(.system(size: 72))
+                onboardingHeroIcon("person.text.rectangle", color: BBTheme.Colors.primary)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.title1("onboarding.name_title".l)

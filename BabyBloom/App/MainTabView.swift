@@ -143,8 +143,8 @@ struct SettingsView: View {
                             appLanguage = newValue
                         }
                     )) {
-                        Text("🇷🇺 Рус").tag("ru")
-                        Text("🇬🇧 Eng").tag("en")
+                        Text("Рус").tag("ru")
+                        Text("Eng").tag("en")
                     }
                     .pickerStyle(.segmented)
                     .fixedSize()
@@ -184,7 +184,7 @@ struct SettingsView: View {
                     showPaywall = true
                 } label: {
                     HStack {
-                        Label("settings.premium".l, systemImage: "crown.fill")
+                        Label("settings.premium".l, systemImage: "laurel.leading")
                             .foregroundStyle(BBTheme.Colors.primary)
                         Spacer()
                         if store.isPremium {

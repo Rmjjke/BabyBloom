@@ -41,7 +41,7 @@ struct GrowthView: View {
                     .padding(.horizontal, BBTheme.Spacing.md)
             }
             // Bottom clearance so the FAB never permanently covers the last row.
-            .padding(.bottom, BBTheme.Spacing.xxl)
+            .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .overlay(alignment: .bottomTrailing) {
@@ -337,8 +337,9 @@ struct PercentileInfoSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
-                    Text("📊")
+                    Image(systemName: "chart.bar.xaxis")
                         .font(.system(size: 56))
+                        .foregroundStyle(BBTheme.Colors.growth)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.top, BBTheme.Spacing.lg)
 
@@ -381,8 +382,9 @@ struct AddGrowthSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    Text("📏")
+                    Image(systemName: "ruler.fill")
                         .font(.system(size: 48))
+                        .foregroundStyle(BBTheme.Colors.growth)
 
                     BBMeasureSlider(
                         title: "form.weight_kg".l,

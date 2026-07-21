@@ -23,8 +23,9 @@ struct FactPage: View {
                         )
                         .frame(height: 200)
                     VStack(spacing: BBTheme.Spacing.md) {
-                        Text("🍼")
-                            .font(.system(size: 72))
+                        Image(systemName: "lightbulb.fill")
+                            .font(.system(size: 64))
+                            .foregroundStyle(BBTheme.Colors.primary)
                             .rotationEffect(.degrees(appear ? 0 : -15))
                         HStack(spacing: 4) {
                             ForEach(0..<5, id: \.self) { i in
@@ -63,7 +64,7 @@ struct FactPage: View {
 
             Spacer()
 
-            BBPrimaryButton("onboarding.fact.cta".l, icon: "wand.and.stars") {
+            BBPrimaryButton("onboarding.fact.cta".l, icon: "arrow.right") {
                 onContinue()
             }
             .padding(.horizontal, BBTheme.Spacing.lg)

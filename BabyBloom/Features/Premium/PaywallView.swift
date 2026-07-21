@@ -102,7 +102,7 @@ struct PaywallView: View {
             BBTheme.Colors.premiumGradient
 
             VStack(spacing: BBTheme.Spacing.md) {
-                Image(systemName: "crown.fill")
+                Image(systemName: "laurel.leading")
                     .font(.system(size: 52))
                     .foregroundStyle(.white.opacity(0.9))
                     .padding(.top, 36)
@@ -277,7 +277,7 @@ struct PaywallView: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Spacer()
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(BBTheme.Colors.primary)
+                        .foregroundStyle(BBTheme.Colors.success)
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, BBTheme.Spacing.md)
@@ -305,7 +305,7 @@ struct PaywallView: View {
             // Subscribe button
             BBPrimaryButton(
                 store.isLoading ? "premium.loading".l : "onboarding.premium.trial".l,
-                icon: "sparkles"
+                icon: "arrow.right"
             ) {
                 Task {
                     let product = selectedID == SubscriptionManager.yearlyID

@@ -36,7 +36,10 @@ struct GeneratingPage: View {
                         .frame(width: 100, height: 100)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: completedSteps.count)
-                    Text("🌸").font(.system(size: 44))
+                    Image("BBLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
                 }
 
                 VStack(spacing: BBTheme.Spacing.sm) {

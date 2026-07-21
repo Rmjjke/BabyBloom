@@ -37,6 +37,17 @@ enum OnboardingStep: Int, CaseIterable {
 
 // MARK: - Helpers
 
+/// Onboarding page hero: a themed SF Symbol inside a soft category-colored
+/// circle. Replaces the previous emoji heroes, which rendered as tofu "?"
+/// squares on the simulator.
+func onboardingHeroIcon(_ systemName: String, color: Color) -> some View {
+    Image(systemName: systemName)
+        .font(.system(size: 56, weight: .medium))
+        .foregroundStyle(color)
+        .frame(width: 120, height: 120)
+        .background(color.opacity(0.22), in: Circle())
+}
+
 func backButton(action: @escaping () -> Void) -> some View {
     HStack {
         Button(action: action) {

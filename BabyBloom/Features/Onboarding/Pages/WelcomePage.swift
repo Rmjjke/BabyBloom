@@ -28,17 +28,12 @@ struct WelcomePage: View {
                         // Logo mark
                         ZStack {
                             Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color("BBGradientEnd"), Color("BBGradientStart")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
+                                .fill(BBTheme.Colors.primary.opacity(0.08))
                                 .frame(width: 96, height: 96)
-                                .bbShadow(BBTheme.Shadow.button)
-                            Text("🌸")
-                                .font(.system(size: 48))
+                            Image("BBLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 60, height: 60)
                         }
                         .scaleEffect(appear ? 1 : 0.6)
                         .opacity(appear ? 1 : 0)
@@ -81,21 +76,7 @@ struct WelcomePage: View {
                                        delay: 0.45)
                 }
                 .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.bottom, BBTheme.Spacing.lg)
-
-                // Social proof
-                HStack(spacing: 6) {
-                    ForEach(0..<5, id: \.self) { _ in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color(hex: "#F5C518"))
-                    }
-                    Text("onboarding.social_proof".l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
                 .padding(.bottom, BBTheme.Spacing.xl)
-                .opacity(appear ? 1 : 0)
 
                 // CTA
                 BBPrimaryButton("button.start".l, icon: "arrow.right") {

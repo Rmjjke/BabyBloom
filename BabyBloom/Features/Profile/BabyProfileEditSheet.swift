@@ -21,8 +21,9 @@ struct BabyAvatarView: View {
                         colors: [BBTheme.Colors.accent.opacity(0.5), BBTheme.Colors.primary.opacity(0.3)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     )
-                    Text(gender == .male ? "👦" : "👶")
+                    Image(systemName: "figure.child")
                         .font(.system(size: size * 0.50))
+                        .foregroundStyle(.white)
                 }
             }
         }
@@ -98,7 +99,7 @@ struct BabyProfileEditSheet: View {
                                         }
                                     } label: {
                                         HStack(spacing: 6) {
-                                            Text(gender == .male ? "👦" : "👧")
+                                            Image(systemName: gender == .male ? "figure.stand" : "figure.stand.dress")
                                             Text(gender.displayName.l)
                                                 .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                         }

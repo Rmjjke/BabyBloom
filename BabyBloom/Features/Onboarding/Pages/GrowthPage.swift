@@ -15,8 +15,7 @@ struct GrowthPage: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    Text("📏")
-                        .font(.system(size: 64))
+                    onboardingHeroIcon("ruler.fill", color: BBTheme.Colors.growth)
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
