@@ -39,8 +39,6 @@
 	<dict>
 		<key>UIColorName</key>
 		<string>BBLaunchBackground</string>
-		<key>UIImageName</key>
-		<string>BBLogo</string>
 	</dict>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>

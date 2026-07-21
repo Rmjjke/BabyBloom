@@ -4,7 +4,8 @@ import SwiftData
 @main
 struct BabyBloomApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @AppStorage("hasShownSplash") private var hasShownSplash = false
+    // Branded splash plays on every cold launch (not persisted).
+    @State private var showingSplash = true
     @AppStorage("appLanguage") private var appLanguage = "ru"
 
     @Environment(\.scenePhase) private var scenePhase
@@ -32,10 +33,10 @@ struct BabyBloomApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if !hasShownSplash {
+                if showingSplash {
                     SplashView {
                         withAnimation(.easeInOut(duration: 0.4)) {
-                            hasShownSplash = true
+                            showingSplash = false
                         }
                     }
                 } else if hasCompletedOnboarding {

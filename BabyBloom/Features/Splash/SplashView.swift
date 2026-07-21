@@ -58,16 +58,16 @@ struct SplashView: View {
     }
 
     private func play() {
-        withAnimation(.easeOut(duration: 0.9).delay(0.1)) {
+        withAnimation(.easeOut(duration: 1.1).delay(0.15)) {
             bgVisible = true
         }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.1)) {
+        withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(1.5)) {
             titleVisible = true
         }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.8)) {
+        withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(2.3)) {
             taglineVisible = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
             withAnimation(.easeIn(duration: 0.35)) { fadingOut = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onDone() }
         }
