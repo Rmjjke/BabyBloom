@@ -30,7 +30,7 @@ struct SplashView: View {
                     // Stage 2: wordmark
                     Text("BabyBloom")
                         .font(.system(size: 42, weight: .semibold, design: .serif))
-                        .foregroundStyle(BBTheme.Colors.primary)
+                        .foregroundStyle(Color("BBSplashText"))
                         .opacity(titleVisible ? 1 : 0)
                         .offset(y: titleVisible ? 0 : 18)
 
@@ -45,7 +45,7 @@ struct SplashView: View {
                         Image(systemName: "leaf.fill")
                             .font(.system(size: 9))
                     }
-                    .foregroundStyle(BBTheme.Colors.primary.opacity(0.65))
+                    .foregroundStyle(Color("BBSplashText").opacity(0.85))
                     .opacity(taglineVisible ? 1 : 0)
                     .offset(y: taglineVisible ? 0 : 12)
                 }
