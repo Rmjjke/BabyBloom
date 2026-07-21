@@ -15,8 +15,10 @@ struct ExportView: View {
     @State private var selectedRange: ExportDateRange = .month
     @State private var categories: Set<ExportCategory> = Set(ExportCategory.allCases)
     @State private var isExporting = false
-    @State private var shareItems: [Any] = []
-    @State private var showShareSheet = false
+    // Identifiable request drives `.sheet(item:)` so the share sheet is always
+    // built with the freshly-generated files. `.sheet(isPresented:)` + a separate
+    // @State could hand the sheet stale/empty items captured before the update.
+    @State private var shareRequest: ShareRequest?
     @State private var showEmptyAlert = false
     @State private var showWriteError = false
 
@@ -69,8 +71,8 @@ struct ExportView: View {
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .navigationTitle("settings.export".l)
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $showShareSheet) {
-            ShareSheet(items: shareItems)
+        .sheet(item: $shareRequest) { request in
+            ShareSheet(items: request.items)
         }
         .alert("export.empty_title".l, isPresented: $showEmptyAlert) {
             Button("button.close".l, role: .cancel) {}
@@ -284,12 +286,11 @@ struct ExportView: View {
             }
 
             isExporting = false
-            shareItems = items
             // Never hand the share sheet a URL to a file that failed to write.
             if items.isEmpty {
                 showWriteError = true
             } else {
-                showShareSheet = true
+                shareRequest = ShareRequest(items: items)
             }
         }
     }
@@ -305,6 +306,13 @@ struct ExportView: View {
 }
 
 // MARK: - Share Sheet Bridge
+
+/// Identifiable payload for `.sheet(item:)` — a fresh `id` per export guarantees the
+/// share sheet is rebuilt with the newly-generated files.
+private struct ShareRequest: Identifiable {
+    let id = UUID()
+    let items: [Any]
+}
 
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]

@@ -5,8 +5,11 @@ struct FeedingView: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var entries: [FeedingEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
-    @State private var showAddSheet = false
-    @State private var quickAddType: FeedingEntry.FeedingType = .breast
+    // Identifiable request drives `.sheet(item:)` so the sheet is rebuilt with the
+    // tapped type on every present. The previous `.sheet(isPresented:)` read a
+    // separate @State (`quickAddType`) whose value was captured stale — the sheet
+    // opened showing the default (breast) instead of the just-tapped type.
+    @State private var addSheetRequest: FeedingSheetRequest?
     @State private var historyFilter: HistoryFilter = .day
 
     private var baby: Baby? { babies.first }
@@ -61,7 +64,7 @@ struct FeedingView: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
-                BBFab { showAddSheet = true }
+                BBFab { addSheetRequest = FeedingSheetRequest(type: .breast) }
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
@@ -70,7 +73,7 @@ struct FeedingView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        showAddSheet = true
+                        addSheetRequest = FeedingSheetRequest(type: .breast)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 22))
@@ -79,8 +82,8 @@ struct FeedingView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
-            AddFeedingSheet(initialType: quickAddType)
+        .sheet(item: $addSheetRequest) { request in
+            AddFeedingSheet(initialType: request.type)
         }
     }
 
@@ -197,8 +200,7 @@ struct FeedingView: View {
                 recentFeedingTimes: recentFeedingTimes
             )
         } else {
-            quickAddType = type
-            showAddSheet = true
+            addSheetRequest = FeedingSheetRequest(type: type)
         }
     }
 
@@ -301,6 +303,15 @@ struct FeedingEntryRow: View {
 }
 
 // MARK: - Add Feeding Sheet
+
+/// Identifiable payload for `.sheet(item:)`. A fresh `id` per tap gives the sheet a
+/// new identity, so `AddFeedingSheet`'s `@State selectedType` is re-seeded from
+/// `type` every present — the tapped type is always the one shown.
+private struct FeedingSheetRequest: Identifiable {
+    let id = UUID()
+    let type: FeedingEntry.FeedingType
+}
+
 struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
