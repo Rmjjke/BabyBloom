@@ -1,77 +1,73 @@
 import SwiftUI
 
 // MARK: - Branded Splash
-// Staged reveal: logo mark → wordmark → tagline, then hands off to the app.
-// Visual source: docs/design/splash2.png (sage/mint botanical direction).
+// Staged reveal over the original splash artwork (docs/design/splash2.png with
+// the baked-in wordmark band stitched out -> BBSplashBg): first the art with
+// the logo mark fades in, then "BabyBloom", then the tagline.
 struct SplashView: View {
     let onDone: () -> Void
 
-    @State private var logoVisible = false
+    @State private var bgVisible = false
     @State private var titleVisible = false
     @State private var taglineVisible = false
     @State private var fadingOut = false
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color(hex: "#EDF6EF"), Color("BBLaunchBackground"), Color(hex: "#CDE5D6")],
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                Color("BBLaunchBackground")
 
-            VStack(spacing: 0) {
-                Spacer()
-
-                // Logo mark, feathered into the background
-                Image("BBLogo")
+                // Stage 1: artwork (leaves, ring, wave, logo mark baked in)
+                Image("BBSplashBg")
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: 240, height: 240)
-                    .mask(
-                        RadialGradient(
-                            colors: [.black, .black, .clear],
-                            center: .center, startRadius: 0, endRadius: 120
-                        )
-                    )
-                    .opacity(logoVisible ? 1 : 0)
-                    .scaleEffect(logoVisible ? 1.0 : 0.86)
+                    .scaledToFill()
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
+                    .opacity(bgVisible ? 1 : 0)
+                    .scaleEffect(bgVisible ? 1.0 : 1.06)
 
-                // Wordmark
-                Text("BabyBloom")
-                    .font(.system(size: 40, weight: .semibold, design: .serif))
-                    .foregroundStyle(BBTheme.Colors.primary)
-                    .padding(.top, 8)
-                    .opacity(titleVisible ? 1 : 0)
-                    .offset(y: titleVisible ? 0 : 12)
+                VStack(spacing: 16) {
+                    // Stage 2: wordmark
+                    Text("BabyBloom")
+                        .font(.system(size: 42, weight: .semibold, design: .serif))
+                        .foregroundStyle(BBTheme.Colors.primary)
+                        .opacity(titleVisible ? 1 : 0)
+                        .offset(y: titleVisible ? 0 : 18)
 
-                // Tagline
-                Text("splash.tagline".l.uppercased())
-                    .font(.system(size: 13, weight: .medium))
-                    .tracking(4)
+                    // Stage 3: tagline with leaf flourishes (as in the mockup)
+                    HStack(spacing: 10) {
+                        Image(systemName: "leaf.fill")
+                            .font(.system(size: 9))
+                            .scaleEffect(x: -1)
+                        Text("splash.tagline".l.uppercased())
+                            .font(.system(size: 14, weight: .medium))
+                            .tracking(4.5)
+                        Image(systemName: "leaf.fill")
+                            .font(.system(size: 9))
+                    }
                     .foregroundStyle(BBTheme.Colors.primary.opacity(0.65))
-                    .padding(.top, 14)
                     .opacity(taglineVisible ? 1 : 0)
-                    .offset(y: taglineVisible ? 0 : 8)
-
-                Spacer()
-                Spacer()
+                    .offset(y: taglineVisible ? 0 : 12)
+                }
+                .position(x: geo.size.width / 2, y: geo.size.height * 0.77)
             }
             .opacity(fadingOut ? 0 : 1)
+            .ignoresSafeArea()
         }
         .onAppear { play() }
     }
 
     private func play() {
-        withAnimation(.spring(response: 0.65, dampingFraction: 0.75).delay(0.15)) {
-            logoVisible = true
+        withAnimation(.easeOut(duration: 0.9).delay(0.1)) {
+            bgVisible = true
         }
-        withAnimation(.easeOut(duration: 0.5).delay(0.85)) {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.1)) {
             titleVisible = true
         }
-        withAnimation(.easeOut(duration: 0.5).delay(1.35)) {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.8)) {
             taglineVisible = true
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.9) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.8) {
             withAnimation(.easeIn(duration: 0.35)) { fadingOut = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onDone() }
         }
