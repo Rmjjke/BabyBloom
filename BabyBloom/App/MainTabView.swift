@@ -96,17 +96,9 @@ struct SettingsView: View {
     @Environment(SubscriptionManager.self) private var store
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var showProfileEdit = false
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
-
-    @ViewBuilder
-    private var exportDestination: some View {
-        if store.isPremium {
-            ExportView()
-        } else {
-            PaywallView()
-        }
-    }
 
     var body: some View {
         List {
@@ -175,9 +167,18 @@ struct SettingsView: View {
             }
 
             Section("settings.data".l) {
-                NavigationLink(destination: exportDestination) {
-                    Label("settings.export".l, systemImage: "arrow.up.doc.fill")
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                if store.isPremium {
+                    NavigationLink(destination: ExportView()) {
+                        Label("settings.export".l, systemImage: "arrow.up.doc.fill")
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    }
+                } else {
+                    Button {
+                        showPaywall = true
+                    } label: {
+                        Label("settings.export".l, systemImage: "arrow.up.doc.fill")
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    }
                 }
                 Label("settings.icloud".l, systemImage: "icloud.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -187,7 +188,9 @@ struct SettingsView: View {
                 Label("settings.about".l, systemImage: "info.circle.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                NavigationLink(destination: PaywallView()) {
+                Button {
+                    showPaywall = true
+                } label: {
                     HStack {
                         Label("settings.premium".l, systemImage: "crown.fill")
                             .foregroundStyle(BBTheme.Colors.primary)
@@ -201,6 +204,9 @@ struct SettingsView: View {
                                 .background(BBTheme.Colors.primary)
                                 .cornerRadius(BBTheme.Radius.pill)
                         }
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
                     }
                 }
             }
@@ -211,6 +217,9 @@ struct SettingsView: View {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
             }
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 }

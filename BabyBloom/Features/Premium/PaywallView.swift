@@ -60,6 +60,7 @@ struct PaywallView: View {
             }
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
+        .overlay(alignment: .topTrailing) { closeButton }
         .navigationTitle("settings.premium".l)
         .navigationBarTitleDisplayMode(.inline)
         .alert("premium.restore_title".l, isPresented: $showRestoreAlert) {
@@ -76,6 +77,22 @@ struct PaywallView: View {
             await store.refreshEntitlements()
             await reloadProducts()
         }
+    }
+
+    // MARK: - Close Button (modal dismissal)
+
+    private var closeButton: some View {
+        Button { dismiss() } label: {
+            Image(systemName: "xmark")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .frame(width: 30, height: 30)
+                .background(.ultraThinMaterial, in: Circle())
+                .frame(width: 44, height: 44)          // ≥44pt tap zone
+                .contentShape(Rectangle())
+        }
+        .padding(.trailing, BBTheme.Spacing.sm)
+        .padding(.top, BBTheme.Spacing.sm)
     }
 
     // MARK: - Hero Header

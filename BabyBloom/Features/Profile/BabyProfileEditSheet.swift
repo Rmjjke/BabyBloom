@@ -156,6 +156,15 @@ struct BabyProfileEditSheet: View {
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
+            // Big primary action pinned to the safe area for one-handed / night use;
+            // mirrors the toolbar Save (both call save()).
+            .safeAreaInset(edge: .bottom) {
+                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                    .padding(.horizontal, BBTheme.Spacing.md)
+                    .padding(.top, BBTheme.Spacing.sm)
+                    .padding(.bottom, BBTheme.Spacing.xs)
+                    .background(BBTheme.Colors.background)
+            }
             .navigationTitle("profile.edit_title".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -170,6 +179,10 @@ struct BabyProfileEditSheet: View {
                 }
             }
         }
+        .presentationDragIndicator(.visible)
+        // Profile is a tall, deliberate edit form (avatar + 4 form sections);
+        // .large only — .medium would crop the feeding-type row under the fold.
+        .presentationDetents([.large])
         .onChange(of: selectedPhotoItem) { _, item in
             loadPhoto(item)
         }
@@ -196,6 +209,8 @@ struct BabyProfileEditSheet: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.white)
                     }
+                    .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 30)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }

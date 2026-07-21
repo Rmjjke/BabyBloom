@@ -145,6 +145,8 @@ struct BBWeeklyBarChart: View {
                         .frame(width: 28, height: 28)
                         .background(BBTheme.Colors.primary.opacity(0.1))
                         .cornerRadius(8)
+                        .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
+                        .contentShape(Rectangle())
                 }
 
                 Spacer()
@@ -165,6 +167,8 @@ struct BBWeeklyBarChart: View {
                         .frame(width: 28, height: 28)
                         .background(canGoForward ? BBTheme.Colors.primary.opacity(0.1) : Color.clear)
                         .cornerRadius(8)
+                        .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
+                        .contentShape(Rectangle())
                 }
                 .disabled(!canGoForward)
             }

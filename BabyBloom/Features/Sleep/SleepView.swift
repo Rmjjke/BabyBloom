@@ -330,20 +330,32 @@ struct AddSleepSheet: View {
                         .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
-
-                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
                 }
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom) {
+                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                    .padding(.horizontal, BBTheme.Spacing.md)
+                    .padding(.top, BBTheme.Spacing.sm)
+                    .padding(.bottom, BBTheme.Spacing.xs)
+                    .background(BBTheme.Colors.background)
+            }
             .navigationTitle("sheet.add_sleep".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("button.save".l) { save() }
+                        .fontWeight(.semibold)
+                        .foregroundStyle(BBTheme.Colors.primary)
+                }
             }
         }
+        .presentationDragIndicator(.visible)
+        .presentationDetents([.medium, .large])
     }
 
     private func save() {

@@ -18,6 +18,9 @@ struct BBStatCard: View {
             Button(action: action) {
                 cardContent
             }
+            // Whole card (min 110pt) is the tap target — the 36pt icon is
+            // decorative; contentShape guarantees the full frame is hittable.
+            .contentShape(Rectangle())
             .buttonStyle(BBScaleButtonStyle())
         } else {
             cardContent

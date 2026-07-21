@@ -427,15 +427,22 @@ struct AddFeedingSheet: View {
                     .background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.md)
                     .bbShadow(BBTheme.Shadow.card)
-
-                    // Start button
-                    BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l, icon: startTimer ? "play.fill" : "checkmark") {
-                        save()
-                    }
                 }
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
+            // Big primary action pinned to the safe area for one-handed / night use;
+            // mirrors the toolbar Save (both call save()).
+            .safeAreaInset(edge: .bottom) {
+                BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l,
+                                icon: startTimer ? "play.fill" : "checkmark") {
+                    save()
+                }
+                .padding(.horizontal, BBTheme.Spacing.md)
+                .padding(.top, BBTheme.Spacing.sm)
+                .padding(.bottom, BBTheme.Spacing.xs)
+                .background(BBTheme.Colors.background)
+            }
             .navigationTitle("sheet.new_feeding".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -443,8 +450,15 @@ struct AddFeedingSheet: View {
                     Button("button.cancel".l) { dismiss() }
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("button.save".l) { save() }
+                        .fontWeight(.semibold)
+                        .foregroundStyle(BBTheme.Colors.primary)
+                }
             }
         }
+        .presentationDragIndicator(.visible)
+        .presentationDetents([.medium, .large])
     }
 
     private func save() {
