@@ -62,12 +62,22 @@ struct MoreView: View {
         NavigationStack {
             List {
                 NavigationLink(destination: DiaperView()) {
-                    Label("nav.diapers".l, systemImage: "circle.lefthalf.filled")
-                        .foregroundStyle(BBTheme.Colors.diaper)
+                    Label {
+                        Text("nav.diapers".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    } icon: {
+                        Image(systemName: "circle.lefthalf.filled")
+                            .foregroundStyle(BBTheme.Colors.diaper)
+                    }
                 }
                 NavigationLink(destination: EventsView()) {
-                    Label("nav.events".l, systemImage: "star.fill")
-                        .foregroundStyle(BBTheme.Colors.events)
+                    Label {
+                        Text("nav.events".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    } icon: {
+                        Image(systemName: "star.fill")
+                            .foregroundStyle(BBTheme.Colors.events)
+                    }
                 }
                 NavigationLink(destination: SettingsView()) {
                     Label("nav.settings".l, systemImage: "gearshape.fill")

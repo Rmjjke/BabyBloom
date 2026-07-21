@@ -20,7 +20,7 @@ struct BBMeasureSlider: View {
                 Spacer()
                 Text(display)
                     .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
-                    .foregroundStyle(color)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
             }
             Slider(value: $value, in: range, step: step)
                 .tint(color)
@@ -74,7 +74,7 @@ struct BBOptionalMeasureToggle: View {
                     Spacer()
                     Text(display)
                         .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
-                        .foregroundStyle(color)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Slider(value: $value, in: range, step: step)
                     .tint(color)

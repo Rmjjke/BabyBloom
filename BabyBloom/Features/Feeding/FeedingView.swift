@@ -250,11 +250,15 @@ struct FeedingTimerCard: View {
                         } label: {
                             Text(side.displayName.l)
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundStyle(entry.side == side ? .white : BBTheme.Colors.feeding)
+                                .foregroundStyle(entry.side == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 8)
-                                .background(entry.side == side ? BBTheme.Colors.feeding : BBTheme.Colors.feeding.opacity(0.1))
+                                .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                 .cornerRadius(BBTheme.Radius.pill)
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(entry.side == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                )
                         }
                         .buttonStyle(BBScaleButtonStyle())
                     }

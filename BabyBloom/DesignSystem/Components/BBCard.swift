@@ -39,7 +39,7 @@ struct BBStatCard: View {
                 if let trend {
                     Text(trend)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.success)
+                        .foregroundStyle(BBTheme.Colors.primary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .background(BBTheme.Colors.success.opacity(0.12))

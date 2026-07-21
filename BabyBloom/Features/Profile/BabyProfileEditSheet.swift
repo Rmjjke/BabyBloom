@@ -102,11 +102,15 @@ struct BabyProfileEditSheet: View {
                                             Text(gender.displayName.l)
                                                 .font(.system(size: 15, weight: .medium, design: .rounded))
                                         }
-                                        .foregroundStyle(baby.gender == gender ? .white : BBTheme.Colors.textPrimary)
+                                        .foregroundStyle(baby.gender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 10)
-                                        .background(baby.gender == gender ? BBTheme.Colors.primary : BBTheme.Colors.surface)
+                                        .background(baby.gender == gender ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                         .cornerRadius(BBTheme.Radius.md)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                                .strokeBorder(baby.gender == gender ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                        )
                                         .bbShadow(BBTheme.Shadow.card)
                                     }
                                     .buttonStyle(BBScaleButtonStyle())
@@ -130,11 +134,15 @@ struct BabyProfileEditSheet: View {
                                     } label: {
                                         Text(ft.displayName.l)
                                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                                            .foregroundStyle(baby.feedingType == ft ? .white : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(baby.feedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                             .frame(maxWidth: .infinity)
                                             .padding(.vertical, 10)
-                                            .background(baby.feedingType == ft ? BBTheme.Colors.feeding : BBTheme.Colors.surface)
+                                            .background(baby.feedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                             .cornerRadius(BBTheme.Radius.md)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                                    .strokeBorder(baby.feedingType == ft ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                            )
                                             .bbShadow(BBTheme.Shadow.card)
                                     }
                                     .buttonStyle(BBScaleButtonStyle())
