@@ -112,6 +112,8 @@ struct AddEventSheet: View {
     @State private var selectedMood: CustomEvent.MoodLevel = .calm
     @State private var medicationName = ""
     @State private var medicationDose = ""
+    /// Start at `.large` so all fields are visible without a manual drag (brief §2).
+    @State private var selectedDetent: PresentationDetent = .large
 
     var body: some View {
         NavigationStack {
@@ -215,7 +217,7 @@ struct AddEventSheet: View {
             }
         }
         .presentationDragIndicator(.visible)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $selectedDetent)
     }
 
     private func save() {

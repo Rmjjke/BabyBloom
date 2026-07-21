@@ -319,11 +319,31 @@ struct AddFeedingSheet: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @State private var selectedType: FeedingEntry.FeedingType
     @State private var selectedSide: FeedingEntry.BreastSide = .left
-    @State private var volumeML: Double = 0
+    @State private var volumeML: Double = 100
+    /// Set once the user drags the volume slider by hand. After that a type-switch
+    /// must not overwrite their chosen volume (brief §1).
+    @State private var userTouchedVolume = false
     @State private var startTimer = false
+    /// Drives the initial sheet height. Starts at `.large` so the timer toggle /
+    /// primary action are on-screen without a manual drag (brief §2).
+    @State private var selectedDetent: PresentationDetent = .large
 
     init(initialType: FeedingEntry.FeedingType = .breast) {
         _selectedType = State(initialValue: initialType)
+    }
+
+    /// Volume of the most recent saved feeding of `type`, or nil if none.
+    /// `feedings` is sorted startTime-descending, so `.first` is the latest.
+    private func lastVolume(for type: FeedingEntry.FeedingType) -> Double? {
+        feedings.first { $0.type == type && $0.volumeML != nil }?.volumeML
+    }
+
+    /// Seed the slider with the last-used volume for the current type (100ml
+    /// fallback), unless the user has already touched the slider by hand.
+    private func applyDefaultVolume() {
+        guard !userTouchedVolume,
+              selectedType == .formula || selectedType == .pumped else { return }
+        volumeML = lastVolume(for: selectedType) ?? 100
     }
 
     var body: some View {
@@ -411,8 +431,10 @@ struct AddFeedingSheet: View {
                                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.feeding)
                             }
-                            Slider(value: $volumeML, in: 0...500, step: 10)
-                                .tint(BBTheme.Colors.feeding)
+                            Slider(value: $volumeML, in: 0...500, step: 10) { editing in
+                                if editing { userTouchedVolume = true }
+                            }
+                            .tint(BBTheme.Colors.feeding)
                             HStack {
                                 Text("0")
                                 Spacer()
@@ -474,7 +496,9 @@ struct AddFeedingSheet: View {
             }
         }
         .presentationDragIndicator(.visible)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .onAppear { applyDefaultVolume() }
+        .onChange(of: selectedType) { applyDefaultVolume() }
     }
 
     private func save() {

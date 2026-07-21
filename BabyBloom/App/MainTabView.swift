@@ -50,9 +50,29 @@ struct MainTabView: View {
 
 // MARK: - More Tab
 struct MoreView: View {
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @State private var showProfileEdit = false
+
+    private var baby: Baby? { babies.first }
+
     var body: some View {
         NavigationStack {
             List {
+                // Profile row — first item. Opens the profile editor as a sheet
+                // (moved here from Settings). Hidden when there is no baby yet.
+                if baby != nil {
+                    Button {
+                        showProfileEdit = true
+                    } label: {
+                        Label {
+                            Text("nav.profile".l)
+                                .foregroundStyle(BBTheme.Colors.textPrimary)
+                        } icon: {
+                            Image(systemName: "person.crop.circle.fill")
+                                .foregroundStyle(BBTheme.Colors.primary)
+                        }
+                    }
+                }
                 NavigationLink(destination: GrowthView()) {
                     Label {
                         Text("nav.growth".l)
@@ -78,6 +98,11 @@ struct MoreView: View {
             }
             .navigationTitle("tab.more".l)
             .navigationBarTitleDisplayMode(.large)
+            .sheet(isPresented: $showProfileEdit) {
+                if let baby {
+                    BabyProfileEditSheet(baby: baby)
+                }
+            }
         }
     }
 }
@@ -86,47 +111,10 @@ struct MoreView: View {
 struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage = "ru"
     @Environment(SubscriptionManager.self) private var store
-    @Query(sort: \Baby.createdAt) private var babies: [Baby]
-    @State private var showProfileEdit = false
     @State private var showPaywall = false
-
-    private var baby: Baby? { babies.first }
 
     var body: some View {
         List {
-            // ── Baby profile card ─────────────────────────────────────
-            if let baby {
-                Section {
-                    Button {
-                        showProfileEdit = true
-                    } label: {
-                        HStack(spacing: BBTheme.Spacing.md) {
-                            BabyAvatarView(photoData: baby.photoData,
-                                           gender: baby.gender,
-                                           size: 56)
-                                .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
-
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(baby.name)
-                                    .font(BBTheme.Typography.scaled(18, relativeTo: .body, weight: .bold, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                                Text(baby.ageDescription)
-                                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                            }
-                            Spacer()
-                            Image(systemName: "pencil.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(.plain)
-                } header: {
-                    Text("settings.profile".l)
-                }
-            }
-
             // ── Language ──────────────────────────────────────────────
             Section {
                 HStack {
@@ -205,11 +193,6 @@ struct SettingsView: View {
         }
         .navigationTitle("nav.settings".l)
         .task { await store.refreshEntitlements() }
-        .sheet(isPresented: $showProfileEdit) {
-            if let baby {
-                BabyProfileEditSheet(baby: baby)
-            }
-        }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }

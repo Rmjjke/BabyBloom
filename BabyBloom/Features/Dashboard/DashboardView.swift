@@ -14,6 +14,7 @@ struct DashboardView: View {
     @State private var showQuickDiaperSheet = false
     @State private var showQuickEventSheet = false
     @State private var showQuickGrowthSheet = false
+    @State private var showProfileEdit = false
 
     private var baby: Baby? { babies.first }
 
@@ -73,6 +74,11 @@ struct DashboardView: View {
         .sheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
         .sheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
         .sheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
+        .sheet(isPresented: $showProfileEdit) {
+            if let baby {
+                BabyProfileEditSheet(baby: baby)
+            }
+        }
     }
 
     // MARK: - Header
@@ -98,10 +104,15 @@ struct DashboardView: View {
                 }
             }
             Spacer()
-            BabyAvatarView(photoData: baby?.photoData,
-                           gender: baby?.gender,
-                           size: 52)
-                .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
+            Button {
+                if baby != nil { showProfileEdit = true }
+            } label: {
+                BabyAvatarView(photoData: baby?.photoData,
+                               gender: baby?.gender,
+                               size: 52)
+                    .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
+            }
+            .buttonStyle(.plain)
         }
         .padding(.top, BBTheme.Spacing.md)
     }
