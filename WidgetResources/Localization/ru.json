@@ -183,6 +183,8 @@
   "filter.month": "Месяц",
   "filter.year": "Год",
   "section.weekly_chart": "Динамика по неделям",
+  "chart.axis.day": "День",
+  "chart.axis.value": "Значение",
   "button.delete_history": "Удалить историю",
   "confirm.delete_message": "Это действие нельзя отменить.",
   "form.start_time": "Начало",

@@ -486,6 +486,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7D9A3D25B5AC4B427F8FE10B /* Build configuration list for PBXNativeTarget "BabyBloom" */;
 			buildPhases = (
+				9080F2974EB40A5E69DDC900 /* Verify widget localization copies in sync */,
 				4B3558915ABF2353ADB81A8C /* Sources */,
 				4C004AB52023ABDC332BEE8B /* Resources */,
 				83CE97F8D83911DAF538D5BF /* Embed Foundation Extensions */,
@@ -564,6 +565,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9080F2974EB40A5E69DDC900 /* Verify widget localization copies in sync */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Verify widget localization copies in sync";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$PROJECT_DIR\"\nfor f in en ru; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2F2C1BD2D3C3A9D6BD951E28 /* Sources */ = {

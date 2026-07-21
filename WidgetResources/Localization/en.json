@@ -183,6 +183,8 @@
   "filter.month": "Month",
   "filter.year": "Year",
   "section.weekly_chart": "Weekly Dynamics",
+  "chart.axis.day": "Day",
+  "chart.axis.value": "Value",
   "button.delete_history": "Delete History",
   "confirm.delete_message": "This action cannot be undone.",
   "form.start_time": "Start",

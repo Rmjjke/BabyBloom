@@ -29,6 +29,17 @@ targets:
       - path: BabyBloom/Resources/Assets.xcassets
       - path: BabyBloom/Resources/Localization
         buildPhase: resources
+    preBuildScripts:
+      - name: "Verify widget localization copies in sync"
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$PROJECT_DIR"
+          for f in en ru; do
+            if ! cmp -s "BabyBloom/Resources/Localization/$f.json" "WidgetResources/Localization/$f.json"; then
+              echo "error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json"
+              exit 1
+            fi
+          done
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.babybloom.app
       INFOPLIST_FILE: BabyBloom/Resources/Info.plist
