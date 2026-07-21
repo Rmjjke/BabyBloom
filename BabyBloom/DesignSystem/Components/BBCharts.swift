@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 // MARK: - History Filter
 
@@ -58,27 +59,30 @@ struct BBHistoryFilterPicker: View {
 
 // MARK: - Weekly Bar Chart
 
+///
+/// Weekly bar chart built on Apple's **Swift Charts** framework.
+///
+/// Public API is unchanged from the previous hand-rolled version — `valueFor`,
+/// `color` and the optional `formatValue` — so Feeding / Sleep / Diaper call
+/// sites need no edits.
+///
+/// **Performance.** The old version exposed `days` and `maxVal` as *computed*
+/// properties. SwiftUI evaluated `body` and each of those on every render, and
+/// `maxVal` re-derived `days` in turn — so `valueFor` (an O(N) filter over all
+/// entries) ran 7 × (several evaluations) = several passes of O(7·N) per render.
+/// Now the 7-day dataset is materialised **once** at the top of `body`
+/// (`let week = makeDays()`), and `maxVal` / the max-bar index are derived from
+/// that single array — one O(7·N) pass per render.
 struct BBWeeklyBarChart: View {
 
     private struct Day: Identifiable {
-        let id = UUID()
         let date: Date
         let value: Double
-
-        var isToday: Bool { Calendar.current.isDateInToday(date) }
-        var isFuture: Bool { date > Calendar.current.startOfDay(for: Date()) }
-
-        var shortLabel: String {
-            let lang = LocalizationManager.shared.currentLanguage
-            let f = DateFormatter()
-            f.locale = Locale(identifier: lang == "ru" ? "ru_RU" : "en_US")
-            f.dateFormat = "EEE"
-            return String(f.string(from: date).prefix(2)).capitalized
-        }
-
-        var dayNumber: String {
-            "\(Calendar.current.component(.day, from: date))"
-        }
+        let shortLabel: String
+        let dayNumber: String
+        let isToday: Bool
+        let isFuture: Bool
+        var id: Date { date }
     }
 
     let valueFor: (Date) -> Double
@@ -90,7 +94,7 @@ struct BBWeeklyBarChart: View {
     @State private var weekOffset = 0   // 0 = current week, -1 = last week, …
 
     private var canGoForward: Bool { weekOffset < 0 }
-    private let barMaxH: CGFloat = 80
+    private let chartHeight: CGFloat = 150
 
     private func mondayOf(_ date: Date) -> Date {
         let cal = Calendar.current
@@ -106,11 +110,24 @@ struct BBWeeklyBarChart: View {
         return (0..<7).map { cal.date(byAdding: .day, value: $0, to: weekStart)! }
     }
 
-    private var days: [Day] {
-        weekDays.map { Day(date: $0, value: valueFor($0)) }
+    /// Materialise the 7-day dataset **once**. Runs `valueFor` exactly 7× and
+    /// reuses a single `DateFormatter` for weekday abbreviations.
+    private func makeDays() -> [Day] {
+        let cal  = Calendar.current
+        let lang = LocalizationManager.shared.currentLanguage
+        let f    = DateFormatter()
+        f.locale = Locale(identifier: lang == "ru" ? "ru_RU" : "en_US")
+        f.dateFormat = "EEE"
+        let todayStart = cal.startOfDay(for: Date())
+        return weekDays.map { date in
+            Day(date: date,
+                value: valueFor(date),
+                shortLabel: String(f.string(from: date).prefix(2)).capitalized,
+                dayNumber: "\(cal.component(.day, from: date))",
+                isToday: cal.isDateInToday(date),
+                isFuture: date > todayStart)
+        }
     }
-
-    private var maxVal: Double { max(days.map(\.value).max() ?? 1, 0.001) }
 
     private var monthTitle: String {
         let first = weekDays.first!
@@ -131,7 +148,30 @@ struct BBWeeklyBarChart: View {
         }
     }
 
+    /// Bar fill: today at full saturation, other days slightly muted; both fade
+    /// top→bottom to `opacity(0.35)` of their base. Future (empty) days get a
+    /// whisper-soft wash so the slot reads as "no data yet".
+    private func barGradient(for day: Day) -> LinearGradient {
+        let top: Color
+        let bottom: Color
+        if day.isFuture {
+            top = color.opacity(0.10); bottom = color.opacity(0.05)
+        } else if day.isToday {
+            top = color; bottom = color.opacity(0.35)
+        } else {
+            top = color.opacity(0.5); bottom = color.opacity(0.175)
+        }
+        return LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom)
+    }
+
     var body: some View {
+        // Compute the 7-day dataset ONCE per render (see doc comment above).
+        let week    = makeDays()
+        let maxVal  = week.map(\.value).max() ?? 0
+        let maxID   = maxVal > 0 ? week.first(where: { $0.value == maxVal })?.id : nil
+        let yUpper  = max(maxVal * 1.18, 1)              // headroom for the annotation
+        let todayLabel = week.first(where: { $0.isToday })?.shortLabel
+
         VStack(spacing: BBTheme.Spacing.sm) {
 
             // Month header + navigation
@@ -173,56 +213,53 @@ struct BBWeeklyBarChart: View {
                 .disabled(!canGoForward)
             }
 
-            // Bars
-            HStack(alignment: .bottom, spacing: 4) {
-                ForEach(days) { day in
-                    VStack(spacing: 3) {
-                        // Value label above bar
-                        Group {
-                            if day.value > 0 {
-                                Text(formatValue(day.value))
-                                    .font(.system(size: 9, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(day.isToday ? color : BBTheme.Colors.textSecondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                            } else {
-                                Color.clear
-                            }
-                        }
-                        .frame(height: 12)
-
-                        // Bar (grows from bottom)
-                        VStack(spacing: 0) {
-                            Spacer(minLength: 0)
-                            RoundedRectangle(cornerRadius: 5)
-                                .fill(day.isFuture
-                                      ? LinearGradient(colors: [color.opacity(0.08), color.opacity(0.05)],
-                                                       startPoint: .top, endPoint: .bottom)
-                                      : day.isToday
-                                          ? LinearGradient(colors: [color, color.opacity(0.7)],
-                                                           startPoint: .top, endPoint: .bottom)
-                                          : LinearGradient(colors: [color.opacity(0.4), color.opacity(0.25)],
-                                                           startPoint: .top, endPoint: .bottom))
-                                .frame(height: max(day.isFuture ? 2 : 3,
-                                                   CGFloat(day.value / maxVal) * barMaxH))
-                        }
-                        .frame(height: barMaxH)
-
-                        // Day labels: weekday + day number
-                        VStack(spacing: 1) {
-                            Text(day.shortLabel)
-                                .font(.system(size: 9, weight: day.isToday ? .bold : .medium, design: .rounded))
-                                .foregroundStyle(day.isToday ? color : BBTheme.Colors.textSecondary)
-                            Text(day.dayNumber)
-                                .font(.system(size: 11, weight: day.isToday ? .bold : .regular, design: .rounded))
-                                .foregroundStyle(day.isToday ? color : BBTheme.Colors.textSecondary)
-                        }
+            // Swift Charts bar chart
+            Chart(week) { day in
+                BarMark(
+                    x: .value("chart.axis.day".l, day.shortLabel),
+                    y: .value("chart.axis.value".l, day.value),
+                    width: .ratio(0.55)
+                )
+                .cornerRadius(4)
+                .foregroundStyle(barGradient(for: day))
+                .annotation(position: .top, spacing: 4) {
+                    // Value label ONLY over the tallest bar of the week.
+                    if day.id == maxID {
+                        Text(formatValue(day.value))
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(color)
                     }
-                    .frame(maxWidth: .infinity)
                 }
             }
-            .id(weekOffset)   // re-render bars when week changes
-            .transition(.opacity)
+            .chartXScale(domain: week.map(\.shortLabel))     // preserve Mon→Sun order
+            .chartYScale(domain: 0...yUpper)
+            .chartYAxis {
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                    AxisGridLine()
+                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.06))
+                    AxisValueLabel {
+                        if let v = value.as(Double.self) {
+                            Text("\(Int(v))")
+                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                        }
+                    }
+                }
+            }
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisValueLabel {
+                        if let label = value.as(String.self) {
+                            let isToday = (label == todayLabel)
+                            Text(label)
+                                .font(.system(size: 11, weight: isToday ? .bold : .medium, design: .rounded))
+                                .foregroundStyle(isToday ? color : BBTheme.Colors.textSecondary)
+                        }
+                    }
+                }
+            }
+            .frame(height: chartHeight)
+            .animation(.easeOut(duration: 0.35), value: weekOffset)
         }
         .padding(BBTheme.Spacing.md)
         .background(BBTheme.Colors.surface)
