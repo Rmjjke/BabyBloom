@@ -55,7 +55,9 @@ struct FeedingView: View {
                     historySection
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
-                .padding(.bottom, BBTheme.Spacing.xl)
+                // Extra bottom clearance so the history period-selector / delete-all
+                // button never tucks under the tab bar. (D2 bugfix)
+                .padding(.bottom, BBTheme.Spacing.xxl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationTitle("tab.feeding".l)
@@ -92,7 +94,7 @@ struct FeedingView: View {
                                 .font(.system(size: 22, weight: .medium))
                                 .foregroundStyle(BBTheme.Colors.feeding)
                                 .frame(width: 44, height: 44)
-                                .background(BBTheme.Colors.feeding.opacity(0.15))
+                                .background(BBTheme.Colors.feeding.opacity(0.22))
                                 .cornerRadius(12)
                             Text(type.displayName.l)
                                 .font(.system(size: 13, weight: .semibold, design: .rounded))
@@ -323,15 +325,19 @@ struct AddFeedingSheet: View {
                                     VStack(spacing: 6) {
                                         Image(systemName: type.icon)
                                             .font(.system(size: 22))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.primary)
+                                            .foregroundStyle(BBTheme.Colors.primary)
                                         Text(type.displayName.l)
                                             .font(.system(size: 12, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.surface)
+                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                     .cornerRadius(BBTheme.Radius.md)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                    )
                                     .bbShadow(BBTheme.Shadow.card)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
@@ -356,11 +362,15 @@ struct AddFeedingSheet: View {
                                             Text(side.displayName.l)
                                         }
                                         .font(.system(size: 15, weight: .medium, design: .rounded))
-                                        .foregroundStyle(selectedSide == side ? .white : BBTheme.Colors.textPrimary)
+                                        .foregroundStyle(selectedSide == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
-                                        .background(selectedSide == side ? BBTheme.Colors.feeding : BBTheme.Colors.surface)
+                                        .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                         .cornerRadius(BBTheme.Radius.md)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                                .strokeBorder(selectedSide == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                        )
                                         .bbShadow(BBTheme.Shadow.card)
                                     }
                                     .buttonStyle(BBScaleButtonStyle())

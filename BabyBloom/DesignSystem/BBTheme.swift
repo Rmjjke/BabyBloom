@@ -106,10 +106,13 @@ enum BBTheme {
     }
 
     // MARK: Shadow
+    // Depth system (D2): tinted, diffuse shadows in the brand hue instead of flat
+    // black — reads softer and more premium. Button shadow toned right down so it
+    // no longer glows like a lantern (especially in dark mode).
     enum Shadow {
-        static let soft = ShadowConfig(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 4)
-        static let card = ShadowConfig(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 2)
-        static let button = ShadowConfig(color: Colors.primary.opacity(0.3), radius: 12, x: 0, y: 6)
+        static let soft = ShadowConfig(color: Colors.primary.opacity(0.14), radius: 28, x: 0, y: 12)
+        static let card = ShadowConfig(color: Colors.primary.opacity(0.10), radius: 20, x: 0, y: 8)
+        static let button = ShadowConfig(color: Colors.primary.opacity(0.18), radius: 10, x: 0, y: 4)
     }
 
     struct ShadowConfig {
@@ -148,20 +151,59 @@ extension Color {
 }
 
 // MARK: - View Modifiers
+
+/// Elevated surface (level 1): white/dark card with a tinted diffuse shadow and a
+/// 1px inner highlight along the top edge so it catches light like a real object.
+/// The highlight is bright in light mode (white@0.5) and whisper-soft in dark
+/// (white@0.08) so it hints at an edge without glowing.
 struct BBCardModifier: ViewModifier {
     var padding: CGFloat = BBTheme.Spacing.md
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var highlightColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.08) : Color.white.opacity(0.5)
+    }
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(BBTheme.Colors.surface)
             .cornerRadius(BBTheme.Radius.md)
+            .overlay(
+                RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                    .strokeBorder(highlightColor, lineWidth: 1)
+                    .blendMode(.overlay)
+            )
             .shadow(
                 color: BBTheme.Shadow.card.color,
                 radius: BBTheme.Shadow.card.radius,
                 x: BBTheme.Shadow.card.x,
                 y: BBTheme.Shadow.card.y
             )
+    }
+}
+
+/// Tonal surface (level 0): a flat wash of the category tint with no shadow and no
+/// border. Reads as a grouped/secondary surface that sits *into* the page rather
+/// than floating above it — used for at-a-glance stat tiles and quick-add tiles.
+struct BBCardTonalModifier: ViewModifier {
+    let tint: Color
+    var padding: CGFloat = BBTheme.Spacing.md
+
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .background(tint.opacity(0.08))
+            .cornerRadius(BBTheme.Radius.lg)
+    }
+}
+
+/// Bare row: vertical padding only, no fill/shadow — designed to sit inside a
+/// grouped container with Dividers between rows.
+struct BBBareRowModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.vertical, BBTheme.Spacing.sm)
     }
 }
 
@@ -182,6 +224,16 @@ struct BBGlassModifier: ViewModifier {
 extension View {
     func bbCard(padding: CGFloat = BBTheme.Spacing.md) -> some View {
         modifier(BBCardModifier(padding: padding))
+    }
+
+    /// Tonal (flat, tinted, shadowless) surface — see `BBCardTonalModifier`.
+    func bbCardTonal(_ tint: Color, padding: CGFloat = BBTheme.Spacing.md) -> some View {
+        modifier(BBCardTonalModifier(tint: tint, padding: padding))
+    }
+
+    /// Bare row (vertical padding only) — see `BBBareRowModifier`.
+    func bbBareRow() -> some View {
+        modifier(BBBareRowModifier())
     }
 
     func bbGlass() -> some View {

@@ -53,13 +53,7 @@ struct EventsView: View {
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(BBTheme.Spacing.md)
-                        .background(Color(hex: type.colorHex).opacity(0.1))
-                        .cornerRadius(BBTheme.Radius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                .stroke(Color(hex: type.colorHex).opacity(0.4), lineWidth: 1.5)
-                        )
+                        .bbCardTonal(Color(hex: type.colorHex))
                     }
                     .buttonStyle(BBScaleButtonStyle())
                 }
@@ -129,13 +123,18 @@ struct AddEventSheet: View {
                             Button { selectedType = type } label: {
                                 VStack(spacing: 6) {
                                     Image(systemName: type.icon).font(.system(size: 22))
-                                        .foregroundStyle(selectedType == type ? .white : Color(hex: type.colorHex))
+                                        .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : Color(hex: type.colorHex))
                                     Text(type.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
-                                        .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
+                                        .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 }
                                 .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                .background(selectedType == type ? Color(hex: type.colorHex) : BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                .cornerRadius(BBTheme.Radius.md)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                        .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                )
+                                .bbShadow(BBTheme.Shadow.card)
                             }
                             .buttonStyle(BBScaleButtonStyle())
                         }
@@ -150,13 +149,18 @@ struct AddEventSheet: View {
                                     Button { selectedMood = mood } label: {
                                         VStack(spacing: 4) {
                                             Image(systemName: mood.icon).font(.system(size: 24))
-                                                .foregroundStyle(selectedMood == mood ? .white : BBTheme.Colors.accent)
+                                                .foregroundStyle(selectedMood == mood ? BBTheme.Colors.primary : BBTheme.Colors.accent)
                                             Text(mood.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
-                                                .foregroundStyle(selectedMood == mood ? .white : BBTheme.Colors.textPrimary)
+                                                .foregroundStyle(selectedMood == mood ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         }
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
-                                        .background(selectedMood == mood ? BBTheme.Colors.accent : BBTheme.Colors.surface)
-                                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                                        .background(selectedMood == mood ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                        .cornerRadius(BBTheme.Radius.md)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                                .strokeBorder(selectedMood == mood ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                        )
+                                        .bbShadow(BBTheme.Shadow.card)
                                     }
                                     .buttonStyle(BBScaleButtonStyle())
                                 }

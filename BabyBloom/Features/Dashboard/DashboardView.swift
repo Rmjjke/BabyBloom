@@ -52,7 +52,7 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: BBTheme.Spacing.lg) {
+                VStack(spacing: BBTheme.Spacing.xl) {
                     headerSection
                     if activeFeeding != nil || activeSleep != nil {
                         activeTimersSection
@@ -332,7 +332,7 @@ struct ActiveTimerCard: View {
         HStack(spacing: BBTheme.Spacing.md) {
             ZStack {
                 Circle()
-                    .fill(color.opacity(0.15))
+                    .fill(color.opacity(0.22))
                     .frame(width: 48, height: 48)
                 Image(systemName: icon)
                     .font(.system(size: 20))

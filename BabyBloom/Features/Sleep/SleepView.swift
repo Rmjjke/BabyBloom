@@ -53,7 +53,9 @@ struct SleepView: View {
                     historySection
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
-                .padding(.bottom, BBTheme.Spacing.xl)
+                // Extra bottom clearance so the history period-selector / delete-all
+                // button never tucks under the tab bar. (D2 bugfix)
+                .padding(.bottom, BBTheme.Spacing.xxl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationTitle("tab.sleep".l)
@@ -273,13 +275,18 @@ struct AddSleepSheet: View {
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
                                         Image(systemName: type.icon).font(.system(size: 24))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.sleep)
+                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.sleep)
                                         Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.sleep : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                    .cornerRadius(BBTheme.Radius.md)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                    )
+                                    .bbShadow(BBTheme.Shadow.card)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
                             }
@@ -295,13 +302,18 @@ struct AddSleepSheet: View {
                                 Button { selectedLocation = loc } label: {
                                     VStack(spacing: 4) {
                                         Image(systemName: loc.icon).font(.system(size: 20))
-                                            .foregroundStyle(selectedLocation == loc ? .white : BBTheme.Colors.primary)
+                                            .foregroundStyle(BBTheme.Colors.primary)
                                         Text(loc.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedLocation == loc ? .white : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, 12)
-                                    .background(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                                    .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                    .cornerRadius(BBTheme.Radius.md)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                            .strokeBorder(selectedLocation == loc ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                    )
+                                    .bbShadow(BBTheme.Shadow.card)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
                             }

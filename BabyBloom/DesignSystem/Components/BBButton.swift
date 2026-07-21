@@ -96,7 +96,7 @@ struct BBQuickActionButton: View {
             VStack(spacing: BBTheme.Spacing.xs) {
                 ZStack {
                     Circle()
-                        .fill(color.opacity(0.15))
+                        .fill(color.opacity(0.22))
                         .frame(width: 60, height: 60)
                     Image(systemName: icon)
                         .font(.system(size: 26, weight: .medium))

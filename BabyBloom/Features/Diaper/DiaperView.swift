@@ -35,7 +35,9 @@ struct DiaperView: View {
                     historySection
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
-                .padding(.bottom, BBTheme.Spacing.xl)
+                // Extra bottom clearance so the history period-selector / delete-all
+                // button never tucks under the tab bar. (D2 bugfix)
+                .padding(.bottom, BBTheme.Spacing.xxl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationTitle("nav.diapers".l)
@@ -319,13 +321,18 @@ struct AddDiaperSheet: View {
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
                                         Image(systemName: type.icon).font(.system(size: 22))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.diaper)
+                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.diaper)
                                         Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedType == type ? .white : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.diaper : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                    .cornerRadius(BBTheme.Radius.md)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                    )
+                                    .bbShadow(BBTheme.Shadow.card)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
                             }

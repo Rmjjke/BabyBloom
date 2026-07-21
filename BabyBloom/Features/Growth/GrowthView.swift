@@ -280,7 +280,7 @@ struct GrowthEntryRow: View {
         HStack(spacing: BBTheme.Spacing.md) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(BBTheme.Colors.growth.opacity(0.15))
+                    .fill(BBTheme.Colors.growth.opacity(0.22))
                     .frame(width: 44, height: 44)
                 Image(systemName: "scalemass.fill")
                     .font(.system(size: 18))

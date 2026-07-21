@@ -37,12 +37,16 @@ struct BirthPage: View {
                                         .font(.system(size: 38))
                                     Text(g.displayName.l)
                                         .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                        .foregroundStyle(gender == g ? .white : BBTheme.Colors.textPrimary)
+                                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, BBTheme.Spacing.md)
-                                .background(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.surface)
+                                .background(gender == g ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                 .cornerRadius(BBTheme.Radius.md)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                        .strokeBorder(gender == g ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                )
                                 .bbShadow(BBTheme.Shadow.card)
                             }
                             .buttonStyle(BBScaleButtonStyle())

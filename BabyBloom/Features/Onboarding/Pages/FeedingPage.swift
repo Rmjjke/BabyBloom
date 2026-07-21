@@ -40,24 +40,28 @@ struct FeedingPage: View {
                             HStack(spacing: BBTheme.Spacing.md) {
                                 Image(systemName: type.icon)
                                     .font(.system(size: 22))
-                                    .foregroundStyle(feedingType == type ? .white : BBTheme.Colors.primary)
+                                    .foregroundStyle(BBTheme.Colors.primary)
                                     .frame(width: 46, height: 46)
-                                    .background(feedingType == type ? .white.opacity(0.22) : BBTheme.Colors.primary.opacity(0.1))
+                                    .background(feedingType == type ? BBTheme.Colors.primary.opacity(0.22) : BBTheme.Colors.primary.opacity(0.1))
                                     .cornerRadius(12)
 
                                 Text(type.displayName.l)
                                     .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(feedingType == type ? .white : BBTheme.Colors.textPrimary)
+                                    .foregroundStyle(feedingType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 Spacer()
                                 if feedingType == type {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(BBTheme.Colors.primary)
                                         .font(.system(size: 20))
                                 }
                             }
                             .padding(BBTheme.Spacing.md)
-                            .background(feedingType == type ? BBTheme.Colors.primary : BBTheme.Colors.surface)
+                            .background(feedingType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                             .cornerRadius(BBTheme.Radius.md)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                                    .strokeBorder(feedingType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                            )
                             .bbShadow(BBTheme.Shadow.card)
                         }
                         .buttonStyle(BBScaleButtonStyle())

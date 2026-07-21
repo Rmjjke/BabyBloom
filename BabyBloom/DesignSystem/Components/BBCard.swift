@@ -29,7 +29,7 @@ struct BBStatCard: View {
             HStack {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(displayColor.opacity(0.15))
+                        .fill(displayColor.opacity(0.22))
                         .frame(width: 36, height: 36)
                     Image(systemName: icon)
                         .font(.system(size: 16, weight: .semibold))
@@ -73,9 +73,9 @@ struct BBStatCard: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
-        .bbCard()
+        .bbCardTonal(displayColor)
         .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+            RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(overLimit ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
         )
     }
@@ -94,7 +94,7 @@ struct BBEventRow: View {
         HStack(spacing: BBTheme.Spacing.md) {
             ZStack {
                 Circle()
-                    .fill(iconColor.opacity(0.15))
+                    .fill(iconColor.opacity(0.22))
                     .frame(width: 44, height: 44)
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .medium))
@@ -168,7 +168,7 @@ struct BBProgressCard: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(displayColor.opacity(0.15))
+                        .fill(displayColor.opacity(0.22))
                         .frame(height: 8)
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
