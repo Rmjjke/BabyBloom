@@ -249,7 +249,7 @@ struct FeedingTimerCard: View {
                             entry.side = side
                         } label: {
                             Text(side.displayName.l)
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(entry.side == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 8)
@@ -318,7 +318,7 @@ struct AddFeedingSheet: View {
                     // Type selector
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.feeding_type".l)
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textPrimary)
 
                         HStack(spacing: BBTheme.Spacing.sm) {
@@ -353,7 +353,7 @@ struct AddFeedingSheet: View {
                     if selectedType == .breast {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("form.breast".l)
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
                             HStack(spacing: BBTheme.Spacing.sm) {
@@ -365,7 +365,7 @@ struct AddFeedingSheet: View {
                                             Image(systemName: side.icon)
                                             Text(side.displayName.l)
                                         }
-                                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                         .foregroundStyle(selectedSide == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
@@ -388,11 +388,11 @@ struct AddFeedingSheet: View {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             HStack {
                                 Text("form.volume_ml".l)
-                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
                                 Spacer()
                                 Text("\(Int(volumeML)) \("unit.ml".l)")
-                                    .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
+                                    .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.feeding)
                             }
                             Slider(value: $volumeML, in: 0...500, step: 10)
@@ -415,7 +415,7 @@ struct AddFeedingSheet: View {
                     Toggle(isOn: $startTimer) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("form.start_timer".l)
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                             Text("form.timer_hint".l)
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
@@ -487,10 +487,10 @@ struct EmptyStateView: View {
                     .foregroundStyle(color.opacity(0.6))
             }
             Text(title.l)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(BBTheme.Typography.scaled(18, relativeTo: .body, weight: .semibold, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(subtitle.l)
-                .font(.system(size: 14, weight: .regular, design: .rounded))
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
         }

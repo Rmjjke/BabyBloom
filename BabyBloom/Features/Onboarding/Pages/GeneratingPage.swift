@@ -65,7 +65,7 @@ struct GeneratingPage: View {
                                 .animation(.spring(response: 0.4), value: completedSteps.contains(i))
 
                                 Text(step.key.l)
-                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                     .foregroundStyle(completedSteps.contains(i) ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
                                     .animation(.easeIn, value: completedSteps.contains(i))
                             }

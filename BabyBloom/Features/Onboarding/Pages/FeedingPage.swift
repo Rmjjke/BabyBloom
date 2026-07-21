@@ -28,7 +28,7 @@ struct FeedingPage: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                     Text("onboarding.feeding_hint".l)
-                        .font(.system(size: 14, design: .rounded))
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
 
@@ -46,7 +46,7 @@ struct FeedingPage: View {
                                     .cornerRadius(12)
 
                                 Text(type.displayName.l)
-                                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                    .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                                     .foregroundStyle(feedingType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 Spacer()
                                 if feedingType == type {

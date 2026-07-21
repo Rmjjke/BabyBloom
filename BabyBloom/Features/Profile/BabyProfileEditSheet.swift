@@ -62,7 +62,7 @@ struct BabyProfileEditSheet: View {
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                             TextField("onboarding.name_placeholder".l, text: $editedName)
-                                .font(.system(size: 17, design: .rounded))
+                                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                                 .submitLabel(.done)
                                 .onSubmit { saveName() }
@@ -100,7 +100,7 @@ struct BabyProfileEditSheet: View {
                                         HStack(spacing: 6) {
                                             Text(gender == .male ? "👦" : "👧")
                                             Text(gender.displayName.l)
-                                                .font(.system(size: 15, weight: .medium, design: .rounded))
+                                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                         }
                                         .foregroundStyle(baby.gender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         .frame(maxWidth: .infinity)
@@ -165,7 +165,7 @@ struct BabyProfileEditSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("button.save".l) { save() }
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
             }

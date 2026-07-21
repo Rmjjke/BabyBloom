@@ -40,7 +40,7 @@ struct PremiumPage: View {
                             .foregroundStyle(.white)
 
                         Text("onboarding.premium.headline".l)
-                            .font(.system(size: 15, design: .rounded))
+                            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                             .foregroundStyle(.white.opacity(0.82))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, BBTheme.Spacing.xl)
@@ -63,7 +63,7 @@ struct PremiumPage: View {
                                 .background(BBTheme.Colors.primary.opacity(0.1))
                                 .cornerRadius(10)
                             Text(feat.text.l)
-                                .font(.system(size: 15, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
@@ -102,7 +102,7 @@ struct PremiumPage: View {
                     Button("onboarding.premium.skip".l) {
                         onSkip()
                     }
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
                 .padding(.horizontal, BBTheme.Spacing.lg)

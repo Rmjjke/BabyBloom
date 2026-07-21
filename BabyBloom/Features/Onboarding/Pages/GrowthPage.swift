@@ -23,7 +23,7 @@ struct GrowthPage: View {
                         BBTheme.Typography.title1("onboarding.growth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                         Text("onboarding.growth_hint".l)
-                            .font(.system(size: 14, design: .rounded))
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                             .multilineTextAlignment(.center)
                     }

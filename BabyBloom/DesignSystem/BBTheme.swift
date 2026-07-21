@@ -40,48 +40,60 @@ enum BBTheme {
     // Scale D1: straight SF Pro (semibold, not bold) for headers; rounded for body;
     // rounded + monospacedDigit for metrics/timers so digits don't jump.
     enum Typography {
+        /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the D1 scale
+        /// values (unchanged); `UIFontMetrics(forTextStyle:)` scales the point size for
+        /// the user's Content Size setting. At the standard "Large" setting the scale
+        /// factor is 1.0, so rendering is pixel-identical to the fixed-size D1 scale.
+        static func scaled(_ size: CGFloat,
+                           relativeTo style: UIFont.TextStyle,
+                           weight: Font.Weight,
+                           design: Font.Design = .rounded) -> Font {
+            .system(size: UIFontMetrics(forTextStyle: style).scaledValue(for: size),
+                    weight: weight, design: design)
+        }
+
         static func largeTitle(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 30, weight: .semibold, design: .default))
+                .font(scaled(30, relativeTo: .title1, weight: .semibold, design: .default))
                 .tracking(-0.4)
         }
         static func title1(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 26, weight: .semibold, design: .default))
+                .font(scaled(26, relativeTo: .title2, weight: .semibold, design: .default))
                 .tracking(-0.3)
         }
         static func title2(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 21, weight: .semibold, design: .default))
+                .font(scaled(21, relativeTo: .title3, weight: .semibold, design: .default))
                 .tracking(-0.2)
         }
         static func title3(_ text: String) -> Text {
-            Text(text).font(.system(size: 18, weight: .semibold, design: .default))
+            Text(text).font(scaled(18, relativeTo: .headline, weight: .semibold, design: .default))
         }
         static func body(_ text: String) -> Text {
-            Text(text).font(.system(size: 17, weight: .regular, design: .rounded))
+            Text(text).font(scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
         }
         static func bodyEmphasized(_ text: String) -> Text {
-            Text(text).font(.system(size: 17, weight: .medium, design: .rounded))
+            Text(text).font(scaled(17, relativeTo: .body, weight: .medium, design: .rounded))
         }
         static func callout(_ text: String) -> Text {
-            Text(text).font(.system(size: 16, weight: .regular, design: .rounded))
+            Text(text).font(scaled(16, relativeTo: .callout, weight: .regular, design: .rounded))
         }
         static func caption(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .font(scaled(12, relativeTo: .caption1, weight: .medium, design: .rounded))
                 .tracking(0.3)
         }
         /// Large KPI digits — rounded, monospaced so values don't shift width.
         static func metric(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 28, weight: .semibold, design: .rounded))
+                .font(scaled(28, relativeTo: .title2, weight: .semibold, design: .rounded))
                 .monospacedDigit()
         }
         /// Small metric digits (inline totals, secondary stats).
         static func metricSmall(_ text: String) -> Text {
             Text(text)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                 .monospacedDigit()
         }
     }

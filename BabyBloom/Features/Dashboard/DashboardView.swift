@@ -80,13 +80,13 @@ struct DashboardView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(greetingText)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                 if let baby {
                     BBTheme.Typography.title1(baby.name)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text(baby.ageDescription)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.primary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
@@ -237,7 +237,7 @@ struct DashboardView: View {
             BBSectionHeader(title: "section.recent_events")
             if events.isEmpty {
                 Text("empty.today_no_records".l)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -340,7 +340,7 @@ struct ActiveTimerCard: View {
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text(subtitle)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
@@ -349,7 +349,7 @@ struct ActiveTimerCard: View {
             Spacer()
             BBElapsedTimer(
                 startTime: startTime,
-                font: .system(size: 22, weight: .semibold, design: .rounded).monospacedDigit(),
+                font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
                 color: color
             )
         }

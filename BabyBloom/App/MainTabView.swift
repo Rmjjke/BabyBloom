@@ -124,7 +124,7 @@ struct SettingsView: View {
 
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(baby.name)
-                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                                    .font(BBTheme.Typography.scaled(18, relativeTo: .body, weight: .bold, design: .rounded))
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
                                 Text(baby.ageDescription)
                                     .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -163,7 +163,7 @@ struct SettingsView: View {
                         Text("🇬🇧 Eng").tag("en")
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 130)
+                    .fixedSize()
                 }
             } header: {
                 Text("settings.language".l)

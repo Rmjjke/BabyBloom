@@ -96,7 +96,7 @@ struct SleepView: View {
                     .font(.system(size: 30))
                     .foregroundStyle(BBTheme.Colors.sleep)
                 Text(type.displayName.l)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text("button.start".l)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
@@ -269,7 +269,7 @@ struct AddSleepSheet: View {
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.sleep_type".l)
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                         HStack(spacing: BBTheme.Spacing.md) {
                             ForEach(SleepEntry.SleepType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
@@ -296,7 +296,7 @@ struct AddSleepSheet: View {
                     // Location
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.location".l)
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                         HStack(spacing: BBTheme.Spacing.sm) {
                             ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
                                 Button { selectedLocation = loc } label: {

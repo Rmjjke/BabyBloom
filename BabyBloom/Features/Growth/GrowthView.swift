@@ -139,7 +139,7 @@ struct GrowthView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("percentile.weight".l)
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                         BBTheme.Typography.metric(label)
                             .foregroundStyle(color)
@@ -155,7 +155,7 @@ struct GrowthView: View {
                             .frame(width: 64, height: 64)
                             .rotationEffect(.degrees(-90))
                         Text("\(Int(percentile))")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded).monospacedDigit())
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
                             .foregroundStyle(color)
                     }
                 }
@@ -291,11 +291,11 @@ struct GrowthEntryRow: View {
                 HStack(spacing: BBTheme.Spacing.md) {
                     if let w = entry.weightKg {
                         Label(String(format: "%.2f \("unit.kg".l)", w), systemImage: "scalemass")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     }
                     if let h = entry.heightCm {
                         Label(String(format: "%.0f \("unit.cm".l)", h), systemImage: "ruler")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     }
                 }
                 .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -337,7 +337,7 @@ struct PercentileInfoSheet: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
 
                     Text("percentile.info_body".l)
-                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .lineSpacing(4)
 

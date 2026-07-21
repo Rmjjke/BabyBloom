@@ -43,7 +43,7 @@ struct FactPage: View {
 
                 VStack(spacing: BBTheme.Spacing.md) {
                     Text("onboarding.fact.title".l)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.primary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
@@ -51,7 +51,7 @@ struct FactPage: View {
                         .cornerRadius(BBTheme.Radius.pill)
 
                     Text("onboarding.fact.body".l)
-                        .font(.system(size: 17, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, BBTheme.Spacing.lg)

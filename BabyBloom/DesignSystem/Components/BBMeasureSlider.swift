@@ -15,11 +15,11 @@ struct BBMeasureSlider: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             HStack {
                 Text(title)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Text(display)
-                    .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
+                    .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundStyle(BBTheme.Colors.textPrimary)
             }
             Slider(value: $value, in: range, step: step)
@@ -58,7 +58,7 @@ struct BBOptionalMeasureToggle: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text(hint)
                         .font(.system(size: 12, design: .rounded))
@@ -73,7 +73,7 @@ struct BBOptionalMeasureToggle: View {
                 HStack {
                     Spacer()
                     Text(display)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
+                        .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Slider(value: $value, in: range, step: step)

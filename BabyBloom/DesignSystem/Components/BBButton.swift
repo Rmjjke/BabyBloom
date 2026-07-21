@@ -24,15 +24,16 @@ struct BBPrimaryButton: View {
                 } else {
                     if let icon {
                         Image(systemName: icon)
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .default))
                     }
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                 }
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .padding(.vertical, BBTheme.Spacing.sm)
+            .frame(minHeight: 56)
             .background(
                 LinearGradient(
                     colors: [BBTheme.Colors.primary, BBTheme.Colors.primary.opacity(0.8)],
@@ -65,14 +66,15 @@ struct BBSecondaryButton: View {
             HStack(spacing: BBTheme.Spacing.sm) {
                 if let icon {
                     Image(systemName: icon)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .default))
                 }
                 Text(title)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
             }
             .foregroundStyle(BBTheme.Colors.primary)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .padding(.vertical, BBTheme.Spacing.sm)
+            .frame(minHeight: 56)
             .background(BBTheme.Colors.primary.opacity(0.1))
             .cornerRadius(BBTheme.Radius.lg)
             .overlay(

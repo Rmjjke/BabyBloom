@@ -22,13 +22,13 @@ struct NamePage: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                     Text("onboarding.name_hint".l)
-                        .font(.system(size: 15, design: .rounded))
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                 }
 
                 TextField("onboarding.name_placeholder".l, text: $name)
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(24, relativeTo: .title2, weight: .semibold, design: .rounded))
                     .multilineTextAlignment(.center)
                     .padding(BBTheme.Spacing.md)
                     .background(BBTheme.Colors.surface)

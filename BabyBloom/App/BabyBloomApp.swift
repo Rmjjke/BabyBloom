@@ -50,6 +50,10 @@ struct BabyBloomApp: App {
                 }
             }
             .id(appLanguage)
+            // Dynamic Type: allow growth up to AX2 (a sensible ceiling for MVP —
+            // full AX5 would demand deeper per-screen relayout). Below this, the
+            // scaled Typography and growth-safe layouts do the work.
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
             .environment(subscriptionManager)
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)

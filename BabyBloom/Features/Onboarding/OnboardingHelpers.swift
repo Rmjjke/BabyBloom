@@ -44,7 +44,7 @@ func backButton(action: @escaping () -> Void) -> some View {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 14, weight: .semibold))
                 Text("button.back".l)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
             }
             .foregroundStyle(BBTheme.Colors.textSecondary)
         }

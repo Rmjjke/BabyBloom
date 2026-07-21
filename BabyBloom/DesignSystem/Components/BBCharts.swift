@@ -150,7 +150,7 @@ struct BBWeeklyBarChart: View {
                 Spacer()
 
                 Text(monthTitle)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .id(monthTitle)   // triggers transition on week change
 
@@ -249,7 +249,7 @@ struct BBDeleteHistoryButton: View {
             showConfirm = true
         } label: {
             Label("button.delete_history".l, systemImage: "trash")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                 .foregroundStyle(.red)
                 .frame(maxWidth: .infinity)
                 .padding(BBTheme.Spacing.md)

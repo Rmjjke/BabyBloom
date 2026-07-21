@@ -21,7 +21,7 @@ struct BirthPage: View {
                         BBTheme.Typography.title1("onboarding.birth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                         Text("onboarding.birth_hint".l)
-                            .font(.system(size: 14, design: .rounded))
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                             .multilineTextAlignment(.center)
                     }
@@ -36,7 +36,7 @@ struct BirthPage: View {
                                     Text(g == .female ? "👧" : "👦")
                                         .font(.system(size: 38))
                                     Text(g.displayName.l)
-                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                                         .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 }
                                 .frame(maxWidth: .infinity)

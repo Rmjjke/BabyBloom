@@ -63,6 +63,8 @@ struct BBStatCard: View {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
                     BBTheme.Typography.metric(value)
                         .foregroundStyle(overLimit ? .red.opacity(0.85) : BBTheme.Colors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                     Text(unit.l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -103,7 +105,7 @@ struct BBEventRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title.l)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 if !subtitle.isEmpty {
                     Text(subtitle.l)
@@ -152,7 +154,7 @@ struct BBProgressCard: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(displayColor)
                 Text(title.l)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Text("\(Int(current))/\(Int(target)) \(unit.l)")
@@ -209,7 +211,7 @@ struct BBSectionHeader: View {
             if let action {
                 Button(action: action) {
                     Text(actionTitle.l)
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
             }

@@ -49,7 +49,7 @@ struct EventsView: View {
                                 .font(.system(size: 26))
                                 .foregroundStyle(Color(hex: type.colorHex))
                             Text(type.displayName.l)
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
@@ -143,7 +143,7 @@ struct AddEventSheet: View {
                     // Mood selector
                     if selectedType == .mood {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            Text("form.mood".l).font(.system(size: 16, weight: .semibold, design: .rounded))
+                            Text("form.mood".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             HStack(spacing: BBTheme.Spacing.sm) {
                                 ForEach(CustomEvent.MoodLevel.allCases, id: \.self) { mood in
                                     Button { selectedMood = mood } label: {

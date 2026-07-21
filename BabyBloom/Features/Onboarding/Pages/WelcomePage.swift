@@ -51,7 +51,7 @@ struct WelcomePage: View {
                                 .opacity(appear ? 1 : 0)
 
                             Text("onboarding.tagline".l)
-                                .font(.system(size: 18, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(18, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                                 .multilineTextAlignment(.center)
                                 .offset(y: appear ? 0 : 20)
@@ -130,7 +130,7 @@ private struct WelcomeFeatureCard: View {
                 .background(color.opacity(0.12))
                 .cornerRadius(12)
             Text(title)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Spacer()
             Image(systemName: "checkmark.circle.fill")

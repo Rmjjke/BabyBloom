@@ -94,7 +94,7 @@ struct PaywallView: View {
                     .foregroundStyle(.white)
 
                 Text("onboarding.premium.headline".l)
-                    .font(.system(size: 14, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(.white.opacity(0.82))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, BBTheme.Spacing.xl)
@@ -114,7 +114,7 @@ struct PaywallView: View {
                 .foregroundStyle(BBTheme.Colors.primary)
             VStack(alignment: .leading, spacing: 2) {
                 Text("premium.active_status".l)
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text("premium.active_desc".l)
                     .font(.system(size: 13, design: .rounded))
@@ -139,14 +139,14 @@ struct PaywallView: View {
                 .font(.system(size: 34))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
             Text("premium.error_load".l)
-                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
             Button {
                 Task { await reloadProducts() }
             } label: {
                 Text("premium.retry".l)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.primary)
                     .padding(.horizontal, BBTheme.Spacing.lg)
                     .padding(.vertical, 10)
@@ -206,12 +206,12 @@ struct PaywallView: View {
                 }
 
                 Text(titleKey.l)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
 
                 if let product {
                     Text(product.displayPrice)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
+                        .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                     Text(id == SubscriptionManager.monthlyID
                          ? "premium.per_month".l
@@ -220,7 +220,7 @@ struct PaywallView: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 } else {
                     Text("premium.loading".l)
-                        .font(.system(size: 14, design: .rounded))
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
@@ -256,7 +256,7 @@ struct PaywallView: View {
                         .background(BBTheme.Colors.primary.opacity(0.1))
                         .cornerRadius(9)
                     Text(feat.key.l)
-                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Spacer()
                     Image(systemName: "checkmark.circle.fill")
@@ -321,7 +321,7 @@ struct PaywallView: View {
                 Task { await store.restorePurchases() }
             } label: {
                 Text("premium.restore".l)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.primary)
                     .underline()
             }

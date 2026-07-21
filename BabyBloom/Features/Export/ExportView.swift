@@ -96,7 +96,7 @@ struct ExportView: View {
                     .font(.system(size: 26, weight: .medium))
                     .foregroundStyle(selected ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
                 Text(fmt == .pdf ? "PDF" : "CSV")
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .bold, design: .rounded))
                     .foregroundStyle(selected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                 Text(fmt == .pdf ? "export.format.pdf_desc".l : "export.format.csv_desc".l)
                     .font(.system(size: 11, design: .rounded))
@@ -125,7 +125,7 @@ struct ExportView: View {
         } label: {
             HStack {
                 Text(range.rawValue.l)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 if selected {
@@ -159,7 +159,7 @@ struct ExportView: View {
                     .background(BBTheme.Colors.primary.opacity(0.1))
                     .cornerRadius(8)
                 Text(cat.rawValue.l)
-                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 if isEmpty {

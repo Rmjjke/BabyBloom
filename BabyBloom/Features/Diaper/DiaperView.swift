@@ -74,7 +74,7 @@ struct DiaperView: View {
                                 .font(.system(size: 28))
                                 .foregroundStyle(BBTheme.Colors.diaper)
                             Text(type.displayName.l)
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
@@ -221,7 +221,7 @@ struct DiaperNormEditorSheet: View {
                     BBTheme.Typography.title2("diaper.norm.label".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text("diaper.norm.hint".l)
-                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
@@ -238,8 +238,10 @@ struct DiaperNormEditorSheet: View {
                     .disabled(dailyNorm <= 1)
 
                     Text("\(dailyNorm)")
-                        .font(.system(size: 64, weight: .semibold, design: .rounded).monospacedDigit())
+                        .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                         .frame(minWidth: 80)
 
                     Button {
@@ -315,7 +317,7 @@ struct AddDiaperSheet: View {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                        Text("form.type".l).font(.system(size: 16, weight: .semibold, design: .rounded))
+                        Text("form.type".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                         HStack(spacing: BBTheme.Spacing.sm) {
                             ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
@@ -342,7 +344,7 @@ struct AddDiaperSheet: View {
                     // Stool color
                     if selectedType == .dirty || selectedType == .both {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            Text("form.stool_color".l).font(.system(size: 16, weight: .semibold, design: .rounded))
+                            Text("form.stool_color".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: BBTheme.Spacing.sm) {
                                 ForEach(DiaperEntry.StoolColor.allCases, id: \.self) { color in
                                     Button {

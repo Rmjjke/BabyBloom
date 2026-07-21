@@ -4,7 +4,7 @@ import SwiftUI
 /// and formatting shared by the feeding, sleep and dashboard timer cards.
 struct BBElapsedTimer: View {
     let startTime: Date
-    var font: Font = .system(size: 36, weight: .semibold, design: .rounded).monospacedDigit()
+    var font: Font = BBTheme.Typography.scaled(36, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit()
     var color: Color
     /// When `true`, values of an hour or more render as `HH:MM:SS` (sleep cards).
     var showsHours: Bool = false
@@ -16,6 +16,8 @@ struct BBElapsedTimer: View {
         Text(formatted)
             .font(font)
             .foregroundStyle(color)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(startTime) }
             .onAppear { elapsed = Date().timeIntervalSince(startTime) }
     }
