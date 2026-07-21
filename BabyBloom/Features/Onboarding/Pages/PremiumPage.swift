@@ -23,7 +23,7 @@ struct PremiumPage: View {
                 // Hero gradient header
                 ZStack {
                     LinearGradient(
-                        colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8FD8")],
+                        colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )

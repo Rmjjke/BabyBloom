@@ -14,7 +14,7 @@ struct WelcomePage: View {
                 ZStack {
                     // Background blobs
                     Circle()
-                        .fill(Color(hex: "#6B5EA8").opacity(0.12))
+                        .fill(BBTheme.Colors.primary.opacity(0.12))
                         .frame(width: 340, height: 340)
                         .offset(x: 40, y: -20)
                         .blur(radius: 30)
@@ -30,7 +30,7 @@ struct WelcomePage: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(hex: "#9B8FD8"), Color(hex: "#6B5EA8")],
+                                        colors: [Color("BBGradientEnd"), Color("BBGradientStart")],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )

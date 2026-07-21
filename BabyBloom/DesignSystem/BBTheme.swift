@@ -1,35 +1,37 @@
 import SwiftUI
 
 // MARK: - BabyBloom Design System
-// Femtech Wellness iOS — lavender purple palette, soft shadows, rounded cards
+// Soft botanical iOS — sage/mint palette, soft shadows, rounded cards.
+// ALL colors resolve through Asset Catalog colorsets (light + dark variants):
+// re-theming the app = editing the colorsets, no code changes.
 
 enum BBTheme {
 
     // MARK: Colors
     enum Colors {
-        /// #6B5EA8 — lavender purple
+        /// Deep sage teal — brand primary
         static let primary = Color("BBPrimary")
-        /// #E8A0BF — powder pink
+        /// Soft peach — warm accent
         static let accent = Color("BBAccent")
-        /// #F7F3FF — milk white
+        /// Mint-white app background
         static let background = Color("BBBackground")
-        /// #A8D5C2 — mint green
+        /// Mint green — success
         static let success = Color("BBSuccess")
         /// White / dark surface
         static let surface = Color("BBSurface")
         static let textPrimary = Color("BBTextPrimary")
         static let textSecondary = Color("BBTextSecondary")
 
-        // Semantic
-        static let feeding = Color(hex: "#E8A0BF")
-        static let sleep = Color(hex: "#B0C4F5")
-        static let diaper = Color(hex: "#F5D6A0")
-        static let growth = Color(hex: "#A8D5C2")
-        static let events = Color(hex: "#D4A8D5")
+        // Semantic category tints
+        static let feeding = Color("BBFeeding")
+        static let sleep = Color("BBSleep")
+        static let diaper = Color("BBDiaper")
+        static let growth = Color("BBGrowth")
+        static let events = Color("BBEvents")
 
-        // Premium hero gradient (lavender purple → soft violet)
+        // Premium hero gradient (sage → mint)
         static let premiumGradient = LinearGradient(
-            colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8FD8")],
+            colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
             startPoint: .topLeading, endPoint: .bottomTrailing
         )
     }

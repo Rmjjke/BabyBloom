@@ -314,19 +314,19 @@ struct ExportGenerator {
         <meta charset="UTF-8">
         <style>
           body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; color: #1C1C1E; font-size: 12px; }
-          .header { background: linear-gradient(135deg, #6B5EA8, #9B8FD8); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+          .header { background: linear-gradient(135deg, #4E8073, #8FC9AC); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
           .header h1 { margin: 0 0 4px; font-size: 22px; }
           .header p  { margin: 0; opacity: 0.85; font-size: 13px; }
           .meta { display: flex; gap: 16px; margin-top: 8px; }
           .meta span { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px; font-size: 11px; }
           .card { background: #F2F2F7; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-          .card h2 { margin: 0 0 12px; font-size: 15px; color: #6B5EA8; }
+          .card h2 { margin: 0 0 12px; font-size: 15px; color: #4E8073; }
           .stats-grid { display: flex; flex-wrap: wrap; gap: 10px; }
           .stat { background: white; border-radius: 8px; padding: 10px 14px; min-width: 80px; }
           .stat .val { display: block; font-size: 18px; font-weight: 700; color: #1C1C1E; }
           .stat .lbl { display: block; font-size: 10px; color: #8E8E93; margin-top: 2px; }
           table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-          th { background: #6B5EA8; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
+          th { background: #4E8073; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
           th:first-child { border-radius: 6px 0 0 0; }
           th:last-child  { border-radius: 0 6px 0 0; }
           td { padding: 6px 10px; border-bottom: 1px solid #E5E5EA; font-size: 11px; }

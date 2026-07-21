@@ -1,110 +1,79 @@
 import SwiftUI
 
+// MARK: - Branded Splash
+// Staged reveal: logo mark → wordmark → tagline, then hands off to the app.
+// Visual source: docs/design/splash2.png (sage/mint botanical direction).
 struct SplashView: View {
     let onDone: () -> Void
 
-    private struct Scene {
-        let image: String
-        let captionKey: String
-        let bgColor: Color
-    }
-
-    private let scenes: [Scene] = [
-        Scene(image: "SplashScene1", captionKey: "splash.scene1",
-              bgColor: Color(hex: "#1C1848").opacity(0.9)),
-        Scene(image: "SplashScene2", captionKey: "splash.scene2",
-              bgColor: Color(hex: "#D0ECFF").opacity(0.95)),
-        Scene(image: "SplashScene3", captionKey: "splash.scene3",
-              bgColor: Color(hex: "#FFF3E4").opacity(0.95)),
-    ]
-
-    @State private var current = 0
-    @State private var sceneOpacity: Double = 0
-    @State private var logoOpacity: Double = 0
+    @State private var logoVisible = false
+    @State private var titleVisible = false
+    @State private var taglineVisible = false
+    @State private var fadingOut = false
 
     var body: some View {
         ZStack {
-            scenes[current].bgColor
-                .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.7), value: current)
+            LinearGradient(
+                colors: [Color(hex: "#EDF6EF"), Color("BBLaunchBackground"), Color(hex: "#CDE5D6")],
+                startPoint: .top, endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
 
-                Image(scenes[current].image)
+                // Logo mark, feathered into the background
+                Image("BBLogo")
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: 340)
-                    .cornerRadius(24)
-                    .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 8)
-                    .padding(.horizontal, 28)
-                    .opacity(sceneOpacity)
-                    .scaleEffect(sceneOpacity == 1 ? 1.0 : 0.93)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: sceneOpacity)
+                    .frame(width: 240, height: 240)
+                    .mask(
+                        RadialGradient(
+                            colors: [.black, .black, .clear],
+                            center: .center, startRadius: 0, endRadius: 120
+                        )
+                    )
+                    .opacity(logoVisible ? 1 : 0)
+                    .scaleEffect(logoVisible ? 1.0 : 0.86)
 
-                Text(scenes[current].captionKey.l)
-                    .font(.system(size: 19, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color(hex: "#4A3E88"))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                    .padding(.top, 28)
-                    .opacity(sceneOpacity)
-                    .animation(.easeIn(duration: 0.4).delay(0.15), value: sceneOpacity)
+                // Wordmark
+                Text("BabyBloom")
+                    .font(.system(size: 40, weight: .semibold, design: .serif))
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .padding(.top, 8)
+                    .opacity(titleVisible ? 1 : 0)
+                    .offset(y: titleVisible ? 0 : 12)
+
+                // Tagline
+                Text("splash.tagline".l.uppercased())
+                    .font(.system(size: 13, weight: .medium))
+                    .tracking(4)
+                    .foregroundStyle(BBTheme.Colors.primary.opacity(0.65))
+                    .padding(.top, 14)
+                    .opacity(taglineVisible ? 1 : 0)
+                    .offset(y: taglineVisible ? 0 : 8)
 
                 Spacer()
                 Spacer()
-
-                // Dot indicators
-                HStack(spacing: 8) {
-                    ForEach(0..<scenes.count, id: \.self) { i in
-                        Capsule()
-                            .fill(i == current
-                                  ? Color(hex: "#6B5EA8")
-                                  : Color(hex: "#6B5EA8").opacity(0.25))
-                            .frame(width: i == current ? 22 : 8, height: 8)
-                            .animation(.spring(response: 0.4), value: current)
-                    }
-                }
-                .padding(.bottom, 20)
-                .opacity(logoOpacity)
-
-                // Logo lockup
-                HStack(spacing: 8) {
-                    Image("LaunchLogo")
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .clipShape(Circle())
-                    Text("BabyBloom")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color(hex: "#6B5EA8"))
-                }
-                .opacity(logoOpacity)
-                .padding(.bottom, 44)
             }
+            .opacity(fadingOut ? 0 : 1)
         }
-        .onAppear { playScene(0) }
+        .onAppear { play() }
     }
 
-    private func playScene(_ index: Int) {
-        guard index < scenes.count else {
-            withAnimation(.easeOut(duration: 0.35)) { logoOpacity = 0; sceneOpacity = 0 }
+    private func play() {
+        withAnimation(.spring(response: 0.65, dampingFraction: 0.75).delay(0.15)) {
+            logoVisible = true
+        }
+        withAnimation(.easeOut(duration: 0.5).delay(0.85)) {
+            titleVisible = true
+        }
+        withAnimation(.easeOut(duration: 0.5).delay(1.35)) {
+            taglineVisible = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.9) {
+            withAnimation(.easeIn(duration: 0.35)) { fadingOut = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { onDone() }
-            return
-        }
-
-        current = index
-        sceneOpacity = 0
-
-        withAnimation(.easeIn(duration: 0.5)) {
-            sceneOpacity = 1
-            logoOpacity = 1
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            withAnimation(.easeOut(duration: 0.4)) { sceneOpacity = 0 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                playScene(index + 1)
-            }
         }
     }
 }

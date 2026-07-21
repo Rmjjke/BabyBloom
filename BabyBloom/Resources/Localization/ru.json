@@ -7,7 +7,6 @@
   "nav.diapers": "Подгузники",
   "nav.events": "События",
   "nav.settings": "Настройки",
-
   "section.quick_input": "Быстрый ввод",
   "section.quick_add": "Быстро добавить",
   "section.today": "Сегодня",
@@ -18,7 +17,6 @@
   "section.measurement_history": "История измерений",
   "section.recent_events": "Последние события",
   "section.day_chart": "График дня",
-
   "stat.wet": "Мокрых",
   "stat.dirty": "Грязных",
   "stat.daily_norm": "Норма в день",
@@ -31,7 +29,6 @@
   "stat.measurements": "Измерений",
   "stat.diapers": "Подгузников",
   "stat.sleep": "Сон",
-
   "button.start": "Начать",
   "button.start_feeding": "Начать кормление",
   "button.add_manually": "Добавить вручную",
@@ -45,7 +42,6 @@
   "button.back": "Назад",
   "button.next": "Далее",
   "button.almost_done": "Почти готово",
-
   "form.type": "Тип",
   "form.stool_color": "Цвет стула",
   "form.notes_optional": "Заметки (необязательно)",
@@ -72,13 +68,11 @@
   "form.height_placeholder": "Напр. 56.5",
   "form.head_placeholder": "Напр. 38.0",
   "form.volume_placeholder": "Введите мл",
-
   "sheet.diaper": "Подгузник",
   "sheet.new_event": "Новое событие",
   "sheet.new_feeding": "Новое кормление",
   "sheet.add_sleep": "Добавить сон",
   "sheet.new_measurement": "Новое измерение",
-
   "diaper.type.wet": "Мокрый",
   "diaper.type.dirty": "Грязный",
   "diaper.type.both": "Оба",
@@ -97,7 +91,6 @@
   "diaper.color.orange": "Оранжевый",
   "diaper.color.red": "Красный",
   "diaper.color.white": "Белый",
-
   "feeding.type.breast": "ГВ",
   "feeding.type.formula": "Смесь",
   "feeding.type.pumped": "Сцеженное",
@@ -112,33 +105,27 @@
   "feeding.title.formula_ml": "Смесь — %d мл",
   "feeding.title.pumped": "Сцеженное молоко",
   "feeding.title.pumped_ml": "Сцеженное — %d мл",
-
   "sleep.type.nap": "Дневной сон",
   "sleep.type.night": "Ночной сон",
   "sleep.location.crib": "Кроватка",
   "sleep.location.stroller": "Коляска",
   "sleep.location.arms": "На руках",
-
   "event.type.bath": "Купание",
   "event.type.walk": "Прогулка",
   "event.type.medication": "Лекарство",
   "event.type.mood": "Настроение",
   "event.type.custom": "Событие",
-
   "mood.calm": "Спокойный",
   "mood.fussy": "Беспокойный",
   "mood.crying": "Плачет",
-
   "status.feeding_active": "В процессе...",
   "status.sleeping_now": "Спит сейчас...",
   "status.feeding_going": "Кормление идёт",
   "status.baby_sleeping": "Ребёнок спит",
-
   "greeting.night": "Ночное дежурство 🌙",
   "greeting.morning": "Доброе утро ☀️",
   "greeting.afternoon": "Добрый день 🌤",
   "greeting.evening": "Добрый вечер 🌙",
-
   "empty.no_records": "Нет записей",
   "empty.add_above": "Нажмите кнопку выше, чтобы добавить запись",
   "empty.no_events": "Нет событий",
@@ -148,7 +135,6 @@
   "empty.add_first_feeding": "Нажмите + чтобы добавить первое кормление",
   "empty.add_sleep": "Нажмите кнопку выше, чтобы начать отслеживание сна",
   "empty.today_no_records": "Нет записей за сегодня. Нажмите кнопку выше, чтобы добавить первую запись.",
-
   "unit.pcs": "шт",
   "unit.times": "раз",
   "unit.kg": "кг",
@@ -159,15 +145,12 @@
   "unit.min": "мин",
   "unit.sec": "сек",
   "unit.h": "ч",
-
   "duration.min_sec": "%d мин %d сек",
   "duration.sec": "%d сек",
   "duration.h_min": "%d ч %d мин",
   "duration.min_only": "%d мин",
-
   "stats.min_ago": "%d мин назад",
   "stats.h_ago": "%d ч назад",
-
   "age.day.one": "день",
   "age.day.few": "дня",
   "age.day.many": "дней",
@@ -177,7 +160,6 @@
   "age.month.one": "месяц",
   "age.month.few": "месяца",
   "age.month.many": "месяцев",
-
   "percentile.weight": "Перцентиль по весу",
   "percentile.by_who_fmt": "По стандартам ВОЗ для ребёнка %d %@",
   "percentile.normal": "Норма",
@@ -193,7 +175,6 @@
   "percentile.above97": "> 97-го",
   "percentile.info_title": "О перцентиле веса",
   "percentile.info_body": "Перцентиль показывает, как вес вашего ребёнка соотносится с весом других детей того же возраста и пола.\n\n• 50-й перцентиль означает, что вес ребёнка находится ровно посередине нормы.\n• 15–85-й перцентиль — нормальный диапазон.\n• Ниже 3-го или выше 97-го перцентиля — повод проконсультироваться с педиатром.\n\nПерцентили основаны на международных стандартах роста ВОЗ. Важнее не одно измерение, а динамика роста со временем.",
-
   "filter.day": "День",
   "filter.week": "Неделя",
   "filter.month": "Месяц",
@@ -203,7 +184,6 @@
   "confirm.delete_message": "Это действие нельзя отменить.",
   "form.start_time": "Начало",
   "form.end_time": "Конец",
-
   "settings.language": "Язык",
   "settings.notifications": "Уведомления",
   "settings.reminders": "Настроить напоминания",
@@ -214,7 +194,6 @@
   "settings.about": "О приложении",
   "settings.premium": "BabyBloom Premium",
   "settings.profile": "Профиль",
-
   "profile.edit_title": "Редактировать профиль",
   "profile.name_label": "Имя",
   "profile.birth_date": "Дата рождения",
@@ -222,7 +201,6 @@
   "profile.feeding": "Тип кормления",
   "profile.photo_hint": "Нажми на иконку камеры, чтобы добавить фото",
   "profile.remove_photo": "Удалить фото",
-
   "onboarding.tagline": "Умный помощник\nдля ухода за малышом",
   "onboarding.subtitle": "Кормление, сон и развитие ребёнка —\nвсё в одном месте",
   "onboarding.feature.feeding": "Трекинг кормлений",
@@ -263,16 +241,13 @@
   "onboarding.growth_title": "Первые измерения",
   "onboarding.growth_hint": "Используется для перцентилей роста по ВОЗ",
   "onboarding.growth_head_optional": "(необязательно)",
-
   "baby.gender.male": "Мальчик",
   "baby.gender.female": "Девочка",
   "baby.feeding.breast": "Грудное",
   "baby.feeding.formula": "Смесь",
   "baby.feeding.mixed": "Смешанное",
   "baby.default_name": "Малыш",
-
   "growth.head_fmt": "Голова: %.1f см",
-
   "premium.plan.monthly": "Месяц",
   "premium.plan.yearly": "Год",
   "premium.plan.best_value": "Лучший выбор",
@@ -292,7 +267,6 @@
   "premium.error_verification": "Не удалось проверить покупку. Попробуйте ещё раз.",
   "premium.error_load": "Не удалось загрузить варианты подписки. Проверьте соединение и попробуйте снова.",
   "premium.retry": "Повторить",
-
   "notification.feeding_title": "Время кормления 🍼",
   "notification.feeding_body": "Малыш давно не кормился. Не забудьте зафиксировать следующее кормление.",
   "notification.feeding_long_title": "Кормление идёт долго ⏱",
@@ -311,11 +285,6 @@
   "notification.weekly_body": "Как прошла неделя — кормления, сон и подгузники. Нажми, чтобы посмотреть.",
   "notification.idle_title": "Всё в порядке? 👀",
   "notification.idle_body": "Уже 2 дня нет новых записей. Нажми, чтобы внести данные о %@.",
-
-  "splash.scene1": "Каждый путь начинается с первой ночи",
-  "splash.scene2": "Наблюдай, как растёт твой малыш",
-  "splash.scene3": "Из твоих рук — за школьную парту",
-
   "export.format": "Формат",
   "export.format.pdf_desc": "Красивый отчёт для печати или отправки",
   "export.format.csv_desc": "Сырые данные для таблиц",
@@ -368,5 +337,6 @@
   "export.csv.height_cm": "Рост (см)",
   "export.csv.head_cm": "Окружность головы (см)",
   "export.error_title": "Ошибка экспорта",
-  "export.error_body": "Не удалось создать файл экспорта. Попробуйте ещё раз."
+  "export.error_body": "Не удалось создать файл экспорта. Попробуйте ещё раз.",
+  "splash.tagline": "Растём вместе"
 }

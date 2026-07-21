@@ -7,7 +7,6 @@
   "nav.diapers": "Diapers",
   "nav.events": "Events",
   "nav.settings": "Settings",
-
   "section.quick_input": "Quick Actions",
   "section.quick_add": "Quick Add",
   "section.today": "Today",
@@ -18,7 +17,6 @@
   "section.measurement_history": "Measurement History",
   "section.recent_events": "Recent Events",
   "section.day_chart": "Day Chart",
-
   "stat.wet": "Wet",
   "stat.dirty": "Dirty",
   "stat.daily_norm": "Daily Goal",
@@ -31,7 +29,6 @@
   "stat.measurements": "Measurements",
   "stat.diapers": "Diapers",
   "stat.sleep": "Sleep",
-
   "button.start": "Start",
   "button.start_feeding": "Start Feeding",
   "button.add_manually": "Add Manually",
@@ -45,7 +42,6 @@
   "button.back": "Back",
   "button.next": "Next",
   "button.almost_done": "Almost There",
-
   "form.type": "Type",
   "form.stool_color": "Stool Color",
   "form.notes_optional": "Notes (optional)",
@@ -72,13 +68,11 @@
   "form.height_placeholder": "e.g. 56.5",
   "form.head_placeholder": "e.g. 38.0",
   "form.volume_placeholder": "Enter ml",
-
   "sheet.diaper": "Diaper",
   "sheet.new_event": "New Event",
   "sheet.new_feeding": "New Feeding",
   "sheet.add_sleep": "Add Sleep",
   "sheet.new_measurement": "New Measurement",
-
   "diaper.type.wet": "Wet",
   "diaper.type.dirty": "Dirty",
   "diaper.type.both": "Both",
@@ -97,7 +91,6 @@
   "diaper.color.orange": "Orange",
   "diaper.color.red": "Red",
   "diaper.color.white": "White",
-
   "feeding.type.breast": "BF",
   "feeding.type.formula": "Formula",
   "feeding.type.pumped": "Pumped",
@@ -112,33 +105,27 @@
   "feeding.title.formula_ml": "Formula — %d ml",
   "feeding.title.pumped": "Expressed Milk",
   "feeding.title.pumped_ml": "Pumped — %d ml",
-
   "sleep.type.nap": "Nap",
   "sleep.type.night": "Night Sleep",
   "sleep.location.crib": "Crib",
   "sleep.location.stroller": "Stroller",
   "sleep.location.arms": "In Arms",
-
   "event.type.bath": "Bath",
   "event.type.walk": "Walk",
   "event.type.medication": "Medication",
   "event.type.mood": "Mood",
   "event.type.custom": "Event",
-
   "mood.calm": "Calm",
   "mood.fussy": "Fussy",
   "mood.crying": "Crying",
-
   "status.feeding_active": "In progress...",
   "status.sleeping_now": "Sleeping now...",
   "status.feeding_going": "Feeding in progress",
   "status.baby_sleeping": "Baby is sleeping",
-
   "greeting.night": "Night Duty 🌙",
   "greeting.morning": "Good Morning ☀️",
   "greeting.afternoon": "Good Afternoon 🌤",
   "greeting.evening": "Good Evening 🌙",
-
   "empty.no_records": "No Records",
   "empty.add_above": "Tap the button above to add a record",
   "empty.no_events": "No Events",
@@ -148,7 +135,6 @@
   "empty.add_first_feeding": "Tap + to add the first feeding",
   "empty.add_sleep": "Tap the button above to start tracking sleep",
   "empty.today_no_records": "No records today. Tap the button above to add the first entry.",
-
   "unit.pcs": "pcs",
   "unit.times": "times",
   "unit.kg": "kg",
@@ -159,15 +145,12 @@
   "unit.min": "min",
   "unit.sec": "sec",
   "unit.h": "h",
-
   "duration.min_sec": "%d min %d sec",
   "duration.sec": "%d sec",
   "duration.h_min": "%dh %dmin",
   "duration.min_only": "%d min",
-
   "stats.min_ago": "%d min ago",
   "stats.h_ago": "%dh ago",
-
   "age.day.one": "day",
   "age.day.few": "days",
   "age.day.many": "days",
@@ -177,7 +160,6 @@
   "age.month.one": "month",
   "age.month.few": "months",
   "age.month.many": "months",
-
   "percentile.weight": "Weight Percentile",
   "percentile.by_who_fmt": "Per WHO standards, %d %@ old",
   "percentile.normal": "Normal",
@@ -193,7 +175,6 @@
   "percentile.above97": "> 97th",
   "percentile.info_title": "About Weight Percentile",
   "percentile.info_body": "A percentile shows how your baby's weight compares to other children of the same age and sex.\n\n• 50th percentile means your baby's weight is right in the middle.\n• 15–85th percentile is the normal range.\n• Below 3rd or above 97th percentile warrants a consultation with a pediatrician.\n\nPercentiles are based on WHO international growth standards. The overall growth trend matters more than any single measurement.",
-
   "filter.day": "Day",
   "filter.week": "Week",
   "filter.month": "Month",
@@ -203,7 +184,6 @@
   "confirm.delete_message": "This action cannot be undone.",
   "form.start_time": "Start",
   "form.end_time": "End",
-
   "settings.language": "Language",
   "settings.notifications": "Notifications",
   "settings.reminders": "Configure Reminders",
@@ -214,7 +194,6 @@
   "settings.about": "About",
   "settings.premium": "BabyBloom Premium",
   "settings.profile": "Baby Profile",
-
   "profile.edit_title": "Edit Profile",
   "profile.name_label": "Name",
   "profile.birth_date": "Birth Date",
@@ -222,7 +201,6 @@
   "profile.feeding": "Feeding Type",
   "profile.photo_hint": "Tap the camera icon to add a photo",
   "profile.remove_photo": "Remove Photo",
-
   "onboarding.tagline": "Your smart assistant\nfor baby care",
   "onboarding.subtitle": "Track feeding, sleep and development\nall in one app",
   "onboarding.feature.feeding": "Feeding Tracker",
@@ -263,16 +241,13 @@
   "onboarding.growth_title": "Baby's first measurements",
   "onboarding.growth_hint": "Used for accurate WHO growth percentile charts",
   "onboarding.growth_head_optional": "(optional)",
-
   "baby.gender.male": "Boy",
   "baby.gender.female": "Girl",
   "baby.feeding.breast": "Breast",
   "baby.feeding.formula": "Formula",
   "baby.feeding.mixed": "Mixed",
   "baby.default_name": "Baby",
-
   "growth.head_fmt": "Head: %.1f cm",
-
   "premium.plan.monthly": "Monthly",
   "premium.plan.yearly": "Yearly",
   "premium.plan.best_value": "Best Value",
@@ -292,7 +267,6 @@
   "premium.error_verification": "Purchase verification failed. Please try again.",
   "premium.error_load": "Couldn't load subscription options. Check your connection and try again.",
   "premium.retry": "Retry",
-
   "notification.feeding_title": "Feeding Time 🍼",
   "notification.feeding_body": "Your baby hasn't fed in a while. Don't forget to log the next feeding.",
   "notification.feeding_long_title": "Long Feeding Session ⏱",
@@ -311,11 +285,6 @@
   "notification.weekly_body": "See how feedings, sleep and diapers looked this week. Tap to review.",
   "notification.idle_title": "Everything ok? 👀",
   "notification.idle_body": "You haven't logged anything in 2 days. Tap to catch up, %@.",
-
-  "splash.scene1": "Every journey begins with the first night",
-  "splash.scene2": "Watch them grow, step by step",
-  "splash.scene3": "From your arms to the classroom",
-
   "export.format": "Format",
   "export.format.pdf_desc": "Beautiful report for printing or sharing",
   "export.format.csv_desc": "Raw data for spreadsheets",
@@ -368,5 +337,6 @@
   "export.csv.height_cm": "Height (cm)",
   "export.csv.head_cm": "Head (cm)",
   "export.error_title": "Export Failed",
-  "export.error_body": "Couldn't create the export file. Please try again."
+  "export.error_body": "Couldn't create the export file. Please try again.",
+  "splash.tagline": "Growing together"
 }
