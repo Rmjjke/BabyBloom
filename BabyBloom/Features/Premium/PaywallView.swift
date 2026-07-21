@@ -90,8 +90,7 @@ struct PaywallView: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .padding(.top, 36)
 
-                Text("onboarding.premium.title".l)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                BBTheme.Typography.title1("onboarding.premium.title".l)
                     .foregroundStyle(.white)
 
                 Text("onboarding.premium.headline".l)
@@ -115,7 +114,7 @@ struct PaywallView: View {
                 .foregroundStyle(BBTheme.Colors.primary)
             VStack(alignment: .leading, spacing: 2) {
                 Text("premium.active_status".l)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text("premium.active_desc".l)
                     .font(.system(size: 13, design: .rounded))
@@ -212,7 +211,7 @@ struct PaywallView: View {
 
                 if let product {
                     Text(product.displayPrice)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                     Text(id == SubscriptionManager.monthlyID
                          ? "premium.per_month".l

@@ -120,8 +120,7 @@ struct GrowthView: View {
 
         return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HStack {
-                Text("section.who_percentiles".l)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                BBTheme.Typography.title3("section.who_percentiles".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Button {
@@ -142,8 +141,7 @@ struct GrowthView: View {
                         Text("percentile.weight".l)
                             .font(.system(size: 14, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
-                        Text(label)
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        BBTheme.Typography.metric(label)
                             .foregroundStyle(color)
                     }
                     Spacer()
@@ -157,7 +155,7 @@ struct GrowthView: View {
                             .frame(width: 64, height: 64)
                             .rotationEffect(.degrees(-90))
                         Text("\(Int(percentile))")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .font(.system(size: 16, weight: .semibold, design: .rounded).monospacedDigit())
                             .foregroundStyle(color)
                     }
                 }
@@ -335,8 +333,7 @@ struct PercentileInfoSheet: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.top, BBTheme.Spacing.lg)
 
-                    Text("percentile.info_title".l)
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title2("percentile.info_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
 
                     Text("percentile.info_body".l)

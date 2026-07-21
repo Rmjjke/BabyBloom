@@ -94,8 +94,7 @@ struct DiaperView: View {
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HStack {
-                Text("section.today".l)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                BBTheme.Typography.title3("section.today".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Button {
@@ -217,8 +216,7 @@ struct DiaperNormEditorSheet: View {
                     .padding(.top, BBTheme.Spacing.xl)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    Text("diaper.norm.label".l)
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title2("diaper.norm.label".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text("diaper.norm.hint".l)
                         .font(.system(size: 14, weight: .regular, design: .rounded))
@@ -238,7 +236,7 @@ struct DiaperNormEditorSheet: View {
                     .disabled(dailyNorm <= 1)
 
                     Text("\(dailyNorm)")
-                        .font(.system(size: 64, weight: .bold, design: .rounded))
+                        .font(.system(size: 64, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .frame(minWidth: 80)
 

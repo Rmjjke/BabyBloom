@@ -232,8 +232,7 @@ struct FeedingTimerCard: View {
                     Text("tab.feeding".l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.feeding)
-                    Text(entry.displayTitle)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title3(entry.displayTitle)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Spacer()
@@ -379,7 +378,7 @@ struct AddFeedingSheet: View {
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
                                 Spacer()
                                 Text("\(Int(volumeML)) \("unit.ml".l)")
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.feeding)
                             }
                             Slider(value: $volumeML, in: 0...500, step: 10)

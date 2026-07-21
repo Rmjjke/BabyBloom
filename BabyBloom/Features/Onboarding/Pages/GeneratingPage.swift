@@ -41,8 +41,7 @@ struct GeneratingPage: View {
 
                 VStack(spacing: BBTheme.Spacing.sm) {
                     let name = babyName.trimmingCharacters(in: .whitespaces)
-                    Text(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title3(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
 

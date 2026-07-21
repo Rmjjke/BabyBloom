@@ -18,8 +18,7 @@ struct BirthPage: View {
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
-                        Text("onboarding.birth_title".l)
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        BBTheme.Typography.title1("onboarding.birth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                         Text("onboarding.birth_hint".l)
                             .font(.system(size: 14, design: .rounded))

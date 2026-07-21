@@ -20,8 +20,7 @@ struct GrowthPage: View {
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
-                        Text("onboarding.growth_title".l)
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                        BBTheme.Typography.title1("onboarding.growth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                         Text("onboarding.growth_hint".l)
                             .font(.system(size: 14, design: .rounded))

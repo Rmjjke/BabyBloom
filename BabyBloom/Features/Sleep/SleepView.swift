@@ -229,8 +229,7 @@ struct SleepTimerCard: View {
                     Text("status.baby_sleeping".l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.sleep)
-                    Text(entry.type.displayName.l)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title3(entry.type.displayName.l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 Spacer()

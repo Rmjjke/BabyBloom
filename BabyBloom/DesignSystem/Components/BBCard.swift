@@ -61,8 +61,7 @@ struct BBStatCard: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    Text(value)
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
+                    BBTheme.Typography.metric(value)
                         .foregroundStyle(overLimit ? .red.opacity(0.85) : BBTheme.Colors.textPrimary)
                     Text(unit.l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -204,8 +203,7 @@ struct BBSectionHeader: View {
 
     var body: some View {
         HStack {
-            Text(title.l)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+            BBTheme.Typography.title3(title.l)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Spacer()
             if let action {

@@ -18,8 +18,7 @@ struct NamePage: View {
                     .font(.system(size: 72))
 
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    Text("onboarding.name_title".l)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title1("onboarding.name_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                     Text("onboarding.name_hint".l)

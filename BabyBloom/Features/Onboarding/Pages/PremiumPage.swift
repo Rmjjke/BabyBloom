@@ -36,8 +36,7 @@ struct PremiumPage: View {
                             .padding(.top, 36)
                             .scaleEffect(appear ? 1 : 0.7)
 
-                        Text("onboarding.premium.title".l)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                        BBTheme.Typography.title1("onboarding.premium.title".l)
                             .foregroundStyle(.white)
 
                         Text("onboarding.premium.headline".l)

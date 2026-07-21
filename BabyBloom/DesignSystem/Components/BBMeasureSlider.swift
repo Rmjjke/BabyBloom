@@ -19,7 +19,7 @@ struct BBMeasureSlider: View {
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Text(display)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundStyle(color)
             }
             Slider(value: $value, in: range, step: step)
@@ -73,7 +73,7 @@ struct BBOptionalMeasureToggle: View {
                 HStack {
                     Spacer()
                     Text(display)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded).monospacedDigit())
                         .foregroundStyle(color)
                 }
                 Slider(value: $value, in: range, step: step)

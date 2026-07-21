@@ -80,11 +80,10 @@ struct DashboardView: View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(greetingText)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                 if let baby {
-                    Text(baby.name)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title1(baby.name)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text(baby.ageDescription)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
@@ -94,8 +93,7 @@ struct DashboardView: View {
                         .background(BBTheme.Colors.primary.opacity(0.1))
                         .cornerRadius(BBTheme.Radius.pill)
                 } else {
-                    Text("BabyBloom")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                    BBTheme.Typography.title1("BabyBloom")
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
             }
@@ -351,7 +349,7 @@ struct ActiveTimerCard: View {
             Spacer()
             BBElapsedTimer(
                 startTime: startTime,
-                font: .system(size: 22, weight: .bold, design: .rounded).monospacedDigit(),
+                font: .system(size: 22, weight: .semibold, design: .rounded).monospacedDigit(),
                 color: color
             )
         }
