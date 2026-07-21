@@ -11,45 +11,54 @@ struct GrowthView: View {
     private var baby: Baby? { babies.first }
     private var latest: GrowthEntry? { entries.first }
 
+    // GrowthView is presented only as a push destination inside MoreView's
+    // NavigationStack (D6 IA change), so it must NOT wrap its own NavigationStack
+    // — that would nest a stack inside a stack (double nav bar). Title/toolbar
+    // attach to the enclosing MoreView stack. (DiaperView, now a top-level tab,
+    // keeps its own NavigationStack for the opposite reason.)
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: BBTheme.Spacing.lg) {
+        ScrollView {
+            VStack(spacing: BBTheme.Spacing.lg) {
 
-                    // Latest measurements
-                    latestSection
-                        .padding(.horizontal, BBTheme.Spacing.md)
+                // Latest measurements
+                latestSection
+                    .padding(.horizontal, BBTheme.Spacing.md)
 
-                    // Weight chart
-                    if entries.count >= 2 {
-                        chartSection
-                            .padding(.horizontal, BBTheme.Spacing.md)
-                    }
-
-                    // Percentile card
-                    if let baby, let entry = latest, let weight = entry.weightKg {
-                        percentileSection(baby: baby, weight: weight, entry: entry)
-                            .padding(.horizontal, BBTheme.Spacing.md)
-                    }
-
-                    // History
-                    historySection
+                // Weight chart
+                if entries.count >= 2 {
+                    chartSection
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
-                .padding(.bottom, BBTheme.Spacing.xl)
+
+                // Percentile card
+                if let baby, let entry = latest, let weight = entry.weightKg {
+                    percentileSection(baby: baby, weight: weight, entry: entry)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                }
+
+                // History
+                historySection
+                    .padding(.horizontal, BBTheme.Spacing.md)
             }
-            .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("tab.growth".l)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(BBTheme.Colors.primary)
-                    }
+            // Bottom clearance so the FAB never permanently covers the last row.
+            .padding(.bottom, BBTheme.Spacing.xxl)
+        }
+        .background(BBTheme.Colors.background.ignoresSafeArea())
+        .overlay(alignment: .bottomTrailing) {
+            BBFab { showAddSheet = true }
+                .padding(.trailing, BBTheme.Spacing.md)
+                .padding(.bottom, BBTheme.Spacing.md)
+        }
+        .navigationTitle("tab.growth".l)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(BBTheme.Colors.primary)
                 }
             }
         }

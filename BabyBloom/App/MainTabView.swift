@@ -25,11 +25,11 @@ struct MainTabView: View {
                 }
                 .tag(Tab.sleep)
 
-            GrowthView()
+            DiaperView()
                 .tabItem {
-                    Label("tab.growth".l, systemImage: "chart.line.uptrend.xyaxis")
+                    Label("tab.diapers".l, systemImage: "drop.fill")
                 }
-                .tag(Tab.growth)
+                .tag(Tab.diapers)
 
             MoreView()
                 .tabItem {
@@ -38,21 +38,13 @@ struct MainTabView: View {
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
-        .onAppear {
-            configureTabBarAppearance()
-        }
-    }
-
-    private func configureTabBarAppearance() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.systemBackground
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
+        // Tab bar appearance is left to the system (D6): the default translucent
+        // bar reads correctly in light/dark and is ready for Liquid Glass. No
+        // UITabBarAppearance opaque override.
     }
 
     enum Tab: String, CaseIterable {
-        case dashboard, feeding, sleep, growth, more
+        case dashboard, feeding, sleep, diapers, more
     }
 }
 
@@ -61,13 +53,13 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink(destination: DiaperView()) {
+                NavigationLink(destination: GrowthView()) {
                     Label {
-                        Text("nav.diapers".l)
+                        Text("nav.growth".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     } icon: {
-                        Image(systemName: "circle.lefthalf.filled")
-                            .foregroundStyle(BBTheme.Colors.diaper)
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .foregroundStyle(BBTheme.Colors.growth)
                     }
                 }
                 NavigationLink(destination: EventsView()) {

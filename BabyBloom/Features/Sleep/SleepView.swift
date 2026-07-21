@@ -58,6 +58,11 @@ struct SleepView: View {
                 .padding(.bottom, BBTheme.Spacing.xxl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
+            .overlay(alignment: .bottomTrailing) {
+                BBFab { showAddSheet = true }
+                    .padding(.trailing, BBTheme.Spacing.md)
+                    .padding(.bottom, BBTheme.Spacing.md)
+            }
             .navigationTitle("tab.sleep".l)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
