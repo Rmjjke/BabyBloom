@@ -309,6 +309,7 @@ struct DiaperEntryRow: View {
 
 // MARK: - Add Diaper Sheet
 struct AddDiaperSheet: View {
+    @State private var sheetDetent: PresentationDetent = .large
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
@@ -423,7 +424,7 @@ struct AddDiaperSheet: View {
             }
         }
         .presentationDragIndicator(.visible)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $sheetDetent)
     }
 
     private func save() {

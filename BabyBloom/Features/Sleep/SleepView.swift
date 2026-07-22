@@ -259,6 +259,7 @@ struct SleepTimerCard: View {
 
 // MARK: - Add Sleep Sheet
 struct AddSleepSheet: View {
+    @State private var sheetDetent: PresentationDetent = .large
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
@@ -360,7 +361,7 @@ struct AddSleepSheet: View {
             }
         }
         .presentationDragIndicator(.visible)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: $sheetDetent)
     }
 
     private func save() {
