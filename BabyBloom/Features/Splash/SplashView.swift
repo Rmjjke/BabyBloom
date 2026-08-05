@@ -51,7 +51,9 @@ struct SplashView: View {
                     .opacity(taglineVisible ? 1 : 0)
                     .offset(y: taglineVisible ? 0 : 12)
                 }
-                .position(x: geo.size.width / 2, y: geo.size.height * 0.77)
+                // Sits below the crescent's lower rim so the cream text lands on
+                // the lavender field rather than on the white artwork.
+                .position(x: geo.size.width / 2, y: geo.size.height * 0.82)
             }
             .opacity(fadingOut ? 0 : 1)
             .ignoresSafeArea()
