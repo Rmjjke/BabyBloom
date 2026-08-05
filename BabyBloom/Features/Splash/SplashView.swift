@@ -1,9 +1,11 @@
 import SwiftUI
 
 // MARK: - Branded Splash
-// Staged reveal over the original splash artwork (docs/design/splash2.png with
-// the baked-in wordmark band stitched out -> BBSplashBg): first the art with
-// the logo mark fades in, then "BabyBloom", then the tagline.
+// Staged reveal over the splash artwork (docs/design/splash4.png with the
+// baked-in wordmark band stitched out -> BBSplashBg): first the art with the
+// logo mark fades in, then the wordmark ("brand.name"), then the tagline.
+// The wordmark is drawn as text, never baked into the PNG, so rebranding is a
+// localization-token change only.
 struct SplashView: View {
     let onDone: () -> Void
 
@@ -28,7 +30,7 @@ struct SplashView: View {
 
                 VStack(spacing: 16) {
                     // Stage 2: wordmark
-                    Text("BabyBloom")
+                    Text("brand.name".l)
                         .font(.system(size: 42, weight: .semibold, design: .serif))
                         .foregroundStyle(Color("BBSplashText"))
                         .opacity(titleVisible ? 1 : 0)

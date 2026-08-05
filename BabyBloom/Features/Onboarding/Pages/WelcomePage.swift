@@ -39,7 +39,7 @@ struct WelcomePage: View {
                         .opacity(appear ? 1 : 0)
 
                         VStack(spacing: 6) {
-                            Text("BabyBloom")
+                            Text("brand.name".l)
                                 .font(.system(size: 40, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.primary)
                                 .offset(y: appear ? 0 : 20)

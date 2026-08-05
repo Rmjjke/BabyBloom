@@ -125,7 +125,7 @@ struct BabyBloomSmallWidgetView: View {
             HStack {
                 Text("🌸")
                     .font(.system(size: 20))
-                Text("BabyBloom")
+                Text("brand.name".l)
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.9))
             }
@@ -255,7 +255,7 @@ struct BabyBloomWidget: Widget {
                 BabyBloomSmallWidgetView(entry: entry)
             }
         }
-        .configurationDisplayName("BabyBloom")
+        .configurationDisplayName("brand.name".l)
         .description("Быстрый обзор состояния малыша")
         .supportedFamilies([.systemSmall])
     }
@@ -273,7 +273,7 @@ struct BabyBloomMediumWidget: Widget {
                 BabyBloomMediumWidgetView(entry: entry)
             }
         }
-        .configurationDisplayName("BabyBloom — Подробно")
+        .configurationDisplayName("\("brand.name".l) — Подробно")
         .description("Обзор кормлений и сна малыша")
         .supportedFamilies([.systemMedium])
     }

@@ -1,0 +1,4 @@
+/* Имя приложения на домашнем экране для этой локали. Единая точка правки:
+   поменяйте это значение (и "brand.name" в Resources/Localization/<locale>.json),
+   чтобы дать локали другое имя. */
+"CFBundleDisplayName" = "Kokonest";

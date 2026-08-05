@@ -1,0 +1,4 @@
+/* Home-screen / Settings name for this locale. Single source of truth for the
+   localized app name — change this value (and "brand.name" in
+   Resources/Localization/<locale>.json) to rebrand one locale. */
+"CFBundleDisplayName" = "Kokonest";

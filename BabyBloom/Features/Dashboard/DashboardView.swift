@@ -99,7 +99,7 @@ struct DashboardView: View {
                         .background(BBTheme.Colors.primary.opacity(0.1))
                         .cornerRadius(BBTheme.Radius.pill)
                 } else {
-                    BBTheme.Typography.title1("BabyBloom")
+                    BBTheme.Typography.title1("brand.name".l)
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
             }

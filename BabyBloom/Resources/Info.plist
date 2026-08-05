@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>BabyBloom</string>
+	<string>Kokonest</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,7 +29,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Используется для выбора фото профиля ребёнка.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>BabyBloom отправляет напоминания о кормлении, сне и других событиях ухода за ребёнком.</string>
+	<string>Kokonest отправляет напоминания о кормлении, сне и других событиях ухода за ребёнком.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
