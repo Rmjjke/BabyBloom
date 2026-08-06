@@ -269,7 +269,7 @@ struct ExportView: View {
                     diapers: diapers, growths: growths, events: events,
                     categories: cats, range: range
                 )
-                if let url = ExportGenerator.writeTempFile(name: "Kokonest_\(slug).pdf", data: data) {
+                if let url = ExportGenerator.writeTempFile(name: "\("brand.name".l)_\(slug).pdf", data: data) {
                     items.append(url)
                 }
             } else {

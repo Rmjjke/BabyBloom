@@ -1,4 +1,4 @@
-# Kokonest — Локальные уведомления
+# BloomNest — Локальные уведомления
 
 Все уведомления — локальные (`UNUserNotificationCenter`, без сервера).
 Единственный источник истины: `BabyBloom/Services/NotificationManager.swift`

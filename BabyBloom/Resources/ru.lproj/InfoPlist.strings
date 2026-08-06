@@ -1,4 +1,8 @@
-/* Имя приложения на домашнем экране для этой локали. Единая точка правки:
-   поменяйте это значение (и "brand.name" в Resources/Localization/<locale>.json),
-   чтобы дать локали другое имя. */
-"CFBundleDisplayName" = "Kokonest";
+/* Имя приложения и тексты разрешений для этой локали. Вместе с "brand.name"
+   в Resources/Localization/<locale>.json это единственное место, где решается,
+   как локаль называет приложение. Имя склоняется: «Ночка» — «в Ночку». */
+"CFBundleDisplayName" = "Ночка";
+
+"NSUserNotificationsUsageDescription" = "Ночка отправляет напоминания о кормлении, сне и других событиях ухода за ребёнком.";
+"NSPhotoLibraryUsageDescription" = "Используется для выбора фото профиля ребёнка.";
+"NSFaceIDUsageDescription" = "Используется для быстрой разблокировки приложения.";

@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kokonest</string>
+	<string>BloomNest</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -25,11 +25,11 @@
 	<key>MinimumOSVersion</key>
 	<string>17.0</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Используется для быстрой разблокировки приложения.</string>
+	<string>Used to unlock the app quickly.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Используется для выбора фото профиля ребёнка.</string>
+	<string>Used to pick a photo for your baby's profile.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Kokonest отправляет напоминания о кормлении, сне и других событиях ухода за ребёнком.</string>
+	<string>BloomNest sends reminders about feeding, sleep and other baby care events.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
