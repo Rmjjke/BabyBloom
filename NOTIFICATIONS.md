@@ -1,4 +1,4 @@
-# BloomNest — Локальные уведомления
+# Nenita — Локальные уведомления
 
 Все уведомления — локальные (`UNUserNotificationCenter`, без сервера).
 Единственный источник истины: `BabyBloom/Services/NotificationManager.swift`

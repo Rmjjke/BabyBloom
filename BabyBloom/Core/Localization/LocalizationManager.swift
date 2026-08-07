@@ -11,8 +11,17 @@ final class LocalizationManager: @unchecked Sendable {
     private(set) var currentLanguage: String
     private var strings: [String: String] = [:]
 
+    /// Language to use before the user has picked one. Russian-speaking devices
+    /// get Russian; everyone else gets English. Once the user picks in Settings,
+    /// that choice is stored under "appLanguage" and wins from then on.
+    static var deviceDefault: String {
+        let code = Locale.preferredLanguages.first?
+            .split(separator: "-").first?.lowercased()
+        return code == "ru" ? "ru" : "en"
+    }
+
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "appLanguage") ?? "ru"
+        let saved = UserDefaults.standard.string(forKey: "appLanguage") ?? Self.deviceDefault
         currentLanguage = saved
         load(saved)
     }

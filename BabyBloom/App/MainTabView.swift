@@ -109,7 +109,7 @@ struct MoreView: View {
 
 // MARK: - Settings View
 struct SettingsView: View {
-    @AppStorage("appLanguage") private var appLanguage = "ru"
+    @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
     @Environment(SubscriptionManager.self) private var store
     @State private var showPaywall = false
 

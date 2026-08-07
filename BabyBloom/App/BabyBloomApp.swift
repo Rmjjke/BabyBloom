@@ -6,7 +6,7 @@ struct BabyBloomApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     // Branded splash plays on every cold launch (not persisted).
     @State private var showingSplash = true
-    @AppStorage("appLanguage") private var appLanguage = "ru"
+    @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
 
     @Environment(\.scenePhase) private var scenePhase
     @State private var subscriptionManager = SubscriptionManager.shared
