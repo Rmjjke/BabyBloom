@@ -63,23 +63,6 @@ targets:
     dependencies:
       - target: BabyBloomWidget
         embed: true
-    schemes:
-      BabyBloom:
-        build:
-          targets:
-            BabyBloom: all
-        run:
-          config: Debug
-        test:
-          config: Debug
-          targets:
-            - BabyBloomTests
-        profile:
-          config: Release
-        analyze:
-          config: Debug
-        archive:
-          config: Release
 
   BabyBloomWidget:
     type: app-extension
@@ -130,3 +113,27 @@ targets:
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: BabyBloom
+
+# Top level, a sibling of `targets:`. This block used to sit inside the
+# BabyBloom target, where XcodeGen silently ignores it — schemes were being
+# created implicitly by Xcode instead, so nothing here took effect.
+schemes:
+  BabyBloom:
+    build:
+      targets:
+        BabyBloom: all
+    run:
+      config: Debug
+      # Local StoreKit products so the paywall renders on the simulator, where
+      # there is no App Store Connect to fetch them from.
+      storeKitConfiguration: Nenita.storekit
+    test:
+      config: Debug
+      targets:
+        - BabyBloomTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

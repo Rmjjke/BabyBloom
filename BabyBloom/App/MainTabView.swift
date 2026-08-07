@@ -51,27 +51,30 @@ struct MainTabView: View {
 // MARK: - More Tab
 struct MoreView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
-    @State private var showProfileEdit = false
 
     private var baby: Baby? { babies.first }
 
     var body: some View {
         NavigationStack {
             List {
-                // Profile row — first item. Opens the profile editor as a sheet
-                // (moved here from Settings). Hidden when there is no baby yet.
-                if baby != nil {
-                    Button {
-                        showProfileEdit = true
-                    } label: {
-                        Label {
-                            Text("nav.profile".l)
+                // One destination for both the baby's details and the app
+                // settings. The subtitle spells out what moved in here so the
+                // settings do not become undiscoverable.
+                NavigationLink(destination: ProfileView()) {
+                    HStack(spacing: BBTheme.Spacing.sm) {
+                        BabyAvatarView(photoData: baby?.photoData,
+                                       gender: baby?.gender,
+                                       size: 44)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(baby?.name ?? "nav.profile".l)
+                                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
-                        } icon: {
-                            Image(systemName: "person.crop.circle.fill")
-                                .foregroundStyle(BBTheme.Colors.primary)
+                            Text("profile.settings_subtitle".l)
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                     }
+                    .padding(.vertical, 4)
                 }
                 NavigationLink(destination: GrowthView()) {
                     Label {
@@ -91,30 +94,54 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.events)
                     }
                 }
-                NavigationLink(destination: SettingsView()) {
-                    Label("nav.settings".l, systemImage: "gearshape.fill")
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
             }
             .navigationTitle("tab.more".l)
             .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showProfileEdit) {
-                if let baby {
-                    BabyProfileEditSheet(baby: baby)
-                }
-            }
         }
     }
 }
 
-// MARK: - Settings View
-struct SettingsView: View {
+// MARK: - Profile View
+// The baby's details and the app settings on one screen (they used to be two
+// separate entries in the More tab).
+struct ProfileView: View {
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
     @Environment(SubscriptionManager.self) private var store
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var showPaywall = false
+    @State private var showProfileEdit = false
+
+    private var baby: Baby? { babies.first }
 
     var body: some View {
         List {
+            // ── Baby ──────────────────────────────────────────────────
+            if let baby {
+                Section {
+                    Button {
+                        showProfileEdit = true
+                    } label: {
+                        HStack(spacing: BBTheme.Spacing.md) {
+                            BabyAvatarView(photoData: baby.photoData,
+                                           gender: baby.gender,
+                                           size: 56)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(baby.name)
+                                    .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text(baby.ageDescription)
+                                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.primary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                        }
+                        .padding(.vertical, 6)
+                    }
+                }
+            }
             // ── Language ──────────────────────────────────────────────
             Section {
                 HStack {
@@ -191,10 +218,15 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationTitle("nav.settings".l)
+        .navigationTitle("nav.profile".l)
         .task { await store.refreshEntitlements() }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
+        }
+        .sheet(isPresented: $showProfileEdit) {
+            if let baby {
+                BabyProfileEditSheet(baby: baby)
+            }
         }
     }
 }

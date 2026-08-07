@@ -198,6 +198,7 @@
   "settings.about": "About",
   "settings.premium": "Nenita Premium",
   "settings.profile": "Baby Profile",
+  "profile.settings_subtitle": "Language, notifications, data",
   "profile.edit_title": "Edit Profile",
   "profile.name_label": "Name",
   "profile.birth_date": "Birth Date",

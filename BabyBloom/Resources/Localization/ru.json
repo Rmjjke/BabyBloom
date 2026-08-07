@@ -198,6 +198,7 @@
   "settings.about": "О приложении",
   "settings.premium": "Ночка Premium",
   "settings.profile": "Профиль",
+  "profile.settings_subtitle": "Язык, уведомления, данные",
   "profile.edit_title": "Редактировать профиль",
   "profile.name_label": "Имя",
   "profile.birth_date": "Дата рождения",
