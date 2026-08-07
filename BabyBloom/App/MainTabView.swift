@@ -106,6 +106,7 @@ struct MoreView: View {
 // separate entries in the More tab).
 struct ProfileView: View {
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
+    @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
     @Environment(SubscriptionManager.self) private var store
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var showPaywall = false
@@ -166,6 +167,19 @@ struct ProfileView: View {
                 }
             } header: {
                 Text("settings.language".l)
+            }
+
+            // ── Appearance ────────────────────────────────────────────
+            // Full-width segmented control: three localized labels do not fit
+            // next to an inline row label.
+            Section("settings.appearance".l) {
+                Picker("settings.appearance".l, selection: $appAppearance) {
+                    ForEach(AppAppearance.allCases) { option in
+                        Label(option.labelKey.l, systemImage: option.symbolName)
+                            .tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
             }
 
             Section("settings.notifications".l) {

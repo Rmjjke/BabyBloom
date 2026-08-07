@@ -265,6 +265,123 @@ CloudKit — сейчас, до публикации, это ничего не �
 
 ---
 
+## Часть 9. 🧑 Экран «New App» в App Store Connect
+
+Это уже **второй сайт** — appstoreconnect.apple.com, витрина. Здесь создаётся карточка
+приложения в магазине. Идентификаторы с developer.apple.com сюда только подставляются из
+выпадающего списка, заново ничего регистрировать не надо.
+
+| Поле | Что ставить | Можно ли поменять потом |
+|---|---|---|
+| **Name** | `Nenita` | Да, пока версия не ушла на ревью |
+| **Primary Language** | English (U.S.) | Да, в App Information |
+| **Bundle ID** | `com.nenita.app` — **основное приложение, НЕ `.widget`** | Практически нет, см. ниже |
+| **SKU** | `nenita-ios-001` | **Нет, никогда** |
+| **User Access** | оставить Limited Access как есть | Да, в Users and Access |
+
+### Bundle ID — какой из двух выбирать
+
+В выпадающем списке будут оба зарегистрированных идентификатора: `com.nenita.app` и
+`com.nenita.app.widget`. Выбирать **`com.nenita.app`**.
+
+Виджет никогда не получает собственную карточку в App Store. Он едет внутрь приложения как
+часть сборки — пользователь скачивает одно приложение, а виджет появляется в галерее виджетов
+сам. Отдельный App ID виджету нужен был только для подписи кода, к магазину он отношения не
+имеет.
+
+Технически ASC разрешает поменять bundle ID, пока не залита первая сборка. Считай, что нельзя:
+после первой загрузки — только новая карточка с нуля.
+
+### SKU — что это такое
+
+**S**tock **K**eeping **U**nit, «складской артикул» — термин из розничной торговли, Apple
+притащила его в ASC. Это твой внутренний код приложения:
+
+- **пользователи его не видят никогда** — ни в сторе, ни в чеке, нигде
+- всплывает только в твоих финансовых отчётах и выгрузках продаж, чтобы различать приложения
+- должен быть уникальным **внутри твоего аккаунта** (не во всём мире, в отличие от bundle ID)
+- **не меняется после создания** — вообще, никак, даже поддержкой
+- допустимы латиница, цифры, `-`, `_`, `.`; нельзя начинать с дефиса, точки или подчёркивания
+
+Никакого технического значения не имеет. В твоём же аккаунте лежат приложения с SKU `12345`,
+`ok12345` и `dsf8as76dfa` — и всё работает.
+
+**Ставь `nenita-ios-001`.** Осмысленно, читается в отчётах, не конфликтует ни с чем.
+
+### User Access
+
+Кто из членов твоей команды в ASC видит это приложение. Сейчас выбран Limited Access и уже
+подставлены роли Admin / Finance / Reports плюс ты — этого достаточно. Меняется в любой момент
+через Users and Access. Full Access = видят все шесть человек; разницы для тебя нет.
+
+После **Create** карточка создана, но пустая: дальше заполняются описание, скриншоты, категория,
+цена, политика конфиденциальности и создаются подписки (`com.nenita.app.premium.monthly` и
+`.yearly` — символ в символ, как в коде). Это уже отдельный большой разговор, см.
+[app-store-connect-testflight.md](app-store-connect-testflight.md).
+
+---
+
+## Часть 10. ✅ Первый билд в TestFlight — сделано 2026-08-07
+
+| Что | Значение |
+|---|---|
+| App ID в ASC | `6799234275` |
+| Билд | 1.0.0 (1), `processingState: VALID` |
+| Годен до | 2026-11-05 (у TestFlight-билдов срок жизни 90 дней) |
+| Группа | Internal Testers, `hasAccessToAllBuilds: true` |
+| Тестировщик | `r.okulevich@gmail.com`, состояние `INVITED` |
+| Экспортное шифрование | `usesNonExemptEncryption: false` — вопрос не задаётся |
+
+Попутно починено в проекте:
+
+- `UIRequiredDeviceCapabilities` был `armv7` — бессмыслица при deployment target iOS 17,
+  где сборка идёт только под arm64. Заменено на `arm64`
+- добавлен `ITSAppUsesNonExemptEncryption = false` в `Info.plist` — иначе TestFlight блокирует
+  раздачу каждого билда вопросом про экспортное шифрование, пока не ответишь вручную
+- `DEVELOPMENT_TEAM` поднят на уровень проекта: у таргета виджета его не было, автоподпись
+  расширения без этого падает
+
+### Как выпускать следующие билды
+
+**Каждая загрузка требует нового номера билда.** Версия может остаться `1.0.0`, а
+`CURRENT_PROJECT_VERSION` в `project.yml` обязан вырасти: 1 → 2 → 3. Apple отклоняет повторный
+номер.
+
+```bash
+# 1. поднять CURRENT_PROJECT_VERSION в project.yml, затем:
+xcodegen generate
+
+KEY="-authenticationKeyPath /Users/roman/lets-tour-aso/AuthKey_4HWP33LMWN.p8 \
+     -authenticationKeyID 4HWP33LMWN \
+     -authenticationKeyIssuerID 69a6de7e-941a-47e3-e053-5b8c7c11a4d1"
+
+# 2. архив
+xcodebuild archive -project BabyBloom.xcodeproj -scheme BabyBloom \
+  -destination 'generic/platform=iOS' -configuration Release \
+  -archivePath build/Nenita.xcarchive -allowProvisioningUpdates $KEY
+
+# 3. экспорт + загрузка (ExportOptions.plist с <key>destination</key><string>upload</string>)
+xcodebuild -exportArchive -archivePath build/Nenita.xcarchive \
+  -exportOptionsPlist build/UploadOptions.plist -exportPath build/upload \
+  -allowProvisioningUpdates $KEY
+```
+
+Билд сам попадёт в группу Internal Testers — она создана с `hasAccessToAllBuilds`, ручных
+действий в ASC больше не нужно. Обработка на стороне Apple — 5–20 минут.
+
+### Что делаешь ты прямо сейчас
+
+1. Поставить на iPhone приложение **TestFlight** из App Store
+2. Войти Apple ID `r.okulevich@gmail.com` — тем же, что в ASC
+3. На почту пришло приглашение: либо принять его, либо просто открыть TestFlight — Nenita уже
+   будет в списке, потому что ты внутренний тестировщик
+4. Install
+
+Внутренним тестировщикам бета-ревью Apple не требуется — билд доступен сразу. Ревью
+понадобится только когда позовёшь внешних тестировщиков (до 10 000 человек по публичной ссылке).
+
+---
+
 ## Шпаргалка: что куда
 
 ```

@@ -7,6 +7,7 @@ struct BabyBloomApp: App {
     // Branded splash plays on every cold launch (not persisted).
     @State private var showingSplash = true
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
+    @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
 
     @Environment(\.scenePhase) private var scenePhase
     @State private var subscriptionManager = SubscriptionManager.shared
@@ -41,16 +42,19 @@ struct BabyBloomApp: App {
                     }
                 } else if hasCompletedOnboarding {
                     MainTabView()
-                        .preferredColorScheme(nil)
                 } else {
                     OnboardingView(onComplete: {
                         hasCompletedOnboarding = true
                         NotificationManager.shared.requestPermission()
                     })
-                    .preferredColorScheme(nil)
                 }
             }
             .id(appLanguage)
+            // Applied at the root so the splash, onboarding and main UI all
+            // follow the same choice. Must not be re-declared further down the
+            // tree: an inner `.preferredColorScheme(nil)` would win and cancel
+            // the user's pick.
+            .preferredColorScheme(AppAppearance.from(appAppearance).colorScheme)
             // Dynamic Type: allow growth up to AX2 (a sensible ceiling for MVP —
             // full AX5 would demand deeper per-screen relayout). Below this, the
             // scaled Typography and growth-safe layouts do the work.

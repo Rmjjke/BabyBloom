@@ -52,6 +52,7 @@
 		A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390F8BD3D44D73D72C6D2893 /* PaywallView.swift */; };
 		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
 		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
+		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
 		BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4832FE37F4C6031CD491FC1 /* EventsView.swift */; };
 		C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */; };
@@ -145,6 +146,7 @@
 		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		81EBDB06F0A203F086BCC22F /* BabyBloomWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloomWidget.entitlements; sourceTree = "<group>"; };
 		82422A5254915B1796A78F89 /* BBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCard.swift; sourceTree = "<group>"; };
+		96AF18E1355A04D9F979B421 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9E61620C5985E78F54CE8166 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCharts.swift; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 		3C9DD7E8B5B3311A24E9F7DB /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				96AF18E1355A04D9F979B421 /* AppAppearance.swift */,
 				141E9D25B87B2C358EFCE05E /* BBTheme.swift */,
 				222DE017E594D98F05EB951F /* Components */,
 			);
@@ -522,7 +525,11 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					00D95F5EE2E8B681F336DE2C = {
+						DevelopmentTeam = 6T959D75QM;
+					};
 					1783A135DACD15C119109A60 = {
+						DevelopmentTeam = 6T959D75QM;
 						ProvisioningStyle = Automatic;
 					};
 					ECF575830BB605F17ED07516 = {
@@ -621,6 +628,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */,
 				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
 				03C7164075FA330097A87835 /* BBCard.swift in Sources */,
 				E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */,
@@ -767,6 +775,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -856,6 +865,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
