@@ -1,5 +1,6 @@
 {
   "brand.name": "Ночка",
+  "dashboard.welcome": "Добро пожаловать в Ночку",
   "tab.home": "Главная",
   "tab.feeding": "Кормление",
   "tab.sleep": "Сон",
@@ -127,10 +128,6 @@
   "status.sleeping_now": "Спит сейчас...",
   "status.feeding_going": "Кормление идёт",
   "status.baby_sleeping": "Ребёнок спит",
-  "greeting.night": "Ночное дежурство",
-  "greeting.morning": "Доброе утро",
-  "greeting.afternoon": "Добрый день",
-  "greeting.evening": "Добрый вечер",
   "empty.no_records": "Нет записей",
   "empty.add_above": "Нажмите кнопку выше, чтобы добавить запись",
   "empty.no_events": "Нет событий",

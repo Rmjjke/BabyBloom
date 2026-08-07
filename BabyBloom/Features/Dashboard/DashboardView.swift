@@ -85,7 +85,7 @@ struct DashboardView: View {
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(greetingText)
+                Text("dashboard.welcome".l)
                     .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                 if let baby {
@@ -104,27 +104,22 @@ struct DashboardView: View {
                 }
             }
             Spacer()
-            Button {
-                if baby != nil { showProfileEdit = true }
-            } label: {
-                BabyAvatarView(photoData: baby?.photoData,
-                               gender: baby?.gender,
-                               size: 52)
-                    .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
+            // Without a baby there is nothing to edit, so show no control at all
+            // rather than an avatar that silently ignores taps.
+            if let baby {
+                Button {
+                    showProfileEdit = true
+                } label: {
+                    BabyAvatarView(photoData: baby.photoData,
+                                   gender: baby.gender,
+                                   size: 52)
+                        .overlay(Circle().stroke(BBTheme.Colors.primary.opacity(0.15), lineWidth: 1.5))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("nav.profile".l))
             }
-            .buttonStyle(.plain)
         }
         .padding(.top, BBTheme.Spacing.md)
-    }
-
-    private var greetingText: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        switch hour {
-        case 0..<6:  return "greeting.night".l
-        case 6..<12: return "greeting.morning".l
-        case 12..<18: return "greeting.afternoon".l
-        default:     return "greeting.evening".l
-        }
     }
 
     // MARK: - Active Timers

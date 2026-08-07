@@ -1,5 +1,6 @@
 {
   "brand.name": "Nenita",
+  "dashboard.welcome": "Welcome to Nenita",
   "tab.home": "Home",
   "tab.feeding": "Feeding",
   "tab.sleep": "Sleep",
@@ -127,10 +128,6 @@
   "status.sleeping_now": "Sleeping now...",
   "status.feeding_going": "Feeding in progress",
   "status.baby_sleeping": "Baby is sleeping",
-  "greeting.night": "Night Duty",
-  "greeting.morning": "Good Morning",
-  "greeting.afternoon": "Good Afternoon",
-  "greeting.evening": "Good Evening",
   "empty.no_records": "No Records",
   "empty.add_above": "Tap the button above to add a record",
   "empty.no_events": "No Events",
