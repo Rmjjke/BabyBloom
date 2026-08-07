@@ -4,8 +4,8 @@ import StoreKit
 // MARK: - Product IDs
 // Must exactly match the identifiers created in App Store Connect.
 extension SubscriptionManager {
-    static let monthlyID = "com.babybloom.app.premium.monthly"
-    static let yearlyID  = "com.babybloom.app.premium.yearly"
+    static let monthlyID = "com.nenita.app.premium.monthly"
+    static let yearlyID  = "com.nenita.app.premium.yearly"
 }
 
 // MARK: - Subscription Manager

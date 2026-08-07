@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
-		<string>iCloud.com.babybloom.app</string>
+		<string>iCloud.com.nenita.app</string>
 	</array>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
@@ -12,7 +12,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.babybloom.app</string>
+		<string>group.com.nenita.app</string>
 	</array>
 </dict>
 </plist>

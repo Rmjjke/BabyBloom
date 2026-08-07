@@ -21,7 +21,7 @@ struct BabyBloomApp: App {
             CustomEvent.self
         ])
         let config = ModelConfiguration(schema: schema,
-                                        groupContainer: .identifier("group.com.babybloom.app"),
+                                        groupContainer: .identifier("group.com.nenita.app"),
                                         cloudKitDatabase: .automatic)
         do {
             return try ModelContainer(for: schema, configurations: [config])

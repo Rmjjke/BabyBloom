@@ -20,7 +20,7 @@ struct BabyBloomEntry: TimelineEntry {
 /// sync. The models were made CloudKit-compatible in A1, so `.none` reads the
 /// same store without any schema mismatch.
 enum WidgetDataStore {
-    static let appGroupIdentifier = "group.com.babybloom.app"
+    static let appGroupIdentifier = "group.com.nenita.app"
 
     private static let schema = Schema([
         Baby.self, FeedingEntry.self, SleepEntry.self,

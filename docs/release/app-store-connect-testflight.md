@@ -4,24 +4,21 @@
 
 ---
 
-## ⚠️ Шаг 0. Решить про bundle ID — до того, как создавать приложение
+## Шаг 0. Идентификаторы — решено, в проекте уже прописаны
 
-**Это единственный шаг, который нельзя отменить.** Bundle ID намертво привязывается к записи приложения в App Store Connect. Поменять его потом невозможно: придётся заводить новую запись и терять отзывы, рейтинг и историю загрузок.
-
-Сейчас в проекте:
+Старый `com.babybloom.app` оказался занят чужим аккаунтом (Apple отвечает «An App ID with Identifier … is not available»), поэтому проект переведён на `com.nenita.*`:
 
 | Что | Значение | Файл |
 |-----|----------|------|
-| Bundle ID | `com.babybloom.app` | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` |
-| App Group | `group.com.babybloom.app` | `project.yml` → entitlements обоих таргетов |
-| iCloud-контейнер | `iCloud.com.babybloom.app` | `project.yml` → entitlements |
-| Bundle ID виджета | `com.babybloom.app.widget` | `project.yml` |
+| Bundle ID | `com.nenita.app` | `project.yml` → `PRODUCT_BUNDLE_IDENTIFIER` |
+| App Group | `group.com.nenita.app` | `project.yml` → entitlements обоих таргетов |
+| iCloud-контейнер | `iCloud.com.nenita.app` | `project.yml` → entitlements |
+| Bundle ID виджета | `com.nenita.app.widget` | `project.yml` |
+| ID подписок | `com.nenita.app.premium.monthly` / `.yearly` | `SubscriptionManager.swift`, `Nenita.storekit` |
 
-Приложение теперь называется Nenita, а идентификаторы остались от BabyBloom. Пользователь их не видит никогда — они всплывают только в консоли разработчика. Но если хочется чистоты, менять надо **сейчас**, до создания записи в ASC.
+**Дальше менять нельзя.** Bundle ID намертво привязывается к записи в App Store Connect: после её создания сменить его невозможно, только заводить новую запись с потерей отзывов, рейтинга и истории загрузок.
 
-Смена App Group и iCloud-контейнера стирает локальные данные и данные в CloudKit — до публикации это ничего не стоит, после публикации это потеря данных у всех пользователей.
-
-Bundle ID не обязан совпадать с именем приложения. `com.babybloom.app` с именем Nenita — рабочая, ничем не грозящая ситуация.
+Если `com.nenita.app` тоже окажется занят — скажите, поменяю на другой (например `com.nenita.baby` или `com.okulevich.nenita`), это одна команда и пара минут. Главное — сделать это **до** создания записи в ASC.
 
 ---
 
@@ -44,21 +41,11 @@ Bundle ID не обязан совпадать с именем приложен�
 
 ---
 
-## Шаг 3. Прописать команду в проекте
+## Шаг 3. Команда в проекте — ✅ сделано
 
-В `project.yml` у обоих таргетов сейчас пусто:
+`DEVELOPMENT_TEAM: 6T959D75QM` прописан в `project.yml`, проект перегенерирован. Подпись стоит `CODE_SIGN_STYLE: Automatic` — Xcode выпустит сертификаты и профили сам, вручную создавать нечего.
 
-```yaml
-DEVELOPMENT_TEAM: ""
-```
-
-Вписать свой Team ID (10 символов, виден в аккаунте разработчика в правом верхнем углу), затем перегенерировать проект:
-
-```bash
-xcodegen generate
-```
-
-Подпись стоит `CODE_SIGN_STYLE: Automatic` — Xcode выпустит сертификаты и профили сам, ничего вручную создавать не надо.
+Единственный ручной шаг остаётся за вами: залогинить Apple ID в Xcode → Settings → Accounts (там двухфакторка на телефон).
 
 ---
 
@@ -66,7 +53,7 @@ xcodegen generate
 
 Это блокеры: без них загрузка либо не пройдёт, либо приложение развернут на ревью.
 
-- **`PrivacyInfo.xcprivacy`** — обязателен с 2024 года. Приложение использует `UserDefaults`, а это API «требующее обоснования»: нужно объявить причину `CA92.1`. Файла в проекте пока нет.
+- **`PrivacyInfo.xcprivacy`** — ✅ сделано. Обязателен с 2024 года; лежит в обоих бандлах (приложение и виджет — это разные бандлы, каждому нужен свой). Объявлено: трекинга нет, собираемых данных нет, из «API с обоснованием» используется только `UserDefaults` с причиной `CA92.1`.
 - **Иконка** — уже есть (`AppIcon`), 1024×1024 без прозрачности и без скруглений.
 - **Версия и билд** — `MARKETING_VERSION` (например `1.0`) и `CURRENT_PROJECT_VERSION` (целое число). Каждая загрузка в ASC требует **нового номера билда**, даже если версия та же.
 - **Скриншоты** — минимум для 6.9" iPhone. Их можно снять на симуляторе.
@@ -127,12 +114,13 @@ open BabyBloom.xcodeproj
 
 ## Порядок действий одним списком
 
-1. Решить про bundle ID — **до создания записи в ASC**
-2. Оплатить Apple Developer Program
-3. Зарегистрировать App ID, App Group, iCloud-контейнер
-4. Вписать `DEVELOPMENT_TEAM` в `project.yml`, `xcodegen generate`
-5. Добавить `PrivacyInfo.xcprivacy`, проставить версию и билд
-6. Создать приложение в ASC, добавить русскую локализацию с именем «Ночка»
-7. Archive → Distribute → Upload
-8. Ответить про экспортное соответствие
-9. Добавить себя во внутреннюю группу TestFlight, назначить билд
+1. ✅ Bundle ID выбран — `com.nenita.app`, прописан в проекте
+2. ✅ Apple Developer Program оплачен, Team ID `6T959D75QM`
+3. ✅ `DEVELOPMENT_TEAM` прописан, `PrivacyInfo.xcprivacy` добавлен
+4. 🧑 Зарегистрировать App ID, App Group, iCloud-контейнер — см. [apple-developer-setup.md](apple-developer-setup.md)
+5. 🧑 Залогинить Apple ID в Xcode → Settings → Accounts
+6. 🤖 Проставить версию и номер билда
+7. 🧑 Создать приложение в ASC, добавить русскую локализацию с именем «Ночка»
+8. 🤖 Archive → Distribute → Upload
+9. 🧑 Ответить про экспортное соответствие
+10. 🧑 Добавить себя во внутреннюю группу TestFlight, назначить билд

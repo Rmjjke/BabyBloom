@@ -526,7 +526,7 @@
 						ProvisioningStyle = Automatic;
 					};
 					ECF575830BB605F17ED07516 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 6T959D75QM;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -724,7 +724,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app.widget;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -804,7 +804,7 @@
 				CODE_SIGN_ENTITLEMENTS = BabyBloom/Resources/BabyBloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_PREVIEW_CONTENT = YES;
 				INFOPLIST_FILE = BabyBloom/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -812,7 +812,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app;
 				SDKROOT = iphoneos;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 6.0;
@@ -889,7 +889,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app.tests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -905,7 +905,7 @@
 				CODE_SIGN_ENTITLEMENTS = BabyBloom/Resources/BabyBloom.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_PREVIEW_CONTENT = YES;
 				INFOPLIST_FILE = BabyBloom/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -913,7 +913,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app;
 				SDKROOT = iphoneos;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 6.0;
@@ -932,7 +932,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app.tests;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -952,7 +952,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.babybloom.app.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app.widget;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
