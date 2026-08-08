@@ -2,8 +2,8 @@
    Resources/Localization/<locale>.json this is the single place that decides
    what this locale calls the app. The base Info.plist carries the English
    fallback used by locales we do not ship. */
-"CFBundleDisplayName" = "Nenita";
+"CFBundleDisplayName" = "Bitty";
 
-"NSUserNotificationsUsageDescription" = "Nenita sends reminders about feeding, sleep and other baby care events.";
+"NSUserNotificationsUsageDescription" = "Bitty sends reminders about feeding, sleep and other baby care events.";
 "NSPhotoLibraryUsageDescription" = "Used to pick a photo for your baby's profile.";
 "NSFaceIDUsageDescription" = "Used to unlock the app quickly.";

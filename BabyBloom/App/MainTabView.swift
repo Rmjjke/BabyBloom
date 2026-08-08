@@ -144,29 +144,29 @@ struct ProfileView: View {
                 }
             }
             // ── Language ──────────────────────────────────────────────
+            // A pushed list rather than a segmented control: the segments only
+            // fit two languages, and the shipped set grows. The row reads
+            // "Language  ›  Español" like the system Settings app; every option
+            // is written in its own language (SupportedLanguage.endonym).
             Section {
-                HStack {
-                    Label("settings.language".l, systemImage: "globe")
-                    Spacer()
-                    // Update the localization dictionary BEFORE @AppStorage
-                    // triggers the view-tree rebuild — otherwise views rebuilt
-                    // by .id(appLanguage) (incl. UIKit-cached tab bar items)
-                    // read `.l` from the previous language's dictionary.
-                    Picker("", selection: Binding(
-                        get: { appLanguage },
-                        set: { newValue in
-                            LocalizationManager.shared.setLanguage(newValue)
-                            appLanguage = newValue
-                        }
-                    )) {
-                        Text("Рус").tag("ru")
-                        Text("Eng").tag("en")
+                // Update the localization dictionary BEFORE @AppStorage
+                // triggers the view-tree rebuild — otherwise views rebuilt
+                // by .id(appLanguage) (incl. UIKit-cached tab bar items)
+                // read `.l` from the previous language's dictionary.
+                Picker(selection: Binding(
+                    get: { appLanguage },
+                    set: { newValue in
+                        LocalizationManager.shared.setLanguage(newValue)
+                        appLanguage = newValue
                     }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
+                )) {
+                    ForEach(SupportedLanguage.allCases) { language in
+                        Text(language.endonym).tag(language.rawValue)
+                    }
+                } label: {
+                    Label("settings.language".l, systemImage: "globe")
                 }
-            } header: {
-                Text("settings.language".l)
+                .pickerStyle(.navigationLink)
             }
 
             // ── Appearance ────────────────────────────────────────────

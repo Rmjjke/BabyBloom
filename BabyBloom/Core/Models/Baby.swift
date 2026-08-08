@@ -103,11 +103,13 @@ extension Int {
     var monthWord: String { ageWord(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
 
     private func ageWord(one: String, few: String, many: String) -> String {
-        let lang = LocalizationManager.shared.currentLanguage
-        if lang == "en" {
+        switch LocalizationManager.shared.language.pluralRule {
+        case .singularPlural:
+            // English/Spanish: "1 day" / "21 days", "1 día" / "21 días".
             return self == 1 ? one.l : few.l
+        case .slavic:
+            return pluralize(one: one.l, few: few.l, many: many.l)
         }
-        return pluralize(one: one.l, few: few.l, many: many.l)
     }
 
     private func pluralize(one: String, few: String, many: String) -> String {

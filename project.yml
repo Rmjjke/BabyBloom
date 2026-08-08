@@ -37,7 +37,8 @@ targets:
         basedOnDependencyAnalysis: false
         script: |
           cd "$PROJECT_DIR"
-          for f in en ru; do
+          # Keep this list in sync with LocalizationManager.SupportedLanguage.
+          for f in en ru es; do
             if ! cmp -s "BabyBloom/Resources/Localization/$f.json" "WidgetResources/Localization/$f.json"; then
               echo "error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json"
               exit 1
