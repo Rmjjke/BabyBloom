@@ -109,6 +109,37 @@ final class WeightVelocityTests: XCTestCase {
         XCTAssertGreaterThan(corrected.lowerBound, chronological.lowerBound)
     }
 
+    // MARK: - Consecutive low intervals
+
+    /// One slow fortnight is noise. Only a run of them is worth a notification,
+    /// so a single low interval must not trigger.
+    func testOneLowIntervalIsNotAPattern() {
+        // +150 g then +550 g over 14 days each: below, then comfortably inside.
+        let m = [at(30, 4.0), at(44, 4.15), at(58, 4.70)]
+        XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
+            measurements: m, correctedBirthDate: birth, isMale: true))
+    }
+
+    func testTwoLowIntervalsInARowArePattern() {
+        // ~11 g/day twice running, well under the P15 for this age.
+        let m = [at(30, 4.0), at(44, 4.15), at(58, 4.30)]
+        XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
+            measurements: m, correctedBirthDate: birth, isMale: true))
+    }
+
+    func testTooFewWeighingsCannotFormAPattern() {
+        XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
+            measurements: [at(30, 4.0), at(44, 4.15)], correctedBirthDate: birth, isMale: true))
+    }
+
+    /// An unmeasurable interval breaks the run rather than being treated as low —
+    /// otherwise two weighings a day apart could raise an alarm.
+    func testUnmeasurableIntervalBreaksTheRun() {
+        let m = [at(30, 4.0), at(44, 4.15), at(45, 4.16)]
+        XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
+            measurements: m, correctedBirthDate: birth, isMale: true))
+    }
+
     func testLatestUsesTheTwoMostRecentWeighings() throws {
         let r = try XCTUnwrap(WeightVelocity.latest(
             measurements: [at(0, 3.3), at(30, 4.2), at(44, 4.9)],

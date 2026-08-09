@@ -72,4 +72,27 @@ final class NotificationManagerTests: XCTestCase {
         let none = manager.feedingReminderInterval(ageMonths: 3, recentFeedingTimes: [])
         XCTAssertEqual(none, manager.feedingInterval(ageMonths: 3))
     }
+
+    // MARK: - Weigh-in cadence
+
+    /// Newborns change fast enough that a few days matter; a toddler does not.
+    /// The cadence has to loosen with age or the app turns into a nag.
+    func testWeighInCadenceLoosensWithAge() {
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 0), 3)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 13), 3)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 14), 7)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 89), 7)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 90), 14)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 364), 14)
+        XCTAssertEqual(manager.weighInIntervalDays(ageDays: 365), 30)
+    }
+
+    func testWeighInCadenceIsMonotonic() {
+        var previous = 0
+        for day in stride(from: 0, through: 400, by: 1) {
+            let interval = manager.weighInIntervalDays(ageDays: day)
+            XCTAssertGreaterThanOrEqual(interval, previous, "cadence must never tighten with age")
+            previous = interval
+        }
+    }
 }

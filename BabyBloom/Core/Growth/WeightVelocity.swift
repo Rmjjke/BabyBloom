@@ -116,6 +116,38 @@ enum WeightVelocity {
         )
     }
 
+    /// Whether the last `count` consecutive intervals all came in below the
+    /// reference.
+    ///
+    /// One slow fortnight is noise — a mistimed weighing, a cold, a growth
+    /// pause. Two in a row is a pattern, and only a pattern is worth interrupting
+    /// a parent's day over.
+    static func consecutiveBelowReference(
+        measurements: [WeightMeasurement],
+        correctedBirthDate: Date,
+        isMale: Bool,
+        count: Int = 2
+    ) -> Bool {
+        let sorted = measurements.sorted { $0.date < $1.date }
+        guard sorted.count >= count + 1 else { return false }
+
+        var checked = 0
+        var index = sorted.count - 1
+        while index >= 1 && checked < count {
+            guard let reading = measure(
+                from: sorted[index - 1],
+                to: sorted[index],
+                correctedBirthDate: correctedBirthDate,
+                isMale: isMale
+            ) else { return false }
+            // No reference (past 12 months) means nothing to be below.
+            guard reading.band == .below else { return false }
+            checked += 1
+            index -= 1
+        }
+        return checked == count
+    }
+
     /// Expected daily gain in grams for an age, or nil past the tables.
     static func expectedPerDay(correctedAgeDays: Int, isMale: Bool) -> ClosedRange<Double>? {
         guard correctedAgeDays >= 0, correctedAgeDays <= maxAgeDays else { return nil }

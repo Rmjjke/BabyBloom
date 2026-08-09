@@ -98,6 +98,9 @@ struct GrowthView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }
+        // Every path here is cancel-before-add, so re-deriving on each visit
+        // costs nothing and keeps signals honest if data changed elsewhere.
+        .task { refreshGrowthNotifications() }
     }
 
     // MARK: - Latest
@@ -310,6 +313,20 @@ struct GrowthView: View {
     private func delete(_ entry: GrowthEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        refreshGrowthNotifications(excluding: entry)
+    }
+
+    /// Re-derives every growth notification from the surviving data. Deleting the
+    /// weighing that raised a flag has to take the flag down with it — this app
+    /// already had a bug class where a reminder outlived the entry behind it.
+    private func refreshGrowthNotifications(excluding removed: GrowthEntry? = nil) {
+        guard let baby else { return }
+        let surviving = entries.filter { $0.id != removed?.id }
+        NotificationManager.shared.onGrowthDataChanged(
+            baby: baby,
+            entries: surviving,
+            isPremium: store.isPremium
+        )
     }
 }
 
@@ -475,6 +492,8 @@ struct AddGrowthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Environment(SubscriptionManager.self) private var store
     @State private var weightKg: Double = 3.5
     @State private var heightCm: Double = 50.0
     @State private var headCm: Double = 34.0
@@ -556,6 +575,15 @@ struct AddGrowthSheet: View {
         try? modelContext.save()
         if isFirst {
             NotificationManager.shared.onFirstGrowthEntrySaved()
+        }
+        if let baby = babies.first {
+            // The @Query has not necessarily seen the insert yet, so the new
+            // entry is passed in explicitly rather than waited for.
+            NotificationManager.shared.onGrowthDataChanged(
+                baby: baby,
+                entries: growthEntries + [entry],
+                isPremium: store.isPremium
+            )
         }
         dismiss()
     }
