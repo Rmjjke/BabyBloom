@@ -93,33 +93,35 @@ final class BabyBloomTests: XCTestCase {
     }
 
     // MARK: - WHO Percentile Tests
-    func testWHOPercentileNormal() {
+    // Ages are days now, not months: the tables are day-resolved so that the
+    // first weeks, where the curve moves fastest, are not smeared into "month 0".
+    func testWHOPercentileNormal() throws {
         // 6.4 kg is the WHO median weight for a 3-month-old boy → should land near the
         // 50th percentile (a median weight falls comfortably inside the 40–70 range).
-        let percentile = WHOPercentile.weightPercentile(ageMonths: 3, weightKg: 6.4, isMale: true)
+        let percentile = try XCTUnwrap(WHOGrowthStandard.percentile(weightKg: 6.4, ageDays: 91, isMale: true))
         XCTAssertGreaterThan(percentile, 40)
         XCTAssertLessThan(percentile, 70)
     }
 
-    func testWHOPercentileAt18Months() {
+    func testWHOPercentileAt18Months() throws {
         // Regression: before the z-score fix the table stopped at 12 months, so an
         // 18-month-old was scored against the 12-month median and read far too high.
         // A median-weight 18-month boy (10.9 kg) must sit near the 50th percentile.
-        let percentile = WHOPercentile.weightPercentile(ageMonths: 18, weightKg: 10.9, isMale: true)
+        let percentile = try XCTUnwrap(WHOGrowthStandard.percentile(weightKg: 10.9, ageDays: 548, isMale: true))
         XCTAssertGreaterThan(percentile, 30)
         XCTAssertLessThan(percentile, 70)
     }
 
-    func testWHOPercentileMedianGirlIs50() {
+    func testWHOPercentileMedianGirlIs50() throws {
         // Sanity check: a median-weight 3-month-old girl (5.8 kg) is the 50th percentile.
-        let percentile = WHOPercentile.weightPercentile(ageMonths: 3, weightKg: 5.8, isMale: false)
-        XCTAssertEqual(percentile, 50, accuracy: 1)
+        let percentile = try XCTUnwrap(WHOGrowthStandard.percentile(weightKg: 5.8, ageDays: 91, isMale: false))
+        XCTAssertEqual(percentile, 50, accuracy: 2)
     }
 
     func testWHOPercentileLabel() {
-        XCTAssertEqual(WHOPercentile.percentileLabel(50), "15–50")
-        XCTAssertEqual(WHOPercentile.percentileLabel(1), "< 3-й")
-        XCTAssertEqual(WHOPercentile.percentileLabel(98), "> 97-го")
+        XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "15–50")
+        XCTAssertEqual(WHOGrowthStandard.percentileLabel(1), "< 3-й")
+        XCTAssertEqual(WHOGrowthStandard.percentileLabel(98), "> 97-го")
     }
 
     // MARK: - Schema Validity

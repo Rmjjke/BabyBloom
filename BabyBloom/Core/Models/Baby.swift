@@ -83,6 +83,9 @@ final class Baby {
     /// actual birth: the physiological drop follows delivery, not term.
     var correctedAgeDays: Int { max(0, Self.days(from: correctedBirthDate)) }
 
+    /// Corrected age in whole months, for copy that talks in months.
+    var correctedAgeMonths: Int { max(0, Self.months(from: correctedBirthDate)) }
+
     /// Corrected age for display, or `nil` for a baby born at term — the UI
     /// should only ever show a second age when it genuinely differs from the first.
     var correctedAgeDescription: String? {

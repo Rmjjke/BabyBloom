@@ -120,12 +120,25 @@ struct GrowthView: View {
     }
 
     // MARK: - Percentile
+    /// Renders nothing past 24 months, where the WHO weight-for-age tables end.
+    /// Task 7 replaces the silence with an explicit out-of-range message; until
+    /// then omitting the block beats showing a percentile read off the wrong row.
+    @ViewBuilder
     private func percentileSection(baby: Baby, weight: Double, entry: GrowthEntry) -> some View {
-        let isMale = baby.gender == .male
-        let months = baby.ageInMonths
-        let percentile = WHOPercentile.weightPercentile(ageMonths: months, weightKg: weight, isMale: isMale)
-        let label = WHOPercentile.percentileLabel(percentile)
-        let color = Color(hex: WHOPercentile.percentileColor(percentile))
+        // Corrected age, not chronological: a baby born preterm has to be
+        // measured against the reference for the age it would be at term.
+        if let percentile = WHOGrowthStandard.percentile(
+            weightKg: weight,
+            ageDays: baby.correctedAgeDays,
+            isMale: baby.gender == .male
+        ) {
+            percentileCard(percentile: percentile, months: baby.correctedAgeMonths)
+        }
+    }
+
+    private func percentileCard(percentile: Double, months: Int) -> some View {
+        let label = WHOGrowthStandard.percentileLabel(percentile)
+        let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
 
         return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HStack {
