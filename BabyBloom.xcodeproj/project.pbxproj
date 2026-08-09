@@ -57,6 +57,7 @@
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
 		A14EA757A4D4691342173695 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = EE8685CB2AD18166EE41F8A8 /* Localizable.strings */; };
 		A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390F8BD3D44D73D72C6D2893 /* PaywallView.swift */; };
+		AA9FA84C733D7FADFC1FBD1B /* GrowthInsightCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */; };
 		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
 		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
 		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
@@ -181,6 +182,7 @@
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
 		D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOGrowthStandardTests.swift; sourceTree = "<group>"; };
+		D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthInsightCards.swift; sourceTree = "<group>"; };
 		D8768F1C61CA49F9DE3FFC1F /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBHistorySection.swift; sourceTree = "<group>"; };
 		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -359,6 +361,7 @@
 		6DFB21261F800A5C3DC87E17 /* Growth */ = {
 			isa = PBXGroup;
 			children = (
+				D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */,
 				0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */,
 			);
 			path = Growth;
@@ -702,6 +705,7 @@
 				CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */,
 				15B8335B7F4AF5B7B2A7FDE3 /* GeneratingPage.swift in Sources */,
 				49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */,
+				AA9FA84C733D7FADFC1FBD1B /* GrowthInsightCards.swift in Sources */,
 				739F26F2A9FDE2385C250D1B /* GrowthPage.swift in Sources */,
 				86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */,
 				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
