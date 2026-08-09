@@ -43,9 +43,21 @@ struct BabyProfileEditSheet: View {
     @State private var editedName: String
     @State private var showRemovePhotoAlert = false
 
+    // Edited locally and written back in `save()`: the model stores these as
+    // optionals ("unknown" is a real answer) while the sliders need concrete
+    // values to sit on.
+    @State private var recordsBirthWeight: Bool
+    @State private var birthWeightKg: Double
+    @State private var wasBornEarly: Bool
+    @State private var gestationalWeeks: Double
+
     init(baby: Baby) {
         self.baby = baby
         _editedName = State(initialValue: baby.name)
+        _recordsBirthWeight = State(initialValue: baby.birthWeightKg != nil)
+        _birthWeightKg = State(initialValue: baby.birthWeightKg ?? 3.4)
+        _wasBornEarly = State(initialValue: baby.gestationalWeeks != nil)
+        _gestationalWeeks = State(initialValue: Double(baby.gestationalWeeks ?? 34))
     }
 
     var body: some View {
@@ -83,6 +95,36 @@ struct BabyProfileEditSheet: View {
                                 .datePickerStyle(.compact)
                                 .tint(BBTheme.Colors.primary)
                         }
+                    }
+
+                    // ── Birth weight ──────────────────────────────────────
+                    formSection {
+                        BBOptionalMeasureToggle(
+                            title: "form.birth_weight_kg".l,
+                            hint: "form.birth_weight_hint".l,
+                            isOn: $recordsBirthWeight,
+                            value: $birthWeightKg,
+                            range: 0.5...6.0, step: 0.05,
+                            display: String(format: "%.2f \("unit.kg".l)", birthWeightKg),
+                            minLabel: "0.5 \("unit.kg".l)",
+                            maxLabel: "6 \("unit.kg".l)",
+                            color: BBTheme.Colors.growth
+                        )
+                    }
+
+                    // ── Prematurity ───────────────────────────────────────
+                    formSection {
+                        BBOptionalMeasureToggle(
+                            title: "form.preterm".l,
+                            hint: "form.preterm_hint".l,
+                            isOn: $wasBornEarly,
+                            value: $gestationalWeeks,
+                            range: 22...36, step: 1,
+                            display: "\(Int(gestationalWeeks)) \("unit.weeks_short".l)",
+                            minLabel: "22 \("unit.weeks_short".l)",
+                            maxLabel: "36 \("unit.weeks_short".l)",
+                            color: BBTheme.Colors.accent
+                        )
                     }
 
                     // ── Gender ────────────────────────────────────────────
@@ -181,7 +223,7 @@ struct BabyProfileEditSheet: View {
             }
         }
         .presentationDragIndicator(.visible)
-        // Profile is a tall, deliberate edit form (avatar + 4 form sections);
+        // Profile is a tall, deliberate edit form (avatar + 6 form sections);
         // .large only — .medium would crop the feeding-type row under the fold.
         .presentationDetents([.large])
         .onChange(of: selectedPhotoItem) { _, item in
@@ -275,6 +317,10 @@ struct BabyProfileEditSheet: View {
 
     private func save() {
         saveName()
+        // Toggling either off clears the stored value: the parent is saying they
+        // do not know it, which is not the same as leaving a stale number behind.
+        baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
+        baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
         try? modelContext.save()
         dismiss()
     }
