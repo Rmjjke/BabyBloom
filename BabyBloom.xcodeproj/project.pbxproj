@@ -65,6 +65,7 @@
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
+		D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */; };
 		D5B62D6C3442249FD0AD3BEE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
 		D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */; };
@@ -77,6 +78,7 @@
 		EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */; };
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
+		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
 		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
 /* End PBXBuildFile section */
 
@@ -118,6 +120,7 @@
 		021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManagerTests.swift; sourceTree = "<group>"; };
 		03DCB1384549675BD1DE563D /* BabyBloomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomTests.swift; sourceTree = "<group>"; };
 		05A787D90FE23982EC1A46C2 /* FeedingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingPage.swift; sourceTree = "<group>"; };
+		07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocityTests.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0F91A302286246B091A55923 /* GeneratingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPage.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
@@ -136,6 +139,7 @@
 		3A2DCA65186F68E00645DF02 /* BBFab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBFab.swift; sourceTree = "<group>"; };
 		3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepEntry.swift; sourceTree = "<group>"; };
 		3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
+		3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocity.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
 		46CFF5A9567092348158A1F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomApp.swift; sourceTree = "<group>"; };
@@ -308,6 +312,7 @@
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
+				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
 				D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */,
 			);
 			path = BabyBloomTests;
@@ -425,6 +430,7 @@
 			children = (
 				582657DC180DE03128A75629 /* NewbornWeightLoss.swift */,
 				001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */,
+				3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */,
 				9C25B2EC0FCAB1DDE48B3F66 /* WHOGrowthStandard.swift */,
 			);
 			path = Growth;
@@ -708,6 +714,7 @@
 				C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */,
 				2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */,
 				75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */,
+				FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */,
 				11094C9AC10A2830CF27EF8D /* WelcomePage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -722,6 +729,7 @@
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
+				D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
