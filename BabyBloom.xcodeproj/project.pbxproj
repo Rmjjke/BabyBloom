@@ -47,6 +47,7 @@
 		7B6FC7DF616E116021B47307 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		7E62D06C8AA07E74F4692D98 /* RoundedCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */; };
 		809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */; };
+		86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
 		92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */; };
 		97135640A3A39C6C9A4C9929 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = F3D63328CD7ED001909F7DCD /* es.json */; };
@@ -76,6 +77,7 @@
 		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
 		E71A50FD691737FE791A71C7 /* BBMeasureSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */; };
 		EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */; };
+		EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */; };
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
@@ -122,6 +124,7 @@
 		05A787D90FE23982EC1A46C2 /* FeedingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingPage.swift; sourceTree = "<group>"; };
 		07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocityTests.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
+		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
 		0F91A302286246B091A55923 /* GeneratingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPage.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
 		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
@@ -162,6 +165,7 @@
 		80CD9E9FC340B4479EAAF3F4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		81EBDB06F0A203F086BCC22F /* BabyBloomWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloomWidget.entitlements; sourceTree = "<group>"; };
 		82422A5254915B1796A78F89 /* BBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCard.swift; sourceTree = "<group>"; };
+		914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrendTests.swift; sourceTree = "<group>"; };
 		96AF18E1355A04D9F979B421 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLossTests.swift; sourceTree = "<group>"; };
 		9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -310,6 +314,7 @@
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
+				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
@@ -428,6 +433,7 @@
 		92872E639174190CE7FD2042 /* Growth */ = {
 			isa = PBXGroup;
 			children = (
+				0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */,
 				582657DC180DE03128A75629 /* NewbornWeightLoss.swift */,
 				001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */,
 				3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */,
@@ -697,6 +703,7 @@
 				15B8335B7F4AF5B7B2A7FDE3 /* GeneratingPage.swift in Sources */,
 				49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */,
 				739F26F2A9FDE2385C250D1B /* GrowthPage.swift in Sources */,
+				86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */,
 				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
 				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
@@ -726,6 +733,7 @@
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
+				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
