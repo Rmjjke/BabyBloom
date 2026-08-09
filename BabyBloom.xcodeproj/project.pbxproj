@@ -32,6 +32,7 @@
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
+		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		5A51B05B0B810D61B1B12783 /* FeedingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A787D90FE23982EC1A46C2 /* FeedingPage.swift */; };
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
@@ -180,6 +181,7 @@
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
+		C9D97024281147567091924D /* GrowthCardRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthCardRenderDump.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
 		D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOGrowthStandardTests.swift; sourceTree = "<group>"; };
 		D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthInsightCards.swift; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
+				C9D97024281147567091924D /* GrowthCardRenderDump.swift */,
 				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
@@ -737,6 +740,7 @@
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
+				54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */,
 				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
