@@ -20,6 +20,7 @@
 		279D31B1C59F68A21CD7E0C5 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 35F49DA9A952161FFF0F24A0 /* en.json */; };
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
 		2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */; };
+		30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */; };
 		37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		3FE874AF7EB96FB4DB3B9E5F /* FactPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD2BF1765038B638504BD85 /* FactPage.swift */; };
@@ -117,6 +118,7 @@
 		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectedAgeTests.swift; sourceTree = "<group>"; };
 		1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
 		211641EE3146F95A380099EE /* BabyBloom.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloom.entitlements; sourceTree = "<group>"; };
 		24305DDA00F1158E50872FA2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
@@ -292,6 +294,7 @@
 			isa = PBXGroup;
 			children = (
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
+				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
 			);
@@ -688,6 +691,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
+				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
 			);
