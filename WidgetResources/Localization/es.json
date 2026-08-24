@@ -383,5 +383,10 @@
   "export.csv.head_cm": "Perímetro cefálico (cm)",
   "export.error_title": "Error al exportar",
   "export.error_body": "No pudimos crear el archivo de exportación. Inténtalo de nuevo.",
-  "splash.tagline": "Creciendo juntos"
+  "splash.tagline": "Creciendo juntos",
+  "widget.today_count": "Hoy: %d",
+  "widget.feedings_count": "Tomas: %d",
+  "widget.description_small": "Un vistazo rápido al estado de tu bebé",
+  "widget.name_medium": "%@ — Detallado",
+  "widget.description_medium": "Resumen de tomas y sueño"
 }

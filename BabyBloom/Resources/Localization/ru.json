@@ -246,7 +246,8 @@
   "onboarding.subtitle": "Кормление, сон и развитие ребёнка —\nвсё в одном месте",
   "onboarding.feature.feeding": "Трекинг кормлений",
   "onboarding.feature.sleep": "Контроль сна",
-  "onboarding.feature.growth": "График роста по ВОЗ",  "onboarding.name_title": "Как зовут малыша?",
+  "onboarding.feature.growth": "График роста по ВОЗ",
+  "onboarding.name_title": "Как зовут малыша?",
   "onboarding.name_hint": "Персонализирует каждый экран приложения",
   "onboarding.name_placeholder": "Имя ребёнка",
   "onboarding.birth_title": "Дата рождения и пол",
@@ -382,5 +383,10 @@
   "export.csv.head_cm": "Окружность головы (см)",
   "export.error_title": "Ошибка экспорта",
   "export.error_body": "Не удалось создать файл экспорта. Попробуйте ещё раз.",
-  "splash.tagline": "Растём вместе"
+  "splash.tagline": "Растём вместе",
+  "widget.today_count": "Сегодня: %d",
+  "widget.feedings_count": "Кормлений: %d",
+  "widget.description_small": "Быстрый обзор состояния малыша",
+  "widget.name_medium": "%@ — Подробно",
+  "widget.description_medium": "Обзор кормлений и сна малыша"
 }

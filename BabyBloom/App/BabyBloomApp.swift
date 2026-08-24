@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 @main
 struct BabyBloomApp: App {
@@ -69,6 +70,10 @@ struct BabyBloomApp: App {
             }
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)
+                // setLanguage mirrors the choice into the App Group; the
+                // widget process only picks it up on its next timeline, so
+                // ask for one instead of leaving it stale for up to 15 min.
+                WidgetCenter.shared.reloadAllTimelines()
             }
         }
         .onChange(of: scenePhase) { _, phase in
