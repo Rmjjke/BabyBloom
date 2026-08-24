@@ -95,4 +95,48 @@ final class NotificationManagerTests: XCTestCase {
             previous = interval
         }
     }
+
+    // MARK: - Re-anchoring after a delete
+
+    /// The defect this closes: deleting an entry used to cancel the reminder
+    /// and schedule nothing, leaving the parent with no reminder at all until
+    /// they happened to log the next feeding.
+    func testReanchoredDelayCountsFromTheEventNotFromNow() {
+        let now = Date()
+        let feedingAnHourAgo = now.addingTimeInterval(-3600)
+        // 3h interval, 1h already elapsed -> 2h left, not a fresh 3h.
+        let delay = manager.reanchoredDelay(interval: 3 * 3600, anchor: feedingAnHourAgo, now: now)
+        XCTAssertEqual(try XCTUnwrap(delay), 2 * 3600, accuracy: 1)
+    }
+
+    func testReanchoredDelayNilWhenNothingSurvives() {
+        // History is now empty: there is nothing to anchor a reminder on.
+        XCTAssertNil(manager.reanchoredDelay(interval: 3 * 3600, anchor: nil))
+    }
+
+    func testReanchoredDelayNilWhenRemindersDisabledForAge() {
+        // 12+ months is parent-managed, so feedingInterval returns nil.
+        let anchor = Date().addingTimeInterval(-600)
+        XCTAssertNil(manager.reanchoredDelay(interval: manager.feedingInterval(ageMonths: 12),
+                                             anchor: anchor))
+    }
+
+    func testReanchoredDelayNilWhenTheMomentHasPassed() {
+        let now = Date()
+        // The surviving feeding is older than the whole interval — a reminder
+        // for it would fire in the past, which is noise rather than help.
+        let staleAnchor = now.addingTimeInterval(-5 * 3600)
+        XCTAssertNil(manager.reanchoredDelay(interval: 3 * 3600, anchor: staleAnchor, now: now))
+    }
+
+    func testReanchoredDelayUsesTheNewestSurvivingEvent() {
+        let now = Date()
+        let times = [now.addingTimeInterval(-9000), now.addingTimeInterval(-1800), now.addingTimeInterval(-5400)]
+        // max() is what the delete handlers pass as the anchor: the newest
+        // survivor is 30 min old, so a 2h interval leaves 90 min — NOT the
+        // 2h a naive "reschedule from now" would give, and not the negative
+        // value the 2.5h-old entry would produce.
+        let delay = manager.reanchoredDelay(interval: 2 * 3600, anchor: times.max(), now: now)
+        XCTAssertEqual(try XCTUnwrap(delay), 5400, accuracy: 1)
+    }
 }

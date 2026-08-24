@@ -209,8 +209,11 @@ struct SleepView: View {
         modelContext.delete(entry)
         try? modelContext.save()
         // @Query may not update synchronously; compute from the pre-delete array.
+        let remaining = entries.filter { $0 !== entry }
         NotificationManager.shared.onSleepDeleted(
-            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
         )
     }
 
@@ -219,7 +222,9 @@ struct SleepView: View {
         try? modelContext.save()
         let remaining = entries.filter { entry in !items.contains { $0 === entry } }
         NotificationManager.shared.onSleepDeleted(
-            remainingActive: remaining.contains { $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
         )
     }
 }
