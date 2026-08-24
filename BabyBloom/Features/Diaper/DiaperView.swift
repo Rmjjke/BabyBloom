@@ -200,13 +200,24 @@ struct DiaperView: View {
     private func delete(_ entry: DiaperEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
-        NotificationManager.shared.onDiaperDeleted()
+        // @Query may not update synchronously; compute from the pre-delete array.
+        let remaining = entries.filter { $0 !== entry }
+        NotificationManager.shared.onDiaperDeleted(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "baby.default_name".l,
+            lastRemainingDiaperTime: remaining.map(\.time).max()
+        )
     }
 
     private func deleteAll(_ items: [DiaperEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
-        NotificationManager.shared.onDiaperDeleted()
+        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
+        NotificationManager.shared.onDiaperDeleted(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "baby.default_name".l,
+            lastRemainingDiaperTime: remaining.map(\.time).max()
+        )
     }
 }
 

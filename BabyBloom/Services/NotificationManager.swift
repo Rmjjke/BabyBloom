@@ -155,30 +155,67 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Delete events
 
+    /// Delay from `now` for a reminder that belongs to a PAST event — the
+    /// interval runs from when the event happened, not from when an entry was
+    /// deleted. Returns nil when reminders are off for this age (`interval` is
+    /// nil), when nothing survives to anchor on, or when the moment has already
+    /// gone by: a reminder for a feeding four hours ago is noise, not help.
+    ///
+    /// Deleting one entry must never leave the parent with NO reminder until
+    /// they happen to log the next one — that is the bug this exists to close.
+    func reanchoredDelay(interval: TimeInterval?, anchor: Date?, now: Date = Date()) -> TimeInterval? {
+        guard let interval, let anchor else { return nil }
+        let remaining = interval - now.timeIntervalSince(anchor)
+        return remaining > 0 ? remaining : nil
+    }
+
     /// Call when a feeding entry is deleted.
-    /// - Parameter remainingActive: whether an active breastfeeding session still exists.
-    ///   The generic feeding reminder is always cancelled; the active-BF alert is
-    ///   cancelled only when no active session remains.
-    func onFeedingDeleted(remainingActive: Bool) {
+    /// - Parameters:
+    ///   - remainingActive: whether an active breastfeeding session still exists.
+    ///     The active-BF alert is cancelled only when no active session remains.
+    ///   - remainingFeedingTimes: start times of the feedings that SURVIVE the
+    ///     delete. The generic reminder is re-anchored on the newest of them.
+    func onFeedingDeleted(ageMonths: Int, remainingActive: Bool, remainingFeedingTimes: [Date]) {
         cancel(.feedingReminder)
         if !remainingActive {
             cancel(.feedingActiveBF)
         }
+        guard let delay = reanchoredDelay(
+            interval: feedingReminderInterval(ageMonths: ageMonths,
+                                              recentFeedingTimes: remainingFeedingTimes),
+            anchor: remainingFeedingTimes.max()
+        ) else { return }
+        post(id: .feedingReminder,
+             title: "notification.feeding_title".l,
+             body:  "notification.feeding_body".l,
+             in:    delay)
     }
 
     /// Call when a sleep entry is deleted.
-    /// - Parameter remainingActive: whether an active sleep session still exists.
-    ///   The active-sleep and wake-window reminders are cancelled when none remain.
-    func onSleepDeleted(remainingActive: Bool) {
-        if !remainingActive {
-            cancel(.sleepActive)
-            cancel(.sleepWakeWindow)
-        }
+    /// - Parameters:
+    ///   - remainingActive: whether an active sleep session still exists. While
+    ///     one does, it governs the reminders and nothing is recomputed.
+    ///   - lastRemainingSleepEnd: end time of the newest FINISHED sleep that
+    ///     survives the delete; the wake window is re-anchored on it.
+    func onSleepDeleted(ageMonths: Int, remainingActive: Bool, lastRemainingSleepEnd: Date?) {
+        guard !remainingActive else { return }
+        cancel(.sleepActive)
+        cancel(.sleepWakeWindow)
+        guard let endedAt = lastRemainingSleepEnd else { return }
+        onSleepEnded(ageMonths: ageMonths, endedAt: endedAt)
     }
 
     /// Call when a diaper entry is deleted.
-    func onDiaperDeleted() {
+    /// - Parameter lastRemainingDiaperTime: time of the newest diaper that
+    ///   survives the delete; the reminder is re-anchored on it.
+    func onDiaperDeleted(ageMonths: Int, babyName: String, lastRemainingDiaperTime: Date?) {
         cancel(.diaperReminder)
+        guard let delay = reanchoredDelay(interval: diaperInterval(ageMonths: ageMonths),
+                                          anchor: lastRemainingDiaperTime) else { return }
+        post(id: .diaperReminder,
+             title: "notification.diaper_title".l,
+             body:  String(format: "notification.diaper_body".l, babyName),
+             in:    delay)
     }
 
     // MARK: - Growth events

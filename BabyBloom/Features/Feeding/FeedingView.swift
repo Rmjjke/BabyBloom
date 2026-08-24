@@ -214,8 +214,11 @@ struct FeedingView: View {
         modelContext.delete(entry)
         try? modelContext.save()
         // @Query may not update synchronously; compute from the pre-delete array.
+        let remaining = entries.filter { $0 !== entry }
         NotificationManager.shared.onFeedingDeleted(
-            remainingActive: entries.contains { $0 !== entry && $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
         )
     }
 
@@ -224,7 +227,9 @@ struct FeedingView: View {
         try? modelContext.save()
         let remaining = entries.filter { entry in !items.contains { $0 === entry } }
         NotificationManager.shared.onFeedingDeleted(
-            remainingActive: remaining.contains { $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
         )
     }
 }

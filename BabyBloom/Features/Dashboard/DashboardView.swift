@@ -306,23 +306,34 @@ struct DashboardView: View {
         modelContext.delete(entry)
         try? modelContext.save()
         // @Query may not update synchronously; compute from the pre-delete array.
+        let remaining = feedings.filter { $0 !== entry }
         NotificationManager.shared.onFeedingDeleted(
-            remainingActive: feedings.contains { $0 !== entry && $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
         )
     }
 
     private func deleteEntry(_ entry: SleepEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        let remaining = sleeps.filter { $0 !== entry }
         NotificationManager.shared.onSleepDeleted(
-            remainingActive: sleeps.contains { $0 !== entry && $0.isActive }
+            ageMonths: baby?.ageInMonths ?? 0,
+            remainingActive: remaining.contains { $0.isActive },
+            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
         )
     }
 
     private func deleteEntry(_ entry: DiaperEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
-        NotificationManager.shared.onDiaperDeleted()
+        let remaining = diapers.filter { $0 !== entry }
+        NotificationManager.shared.onDiaperDeleted(
+            ageMonths: baby?.ageInMonths ?? 0,
+            babyName: baby?.name ?? "baby.default_name".l,
+            lastRemainingDiaperTime: remaining.map(\.time).max()
+        )
     }
 }
 
