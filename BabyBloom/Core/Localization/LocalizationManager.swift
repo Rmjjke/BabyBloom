@@ -98,9 +98,41 @@ final class LocalizationManager: @unchecked Sendable {
         SupportedLanguage(rawValue: currentLanguage) ?? .fallback
     }
 
+    /// The App Group suite both targets can reach. The widget runs in its own
+    /// process with its own `UserDefaults.standard`, so a language stored only
+    /// there is invisible to it — the shared suite is the only channel.
+    ///
+    /// Computed rather than stored: `UserDefaults` is not `Sendable`, so a
+    /// static `let` trips Swift 6 strict concurrency. Foundation caches the
+    /// suite internally, so re-creating the handle costs nothing.
+    private static var sharedDefaults: UserDefaults? {
+        UserDefaults(suiteName: "group.com.nenita.app")
+    }
+
+    private static let languageKey = "appLanguage"
+
+    /// Resolution order: a `-appLanguage` launch argument, then the App Group
+    /// (what the app and the widget agree on), then this process's own
+    /// defaults (where the app stored the choice before the shared suite
+    /// existed — keeps upgrading users on their language), then the device.
+    /// `setLanguage` writes back to the App Group, so a legacy value migrates
+    /// itself the first time the app runs.
+    ///
+    /// The argument domain is read explicitly because it only outranks the
+    /// other domains WITHIN `UserDefaults.standard`; the App Group is a
+    /// separate store and would otherwise shadow the argument that e2e flows
+    /// use to pin the language.
+    private static func storedLanguage() -> SupportedLanguage {
+        let launchArgument = UserDefaults.standard
+            .volatileDomain(forName: UserDefaults.argumentDomain)[languageKey] as? String
+        let saved = launchArgument
+            ?? sharedDefaults?.string(forKey: languageKey)
+            ?? UserDefaults.standard.string(forKey: languageKey)
+        return saved.flatMap(SupportedLanguage.init(rawValue:)) ?? deviceDefaultLanguage
+    }
+
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "appLanguage") ?? Self.deviceDefault
-        let resolved = SupportedLanguage(rawValue: saved) ?? .fallback
+        let resolved = Self.storedLanguage()
         currentLanguage = resolved.rawValue
         load(resolved)
     }
@@ -111,6 +143,7 @@ final class LocalizationManager: @unchecked Sendable {
 
     func setLanguage(_ language: SupportedLanguage) {
         currentLanguage = language.rawValue
+        Self.sharedDefaults?.set(language.rawValue, forKey: Self.languageKey)
         load(language)
     }
 

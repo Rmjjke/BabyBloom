@@ -2,16 +2,6 @@ import WidgetKit
 import SwiftUI
 import SwiftData
 
-// MARK: - Widget Timeline Entry
-struct BabyBloomEntry: TimelineEntry {
-    let date: Date
-    let babyName: String
-    let lastFeedingTime: Date?
-    let lastSleepDuration: String?
-    let todayFeedingCount: Int
-    let isAsleep: Bool
-}
-
 // MARK: - Shared SwiftData Store (App Group)
 /// Lazily-opened, read-only container over the shared App Group store.
 /// Created once per process to avoid re-opening the same store on repeated
@@ -63,9 +53,9 @@ struct BabyBloomProvider: TimelineProvider {
     static func placeholderEntry() -> BabyBloomEntry {
         BabyBloomEntry(
             date: Date(),
-            babyName: "Малыш",
+            babyName: "baby.default_name".l,
             lastFeedingTime: Date().addingTimeInterval(-7200),
-            lastSleepDuration: "2 ч 15 мин",
+            lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
             todayFeedingCount: 6,
             isAsleep: false
         )
@@ -107,138 +97,12 @@ struct BabyBloomProvider: TimelineProvider {
 
         return BabyBloomEntry(
             date: Date(),
-            babyName: baby.name.isEmpty ? "Малыш" : baby.name,
+            babyName: baby.name.isEmpty ? "baby.default_name".l : baby.name,
             lastFeedingTime: feedings.first?.startTime,
             lastSleepDuration: lastSleep?.durationFormatted,
             todayFeedingCount: todayCount,
             isAsleep: lastSleep?.isActive ?? false
         )
-    }
-}
-
-// MARK: - Small Widget View
-struct BabyBloomSmallWidgetView: View {
-    let entry: BabyBloomEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("🌸")
-                    .font(.system(size: 20))
-                Text("brand.name".l)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
-            }
-
-            Spacer()
-
-            if let lastFeeding = entry.lastFeedingTime {
-                let mins = Int(Date().timeIntervalSince(lastFeeding) / 60)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Кормление")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.7))
-                    Text(mins < 60 ? "\(mins) мин назад" : "\(mins / 60) ч назад")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-            }
-
-            HStack(spacing: 4) {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 10))
-                Text("Сегодня: \(entry.todayFeedingCount)")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-            }
-            .foregroundStyle(.white.opacity(0.8))
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8EC8")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-    }
-}
-
-// MARK: - Medium Widget View
-struct BabyBloomMediumWidgetView: View {
-    let entry: BabyBloomEntry
-
-    var body: some View {
-        HStack(spacing: 0) {
-            // Left: Baby info
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("🌸")
-                    Text(entry.babyName)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-
-                Spacer()
-
-                if entry.isAsleep {
-                    Label("Спит сейчас", systemImage: "moon.fill")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-
-                Label("Кормлений: \(entry.todayFeedingCount)", systemImage: "heart.fill")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-            .padding(14)
-            .frame(maxHeight: .infinity, alignment: .leading)
-
-            // Divider
-            Rectangle()
-                .fill(.white.opacity(0.2))
-                .frame(width: 1)
-
-            // Right: Quick stats
-            VStack(spacing: 8) {
-                widgetStatRow(icon: "heart.fill", title: "Кормление",
-                              value: entry.lastFeedingTime.map { timeAgo($0) } ?? "—")
-                widgetStatRow(icon: "moon.fill", title: "Сон",
-                              value: entry.lastSleepDuration ?? "—")
-            }
-            .padding(14)
-            .frame(maxHeight: .infinity)
-        }
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#6B5EA8"), Color(hex: "#B08ED8")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-    }
-
-    private func widgetStatRow(icon: String, title: String, value: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.8))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.7))
-                Text(value)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func timeAgo(_ date: Date) -> String {
-        let mins = Int(Date().timeIntervalSince(date) / 60)
-        if mins < 60 { return "\(mins) мин" }
-        return "\(mins / 60) ч \(mins % 60) мин"
     }
 }
 
@@ -256,7 +120,7 @@ struct BabyBloomWidget: Widget {
             }
         }
         .configurationDisplayName("brand.name".l)
-        .description("Быстрый обзор состояния малыша")
+        .description("widget.description_small".l)
         .supportedFamilies([.systemSmall])
     }
 }
@@ -273,8 +137,8 @@ struct BabyBloomMediumWidget: Widget {
                 BabyBloomMediumWidgetView(entry: entry)
             }
         }
-        .configurationDisplayName("\("brand.name".l) — Подробно")
-        .description("Обзор кормлений и сна малыша")
+        .configurationDisplayName(String(format: "widget.name_medium".l, "brand.name".l))
+        .description("widget.description_medium".l)
         .supportedFamilies([.systemMedium])
     }
 }

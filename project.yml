@@ -82,6 +82,12 @@ targets:
       - path: BabyBloom/Core/Localization
         excludes:
           - "**/.DS_Store"
+      # The widget's own views live in the APP's source tree so the app target
+      # compiles them too — that is what lets BabyBloomTests render them per
+      # locale via @testable import. Same arrangement as Core/Models above.
+      - path: BabyBloom/Features/Widget
+        excludes:
+          - "**/.DS_Store"
       # Separate physical copy of the localization JSONs (kept in sync with
       # BabyBloom/Resources/Localization). This MUST live in `sources` with
       # buildPhase: resources — XcodeGen has no target-level `resources` key,

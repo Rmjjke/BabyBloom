@@ -246,7 +246,8 @@
   "onboarding.subtitle": "Track feeding, sleep and development\nall in one app",
   "onboarding.feature.feeding": "Feeding Tracker",
   "onboarding.feature.sleep": "Sleep Tracker",
-  "onboarding.feature.growth": "WHO Growth Charts",  "onboarding.name_title": "What's your little one's name?",
+  "onboarding.feature.growth": "WHO Growth Charts",
+  "onboarding.name_title": "What's your little one's name?",
   "onboarding.name_hint": "Personalizes every screen of the app",
   "onboarding.name_placeholder": "Baby's name",
   "onboarding.birth_title": "Date of birth & gender",
@@ -382,5 +383,10 @@
   "export.csv.head_cm": "Head (cm)",
   "export.error_title": "Export Failed",
   "export.error_body": "Couldn't create the export file. Please try again.",
-  "splash.tagline": "Growing together"
+  "splash.tagline": "Growing together",
+  "widget.today_count": "Today: %d",
+  "widget.feedings_count": "Feedings: %d",
+  "widget.description_small": "A quick look at how your baby is doing",
+  "widget.name_medium": "%@ — Detailed",
+  "widget.description_medium": "An overview of feedings and sleep"
 }
