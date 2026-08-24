@@ -71,4 +71,44 @@ final class ExportGeneratorTests: XCTestCase {
         let avg = ExportGenerator.averagePerDay(count: 0, range: .all, earliest: nil)
         XCTAssertEqual(avg, 0)
     }
+
+    // MARK: - Locale split: machine columns vs document text
+
+    /// CSV columns are DATA. They must stay Gregorian and ISO-shaped no matter
+    /// which language the user picked or which calendar the device runs, or a
+    /// spreadsheet cannot read them back.
+    func testCSVFormatterIgnoresTheAppLanguage() {
+        let reference = DateComponents(calendar: Calendar(identifier: .gregorian),
+                                       timeZone: .current,
+                                       year: 2026, month: 8, day: 24, hour: 14, minute: 30).date!
+        for language in ["en", "ru", "es"] {
+            LocalizationManager.shared.setLanguage(language)
+            XCTAssertEqual(ExportGenerator.csvFormatter("yyyy-MM-dd").string(from: reference),
+                           "2026-08-24", "CSV date drifted under \(language)")
+            XCTAssertEqual(ExportGenerator.csvFormatter("HH:mm").string(from: reference),
+                           "14:30", "CSV time drifted under \(language)")
+        }
+    }
+
+    /// PDF text is PROSE. It must follow the language chosen in the app — the
+    /// defect being fixed was a Spanish document carrying Russian dates because
+    /// the formatter silently used the device locale.
+    func testDocumentFormatterFollowsTheAppLanguage() {
+        let reference = DateComponents(calendar: Calendar(identifier: .gregorian),
+                                       timeZone: .current,
+                                       year: 2026, month: 8, day: 24).date!
+        var rendered: [String: String] = [:]
+        for language in ["en", "ru", "es"] {
+            LocalizationManager.shared.setLanguage(language)
+            let text = ExportGenerator.documentFormatter { $0.dateStyle = .medium; $0.timeStyle = .none }
+                .string(from: reference)
+            rendered[language] = text
+            XCTAssertTrue(text.contains("2026"), "\(language) lost the year: \(text)")
+        }
+        // Each language names the month its own way; identical output would mean
+        // the locale never took.
+        XCTAssertNotEqual(rendered["en"], rendered["ru"])
+        XCTAssertNotEqual(rendered["en"], rendered["es"])
+        XCTAssertNotEqual(rendered["ru"], rendered["es"])
+    }
 }

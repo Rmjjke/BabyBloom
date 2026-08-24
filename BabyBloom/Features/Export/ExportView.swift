@@ -300,7 +300,12 @@ struct ExportView: View {
     }
 
     private func rangeSlug() -> String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"
+        // Part of a FILENAME, so it is pinned to en_US_POSIX like the CSV
+        // columns: a device on a non-Gregorian calendar would otherwise stamp
+        // an unrecognisable year onto the exported file.
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
         return f.string(from: Date())
     }
 }
