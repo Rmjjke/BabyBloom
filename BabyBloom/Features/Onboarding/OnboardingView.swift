@@ -16,6 +16,10 @@ struct OnboardingView: View {
     @State private var growthHeightCm: Double = 50.0
     @State private var growthHeadCm: Double = 34.0
     @State private var growthIncludeHead: Bool = false
+    @State private var birthWeightKg: Double = 3.4
+    @State private var recordsBirthWeight: Bool = false
+    @State private var gestationalWeeks: Double = 34
+    @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
 
     var body: some View {
@@ -37,7 +41,12 @@ struct OnboardingView: View {
                     switch step {
                     case .welcome: WelcomePage(onStart: next)
                     case .name: NamePage(name: $babyName, onBack: back)
-                    case .birth: BirthPage(birthDate: $birthDate, gender: $gender, onBack: back)
+                    case .birth: BirthPage(birthDate: $birthDate, gender: $gender,
+                                           birthWeightKg: $birthWeightKg,
+                                           recordsBirthWeight: $recordsBirthWeight,
+                                           gestationalWeeks: $gestationalWeeks,
+                                           wasBornEarly: $wasBornEarly,
+                                           onBack: back)
                     case .feeding: FeedingPage(feedingType: $feedingType, babyName: babyName, onBack: back)
                     case .growth: GrowthPage(weightKg: $growthWeightKg, heightCm: $growthHeightCm,
                                              headCm: $growthHeadCm, includeHead: $growthIncludeHead,
@@ -116,6 +125,11 @@ struct OnboardingView: View {
             gender: gender,
             feedingType: feedingType
         )
+        // Left nil when the parent did not record them — nil means "unknown"
+        // everywhere downstream, and every growth feature degrades to still
+        // being useful without them.
+        baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
+        baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
         modelContext.insert(baby)
         let growth = GrowthEntry(
             date: Date(),

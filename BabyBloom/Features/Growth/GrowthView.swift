@@ -5,11 +5,18 @@ struct GrowthView: View {
     @Query(sort: \GrowthEntry.date, order: .reverse) private var entries: [GrowthEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
     @State private var showPercentileInfo = false
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
     private var latest: GrowthEntry? { entries.first }
+
+    /// Entries are queried globally rather than through `baby.growthEntries`:
+    /// nothing in the app sets `entry.baby`, so that relationship is always
+    /// empty and reading from it would silently blank every card here.
+    private var measurements: [WeightMeasurement] { entries.weightMeasurements }
 
     // GrowthView is presented only as a push destination inside MoreView's
     // NavigationStack (D6 IA change), so it must NOT wrap its own NavigationStack
@@ -24,6 +31,19 @@ struct GrowthView: View {
                 latestSection
                     .padding(.horizontal, BBTheme.Spacing.md)
 
+                if let baby, let corrected = baby.correctedAgeDescription {
+                    CorrectedAgeChip(description: corrected)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                }
+
+                // First weeks — the only block that outranks the chart, and only
+                // while it applies. Free for everyone, flags included.
+                if let baby, let status = newbornStatus(baby) {
+                    NewbornProgressCard(status: status)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                }
+
                 // Weight chart
                 if entries.count >= 2 {
                     chartSection
@@ -36,8 +56,18 @@ struct GrowthView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
+                if let baby {
+                    weightGainSection(baby)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                    trendSection(baby)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                }
+
                 // History
                 historySection
+                    .padding(.horizontal, BBTheme.Spacing.md)
+
+                WHOFootnote()
                     .padding(.horizontal, BBTheme.Spacing.md)
             }
             // Bottom clearance so the FAB never permanently covers the last row.
@@ -65,6 +95,12 @@ struct GrowthView: View {
         .sheet(isPresented: $showAddSheet) {
             AddGrowthSheet()
         }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+        // Every path here is cancel-before-add, so re-deriving on each visit
+        // costs nothing and keeps signals honest if data changed elsewhere.
+        .task { refreshGrowthNotifications() }
     }
 
     // MARK: - Latest
@@ -120,12 +156,82 @@ struct GrowthView: View {
     }
 
     // MARK: - Percentile
+    @ViewBuilder
     private func percentileSection(baby: Baby, weight: Double, entry: GrowthEntry) -> some View {
-        let isMale = baby.gender == .male
-        let months = baby.ageInMonths
-        let percentile = WHOPercentile.weightPercentile(ageMonths: months, weightKg: weight, isMale: isMale)
-        let label = WHOPercentile.percentileLabel(percentile)
-        let color = Color(hex: WHOPercentile.percentileColor(percentile))
+        // Corrected age, not chronological: a baby born preterm has to be
+        // measured against the reference for the age it would be at term.
+        if let percentile = WHOGrowthStandard.percentile(
+            weightKg: weight,
+            ageDays: baby.correctedAgeDays,
+            isMale: baby.gender == .male
+        ) {
+            percentileCard(percentile: percentile, months: baby.correctedAgeMonths)
+        } else {
+            PercentileOutOfRangeCard()
+        }
+    }
+
+    // MARK: - Insight blocks
+
+    private func newbornStatus(_ baby: Baby) -> NewbornWeightLoss.Status? {
+        NewbornWeightLoss.analyse(
+            birthWeightKg: baby.birthWeightKg,
+            birthDate: baby.birthDate,
+            measurements: measurements
+        )
+    }
+
+    /// Premium. The number itself stays hidden for free users — the teaser says
+    /// what it would tell them, which is honest without giving it away.
+    @ViewBuilder
+    private func weightGainSection(_ baby: Baby) -> some View {
+        if store.isPremium {
+            WeightGainCard(reading: WeightVelocity.latest(
+                measurements: measurements,
+                correctedBirthDate: baby.correctedBirthDate,
+                isMale: baby.gender == .male
+            ))
+        } else {
+            LockedInsightCard(
+                title: "section.weight_gain".l,
+                teaser: "premium.teaser_gain".l
+            ) { showPaywall = true }
+        }
+    }
+
+    /// Premium, same reasoning as the gain card.
+    @ViewBuilder
+    private func trendSection(_ baby: Baby) -> some View {
+        if store.isPremium {
+            CentileTrendCard(assessment: GrowthTrend.assess(
+                measurements: measurements,
+                correctedBirthDate: baby.correctedBirthDate,
+                isMale: baby.gender == .male,
+                birthPercentile: birthPercentile(baby)
+            ))
+        } else {
+            LockedInsightCard(
+                title: "section.trend".l,
+                teaser: "premium.teaser_trend".l
+            ) { showPaywall = true }
+        }
+    }
+
+    /// Birth centile decides which NICE threshold applies. Left nil for a preterm
+    /// baby: its birth weight cannot be read off a term chart, and `GrowthTrend`
+    /// falls back to the middle rule for exactly this case.
+    private func birthPercentile(_ baby: Baby) -> Double? {
+        guard !baby.isPreterm, let birthWeight = baby.birthWeightKg else { return nil }
+        return WHOGrowthStandard.percentile(
+            weightKg: birthWeight,
+            ageDays: 0,
+            isMale: baby.gender == .male
+        )
+    }
+
+    private func percentileCard(percentile: Double, months: Int) -> some View {
+        let label = WHOGrowthStandard.percentileLabel(percentile)
+        let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
 
         return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HStack {
@@ -207,6 +313,20 @@ struct GrowthView: View {
     private func delete(_ entry: GrowthEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        refreshGrowthNotifications(excluding: entry)
+    }
+
+    /// Re-derives every growth notification from the surviving data. Deleting the
+    /// weighing that raised a flag has to take the flag down with it — this app
+    /// already had a bug class where a reminder outlived the entry behind it.
+    private func refreshGrowthNotifications(excluding removed: GrowthEntry? = nil) {
+        guard let baby else { return }
+        let surviving = entries.filter { $0.id != removed?.id }
+        NotificationManager.shared.onGrowthDataChanged(
+            baby: baby,
+            entries: surviving,
+            isPremium: store.isPremium
+        )
     }
 }
 
@@ -372,6 +492,8 @@ struct AddGrowthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Environment(SubscriptionManager.self) private var store
     @State private var weightKg: Double = 3.5
     @State private var heightCm: Double = 50.0
     @State private var headCm: Double = 34.0
@@ -453,6 +575,15 @@ struct AddGrowthSheet: View {
         try? modelContext.save()
         if isFirst {
             NotificationManager.shared.onFirstGrowthEntrySaved()
+        }
+        if let baby = babies.first {
+            // The @Query has not necessarily seen the insert yet, so the new
+            // entry is passed in explicitly rather than waited for.
+            NotificationManager.shared.onGrowthDataChanged(
+                baby: baby,
+                entries: growthEntries + [entry],
+                isPremium: store.isPremium
+            )
         }
         dismiss()
     }

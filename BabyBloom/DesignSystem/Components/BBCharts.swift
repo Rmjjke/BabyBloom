@@ -114,9 +114,8 @@ struct BBWeeklyBarChart: View {
     /// reuses a single `DateFormatter` for weekday abbreviations.
     private func makeDays() -> [Day] {
         let cal  = Calendar.current
-        let lang = LocalizationManager.shared.currentLanguage
         let f    = DateFormatter()
-        f.locale = Locale(identifier: lang == "ru" ? "ru_RU" : "en_US")
+        f.locale = LocalizationManager.shared.language.locale
         f.dateFormat = "EEE"
         let todayStart = cal.startOfDay(for: Date())
         return weekDays.map { date in
@@ -133,9 +132,8 @@ struct BBWeeklyBarChart: View {
         let first = weekDays.first!
         let last  = weekDays.last!
         let cal   = Calendar.current
-        let lang  = LocalizationManager.shared.currentLanguage
         let f     = DateFormatter()
-        f.locale  = Locale(identifier: lang == "ru" ? "ru_RU" : "en_US")
+        f.locale  = LocalizationManager.shared.language.locale
         if cal.component(.month, from: first) == cal.component(.month, from: last) {
             f.dateFormat = "LLLL yyyy"
             return f.string(from: first).capitalized

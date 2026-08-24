@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Nenita</string>
+	<string>Bitty</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -31,7 +31,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Used to pick a photo for your baby's profile.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Nenita sends reminders about feeding, sleep and other baby care events.</string>
+	<string>Bitty sends reminders about feeding, sleep and other baby care events.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

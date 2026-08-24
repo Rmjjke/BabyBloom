@@ -1,0 +1,69 @@
+# Smoke: the app launches into the main tabs and every tab renders.
+#
+# Launch arguments MUST carry the leading dash — Maestro passes the map
+# through verbatim, and only "-key value" reaches UserDefaults' argument
+# domain, which is what every @AppStorage key in the app reads.
+# stopApp is required too: `clearState: true` reinstalls AND launches the app
+# by itself, so without it the following launch finds the process already
+# alive and the arguments never apply.
+# The full argument table lives in the platform-run skill.
+appId: com.nenita.app
+tags: [smoke]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+
+# Dashboard is the landing screen. tab_* ids sit on each tab's CONTENT view
+# and only the SELECTED tab's id is in the hierarchy, so they double as the
+# language-independent "which tab am I on" assertion.
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- assertVisible: "Quick Actions"
+
+# Tabs are tapped via childOf "Tab Bar": the labels alone are ambiguous —
+# a bare tapOn "Feeding" hits the Dashboard's quick action, which opens
+# Feeding as a MODAL SHEET and never switches the tab.
+- tapOn:
+    text: "Feeding"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+
+- tapOn:
+    text: "Sleep"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_sleep"
+    timeout: 10000
+
+- tapOn:
+    text: "Diapers"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_diapers"
+    timeout: 10000
+
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- assertVisible: "Growth"

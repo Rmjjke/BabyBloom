@@ -19,6 +19,9 @@ final class NotificationManager: @unchecked Sendable {
         case engageMonthlyGrowth = "bb.engage.monthly_growth"
         case engageWeekly        = "bb.engage.weekly_summary"
         case engageIdle          = "bb.engage.idle"
+        case growthWeighIn       = "bb.growth.weigh_in"
+        case growthNewbornFlag   = "bb.growth.newborn_flag"
+        case growthGainLow       = "bb.growth.gain_low"
     }
 
     // MARK: - UserDefaults keys
@@ -28,6 +31,7 @@ final class NotificationManager: @unchecked Sendable {
     private let kFirstGrowth     = "hasFirstGrowthEntry"
     private let kWeeklyScheduled = "hasScheduledWeeklySummary"
     private let kBabyName        = "bb.storedBabyName"
+    private let kLastGainSignal  = "bb.growth.lastGainSignalAt"
 
     // MARK: - Permission
 
@@ -183,7 +187,154 @@ final class NotificationManager: @unchecked Sendable {
     func onFirstGrowthEntrySaved() {
         cancel(.engageMeasurements)
         UserDefaults.standard.set(true, forKey: kFirstGrowth)
-        scheduleMonthlyGrowthReminder()
+        // Weigh-in reminders are scheduled by `onGrowthDataChanged`, which knows
+        // the baby's age and when it was last weighed.
+    }
+
+    /// Recomputes every growth-driven notification from the current data.
+    ///
+    /// Call after any change to the weight history and whenever the growth screen
+    /// appears. Every path here is cancel-before-add, so calling it repeatedly is
+    /// safe and — more importantly — a signal that no longer applies gets taken
+    /// down rather than left to fire.
+    func onGrowthDataChanged(
+        babyName: String,
+        birthDate: Date,
+        correctedBirthDate: Date,
+        birthWeightKg: Double?,
+        isMale: Bool,
+        measurements: [WeightMeasurement],
+        isPremium: Bool,
+        now: Date = Date()
+    ) {
+        storeBabyName(babyName)
+        scheduleWeighInReminder(birthDate: birthDate, measurements: measurements, babyName: babyName, now: now)
+        scheduleNewbornFlagIfNeeded(
+            birthDate: birthDate,
+            birthWeightKg: birthWeightKg,
+            measurements: measurements,
+            now: now
+        )
+        scheduleGainSignalIfNeeded(
+            correctedBirthDate: correctedBirthDate,
+            isMale: isMale,
+            measurements: measurements,
+            isPremium: isPremium,
+            now: now
+        )
+    }
+
+    // MARK: - Private: Growth reminders
+
+    /// How often it is worth weighing, by age. Newborns change fast enough that
+    /// a few days matter; a nine-month-old does not.
+    func weighInIntervalDays(ageDays: Int) -> Int {
+        switch ageDays {
+        case ..<14:  return 3
+        case ..<90:  return 7
+        case ..<365: return 14
+        default:     return 30
+        }
+    }
+
+    private func scheduleWeighInReminder(
+        birthDate: Date,
+        measurements: [WeightMeasurement],
+        babyName: String,
+        now: Date
+    ) {
+        cancel(.growthWeighIn)
+        // Replaces the old fixed monthly reminder, which nagged every 1st of the
+        // month regardless of age or of whether the parent had just weighed.
+        // Cancelled here too so it stops firing for users who already have it.
+        cancel(.engageMonthlyGrowth)
+
+        let ageDays = days(from: birthDate, to: now)
+        guard ageDays >= 0 else { return }
+        let interval = TimeInterval(weighInIntervalDays(ageDays: ageDays) * 24 * 3600)
+
+        // Measure from the last weighing, so a parent who just weighed is not
+        // reminded tomorrow.
+        let last = measurements.map(\.date).max() ?? birthDate
+        let due = last.addingTimeInterval(interval)
+        let delay = max(due.timeIntervalSince(now), 3600)
+        post(id: .growthWeighIn,
+             title: "notification.weigh_in_title".l,
+             body:  String(format: "notification.weigh_in_body".l, babyName),
+             in:    delay)
+    }
+
+    /// The one growth signal that is free for everyone. It is about safety, and
+    /// paywalling it would be indefensible.
+    private func scheduleNewbornFlagIfNeeded(
+        birthDate: Date,
+        birthWeightKg: Double?,
+        measurements: [WeightMeasurement],
+        now: Date
+    ) {
+        cancel(.growthNewbornFlag)
+        guard let status = NewbornWeightLoss.analyse(
+            birthWeightKg: birthWeightKg,
+            birthDate: birthDate,
+            measurements: measurements,
+            now: now
+        ), let flag = status.flags.first else { return }
+
+        // A few hours out, not instantly: the card already says this on screen,
+        // so the notification's job is to catch a parent who has closed the app.
+        post(id: .growthNewbornFlag,
+             title: "notification.newborn_flag_title".l,
+             body:  flag == .lossExceeds10Percent
+                    ? "newborn.flag_loss".l
+                    : "newborn.flag_not_regained".l,
+             in:    4 * 3600)
+    }
+
+    /// Premium: analysis rather than safety.
+    private func scheduleGainSignalIfNeeded(
+        correctedBirthDate: Date,
+        isMale: Bool,
+        measurements: [WeightMeasurement],
+        isPremium: Bool,
+        now: Date
+    ) {
+        cancel(.growthGainLow)
+        guard isPremium else { return }
+        guard WeightVelocity.consecutiveBelowReference(
+            measurements: measurements,
+            correctedBirthDate: correctedBirthDate,
+            isMale: isMale
+        ) else { return }
+
+        // At most one of these a week. An app about a worrying subject must not
+        // become the thing generating the worry.
+        let last = UserDefaults.standard.object(forKey: kLastGainSignal) as? Date
+        if let last, now.timeIntervalSince(last) < 7 * 24 * 3600 { return }
+        UserDefaults.standard.set(now, forKey: kLastGainSignal)
+
+        post(id: .growthGainLow,
+             title: "notification.gain_low_title".l,
+             body:  "notification.gain_low_body".l,
+             in:    4 * 3600)
+    }
+
+    private func days(from: Date, to: Date) -> Int {
+        Calendar.current.dateComponents([.day], from: from, to: to).day ?? 0
+    }
+
+    /// Bridge from the SwiftData layer. Kept separate from the primitive-taking
+    /// method above so the scheduling logic stays testable without a model
+    /// container, matching how the rest of this service is built.
+    func onGrowthDataChanged(baby: Baby, entries: [GrowthEntry], isPremium: Bool) {
+        onGrowthDataChanged(
+            babyName: baby.name,
+            birthDate: baby.birthDate,
+            correctedBirthDate: baby.correctedBirthDate,
+            birthWeightKg: baby.birthWeightKg,
+            isMale: baby.gender == .male,
+            measurements: entries.weightMeasurements,
+            isPremium: isPremium
+        )
     }
 
     // MARK: - Private: Diaper
@@ -214,22 +365,6 @@ final class NotificationManager: @unchecked Sendable {
              title: String(format: "notification.measurements_title".l, babyName),
              body:  "notification.measurements_body".l,
              in:    3 * 24 * 3600)
-    }
-
-    private func scheduleMonthlyGrowthReminder() {
-        cancel(.engageMonthlyGrowth)
-        let content      = UNMutableNotificationContent()
-        content.title    = "notification.monthly_growth_title".l
-        content.body     = "notification.monthly_growth_body".l
-        content.sound    = .default
-        var comps        = DateComponents()
-        comps.day        = 1
-        comps.hour       = 10
-        comps.minute     = 0
-        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
-        let req = UNNotificationRequest(identifier: NID.engageMonthlyGrowth.rawValue,
-                                        content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(req)
     }
 
     private func scheduleWeeklySummary() {

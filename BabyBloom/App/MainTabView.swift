@@ -6,35 +6,45 @@ struct MainTabView: View {
     @Query private var babies: [Baby]
 
     var body: some View {
+        // The identifiers sit on each tab's CONTENT, not inside .tabItem —
+        // SwiftUI drops an identifier set inside that closure. Only the
+        // selected tab's content is in the accessibility tree, so e2e flows
+        // use these to assert WHICH tab is open without depending on the
+        // localized labels ("Feeding" also appears on the Dashboard).
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
                     Label("tab.home".l, systemImage: "house.fill")
                 }
+                .accessibilityIdentifier("tab_home")
                 .tag(Tab.dashboard)
 
             FeedingView()
                 .tabItem {
                     Label("tab.feeding".l, systemImage: "heart.fill")
                 }
+                .accessibilityIdentifier("tab_feeding")
                 .tag(Tab.feeding)
 
             SleepView()
                 .tabItem {
                     Label("tab.sleep".l, systemImage: "moon.fill")
                 }
+                .accessibilityIdentifier("tab_sleep")
                 .tag(Tab.sleep)
 
             DiaperView()
                 .tabItem {
                     Label("tab.diapers".l, systemImage: "drop.fill")
                 }
+                .accessibilityIdentifier("tab_diapers")
                 .tag(Tab.diapers)
 
             MoreView()
                 .tabItem {
                     Label("tab.more".l, systemImage: "ellipsis.circle.fill")
                 }
+                .accessibilityIdentifier("tab_more")
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
@@ -144,29 +154,29 @@ struct ProfileView: View {
                 }
             }
             // ── Language ──────────────────────────────────────────────
+            // A pushed list rather than a segmented control: the segments only
+            // fit two languages, and the shipped set grows. The row reads
+            // "Language  ›  Español" like the system Settings app; every option
+            // is written in its own language (SupportedLanguage.endonym).
             Section {
-                HStack {
-                    Label("settings.language".l, systemImage: "globe")
-                    Spacer()
-                    // Update the localization dictionary BEFORE @AppStorage
-                    // triggers the view-tree rebuild — otherwise views rebuilt
-                    // by .id(appLanguage) (incl. UIKit-cached tab bar items)
-                    // read `.l` from the previous language's dictionary.
-                    Picker("", selection: Binding(
-                        get: { appLanguage },
-                        set: { newValue in
-                            LocalizationManager.shared.setLanguage(newValue)
-                            appLanguage = newValue
-                        }
-                    )) {
-                        Text("Рус").tag("ru")
-                        Text("Eng").tag("en")
+                // Update the localization dictionary BEFORE @AppStorage
+                // triggers the view-tree rebuild — otherwise views rebuilt
+                // by .id(appLanguage) (incl. UIKit-cached tab bar items)
+                // read `.l` from the previous language's dictionary.
+                Picker(selection: Binding(
+                    get: { appLanguage },
+                    set: { newValue in
+                        LocalizationManager.shared.setLanguage(newValue)
+                        appLanguage = newValue
                     }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
+                )) {
+                    ForEach(SupportedLanguage.allCases) { language in
+                        Text(language.endonym).tag(language.rawValue)
+                    }
+                } label: {
+                    Label("settings.language".l, systemImage: "globe")
                 }
-            } header: {
-                Text("settings.language".l)
+                .pickerStyle(.navigationLink)
             }
 
             // ── Appearance ────────────────────────────────────────────

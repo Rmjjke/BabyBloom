@@ -1,0 +1,8 @@
+/* Nombre de la app y textos de permisos para esta configuración regional. Junto
+   con "brand.name" en Resources/Localization/<locale>.json, este es el único
+   lugar donde se decide cómo llama esta configuración regional a la app. */
+"CFBundleDisplayName" = "Nenita";
+
+"NSUserNotificationsUsageDescription" = "Nenita te envía recordatorios sobre las tomas, el sueño y otros momentos del cuidado de tu bebé.";
+"NSPhotoLibraryUsageDescription" = "Se usa para elegir una foto para el perfil de tu bebé.";
+"NSFaceIDUsageDescription" = "Se usa para desbloquear la app rápidamente.";

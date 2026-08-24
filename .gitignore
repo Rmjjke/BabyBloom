@@ -8,6 +8,12 @@
 # Superpowers scratch
 .superpowers/
 
+# Desk workflow (solo mode — cards and logs stay local).
+# The e2e suite is the exception: tests are a regression asset and must
+# survive a clone, so .desk/tests/ is tracked.
+.desk/*
+!.desk/tests/
+
 # Xcode
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
