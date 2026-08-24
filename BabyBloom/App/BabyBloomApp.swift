@@ -4,8 +4,12 @@ import SwiftData
 @main
 struct BabyBloomApp: App {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    // Branded splash plays on every cold launch (not persisted).
-    @State private var showingSplash = true
+    // Branded splash plays on every cold launch (not persisted). E2E flows
+    // launch with `-BBSkipSplash true` to skip its ~5s; iOS folds launch
+    // arguments into UserDefaults' argument domain, which is also how those
+    // flows drive `hasCompletedOnboarding`, `appLanguage` and `appAppearance`
+    // — those need no hook because @AppStorage already reads that domain.
+    @State private var showingSplash = !UserDefaults.standard.bool(forKey: "BBSkipSplash")
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
     @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
 
