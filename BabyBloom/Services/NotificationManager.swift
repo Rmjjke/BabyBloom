@@ -426,7 +426,10 @@ final class NotificationManager: @unchecked Sendable {
     // MARK: - Private: Baby name storage
 
     private var storedBabyName: String {
-        UserDefaults.standard.string(forKey: kBabyName) ?? "Baby"
+        // Localized, not the literal "Baby": this lands in notification text
+        // the parent reads, so an English word inside a Spanish notification
+        // is the same defect the export had.
+        UserDefaults.standard.string(forKey: kBabyName) ?? "baby.default_name".l
     }
 
     private func storeBabyName(_ name: String) {

@@ -85,6 +85,31 @@ struct ExportGenerator {
         return raw
     }
 
+    // MARK: - Formatters (internal for @testable access)
+
+    /// Machine-readable columns: a FIXED pattern must be pinned to
+    /// `en_US_POSIX`, never left on the device locale. Unpinned, `yyyy-MM-dd`
+    /// silently follows a non-Gregorian device calendar (Buddhist, Japanese)
+    /// and writes years no spreadsheet will read back correctly.
+    static func csvFormatter(_ pattern: String) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = .current
+        f.dateFormat = pattern
+        return f
+    }
+
+    /// Human-readable PDF text: follows the language the user picked in the
+    /// app, NOT the device. Same rule BBCharts already applies to its axis
+    /// labels — a Spanish user on a Russian phone must not get Russian dates
+    /// inside an otherwise Spanish document.
+    static func documentFormatter(_ configure: (DateFormatter) -> Void) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = LocalizationManager.shared.language.locale
+        configure(f)
+        return f
+    }
+
     /// Joins fields into one escaped CSV row.
     private static func csvRow(_ fields: [String]) -> String {
         fields.map(csvField).joined(separator: ",")
@@ -93,8 +118,8 @@ struct ExportGenerator {
     private static func feedingCSV(_ entries: [FeedingEntry]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
                             "export.csv.side".l, "export.csv.volume_ml".l, "export.csv.duration_min".l])]
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
-        let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
+        let fmt = csvFormatter("yyyy-MM-dd")
+        let tfmt = csvFormatter("HH:mm")
         for e in entries {
             let type = e.type.displayName.l
             let side = e.side?.displayName.l ?? ""
@@ -108,8 +133,8 @@ struct ExportGenerator {
     private static func sleepCSV(_ entries: [SleepEntry]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.start".l, "export.csv.end".l,
                             "export.csv.type".l, "export.csv.location".l, "export.csv.duration_h".l])]
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
-        let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
+        let fmt = csvFormatter("yyyy-MM-dd")
+        let tfmt = csvFormatter("HH:mm")
         for e in entries {
             let end = e.endTime.map { tfmt.string(from: $0) } ?? ""
             let loc = e.location?.displayName.l ?? ""
@@ -122,8 +147,8 @@ struct ExportGenerator {
     private static func diaperCSV(_ entries: [DiaperEntry]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
                             "export.csv.stool_color".l, "export.csv.notes".l])]
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
-        let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
+        let fmt = csvFormatter("yyyy-MM-dd")
+        let tfmt = csvFormatter("HH:mm")
         for e in entries {
             let color = e.color?.displayName.l ?? ""
             let notes = e.notes ?? ""
@@ -135,7 +160,7 @@ struct ExportGenerator {
     private static func growthCSV(_ entries: [GrowthEntry]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.weight_kg".l,
                             "export.csv.height_cm".l, "export.csv.head_cm".l])]
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+        let fmt = csvFormatter("yyyy-MM-dd")
         for e in entries {
             let w = e.weightKg.map { String(format: "%.2f", $0) } ?? ""
             let h = e.heightCm.map { String(format: "%.1f", $0) } ?? ""
@@ -148,8 +173,8 @@ struct ExportGenerator {
     private static func eventsCSV(_ entries: [CustomEvent]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.time".l,
                             "export.csv.type".l, "export.csv.notes".l])]
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
-        let tfmt = DateFormatter(); tfmt.dateFormat = "HH:mm"
+        let fmt = csvFormatter("yyyy-MM-dd")
+        let tfmt = csvFormatter("HH:mm")
         for e in entries {
             let notes = e.notes ?? ""
             rows.append(csvRow([fmt.string(from: e.time), tfmt.string(from: e.time), e.type.displayName.l, notes]))
@@ -187,10 +212,10 @@ struct ExportGenerator {
         categories: Set<ExportCategory>,
         range: ExportDateRange
     ) -> String {
-        let dateFmt = DateFormatter(); dateFmt.dateStyle = .medium; dateFmt.timeStyle = .none
-        let timeFmt = DateFormatter(); timeFmt.dateFormat = "HH:mm"
+        let dateFmt = documentFormatter { $0.dateStyle = .medium; $0.timeStyle = .none }
+        let timeFmt = documentFormatter { $0.timeStyle = .short; $0.dateStyle = .none }
 
-        let babyName = baby?.name ?? "Baby"
+        let babyName = baby?.name ?? "baby.default_name".l
         let ageDesc  = baby?.ageDescription ?? ""
         let rangeLabel = range.rawValue.l
         let generatedDate = dateFmt.string(from: Date())
