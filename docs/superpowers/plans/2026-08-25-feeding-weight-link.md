@@ -35,6 +35,7 @@
 | File | Responsibility |
 |---|---|
 | `BabyBloom/Core/Growth/FeedingAdequacy.swift` (new) | All adequacy maths: reference tables, window, counting, assembly. Pure, no SwiftData. |
+| `BabyBloom/Core/Localization/Double+AppRate.swift` (new) | Renders a measured per-day rate in the app's language, one decimal only when the value is not whole. |
 | `BabyBloom/Features/Growth/NutritionSection.swift` (new) | The free summary section — three status rows. |
 | `BabyBloom/Features/Growth/FeedingBreakdownCard.swift` (new) | The Premium breakdown card. |
 | `BabyBloom/Features/Growth/GrowthView.swift` (modify) | Queries feeds and nappies; composes the two new surfaces. |
@@ -740,6 +741,7 @@ git commit -m "feat: localization keys for the nutrition section and breakdown"
 ### Task 5: Free "Nutrition" section
 
 **Files:**
+- Create: `BabyBloom/Core/Localization/Double+AppRate.swift`
 - Create: `BabyBloom/Features/Growth/NutritionSection.swift`
 - Modify: `BabyBloom/Features/Growth/GrowthInsightCards.swift:6` and `:26` — drop `private` from `InsightCard` and `HintText` so the new files reuse them
 - Test: covered visually in Task 7
@@ -748,11 +750,48 @@ git commit -m "feat: localization keys for the nutrition section and breakdown"
 - Consumes: `FeedingAdequacy.Assessment`, `FeedingAdequacy.Signal`, `InsightCard`, `HintText`.
 - Produces: `NutritionSection(assessment: FeedingAdequacy.Assessment?)`.
 
-- [ ] **Step 1: Make the two containers reusable**
+- [ ] **Step 1: Add the rate formatter**
+
+The measured rate must never be rounded for display: the verdict beside it
+compares the RAW value against a whole bound, so `%.0f` would print
+"8 a day · below the reference" next to "reference 8–12" for a rate of 7.6.
+That contradiction band sits immediately below every threshold — exactly the
+near-miss population this feature describes. The keys therefore take `%@` for
+measured values and `%d` for whole bounds, matching what `velocity.per_week_fmt`
+and `velocity.expected_fmt` already do on this screen.
+
+Create `BabyBloom/Core/Localization/Double+AppRate.swift`, beside the
+`Date+AppLocale.swift` helpers that established this pattern:
+
+```swift
+import Foundation
+
+extension Double {
+    /// A measured per-day rate, rendered in the app's language.
+    ///
+    /// One decimal only when the value is not whole — "9 a day" reads better
+    /// than "9.0 a day", while 7.6 must NOT become "8": the verdict beside it
+    /// compares the raw value against a whole bound, and a rounded display
+    /// would contradict its own status word.
+    ///
+    /// The decimal separator follows the app's chosen language, not the
+    /// device — Russian and Spanish want "7,6".
+    var appRate: String {
+        let formatter = NumberFormatter()
+        formatter.locale = LocalizationManager.shared.language.locale
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 0
+        return formatter.string(from: self as NSNumber) ?? String(format: "%.0f", self)
+    }
+}
+```
+
+- [ ] **Step 2: Make the two containers reusable**
 
 In `GrowthInsightCards.swift`, change `private struct InsightCard` to `struct InsightCard` and `private struct HintText` to `struct HintText`. That file already holds ten views at 275 lines; the new surfaces get their own files rather than growing it further.
 
-- [ ] **Step 2: Write the section**
+- [ ] **Step 3: Write the section**
 
 ```swift
 import SwiftUI
@@ -824,7 +863,7 @@ struct NutritionSection: View {
         case .notEnoughData: return "nutrition.status_unknown".l
         }
         guard let value else { return status }
-        return String(format: "nutrition.per_day_fmt".l, value) + " · " + status
+        return String(format: "nutrition.per_day_fmt".l, value.appRate) + " · " + status
     }
 
     private func color(for signal: FeedingAdequacy.Signal) -> Color {
@@ -837,22 +876,24 @@ struct NutritionSection: View {
 }
 ```
 
-- [ ] **Step 3: Note on colour**
+- [ ] **Step 4: Note on colour**
 
 `below` uses `BBTheme.Colors.accent`, the warm peach accent — NOT a red. This
 palette has no alarm colour on purpose, and the existing first-weeks flag card
 does not use one either. Do not add one for this feature: the word carries the
 status, and shouting contradicts the tone the medical constraints require.
 
-- [ ] **Step 4: Build**
+- [ ] **Step 5: Build**
 
 Run the build command from Global Constraints.
 Expected: `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add BabyBloom/Features/Growth/NutritionSection.swift BabyBloom/Features/Growth/GrowthInsightCards.swift
+git add BabyBloom/Core/Localization/Double+AppRate.swift \
+        BabyBloom/Features/Growth/NutritionSection.swift \
+        BabyBloom/Features/Growth/GrowthInsightCards.swift
 git commit -m "feat: free nutrition summary section"
 ```
 
@@ -921,14 +962,19 @@ struct FeedingBreakdownCard: View {
     private var feedsLine: String? {
         guard let perDay = assessment.feedingsPerDay,
               let reference = assessment.feedingReference else { return nil }
+        // Measured value as a string, bounds as whole numbers — the same
+        // split velocity.per_week_fmt / velocity.expected_fmt already use.
         return String(format: "breakdown.feeds_fmt".l,
-                      perDay, reference.lowerBound, reference.upperBound)
+                      perDay.appRate,
+                      Int(reference.lowerBound.rounded()),
+                      Int(reference.upperBound.rounded()))
     }
 
     private var nappiesLine: String? {
         guard let perDay = assessment.wetNappiesPerDay,
               let minimum = assessment.wetNappyMinimum else { return nil }
-        return String(format: "breakdown.nappies_fmt".l, perDay, minimum)
+        return String(format: "breakdown.nappies_fmt".l,
+                      perDay.appRate, Int(minimum.rounded()))
     }
 }
 ```
