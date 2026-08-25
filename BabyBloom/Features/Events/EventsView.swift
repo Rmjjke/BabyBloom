@@ -3,6 +3,7 @@ import SwiftData
 
 struct EventsView: View {
     @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
 
@@ -92,6 +93,7 @@ struct EventsView: View {
 
     private func quickAdd(_ type: CustomEvent.EventType) {
         let event = CustomEvent(time: Date(), type: type)
+        event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
     }
@@ -106,6 +108,7 @@ struct EventsView: View {
 struct AddEventSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: CustomEvent.EventType = .bath
     @State private var notes = ""
     @State private var time = Date()
@@ -228,6 +231,7 @@ struct AddEventSheet: View {
             event.medicationDose = medicationDose.isEmpty ? nil : medicationDose
         }
         event.notes = notes.isEmpty ? nil : notes
+        event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
         dismiss()

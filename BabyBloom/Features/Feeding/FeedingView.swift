@@ -191,6 +191,7 @@ struct FeedingView: View {
     private func quickStart(_ type: FeedingEntry.FeedingType) {
         if type == .breast {
             let entry = FeedingEntry(startTime: Date(), type: .breast, side: .left, volumeML: nil)
+            entry.baby = baby
             modelContext.insert(entry)
             try? modelContext.save()
             NotificationManager.shared.onFeedingSaved(
@@ -515,6 +516,7 @@ struct AddFeedingSheet: View {
             volumeML: ml
         )
         if !startTimer { entry.endTime = Date() }
+        entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         let baby = babies.first

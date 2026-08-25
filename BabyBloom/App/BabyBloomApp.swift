@@ -67,6 +67,10 @@ struct BabyBloomApp: App {
             .environment(subscriptionManager)
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
+                // Entries created before they were linked to their Baby still
+                // have a nil owner, which makes Baby's cascade rules inert.
+                // Runs at most once per install and is a no-op afterwards.
+                OrphanedEntryAdoption.runIfNeeded(in: sharedModelContainer.mainContext)
             }
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)
