@@ -301,8 +301,8 @@ struct FeedingEntryRow: View {
             iconColor: Color(hex: entry.type.color),
             title: entry.displayTitle,
             subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
-            time: entry.startTime.formatted(.dateTime.hour().minute()),
-            trailing: entry.startTime.formatted(.dateTime.day().month())
+            time: entry.startTime.appTimeOfDay,
+            trailing: entry.startTime.appDayMonth
         )
     }
 }

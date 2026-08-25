@@ -175,8 +175,8 @@ struct SleepView: View {
                     iconColor: BBTheme.Colors.sleep,
                     title: entry.type.displayName.l,
                     subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
-                    time: entry.startTime.formatted(.dateTime.hour().minute()),
-                    trailing: entry.startTime.formatted(.dateTime.day().month())
+                    time: entry.startTime.appTimeOfDay,
+                    trailing: entry.startTime.appDayMonth
                 )
             },
             onDelete: { delete($0) },

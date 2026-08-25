@@ -438,7 +438,7 @@ struct GrowthEntryRow: View {
 
             Spacer()
 
-            Text(entry.date.formatted(.dateTime.day().month()))
+            Text(entry.date.appDayMonth)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
         }
