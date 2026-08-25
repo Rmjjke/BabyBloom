@@ -158,12 +158,28 @@ enum FeedingAdequacy {
     /// weighings. Feeds and nappies are counted over this same window, so a
     /// "few feeds" figure can never sit beside a gain measured across a
     /// different week.
+    ///
+    /// **A window shorter than one full day is withheld.** Two weighings within
+    /// a day are realistic — daily weighing in the first week, a clinic
+    /// re-weigh — and everything downstream is expressed per day, which a
+    /// part-day cannot support: both `rate` and `hasEnoughCoverage` floor their
+    /// denominator at one day, so a six-hour gap with six feeds would report
+    /// 6 a day from a parent who actually fed about 24 times, and a single
+    /// covered day would score full coverage and wave that figure through.
+    /// Returning nil states there is nothing to measure yet.
+    ///
+    /// One day, deliberately not the three of `WeightVelocity
+    /// .minimumIntervalDays`: that floor answers a different question — when
+    /// weight noise stops swamping a gain — while this one is only about "per
+    /// day" meaning something, and later tasks need a two-day window to still
+    /// produce an assessment.
     static func window(for measurements: [WeightMeasurement]) -> DateInterval? {
         let sorted = measurements.sorted { $0.date < $1.date }
         guard sorted.count >= 2 else { return nil }
         let start = sorted[sorted.count - 2].date
         let end = sorted[sorted.count - 1].date
-        guard end > start else { return nil }
+        let oneDay: TimeInterval = 86_400
+        guard end.timeIntervalSince(start) >= oneDay else { return nil }
         return DateInterval(start: start, end: end)
     }
 
@@ -176,12 +192,20 @@ enum FeedingAdequacy {
     /// bottle. Below the dominance threshold the baby is genuinely mixed-fed
     /// and gets the union reference; with no feeds at all, the same, because
     /// the widest band is the honest choice when there is no evidence.
+    ///
+    /// Both shares are counted from the kinds they name rather than one being
+    /// derived as "not the other", so a feeding kind added to
+    /// `FeedingEntry.FeedingType` later belongs to neither column and pushes
+    /// the baby towards `.mixed` — the widest band — instead of silently
+    /// joining the formula count.
     static func style(of feeds: [Feed]) -> FeedingStyle {
         guard !feeds.isEmpty else { return .mixed }
         let dominanceThreshold = 0.8
-        let breastShare = Double(feeds.filter { $0.type == .breast }.count) / Double(feeds.count)
+        let total = Double(feeds.count)
+        let breastShare = Double(feeds.filter { $0.type == .breast }.count) / total
+        let bottleShare = Double(feeds.filter { $0.type == .formula || $0.type == .pumped }.count) / total
         if breastShare >= dominanceThreshold { return .breast }
-        if (1 - breastShare) >= dominanceThreshold { return .formula }
+        if bottleShare >= dominanceThreshold { return .formula }
         return .mixed
     }
 
@@ -189,9 +213,15 @@ enum FeedingAdequacy {
 
     /// Events per day over the window.
     ///
-    /// The one-day floor keeps a short window from multiplying a handful of
-    /// entries into an implausible daily figure; erring low is the safe
-    /// direction here, since a low count is only ever context.
+    /// The one-day floor is a guard of last resort: `window(for:)` already
+    /// refuses anything shorter than a day, and the floor only keeps a
+    /// hand-built shorter interval from multiplying a handful of entries into
+    /// an implausible daily figure. Erring low is the safe direction here,
+    /// since a low count is only ever context.
+    ///
+    /// Entries outside the window are dropped, not merely uncounted: this
+    /// figure has to describe the same stretch of days as the weight gain
+    /// beside it, or the two together say something neither one supports.
     ///
     /// Returns 0 for an empty log, which is why no caller may show this figure
     /// without `hasEnoughCoverage` first: an unlogged day is unknown, not zero.
@@ -205,7 +235,8 @@ enum FeedingAdequacy {
     ///
     /// Counts DAYS WITH AT LEAST ONE ENTRY, not entries: ten records on a single
     /// day are a busy Tuesday, not a fortnight of evidence. Below half the days,
-    /// the signal reports `notEnoughData`.
+    /// the signal reports `notEnoughData`. Days logged outside the window do not
+    /// count either — a well-logged fortnight ago is no evidence about this gap.
     static func hasEnoughCoverage(_ dates: [Date], in window: DateInterval) -> Bool {
         let calendar = Calendar.current
         let days = max(1, Int((window.duration / 86_400).rounded()))

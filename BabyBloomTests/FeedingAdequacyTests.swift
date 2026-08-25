@@ -79,13 +79,29 @@ final class FeedingAdequacyTests: XCTestCase {
 
     // MARK: - Window
 
-    /// One fixed `now` for the whole test, because `Date()` advances between
-    /// calls: a window anchored on one call would sit microseconds before an
-    /// entry anchored on a later one and silently drop it from the count.
-    private let now = Date()
+    /// A fixed instant in a fixed calendar for the whole test case.
+    ///
+    /// `Date()` advances between calls, so a window anchored on one call sits
+    /// microseconds before an entry anchored on a later one and silently drops
+    /// it. The device calendar adds a second trap: a daylight-saving transition
+    /// inside the window changes its duration by an hour, which moves every
+    /// per-day figure the tests assert on — twice a year, on some devices only.
+    /// A UTC calendar and a fixed date remove both.
+    private static let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        return calendar
+    }()
+
+    private let now = FeedingAdequacyTests.calendar.date(
+        from: DateComponents(year: 2026, month: 6, day: 15, hour: 12))!
 
     private func day(_ offset: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: offset, to: now)!
+        Self.calendar.date(byAdding: .day, value: offset, to: now)!
+    }
+
+    private func hours(_ offset: Int) -> Date {
+        Self.calendar.date(byAdding: .hour, value: offset, to: now)!
     }
 
     func testWindowSpansTheTwoMostRecentWeighings() throws {
@@ -96,9 +112,9 @@ final class FeedingAdequacyTests: XCTestCase {
         ]
         let window = FeedingAdequacy.window(for: measurements)
         // The older weighing is history; the assessment covers the latest gap.
-        XCTAssertEqual(Calendar.current.dateComponents([.day],
-                                                       from: try XCTUnwrap(window).start,
-                                                       to: try XCTUnwrap(window).end).day, 9)
+        XCTAssertEqual(Self.calendar.dateComponents([.day],
+                                                    from: try XCTUnwrap(window).start,
+                                                    to: try XCTUnwrap(window).end).day, 9)
     }
 
     func testWindowIsNilWithFewerThanTwoWeighings() {
@@ -115,6 +131,23 @@ final class FeedingAdequacyTests: XCTestCase {
             WeightMeasurement(date: sameMoment, weightKg: 4.0),
             WeightMeasurement(date: sameMoment, weightKg: 4.1),
         ]))
+    }
+
+    /// Below a full day there is nothing "per day" can honestly mean: both
+    /// counters floor their denominator at one day, so a part-day window would
+    /// report a fraction of the real feeding rate and score full coverage off a
+    /// single logged day. The boundary is pinned from both sides.
+    func testWindowIsNilWhenTheWeighingsAreLessThanADayApart() {
+        XCTAssertNil(FeedingAdequacy.window(for: [
+            WeightMeasurement(date: hours(-23), weightKg: 4.00),
+            WeightMeasurement(date: day(0),     weightKg: 4.05),
+        ]))
+
+        let exactlyOneDay = FeedingAdequacy.window(for: [
+            WeightMeasurement(date: day(-1), weightKg: 4.00),
+            WeightMeasurement(date: day(0),  weightKg: 4.05),
+        ])
+        XCTAssertEqual(exactlyOneDay?.duration, 86_400)
     }
 
     // MARK: - Feeding style from the logs
@@ -165,6 +198,14 @@ final class FeedingAdequacyTests: XCTestCase {
         let window = DateInterval(start: day(-10), end: day(0))
         let dates = (0..<20).map { day(-$0 / 2) }
         XCTAssertEqual(FeedingAdequacy.rate(of: dates, in: window), 2.0, accuracy: 0.01)
+
+        // Feeds from before the window belong to an earlier gap, and one logged
+        // ahead of the last weighing belongs to no gap yet. Counting either
+        // would put a feeding figure beside a gain measured over other days —
+        // the one thing the shared window exists to prevent.
+        let withEntriesOutsideTheWindow = dates + [day(-20), day(-11), day(20)]
+        XCTAssertEqual(FeedingAdequacy.rate(of: withEntriesOutsideTheWindow, in: window),
+                       2.0, accuracy: 0.01)
     }
 
     func testCoverageFailsWhenMostDaysHaveNoEntry() {
@@ -191,5 +232,22 @@ final class FeedingAdequacyTests: XCTestCase {
 
         let oneDayShort = (0..<4).map { day(-$0) }
         XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage(oneDayShort, in: window))
+    }
+
+    /// The same exclusion, on the other counter: a parent who logged diligently
+    /// a fortnight ago and barely since has no coverage of THIS gap.
+    func testCoverageIgnoresDaysLoggedOutsideTheWindow() {
+        let window = DateInterval(start: day(-10), end: day(0))
+        let oneDayInsideAndSixBefore = [day(-1)] + (11...16).map { day(-$0) }
+        XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage(oneDayInsideAndSixBefore, in: window))
+    }
+
+    /// The pairing every caller depends on: an empty log rates as zero, and that
+    /// zero is only ever safe to show because coverage refuses it first. An
+    /// unlogged window is unknown, never "no feeds".
+    func testAnEmptyLogRatesAsZeroAndHasNoCoverage() {
+        let window = DateInterval(start: day(-10), end: day(0))
+        XCTAssertEqual(FeedingAdequacy.rate(of: [], in: window), 0)
+        XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage([], in: window))
     }
 }
