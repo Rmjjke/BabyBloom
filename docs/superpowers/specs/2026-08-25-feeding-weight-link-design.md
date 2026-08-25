@@ -79,9 +79,8 @@ enum FeedingAdequacy {
     static func assess(
         correctedBirthDate: Date,
         isMale: Bool,
-        feedingStyle: Baby.FeedingType,
         measurements: [WeightMeasurement],
-        feedings: [Date],
+        feedings: [(date: Date, type: FeedingEntry.FeedingType)],
         wetNappies: [Date],
         now: Date
     ) -> Assessment?      // nil outside 0–6 months or with < 2 weighings
@@ -101,8 +100,9 @@ to `.notEnoughData`. No new weight maths.
 ### Signal 2 — feeding frequency
 
 Feeds per day over the window, against a reference chosen by corrected age
-**and feeding style** — a formula-fed newborn genuinely feeds less often than
-a breastfed one, and holding both to one number would flag healthy babies.
+**and how the baby was actually fed** — a formula-fed newborn genuinely feeds
+less often than a breastfed one, and holding both to one number would flag
+healthy babies.
 
 | corrected age | breast | formula / pumped |
 |---|---|---|
@@ -113,6 +113,20 @@ a breastfed one, and holding both to one number would flag healthy babies.
 Source: AAP feeding guidance for breastfed and formula-fed infants. **The
 exact table needs one medical review pass before implementation** — the shape
 is settled, the boundaries are not yet verified line by line.
+
+**Which column applies is decided by the logged entries, not by the profile.**
+The project has two unrelated `FeedingType` enums: `Baby.FeedingType`
+(breast / formula / **mixed**) is a profile answer given once during
+onboarding, while `FeedingEntry.FeedingType` (breast / formula / **pumped**)
+records what actually happened. The profile goes stale — a baby moved onto
+formula at two months still reads `breast` — and its `mixed` case maps to no
+column at all. So:
+
+- at least 80% of the window's feeds are `.breast` → the breast column;
+- at least 80% are `.formula` or `.pumped` → the formula column;
+- anything in between is genuinely mixed feeding → the **union** of both
+  bands, so a mixed-fed baby is never flagged by the stricter edge of a table
+  that only half applies to them.
 
 ### Signal 3 — wet nappies
 
