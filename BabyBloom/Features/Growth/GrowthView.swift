@@ -571,6 +571,7 @@ struct AddGrowthSheet: View {
             heightCm: heightCm,
             headCircumferenceCm: includeHead ? headCm : nil
         )
+        entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         if isFirst {

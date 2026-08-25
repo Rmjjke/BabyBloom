@@ -57,6 +57,7 @@
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
+		A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390F8BD3D44D73D72C6D2893 /* PaywallView.swift */; };
 		A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
 		AA9FA84C733D7FADFC1FBD1B /* GrowthInsightCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */; };
@@ -65,6 +66,7 @@
 		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
 		BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4832FE37F4C6031CD491FC1 /* EventsView.swift */; };
+		C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */; };
 		C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */; };
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
@@ -85,6 +87,7 @@
 		EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */; };
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
+		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
 		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
@@ -185,6 +188,7 @@
 		B2D64BF8EAF39E2FC0EF92F8 /* BirthPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthPage.swift; sourceTree = "<group>"; };
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
+		C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoptionTests.swift; sourceTree = "<group>"; };
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
 		C9D97024281147567091924D /* GrowthCardRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthCardRenderDump.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
@@ -203,6 +207,7 @@
 		EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+AppLocale.swift"; sourceTree = "<group>"; };
 		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
 		F3D63328CD7ED001909F7DCD /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
+		F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoption.swift; sourceTree = "<group>"; };
 		FDEB05535F410B101D28D335 /* WelcomePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomePage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -284,6 +289,7 @@
 				F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */,
 				C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */,
 				445916578FF3112912C0E02D /* GrowthEntry.swift */,
+				F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */,
 				3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */,
 			);
 			path = Models;
@@ -339,6 +345,7 @@
 				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
+				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
 				D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */,
 				92018595E27242A50820D2B8 /* WidgetRenderDump.swift */,
@@ -692,6 +699,7 @@
 				4038A39F0C8358CFC87AFFF6 /* FeedingEntry.swift in Sources */,
 				02CAE4B039DE1A0A44D31600 /* GrowthEntry.swift in Sources */,
 				D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */,
+				F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */,
 				1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */,
 				D60724F29DD2FC8D921A4F45 /* WidgetViews.swift in Sources */,
 			);
@@ -739,6 +747,7 @@
 				CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */,
 				1ACEFD1B6DE6102E4A01518F /* OnboardingHelpers.swift in Sources */,
 				B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */,
+				A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */,
 				A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */,
 				D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */,
 				7E62D06C8AA07E74F4692D98 /* RoundedCorner.swift in Sources */,
@@ -766,6 +775,7 @@
 				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
+				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
 				D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */,
 				FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */,

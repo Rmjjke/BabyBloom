@@ -189,6 +189,7 @@ struct DiaperView: View {
 
     private func quickAdd(_ type: DiaperEntry.DiaperType) {
         let entry = DiaperEntry(time: Date(), type: type)
+        entry.baby = baby
         modelContext.insert(entry)
         try? modelContext.save()
         NotificationManager.shared.onDiaperSaved(
@@ -440,6 +441,7 @@ struct AddDiaperSheet: View {
 
     private func save() {
         let entry = DiaperEntry(time: time, type: selectedType, color: selectedColor, notes: notes.isEmpty ? nil : notes)
+        entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         let baby = babies.first

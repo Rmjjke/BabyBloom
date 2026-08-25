@@ -137,6 +137,7 @@ struct OnboardingView: View {
             heightCm: growthHeightCm,
             headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil
         )
+        growth.baby = baby
         modelContext.insert(growth)
         try? modelContext.save()
         Task { @MainActor in

@@ -186,6 +186,7 @@ struct SleepView: View {
 
     private func startSleep(type: SleepEntry.SleepType) {
         let entry = SleepEntry(startTime: Date(), type: type)
+        entry.baby = baby
         modelContext.insert(entry)
         try? modelContext.save()
         NotificationManager.shared.onSleepStarted(
@@ -372,6 +373,7 @@ struct AddSleepSheet: View {
     private func save() {
         let entry = SleepEntry(startTime: startTime, type: selectedType, location: selectedLocation)
         entry.endTime = endTime
+        entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         NotificationManager.shared.onSleepEnded(
