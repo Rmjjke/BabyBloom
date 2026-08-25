@@ -271,10 +271,22 @@ final class FeedingAdequacyTests: XCTestCase {
         (0..<days).flatMap { d in (0..<perDay).map { _ in day(-d) } }
     }
 
+    /// A birth date this many days before `now` **in the device calendar**.
+    ///
+    /// Deliberately not `day(-ageDays)`: `assess` measures age with
+    /// `Calendar.current`, so a UTC-built fixture disagrees with it by a day on
+    /// any host whose offset changes across the window — Australia/Sydney
+    /// leaving DST on 2026-04-05 turns a 184-day-old into a 183-day-old and
+    /// waves them past the six-month guard. The entries either side keep using
+    /// `day(_:)`, whose UTC spacing is what fixes the window's duration.
+    private func birthDate(ageDays: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: -ageDays, to: now)!
+    }
+
     private func assess(gain: Double, feedsPerDay: Int, nappiesPerDay: Int,
                         days: Int = 9, ageDays: Int = 40,
                         feedType: FeedingEntry.FeedingType = .breast) -> FeedingAdequacy.Assessment? {
-        let birth = day(-ageDays)
+        let birth = birthDate(ageDays: ageDays)
         return FeedingAdequacy.assess(
             birthDate: birth,
             correctedBirthDate: birth,
@@ -306,7 +318,7 @@ final class FeedingAdequacyTests: XCTestCase {
         // reading and prove nothing about the mapping they exist to test.
         let weighings = measurements(gainGramsPerDay: 60, days: 9)
         XCTAssertEqual(WeightVelocity.measure(from: weighings[0], to: weighings[1],
-                                              correctedBirthDate: day(-40), isMale: true)?.band,
+                                              correctedBirthDate: birthDate(ageDays: 40), isMale: true)?.band,
                        .above)
 
         let assessment = try XCTUnwrap(assess(gain: 60, feedsPerDay: 2, nappiesPerDay: 1))
@@ -352,6 +364,35 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertEqual(oneShort.nappies, .below)
     }
 
+    /// The two age clocks are genuinely different, and only a preterm baby can
+    /// tell them apart: every other fixture here passes the same date twice, so
+    /// swapping the two lookups would be invisible. A baby born ten weeks early
+    /// is at postnatal day 40 and corrected age −30 on the same morning, and
+    /// each reference must read its own clock.
+    func testPretermBabyTakesFeedsFromCorrectedAgeAndNappiesFromPostnatalDays() throws {
+        let birth = birthDate(ageDays: 40)
+        // Ten weeks early: the due date is still 30 days away.
+        let dueDate = Calendar.current.date(byAdding: .day, value: 30, to: now)!
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth,
+            correctedBirthDate: dueDate,
+            isMale: true,
+            measurements: measurements(gainGramsPerDay: 30, days: 9),
+            feeds: [],
+            wetNappies: nappies(perDay: 7, days: 9),
+            now: now
+        ))
+        // Corrected age −30 is the newborn row, whose mixed union is 6...12.
+        // Off the postnatal clock this would be 5...9.
+        XCTAssertEqual(assessment.feedingReference, 6...12,
+                       "feeds are judged on corrected age — a preterm baby is not a 40-day-old")
+        // Postnatal day 40 is long past the first-week ramp; the ramp is about
+        // the transition after birth, not maturity. Off the corrected clock
+        // this would be 1.
+        XCTAssertEqual(assessment.wetNappyMinimum, 6,
+                       "nappies are judged on postnatal days — this baby has been out for 40 of them")
+    }
+
     /// The reference column comes from what was actually logged over the window,
     /// not from the profile answer — a bottle-fed baby must not be judged against
     /// the breast table.
@@ -369,7 +410,7 @@ final class FeedingAdequacyTests: XCTestCase {
 
     /// An unlogged signal must never read as zero.
     func testUnloggedSignalsAreNotEnoughDataRatherThanZero() throws {
-        let birth = day(-40)
+        let birth = birthDate(ageDays: 40)
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
             birthDate: birth, correctedBirthDate: birth, isMale: true,
             measurements: measurements(gainGramsPerDay: 5, days: 9),
@@ -390,7 +431,7 @@ final class FeedingAdequacyTests: XCTestCase {
     /// an age-band fact and is offered even with nothing logged, while
     /// `wetNappyMinimum` is withheld alongside its missing count.
     func testTheFeedingReferenceIsOfferedEvenWhenNothingWasLogged() throws {
-        let birth = day(-40)
+        let birth = birthDate(ageDays: 40)
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
             birthDate: birth, correctedBirthDate: birth, isMale: true,
             measurements: measurements(gainGramsPerDay: 5, days: 9),
@@ -431,7 +472,7 @@ final class FeedingAdequacyTests: XCTestCase {
     }
 
     func testAssessmentIsNilWithoutTwoWeighings() {
-        let birth = day(-40)
+        let birth = birthDate(ageDays: 40)
         XCTAssertNil(FeedingAdequacy.assess(
             birthDate: birth, correctedBirthDate: birth, isMale: true,
             measurements: [WeightMeasurement(date: day(0), weightKg: 4.0)],

@@ -285,10 +285,13 @@ enum FeedingAdequacy {
         guard correctedAgeDays <= maxAgeDays else { return nil }
         guard let window = window(for: measurements) else { return nil }
 
-        let sorted = measurements.sorted { $0.date < $1.date }
-        let reading = WeightVelocity.measure(
-            from: sorted[sorted.count - 2],
-            to: sorted[sorted.count - 1],
+        // `WeightVelocity.latest` pairs the same two weighings `window(for:)`
+        // does. Repeating that sort-and-take-last-two here would be a third copy
+        // of the pairing, and the day one of them drifted the gain would be
+        // measured over a different pair than the window it is reported
+        // against — the one thing this module promises cannot happen.
+        let reading = WeightVelocity.latest(
+            measurements: measurements,
             correctedBirthDate: correctedBirthDate,
             isMale: isMale
         )
