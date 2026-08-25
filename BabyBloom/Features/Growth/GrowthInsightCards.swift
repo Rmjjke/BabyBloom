@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Shared chrome
 
 /// The card shell every insight block sits in, so they read as one family.
-private struct InsightCard<Content: View>: View {
+struct InsightCard<Content: View>: View {
     let title: String
     @ViewBuilder var content: Content
 
@@ -23,7 +23,7 @@ private struct InsightCard<Content: View>: View {
 
 /// Neutral note for "not enough data yet" states. These are not failures and
 /// must not look like them — a parent who has weighed once is doing fine.
-private struct HintText: View {
+struct HintText: View {
     let text: String
 
     var body: some View {
