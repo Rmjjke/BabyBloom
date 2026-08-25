@@ -243,4 +243,105 @@ enum FeedingAdequacy {
         let covered = Set(dates.filter { window.contains($0) }.map { calendar.startOfDay(for: $0) })
         return Double(covered.count) / Double(days) >= 0.5
     }
+
+    // MARK: - Assessment
+
+    /// One verdict, assembled from the three signals over a single shared window.
+    struct Assessment: Equatable {
+        /// Whole days between the two weighings the assessment covers.
+        let windowDays: Int
+        let gain: Signal
+        /// nil when the signal is `notEnoughData` — never 0, which would read
+        /// as "your baby fed zero times".
+        let feedingsPerDay: Double?
+        /// The age band's reference, offered whether or not feeds were logged:
+        /// unlike a count, it says nothing about this baby, so there is nothing
+        /// to invent. `wetNappyMinimum` beside it is withheld with its count
+        /// instead, because a lone minimum is the number a reader completes.
+        let feedingReference: ClosedRange<Double>?
+        let feeding: Signal
+        let wetNappiesPerDay: Double?
+        let wetNappyMinimum: Double?
+        let nappies: Signal
+
+        /// The single gate for the breakdown card. Weight is the only trigger:
+        /// see the module comment.
+        var warrantsBreakdown: Bool { gain == .below }
+    }
+
+    /// nil when the feature does not apply at all: no second weighing to define
+    /// a window, or a baby past six months.
+    static func assess(
+        birthDate: Date,
+        correctedBirthDate: Date,
+        isMale: Bool,
+        measurements: [WeightMeasurement],
+        feeds: [Feed],
+        wetNappies: [Date],
+        now: Date = Date()
+    ) -> Assessment? {
+        let calendar = Calendar.current
+        let correctedAgeDays = calendar.dateComponents([.day], from: correctedBirthDate, to: now).day ?? 0
+        guard correctedAgeDays <= maxAgeDays else { return nil }
+        guard let window = window(for: measurements) else { return nil }
+
+        let sorted = measurements.sorted { $0.date < $1.date }
+        let reading = WeightVelocity.measure(
+            from: sorted[sorted.count - 2],
+            to: sorted[sorted.count - 1],
+            correctedBirthDate: correctedBirthDate,
+            isMale: isMale
+        )
+        // Gaining faster than the reference is not a concern, so `.above` joins
+        // `.within`: the two Signal cases this module publishes are "below its
+        // reference" and "not below it".
+        let gain: Signal
+        switch reading?.band {
+        case .below:            gain = .below
+        case .within, .above:   gain = .within
+        case nil:               gain = .notEnoughData
+        }
+
+        let windowFeeds = feeds.filter { window.contains($0.date) }
+        let reference = feedingReference(correctedAgeDays: correctedAgeDays,
+                                         style: style(of: windowFeeds))
+        let feedingsPerDay: Double?
+        let feedingSignal: Signal
+        // `rate` is not self-gating — it returns 0 for an empty log — so it is
+        // only ever reached behind `hasEnoughCoverage`.
+        if hasEnoughCoverage(windowFeeds.map(\.date), in: window), let reference {
+            let perDay = rate(of: windowFeeds.map(\.date), in: window)
+            feedingsPerDay = perDay
+            feedingSignal = perDay < reference.lowerBound ? .below : .within
+        } else {
+            feedingsPerDay = nil
+            feedingSignal = .notEnoughData
+        }
+
+        // POSTNATAL days, not corrected: the first-week ramp is about the
+        // transition after birth.
+        let postnatalDays = calendar.dateComponents([.day], from: birthDate, to: now).day ?? 0
+        let minimum = wetNappyMinimum(postnatalDays: postnatalDays)
+        let nappiesPerDay: Double?
+        let nappySignal: Signal
+        if hasEnoughCoverage(wetNappies, in: window) {
+            let perDay = rate(of: wetNappies, in: window)
+            nappiesPerDay = perDay
+            nappySignal = perDay < minimum ? .below : .within
+        } else {
+            nappiesPerDay = nil
+            nappySignal = .notEnoughData
+        }
+
+        return Assessment(
+            windowDays: max(1, Int((window.duration / 86_400).rounded())),
+            gain: gain,
+            feedingsPerDay: feedingsPerDay,
+            feedingReference: reference,
+            feeding: feedingSignal,
+            wetNappiesPerDay: nappiesPerDay,
+            wetNappyMinimum: nappiesPerDay == nil ? nil : minimum,
+            nappies: nappySignal
+        )
+    }
 }

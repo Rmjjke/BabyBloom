@@ -250,4 +250,218 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertEqual(FeedingAdequacy.rate(of: [], in: window), 0)
         XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage([], in: window))
     }
+
+    // MARK: - Assembly
+
+    private func measurements(gainGramsPerDay: Double, days: Int) -> [WeightMeasurement] {
+        let start = 4.0
+        return [
+            WeightMeasurement(date: day(-days), weightKg: start),
+            WeightMeasurement(date: day(0), weightKg: start + gainGramsPerDay * Double(days) / 1000),
+        ]
+    }
+
+    private func feeds(perDay: Int, days: Int, type: FeedingEntry.FeedingType = .breast) -> [FeedingAdequacy.Feed] {
+        (0..<days).flatMap { d in
+            (0..<perDay).map { _ in FeedingAdequacy.Feed(date: day(-d), type: type) }
+        }
+    }
+
+    private func nappies(perDay: Int, days: Int) -> [Date] {
+        (0..<days).flatMap { d in (0..<perDay).map { _ in day(-d) } }
+    }
+
+    private func assess(gain: Double, feedsPerDay: Int, nappiesPerDay: Int,
+                        days: Int = 9, ageDays: Int = 40,
+                        feedType: FeedingEntry.FeedingType = .breast) -> FeedingAdequacy.Assessment? {
+        let birth = day(-ageDays)
+        return FeedingAdequacy.assess(
+            birthDate: birth,
+            correctedBirthDate: birth,
+            isMale: true,
+            measurements: measurements(gainGramsPerDay: gain, days: days),
+            feeds: feeds(perDay: feedsPerDay, days: days, type: feedType),
+            wetNappies: nappies(perDay: nappiesPerDay, days: days),
+            now: now
+        )
+    }
+
+    /// THE medical rule of this feature.
+    func testGainWithinReferenceNeverWarrantsABreakdownHoweverPoorTheOtherSignals() throws {
+        // Healthy gain, almost no feeds logged, almost no nappies: the baby is
+        // getting enough, and the app must say nothing.
+        let assessment = try XCTUnwrap(assess(gain: 30, feedsPerDay: 2, nappiesPerDay: 1))
+        XCTAssertEqual(assessment.gain, .within)
+        XCTAssertEqual(assessment.feeding, .below)
+        XCTAssertEqual(assessment.nappies, .below)
+        XCTAssertFalse(assessment.warrantsBreakdown)
+    }
+
+    /// Gaining faster than the reference is not a problem either, and the band
+    /// above must map onto the same calm verdict as the band within — a
+    /// `case .within` that forgot `.above` would fall through to the trigger.
+    func testGainAboveReferenceReadsAsWithinAndNeverWarrantsABreakdown() throws {
+        // Pin the fixture itself: if 60 g/day ever stopped landing above the WHO
+        // band for this age, the assertions below would pass on a `.within`
+        // reading and prove nothing about the mapping they exist to test.
+        let weighings = measurements(gainGramsPerDay: 60, days: 9)
+        XCTAssertEqual(WeightVelocity.measure(from: weighings[0], to: weighings[1],
+                                              correctedBirthDate: day(-40), isMale: true)?.band,
+                       .above)
+
+        let assessment = try XCTUnwrap(assess(gain: 60, feedsPerDay: 2, nappiesPerDay: 1))
+        XCTAssertEqual(assessment.gain, .within)
+        XCTAssertFalse(assessment.warrantsBreakdown)
+    }
+
+    func testGainBelowReferenceWarrantsABreakdown() throws {
+        let assessment = try XCTUnwrap(assess(gain: 5, feedsPerDay: 8, nappiesPerDay: 7))
+        XCTAssertEqual(assessment.gain, .below)
+        XCTAssertTrue(assessment.warrantsBreakdown)
+    }
+
+    func testSignalsReportBelowAgainstTheirReferences() throws {
+        let assessment = try XCTUnwrap(assess(gain: 5, feedsPerDay: 3, nappiesPerDay: 2))
+        XCTAssertEqual(assessment.feeding, .below)
+        XCTAssertEqual(assessment.nappies, .below)
+        XCTAssertEqual(try XCTUnwrap(assessment.feedingsPerDay), 3, accuracy: 0.2)
+        XCTAssertEqual(try XCTUnwrap(assessment.wetNappiesPerDay), 2, accuracy: 0.2)
+    }
+
+    /// The feeding verdict turns on the reference's lower bound, so that bound is
+    /// pinned from both sides: a `<=` where `<` belongs would call a baby feeding
+    /// exactly at the reference "below" it.
+    func testFeedingVerdictTurnsExactlyAtTheReferenceLowerBound() throws {
+        // Breast at 40 days corrected: 7...9.
+        let atTheBound = try XCTUnwrap(assess(gain: 30, feedsPerDay: 7, nappiesPerDay: 7))
+        XCTAssertEqual(atTheBound.feedingReference, 7...9)
+        XCTAssertEqual(atTheBound.feeding, .within)
+
+        let oneShort = try XCTUnwrap(assess(gain: 30, feedsPerDay: 6, nappiesPerDay: 7))
+        XCTAssertEqual(oneShort.feeding, .below)
+    }
+
+    /// The same seam on the nappy counter: at the clinical minimum the baby is
+    /// within it, one below it is not.
+    func testNappyVerdictTurnsExactlyAtTheClinicalMinimum() throws {
+        let atTheMinimum = try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 6))
+        XCTAssertEqual(atTheMinimum.wetNappyMinimum, 6)
+        XCTAssertEqual(atTheMinimum.nappies, .within)
+
+        let oneShort = try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 5))
+        XCTAssertEqual(oneShort.nappies, .below)
+    }
+
+    /// The reference column comes from what was actually logged over the window,
+    /// not from the profile answer — a bottle-fed baby must not be judged against
+    /// the breast table.
+    func testFeedingReferenceFollowsTheStyleActuallyLogged() throws {
+        let breastFed = try XCTUnwrap(assess(gain: 30, feedsPerDay: 6, nappiesPerDay: 7, feedType: .breast))
+        XCTAssertEqual(breastFed.feedingReference, 7...9)
+        XCTAssertEqual(breastFed.feeding, .below)
+
+        // Six bottles a day is within the formula table, and the same six feeds
+        // must not read as "below" merely because the breast table is stricter.
+        let bottleFed = try XCTUnwrap(assess(gain: 30, feedsPerDay: 6, nappiesPerDay: 7, feedType: .formula))
+        XCTAssertEqual(bottleFed.feedingReference, 5...7)
+        XCTAssertEqual(bottleFed.feeding, .within)
+    }
+
+    /// An unlogged signal must never read as zero.
+    func testUnloggedSignalsAreNotEnoughDataRatherThanZero() throws {
+        let birth = day(-40)
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements(gainGramsPerDay: 5, days: 9),
+            feeds: [], wetNappies: [], now: now
+        ))
+        XCTAssertEqual(assessment.feeding, .notEnoughData)
+        XCTAssertEqual(assessment.nappies, .notEnoughData)
+        XCTAssertNil(assessment.feedingsPerDay)
+        XCTAssertNil(assessment.wetNappiesPerDay)
+        // The reference goes too: a minimum shown beside no measurement invites
+        // the reader to supply the missing number themselves, and they will
+        // supply zero.
+        XCTAssertNil(assessment.wetNappyMinimum)
+    }
+
+    /// The two references are deliberately not symmetric, and this pins the
+    /// difference so it cannot drift into an accident: the feeding reference is
+    /// an age-band fact and is offered even with nothing logged, while
+    /// `wetNappyMinimum` is withheld alongside its missing count.
+    func testTheFeedingReferenceIsOfferedEvenWhenNothingWasLogged() throws {
+        let birth = day(-40)
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements(gainGramsPerDay: 5, days: 9),
+            feeds: [], wetNappies: [], now: now
+        ))
+        // No feeds means no evidence of a style, so the widest band applies.
+        XCTAssertEqual(assessment.feedingReference, 5...9)
+    }
+
+    /// The mirror of the test above: once the log covers the window, both the
+    /// figure and the reference it is judged against are reported.
+    func testLoggedSignalsCarryBothTheFigureAndItsReference() throws {
+        let assessment = try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7))
+        XCTAssertEqual(try XCTUnwrap(assessment.feedingsPerDay), 8, accuracy: 0.01)
+        XCTAssertEqual(assessment.feedingReference, 7...9)
+        XCTAssertEqual(try XCTUnwrap(assessment.wetNappiesPerDay), 7, accuracy: 0.01)
+        XCTAssertEqual(assessment.wetNappyMinimum, 6)
+    }
+
+    /// The window the parent is told about is the gap between the two weighings,
+    /// so a "6 a day over 9 days" line cannot quote a stretch nothing was counted
+    /// over.
+    func testWindowDaysReportsTheGapBetweenTheTwoWeighings() throws {
+        XCTAssertEqual(try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7)).windowDays, 9)
+        XCTAssertEqual(try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7, days: 2)).windowDays, 2)
+    }
+
+    func testAssessmentIsNilPastSixMonths() {
+        XCTAssertNil(assess(gain: 5, feedsPerDay: 8, nappiesPerDay: 7, ageDays: 200))
+    }
+
+    /// The feature covers the whole of 0–6 months and stops the day after, and
+    /// the guard is pinned from both sides so an off-by-one cannot quietly cut a
+    /// day off the end.
+    func testAssessmentCoversTheLastDayOfSixMonthsAndStopsTheDayAfter() {
+        XCTAssertNotNil(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7, ageDays: 183))
+        XCTAssertNil(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7, ageDays: 184))
+    }
+
+    func testAssessmentIsNilWithoutTwoWeighings() {
+        let birth = day(-40)
+        XCTAssertNil(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: [WeightMeasurement(date: day(0), weightKg: 4.0)],
+            feeds: [], wetNappies: [], now: now
+        ))
+    }
+
+    /// A weighing gap under 3 days is noise, and WeightVelocity already refuses
+    /// it. The assessment must degrade to notEnoughData, not to a false calm.
+    func testShortWeighingGapLeavesGainUnknownAndCannotTrigger() throws {
+        let assessment = try XCTUnwrap(assess(gain: 5, feedsPerDay: 8, nappiesPerDay: 7, days: 2))
+        XCTAssertEqual(assessment.gain, .notEnoughData)
+        XCTAssertFalse(assessment.warrantsBreakdown)
+    }
+
+    /// The other side of that floor: at three days the gain is measurable again
+    /// and a poor one does trigger. Without this, refusing every gap would look
+    /// just as green.
+    func testAThreeDayWeighingGapIsTheShortestThatCanTrigger() throws {
+        let assessment = try XCTUnwrap(assess(gain: 5, feedsPerDay: 8, nappiesPerDay: 7, days: 3))
+        XCTAssertEqual(assessment.gain, .below)
+        XCTAssertTrue(assessment.warrantsBreakdown)
+    }
+
+    /// The Diapers screen's editable target must not be able to change a
+    /// clinical verdict — this asserts the assessment ignores it entirely.
+    func testNappyVerdictIgnoresTheUserEditableDailyTarget() throws {
+        UserDefaults.standard.set(2, forKey: "diaperDailyNorm")
+        defer { UserDefaults.standard.removeObject(forKey: "diaperDailyNorm") }
+        let assessment = try XCTUnwrap(assess(gain: 5, feedsPerDay: 8, nappiesPerDay: 3))
+        XCTAssertEqual(assessment.nappies, .below, "3 a day is below the clinical 6, whatever the user set")
+    }
 }
