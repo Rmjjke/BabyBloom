@@ -80,8 +80,8 @@ struct EventsView: View {
                                 iconColor: Color(hex: event.type.colorHex),
                                 title: event.type.displayName.l,
                                 subtitle: event.notes ?? (event.mood?.displayName.l ?? ""),
-                                time: event.time.formatted(.dateTime.hour().minute()),
-                                trailing: event.time.formatted(.dateTime.day().month())
+                                time: event.time.appTimeOfDay,
+                                trailing: event.time.appDayMonth
                             )
                         }
                     }

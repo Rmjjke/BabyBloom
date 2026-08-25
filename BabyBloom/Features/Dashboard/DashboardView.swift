@@ -272,7 +272,7 @@ struct DashboardView: View {
                 iconColor: BBTheme.Colors.feeding,
                 title: entry.displayTitle,
                 subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
-                time: entry.startTime.formatted(.dateTime.hour().minute())
+                time: entry.startTime.appTimeOfDay
             )
         case .sleep(let entry):
             BBEventRow(
@@ -280,7 +280,7 @@ struct DashboardView: View {
                 iconColor: BBTheme.Colors.sleep,
                 title: entry.type.displayName.l,
                 subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
-                time: entry.startTime.formatted(.dateTime.hour().minute())
+                time: entry.startTime.appTimeOfDay
             )
         case .diaper(let entry):
             BBEventRow(
@@ -288,7 +288,7 @@ struct DashboardView: View {
                 iconColor: BBTheme.Colors.diaper,
                 title: entry.displayTitle,
                 subtitle: entry.color?.displayName.l ?? "",
-                time: entry.time.formatted(.dateTime.hour().minute())
+                time: entry.time.appTimeOfDay
             )
         }
     }

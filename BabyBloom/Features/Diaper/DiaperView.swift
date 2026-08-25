@@ -305,8 +305,8 @@ struct DiaperEntryRow: View {
             iconColor: BBTheme.Colors.diaper,
             title: entry.displayTitle,
             subtitle: colorSubtitle,
-            time: entry.time.formatted(.dateTime.hour().minute()),
-            trailing: entry.time.formatted(.dateTime.day().month())
+            time: entry.time.appTimeOfDay,
+            trailing: entry.time.appDayMonth
         )
     }
 
