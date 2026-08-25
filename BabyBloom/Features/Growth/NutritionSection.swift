@@ -35,24 +35,33 @@ struct NutritionSection: View {
         }
     }
 
+    /// The icon scales off `.body` exactly as the label beside it does, and its
+    /// column follows — a fixed 14pt glyph in a fixed 20pt slot sits beside a
+    /// label that roughly doubles at the AX2 cap, and the row falls apart.
+    /// `UIFontMetrics` rather than `@ScaledMetric` so the width obeys the same
+    /// rule as `BBTheme.Typography.scaled`, which is what sizes the text: two
+    /// mechanisms would disagree wherever the environment overrides the size.
     @ViewBuilder
     private func row(icon: String, tint: Color, label: String,
                      value: Double?, signal: FeedingAdequacy.Signal) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body,
+                                                weight: .regular, design: .rounded))
                 .foregroundStyle(tint)
-                .frame(width: 20)
+                .frame(width: UIFontMetrics(forTextStyle: .body).scaledValue(for: 20))
             Text(label)
                 .font(BBTheme.Typography.scaled(15, relativeTo: .body,
                                                 weight: .medium, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: BBTheme.Spacing.sm)
             Text(statusText(value: value, signal: signal))
                 .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
                                                 weight: .semibold, design: .rounded))
                 .foregroundStyle(color(for: signal))
                 .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
