@@ -40,6 +40,7 @@
 		5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */; };
 		5FC6419793C71B2704538F73 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 35CC038C14DBB4D68AC2E233 /* ru.json */; };
 		616AE957C3EFF4537B3958DB /* ExportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6BD8327747E4A21D3AF60A7 /* ExportGenerator.swift */; };
+		6FED04C4E2EC35E409F7E079 /* FeedingAdequacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */; };
 		6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */; };
 		728453337AF25648757458E8 /* BirthPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D64BF8EAF39E2FC0EF92F8 /* BirthPage.swift */; };
 		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
@@ -77,6 +78,7 @@
 		D60724F29DD2FC8D921A4F45 /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
 		D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */; };
+		D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
 		E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582657DC180DE03128A75629 /* NewbornWeightLoss.swift */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
@@ -179,6 +181,7 @@
 		96AF18E1355A04D9F979B421 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLossTests.swift; sourceTree = "<group>"; };
 		9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingAdequacy.swift; sourceTree = "<group>"; };
 		9C25B2EC0FCAB1DDE48B3F66 /* WHOGrowthStandard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOGrowthStandard.swift; sourceTree = "<group>"; };
 		9E61620C5985E78F54CE8166 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCharts.swift; sourceTree = "<group>"; };
@@ -187,6 +190,7 @@
 		AF132187ABB4B5BC1E7D47B2 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		B2D64BF8EAF39E2FC0EF92F8 /* BirthPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthPage.swift; sourceTree = "<group>"; };
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
+		B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingAdequacyTests.swift; sourceTree = "<group>"; };
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
 		C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoptionTests.swift; sourceTree = "<group>"; };
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
@@ -341,6 +345,7 @@
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				E20695F09E09928450CDCEC8 /* DateAppLocaleTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
+				B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */,
 				C9D97024281147567091924D /* GrowthCardRenderDump.swift */,
 				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
@@ -464,6 +469,7 @@
 		92872E639174190CE7FD2042 /* Growth */ = {
 			isa = PBXGroup;
 			children = (
+				9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */,
 				0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */,
 				582657DC180DE03128A75629 /* NewbornWeightLoss.swift */,
 				001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */,
@@ -731,6 +737,7 @@
 				616AE957C3EFF4537B3958DB /* ExportGenerator.swift in Sources */,
 				86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */,
 				3FE874AF7EB96FB4DB3B9E5F /* FactPage.swift in Sources */,
+				6FED04C4E2EC35E409F7E079 /* FeedingAdequacy.swift in Sources */,
 				0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */,
 				5A51B05B0B810D61B1B12783 /* FeedingPage.swift in Sources */,
 				CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */,
@@ -771,6 +778,7 @@
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				19712AA4FA93D6A64A2671FA /* DateAppLocaleTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
+				D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */,
 				54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */,
 				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
