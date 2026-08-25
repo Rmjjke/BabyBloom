@@ -151,4 +151,65 @@ enum FeedingAdequacy {
         default:    return 6
         }
     }
+
+    // MARK: - Window
+
+    /// The interval the assessment covers: between the two most recent
+    /// weighings. Feeds and nappies are counted over this same window, so a
+    /// "few feeds" figure can never sit beside a gain measured across a
+    /// different week.
+    static func window(for measurements: [WeightMeasurement]) -> DateInterval? {
+        let sorted = measurements.sorted { $0.date < $1.date }
+        guard sorted.count >= 2 else { return nil }
+        let start = sorted[sorted.count - 2].date
+        let end = sorted[sorted.count - 1].date
+        guard end > start else { return nil }
+        return DateInterval(start: start, end: end)
+    }
+
+    // MARK: - Feeding style
+
+    /// The dominant feeding style over the window, from what was logged.
+    ///
+    /// Pumped milk is bottle-fed on a formula-like schedule, so it counts with
+    /// formula for FREQUENCY purposes — this says nothing about what is in the
+    /// bottle. Below the dominance threshold the baby is genuinely mixed-fed
+    /// and gets the union reference; with no feeds at all, the same, because
+    /// the widest band is the honest choice when there is no evidence.
+    static func style(of feeds: [Feed]) -> FeedingStyle {
+        guard !feeds.isEmpty else { return .mixed }
+        let dominanceThreshold = 0.8
+        let breastShare = Double(feeds.filter { $0.type == .breast }.count) / Double(feeds.count)
+        if breastShare >= dominanceThreshold { return .breast }
+        if (1 - breastShare) >= dominanceThreshold { return .formula }
+        return .mixed
+    }
+
+    // MARK: - Counting
+
+    /// Events per day over the window.
+    ///
+    /// The one-day floor keeps a short window from multiplying a handful of
+    /// entries into an implausible daily figure; erring low is the safe
+    /// direction here, since a low count is only ever context.
+    ///
+    /// Returns 0 for an empty log, which is why no caller may show this figure
+    /// without `hasEnoughCoverage` first: an unlogged day is unknown, not zero.
+    static func rate(of dates: [Date], in window: DateInterval) -> Double {
+        let days = max(1.0, window.duration / 86_400)
+        let inside = dates.filter { window.contains($0) }.count
+        return Double(inside) / days
+    }
+
+    /// Whether the logs cover enough of the window to support a conclusion.
+    ///
+    /// Counts DAYS WITH AT LEAST ONE ENTRY, not entries: ten records on a single
+    /// day are a busy Tuesday, not a fortnight of evidence. Below half the days,
+    /// the signal reports `notEnoughData`.
+    static func hasEnoughCoverage(_ dates: [Date], in window: DateInterval) -> Bool {
+        let calendar = Calendar.current
+        let days = max(1, Int((window.duration / 86_400).rounded()))
+        let covered = Set(dates.filter { window.contains($0) }.map { calendar.startOfDay(for: $0) })
+        return Double(covered.count) / Double(days) >= 0.5
+    }
 }
