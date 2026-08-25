@@ -33,7 +33,15 @@ enum FeedingAdequacy {
         case mixed
     }
 
-    /// One logged feed, stripped of storage concerns.
+    /// One logged feed: the moment and the kind, and nothing else. No SwiftData
+    /// object, no identity, no relationship back to the baby — the callers in
+    /// later tasks map persisted rows onto this before any maths runs.
+    ///
+    /// `type` does reach into the model layer for `FeedingEntry.FeedingType`,
+    /// which is deliberate: that enum is a plain `String`/`Codable`/
+    /// `CaseIterable` with no persistence machinery of its own, and restating it
+    /// here would create a second vocabulary for the same three cases plus a
+    /// mapping layer to keep in step.
     struct Feed: Equatable {
         let date: Date
         let type: FeedingEntry.FeedingType
@@ -55,8 +63,8 @@ enum FeedingAdequacy {
     ///
     /// - Breast, 0–4 weeks: American Academy of Pediatrics, *New Mother's Guide
     ///   to Breastfeeding*, 2nd ed., which puts the reference at eight to twelve
-    ///   feedings in every twenty-four-hour period, with gaps of no more than
-    ///   about two to three hours by day and four at night.
+    ///   feedings in every twenty-four-hour period, and describes the usual gaps
+    ///   as no more than about two to three hours by day and four at night.
     ///   https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/How-Often-to-Breastfeed.aspx
     /// - Formula: AAP, *Caring for Your Baby and Young Child: Birth to Age 5*,
     ///   7th ed. — newborns "feed on a more regular schedule, such as every 3 or
@@ -65,6 +73,16 @@ enum FeedingAdequacy {
     ///   feedings — occasionally up to 4 or 5 hours"; by 6 months "4 or 5
     ///   feedings in 24 hours".
     ///   https://www.healthychildren.org/English/ages-stages/baby/formula-feeding/Pages/amount-and-schedule-of-formula-feedings.aspx
+    /// - **AAP contradicts itself on the newborn formula floor, and the
+    ///   permissive end is taken.** A second AAP page states that "most newborns
+    ///   eat every 2 to 3 hours; 8 times is generally recommended as the minimum
+    ///   every 24 hours" — a floor of 8, not the 6 that "every 3 or 4 hours"
+    ///   gives. 6 is used. Feeding frequency is context and can never reach a
+    ///   conclusion by itself, so the two errors are not symmetric: too strict
+    ///   spends a false "below the reference" on a thriving baby, while too
+    ///   permissive costs one supporting line inside a breakdown that the weight
+    ///   signal had already opened.
+    ///   https://www.healthychildren.org/English/ages-stages/baby/feeding-nutrition/Pages/how-often-and-how-much-should-your-baby-eat.aspx
     /// - Breast past the newborn month: CDC, *How Much and How Often to
     ///   Breastfeed* — "most exclusively breastfed babies will feed every 2 to 4
     ///   hours" (6–12 a day). The published sources stop giving per-month
@@ -112,17 +130,25 @@ enum FeedingAdequacy {
     ///   day 5 onwards, wet nappies should start to become more frequent, with
     ///   at least 6 heavy, wet nappies every 24 hours."
     ///   https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding-problems/enough-milk/
-    /// - The day-by-day ramp over days 1–4 follows the UNICEF UK Baby Friendly
-    ///   nappy chart as published by Cambridge University Hospitals NHS FT:
-    ///   days 1–2 "1–2 or more per day", days 3–4 "3 or more per day".
+    /// - The ramp over days 1–4 follows the UNICEF UK Baby Friendly nappy chart
+    ///   as published by Cambridge University Hospitals NHS FT, which gives days
+    ///   1–2 as "1–2 or more per day" and days 3–4 as "3 or more per day". Note
+    ///   the chart flattens at 3 rather than continuing to track the day number:
+    ///   day 4 is 3, not 4.
     ///   https://www.cuh.nhs.uk/rosie-hospital/maternity/infant-feeding/signs-your-baby-is-getting-enough-milk/
-    /// - AAP puts the settled figure slightly lower — "after the first 4 to 5
-    ///   days, a baby should have at least 5 to 6 wet diapers a day" — so 6 is
-    ///   the strict end of the published range. It is used because the NHS
-    ///   states it outright, and because this signal never raises a concern on
-    ///   its own; only weight gain does.
+    /// - AAP puts the settled figure slightly lower, giving at least 5 to 6 wet
+    ///   nappies a day after the first four to five days, so 6 is the strict end
+    ///   of the published range. It is used because the NHS states it outright,
+    ///   and because this signal never raises a concern on its own; only weight
+    ///   gain does.
     static func wetNappyMinimum(postnatalDays: Int) -> Double {
-        guard postnatalDays >= 5 else { return Double(max(1, postnatalDays)) }
-        return 6
+        switch postnatalDays {
+        // Also the floor for a zero or negative day: the reference is never 0,
+        // because "none expected" is not something this function can mean.
+        case ..<2:  return 1
+        case 2:     return 2
+        case 3, 4:  return 3
+        default:    return 6
+        }
     }
 }
