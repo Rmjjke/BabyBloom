@@ -777,9 +777,9 @@ struct NutritionSection: View {
 
                     // The gain row shows STATUS ONLY. Grams per week stay in the
                     // Premium WeightGainCard, where they already are.
-                    row(icon: "heart.fill", tint: BBTheme.Colors.feeding,
+                    row(icon: "chart.line.uptrend.xyaxis", tint: BBTheme.Colors.growth,
                         label: "nutrition.row_gain".l, value: nil, signal: assessment.gain)
-                    row(icon: "drop.halffull", tint: BBTheme.Colors.primary,
+                    row(icon: "heart.fill", tint: BBTheme.Colors.feeding,
                         label: "nutrition.row_feeds".l,
                         value: assessment.feedingsPerDay, signal: assessment.feeding)
                     row(icon: "drop.fill", tint: BBTheme.Colors.diaper,
