@@ -388,5 +388,22 @@
   "widget.feedings_count": "Feedings: %d",
   "widget.description_small": "A quick look at how your baby is doing",
   "widget.name_medium": "%@ — Detailed",
-  "widget.description_medium": "An overview of feedings and sleep"
+  "widget.description_medium": "An overview of feedings and sleep",
+  "section.nutrition": "Nutrition",
+  "nutrition.window_fmt": "Over %d %@",
+  "nutrition.row_gain": "Weight gain",
+  "nutrition.row_feeds": "Feeds",
+  "nutrition.row_nappies": "Wet diapers",
+  "nutrition.status_below": "below the reference",
+  "nutrition.status_within": "within the reference",
+  "nutrition.status_unknown": "not enough data",
+  "nutrition.per_day_fmt": "%.0f a day",
+  "nutrition.need_weighing": "Add another weighing to see this",
+  "breakdown.title": "Gain is below the reference",
+  "breakdown.gain_fmt": "%d g/week over %d %@. The reference for this age is %d–%d g/week.",
+  "breakdown.feeds_fmt": "Feeds: %.0f a day, reference %.0f–%.0f.",
+  "breakdown.nappies_fmt": "Wet diapers: %.0f a day, reference %.0f or more.",
+  "breakdown.no_data": "There aren't enough feeding and diaper logs in this period to compare.",
+  "breakdown.disclaimer": "This is an observation, not a diagnosis. Worth discussing with your pediatrician.",
+  "premium.teaser_nutrition": "See how feeds and diapers in this period compare with the references"
 }

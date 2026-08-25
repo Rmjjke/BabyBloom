@@ -388,5 +388,22 @@
   "widget.feedings_count": "Кормлений: %d",
   "widget.description_small": "Быстрый обзор состояния малыша",
   "widget.name_medium": "%@ — Подробно",
-  "widget.description_medium": "Обзор кормлений и сна малыша"
+  "widget.description_medium": "Обзор кормлений и сна малыша",
+  "section.nutrition": "Питание",
+  "nutrition.window_fmt": "За %d %@",
+  "nutrition.row_gain": "Прибавка",
+  "nutrition.row_feeds": "Кормления",
+  "nutrition.row_nappies": "Мокрые подгузники",
+  "nutrition.status_below": "ниже ориентира",
+  "nutrition.status_within": "в пределах ориентира",
+  "nutrition.status_unknown": "мало данных",
+  "nutrition.per_day_fmt": "%.0f в сутки",
+  "nutrition.need_weighing": "Добавьте ещё одно взвешивание, чтобы увидеть эти данные",
+  "breakdown.title": "Прибавка ниже ориентира",
+  "breakdown.gain_fmt": "%d г/нед за %d %@. Ориентир для этого возраста — %d–%d г/нед.",
+  "breakdown.feeds_fmt": "Кормлений: %.0f в сутки, ориентир %.0f–%.0f.",
+  "breakdown.nappies_fmt": "Мокрых подгузников: %.0f в сутки, ориентир от %.0f.",
+  "breakdown.no_data": "Записей о кормлениях и подгузниках за этот период слишком мало для сравнения.",
+  "breakdown.disclaimer": "Это наблюдение, а не диагноз. Стоит обсудить с педиатром.",
+  "premium.teaser_nutrition": "Смотрите, как кормления и подгузники за этот период соотносятся с ориентирами"
 }

@@ -388,5 +388,22 @@
   "widget.feedings_count": "Tomas: %d",
   "widget.description_small": "Un vistazo rápido al estado de tu bebé",
   "widget.name_medium": "%@ — Detallado",
-  "widget.description_medium": "Resumen de tomas y sueño"
+  "widget.description_medium": "Resumen de tomas y sueño",
+  "section.nutrition": "Nutrición",
+  "nutrition.window_fmt": "En %d %@",
+  "nutrition.row_gain": "Aumento de peso",
+  "nutrition.row_feeds": "Tomas",
+  "nutrition.row_nappies": "Pañales mojados",
+  "nutrition.status_below": "por debajo de la referencia",
+  "nutrition.status_within": "dentro de la referencia",
+  "nutrition.status_unknown": "faltan datos",
+  "nutrition.per_day_fmt": "%.0f al día",
+  "nutrition.need_weighing": "Añade otro pesaje para ver estos datos",
+  "breakdown.title": "El aumento está por debajo de la referencia",
+  "breakdown.gain_fmt": "%d g/sem en %d %@. La referencia para esta edad es %d–%d g/sem.",
+  "breakdown.feeds_fmt": "Tomas: %.0f al día, referencia %.0f–%.0f.",
+  "breakdown.nappies_fmt": "Pañales mojados: %.0f al día, referencia %.0f o más.",
+  "breakdown.no_data": "Hay muy pocos registros de tomas y pañales en este periodo para comparar.",
+  "breakdown.disclaimer": "Esto es una observación, no un diagnóstico. Conviene comentarlo con el pediatra.",
+  "premium.teaser_nutrition": "Consulta cómo se comparan las tomas y los pañales de este periodo con las referencias"
 }
