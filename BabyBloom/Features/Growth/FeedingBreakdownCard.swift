@@ -53,11 +53,14 @@ struct FeedingBreakdownCard: View {
     }
 
     /// The interval comes from `reading`, NOT from `assessment.windowDays`.
-    /// Both describe the same two weighings, but they round differently —
-    /// `WeightVelocity.intervalDays` truncates via `dateComponents([.day])`
-    /// while `windowDays` rounds to nearest — so a 11.54-day gap is 11 and 12
-    /// respectively. The rate in this sentence is divided by the former, and
-    /// `WeightGainCard` sits directly above printing the former too.
+    /// Both describe the same two weighings and both are now the same whole-day
+    /// `Calendar.current.dateComponents([.day], from:to:)` count, so the two
+    /// agree by construction — including across a DST transition, which is what
+    /// they used to disagree over. `reading` is still the right source here:
+    /// the rate in this sentence is divided by `reading.intervalDays`, and
+    /// `WeightGainCard` sits directly above printing that same value, so the
+    /// number and its divisor stay one thing rather than two that happen to
+    /// match.
     private var gainLine: String? {
         guard let reading, let expected = reading.expectedPerWeek else { return nil }
         return String(format: "breakdown.gain_fmt".l,

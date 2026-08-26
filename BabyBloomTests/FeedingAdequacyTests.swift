@@ -462,17 +462,26 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7, days: 2)).windowDays, 2)
     }
 
-    /// A part-day gap is TRUNCATED, not rounded, and this is the case that tells
-    /// the two apart.
+    /// A part-day gap counts as the whole days it contains, and this is the case
+    /// that tells that apart from rounding to nearest.
     ///
     /// Rounding was individually defensible, but one pair of weighings is
     /// described three times down a single Growth screen — `WeightGainCard`,
     /// this window label, and `FeedingBreakdownCard` — and the two cards take
-    /// their count from `WeightVelocity.intervalDays`, which truncates. A render
-    /// of the three stacked showed "9 days", "10 days", "9 days" for one pair.
-    /// So the label understates by a matter of hours rather than disagreeing
-    /// with its neighbours, and this test pins the agreement rather than merely
-    /// the number.
+    /// their count from `WeightVelocity.intervalDays`. A render of the three
+    /// stacked showed "9 days", "10 days", "9 days" for one pair. So the label
+    /// understates by a matter of hours rather than disagreeing with its
+    /// neighbours.
+    ///
+    /// **The equality assertion below is true by construction, not by
+    /// coverage.** `windowDays` and `intervalDays` are now the same
+    /// `Calendar.current.dateComponents([.day], from:to:)` call over the same
+    /// two dates, so no fixture built in this file can separate them — and this
+    /// file's dates are built in a pinned UTC calendar besides, which is a
+    /// second reason it cannot. It is kept as a statement of the invariant a
+    /// reader of either function should not break.
+    /// `testWindowDaysSurvivesADaylightSavingTransition` is the test that can
+    /// actually fail when it is broken.
     func testWindowDaysTruncatesSoTheLabelAgreesWithTheCardsAroundIt() throws {
         let birth = birthDate(ageDays: 40)
         // 9 days 14 hours: rounds to 10, truncates to 9.
@@ -491,6 +500,53 @@ final class FeedingAdequacyTests: XCTestCase {
                                                           isMale: true))
         XCTAssertEqual(assessment.windowDays, reading.intervalDays,
                        "the section header and the cards either side of it name one period")
+    }
+
+    /// The one case where a real-seconds day count and a calendar day count
+    /// disagree — and the whole reason `windowDays` is computed the second way.
+    ///
+    /// Both `FeedingAdequacy.assess` and `WeightVelocity` read
+    /// `Calendar.current`, so a DST fixture can only reach them by moving the
+    /// process's default time zone; the pinned UTC calendar the rest of this
+    /// file uses is by definition unable to express this case. Restored in a
+    /// teardown block, because other suites in this process assert on
+    /// calendar-derived output.
+    ///
+    /// Against the previous implementation — `Int(window.duration / 86_400)` —
+    /// this fails with 8 instead of 9, which is the parent seeing "Over 8 days"
+    /// as a header directly above "119 g/week over 9 days".
+    func testWindowDaysSurvivesADaylightSavingTransition() throws {
+        let originalZone = NSTimeZone.default
+        addTeardownBlock { NSTimeZone.default = originalZone }
+        let london = TimeZone(identifier: "Europe/London")!
+        NSTimeZone.default = london
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = london
+        // The UK springs forward on 2026-03-29, so noon on the 22nd to noon on
+        // the 31st is nine calendar days but only 8 d 23 h of elapsed time.
+        let start = calendar.date(from: DateComponents(year: 2026, month: 3, day: 22, hour: 12))!
+        let end   = calendar.date(from: DateComponents(year: 2026, month: 3, day: 31, hour: 12))!
+        XCTAssertEqual(end.timeIntervalSince(start), 9 * 86_400 - 3_600,
+                       "this fixture only tests anything while it is an hour short of nine days")
+
+        let birth = calendar.date(byAdding: .day, value: -40, to: end)!
+        let measurements = [
+            WeightMeasurement(date: start, weightKg: 4.0),
+            WeightMeasurement(date: end,   weightKg: 4.3),
+        ]
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements, feeds: [], wetNappies: [], now: end
+        ))
+        let reading = try XCTUnwrap(WeightVelocity.latest(measurements: measurements,
+                                                          correctedBirthDate: birth,
+                                                          isMale: true))
+
+        XCTAssertEqual(assessment.windowDays, 9,
+                       "nine calendar days, even though only 8 d 23 h elapsed")
+        XCTAssertEqual(assessment.windowDays, reading.intervalDays,
+                       "the header and the cards either side of it name one period, DST or not")
     }
 
     /// The truncation is a LABEL change and must stay one: the per-day figures

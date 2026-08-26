@@ -64,10 +64,12 @@ final class NutritionRenderDump: XCTestCase {
     private struct Scenario {
         /// Days after birth of the EARLIER of the two weighings.
         let firstWeighingDay: Double
-        /// Gap between the two weighings. Fractional on purpose in the `below`
-        /// family: whole-day gaps make `WeightVelocity.intervalDays` (truncated)
-        /// and `Assessment.windowDays` (rounded) agree by accident, which would
-        /// make the stacked day-count check prove nothing.
+        /// Gap between the two weighings. Fractional in the `below` family, which
+        /// is now only a part-day fixture and no longer a divergence one:
+        /// `WeightVelocity.intervalDays` and `Assessment.windowDays` are the
+        /// same whole-day calendar count, so the day-count check on the stacked
+        /// image is a check that they still MATCH. Left fractional so the
+        /// existing images stay comparable across runs.
         let gapDays: Double
         let startKg: Double
         let gramsPerDay: Double
@@ -82,7 +84,8 @@ final class NutritionRenderDump: XCTestCase {
                                    gramsPerDay: 35, feedsPerDay: 8, nappiesPerDay: 7)
 
         /// The case the feature exists for: gain below, both context signals
-        /// below too. 9.6 days so the two day-count roundings diverge (9 vs 10).
+        /// below too. 9.6 days: a part-day gap, which both day counts render as
+        /// 9 — the stacked image should read "9 days" three times over.
         static let below = Scenario(firstWeighingDay: 30, gapDays: 9.6, startKg: 4.0,
                                     gramsPerDay: 17, feedsPerDay: 5, nappiesPerDay: 4)
 

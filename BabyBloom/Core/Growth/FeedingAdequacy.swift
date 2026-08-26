@@ -248,18 +248,32 @@ enum FeedingAdequacy {
 
     /// One verdict, assembled from the three signals over a single shared window.
     struct Assessment: Equatable {
-        /// Whole days between the two weighings the assessment covers,
-        /// TRUNCATED — a 9.6-day gap is 9, not 10.
+        /// Whole days between the two weighings the assessment covers — a
+        /// 9.6-day gap is 9, not 10.
         ///
         /// Label only: nothing computes from this. The per-day rates divide by
         /// the window's real duration, so their arithmetic is unaffected by the
-        /// truncation. Truncated rather than rounded because `WeightVelocity`
-        /// truncates too, and the same pair of weighings is described by three
-        /// sentences on one screen — the gain card, this section's header and
-        /// the breakdown card. Each rounding was individually defensible; the
-        /// render dump showed "9 days", "10 days" and "9 days" stacked down one
-        /// screen, and one period stated three ways is worse than a count that
-        /// understates by a matter of hours.
+        /// whole-day count.
+        ///
+        /// **Counted the same way `WeightVelocity.intervalDays` is** —
+        /// `Calendar.current.dateComponents([.day], from:to:)`, whole days on
+        /// the wall clock — and that identity is the point, not an incidental
+        /// detail. One pair of weighings is described by three sentences down a
+        /// single Growth screen: the gain card, this section's header and the
+        /// breakdown card. An earlier version divided the window's real
+        /// duration by 86_400 instead, which agrees with the calendar on every
+        /// ordinary window and disagrees across a daylight-saving transition,
+        /// where a 9-calendar-day window lasts 8 d 23 h: the header would read
+        /// "Over 8 days" directly above "over 9 days". Two counts that agree
+        /// almost always are worse than one count, because the render that
+        /// would catch them is the one nobody takes in March.
+        ///
+        /// The `max(1, …)` floor matters for the same reason `window(for:)`
+        /// admits a pair only 86_400 real seconds apart: an autumn fall-back
+        /// makes that span 23 wall-clock hours, i.e. zero calendar days. A pair
+        /// that close is below `WeightVelocity.minimumIntervalDays`, so no card
+        /// states a rival count — the floor only keeps the header from saying
+        /// "Over 0 days".
         let windowDays: Int
         let gain: Signal
         /// nil when the signal is `notEnoughData` — never 0, which would read
@@ -348,7 +362,9 @@ enum FeedingAdequacy {
         }
 
         return Assessment(
-            windowDays: max(1, Int(window.duration / 86_400)),
+            windowDays: max(1, calendar.dateComponents([.day],
+                                                       from: window.start,
+                                                       to: window.end).day ?? 1),
             gain: gain,
             feedingsPerDay: feedingsPerDay,
             feedingReference: reference,
