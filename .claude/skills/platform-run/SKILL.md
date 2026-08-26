@@ -63,12 +63,27 @@ scenario's data untouched). Under Maestro the value goes in the same
 
     "-BBSeedScenario": "lowGain"
 
+> ### ⚠️ Run seeded flows only on a simulator that is NOT signed into iCloud
+>
+> Seeding **wipes the database first** — every `Baby` and every entry. The
+> simulator gate keeps that out of shipped binaries; it does not make it local.
+> The model container is `cloudKitDatabase: .automatic`, so on a simulator
+> signed into a real Apple Account the wipe deletes those records from **that
+> account's private CloudKit database** — the ones the person's own phone is
+> syncing — and then pushes the fixture baby out in their place. There is no
+> undo.
+>
+> Before the first seeded run: Settings ▸ [your name] ▸ Sign Out on the
+> simulator, or pick a simulator that was never signed in. A simulator with no
+> account does not sync at all, which is the normal state for a test run.
+
 **Spell the name right, and it will tell you if you did not.** The names are
 case-sensitive (`lowGain`, `healthy`, `sparseLogs`). An unrecognised value logs
-a fault naming it and the valid ones, then traps — the app dies on launch, so a
-typo fails the flow instead of quietly running it against the previous flow's
-leftover data. A successful seed logs `Seeded scenario <name>.` under subsystem
-`com.nenita.app`, category `SeedScenario`, which is the cheapest way to confirm
+a fault naming it and the valid ones, then calls `fatalError` — the app dies on
+launch in every build configuration (`assertionFailure` would vanish under
+Release), so a typo fails the flow instead of quietly running it against the
+previous flow's leftover data. A successful seed logs `Seeded scenario <name>.`
+under subsystem `com.nenita.app`, category `SeedScenario`, the cheapest way to confirm
 which fixture a run's assertions actually saw:
 
     xcrun simctl spawn booted log stream --predicate 'subsystem == "com.nenita.app"'
@@ -113,7 +128,9 @@ database:
     xcrun simctl erase <udid>                           # everything, needs shutdown first
 
 CloudKit sync is `.automatic`; a simulator without an iCloud account simply
-does not sync, which is the normal state for test runs.
+does not sync, which is the normal state for test runs — and the state
+`-BBSeedScenario` requires, since its wipe would otherwise reach a real
+account's private database (see the warning above).
 
 ## Looking at the result
 
