@@ -16,7 +16,7 @@ extension Double {
     /// measured 7.96 displays as "8" while the verdict beside it still reads
     /// "below the reference", against a reference that starts at 8. That strip
     /// is reachable — the rate divides by the raw un-floored interval between
-    /// two weighings, so 20 feeds over 2.5157 days is exactly 7.95 — and every
+    /// two weighings, so 20 feeds over 2.5157 days is 7.95007… — and every
     /// bound in the feeding table (8, 7, 6, 5, 4) has one beneath it.
     /// Truncating is one-sided and sufficient: a below-bound value can never
     /// display AT the bound, whole values are untouched, and the mirror case is

@@ -398,7 +398,7 @@
   "nutrition.status_within": "within the reference",
   "nutrition.status_unknown": "not enough data",
   "nutrition.per_day_fmt": "%@ a day",
-  "nutrition.need_weighing": "Add another weighing to see this",
+  "nutrition.need_weighing": "Two weighings at least a day apart are needed",
   "breakdown.title": "Gain is below the reference",
   "breakdown.gain_fmt": "%d g/week over %d %@. The reference for this age is %d–%d g/week.",
   "breakdown.feeds_fmt": "Feedings: %@ a day, reference %d–%d.",

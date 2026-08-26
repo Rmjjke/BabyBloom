@@ -59,6 +59,13 @@ struct NutritionSection: View {
     /// of the card and breaks between words like prose. Below it, nothing
     /// changes: the side-by-side row is the design, and it holds at every
     /// non-accessibility size in all three languages.
+    ///
+    /// **One VoiceOver stop per row, in both layouts.** A label and its status
+    /// are one statement — "Weight gain, below the reference" — and swiping
+    /// through them separately breaks it in half, with the icon announcing a
+    /// third, meaningless stop in between (`iconView` hides itself for that
+    /// reason). `.combine` also keeps the two layouts identical to a VoiceOver
+    /// user, who cannot see that the status has moved onto its own line.
     @ViewBuilder
     private func row(icon: String, tint: Color, label: String,
                      value: Double?, signal: FeedingAdequacy.Signal) -> some View {
@@ -75,6 +82,7 @@ struct NutritionSection: View {
                     .padding(.leading, iconColumnWidth + BBTheme.Spacing.sm)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
         } else {
             HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                 iconView(icon, tint: tint)
@@ -83,6 +91,7 @@ struct NutritionSection: View {
                 statusView(value: value, signal: signal)
                     .multilineTextAlignment(.trailing)
             }
+            .accessibilityElement(children: .combine)
         }
     }
 
@@ -92,12 +101,16 @@ struct NutritionSection: View {
         UIFontMetrics(forTextStyle: .body).scaledValue(for: 20)
     }
 
+    /// Hidden from VoiceOver: the glyph carries no information the label does
+    /// not, and without this the combined row opens by reading out the SF
+    /// Symbol name ("chart line uptrend xyaxis") before the words that matter.
     private func iconView(_ icon: String, tint: Color) -> some View {
         Image(systemName: icon)
             .font(BBTheme.Typography.scaled(14, relativeTo: .body,
                                             weight: .regular, design: .rounded))
             .foregroundStyle(tint)
             .frame(width: iconColumnWidth)
+            .accessibilityHidden(true)
     }
 
     private func labelView(_ label: String) -> some View {
