@@ -76,6 +76,8 @@ tags: [regression]
 - assertVisible: ".*aren't enough feeding and diaper logs in this period to compare.*"
 - assertVisible: ".*This is an observation, not a diagnosis.*"
 - assertNotVisible: ".*See how feeds and diapers in this period compare.*"
+# Viewport, not whole screen: it guards the nutrition card in view, not every
+# card on the screen. See the note in AC2-nutrition-breakdown.yaml.
 - assertNotVisible: ".*Available with Premium.*"
 
 # THE POINT OF THE SCENARIO. Nothing unlogged may surface as a number.

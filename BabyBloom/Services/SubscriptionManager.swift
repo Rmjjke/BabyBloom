@@ -61,6 +61,15 @@ final class SubscriptionManager {
     /// `FeedingBreakdownCard` and a `LockedInsightCard` that carries the SAME
     /// title string, so without a way to force the paid branch an e2e
     /// assertion on that title passes whether the paid card works or not.
+    ///
+    /// **Its blast radius is the whole app, not one card.** Everything gated on
+    /// `isPremium` opens at once: the gain and trend cards, Export, the paywall
+    /// badge — and growth NOTIFICATIONS, because `GrowthView` passes
+    /// `store.isPremium` into `NotificationManager.onGrowthDataChanged`, whose
+    /// `guard isPremium else { return }` then lets scheduling through. So a
+    /// seeded run with this argument schedules notifications a free run would
+    /// not. All simulator-only and intended, but do not be surprised by a
+    /// notification arriving mid-flow.
     private static let forcePremiumOverride = UserDefaults.standard.bool(forKey: "BBForcePremium")
     #endif
 

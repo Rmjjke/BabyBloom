@@ -87,7 +87,10 @@ tags: [regression]
 # The two comparison lines, matched by their SHAPE so no figure is pinned.
 - assertVisible: ".*Feedings: .* a day, reference .*"
 - assertVisible: ".*Wet diapers: .* a day, reference .* or more.*"
-# LOCKED CARD ABSENT: its teaser, and the hint every locked card on this screen
-# carries — with Premium forced on, no card here may be locked at all.
+# LOCKED CARD ABSENT: its teaser, and the hint every locked card carries.
+# The hint is a VIEWPORT check, not a whole-screen one — Maestro sees only what
+# is rendered, and after the second scroll the locked gain and trend cards may
+# already be above the fold. What it reliably guards is that the nutrition card
+# in view is not a placeholder; the teaser above it is the specific check.
 - assertNotVisible: ".*See how feeds and diapers in this period compare.*"
 - assertNotVisible: ".*Available with Premium.*"
