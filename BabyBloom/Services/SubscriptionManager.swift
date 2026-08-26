@@ -4,8 +4,69 @@ import StoreKit
 // MARK: - Product IDs
 // Must exactly match the identifiers created in App Store Connect.
 extension SubscriptionManager {
+    static let weeklyID  = "com.nenita.app.premium.weekly"
     static let monthlyID = "com.nenita.app.premium.monthly"
     static let yearlyID  = "com.nenita.app.premium.yearly"
+}
+
+// MARK: - Plan comparison
+//
+// Savings are computed from the prices the App Store actually returns, never
+// from constants: a price changed in App Store Connect must move the badge
+// with it, or the screen ends up advertising a discount it does not give.
+//
+// The maths is separated from `Product` so it can be tested without StoreKit.
+extension SubscriptionManager {
+
+    /// A subscription's renewal period, reduced to what price comparison needs.
+    enum PlanPeriod {
+        case day, week, month, year
+
+        /// How many of this period fit in a year. Approximate for days and
+        /// weeks by exactly the amount the calendar is untidy — which is fine
+        /// here, because the result is rounded to a whole percent.
+        nonisolated var perYear: Decimal {
+            switch self {
+            case .day:   return 365
+            case .week:  return 52
+            case .month: return 12
+            case .year:  return 1
+            }
+        }
+
+        /// StoreKit's unit, reduced to ours. nil for a unit Apple adds later —
+        /// better no badge than a wrong one.
+        nonisolated init?(_ unit: Product.SubscriptionPeriod.Unit) {
+            switch unit {
+            case .day:   self = .day
+            case .week:  self = .week
+            case .month: self = .month
+            case .year:  self = .year
+            @unknown default: return nil
+            }
+        }
+    }
+
+    /// What a year of this plan costs, so plans of different lengths compare.
+    /// nil for a non-positive period, which no real product has.
+    nonisolated static func annualizedPrice(_ price: Decimal, per period: PlanPeriod, count: Int) -> Decimal? {
+        guard count > 0 else { return nil }
+        return price * period.perYear / Decimal(count)
+    }
+
+    /// How much cheaper one plan is than another over a year, as a whole
+    /// percent. nil when it is not cheaper — a badge is only ever a saving,
+    /// and a negative one would read as a surcharge.
+    nonisolated static func savingsPercent(
+        of price: Decimal, per period: PlanPeriod, count: Int,
+        comparedTo basePrice: Decimal, per basePeriod: PlanPeriod, count baseCount: Int
+    ) -> Int? {
+        guard let annual = annualizedPrice(price, per: period, count: count),
+              let baseAnnual = annualizedPrice(basePrice, per: basePeriod, count: baseCount),
+              baseAnnual > 0, annual < baseAnnual else { return nil }
+        let fraction = (baseAnnual - annual) / baseAnnual
+        return Int(NSDecimalNumber(decimal: fraction * 100).doubleValue.rounded())
+    }
 }
 
 // MARK: - Subscription Manager
@@ -17,6 +78,7 @@ final class SubscriptionManager {
     static let shared = SubscriptionManager()
 
     // Products fetched from App Store
+    private(set) var weeklyProduct: Product?
     private(set) var monthlyProduct: Product?
     private(set) var yearlyProduct: Product?
 
@@ -26,6 +88,14 @@ final class SubscriptionManager {
     /// The single source of truth for a real purchase — `refreshEntitlements()`
     /// is the only writer.
     private(set) var isEntitled   = false
+
+    /// Whether this Apple ID can still take the group's free trial. The trial
+    /// is granted once per GROUP, not per product, so someone who started a
+    /// weekly trial and cancelled gets no second one on the yearly plan —
+    /// promising them "7 days free" would be a lie the App Store then refuses
+    /// to honour. Refreshed alongside entitlements because the check is async
+    /// and a view cannot await one.
+    private(set) var isEligibleForIntroOffer = true
 
     /// What the UI gates on. In every shipped build this is exactly
     /// `isEntitled`; on the simulator it also honours the `-BBForcePremium`
@@ -96,11 +166,14 @@ final class SubscriptionManager {
         defer { isLoading = false }
         do {
             let products = try await Product.products(for: [
+                SubscriptionManager.weeklyID,
                 SubscriptionManager.monthlyID,
                 SubscriptionManager.yearlyID
             ])
+            weeklyProduct  = products.first { $0.id == SubscriptionManager.weeklyID }
             monthlyProduct = products.first { $0.id == SubscriptionManager.monthlyID }
             yearlyProduct  = products.first { $0.id == SubscriptionManager.yearlyID }
+            await refreshIntroOfferEligibility()
         } catch {
             purchaseError = error.localizedDescription
         }
@@ -165,6 +238,17 @@ final class SubscriptionManager {
             }
         }
         isEntitled = active
+        await refreshIntroOfferEligibility()
+    }
+
+    /// Asks the App Store whether the group's introductory offer is still
+    /// available to this Apple ID. Any of the three products answers for the
+    /// whole group, so the first one loaded is enough; with no products loaded
+    /// yet the optimistic default stands and the copy corrects itself once
+    /// `loadProducts()` returns.
+    private func refreshIntroOfferEligibility() async {
+        guard let subscription = (yearlyProduct ?? monthlyProduct ?? weeklyProduct)?.subscription else { return }
+        isEligibleForIntroOffer = await subscription.isEligibleForIntroOffer
     }
 
     // MARK: - Private

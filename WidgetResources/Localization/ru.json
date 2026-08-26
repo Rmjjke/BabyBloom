@@ -266,7 +266,7 @@
   "onboarding.gen.step4": "Настраиваем умные напоминания",
   "onboarding.premium.title": "Ночка Premium",
   "onboarding.premium.headline": "Всё для уверенного ухода за малышом",
-  "onboarding.premium.badge": "7 дней бесплатно, затем 499 ₽ / месяц",
+  "onboarding.premium.badge": "Начните с бесплатного периода",
   "onboarding.premium.trial": "Начать бесплатный период",
   "onboarding.premium.skip": "Продолжить бесплатно",
   "onboarding.premium.f1": "Неограниченная история записей",
@@ -405,5 +405,10 @@
   "breakdown.nappies_fmt": "Мокрых подгузников: %@ в сутки, ориентир от %d.",
   "breakdown.no_data": "Записей о кормлениях и подгузниках за этот период слишком мало для сравнения.",
   "breakdown.disclaimer": "Это наблюдение, а не диагноз. Стоит обсудить с педиатром.",
-  "premium.teaser_nutrition": "Смотрите, как кормления и подгузники за этот период соотносятся с ориентирами"
+  "premium.teaser_nutrition": "Смотрите, как кормления и подгузники за этот период соотносятся с ориентирами",
+  "premium.plan.weekly": "Неделя",
+  "premium.per_week": "/ неделя",
+  "premium.save_fmt": "Экономия %d%%",
+  "premium.trial_fmt": "%d %@ бесплатно, затем %@",
+  "premium.price_only_fmt": "%@ · отменить можно в любой момент"
 }
