@@ -248,7 +248,18 @@ enum FeedingAdequacy {
 
     /// One verdict, assembled from the three signals over a single shared window.
     struct Assessment: Equatable {
-        /// Whole days between the two weighings the assessment covers.
+        /// Whole days between the two weighings the assessment covers,
+        /// TRUNCATED — a 9.6-day gap is 9, not 10.
+        ///
+        /// Label only: nothing computes from this. The per-day rates divide by
+        /// the window's real duration, so their arithmetic is unaffected by the
+        /// truncation. Truncated rather than rounded because `WeightVelocity`
+        /// truncates too, and the same pair of weighings is described by three
+        /// sentences on one screen — the gain card, this section's header and
+        /// the breakdown card. Each rounding was individually defensible; the
+        /// render dump showed "9 days", "10 days" and "9 days" stacked down one
+        /// screen, and one period stated three ways is worse than a count that
+        /// understates by a matter of hours.
         let windowDays: Int
         let gain: Signal
         /// nil when the signal is `notEnoughData` — never 0, which would read
@@ -337,7 +348,7 @@ enum FeedingAdequacy {
         }
 
         return Assessment(
-            windowDays: max(1, Int((window.duration / 86_400).rounded())),
+            windowDays: max(1, Int(window.duration / 86_400)),
             gain: gain,
             feedingsPerDay: feedingsPerDay,
             feedingReference: reference,

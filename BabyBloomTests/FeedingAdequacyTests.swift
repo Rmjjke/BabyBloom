@@ -454,9 +454,67 @@ final class FeedingAdequacyTests: XCTestCase {
     /// The window the parent is told about is the gap between the two weighings,
     /// so a "6 a day over 9 days" line cannot quote a stretch nothing was counted
     /// over.
+    ///
+    /// Whole-day gaps only: they cannot tell truncation from rounding, which is
+    /// what the two tests below are for.
     func testWindowDaysReportsTheGapBetweenTheTwoWeighings() throws {
         XCTAssertEqual(try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7)).windowDays, 9)
         XCTAssertEqual(try XCTUnwrap(assess(gain: 30, feedsPerDay: 8, nappiesPerDay: 7, days: 2)).windowDays, 2)
+    }
+
+    /// A part-day gap is TRUNCATED, not rounded, and this is the case that tells
+    /// the two apart.
+    ///
+    /// Rounding was individually defensible, but one pair of weighings is
+    /// described three times down a single Growth screen — `WeightGainCard`,
+    /// this window label, and `FeedingBreakdownCard` — and the two cards take
+    /// their count from `WeightVelocity.intervalDays`, which truncates. A render
+    /// of the three stacked showed "9 days", "10 days", "9 days" for one pair.
+    /// So the label understates by a matter of hours rather than disagreeing
+    /// with its neighbours, and this test pins the agreement rather than merely
+    /// the number.
+    func testWindowDaysTruncatesSoTheLabelAgreesWithTheCardsAroundIt() throws {
+        let birth = birthDate(ageDays: 40)
+        // 9 days 14 hours: rounds to 10, truncates to 9.
+        let measurements = [
+            WeightMeasurement(date: hours(-230), weightKg: 4.0),
+            WeightMeasurement(date: now, weightKg: 4.3),
+        ]
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements, feeds: [], wetNappies: [], now: now
+        ))
+        XCTAssertEqual(assessment.windowDays, 9, "9.58 days is 9 whole days, not 10")
+
+        let reading = try XCTUnwrap(WeightVelocity.latest(measurements: measurements,
+                                                          correctedBirthDate: birth,
+                                                          isMale: true))
+        XCTAssertEqual(assessment.windowDays, reading.intervalDays,
+                       "the section header and the cards either side of it name one period")
+    }
+
+    /// The truncation is a LABEL change and must stay one: the per-day figures
+    /// divide by the window's real duration, not by the whole days it is called.
+    ///
+    /// 230 nappies over 9.583 days is exactly 24 a day. Dividing by the label
+    /// instead would give 25.6, and dividing by the old rounded 10 would give
+    /// 23 — either would move a number the parent reads.
+    func testPerDayRatesStillDivideByTheRealDurationNotTheWholeDayLabel() throws {
+        let birth = birthDate(ageDays: 40)
+        let measurements = [
+            WeightMeasurement(date: hours(-230), weightKg: 4.0),
+            WeightMeasurement(date: now, weightKg: 4.3),
+        ]
+        // One an hour across the whole window: 230 entries, ten distinct days,
+        // so the coverage gate is comfortably satisfied.
+        let wetNappies = (0...229).map { hours(-$0) }
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements, feeds: [], wetNappies: wetNappies, now: now
+        ))
+        XCTAssertEqual(assessment.windowDays, 9)
+        XCTAssertEqual(try XCTUnwrap(assessment.wetNappiesPerDay), 24, accuracy: 0.01,
+                       "230 entries over 9.583 real days is 24 a day, whatever the label says")
     }
 
     func testAssessmentIsNilPastSixMonths() {
