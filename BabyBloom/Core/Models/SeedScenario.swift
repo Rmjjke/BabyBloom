@@ -17,6 +17,21 @@ import SwiftData
 /// real device, and no shipped binary may carry a path that wipes a parent's
 /// data. On device the whole seeding body — including `wipe` — does not exist.
 ///
+/// # Only run this on a simulator that is NOT signed into iCloud
+///
+/// Read this before you pass `-BBSeedScenario` for the first time. The
+/// simulator gate keeps the wipe out of every shipped binary; it does NOT make
+/// the wipe local. The model container is configured with
+/// `cloudKitDatabase: .automatic` (`BabyBloomApp.swift`), so on a simulator
+/// signed into a real iCloud account this deletes every `Baby` and every entry
+/// from **that Apple Account's private database** — the same records the
+/// person's own phone is syncing — and then pushes the fixture baby outward to
+/// replace them. It is not a sandbox and there is no undo.
+///
+/// Sign the simulator out of iCloud (Settings ▸ [your name] ▸ Sign Out), or use
+/// a simulator that was never signed in. A simulator with no account does not
+/// sync at all, which is the normal state for a test run.
+///
 /// Permanent scaffolding per `.desk/project.md` (`scaffolding: keep`): it lets
 /// every later growth feature be verified in the real app instead of only in
 /// unit tests.
@@ -63,8 +78,9 @@ enum SeedScenario: String, CaseIterable {
     /// PREVIOUS flow left in the store: observably identical to a launch that
     /// deliberately did not seed, and the assertions would go green against
     /// stale data. For scaffolding whose entire job is to make e2e assertions
-    /// mean something, that is the wrong default, so it trips an assertion
-    /// naming the bad value and the valid ones.
+    /// mean something, that is the wrong default, so it logs a fault naming the
+    /// bad value and the valid ones and then traps — in every build
+    /// configuration, which is why it is `fatalError` and not `assertionFailure`.
     @MainActor
     static func seedIfRequested(in context: ModelContext) {
         guard !hasSeeded else { return }
@@ -75,8 +91,14 @@ enum SeedScenario: String, CaseIterable {
                 -\(launchArgumentKey, privacy: .public) was \"\(raw, privacy: .public)\", \
                 which is not a scenario. Valid: \(valid, privacy: .public). Nothing was seeded.
                 """)
-            assertionFailure("-\(launchArgumentKey) was \"\(raw)\", which is not a scenario. Valid: \(valid)")
-            return
+            // `fatalError`, not `assertionFailure`: assertions are stripped in a
+            // Release configuration, and a Release simulator build would then
+            // fall through to run the flow against whatever the PREVIOUS run
+            // left in the store — the exact failure this guard exists to
+            // prevent, and it would show up as green assertions on stale data.
+            // The `log.fault` above runs first because a flow's log capture is
+            // what reads the reason out.
+            fatalError("-\(launchArgumentKey) was \"\(raw)\", which is not a scenario. Valid: \(valid)")
         }
         hasSeeded = true
         wipe(context)
