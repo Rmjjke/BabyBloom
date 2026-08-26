@@ -40,14 +40,26 @@ no product code at all. The ones that matter:
 | `-appLanguage en` \| `ru` \| `es` | pin the UI language, so selectors do not depend on the device locale |
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
+| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
 
-`BBSkipSplash` is the ONLY one backed by product code
-(`BabyBloomApp.showingSplash`) — the splash is `@State`, not `@AppStorage`.
+`BBSkipSplash` and `BBSeedScenario` are the only two backed by product code
+(`BabyBloomApp.showingSplash` and `SeedScenario.seedIfRequested`) — the splash
+is `@State`, not `@AppStorage`, and the seeder is not a stored default at all.
 Without it every cold launch costs ~5s (SplashView.play: 4.6s + a 0.4s
 fade). With it the Dashboard is up in under 3s.
 
 Omit an argument to exercise the real path: no `-hasCompletedOnboarding`
 means the flow gets the genuine first-run onboarding.
+
+`-BBSeedScenario` is the exception to that paragraph's spirit — it IS product
+code, in `BabyBloom/Core/Models/SeedScenario.swift`, gated on
+`#if targetEnvironment(simulator)` so a device build contains no seeding path
+at all. It runs at most once per process, and the wipe is unreachable without
+the argument (verified 2026-08-26: relaunching without it left the previous
+scenario's data untouched). Under Maestro the value goes in the same
+`arguments:` block with the dash spelled out:
+
+    "-BBSeedScenario": "lowGain"
 
 ## Clean state
 
