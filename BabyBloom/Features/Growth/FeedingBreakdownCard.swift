@@ -11,21 +11,29 @@ struct FeedingBreakdownCard: View {
     let reading: WeightVelocity.Reading?
 
     var body: some View {
+        // Bound once, not re-read per branch: each line runs `String(format:)`
+        // and `.appRate` builds a fresh NumberFormatter, and `feedsLine` and
+        // `nappiesLine` are each consulted twice — once to render, once for the
+        // no-data fallback.
+        let gain = gainLine
+        let feeds = feedsLine
+        let nappies = nappiesLine
+
         InsightCard(title: "breakdown.title".l) {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                if let line = gainLine {
-                    Text(line)
+                if let gain {
+                    line(gain)
                 }
-                if let line = feedsLine {
-                    Text(line)
+                if let feeds {
+                    line(feeds)
                 }
-                if let line = nappiesLine {
-                    Text(line)
+                if let nappies {
+                    line(nappies)
                 }
-                if feedsLine == nil && nappiesLine == nil {
-                    Text("breakdown.no_data".l)
+                if feeds == nil && nappies == nil {
+                    line("breakdown.no_data".l)
                 }
-                Text("breakdown.disclaimer".l)
+                line("breakdown.disclaimer".l)
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .padding(.top, 2)
             }
@@ -35,12 +43,27 @@ struct FeedingBreakdownCard: View {
         }
     }
 
+    /// Every line here is a full sentence that wraps, so each one needs its
+    /// ideal height — the same `fixedSize` every sibling card on this screen
+    /// carries. `breakdown.disclaimer` is the longest string on the screen, and
+    /// longer still in ru and es.
+    private func line(_ text: String) -> some View {
+        Text(text)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// The interval comes from `reading`, NOT from `assessment.windowDays`.
+    /// Both describe the same two weighings, but they round differently —
+    /// `WeightVelocity.intervalDays` truncates via `dateComponents([.day])`
+    /// while `windowDays` rounds to nearest — so a 11.54-day gap is 11 and 12
+    /// respectively. The rate in this sentence is divided by the former, and
+    /// `WeightGainCard` sits directly above printing the former too.
     private var gainLine: String? {
         guard let reading, let expected = reading.expectedPerWeek else { return nil }
         return String(format: "breakdown.gain_fmt".l,
                       Int(reading.gramsPerWeek.rounded()),
-                      assessment.windowDays,
-                      assessment.windowDays.dayWord,
+                      reading.intervalDays,
+                      reading.intervalDays.dayWord,
                       Int(expected.lowerBound.rounded()),
                       Int(expected.upperBound.rounded()))
     }
@@ -52,8 +75,11 @@ struct FeedingBreakdownCard: View {
         // beside a `notEnoughData` signal.
         guard let perDay = assessment.feedingsPerDay,
               let reference = assessment.feedingReference else { return nil }
-        // Measured value as a string, bounds as whole numbers — the same
-        // split velocity.per_week_fmt / velocity.expected_fmt already use.
+        // A measured value goes in as a formatted string and its bounds as
+        // whole numbers. `velocity.expected_fmt` takes its bounds the same way;
+        // `velocity.per_week_fmt` also takes `%@`, but the string it gets is a
+        // SIGNED integer from `WeightGainCard.formatted(_:)`, not an `.appRate`
+        // decimal — analogous in shape, a different mechanism.
         return String(format: "breakdown.feeds_fmt".l,
                       perDay.appRate,
                       Int(reference.lowerBound.rounded()),
