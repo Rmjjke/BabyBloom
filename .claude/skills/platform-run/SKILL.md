@@ -41,12 +41,14 @@ no product code at all. The ones that matter:
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
 | `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
+| `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 
-`BBSkipSplash` and `BBSeedScenario` are the only two backed by product code
-(`BabyBloomApp.showingSplash` and `SeedScenario.seedIfRequested`) — the splash
-is `@State`, not `@AppStorage`, and the seeder is not a stored default at all.
-Without it every cold launch costs ~5s (SplashView.play: 4.6s + a 0.4s
-fade). With it the Dashboard is up in under 3s.
+`BBSkipSplash`, `BBSeedScenario` and `BBForcePremium` are the only three backed
+by product code (`BabyBloomApp.showingSplash`, `SeedScenario.seedIfRequested`
+and `SubscriptionManager.isPremium`) — the splash is `@State`, not
+`@AppStorage`, and neither the seeder nor the entitlement is a stored default.
+Without `-BBSkipSplash` every cold launch costs ~5s (SplashView.play: 4.6s +
+a 0.4s fade). With it the Dashboard is up in under 3s.
 
 Omit an argument to exercise the real path: no `-hasCompletedOnboarding`
 means the flow gets the genuine first-run onboarding.
@@ -70,6 +72,35 @@ leftover data. A successful seed logs `Seeded scenario <name>.` under subsystem
 which fixture a run's assertions actually saw:
 
     xcrun simctl spawn booted log stream --predicate 'subsystem == "com.nenita.app"'
+
+## Premium without a purchase
+
+`-BBForcePremium true` is the other piece of product-code scaffolding, in
+`SubscriptionManager`, gated on `#if targetEnvironment(simulator)` for the same
+reason `SeedScenario` is: `DEBUG` is false in a release-optimized QA build,
+which is still a real build on a real device, and no shipped binary may carry a
+path that hands out a paid entitlement.
+
+**Why it has to exist.** `GrowthView` chooses between `FeedingBreakdownCard` and
+a `LockedInsightCard` built with the SAME title key (`breakdown.title`). Without
+a way to force the paid branch, an e2e assertion on that title passes whether
+the paid card works, throws, or renders blank — the half of the app people pay
+for would be structurally untestable.
+
+**Why it is not a one-liner.** `refreshEntitlements()` assigns unconditionally
+and `MainTabView` calls it from a `.task` on every appearance, so an override
+written once at init is clobbered before Growth is ever reached. It is therefore
+read on every access: `isEntitled` stays the StoreKit truth and `isPremium`
+computes `isEntitled || override`. `restorePurchases` deliberately reports off
+`isEntitled`, so the override cannot fake a restore.
+
+    "-BBForcePremium": "true"
+
+Verified 2026-08-26 by launching the same seeded scenario twice, changing
+nothing but this argument: with it the Growth screen renders the breakdown
+card's reference lines and its "This is an observation, not a diagnosis"
+disclaimer and no card reads "Available with Premium"; without it the same
+screen shows the lock, the teaser and no disclaimer.
 
 ## Clean state
 

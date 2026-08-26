@@ -21,7 +21,49 @@ final class SubscriptionManager {
     private(set) var yearlyProduct: Product?
 
     // State
-    private(set) var isPremium    = false
+
+    /// What StoreKit says: a verified, unrevoked auto-renewable entitlement.
+    /// The single source of truth for a real purchase — `refreshEntitlements()`
+    /// is the only writer.
+    private(set) var isEntitled   = false
+
+    /// What the UI gates on. In every shipped build this is exactly
+    /// `isEntitled`; on the simulator it also honours the `-BBForcePremium`
+    /// launch argument (see `forcePremiumOverride`).
+    ///
+    /// Computed rather than stored, and that is the whole point: an override
+    /// applied once at init would be silently clobbered, because
+    /// `refreshEntitlements()` assigns unconditionally and `MainTabView` calls
+    /// it from a `.task` on every appearance — long before Growth is reached.
+    var isPremium: Bool {
+        #if targetEnvironment(simulator)
+        return isEntitled || Self.forcePremiumOverride
+        #else
+        return isEntitled
+        #endif
+    }
+
+    #if targetEnvironment(simulator)
+    /// Simulator-only Premium override for e2e flows, in the same class of
+    /// scaffolding as `SeedScenario`.
+    ///
+    /// Delivered as a LAUNCH ARGUMENT (`-BBForcePremium true`) rather than a
+    /// stored default, so it survives Maestro's `clearState` exactly as
+    /// `-BBSkipSplash` and `-BBSeedScenario` do.
+    ///
+    /// Gated on `targetEnvironment(simulator)`, deliberately NOT on `DEBUG`:
+    /// `DEBUG` is false in a release-optimized QA build, which is still a real
+    /// build on a real device, and no shipped binary may carry a path that
+    /// hands out a paid entitlement for free. On device this property, its key
+    /// and the branch above do not exist at all.
+    ///
+    /// Why the override is needed: `GrowthView` picks between
+    /// `FeedingBreakdownCard` and a `LockedInsightCard` that carries the SAME
+    /// title string, so without a way to force the paid branch an e2e
+    /// assertion on that title passes whether the paid card works or not.
+    private static let forcePremiumOverride = UserDefaults.standard.bool(forKey: "BBForcePremium")
+    #endif
+
     private(set) var isLoading    = false
     private(set) var purchaseError: String?
     private(set) var purchasePending = false
@@ -90,7 +132,10 @@ final class SubscriptionManager {
         do {
             try await AppStore.sync()
             await refreshEntitlements()
-            restoreState = isPremium ? .success : .nothingFound
+            // `isEntitled`, not `isPremium`: restoring reports what StoreKit
+            // actually returned. Identical in every shipped build; on the
+            // simulator it keeps the e2e override from faking a restore.
+            restoreState = isEntitled ? .success : .nothingFound
         } catch {
             purchaseError = error.localizedDescription
         }
@@ -110,7 +155,7 @@ final class SubscriptionManager {
                 break
             }
         }
-        isPremium = active
+        isEntitled = active
     }
 
     // MARK: - Private
