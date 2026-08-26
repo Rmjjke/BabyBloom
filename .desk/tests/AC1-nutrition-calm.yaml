@@ -1,0 +1,76 @@
+# AC1 — the calm case, which is what most parents see: gain, feeds and nappies
+# all within the reference, and therefore NO breakdown card of either kind.
+#
+# The assertion that matters here is an ABSENCE, and absences are easy to get
+# for the wrong reason, so the flow pins down that the screen really rendered
+# first: "within the reference" comes from the free section, and "Within the
+# reference" (capital W) comes from the Premium WeightGainCard, which only
+# exists when the paid branch is live. Only then is the breakdown's absence
+# asserted.
+#
+# Run with -BBForcePremium because the gate that must stay shut
+# (`assessment.warrantsBreakdown`) sits OUTSIDE the premium branch: proving it
+# shut on the paid path proves it shut on both. Both cards' identifying strings
+# are asserted absent anyway.
+#
+# Words, never numbers: see the header of AC2-nutrition-breakdown.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "healthy"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Growth"
+- extendedWaitUntil:
+    visible: ".*Current Measurements.*"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: ".*Nutrition.*"
+    direction: DOWN
+    timeout: 30000
+# On to what FOLLOWS Nutrition, so the place the breakdown would occupy has been
+# rendered and scrolled past before its absence is claimed. (scrollUntilVisible
+# stops the instant its target edges into view, so without this second scroll
+# the section's own rows are not in the hierarchy yet.)
+- scrollUntilVisible:
+    element:
+      text: ".*Measurement History.*"
+    direction: DOWN
+    timeout: 30000
+
+# The paid branch is live: the real WeightGainCard states its verdict in words,
+# where a free user would get a lock and a teaser instead.
+- assertVisible: ".*Within the reference.*"
+# And the free section agrees, in its own lower case.
+- assertVisible: ".*within the reference.*"
+
+# No breakdown card, in either form: not the shared title, not the real card's
+# disclaimer, not the locked card's teaser or hint.
+- assertNotVisible: ".*Gain is below the reference.*"
+- assertNotVisible: ".*This is an observation, not a diagnosis.*"
+- assertNotVisible: ".*See how feeds and diapers in this period compare.*"
+- assertNotVisible: ".*Available with Premium.*"
+# And nothing anywhere on the calm screen reads "below the reference" — the
+# free section and the gain card both use the word, in either case.
+- assertNotVisible: ".*[Bb]elow the reference.*"

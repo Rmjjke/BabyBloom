@@ -158,3 +158,21 @@ spelled out in the key and `stopApp: true` alongside `clearState: true`:
 
 Tabs are tapped through `childOf: {text: "Tab Bar"}`; which tab is open is
 asserted via the `tab_*` ids. See `.desk/app-map.md`.
+
+**Name the device, and make sure nothing else is on it.** `maestro test` with
+no `--device` picks a booted simulator for you, and more than one is usually
+booted here:
+
+    maestro --device <udid> test .desk/tests/
+
+On 2026-08-26 four separate red runs — a missed tap, a rotated screenshot, two
+`Device became unreachable` drops — turned out to be a second party driving the
+same simulator (a different app came to the foreground mid-flow, in landscape),
+plus a `maestro test` process left running since 2026-08-24 that was still
+holding the XCUITest driver. Killing the stale process and moving to a
+simulator created for the run turned an every-other-run flake into ten green
+flows in a row. Before blaming a flow, check:
+
+    ps aux | grep '[m]aestro.cli.AppKt'      # a hung run from a previous session
+    xcrun simctl list devices booted         # who else is booted
+    xcrun simctl create BB-e2e-iPhone17 "iPhone 17"   # a device of your own

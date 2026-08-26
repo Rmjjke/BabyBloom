@@ -1,0 +1,91 @@
+# AC3 — the rule this whole scenario exists to prove: an unlogged signal renders
+# as "not enough data", NEVER as a zero. Telling a parent their baby fed 0 times
+# when in truth they simply did not log is the one failure mode here that could
+# frighten someone into acting on nothing.
+#
+# Run with -BBForcePremium so both halves are under test at once: the free
+# section's two context rows AND the paid FeedingBreakdownCard, which in this
+# fixture must fall back to its "not enough logs to compare" line rather than
+# print zeros. The paid card is identified by strings that exist only in it —
+# the disclaimer and the no-data line — never by the title it shares with the
+# locked placeholder.
+#
+# Words, never numbers: see the header of AC2-nutrition-breakdown.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "sparseLogs"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Growth"
+- extendedWaitUntil:
+    visible: ".*Current Measurements.*"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: ".*Nutrition.*"
+    direction: DOWN
+    timeout: 30000
+# On to the section that FOLLOWS the breakdown card. scrollUntilVisible stops
+# the instant its target edges into view, which leaves the Nutrition heading on
+# screen but its ROWS still below the fold — the first draft of this flow failed
+# here for exactly that reason.
+- scrollUntilVisible:
+    element:
+      text: ".*Measurement History.*"
+    direction: DOWN
+    timeout: 30000
+
+# BOTH context rows, not just one — index 1 is what says there is a second
+# element carrying the phrase. Feeds alone reading "not enough data" while
+# nappies quietly reported a status would otherwise pass.
+- assertVisible:
+    text: ".*not enough data.*"
+    index: 0
+- assertVisible:
+    text: ".*not enough data.*"
+    index: 1
+# Gain itself IS known here — two weighings, below the reference — which is what
+# makes the other two rows' silence a real distinction rather than an empty
+# screen.
+- assertVisible: ".*below the reference.*"
+
+- assertVisible: ".*Gain is below the reference.*"
+# REAL CARD ONLY, twice over: the no-data line and the disclaimer. The locked
+# placeholder carries neither.
+- assertVisible: ".*aren't enough feeding and diaper logs in this period to compare.*"
+- assertVisible: ".*This is an observation, not a diagnosis.*"
+- assertNotVisible: ".*See how feeds and diapers in this period compare.*"
+- assertNotVisible: ".*Available with Premium.*"
+
+# THE POINT OF THE SCENARIO. Nothing unlogged may surface as a number.
+# Explicitly no zero rate anywhere, in the section or in the card:
+- assertNotVisible: '.*\b0([.,]0)? a day.*'
+# and, stronger, no per-day rate AT ALL — with nothing logged there is no rate
+# to render, so any "N a day" on this screen is a bug whatever N is:
+- assertNotVisible: '.*\ba day\b.*'
+# and neither comparison line may be built from an absent count. (The section's
+# row LABELS are "Feedings" and "Wet diapers" with no colon, so these match the
+# card's lines only.)
+- assertNotVisible: ".*Feedings: .*"
+- assertNotVisible: ".*Wet diapers: .*"
