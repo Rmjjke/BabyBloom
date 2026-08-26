@@ -35,10 +35,13 @@ struct BabyBloomProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (BabyBloomEntry) -> Void) {
+        LocalizationManager.shared.refreshFromStore()
         completion(Self.fetchEntry())
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<BabyBloomEntry>) -> Void) {
+        // Before anything is read: this process outlives a language change.
+        LocalizationManager.shared.refreshFromStore()
         let entry = Self.fetchEntry()
         // Reload roughly every 15 minutes to keep "time ago" values fresh.
         let nextUpdate = Date().addingTimeInterval(15 * 60)

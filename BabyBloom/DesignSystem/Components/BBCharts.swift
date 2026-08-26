@@ -186,6 +186,8 @@ struct BBWeeklyBarChart: View {
                         .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
                         .contentShape(Rectangle())
                 }
+                .accessibilityIdentifier("chart_prev_week")
+                .accessibilityLabel("chart.previous_week".l)
 
                 Spacer()
 
@@ -208,6 +210,8 @@ struct BBWeeklyBarChart: View {
                         .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
                         .contentShape(Rectangle())
                 }
+                .accessibilityIdentifier("chart_next_week")
+                .accessibilityLabel("chart.next_week".l)
                 .disabled(!canGoForward)
             }
 

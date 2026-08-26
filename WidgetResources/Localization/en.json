@@ -214,6 +214,8 @@
   "filter.month": "Month",
   "filter.year": "Year",
   "section.weekly_chart": "Weekly Dynamics",
+  "chart.previous_week": "Previous week",
+  "chart.next_week": "Next week",
   "chart.axis.day": "Day",
   "chart.axis.value": "Value",
   "button.delete_history": "Delete History",

@@ -87,6 +87,7 @@
 		D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
 		D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */; };
 		D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */; };
+		DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
 		E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582657DC180DE03128A75629 /* NewbornWeightLoss.swift */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
@@ -143,6 +144,7 @@
 		02E985CD184447B03AA6F246 /* NutritionSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionSection.swift; sourceTree = "<group>"; };
 		03DCB1384549675BD1DE563D /* BabyBloomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomTests.swift; sourceTree = "<group>"; };
 		05A787D90FE23982EC1A46C2 /* FeedingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingPage.swift; sourceTree = "<group>"; };
+		07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowcaseGrowthTests.swift; sourceTree = "<group>"; };
 		07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocityTests.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
@@ -368,6 +370,7 @@
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
 				B86B2CFD78D4B411B68808C9 /* NutritionRenderDump.swift */,
 				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
+				07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
 				D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */,
 				92018595E27242A50820D2B8 /* WidgetRenderDump.swift */,
@@ -812,6 +815,7 @@
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
 				9A2E7598C81EEBFE19E565BA /* NutritionRenderDump.swift in Sources */,
 				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
+				DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
 				D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */,
 				FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */,
