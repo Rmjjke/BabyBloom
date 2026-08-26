@@ -18,6 +18,7 @@
 		19712AA4FA93D6A64A2671FA /* DateAppLocaleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20695F09E09928450CDCEC8 /* DateAppLocaleTests.swift */; };
 		1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		1ACEFD1B6DE6102E4A01518F /* OnboardingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98DDE429F22E93F5C9E988E /* OnboardingHelpers.swift */; };
+		22F76FA1DEAE7C2CC33FC1FD /* FeedingBreakdownCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */; };
 		2545546E391C7F033313B63D /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		279D31B1C59F68A21CD7E0C5 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 35F49DA9A952161FFF0F24A0 /* en.json */; };
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
@@ -155,6 +156,7 @@
 		2BB92DC704136729F7426DA9 /* WidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetViews.swift; sourceTree = "<group>"; };
 		32ED719AD860A85B4498F539 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyProfileEditSheet.swift; sourceTree = "<group>"; };
+		3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingBreakdownCard.swift; sourceTree = "<group>"; };
 		35CC038C14DBB4D68AC2E233 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		35F49DA9A952161FFF0F24A0 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		390F8BD3D44D73D72C6D2893 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -401,6 +403,7 @@
 		6DFB21261F800A5C3DC87E17 /* Growth */ = {
 			isa = PBXGroup;
 			children = (
+				3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */,
 				D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */,
 				0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */,
 				02E985CD184447B03AA6F246 /* NutritionSection.swift */,
@@ -750,6 +753,7 @@
 				86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */,
 				3FE874AF7EB96FB4DB3B9E5F /* FactPage.swift in Sources */,
 				6FED04C4E2EC35E409F7E079 /* FeedingAdequacy.swift in Sources */,
+				22F76FA1DEAE7C2CC33FC1FD /* FeedingBreakdownCard.swift in Sources */,
 				0DDA3CF5404C2BCE5AF9A6AE /* FeedingEntry.swift in Sources */,
 				5A51B05B0B810D61B1B12783 /* FeedingPage.swift in Sources */,
 				CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */,

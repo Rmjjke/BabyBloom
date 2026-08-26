@@ -4,6 +4,8 @@ import SwiftData
 struct GrowthView: View {
     @Query(sort: \GrowthEntry.date, order: .reverse) private var entries: [GrowthEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
+    @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
     @Environment(\.modelContext) private var modelContext
     @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
@@ -60,6 +62,11 @@ struct GrowthView: View {
                     weightGainSection(baby)
                         .padding(.horizontal, BBTheme.Spacing.md)
                     trendSection(baby)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+                    // Below gain and trend deliberately: NewbornProgressCard —
+                    // the free red flags — must stay the first thing a worried
+                    // parent sees.
+                    nutritionSection(baby)
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
@@ -214,6 +221,51 @@ struct GrowthView: View {
                 title: "section.trend".l,
                 teaser: "premium.teaser_trend".l
             ) { showPaywall = true }
+        }
+    }
+
+    /// Built from the same queries the rest of the screen uses, filtered in
+    /// memory — the window is weeks, not years.
+    private func adequacy(_ baby: Baby) -> FeedingAdequacy.Assessment? {
+        FeedingAdequacy.assess(
+            birthDate: baby.birthDate,
+            correctedBirthDate: baby.correctedBirthDate,
+            isMale: baby.gender == .male,
+            measurements: measurements,
+            feeds: feedings.map { FeedingAdequacy.Feed(date: $0.startTime, type: $0.type) },
+            wetNappies: diapers.filter { $0.type == .wet || $0.type == .both }.map(\.time)
+        )
+    }
+
+    /// Free summary, then the Premium breakdown — and the breakdown appears
+    /// only when gain itself came in below the reference. Feeding and nappy
+    /// signals never open it on their own.
+    @ViewBuilder
+    private func nutritionSection(_ baby: Baby) -> some View {
+        // Two different nils. Past six months the feature does not apply and
+        // NOTHING shows. Inside the range with fewer than two weighings, the
+        // section shows its "weigh again" prompt — passing nil through is what
+        // makes that state reachable at all.
+        if baby.correctedAgeDays <= FeedingAdequacy.maxAgeDays {
+            let assessment = adequacy(baby)
+            NutritionSection(assessment: assessment)
+            if let assessment, assessment.warrantsBreakdown {
+                if store.isPremium {
+                    FeedingBreakdownCard(
+                        assessment: assessment,
+                        reading: WeightVelocity.latest(
+                            measurements: measurements,
+                            correctedBirthDate: baby.correctedBirthDate,
+                            isMale: baby.gender == .male
+                        )
+                    )
+                } else {
+                    LockedInsightCard(
+                        title: "breakdown.title".l,
+                        teaser: "premium.teaser_nutrition".l
+                    ) { showPaywall = true }
+                }
+            }
         }
     }
 
