@@ -8,6 +8,12 @@ import SwiftUI
 struct NutritionSection: View {
     let assessment: FeedingAdequacy.Assessment?
 
+    /// Drives the row layout only — never a font size. At an accessibility size
+    /// the label and its status cannot share a line without one of them being
+    /// proposed a width narrower than its own longest word, and SwiftUI answers
+    /// that by breaking INSIDE the word. See `row(icon:tint:label:value:signal:)`.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
         InsightCard(title: "section.nutrition".l) {
             if let assessment {
@@ -41,28 +47,73 @@ struct NutritionSection: View {
     /// `UIFontMetrics` rather than `@ScaledMetric` so the width obeys the same
     /// rule as `BBTheme.Typography.scaled`, which is what sizes the text: two
     /// mechanisms would disagree wherever the environment overrides the size.
+    ///
+    /// **Two layouts, and the second one is not decoration.** Side by side, the
+    /// label and its status divide one card's width between them; at an
+    /// accessibility size that leaves each of them a column narrower than its
+    /// own longest word, and SwiftUI's only answer to a word wider than the
+    /// space proposed to it is to break inside the word. A render at AX2 in
+    /// Russian showed exactly that — "Прибавк / а", "Кормлен / ия" — orphaned
+    /// letters with no hyphen. So above the accessibility threshold the status
+    /// moves onto its own line under the label, where each gets the full width
+    /// of the card and breaks between words like prose. Below it, nothing
+    /// changes: the side-by-side row is the design, and it holds at every
+    /// non-accessibility size in all three languages.
     @ViewBuilder
     private func row(icon: String, tint: Color, label: String,
                      value: Double?, signal: FeedingAdequacy.Signal) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-            Image(systemName: icon)
-                .font(BBTheme.Typography.scaled(14, relativeTo: .body,
-                                                weight: .regular, design: .rounded))
-                .foregroundStyle(tint)
-                .frame(width: UIFontMetrics(forTextStyle: .body).scaledValue(for: 20))
-            Text(label)
-                .font(BBTheme.Typography.scaled(15, relativeTo: .body,
-                                                weight: .medium, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: BBTheme.Spacing.sm)
-            Text(statusText(value: value, signal: signal))
-                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
-                                                weight: .semibold, design: .rounded))
-                .foregroundStyle(color(for: signal))
-                .multilineTextAlignment(.trailing)
-                .fixedSize(horizontal: false, vertical: true)
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                    iconView(icon, tint: tint)
+                    labelView(label)
+                }
+                statusView(value: value, signal: signal)
+                    .multilineTextAlignment(.leading)
+                    // Hangs under the label rather than under the icon, so the
+                    // pair still reads as one row and not as two entries.
+                    .padding(.leading, iconColumnWidth + BBTheme.Spacing.sm)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                iconView(icon, tint: tint)
+                labelView(label)
+                Spacer(minLength: BBTheme.Spacing.sm)
+                statusView(value: value, signal: signal)
+                    .multilineTextAlignment(.trailing)
+            }
         }
+    }
+
+    /// Shared by both layouts so the two can never drift apart in anything but
+    /// their arrangement.
+    private var iconColumnWidth: CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(for: 20)
+    }
+
+    private func iconView(_ icon: String, tint: Color) -> some View {
+        Image(systemName: icon)
+            .font(BBTheme.Typography.scaled(14, relativeTo: .body,
+                                            weight: .regular, design: .rounded))
+            .foregroundStyle(tint)
+            .frame(width: iconColumnWidth)
+    }
+
+    private func labelView(_ label: String) -> some View {
+        Text(label)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body,
+                                            weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func statusView(value: Double?, signal: FeedingAdequacy.Signal) -> some View {
+        Text(statusText(value: value, signal: signal))
+            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
+                                            weight: .semibold, design: .rounded))
+            .foregroundStyle(color(for: signal))
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// A value is shown only when there IS one. `notEnoughData` must never

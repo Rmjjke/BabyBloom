@@ -45,6 +45,14 @@ import UIKit
 ///     xcrun simctl ui booted content_size accessibility-large
 ///
 /// with `content_size large` restoring the default set.
+///
+/// That paragraph is about FONT SIZES. The environment value still matters for
+/// LAYOUT: a view is free to branch on `dynamicTypeSize`, and
+/// `NutritionSection`'s row does. So `dump` hands the live device category to
+/// the environment as well — not to change any font, which it cannot, but so
+/// that the branch and the text in the same image agree about what size this
+/// is. Without it the renders were internally inconsistent: AX2 text laid out
+/// by the default-size branch.
 @MainActor
 final class NutritionRenderDump: XCTestCase {
 
@@ -249,6 +257,20 @@ final class NutritionRenderDump: XCTestCase {
                      dark: true)
         }
 
+        // The calm neighbourhood, for the other half of the tint question. The
+        // two "below" tints are one colour now that `WeightGainCard` uses the
+        // token; the two "within" tints are not — that card's green is still
+        // the literal `#6BBF6B` while `NutritionSection` uses `BBSuccess`
+        // (#7FC7A4), a mint. Calm is the state most parents are in most days,
+        // so the remaining mismatch belongs in a picture rather than in a
+        // report as two hex codes.
+        LocalizationManager.shared.setLanguage("en")
+        let calm = try state(.calm)
+        let calmReading = try XCTUnwrap(velocity(.calm))
+        XCTAssertEqual(calmReading.band, .within, "the calm stack must be genuinely calm")
+        XCTAssertEqual(calm.gain, .within)
+        try dump("en-stacked-calm", neighbourhood(assessment: calm, reading: calmReading))
+
         print("NUTRITION_DIR=\(directory.path)")
     }
 
@@ -325,7 +347,14 @@ final class NutritionRenderDump: XCTestCase {
         VStack(spacing: BBTheme.Spacing.lg) {
             WeightGainCard(reading: reading)
             NutritionSection(assessment: assessment)
-            FeedingBreakdownCard(assessment: assessment, reading: reading)
+            // Gated exactly as `GrowthView` gates it. Rendering it
+            // unconditionally would put "Gain is below the reference" under a
+            // calm gain figure — a screen the product cannot produce, and the
+            // first thing this dump promises not to fake. It changes nothing
+            // for the `below` stacks, where the gate is open.
+            if assessment.warrantsBreakdown {
+                FeedingBreakdownCard(assessment: assessment, reading: reading)
+            }
         }
         // Asks the stack for its ideal height rather than letting the renderer
         // negotiate one. Without it, `ImageRenderer` measures this VStack a
@@ -354,14 +383,30 @@ final class NutritionRenderDump: XCTestCase {
             // `BBTheme.Typography.scaled` — but rendering without it would be
             // rendering a different view tree than the one that ships.
             .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            // The device's category, handed to the environment explicitly, and
+            // OUTSIDE the cap above so it flows into it exactly as the app's
+            // does. This is not the faking the type comment warns about — the
+            // fonts are already at this size, because `UIFontMetrics` reads the
+            // application category directly. What it fixes is the opposite
+            // problem: without it, `ImageRenderer` inherited `.large` from the
+            // trait collection below while the text rendered at AX2, so the
+            // tree was internally inconsistent and any view that BRANCHES on
+            // `dynamicTypeSize` — `NutritionSection`'s row does — took the
+            // small-size branch in an image full of accessibility-size text.
+            // Measured, not assumed: with the device at AX2 and this line
+            // absent, `ru-below-ax2` still rendered the side-by-side row; the
+            // `trait=` field on the DUMP line below is the same reading in the
+            // log.
+            .environment(\.dynamicTypeSize, DynamicTypeSize(contentSize) ?? .large)
 
         // Asset colours resolve through the SwiftUI environment, which the
         // modifier above already sets; the trait override is belt and braces
-        // for anything UIKit-backed inside the tree. It deliberately does NOT
-        // touch the content size category — see the type comment: that lever is
-        // not connected to these fonts.
+        // for anything UIKit-backed inside the tree. The content size category
+        // is carried across too, so nothing inside the render disagrees with
+        // the device about how large the text is.
         let traits = UITraitCollection { mutable in
             mutable.userInterfaceStyle = dark ? .dark : .light
+            mutable.preferredContentSizeCategory = contentSize
         }
 
         // Rendered in two passes. Left to its own ideal-size pass, a tall stack
@@ -380,7 +425,9 @@ final class NutritionRenderDump: XCTestCase {
         // because the obvious guess is that one caused the other.
         let width: CGFloat = 340 + 32
         var rendered: UIImage?
+        var renderTrait = "unset"
         traits.performAsCurrent {
+            renderTrait = UITraitCollection.current.preferredContentSizeCategory.rawValue
             let measured = ImageRenderer(content: framed(content, dark: dark))
             measured.scale = 2
             let height = (measured.uiImage?.size.height ?? 0).rounded(.up)
@@ -397,7 +444,12 @@ final class NutritionRenderDump: XCTestCase {
             return XCTFail("could not render \(name)")
         }
         try data.write(to: directory.appendingPathComponent("\(name)\(sizeSuffix).png"))
-        print("DUMP \(name)\(sizeSuffix) \(Int(image.size.width))x\(Int(image.size.height)) bg=\(Self.sample(image))")
+        // `trait=` is the category the render actually ran under. It is printed
+        // because it is the one thing about a Dynamic Type image that cannot be
+        // checked by looking at it: a file named `-ax2` proves nothing on its
+        // own, and this dump has already produced fake ones once.
+        print("DUMP \(name)\(sizeSuffix) \(Int(image.size.width))x\(Int(image.size.height)) "
+              + "bg=\(Self.sample(image)) trait=\(renderTrait)")
     }
 
     /// The background and the colour scheme, in that order: `.environment`
