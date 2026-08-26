@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import SwiftData
 
 /// Deterministic data for driving the app in tests. Simulator-only.
@@ -19,7 +20,7 @@ import SwiftData
 /// Permanent scaffolding per `.desk/project.md` (`scaffolding: keep`): it lets
 /// every later growth feature be verified in the real app instead of only in
 /// unit tests.
-enum SeedScenario: String {
+enum SeedScenario: String, CaseIterable {
     /// Gain below reference, feeds and nappies below theirs — the breakdown case.
     case lowGain
     /// Everything within reference — the calm case the parent usually sees.
@@ -29,6 +30,19 @@ enum SeedScenario: String {
     case sparseLogs
 
     #if targetEnvironment(simulator)
+    /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
+    /// simulator block: it is the one string that can unlock the wipe, and
+    /// keeping it here is what keeps it out of a device binary entirely.
+    private static let launchArgumentKey = "BBSeedScenario"
+
+    /// Everything here is written with `privacy: .public`. The values are
+    /// fixture names, never a real person's data, and the whole point of the
+    /// line is that a flow's log capture can read it —
+    /// `log stream --predicate 'subsystem CONTAINS "nenita"'` would otherwise
+    /// show `<private>`, since os.Logger redacts interpolated strings by
+    /// default.
+    private static let log = Logger(subsystem: "com.nenita.app", category: "SeedScenario")
+
     /// Whether this process has already seeded. The root view's `.onAppear`
     /// re-fires whenever its identity changes (it is keyed on `appLanguage`),
     /// and a second pass would wipe and re-seed against a later `now` — the
@@ -41,15 +55,46 @@ enum SeedScenario: String {
     ///
     /// The wipe is unreachable except through this guard: `wipe` is private and
     /// this is its only call site, below the `guard`.
+    ///
+    /// **A missing key and an unrecognised one are not the same thing.** Absent,
+    /// this is simply a launch that is not seeding — the overwhelmingly common
+    /// case, and a clean no-op. Present but unparsable is a typo in a flow, and
+    /// falling quietly through would leave the app running on whatever the
+    /// PREVIOUS flow left in the store: observably identical to a launch that
+    /// deliberately did not seed, and the assertions would go green against
+    /// stale data. For scaffolding whose entire job is to make e2e assertions
+    /// mean something, that is the wrong default, so it trips an assertion
+    /// naming the bad value and the valid ones.
     @MainActor
     static func seedIfRequested(in context: ModelContext) {
         guard !hasSeeded else { return }
-        guard let raw = UserDefaults.standard.string(forKey: "BBSeedScenario"),
-              let scenario = SeedScenario(rawValue: raw) else { return }
+        guard let raw = UserDefaults.standard.string(forKey: launchArgumentKey) else { return }
+        guard let scenario = SeedScenario(rawValue: raw) else {
+            let valid = allCases.map(\.rawValue).joined(separator: ", ")
+            log.fault("""
+                -\(launchArgumentKey, privacy: .public) was \"\(raw, privacy: .public)\", \
+                which is not a scenario. Valid: \(valid, privacy: .public). Nothing was seeded.
+                """)
+            assertionFailure("-\(launchArgumentKey) was \"\(raw)\", which is not a scenario. Valid: \(valid)")
+            return
+        }
         hasSeeded = true
         wipe(context)
         scenario.seed(into: context)
-        try? context.save()
+        do {
+            try context.save()
+            // Named in the log so a flow's capture can confirm WHICH fixture its
+            // assertions actually ran against.
+            log.notice("Seeded scenario \(scenario.rawValue, privacy: .public).")
+        } catch {
+            // `hasSeeded` is already true and nothing reached disk, so without
+            // this the screen is merely empty and there is no way to tell why.
+            log.fault("""
+                Seeding \(scenario.rawValue, privacy: .public) failed to save: \
+                \(String(describing: error), privacy: .public)
+                """)
+            assertionFailure("Seeding \(scenario.rawValue) failed to save: \(error)")
+        }
     }
 
     /// Entries first, then the babies that own them: deleting a `Baby` marks its
@@ -102,7 +147,21 @@ enum SeedScenario: String {
 
         // Corrected age 40 days puts the breast reference at 7–9 feeds a day and
         // the wet-nappy minimum at 6.
-        let feedsPerDay = (self == .healthy) ? 9 : 5
+        //
+        // `healthy` takes 8 feeds — MID-BAND, not the band's upper bound. 9
+        // would also read as "within" today, but only because the comparison is
+        // `perDay < lowerBound` and never looks at the upper edge; a fixture
+        // that passes on a technicality is a trap for whoever tightens that
+        // comparison next, and it leaves no headroom for the hour a DST
+        // boundary inside the window would move the rates by.
+        //
+        // The nappy figure deliberately stays at 7, and this is NOT an
+        // oversight of the same rule. `wetNappyMinimum` returns a single floor,
+        // not a range — there is no upper edge to sit on, so the only way to
+        // fail is to drop under 6, and 7 clears that by a whole nappy (~14%,
+        // against a DST wobble of ~0.4%). 7 is also squarely what the NHS and
+        // AAP describe as typical, so the fixture still reads as plausible data.
+        let feedsPerDay = (self == .healthy) ? 8 : 5
         let nappiesPerDay = (self == .healthy) ? 7 : 4
         // `1...windowDays`, not `0...windowDays`: `rate(of:in:)` divides by the
         // window's length in days, so logging BOTH endpoints would put

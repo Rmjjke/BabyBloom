@@ -61,6 +61,16 @@ scenario's data untouched). Under Maestro the value goes in the same
 
     "-BBSeedScenario": "lowGain"
 
+**Spell the name right, and it will tell you if you did not.** The names are
+case-sensitive (`lowGain`, `healthy`, `sparseLogs`). An unrecognised value logs
+a fault naming it and the valid ones, then traps — the app dies on launch, so a
+typo fails the flow instead of quietly running it against the previous flow's
+leftover data. A successful seed logs `Seeded scenario <name>.` under subsystem
+`com.nenita.app`, category `SeedScenario`, which is the cheapest way to confirm
+which fixture a run's assertions actually saw:
+
+    xcrun simctl spawn booted log stream --predicate 'subsystem == "com.nenita.app"'
+
 ## Clean state
 
 `simctl uninstall` wipes the app container. The SwiftData store lives in the
