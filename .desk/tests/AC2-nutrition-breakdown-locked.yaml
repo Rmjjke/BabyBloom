@@ -1,0 +1,69 @@
+# AC2, free tier — the SAME seeded scenario as AC2-nutrition-breakdown, without
+# -BBForcePremium. The free half of the feature must still say gain is below the
+# reference, and the paid half must be a locked placeholder rather than the card.
+#
+# This flow is the other half of the pair: between the two, "Gain is below the
+# reference" is proven to be a REAL card with Premium and a LOCKED one without.
+# Neither flow asserts only that title, because the title is identical in both.
+#   locked card only — the teaser "See how feeds and diapers…" plus the
+#                      "Available with Premium" hint.
+#   real card only  — the disclaimer and "The reference for this age is …",
+#                      both asserted ABSENT here.
+#
+# Words, never numbers: see the header of AC2-nutrition-breakdown.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "lowGain"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Growth"
+- extendedWaitUntil:
+    visible: ".*Current Measurements.*"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: ".*Nutrition.*"
+    direction: DOWN
+    timeout: 30000
+# scrollUntilVisible stops the instant its target edges into view, so the
+# section's rows and the card below it need this second scroll before they are
+# in the hierarchy at all.
+- scrollUntilVisible:
+    element:
+      text: ".*Measurement History.*"
+    direction: DOWN
+    timeout: 30000
+
+# The free section states the situation for everyone.
+- assertVisible: ".*below the reference.*"
+
+- assertVisible: ".*Gain is below the reference.*"
+# LOCKED CARD ONLY: the nutrition teaser is its own string, distinct from the
+# gain and trend teasers, so this identifies THIS card's placeholder.
+- assertVisible: ".*See how feeds and diapers in this period compare with the references.*"
+- assertVisible: ".*Available with Premium.*"
+# REAL CARD ABSENT: neither the disclaimer nor any reference figure may leak to
+# a free user.
+- assertNotVisible: ".*This is an observation, not a diagnosis.*"
+- assertNotVisible: ".*The reference for this age is.*"
+- assertNotVisible: ".*Feedings: .* a day, reference .*"

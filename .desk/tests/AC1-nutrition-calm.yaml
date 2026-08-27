@@ -1,0 +1,88 @@
+# AC1 — the calm case, which is what most parents see: gain, feeds and nappies
+# all within the reference, and therefore NO breakdown card of either kind.
+#
+# The assertion that matters here is an ABSENCE, and absences are easy to get
+# for the wrong reason, so the flow pins down that the screen really rendered
+# AND that the paid branch is live before claiming anything is missing:
+# "Reference: ... g/week" is the WeightGainCard's own reference line, which a
+# LockedInsightCard structurally cannot produce — it renders a lock, a teaser
+# and a hint, and no figures at all.
+#
+# CASE IS NOT A DISCRIMINATOR. An earlier draft asserted "Within the reference"
+# (capital W, the gain card) beside "within the reference" (lower case, the free
+# section) and called the pair proof that both halves rendered. It was one
+# assertion written twice: Maestro compiles element-selector regexes with
+# IGNORE_CASE, so the free section's row satisfied both. Never lean on casing in
+# a selector in this project.
+#
+# Run with -BBForcePremium because the gate that must stay shut
+# (`assessment.warrantsBreakdown`) sits OUTSIDE the premium branch: proving it
+# shut on the paid path proves it shut on both. Both cards' identifying strings
+# are asserted absent anyway.
+#
+# Words, never numbers: see the header of AC2-nutrition-breakdown.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "healthy"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Growth"
+- extendedWaitUntil:
+    visible: ".*Current Measurements.*"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: ".*Nutrition.*"
+    direction: DOWN
+    timeout: 30000
+# On to what FOLLOWS Nutrition, so the place the breakdown would occupy has been
+# rendered and scrolled past before its absence is claimed. (scrollUntilVisible
+# stops the instant its target edges into view, so without this second scroll
+# the section's own rows are not in the hierarchy yet.)
+- scrollUntilVisible:
+    element:
+      text: ".*Measurement History.*"
+    direction: DOWN
+    timeout: 30000
+
+# The paid branch is live: only the real WeightGainCard prints a reference range,
+# and the pattern carries no figure of its own, so a DST-shifted window cannot
+# move it. A free user gets "See how many grams a week your baby gains…" here —
+# no colon, no "g/week", no match.
+- assertVisible: ".*Reference: .*g/week.*"
+# The free section states the calm verdict for everyone.
+- assertVisible: ".*within the reference.*"
+
+# No breakdown card, in either form: not the shared title, not the real card's
+# disclaimer, not the locked card's teaser or hint.
+- assertNotVisible: ".*Gain is below the reference.*"
+- assertNotVisible: ".*This is an observation, not a diagnosis.*"
+- assertNotVisible: ".*See how feeds and diapers in this period compare.*"
+# Viewport, not whole screen: it guards the nutrition card in view, not every
+# card on the screen. See the note in AC2-nutrition-breakdown.yaml.
+- assertNotVisible: ".*Available with Premium.*"
+# And nothing in view on the calm screen reads "below the reference" — neither
+# the free section nor the gain card. (Selector matching is case-insensitive, so
+# one spelling covers the card's capitalised "Below the reference" too.)
+- assertNotVisible: ".*below the reference.*"

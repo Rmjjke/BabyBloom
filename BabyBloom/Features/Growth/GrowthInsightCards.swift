@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Shared chrome
 
 /// The card shell every insight block sits in, so they read as one family.
-private struct InsightCard<Content: View>: View {
+struct InsightCard<Content: View>: View {
     let title: String
     @ViewBuilder var content: Content
 
@@ -23,7 +23,7 @@ private struct InsightCard<Content: View>: View {
 
 /// Neutral note for "not enough data yet" states. These are not failures and
 /// must not look like them — a parent who has weighed once is doing fine.
-private struct HintText: View {
+struct HintText: View {
     let text: String
 
     var body: some View {
@@ -159,9 +159,17 @@ struct WeightGainCard: View {
 
     /// Only "below" is tinted as something to look at. A baby gaining fast is
     /// not a problem to flag in an app.
+    ///
+    /// "Below" is `BBTheme.Colors.accent`, the token, not the `#F5A45F` literal
+    /// this card shipped with. `NutritionSection` says the same words a couple
+    /// of hundred points further down the same screen in the token colour, and
+    /// a render of the two stacked showed them as two different designs rather
+    /// than one — the literal has no dark variant, so dark mode widened the gap
+    /// instead of closing it. The token is the project's stated mechanism, so
+    /// the older card moved.
     private func color(for band: WeightVelocity.Band?) -> Color {
         switch band {
-        case .below:  return Color(hex: "#F5A45F")
+        case .below:  return BBTheme.Colors.accent
         case .within: return Color(hex: "#6BBF6B")
         case .above:  return BBTheme.Colors.textPrimary
         case nil:     return BBTheme.Colors.textPrimary

@@ -1,0 +1,96 @@
+# AC2 — the case the feature exists for, on the PAID branch: gain below the
+# reference, and the Premium breakdown explaining it from the same window's
+# feeds and nappies.
+#
+# -BBForcePremium is what makes this flow mean anything. GrowthView picks
+# between FeedingBreakdownCard and a LockedInsightCard that is titled with the
+# SAME key ("breakdown.title" — "Gain is below the reference"), so an assertion
+# on that title alone passes whether the paid card works, throws or renders
+# blank. Everything asserted below is therefore a string that exists in ONE of
+# the two cards only:
+#   real card only  — "This is an observation, not a diagnosis…" (the
+#                     disclaimer) and "The reference for this age is …"
+#   locked card only — the teaser "See how feeds and diapers…" and the
+#                      "Available with Premium" hint, both asserted ABSENT.
+#
+# Launch-argument mechanics (dash in the key, stopApp beside clearState) are
+# explained in SMOKE-main-tabs.yaml and the platform-run skill.
+#
+# NO NUMBER IS EVER ASSERTED. The fixture is built with
+# Calendar.date(byAdding:), so a DST boundary inside the seeded nine days moves
+# the window by an hour and every rendered figure with it ("Over 8 days",
+# "4.9 a day") while every STATE holds — the margins are 17 g/day against a
+# 22.3 floor, 5 feeds against 7, 4 nappies against 6. Words are stable; digits
+# are not.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "lowGain"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+
+# More is the only route to Growth; the tab label needs childOf "Tab Bar"
+# because a bare "More" is ambiguous.
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Growth"
+# Growth is pushed INSIDE More's stack, so tab_more stays present — the arrival
+# anchor has to be something only Growth renders.
+- extendedWaitUntil:
+    visible: ".*Current Measurements.*"
+    timeout: 10000
+
+# Nutrition sits below the gain and trend cards; iOS only exposes what is
+# actually on screen, so every anchor below the fold has to be scrolled to.
+- scrollUntilVisible:
+    element:
+      text: ".*Nutrition.*"
+    direction: DOWN
+    timeout: 30000
+# On to the section that FOLLOWS the breakdown card. scrollUntilVisible stops
+# the instant its target edges into view, which leaves everything under the
+# Nutrition heading still below the fold — so the section's own rows and the
+# whole breakdown card only enter the hierarchy after this second scroll.
+- scrollUntilVisible:
+    element:
+      text: ".*Measurement History.*"
+    direction: DOWN
+    timeout: 30000
+
+# The free section still states the situation for everyone.
+- assertVisible: ".*below the reference.*"
+
+# The shared title — necessary, and on its own worthless. The three assertions
+# after it are what say which card is under it.
+- assertVisible: ".*Gain is below the reference.*"
+# REAL CARD ONLY: the locked placeholder carries a lock and a teaser, never the
+# disclaimer and never the reference sentence.
+- assertVisible: ".*This is an observation, not a diagnosis.*"
+- assertVisible: ".*The reference for this age is.*"
+# The two comparison lines, matched by their SHAPE so no figure is pinned.
+- assertVisible: ".*Feedings: .* a day, reference .*"
+- assertVisible: ".*Wet diapers: .* a day, reference .* or more.*"
+# LOCKED CARD ABSENT: its teaser, and the hint every locked card carries.
+# The hint is a VIEWPORT check, not a whole-screen one — Maestro sees only what
+# is rendered, and after the second scroll the locked gain and trend cards may
+# already be above the fold. What it reliably guards is that the nutrition card
+# in view is not a placeholder; the teaser above it is the specific check.
+- assertNotVisible: ".*See how feeds and diapers in this period compare.*"
+- assertNotVisible: ".*Available with Premium.*"

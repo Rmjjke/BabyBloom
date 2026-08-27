@@ -40,14 +40,82 @@ no product code at all. The ones that matter:
 | `-appLanguage en` \| `ru` \| `es` | pin the UI language, so selectors do not depend on the device locale |
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
+| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
+| `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 
-`BBSkipSplash` is the ONLY one backed by product code
-(`BabyBloomApp.showingSplash`) — the splash is `@State`, not `@AppStorage`.
-Without it every cold launch costs ~5s (SplashView.play: 4.6s + a 0.4s
-fade). With it the Dashboard is up in under 3s.
+`BBSkipSplash`, `BBSeedScenario` and `BBForcePremium` are the only three backed
+by product code (`BabyBloomApp.showingSplash`, `SeedScenario.seedIfRequested`
+and `SubscriptionManager.isPremium`) — the splash is `@State`, not
+`@AppStorage`, and neither the seeder nor the entitlement is a stored default.
+Without `-BBSkipSplash` every cold launch costs ~5s (SplashView.play: 4.6s +
+a 0.4s fade). With it the Dashboard is up in under 3s.
 
 Omit an argument to exercise the real path: no `-hasCompletedOnboarding`
 means the flow gets the genuine first-run onboarding.
+
+`-BBSeedScenario` is the exception to that paragraph's spirit — it IS product
+code, in `BabyBloom/Core/Models/SeedScenario.swift`, gated on
+`#if targetEnvironment(simulator)` so a device build contains no seeding path
+at all. It runs at most once per process, and the wipe is unreachable without
+the argument (verified 2026-08-26: relaunching without it left the previous
+scenario's data untouched). Under Maestro the value goes in the same
+`arguments:` block with the dash spelled out:
+
+    "-BBSeedScenario": "lowGain"
+
+> ### ⚠️ Run seeded flows only on a simulator that is NOT signed into iCloud
+>
+> Seeding **wipes the database first** — every `Baby` and every entry. The
+> simulator gate keeps that out of shipped binaries; it does not make it local.
+> The model container is `cloudKitDatabase: .automatic`, so on a simulator
+> signed into a real Apple Account the wipe deletes those records from **that
+> account's private CloudKit database** — the ones the person's own phone is
+> syncing — and then pushes the fixture baby out in their place. There is no
+> undo.
+>
+> Before the first seeded run: Settings ▸ [your name] ▸ Sign Out on the
+> simulator, or pick a simulator that was never signed in. A simulator with no
+> account does not sync at all, which is the normal state for a test run.
+
+**Spell the name right, and it will tell you if you did not.** The names are
+case-sensitive (`lowGain`, `healthy`, `sparseLogs`). An unrecognised value logs
+a fault naming it and the valid ones, then calls `fatalError` — the app dies on
+launch in every build configuration (`assertionFailure` would vanish under
+Release), so a typo fails the flow instead of quietly running it against the
+previous flow's leftover data. A successful seed logs `Seeded scenario <name>.`
+under subsystem `com.nenita.app`, category `SeedScenario`, the cheapest way to confirm
+which fixture a run's assertions actually saw:
+
+    xcrun simctl spawn booted log stream --predicate 'subsystem == "com.nenita.app"'
+
+## Premium without a purchase
+
+`-BBForcePremium true` is the other piece of product-code scaffolding, in
+`SubscriptionManager`, gated on `#if targetEnvironment(simulator)` for the same
+reason `SeedScenario` is: `DEBUG` is false in a release-optimized QA build,
+which is still a real build on a real device, and no shipped binary may carry a
+path that hands out a paid entitlement.
+
+**Why it has to exist.** `GrowthView` chooses between `FeedingBreakdownCard` and
+a `LockedInsightCard` built with the SAME title key (`breakdown.title`). Without
+a way to force the paid branch, an e2e assertion on that title passes whether
+the paid card works, throws, or renders blank — the half of the app people pay
+for would be structurally untestable.
+
+**Why it is not a one-liner.** `refreshEntitlements()` assigns unconditionally
+and `MainTabView` calls it from a `.task` on every appearance, so an override
+written once at init is clobbered before Growth is ever reached. It is therefore
+read on every access: `isEntitled` stays the StoreKit truth and `isPremium`
+computes `isEntitled || override`. `restorePurchases` deliberately reports off
+`isEntitled`, so the override cannot fake a restore.
+
+    "-BBForcePremium": "true"
+
+Verified 2026-08-26 by launching the same seeded scenario twice, changing
+nothing but this argument: with it the Growth screen renders the breakdown
+card's reference lines and its "This is an observation, not a diagnosis"
+disclaimer and no card reads "Available with Premium"; without it the same
+screen shows the lock, the teaser and no disclaimer.
 
 ## Clean state
 
@@ -60,7 +128,9 @@ database:
     xcrun simctl erase <udid>                           # everything, needs shutdown first
 
 CloudKit sync is `.automatic`; a simulator without an iCloud account simply
-does not sync, which is the normal state for test runs.
+does not sync, which is the normal state for test runs — and the state
+`-BBSeedScenario` requires, since its wipe would otherwise reach a real
+account's private database (see the warning above).
 
 ## Looking at the result
 
@@ -105,3 +175,21 @@ spelled out in the key and `stopApp: true` alongside `clearState: true`:
 
 Tabs are tapped through `childOf: {text: "Tab Bar"}`; which tab is open is
 asserted via the `tab_*` ids. See `.desk/app-map.md`.
+
+**Name the device, and make sure nothing else is on it.** `maestro test` with
+no `--device` picks a booted simulator for you, and more than one is usually
+booted here:
+
+    maestro --device <udid> test .desk/tests/
+
+On 2026-08-26 four separate red runs — a missed tap, a rotated screenshot, two
+`Device became unreachable` drops — turned out to be a second party driving the
+same simulator (a different app came to the foreground mid-flow, in landscape),
+plus a `maestro test` process left running since 2026-08-24 that was still
+holding the XCUITest driver. Killing the stale process and moving to a
+simulator created for the run turned an every-other-run flake into ten green
+flows in a row. Before blaming a flow, check:
+
+    ps aux | grep '[m]aestro.cli.AppKt'      # a hung run from a previous session
+    xcrun simctl list devices booted         # who else is booted
+    xcrun simctl create BB-e2e-iPhone17 "iPhone 17"   # a device of your own

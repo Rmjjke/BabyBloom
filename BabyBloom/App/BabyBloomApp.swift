@@ -67,6 +67,11 @@ struct BabyBloomApp: App {
             .environment(subscriptionManager)
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
+                // Simulator-only, and only when launched with
+                // `-BBSeedScenario <name>`. Runs before the adoption pass so
+                // the pass sees the seeded data — which is already linked to
+                // its Baby, so it finds nothing to adopt.
+                SeedScenario.seedIfRequested(in: sharedModelContainer.mainContext)
                 // Entries created before they were linked to their Baby still
                 // have a nil owner, which makes Baby's cascade rules inert.
                 // Runs at most once per install and is a no-op afterwards.
