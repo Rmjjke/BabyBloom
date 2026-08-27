@@ -214,6 +214,8 @@
   "filter.month": "Mes",
   "filter.year": "Año",
   "section.weekly_chart": "Evolución semanal",
+  "chart.previous_week": "Semana anterior",
+  "chart.next_week": "Semana siguiente",
   "chart.axis.day": "Día",
   "chart.axis.value": "Valor",
   "button.delete_history": "Eliminar historial",

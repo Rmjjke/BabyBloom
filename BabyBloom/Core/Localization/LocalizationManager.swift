@@ -137,6 +137,22 @@ final class LocalizationManager: @unchecked Sendable {
         load(resolved)
     }
 
+    /// Re-reads the stored language and reloads the table if it moved.
+    ///
+    /// The app resolves its language once, at launch, and that is enough: a new
+    /// choice in Settings goes through `setLanguage`. A widget extension has no
+    /// such moment. iOS keeps the extension process alive across timeline
+    /// refreshes, so this singleton held whatever language it read when the
+    /// process first started and the widget went on rendering the OLD language
+    /// after the user changed it — until iOS happened to restart the extension,
+    /// which could be hours. Timeline generation calls this first.
+    func refreshFromStore() {
+        let resolved = Self.storedLanguage()
+        guard resolved.rawValue != currentLanguage else { return }
+        currentLanguage = resolved.rawValue
+        load(resolved)
+    }
+
     func setLanguage(_ language: String) {
         setLanguage(SupportedLanguage(rawValue: language) ?? .fallback)
     }

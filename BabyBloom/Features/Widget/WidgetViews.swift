@@ -18,8 +18,14 @@ struct BabyBloomSmallWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("🌸")
-                    .font(.system(size: 20))
+                // SF Symbol, not the 🌸 this used to be: Apple Color Emoji does
+                // not resolve inside the widget extension on a simulator and the
+                // glyph renders as a tofu box — which then reaches anything shot
+                // from a simulator, App Store captures included. `leaf.fill` is
+                // also what `SplashView` already uses for the brand mark.
+                Image(systemName: "leaf.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.white)
                 Text("brand.name".l)
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.9))
@@ -38,6 +44,11 @@ struct BabyBloomSmallWidgetView: View {
                          : String(format: "stats.h_ago".l, mins / 60))
                         .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        // "16 мин назад" does not fit the small widget at 18pt
+                        // and was truncating to "16 мин наз…". English fits, so
+                        // this only ever shows up in the other two languages.
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
                 }
             }
 
@@ -70,7 +81,9 @@ struct BabyBloomMediumWidgetView: View {
             // Left: Baby info
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("🌸")
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.white)
                     Text(entry.babyName)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)

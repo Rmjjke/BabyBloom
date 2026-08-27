@@ -214,6 +214,8 @@
   "filter.month": "Месяц",
   "filter.year": "Год",
   "section.weekly_chart": "Динамика по неделям",
+  "chart.previous_week": "Предыдущая неделя",
+  "chart.next_week": "Следующая неделя",
   "chart.axis.day": "День",
   "chart.axis.value": "Значение",
   "button.delete_history": "Удалить историю",
