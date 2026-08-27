@@ -268,7 +268,7 @@
   "onboarding.gen.step4": "Configurando recordatorios inteligentes",
   "onboarding.premium.title": "Nenita Premium",
   "onboarding.premium.headline": "Todo para cuidar a tu bebé con confianza",
-  "onboarding.premium.badge": "7 días gratis, luego $4.99 / mes",
+  "onboarding.premium.badge": "Empieza con una prueba gratuita",
   "onboarding.premium.trial": "Comenzar prueba gratis",
   "onboarding.premium.skip": "Continuar con la versión gratis",
   "onboarding.premium.f1": "Historial de registros sin límite",
@@ -407,5 +407,10 @@
   "breakdown.nappies_fmt": "Pañales mojados: %@ al día, referencia %d o más.",
   "breakdown.no_data": "Hay muy pocos registros de tomas y pañales en este periodo para comparar.",
   "breakdown.disclaimer": "Esto es una observación, no un diagnóstico. Conviene comentarlo con el pediatra.",
-  "premium.teaser_nutrition": "Consulta cómo se comparan las tomas y los pañales de este periodo con las referencias"
+  "premium.teaser_nutrition": "Consulta cómo se comparan las tomas y los pañales de este periodo con las referencias",
+  "premium.plan.weekly": "Semanal",
+  "premium.per_week": "/ semana",
+  "premium.save_fmt": "Ahorra %d%%",
+  "premium.trial_fmt": "%d %@ gratis, luego %@",
+  "premium.price_only_fmt": "%@ · cancela cuando quieras"
 }

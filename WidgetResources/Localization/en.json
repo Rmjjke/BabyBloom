@@ -268,7 +268,7 @@
   "onboarding.gen.step4": "Configuring smart reminders",
   "onboarding.premium.title": "Bitty Premium",
   "onboarding.premium.headline": "Everything for confident baby care",
-  "onboarding.premium.badge": "7 days free, then $4.99 / month",
+  "onboarding.premium.badge": "Start with a free trial",
   "onboarding.premium.trial": "Start Free Trial",
   "onboarding.premium.skip": "Continue with free version",
   "onboarding.premium.f1": "Unlimited tracking history",
@@ -407,5 +407,10 @@
   "breakdown.nappies_fmt": "Wet diapers: %@ a day, reference %d or more.",
   "breakdown.no_data": "There aren't enough feeding and diaper logs in this period to compare.",
   "breakdown.disclaimer": "This is an observation, not a diagnosis. Worth discussing with your pediatrician.",
-  "premium.teaser_nutrition": "See how feeds and diapers in this period compare with the references"
+  "premium.teaser_nutrition": "See how feeds and diapers in this period compare with the references",
+  "premium.plan.weekly": "Weekly",
+  "premium.per_week": "/ week",
+  "premium.save_fmt": "Save %d%%",
+  "premium.trial_fmt": "%d %@ free, then %@",
+  "premium.price_only_fmt": "%@ · cancel anytime"
 }
