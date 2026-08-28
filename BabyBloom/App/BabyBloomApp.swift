@@ -63,7 +63,10 @@ struct BabyBloomApp: App {
             // Dynamic Type: allow growth up to AX2 (a sensible ceiling for MVP —
             // full AX5 would demand deeper per-screen relayout). Below this, the
             // scaled Typography and growth-safe layouts do the work.
-            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            // The ceiling comes from BBTheme so this modifier and the font cap in
+            // `Typography.scaledPointSize` are the same number. This modifier alone
+            // only ever set the environment; it never constrained the fonts.
+            .dynamicTypeSize(...BBTheme.Typography.maxDynamicTypeSize)
             .environment(subscriptionManager)
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
