@@ -38,8 +38,9 @@ carry the canonical invocations and how to report results.
 
 - ALL UI strings go through the JSON `LocalizationManager`
   (`BabyBloom/Resources/Localization/{en,ru,es}.json`). `NSLocalizedString`
-  is never used; the `.lproj/Localizable.strings` files are dead.
-- `.lproj/InfoPlist.strings` IS live — it drives the per-language app name.
+  is never used; the `.lproj/Localizable.strings` files were deleted (PR #14).
+- `{en,ru,es}.lproj/InfoPlist.strings` IS live — it drives the per-language
+  app name.
 - The widget reads a **physical copy** of the JSONs in
   `WidgetResources/Localization/`. A pre-build script fails the build when
   the copies drift. To sync:
@@ -64,6 +65,25 @@ renderer cannot read the Asset Catalog). Never hardcode a colour in a view.
   `Services/`.
 - Written artifacts (code, commits, PRs, specs) in English. Conversation
   with the user in Russian.
+
+## Knowledge base — read it, then keep it true
+
+`ARCHITECTURE.md` is how the system works; `DECISIONS.md` is why it is that
+way. Read the relevant part before changing an area — both are committed, so
+unlike `.desk/`, they survive a clone.
+
+**Updating them is part of finishing a task, not a follow-up.** Before opening
+a PR, ask two questions and act on the answers:
+
+- Did this change make anything in `ARCHITECTURE.md` false, or add a mechanism
+  a newcomer could not infer? → edit the affected paragraph in the same PR.
+- Did this task settle something that will outlive it — an architecture
+  direction, a convention, a rejected approach, a constraint invisible in the
+  code? → add a dated entry to `DECISIONS.md`, **with its reason**. A decision
+  without its why gets undone in a year for good-looking reasons.
+
+Most tasks need neither. A task that needs one and skips it leaves the next
+person reading a document that lies, which is worse than no document.
 
 ## Git
 

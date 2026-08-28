@@ -92,6 +92,11 @@ WidgetResources/            # Widget copies of localization JSONs (keep in sync!
 BabyBloomTests/             # Unit tests
 ```
 
+Дерево выше — карта, а не архитектура. Как система работает на самом деле —
+доменная модель, синхронизация, локализация, путь данных виджета, премиум,
+тестовые хуки — описано в [ARCHITECTURE.md](ARCHITECTURE.md). Почему она такая
+и что было решено сознательно — в [DECISIONS.md](DECISIONS.md).
+
 Документация уведомлений: [NOTIFICATIONS.md](NOTIFICATIONS.md). План MVP-работ: [docs/superpowers/plans/](docs/superpowers/plans/).
 
 ## Запуск
