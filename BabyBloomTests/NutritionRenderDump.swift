@@ -46,6 +46,13 @@ import UIKit
 ///
 /// with `content_size large` restoring the default set.
 ///
+/// **Since the AX2 cap became real, an AX3/AX4/AX5 run renders the same image
+/// as AX2.** `BBTheme.Typography.scaledPointSize` clamps at
+/// `maxContentSizeCategory`, so the filename stamp below records the DEVICE
+/// setting the run was made at, not the size the text came out. Identical
+/// `-ax3` and `-ax2` dumps are the cap working; a `-ax5` dump that is visibly
+/// larger than `-ax2` is the cap broken again.
+///
 /// That paragraph is about FONT SIZES. The environment value still matters for
 /// LAYOUT: a view is free to branch on `dynamicTypeSize`, and
 /// `NutritionSection`'s row does. So `dump` hands the live device category to

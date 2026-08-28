@@ -40,15 +40,64 @@ enum BBTheme {
     // Scale D1: straight SF Pro (semibold, not bold) for headers; rounded for body;
     // rounded + monospacedDigit for metrics/timers so digits don't jump.
     enum Typography {
+        /// The app's Dynamic Type ceiling, in the ONE place that decides it.
+        /// AX2 is a deliberate MVP compromise: full AX5 would demand per-screen
+        /// relayout across the app. `BabyBloomApp` reads `maxDynamicTypeSize`
+        /// from this same constant, so the SwiftUI cap and the font cap below
+        /// cannot drift apart again — which is exactly how they drifted before.
+        static let maxContentSizeCategory: UIContentSizeCategory = .accessibilityLarge
+
+        /// The SwiftUI face of `maxContentSizeCategory`. Views may branch on
+        /// `dynamicTypeSize` for LAYOUT, so the environment must agree with the
+        /// point sizes the fonts actually get.
+        static let maxDynamicTypeSize: DynamicTypeSize =
+            DynamicTypeSize(maxContentSizeCategory) ?? .accessibility2
+
+        // `UITraitCollection(mutations:)` would read better, but its closure is
+        // main-actor-isolated and these helpers are called from nonisolated code
+        // too. This initializer is not deprecated — only `traitsFrom:` is.
+        private static let capTraits =
+            UITraitCollection(preferredContentSizeCategory: maxContentSizeCategory)
+
+        /// Point size for the D1 scale value `size`, scaled for Dynamic Type and
+        /// clamped to `maxContentSizeCategory`.
+        ///
+        /// The `min` IS the cap. `UIFontMetrics.scaledValue(for:)` — the form
+        /// with no trait collection — reads the DEVICE content size and ignores
+        /// the SwiftUI environment, so `.dynamicTypeSize(...)` never constrained
+        /// these fonts: at AX5 a card measured 774pt against 442pt at AX2.
+        /// Scaling is monotonic in the category, so the smaller of "what the
+        /// device asks for" and "what AX2 gives" caps growth while leaving
+        /// everything at or below AX2 pixel-identical.
+        ///
+        /// `category` is the test seam — the device size cannot be moved from
+        /// inside a test process. Production passes nil and reads the device.
+        static func scaledPointSize(_ size: CGFloat,
+                                    relativeTo style: UIFont.TextStyle,
+                                    for category: UIContentSizeCategory? = nil) -> CGFloat {
+            let metrics = UIFontMetrics(forTextStyle: style)
+            let requested: CGFloat
+            if let category {
+                requested = metrics.scaledValue(
+                    for: size,
+                    compatibleWith: UITraitCollection(preferredContentSizeCategory: category)
+                )
+            } else {
+                requested = metrics.scaledValue(for: size)
+            }
+            return min(requested, metrics.scaledValue(for: size, compatibleWith: capTraits))
+        }
+
         /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the D1 scale
-        /// values (unchanged); `UIFontMetrics(forTextStyle:)` scales the point size for
-        /// the user's Content Size setting. At the standard "Large" setting the scale
-        /// factor is 1.0, so rendering is pixel-identical to the fixed-size D1 scale.
+        /// values (unchanged); the point size is scaled for the user's Content Size
+        /// setting and capped at `maxContentSizeCategory`. At the standard "Large"
+        /// setting the scale factor is 1.0, so rendering is pixel-identical to the
+        /// fixed-size D1 scale.
         static func scaled(_ size: CGFloat,
                            relativeTo style: UIFont.TextStyle,
                            weight: Font.Weight,
                            design: Font.Design = .rounded) -> Font {
-            .system(size: UIFontMetrics(forTextStyle: style).scaledValue(for: size),
+            .system(size: scaledPointSize(size, relativeTo: style),
                     weight: weight, design: design)
         }
 

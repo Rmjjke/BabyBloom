@@ -44,9 +44,14 @@ struct NutritionSection: View {
     /// The icon scales off `.body` exactly as the label beside it does, and its
     /// column follows — a fixed 14pt glyph in a fixed 20pt slot sits beside a
     /// label that roughly doubles at the AX2 cap, and the row falls apart.
-    /// `UIFontMetrics` rather than `@ScaledMetric` so the width obeys the same
+    /// Sized through `BBTheme.Typography.scaledPointSize` rather than
+    /// `@ScaledMetric` or a bare `UIFontMetrics` so the width obeys the same
     /// rule as `BBTheme.Typography.scaled`, which is what sizes the text: two
     /// mechanisms would disagree wherever the environment overrides the size.
+    /// A bare `UIFontMetrics.scaledValue(for:)` here is not a smaller version
+    /// of that — it is the same defect: it reads the DEVICE content size and
+    /// walks straight past the app's AX2 ceiling, so above AX2 the column kept
+    /// growing while the label it is sized for had stopped.
     ///
     /// **Two layouts, and the second one is not decoration.** Side by side, the
     /// label and its status divide one card's width between them; at an
@@ -98,7 +103,7 @@ struct NutritionSection: View {
     /// Shared by both layouts so the two can never drift apart in anything but
     /// their arrangement.
     private var iconColumnWidth: CGFloat {
-        UIFontMetrics(forTextStyle: .body).scaledValue(for: 20)
+        BBTheme.Typography.scaledPointSize(20, relativeTo: .body)
     }
 
     /// Hidden from VoiceOver: the glyph carries no information the label does
