@@ -58,6 +58,10 @@ final class WidgetRenderDump: XCTestCase {
             "widget.today_count", "widget.feedings_count",
             "widget.description_small", "widget.name_medium",
             "widget.description_medium",
+            // The countdown redesign's keys — the widget's whole reason for
+            // being now lives in these, so this guard is pointless without them.
+            "widget.feeding_in", "widget.time_to_feed", "widget.last_feed",
+            "widget.log_first_feeding", "widget.sleeping", "widget.today_short",
         ]
         for locale in ["en", "ru", "es"] {
             LocalizationManager.shared.setLanguage(locale)
@@ -76,7 +80,9 @@ final class WidgetRenderDump: XCTestCase {
             for key in ["widget.today_count", "widget.feedings_count",
                         "widget.description_small", "widget.name_medium",
                         "widget.description_medium", "status.sleeping_now",
-                        "baby.default_name"] {
+                        "baby.default_name",
+                        "widget.feeding_in", "widget.time_to_feed", "widget.last_feed",
+                        "widget.log_first_feeding", "widget.sleeping", "widget.today_short"] {
                 XCTAssertNil(key.l.rangeOfCharacter(from: cyrillic),
                              "\(key) is still Russian in \(locale): \(key.l)")
             }
