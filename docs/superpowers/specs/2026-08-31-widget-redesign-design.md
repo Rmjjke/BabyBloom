@@ -142,6 +142,13 @@ those in place every minute without a timeline reload. The 15-minute cadence
 then only governs how fresh the underlying data is (a feeding logged on
 another device, the sleep state), never the number on screen.
 
+`Text(_:style:)` keeps the NUMBER right, but not the WORDING: "Feeding in"
+has to become "Time to feed" the moment the feed falls due, and no amount of
+in-place re-rendering changes a label. The timeline therefore carries a second
+entry dated exactly at `nextFeed`, so the widget flips at that minute without
+polling for it. (Refinement found while writing the implementation plan,
+2026-09-01.)
+
 The app already calls `WidgetCenter.reloadAllTimelines()` on a language
 change. This design adds a reload after a feeding or sleep entry is saved or
 deleted, so the widget reflects an action taken in the app immediately rather
