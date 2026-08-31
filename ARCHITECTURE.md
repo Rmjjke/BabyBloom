@@ -136,6 +136,13 @@ so the app's ceiling walks straight past it. The ceiling itself
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
 
+The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
+holding the brand colorsets it uses. It cannot share the app's catalog: that
+path sits inside the tree the app target already scans, and XcodeGen then
+dedupes the file references and ships an `.appex` with no Resources build
+phase — the same trap the localization JSONs are laid out to avoid. The
+pre-build script `cmp`s both copies and fails the build on drift.
+
 ## The growth engine
 
 `BabyBloom/Core/Growth/` is pure domain logic — no SwiftData, no model

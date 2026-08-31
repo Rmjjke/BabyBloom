@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - BabyBloom Design System
-// Soft botanical iOS — sage/mint palette, soft shadows, rounded cards.
+// Soft lavender iOS — lavender/peach palette, soft shadows, rounded cards.
 // ALL colors resolve through Asset Catalog colorsets (light + dark variants):
 // re-theming the app = editing the colorsets, no code changes.
 

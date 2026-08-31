@@ -14,6 +14,25 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-01 — The widget gets a second, guarded colour catalog
+
+`WidgetResources/Colors.xcassets` duplicates the brand colorsets, and the
+pre-build script fails the build when it drifts from the app's catalog.
+
+**Why.** The widget extension bundled no catalog at all, so its gradient was
+two hex literals with no dark variant — and the literals had been copied from
+README's documented palette, which was itself wrong, rather than from the
+shipped colorsets. Sharing the app's catalog is not available: its path is
+inside the tree the app target scans, which is exactly the arrangement that
+once made XcodeGen dedupe the references and ship an `.appex` with no
+Resources build phase. A shared Swift constants file was rejected for putting
+the palette back into source, against the 2026-07-21 decision.
+
+**Consequence.** Re-theming stays a colorset edit, but it is now two colorset
+edits plus the copy the error message spells out.
+
+---
+
 ## 2026-08-28 — Every Dynamic Type scale goes through `BBTheme.Typography`
 
 A bare `UIFontMetrics.scaledValue(for:)` anywhere in the app is a defect, and

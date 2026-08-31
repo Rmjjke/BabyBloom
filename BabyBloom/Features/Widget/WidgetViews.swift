@@ -11,6 +11,22 @@ struct BabyBloomEntry: TimelineEntry {
     let isAsleep: Bool
 }
 
+/// The brand gradient, as the widget's CONTAINER background rather than a
+/// background on the content.
+///
+/// It used to be `.background(...)` on the inner stack while the container
+/// kept `.fill.tertiary`. The content sits inside the system's margins, so the
+/// gradient rendered as a square-cornered rectangle with the container's own
+/// near-black fill showing around it as a frame — the whole reason this
+/// redesign started. Nothing in-process catches that: a view rendered outside
+/// a widget container has neither margins nor a container background.
+struct WidgetBackground: View {
+    var body: some View {
+        LinearGradient(colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+}
+
 // MARK: - Small Widget View
 struct BabyBloomSmallWidgetView: View {
     let entry: BabyBloomEntry
@@ -62,13 +78,6 @@ struct BabyBloomSmallWidgetView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#6B5EA8"), Color(hex: "#9B8EC8")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
     }
 }
 
@@ -120,13 +129,6 @@ struct BabyBloomMediumWidgetView: View {
             .padding(14)
             .frame(maxHeight: .infinity)
         }
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#6B5EA8"), Color(hex: "#B08ED8")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
     }
 
     private func widgetStatRow(icon: String, title: String, value: String) -> some View {
