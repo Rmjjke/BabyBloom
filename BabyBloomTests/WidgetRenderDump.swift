@@ -22,7 +22,11 @@ final class WidgetRenderDump: XCTestCase {
             lastFeedingTime: Date().addingTimeInterval(-95 * 60),
             lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
             todayFeedingCount: 6,
-            isAsleep: true
+            isAsleep: true,
+            // Countdown state — Task 6 dumps every state in the table; this
+            // one only needs to keep compiling against the widened entry.
+            nextFeedingTime: Date().addingTimeInterval(35 * 60),
+            ageMonths: 3
         )
     }
 

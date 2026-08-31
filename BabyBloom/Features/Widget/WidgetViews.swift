@@ -9,6 +9,14 @@ struct BabyBloomEntry: TimelineEntry {
     let lastSleepDuration: String?
     let todayFeedingCount: Int
     let isAsleep: Bool
+    /// When the next feed is due. `nil` for two different reasons, and the
+    /// views render a different thing for each: nothing logged yet (the
+    /// invitation), and 12+ months, where the app deliberately does not
+    /// predict (elapsed time instead).
+    let nextFeedingTime: Date?
+    let ageMonths: Int
+
+    var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
 }
 
 /// The brand gradient, as the widget's CONTAINER background rather than a
@@ -27,56 +35,82 @@ struct WidgetBackground: View {
     }
 }
 
+/// Wording shared by both sizes, so the two cannot describe the same state
+/// differently.
+enum WidgetCopy {
+    static func headline(for entry: BabyBloomEntry) -> String {
+        guard entry.nextFeedingTime != nil else { return "widget.last_feed".l }
+        return "widget.feeding_in".l
+    }
+
+    /// True once the due moment has passed. The timeline places an entry
+    /// exactly at that moment, so this flips without polling.
+    static func isDue(_ entry: BabyBloomEntry) -> Bool {
+        guard let next = entry.nextFeedingTime else { return false }
+        return next <= entry.date
+    }
+
+    /// The countdown is rendered from a DATE, never a formatted string: the
+    /// system re-renders `Text(_:style:)` every minute, so it stays right
+    /// between the 15-minute timeline reloads.
+    @ViewBuilder
+    static func hero(for entry: BabyBloomEntry) -> some View {
+        if let next = entry.nextFeedingTime, next > entry.date {
+            Text(next, style: .relative)
+        } else if entry.nextFeedingTime != nil {
+            Text("widget.time_to_feed".l)
+        } else if let last = entry.lastFeedingTime {
+            // 12+ months: the app does not predict here, so neither do we.
+            Text(last, style: .relative)
+        } else {
+            Text("—")
+        }
+    }
+}
+
 // MARK: - Small Widget View
 struct BabyBloomSmallWidgetView: View {
     let entry: BabyBloomEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                // SF Symbol, not the 🌸 this used to be: Apple Color Emoji does
-                // not resolve inside the widget extension on a simulator and the
-                // glyph renders as a tofu box — which then reaches anything shot
-                // from a simulator, App Store captures included. `leaf.fill` is
-                // also what `SplashView` already uses for the brand mark.
-                Image(systemName: "leaf.fill")
-                    .font(.system(size: 18))
-                    .foregroundStyle(.white)
-                Text("brand.name".l)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
-            }
+        VStack(alignment: .leading, spacing: 6) {
+            if entry.hasLoggedAFeeding {
+                Text(WidgetCopy.headline(for: entry))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.75))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
 
-            Spacer()
+                WidgetCopy.hero(for: entry)
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(WidgetCopy.isDue(entry) ? Color("BBAccent") : .white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
 
-            if let lastFeeding = entry.lastFeedingTime {
-                let mins = Int(Date().timeIntervalSince(lastFeeding) / 60)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("tab.feeding".l)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.7))
-                    Text(mins < 60
-                         ? String(format: "stats.min_ago".l, mins)
-                         : String(format: "stats.h_ago".l, mins / 60))
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        // "16 мин назад" does not fit the small widget at 18pt
-                        // and was truncating to "16 мин наз…". English fits, so
-                        // this only ever shows up in the other two languages.
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
+                Spacer(minLength: 0)
+
+                HStack(spacing: 6) {
+                    Label(String(format: "widget.today_short".l, entry.todayFeedingCount),
+                          systemImage: "heart.fill")
+                    if entry.isAsleep {
+                        Image(systemName: "moon.fill")
+                    }
                 }
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.85))
+            } else {
+                // The first day is not an error state. The name is what tells
+                // the parent this widget is theirs and working.
+                Text(entry.babyName)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 0)
+                Text("widget.log_first_feeding".l)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .minimumScaleFactor(0.7)
             }
-
-            HStack(spacing: 4) {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 10))
-                Text(String(format: "widget.today_count".l, entry.todayFeedingCount))
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-            }
-            .foregroundStyle(.white.opacity(0.8))
         }
-        .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 }
@@ -86,52 +120,54 @@ struct BabyBloomMediumWidgetView: View {
     let entry: BabyBloomEntry
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Left: Baby info
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.white)
+        Group {
+            if entry.hasLoggedAFeeding {
+                HStack(alignment: .top, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(WidgetCopy.headline(for: entry))
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.75))
+                        WidgetCopy.hero(for: entry)
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(WidgetCopy.isDue(entry) ? Color("BBAccent") : .white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                        Spacer(minLength: 0)
+                        Text(entry.babyName)
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    VStack(alignment: .leading, spacing: 14) {
+                        statRow(icon: "heart.fill", title: "widget.last_feed".l,
+                                value: entry.lastFeedingTime.map { relative($0) } ?? "—")
+                        statRow(icon: "moon.fill",
+                                title: entry.isAsleep ? "widget.sleeping".l : "tab.sleep".l,
+                                value: entry.lastSleepDuration ?? "—")
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                // No split at all here: an invitation reads as one sentence,
+                // and a half-empty two-column grid reads as a fault.
+                VStack(alignment: .leading, spacing: 6) {
                     Text(entry.babyName)
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    Text("widget.log_first_feeding".l)
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.85))
                 }
-
-                Spacer()
-
-                if entry.isAsleep {
-                    Label("status.sleeping_now".l, systemImage: "moon.fill")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
-                }
-
-                Label(String(format: "widget.feedings_count".l, entry.todayFeedingCount),
-                      systemImage: "heart.fill")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(14)
-            .frame(maxHeight: .infinity, alignment: .leading)
-
-            // Divider
-            Rectangle()
-                .fill(.white.opacity(0.2))
-                .frame(width: 1)
-
-            // Right: Quick stats
-            VStack(spacing: 8) {
-                widgetStatRow(icon: "heart.fill", title: "tab.feeding".l,
-                              value: entry.lastFeedingTime.map { timeAgo($0) } ?? "—")
-                widgetStatRow(icon: "moon.fill", title: "tab.sleep".l,
-                              value: entry.lastSleepDuration ?? "—")
-            }
-            .padding(14)
-            .frame(maxHeight: .infinity)
         }
+        .padding(2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
-    private func widgetStatRow(icon: String, title: String, value: String) -> some View {
+    private func statRow(icon: String, title: String, value: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14))
@@ -150,7 +186,7 @@ struct BabyBloomMediumWidgetView: View {
 
     /// Same shape as SleepEntry.durationFormatted, on an elapsed interval
     /// rather than a stored duration.
-    private func timeAgo(_ date: Date) -> String {
+    private func relative(_ date: Date) -> String {
         let mins = Int(Date().timeIntervalSince(date) / 60)
         if mins < 60 { return String(format: "duration.min_only".l, mins) }
         return String(format: "duration.h_min".l, mins / 60, mins % 60)

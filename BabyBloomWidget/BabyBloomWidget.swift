@@ -43,10 +43,24 @@ struct BabyBloomProvider: TimelineProvider {
         // Before anything is read: this process outlives a language change.
         LocalizationManager.shared.refreshFromStore()
         let entry = Self.fetchEntry()
-        // Reload roughly every 15 minutes to keep "time ago" values fresh.
-        let nextUpdate = Date().addingTimeInterval(15 * 60)
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
+        // Roughly every 15 minutes to keep the underlying data fresh. The
+        // countdown itself does NOT depend on this — `Text(_:style:)` is
+        // re-rendered by the system every minute — but the wording has to
+        // change the moment the feed falls due, so a second entry is placed
+        // exactly there rather than polling for it.
+        let refresh = Date().addingTimeInterval(15 * 60)
+        var entries = [entry]
+        if let due = entry.nextFeedingTime, due > entry.date, due < refresh {
+            entries.append(BabyBloomEntry(date: due,
+                                          babyName: entry.babyName,
+                                          lastFeedingTime: entry.lastFeedingTime,
+                                          lastSleepDuration: entry.lastSleepDuration,
+                                          todayFeedingCount: entry.todayFeedingCount,
+                                          isAsleep: entry.isAsleep,
+                                          nextFeedingTime: entry.nextFeedingTime,
+                                          ageMonths: entry.ageMonths))
+        }
+        completion(Timeline(entries: entries, policy: .after(refresh)))
     }
 
     // MARK: Data
@@ -60,7 +74,9 @@ struct BabyBloomProvider: TimelineProvider {
             lastFeedingTime: Date().addingTimeInterval(-7200),
             lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
             todayFeedingCount: 6,
-            isAsleep: false
+            isAsleep: false,
+            nextFeedingTime: nil,
+            ageMonths: 1
         )
     }
 
@@ -91,6 +107,13 @@ struct BabyBloomProvider: TimelineProvider {
         let feedings = (try? ctx.fetch(feedingDescriptor)) ?? []
         let todayCount = feedings.filter { Calendar.current.isDateInToday($0.startTime) }.count
 
+        // The same arithmetic the feeding reminder is scheduled on, so the
+        // widget and the push cannot contradict each other.
+        let recent = Array(feedings.prefix(7).map(\.startTime))
+        let nextFeed = FeedingRhythm.nextFeed(afterLastFeedingAt: feedings.first?.startTime,
+                                              ageMonths: baby.ageInMonths,
+                                              recentFeedings: recent)
+
         // Latest sleep entry.
         var sleepDescriptor = FetchDescriptor<SleepEntry>(
             sortBy: [SortDescriptor(\.startTime, order: .reverse)]
@@ -104,7 +127,9 @@ struct BabyBloomProvider: TimelineProvider {
             lastFeedingTime: feedings.first?.startTime,
             lastSleepDuration: lastSleep?.durationFormatted,
             todayFeedingCount: todayCount,
-            isAsleep: lastSleep?.isActive ?? false
+            isAsleep: lastSleep?.isActive ?? false,
+            nextFeedingTime: nextFeed,
+            ageMonths: baby.ageInMonths
         )
     }
 }
