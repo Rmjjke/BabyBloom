@@ -439,22 +439,10 @@ final class NotificationManager: @unchecked Sendable {
     // MARK: - Average interval
 
     /// Average interval (in minutes) between the most recent feedings.
-    /// Uses the last 7 entries, ignores gaps > 8 h, and defaults to 120 min
-    /// when there is not enough usable data. Ported 1:1 from the former
-    /// NotificationService for smart feeding reminders.
+    /// Delegates to `FeedingRhythm` so the widget shares the exact same
+    /// arithmetic — see that type for the windowing and gap rules.
     func calculateAverageIntervalMinutes(times: [Date]) -> Double {
-        guard times.count >= 2 else { return 120 } // default 2h
-        let sorted = times.sorted()
-        let recent = Array(sorted.suffix(7))
-        var intervals: [Double] = []
-        for i in 1..<recent.count {
-            let interval = recent[i].timeIntervalSince(recent[i-1]) / 60
-            if interval > 0 && interval < 480 { // ignore > 8h gaps
-                intervals.append(interval)
-            }
-        }
-        guard !intervals.isEmpty else { return 120 }
-        return intervals.reduce(0, +) / Double(intervals.count)
+        FeedingRhythm.averageGapMinutes(times)
     }
 
     // MARK: - Interval tables (internal for @testable access)
@@ -463,22 +451,12 @@ final class NotificationManager: @unchecked Sendable {
     /// when ≥3 recent feedings are available, otherwise the age-based table.
     /// Returns nil when reminders are disabled for this age group.
     func feedingReminderInterval(ageMonths: Int, recentFeedingTimes: [Date]) -> TimeInterval? {
-        if recentFeedingTimes.count >= 3 {
-            return calculateAverageIntervalMinutes(times: recentFeedingTimes) * 60 + 10 * 60
-        }
-        return feedingInterval(ageMonths: ageMonths)
+        FeedingRhythm.interval(ageMonths: ageMonths, recentFeedings: recentFeedingTimes)
     }
 
     /// Returns nil when reminders should be disabled for this age group.
     func feedingInterval(ageMonths: Int) -> TimeInterval? {
-        switch ageMonths {
-        case 0:      return 2.5 * 3600   // 0–4 weeks: every ~2–3 h
-        case 1...2:  return 3.0 * 3600
-        case 3...5:  return 3.5 * 3600
-        case 6...8:  return 4.0 * 3600
-        case 9...11: return 4.5 * 3600
-        default:     return nil           // 12+ months: parent-managed
-        }
+        FeedingRhythm.interval(ageMonths: ageMonths)
     }
 
     func wakeWindow(ageMonths: Int) -> TimeInterval? {

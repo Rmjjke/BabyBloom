@@ -82,6 +82,11 @@ targets:
       - path: BabyBloom/Core/Localization
         excludes:
           - "**/.DS_Store"
+      # The next-feed arithmetic the widget counts down to. Pure, and shared
+      # with the app so the widget and the feeding reminder cannot disagree.
+      - path: BabyBloom/Core/Feeding
+        excludes:
+          - "**/.DS_Store"
       # The widget's own views live in the APP's source tree so the app target
       # compiles them too — that is what lets BabyBloomTests render them per
       # locale via @testable import. Same arrangement as Core/Models above.
