@@ -189,6 +189,7 @@ struct SleepView: View {
         entry.baby = baby
         modelContext.insert(entry)
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         NotificationManager.shared.onSleepStarted(
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l,
@@ -200,6 +201,7 @@ struct SleepView: View {
         let endedAt = Date()
         entry.endTime = endedAt
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         NotificationManager.shared.onSleepEnded(
             ageMonths: baby?.ageInMonths ?? 0,
             endedAt: endedAt
@@ -209,6 +211,7 @@ struct SleepView: View {
     private func delete(_ entry: SleepEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         // @Query may not update synchronously; compute from the pre-delete array.
         let remaining = entries.filter { $0 !== entry }
         NotificationManager.shared.onSleepDeleted(
@@ -221,6 +224,7 @@ struct SleepView: View {
     private func deleteAll(_ items: [SleepEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         let remaining = entries.filter { entry in !items.contains { $0 === entry } }
         NotificationManager.shared.onSleepDeleted(
             ageMonths: baby?.ageInMonths ?? 0,
@@ -376,6 +380,7 @@ struct AddSleepSheet: View {
         entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         NotificationManager.shared.onSleepEnded(
             ageMonths: babies.first?.ageInMonths ?? 0,
             endedAt: endTime

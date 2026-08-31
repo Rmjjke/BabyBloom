@@ -194,6 +194,7 @@ struct FeedingView: View {
             entry.baby = baby
             modelContext.insert(entry)
             try? modelContext.save()
+            WidgetRefresh.entriesChanged()
             NotificationManager.shared.onFeedingSaved(
                 ageMonths: baby?.ageInMonths ?? 0,
                 babyName: baby?.name ?? "baby.default_name".l,
@@ -208,12 +209,14 @@ struct FeedingView: View {
     private func stopFeeding(_ entry: FeedingEntry) {
         entry.endTime = Date()
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         NotificationManager.shared.onFeedingTimerStopped(ageMonths: baby?.ageInMonths ?? 0)
     }
 
     private func delete(_ entry: FeedingEntry) {
         modelContext.delete(entry)
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         // @Query may not update synchronously; compute from the pre-delete array.
         let remaining = entries.filter { $0 !== entry }
         NotificationManager.shared.onFeedingDeleted(
@@ -226,6 +229,7 @@ struct FeedingView: View {
     private func deleteAll(_ items: [FeedingEntry]) {
         items.forEach { modelContext.delete($0) }
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         let remaining = entries.filter { entry in !items.contains { $0 === entry } }
         NotificationManager.shared.onFeedingDeleted(
             ageMonths: baby?.ageInMonths ?? 0,
@@ -519,6 +523,7 @@ struct AddFeedingSheet: View {
         entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
+        WidgetRefresh.entriesChanged()
         let baby = babies.first
         NotificationManager.shared.onFeedingSaved(
             ageMonths: baby?.ageInMonths ?? 0,
