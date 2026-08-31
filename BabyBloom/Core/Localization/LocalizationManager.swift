@@ -12,8 +12,8 @@ import Foundation
 ///   3. `BabyBloom/Resources/ja.lproj/InfoPlist.strings` — the presence of the
 ///      `.lproj` folder is what makes iOS (and the App Store listing) treat the
 ///      app as localized for that language;
-///   4. the `for f in …` list in project.yml's "Verify widget localization
-///      copies in sync" pre-build script.
+///   4. the `for f in …` list in project.yml's "Verify widget resource copies
+///      in sync" pre-build script.
 enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
     case en
     case ru

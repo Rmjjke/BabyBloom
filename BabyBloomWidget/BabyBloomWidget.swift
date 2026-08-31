@@ -31,7 +31,7 @@ enum WidgetDataStore {
 // MARK: - Widget Provider
 struct BabyBloomProvider: TimelineProvider {
     func placeholder(in context: Context) -> BabyBloomEntry {
-        Self.gallerySample()
+        Self.placeholderSample()
     }
 
     func getSnapshot(in context: Context, completion: @escaping (BabyBloomEntry) -> Void) {
@@ -54,52 +54,55 @@ struct BabyBloomProvider: TimelineProvider {
             entries.append(BabyBloomEntry(date: due,
                                           babyName: entry.babyName,
                                           lastFeedingTime: entry.lastFeedingTime,
+                                          sleepStartTime: entry.sleepStartTime,
                                           lastSleepDuration: entry.lastSleepDuration,
                                           todayFeedingCount: entry.todayFeedingCount,
                                           isAsleep: entry.isAsleep,
-                                          nextFeedingTime: entry.nextFeedingTime,
-                                          ageMonths: entry.ageMonths))
+                                          nextFeedingTime: entry.nextFeedingTime))
         }
         completion(Timeline(entries: entries, policy: .after(refresh)))
     }
 
     // MARK: Data
 
-    /// The widget gallery's sample — the only caller that WANTS invented
-    /// data. Deliberately internally consistent: a logged feeding at one
-    /// month old always has a predicted next feed, so this carries one 45
-    /// minutes out and shows the countdown that is the whole point of the
-    /// widget, rather than the old "time since" framing.
-    static func gallerySample() -> BabyBloomEntry {
+    /// The redacted loading placeholder WidgetKit shows while a real timeline
+    /// is being fetched — the only caller that WANTS invented data. (The
+    /// gallery is not this: WidgetKit fills that through `getSnapshot(in:)`
+    /// with `context.isPreview`, which returns real data here.) Deliberately
+    /// internally consistent: a logged feeding at one month old always has a
+    /// predicted next feed, so this carries one 45 minutes out and shows the
+    /// countdown that is the whole point of the widget, rather than the old
+    /// "time since" framing.
+    static func placeholderSample() -> BabyBloomEntry {
         BabyBloomEntry(
             date: Date(),
             babyName: "baby.default_name".l,
             lastFeedingTime: Date().addingTimeInterval(-7200),
+            sleepStartTime: Date().addingTimeInterval(-3 * 3600),
             lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
             todayFeedingCount: 6,
             isAsleep: false,
-            nextFeedingTime: Date().addingTimeInterval(45 * 60),
-            ageMonths: 1
+            nextFeedingTime: Date().addingTimeInterval(45 * 60)
         )
     }
 
     /// What `fetchEntry()` falls back to when there is nothing real to show:
     /// no App Group store, or a store with no `Baby` yet. Kept separate from
-    /// `gallerySample()` on purpose — that one is an invented preview for the
-    /// widget gallery; this is what a real person who has not finished
+    /// `placeholderSample()` on purpose — that one is invented data for the
+    /// redacted loading state; this is what a real person who has not finished
     /// onboarding actually sees, and showing them a fabricated "6 today" and
     /// a 2h15m nap for a baby that doesn't exist would be a defect, not a
-    /// preview. Do NOT collapse these back into one function.
+    /// placeholder. Do NOT collapse these back into one function.
     static func emptyEntry() -> BabyBloomEntry {
         BabyBloomEntry(
             date: Date(),
             babyName: "baby.default_name".l,
             lastFeedingTime: nil,
+            sleepStartTime: nil,
             lastSleepDuration: nil,
             todayFeedingCount: 0,
             isAsleep: false,
-            nextFeedingTime: nil,
-            ageMonths: 0
+            nextFeedingTime: nil
         )
     }
 
@@ -148,11 +151,11 @@ struct BabyBloomProvider: TimelineProvider {
             date: Date(),
             babyName: baby.name.isEmpty ? "baby.default_name".l : baby.name,
             lastFeedingTime: feedings.first?.startTime,
+            sleepStartTime: lastSleep?.startTime,
             lastSleepDuration: lastSleep?.durationFormatted,
             todayFeedingCount: todayCount,
             isAsleep: lastSleep?.isActive ?? false,
-            nextFeedingTime: nextFeed,
-            ageMonths: baby.ageInMonths
+            nextFeedingTime: nextFeed
         )
     }
 }

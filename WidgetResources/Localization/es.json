@@ -393,6 +393,7 @@
   "widget.description_medium": "Resumen de tomas y sueño",
   "widget.feeding_in": "Toma en",
   "widget.time_to_feed": "Hora de comer",
+  "widget.overdue_by": "Retraso de",
   "widget.last_feed": "Última toma",
   "widget.log_first_feeding": "Registra la primera toma",
   "widget.sleeping": "Durmiendo",

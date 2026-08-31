@@ -393,6 +393,7 @@
   "widget.description_medium": "An overview of feedings and sleep",
   "widget.feeding_in": "Feeding in",
   "widget.time_to_feed": "Time to feed",
+  "widget.overdue_by": "Overdue by",
   "widget.last_feed": "Last feed",
   "widget.log_first_feeding": "Log the first feeding",
   "widget.sleeping": "Sleeping",

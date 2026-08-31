@@ -97,6 +97,7 @@
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
 		E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582657DC180DE03128A75629 /* NewbornWeightLoss.swift */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
+		E3D5F0838609C2C904796744 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */; };
 		E4288B825DEDD42215BBD8EB /* BBFab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2DCA65186F68E00645DF02 /* BBFab.swift */; };
 		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
 		E71A50FD691737FE791A71C7 /* BBMeasureSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */; };
@@ -639,7 +640,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7D9A3D25B5AC4B427F8FE10B /* Build configuration list for PBXNativeTarget "BabyBloom" */;
 			buildPhases = (
-				9080F2974EB40A5E69DDC900 /* Verify widget localization copies in sync */,
+				CE82291564246A0E6F194100 /* Verify widget resource copies in sync */,
 				4B3558915ABF2353ADB81A8C /* Sources */,
 				4C004AB52023ABDC332BEE8B /* Resources */,
 				83CE97F8D83911DAF538D5BF /* Embed Foundation Extensions */,
@@ -730,7 +731,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9080F2974EB40A5E69DDC900 /* Verify widget localization copies in sync */ = {
+		CE82291564246A0E6F194100 /* Verify widget resource copies in sync */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -740,14 +741,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Verify widget localization copies in sync";
+			name = "Verify widget resource copies in sync";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"\n# Keep this list in sync with LocalizationManager.SupportedLanguage.\nfor f in en ru es; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n# Same rule for the widget's copy of the brand colorsets.\nfor c in BBGradientStart BBGradientEnd BBAccent; do\n  app=\"BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json\"\n  widget=\"WidgetResources/Colors.xcassets/$c.colorset/Contents.json\"\n  if ! cmp -s \"$app\" \"$widget\"; then\n    echo \"error: $widget is out of sync with $app. Run: cp \\\"$app\\\" \\\"$widget\\\"\"\n    exit 1\n  fi\ndone\n";
+			shellScript = "cd \"$PROJECT_DIR\"\n# Keep this list in sync with LocalizationManager.SupportedLanguage.\nfor f in en ru es; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n# Same rule for the widget's copy of the brand colorsets. Keep this\n# list in sync with the colorsets WidgetResources/Colors.xcassets holds.\nfor c in BBGradientStart BBGradientEnd BBAccent; do\n  app=\"BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json\"\n  widget=\"WidgetResources/Colors.xcassets/$c.colorset/Contents.json\"\n  if ! cmp -s \"$app\" \"$widget\"; then\n    echo \"error: $widget is out of sync with $app. Run: cp \\\"$app\\\" \\\"$widget\\\"\"\n    exit 1\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -769,6 +770,7 @@
 				F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */,
 				1FDA16DD06B456A4004E1F2F /* SeedScenario.swift in Sources */,
 				1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */,
+				E3D5F0838609C2C904796744 /* WidgetRefresh.swift in Sources */,
 				D60724F29DD2FC8D921A4F45 /* WidgetViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

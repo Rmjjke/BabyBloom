@@ -33,7 +33,7 @@ targets:
       - path: BabyBloom/Resources/Localization
         buildPhase: resources
     preBuildScripts:
-      - name: "Verify widget localization copies in sync"
+      - name: "Verify widget resource copies in sync"
         basedOnDependencyAnalysis: false
         script: |
           cd "$PROJECT_DIR"
@@ -44,7 +44,8 @@ targets:
               exit 1
             fi
           done
-          # Same rule for the widget's copy of the brand colorsets.
+          # Same rule for the widget's copy of the brand colorsets. Keep this
+          # list in sync with the colorsets WidgetResources/Colors.xcassets holds.
           for c in BBGradientStart BBGradientEnd BBAccent; do
             app="BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json"
             widget="WidgetResources/Colors.xcassets/$c.colorset/Contents.json"
@@ -96,6 +97,10 @@ targets:
       - path: BabyBloom/Core/Feeding
         excludes:
           - "**/.DS_Store"
+      # The one place WidgetCenter is called from. SeedScenario (in Core/Models
+      # above) reloads the widget after replacing the store, and the app tree is
+      # not otherwise compiled into this target, so the file is named explicitly.
+      - path: BabyBloom/Services/WidgetRefresh.swift
       # The widget's own views live in the APP's source tree so the app target
       # compiles them too — that is what lets BabyBloomTests render them per
       # locale via @testable import. Same arrangement as Core/Models above.

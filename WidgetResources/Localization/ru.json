@@ -393,6 +393,7 @@
   "widget.description_medium": "Обзор кормлений и сна малыша",
   "widget.feeding_in": "Кормление через",
   "widget.time_to_feed": "Пора кормить",
+  "widget.overdue_by": "Просрочено на",
   "widget.last_feed": "Последнее кормление",
   "widget.log_first_feeding": "Запишите первое кормление",
   "widget.sleeping": "Спит",

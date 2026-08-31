@@ -122,14 +122,20 @@ fact a parent handing over a shift needs.
 | State | Small | Medium |
 |---|---|---|
 | Normal | countdown hero | countdown hero + last feed + sleep |
-| Due / overdue | "Time to feed" in place of the countdown, tinted `BBAccent` | same, plus how long overdue |
+| Due / overdue | "Time to feed" in place of the countdown | same, plus how long overdue |
 | No feeding logged yet | name + "Log the first feeding" | name + "Log the first feeding" across the full width; the two-column split is not drawn at all |
 | 12+ months | elapsed since last feed, labelled as elapsed | same |
 | No baby yet | existing placeholder entry, unchanged | unchanged |
 
-"Due" is the moment `nextFeed` passes. There is no separate warning styling
-beyond the accent tint: this app does not alarm parents about feeding (see the
-`FeedingAdequacy` rule in `DECISIONS.md`), and a red widget would break that.
+"Due" is the moment `nextFeed` passes. There is no warning styling at all:
+this app does not alarm parents about feeding (see the `FeedingAdequacy` rule
+in `DECISIONS.md`), and a red widget would break that.
+
+Correction, 2026-09-01: this table originally tinted the due hero `BBAccent`.
+Measured contrast forced it back to white — `BBAccent` #E8B49B over
+`BBGradientEnd` #A795D9 is 1.44:1, and the small hero can scale below the size
+where 4.5:1 applies. The changed wording carries the state, which is the same
+word-not-colour rule `FeedingAdequacy` already sets.
 
 ## Staleness, and why the countdown stays honest
 
@@ -196,7 +202,13 @@ this task's subject:
 - `README.md` — the design-system table lists `#6B5EA8` and a "powder pink"
   accent `#E8A0BF`; the catalog holds `#6F5BA8` and a peach `~#E8B49B`.
 - `BBTheme.swift` header comment — "sage/mint palette", from an older theme.
-- `CLAUDE.md` — the same "sage/mint" phrase.
+
+Correction, 2026-09-01: this section originally also named `CLAUDE.md` as
+carrying the "sage/mint" phrase. It does not — that claim was written from
+memory rather than checked, and a grep during implementation found no match.
+`CLAUDE.md`'s theming section is accurate and was left alone. The README's
+drift turned out to be wider than stated: all four documented colours
+disagreed with the catalog, not two.
 
 Per the upkeep rule added in PR #21, `ARCHITECTURE.md` gains the widget's
 palette arrangement, and `DECISIONS.md` gains the guarded-second-catalog

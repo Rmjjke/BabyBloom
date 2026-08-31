@@ -6,6 +6,11 @@ struct BabyBloomEntry: TimelineEntry {
     let date: Date
     let babyName: String
     let lastFeedingTime: Date?
+    /// Start of the most recent sleep. Carried as a DATE so a running sleep
+    /// can tick alongside the hero instead of freezing at fetch time.
+    let sleepStartTime: Date?
+    /// Only honest once the sleep has ended and its length has stopped
+    /// moving; a running sleep is rendered from `sleepStartTime` instead.
     let lastSleepDuration: String?
     let todayFeedingCount: Int
     let isAsleep: Bool
@@ -14,7 +19,6 @@ struct BabyBloomEntry: TimelineEntry {
     /// invitation), and 12+ months, where the app deliberately does not
     /// predict (elapsed time instead).
     let nextFeedingTime: Date?
-    let ageMonths: Int
 
     var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
 }
@@ -38,9 +42,22 @@ struct WidgetBackground: View {
 /// Wording shared by both sizes, so the two cannot describe the same state
 /// differently.
 enum WidgetCopy {
-    static func headline(for entry: BabyBloomEntry) -> String {
-        guard entry.nextFeedingTime != nil else { return "widget.last_feed".l }
-        return "widget.feeding_in".l
+    /// The locale every `Text(_:style:)` in the widget formats through.
+    ///
+    /// SwiftUI takes the format locale from the environment, and nothing in a
+    /// widget process sets it — so it fell back to the device's, and a Russian
+    /// widget read "Кормление через / 1 hr, 11 min". The app's language is a
+    /// JSON table rather than a bundle language, so system-formatted output
+    /// has to be pointed at it explicitly; `Date+AppLocale` and `Double+AppRate`
+    /// already resolve the same way through this same property.
+    static var formattingLocale: Locale { LocalizationManager.shared.language.locale }
+
+    /// `nil` in the due state on purpose: the hero there is already a whole
+    /// sentence ("Time to feed"), and a "Feeding in" label above it read as a
+    /// broken one.
+    static func headline(for entry: BabyBloomEntry) -> String? {
+        guard let next = entry.nextFeedingTime else { return "widget.last_feed".l }
+        return next > entry.date ? "widget.feeding_in".l : nil
     }
 
     /// True once the due moment has passed. The timeline places an entry
@@ -53,17 +70,20 @@ enum WidgetCopy {
     /// The countdown is rendered from a DATE, never a formatted string: the
     /// system re-renders `Text(_:style:)` every minute, so it stays right
     /// between the 15-minute timeline reloads.
+    ///
+    /// No fallback branch for "nothing logged": both call sites gate on
+    /// `hasLoggedAFeeding` and render the invitation instead.
     @ViewBuilder
     static func hero(for entry: BabyBloomEntry) -> some View {
-        if let next = entry.nextFeedingTime, next > entry.date {
-            Text(next, style: .relative)
-        } else if entry.nextFeedingTime != nil {
-            Text("widget.time_to_feed".l)
+        if let next = entry.nextFeedingTime {
+            if next > entry.date {
+                Text(next, style: .relative)
+            } else {
+                Text("widget.time_to_feed".l)
+            }
         } else if let last = entry.lastFeedingTime {
             // 12+ months: the app does not predict here, so neither do we.
             Text(last, style: .relative)
-        } else {
-            Text("—")
         }
     }
 }
@@ -75,15 +95,22 @@ struct BabyBloomSmallWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if entry.hasLoggedAFeeding {
-                Text(WidgetCopy.headline(for: entry))
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.75))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                if let headline = WidgetCopy.headline(for: entry) {
+                    Text(headline)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.75))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
 
+                // White in every state, the due one included: BBAccent over
+                // BBGradientEnd measures 1.44:1, and the hero can scale down
+                // far enough that the 4.5:1 threshold applies. The changed
+                // wording carries the state instead — the same word-not-colour
+                // rule DECISIONS.md sets for FeedingAdequacy.
                 WidgetCopy.hero(for: entry)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(WidgetCopy.isDue(entry) ? Color("BBAccent") : .white)
+                    .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
 
@@ -112,6 +139,7 @@ struct BabyBloomSmallWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .environment(\.locale, WidgetCopy.formattingLocale)
     }
 }
 
@@ -124,14 +152,21 @@ struct BabyBloomMediumWidgetView: View {
             if entry.hasLoggedAFeeding {
                 HStack(alignment: .top, spacing: 20) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(WidgetCopy.headline(for: entry))
-                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.75))
+                        if let headline = WidgetCopy.headline(for: entry) {
+                            Text(headline)
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.75))
+                        }
+                        // See the small widget: the due state is carried by
+                        // the wording, not by a tint that fails contrast.
                         WidgetCopy.hero(for: entry)
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(WidgetCopy.isDue(entry) ? Color("BBAccent") : .white)
+                            .foregroundStyle(.white)
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)
+                        if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
+                            overdueLine(due)
+                        }
                         Spacer(minLength: 0)
                         Text(entry.babyName)
                             .font(.system(size: 15, weight: .semibold, design: .rounded))
@@ -141,11 +176,18 @@ struct BabyBloomMediumWidgetView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 14) {
-                        statRow(icon: "heart.fill", title: "widget.last_feed".l,
-                                value: entry.lastFeedingTime.map { relative($0) } ?? "—")
+                        // At 12+ months the hero IS the elapsed feed time, so
+                        // this row would print the same fact twice in two
+                        // different formats. Sleep is the column's content there.
+                        if entry.nextFeedingTime != nil, let last = entry.lastFeedingTime {
+                            statRow(icon: "heart.fill", title: "widget.last_feed".l) {
+                                Text(last, style: .relative)
+                            }
+                        }
                         statRow(icon: "moon.fill",
-                                title: entry.isAsleep ? "widget.sleeping".l : "tab.sleep".l,
-                                value: entry.lastSleepDuration ?? "—")
+                                title: entry.isAsleep ? "widget.sleeping".l : "tab.sleep".l) {
+                            sleepValue
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -165,9 +207,35 @@ struct BabyBloomMediumWidgetView: View {
         }
         .padding(2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .environment(\.locale, WidgetCopy.formattingLocale)
     }
 
-    private func statRow(icon: String, title: String, value: String) -> some View {
+    /// The spec's "same, plus how long overdue". Rendered off the due date so
+    /// it keeps counting up between timeline reloads like the hero does.
+    private func overdueLine(_ due: Date) -> some View {
+        HStack(spacing: 4) {
+            Text("widget.overdue_by".l)
+            Text(due, style: .relative)
+        }
+        .font(.system(size: 12, weight: .medium, design: .rounded))
+        .foregroundStyle(.white.opacity(0.75))
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+    }
+
+    /// A running sleep has to tick; a finished one has a fixed length and the
+    /// string baked at fetch time is still true.
+    @ViewBuilder
+    private var sleepValue: some View {
+        if entry.isAsleep, let started = entry.sleepStartTime {
+            Text(started, style: .relative)
+        } else {
+            Text(entry.lastSleepDuration ?? "—")
+        }
+    }
+
+    private func statRow<Value: View>(icon: String, title: String,
+                                      @ViewBuilder value: () -> Value) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14))
@@ -176,19 +244,11 @@ struct BabyBloomMediumWidgetView: View {
                 Text(title)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.7))
-                Text(value)
+                value()
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// Same shape as SleepEntry.durationFormatted, on an elapsed interval
-    /// rather than a stored duration.
-    private func relative(_ date: Date) -> String {
-        let mins = Int(Date().timeIntervalSince(date) / 60)
-        if mins < 60 { return String(format: "duration.min_only".l, mins) }
-        return String(format: "duration.h_min".l, mins / 60, mins % 60)
     }
 }

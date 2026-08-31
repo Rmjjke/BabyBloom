@@ -9,11 +9,11 @@ enum BBTheme {
 
     // MARK: Colors
     enum Colors {
-        /// Deep sage teal — brand primary
+        /// Deep violet — brand primary
         static let primary = Color("BBPrimary")
         /// Soft peach — warm accent
         static let accent = Color("BBAccent")
-        /// Mint-white app background
+        /// Lavender-white app background
         static let background = Color("BBBackground")
         /// Mint green — success
         static let success = Color("BBSuccess")
@@ -29,7 +29,7 @@ enum BBTheme {
         static let growth = Color("BBGrowth")
         static let events = Color("BBEvents")
 
-        // Premium hero gradient (sage → mint)
+        // Premium hero gradient (violet → lavender)
         static let premiumGradient = LinearGradient(
             colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
             startPoint: .topLeading, endPoint: .bottomTrailing
