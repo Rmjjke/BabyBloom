@@ -3,8 +3,9 @@ import SwiftUI
 @testable import BabyBloom
 
 /// Not an assertion suite — a visual dump, the same idea as GrowthCardRenderDump.
-/// Renders both widget sizes in every shipped language so the widget can be
-/// eyeballed without adding it to a simulator home screen.
+/// Renders both widget sizes, across all five states the redesign defines, in
+/// every shipped language and both themes, so the widget can be eyeballed
+/// without adding it to a simulator home screen.
 ///
 /// It also guards the thing that actually broke: the widget used to render
 /// hardcoded Russian, and its LocalizationManager could not see the app's
@@ -15,19 +16,32 @@ import SwiftUI
 @MainActor
 final class WidgetRenderDump: XCTestCase {
 
-    private var sample: BabyBloomEntry {
-        BabyBloomEntry(
-            date: Date(),
-            babyName: "Мия",
-            lastFeedingTime: Date().addingTimeInterval(-95 * 60),
-            lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
-            todayFeedingCount: 6,
-            isAsleep: true,
-            // Countdown state — Task 6 dumps every state in the table; this
-            // one only needs to keep compiling against the widened entry.
-            nextFeedingTime: Date().addingTimeInterval(35 * 60),
-            ageMonths: 3
-        )
+    /// Every state the redesign defines, so a truncation or an empty-looking
+    /// card shows up as an image rather than as a bug report.
+    private static func states(now: Date) -> [(name: String, entry: BabyBloomEntry)] {
+        let hourAgo = now.addingTimeInterval(-3600)
+        return [
+            ("normal", BabyBloomEntry(date: now, babyName: "Vlad",
+                                      lastFeedingTime: hourAgo, lastSleepDuration: "1 ч 3 мин",
+                                      todayFeedingCount: 6, isAsleep: false,
+                                      nextFeedingTime: now.addingTimeInterval(4320), ageMonths: 1)),
+            ("due", BabyBloomEntry(date: now, babyName: "Vlad",
+                                   lastFeedingTime: hourAgo, lastSleepDuration: "1 ч 3 мин",
+                                   todayFeedingCount: 6, isAsleep: false,
+                                   nextFeedingTime: now.addingTimeInterval(-120), ageMonths: 1)),
+            ("asleep", BabyBloomEntry(date: now, babyName: "Vlad",
+                                      lastFeedingTime: hourAgo, lastSleepDuration: "1 ч 3 мин",
+                                      todayFeedingCount: 6, isAsleep: true,
+                                      nextFeedingTime: now.addingTimeInterval(4320), ageMonths: 1)),
+            ("empty", BabyBloomEntry(date: now, babyName: "Vlad",
+                                     lastFeedingTime: nil, lastSleepDuration: nil,
+                                     todayFeedingCount: 0, isAsleep: false,
+                                     nextFeedingTime: nil, ageMonths: 1)),
+            ("toddler", BabyBloomEntry(date: now, babyName: "Vlad",
+                                       lastFeedingTime: hourAgo, lastSleepDuration: "1 ч 3 мин",
+                                       todayFeedingCount: 4, isAsleep: false,
+                                       nextFeedingTime: nil, ageMonths: 14)),
+        ]
     }
 
     func testDumpWidgets() throws {
@@ -35,13 +49,18 @@ final class WidgetRenderDump: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
 
-        for locale in ["en", "ru", "es"] {
-            LocalizationManager.shared.setLanguage(locale)
-            // Built inside the loop: the entry's sleep duration is itself
-            // localized, so it must be produced under the active language.
-            let entry = sample
-            try dump("\(locale)-small", BabyBloomSmallWidgetView(entry: entry), size: CGSize(width: 158, height: 158))
-            try dump("\(locale)-medium", BabyBloomMediumWidgetView(entry: entry), size: CGSize(width: 338, height: 158))
+        let now = Date()
+        for (name, entry) in Self.states(now: now) {
+            for locale in ["en", "ru", "es"] {
+                LocalizationManager.shared.setLanguage(locale)
+                for dark in [false, true] {
+                    let theme = dark ? "dark" : "light"
+                    try dump("\(name)-small-\(locale)-\(theme)", BabyBloomSmallWidgetView(entry: entry),
+                              size: CGSize(width: 158, height: 158), dark: dark)
+                    try dump("\(name)-medium-\(locale)-\(theme)", BabyBloomMediumWidgetView(entry: entry),
+                              size: CGSize(width: 338, height: 158), dark: dark)
+                }
+            }
         }
 
         print("WIDGET_DIR=\(dir.path)")
@@ -89,8 +108,29 @@ final class WidgetRenderDump: XCTestCase {
         }
     }
 
-    private func dump<V: View>(_ name: String, _ view: V, size: CGSize) throws {
-        let renderer = ImageRenderer(content: view.frame(width: size.width, height: size.height))
+    /// `WidgetBackground` stands in for the widget's `.containerBackground`,
+    /// which is only available inside a real widget container — a view
+    /// rendered in-process by `ImageRenderer` gets neither that background
+    /// nor the system's own corner mask and margins. Without this wrapper the
+    /// dump would just be white text on nothing.
+    ///
+    /// This is a stand-in, not the real thing: it proves the CONTENT lays out
+    /// and translates correctly, nothing more. It cannot catch a
+    /// container-level defect — a lost corner radius, a margin regression, the
+    /// gradient not reaching the container's edge. That is exactly how the
+    /// bug this branch fixes shipped once already: the in-process dump looked
+    /// correct while the real widget, framed by the system container, did
+    /// not. A green run here is not evidence the widget looks right on a home
+    /// screen — only Step 4's simulator screenshot is.
+    private func dump<V: View>(_ name: String, _ view: V, size: CGSize, dark: Bool) throws {
+        let framed = ZStack {
+            WidgetBackground()
+            view
+        }
+        .frame(width: size.width, height: size.height)
+        .environment(\.colorScheme, dark ? .dark : .light)
+
+        let renderer = ImageRenderer(content: framed)
         renderer.scale = 2
         guard let image = renderer.uiImage, let data = image.pngData() else {
             return XCTFail("could not render \(name)")
