@@ -67,6 +67,7 @@
 		9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */; };
 		9A2E7598C81EEBFE19E565BA /* NutritionRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86B2CFD78D4B411B68808C9 /* NutritionRenderDump.swift */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9CDA15BED18E889514443A6D /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5E0516E7308094CC3973C77A /* Colors.xcassets */; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
 		A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
@@ -184,6 +185,7 @@
 		524A26B846E0DB91693FCBE6 /* Baby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Baby.swift; sourceTree = "<group>"; };
 		582657DC180DE03128A75629 /* NewbornWeightLoss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLoss.swift; sourceTree = "<group>"; };
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
 		7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMeasureSlider.swift; sourceTree = "<group>"; };
@@ -523,6 +525,14 @@
 			path = Export;
 			sourceTree = "<group>";
 		};
+		A0464FB18D8953C9CC8CB994 /* WidgetResources */ = {
+			isa = PBXGroup;
+			children = (
+				5E0516E7308094CC3973C77A /* Colors.xcassets */,
+			);
+			path = WidgetResources;
+			sourceTree = "<group>";
+		};
 		B51C575F6C456BF566E4CA90 /* Localization */ = {
 			isa = PBXGroup;
 			children = (
@@ -549,6 +559,7 @@
 				41995158B343DA1FF9CAB2F3 /* BabyBloomTests */,
 				149B6A330624519CAFEC5B20 /* BabyBloomWidget */,
 				B51C575F6C456BF566E4CA90 /* Localization */,
+				A0464FB18D8953C9CC8CB994 /* WidgetResources */,
 				8CFD0A01BB430C53661F3F10 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -705,6 +716,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CDA15BED18E889514443A6D /* Colors.xcassets in Resources */,
 				16B28A667D5149049D2AF904 /* PrivacyInfo.xcprivacy in Resources */,
 				279D31B1C59F68A21CD7E0C5 /* en.json in Resources */,
 				F4E144E71AF99979859A9D33 /* es.json in Resources */,
@@ -732,7 +744,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"\n# Keep this list in sync with LocalizationManager.SupportedLanguage.\nfor f in en ru es; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n";
+			shellScript = "cd \"$PROJECT_DIR\"\n# Keep this list in sync with LocalizationManager.SupportedLanguage.\nfor f in en ru es; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n# Same rule for the widget's copy of the brand colorsets.\nfor c in BBGradientStart BBGradientEnd BBAccent; do\n  app=\"BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json\"\n  widget=\"WidgetResources/Colors.xcassets/$c.colorset/Contents.json\"\n  if ! cmp -s \"$app\" \"$widget\"; then\n    echo \"error: $widget is out of sync with $app. Run: cp \\\"$app\\\" \\\"$widget\\\"\"\n    exit 1\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
