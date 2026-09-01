@@ -21,6 +21,21 @@ struct BabyBloomEntry: TimelineEntry {
     let nextFeedingTime: Date?
 
     var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
+
+    /// The same snapshot at a different minute — how the provider turns one
+    /// fetch into a per-minute timeline without re-reading the store.
+    /// Adding a field to this struct? It must be copied here too, or every
+    /// entry after the first silently freezes it at the fetch-time value.
+    func at(_ date: Date) -> BabyBloomEntry {
+        BabyBloomEntry(date: date,
+                       babyName: babyName,
+                       lastFeedingTime: lastFeedingTime,
+                       sleepStartTime: sleepStartTime,
+                       lastSleepDuration: lastSleepDuration,
+                       todayFeedingCount: todayFeedingCount,
+                       isAsleep: isAsleep,
+                       nextFeedingTime: nextFeedingTime)
+    }
 }
 
 /// The brand gradient, as the widget's CONTAINER background rather than a
@@ -42,15 +57,29 @@ struct WidgetBackground: View {
 /// Wording shared by both sizes, so the two cannot describe the same state
 /// differently.
 enum WidgetCopy {
-    /// The locale every `Text(_:style:)` in the widget formats through.
-    ///
-    /// SwiftUI takes the format locale from the environment, and nothing in a
-    /// widget process sets it — so it fell back to the device's, and a Russian
-    /// widget read "Кормление через / 1 hr, 11 min". The app's language is a
-    /// JSON table rather than a bundle language, so system-formatted output
-    /// has to be pointed at it explicitly; `Date+AppLocale` and `Double+AppRate`
-    /// already resolve the same way through this same property.
+    /// The locale any future `Text(_:style:)` in the widget would format
+    /// through. Kept pinned on both views even though the current widget
+    /// renders no live text: a Russian widget once read "1 hr, 11 min"
+    /// because nothing set this, and the pin is what stops a reintroduced
+    /// `Text(style:)` from regressing silently (the render-dump guard test
+    /// leans on it too).
     static var formattingLocale: Locale { LocalizationManager.shared.language.locale }
+
+    /// A duration as the widget speaks it: whole minutes through the app's
+    /// JSON strings, never seconds. Owner ruling on build 5 — "2 мин 0 с"
+    /// implies a precision no glanceable widget should claim. `Text(_:style:)`
+    /// cannot do this (its units are not configurable), which is why the
+    /// timeline carries one entry per minute instead and every duration is
+    /// computed statically from the ENTRY's date.
+    ///
+    /// Countdowns round UP so the widget never promises "0 мин" while time
+    /// remains; elapsed values round down, as clocks do.
+    static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
+        let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
+        return total >= 60
+            ? String(format: "duration.h_min".l, total / 60, total % 60)
+            : String(format: "duration.min_only".l, total)
+    }
 
     /// `nil` in the due state on purpose: the hero there is already a whole
     /// sentence ("Time to feed"), and a "Feeding in" label above it read as a
@@ -67,9 +96,10 @@ enum WidgetCopy {
         return next <= entry.date
     }
 
-    /// The countdown is rendered from a DATE, never a formatted string: the
-    /// system re-renders `Text(_:style:)` every minute, so it stays right
-    /// between the 15-minute timeline reloads.
+    /// Every duration is computed from the ENTRY's date — the honest clock:
+    /// WidgetKit shows each timeline entry at its own minute, so a string
+    /// derived from `entry.date` is minute-accurate by construction, where
+    /// `Date()` would freeze at whatever moment the system chose to render.
     ///
     /// No fallback branch for "nothing logged": both call sites gate on
     /// `hasLoggedAFeeding` and render the invitation instead.
@@ -77,13 +107,13 @@ enum WidgetCopy {
     static func hero(for entry: BabyBloomEntry) -> some View {
         if let next = entry.nextFeedingTime {
             if next > entry.date {
-                Text(next, style: .relative)
+                Text(minutesText(next.timeIntervalSince(entry.date), countdown: true))
             } else {
                 Text("widget.time_to_feed".l)
             }
         } else if let last = entry.lastFeedingTime {
             // 12+ months: the app does not predict here, so neither do we.
-            Text(last, style: .relative)
+            Text(minutesText(entry.date.timeIntervalSince(last)))
         }
     }
 }
@@ -181,7 +211,7 @@ struct BabyBloomMediumWidgetView: View {
                         // different formats. Sleep is the column's content there.
                         if entry.nextFeedingTime != nil, let last = entry.lastFeedingTime {
                             statRow(icon: "heart.fill", title: "widget.last_feed".l) {
-                                Text(last, style: .relative)
+                                Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
                             }
                         }
                         statRow(icon: "moon.fill",
@@ -210,25 +240,30 @@ struct BabyBloomMediumWidgetView: View {
         .environment(\.locale, WidgetCopy.formattingLocale)
     }
 
-    /// The spec's "same, plus how long overdue". Rendered off the due date so
-    /// it keeps counting up between timeline reloads like the hero does.
+    /// The spec's "same, plus how long overdue", in whole minutes. Hidden for
+    /// the first partial minute — "Просрочено на 0 мин" would undercut the
+    /// hero that just said it is time.
+    @ViewBuilder
     private func overdueLine(_ due: Date) -> some View {
-        HStack(spacing: 4) {
-            Text("widget.overdue_by".l)
-            Text(due, style: .relative)
+        let overdue = entry.date.timeIntervalSince(due)
+        if overdue >= 60 {
+            HStack(spacing: 4) {
+                Text("widget.overdue_by".l)
+                Text(WidgetCopy.minutesText(overdue))
+            }
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .foregroundStyle(.white.opacity(0.75))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
         }
-        .font(.system(size: 12, weight: .medium, design: .rounded))
-        .foregroundStyle(.white.opacity(0.75))
-        .lineLimit(1)
-        .minimumScaleFactor(0.7)
     }
 
-    /// A running sleep has to tick; a finished one has a fixed length and the
-    /// string baked at fetch time is still true.
+    /// A running sleep advances with the per-minute entries; a finished one
+    /// has a fixed length and the string baked at fetch time is still true.
     @ViewBuilder
     private var sleepValue: some View {
         if entry.isAsleep, let started = entry.sleepStartTime {
-            Text(started, style: .relative)
+            Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(started)))
         } else {
             Text(entry.lastSleepDuration ?? "—")
         }

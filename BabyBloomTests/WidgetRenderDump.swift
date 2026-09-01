@@ -12,8 +12,12 @@ import SwiftUI
 /// language at all — `testNonRussianLocalesRenderNoCyrillic` fails the English
 /// and Spanish dumps if a Russian literal creeps back in. That guard reads
 /// JSON keys only, so `testWidgetViewsFormatDatesInTheAppLanguage` covers the
-/// half it structurally cannot see: the countdown, which SwiftUI formats from
-/// the environment rather than from the table.
+/// half it structurally cannot see: output that would come from the ambient
+/// locale rather than from the table. Since the minute-granularity change
+/// every duration IS a table string, so today that test asserts an invariant
+/// — widget output does not depend on the ambient locale — rather than a
+/// live formatting path; a reintroduced unpinned `Text(_:style:)` is exactly
+/// what would break it.
 ///
 /// Run it, read `WIDGET_DIR` from the test log, open the files.
 @MainActor
@@ -128,18 +132,20 @@ final class WidgetRenderDump: XCTestCase {
         }
     }
 
-    /// The countdown is not a JSON key, so the Cyrillic guard above cannot see
-    /// it: `Text(_:style:)` is formatted by SwiftUI from `\.locale`, which
-    /// nothing in a widget process sets. A Russian widget therefore read
-    /// "Кормление через" over an English "1 hr, 11 min".
+    /// History first: `Text(_:style:)` is formatted by SwiftUI from `\.locale`,
+    /// which nothing in a widget process sets, and a Russian widget once read
+    /// "Кормление через" over an English "1 hr, 11 min". The minute-granularity
+    /// change then removed live text entirely — every duration is now a static
+    /// JSON-table string — so what this test asserts today is the resulting
+    /// INVARIANT: widget output must not depend on the ambient locale.
     ///
-    /// The check: render each view under two DIFFERENT ambient locales. A view
-    /// that pins its own locale is immune to what sits above it, so the two
-    /// renders must be byte-identical; a view that has lost the pin formats the
-    /// hero twice in two languages and they diverge. The control render — the
-    /// same date-styled `Text` with no pin — proves the renderer honours the
-    /// ambient locale at all, so an identical pair means "pinned", not
-    /// "ImageRenderer ignores locale".
+    /// The check: render each view under two DIFFERENT ambient locales; the
+    /// renders must be byte-identical. Table strings are identical trivially;
+    /// a reintroduced `Text(_:style:)` without the defensive `formattingLocale`
+    /// pin diverges and fails here. The control render — a date-styled `Text`
+    /// with no pin — proves the renderer honours the ambient locale at all, so
+    /// an identical pair means "independent", not "ImageRenderer ignores
+    /// locale".
     ///
     /// It does NOT check that the pinned locale is applied to a widget by
     /// WidgetKit, nor that the Russian wording is idiomatic; and it reads the
