@@ -144,12 +144,21 @@ targets:
       - path: BabyBloomTests
         excludes:
           - "**/.DS_Store"
+      # The same local store the scheme runs the app against, copied into the
+      # TEST bundle: SKTestSession(configurationFileNamed:) resolves the name
+      # against the bundle it is called from, so the tests would not find the
+      # scheme's copy. One file, two consumers, no second source of truth.
+      - path: Nenita.storekit
+        buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.nenita.app.tests
       SWIFT_VERSION: 6.0
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: BabyBloom
+      # StoreKitTest is a TEST-ONLY SDK framework — it drives purchases without
+      # an Apple ID or a sandbox account. It must never reach the app target.
+      - sdk: StoreKitTest.framework
 
 # Top level, a sibling of `targets:`. This block used to sit inside the
 # BabyBloom target, where XcodeGen silently ignores it — schemes were being

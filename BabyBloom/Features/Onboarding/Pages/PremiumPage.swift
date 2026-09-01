@@ -14,6 +14,10 @@ struct PremiumPage: View {
     // copy too, since restoreState is process-wide state, not page state.
     @Environment(SubscriptionManager.self) private var store
     @State private var showRestoreAlert = false
+    // Onboarding is finished exactly once. `onPurchased` funnels into
+    // `createAndFinish()`, which is itself re-entrancy guarded, but the flag
+    // keeps this page from firing a second time while the transition animates.
+    @State private var didAdvance = false
 
     private let features: [(icon: String, text: String)] = [
         ("infinity", "onboarding.premium.f1"),
@@ -90,11 +94,21 @@ struct PremiumPage: View {
                 .offset(y: appear ? 0 : 30)
                 .opacity(appear ? 1 : 0)
 
-                PlanPickerSection(onPurchased: onPurchased)
-                    .padding(.horizontal, BBTheme.Spacing.lg)
-                    .padding(.vertical, BBTheme.Spacing.xl)
-                    .offset(y: appear ? 0 : 30)
-                    .opacity(appear ? 1 : 0)
+                // Sell only once StoreKit has actually answered, and only to
+                // someone it says is not subscribed. Nothing refreshes
+                // entitlements earlier in onboarding, so `isEntitled` is a
+                // not-asked-yet `false` on arrival here — which is what sold a
+                // full "Try 7 days free" to a paying user on build 9. The
+                // resolved check costs at most one frame: the entitlement scan
+                // is a local read, and it flips `hasResolvedEntitlements`
+                // before the networked intro-offer lookup it precedes.
+                if store.hasResolvedEntitlements && !store.isPremium {
+                    PlanPickerSection()
+                        .padding(.horizontal, BBTheme.Spacing.lg)
+                        .padding(.vertical, BBTheme.Spacing.xl)
+                        .offset(y: appear ? 0 : 30)
+                        .opacity(appear ? 1 : 0)
+                }
             }
         }
         .overlay(alignment: .topLeading) {
@@ -134,9 +148,8 @@ struct PremiumPage: View {
             // consequence of dismissing it, not a side effect of restoreState
             // changing underneath the alert.
             Button("button.close".l, role: .cancel) {
-                let wasSuccess = store.restoreState == .success
                 store.clearRestoreState()
-                if wasSuccess { onPurchased() }
+                advanceIfEntitled()
             }
         } message: {
             Text(store.restoreState == .success
@@ -146,5 +159,31 @@ struct PremiumPage: View {
         .onChange(of: store.restoreState) { _, new in
             showRestoreAlert = new != nil
         }
+        .task {
+            // The one place onboarding asks StoreKit who this is. Without it
+            // the page branches on a `false` nobody ever verified.
+            await store.refreshEntitlements()
+            advanceIfEntitled()
+        }
+        // Entitlement can arrive from a purchase, a restore, or
+        // `Transaction.updates` reacting to something bought outside the app.
+        // Observing the state covers all three; a callback on the purchase
+        // button covered only the first, and covered none of them for a user
+        // who arrived already subscribed.
+        .onChange(of: store.isPremium) { _, _ in advanceIfEntitled() }
+    }
+
+    /// The onboarding paywall's single exit-on-entitlement path.
+    ///
+    /// Held back while a restore result is waiting to be shown: the user is
+    /// meant to read "Purchases restored" first and advance by dismissing it,
+    /// not to have the page vanish out from under the alert.
+    private func advanceIfEntitled() {
+        guard !didAdvance,
+              store.hasResolvedEntitlements,
+              store.isPremium,
+              store.restoreState == nil else { return }
+        didAdvance = true
+        onPurchased()
     }
 }

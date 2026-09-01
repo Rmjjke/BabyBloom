@@ -15,6 +15,7 @@
 		15324BCE157C7C95AD21B2E5 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 9E61620C5985E78F54CE8166 /* ru.json */; };
 		15B8335B7F4AF5B7B2A7FDE3 /* GeneratingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F91A302286246B091A55923 /* GeneratingPage.swift */; };
 		16B28A667D5149049D2AF904 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */; };
+		170917366F8071EDD7FD23A2 /* Nenita.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */; };
 		19712AA4FA93D6A64A2671FA /* DateAppLocaleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20695F09E09928450CDCEC8 /* DateAppLocaleTests.swift */; };
 		1A344BC33279ABD22C6B9E90 /* DashboardGrowthSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FFE47A731EC428AFBF9100 /* DashboardGrowthSummaryTests.swift */; };
 		1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
@@ -46,6 +47,7 @@
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
+		55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */; };
 		5A51B05B0B810D61B1B12783 /* FeedingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A787D90FE23982EC1A46C2 /* FeedingPage.swift */; };
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
@@ -121,6 +123,7 @@
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
 		FEB857F7EC799FE2797339E9 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */; };
 		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
+		FF2F56DAC09076EE1E8990B0 /* SubscriptionPurchaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */; };
 		FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92018595E27242A50820D2B8 /* WidgetRenderDump.swift */; };
 /* End PBXBuildFile section */
 
@@ -171,6 +174,7 @@
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
 		0F91A302286246B091A55923 /* GeneratingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPage.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
+		10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKitTest.framework; path = System/Library/Frameworks/StoreKitTest.framework; sourceTree = SDKROOT; };
 		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
@@ -206,6 +210,7 @@
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
+		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
 		7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMeasureSlider.swift; sourceTree = "<group>"; };
 		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -263,9 +268,21 @@
 		F3D63328CD7ED001909F7DCD /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoption.swift; sourceTree = "<group>"; };
 		FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypographyCapTests.swift; sourceTree = "<group>"; };
+		FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPurchaseTests.swift; sourceTree = "<group>"; };
 		FDEB05535F410B101D28D335 /* WelcomePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomePage.swift; sourceTree = "<group>"; };
 		FEB2DBBA9EBC220B6DB2BCB1 /* WidgetShowcasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShowcasePage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		23E97EF79DCDEBA2408CB90B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		01B83D0C7BA110EC199D8F9F /* Widget */ = {
@@ -413,6 +430,7 @@
 				DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */,
 				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
 				07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */,
+				FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */,
 				68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */,
 				FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
@@ -589,11 +607,13 @@
 		CE505E1442B8AAE18EE0FAD3 = {
 			isa = PBXGroup;
 			children = (
+				6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */,
 				2D2C9BFC44AE66EF909BCBA7 /* BabyBloom */,
 				41995158B343DA1FF9CAB2F3 /* BabyBloomTests */,
 				149B6A330624519CAFEC5B20 /* BabyBloomWidget */,
 				B51C575F6C456BF566E4CA90 /* Localization */,
 				A0464FB18D8953C9CC8CB994 /* WidgetResources */,
+				DADC5025EB4F3BB7A070EC2F /* Frameworks */,
 				8CFD0A01BB430C53661F3F10 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -608,6 +628,14 @@
 				75F96F6804C956EDD5C4F306 /* Pages */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		DADC5025EB4F3BB7A070EC2F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		EF21AD435913022A2133F46A /* Dashboard */ = {
@@ -638,6 +666,8 @@
 			buildConfigurationList = E951EC46E7588ECFF33F37FD /* Build configuration list for PBXNativeTarget "BabyBloomTests" */;
 			buildPhases = (
 				E9F5D1EE45BD8820F3C0894C /* Sources */,
+				27092EE449A921FB23381C81 /* Resources */,
+				23E97EF79DCDEBA2408CB90B /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -736,6 +766,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		27092EE449A921FB23381C81 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				170917366F8071EDD7FD23A2 /* Nenita.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4C004AB52023ABDC332BEE8B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -902,6 +940,7 @@
 				54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */,
 				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
 				DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */,
+				FF2F56DAC09076EE1E8990B0 /* SubscriptionPurchaseTests.swift in Sources */,
 				7D977904A7F13DDAA7245203 /* SubscriptionSavingsTests.swift in Sources */,
 				A8108817BD3A875D98334F0A /* TypographyCapTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,

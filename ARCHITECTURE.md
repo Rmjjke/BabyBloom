@@ -184,7 +184,26 @@ computed on every access as `isEntitled || override` — not stored — because
 `refreshEntitlements()` assigns unconditionally from a `.task` that runs on
 every appearance and would clobber an override written once at init.
 `restorePurchases` deliberately reports off `isEntitled`, so the override
-cannot fake a restore.
+cannot fake a restore. `hasResolvedEntitlements` says whether StoreKit has been
+asked at all: before the first `refreshEntitlements()`, `isEntitled == false`
+means "not asked", which is indistinguishable from "not subscribed". Anything
+that BRANCHES on entitlement — sell or do not sell — must wait for it; anything
+that merely gates a feature reads `isPremium` and lets the gate close itself
+when the answer arrives.
+
+**Two paywalls, one selling half.** `PlanPickerSection` is the plans, prices,
+trial promise, CTA, restore and legal footer; `PaywallView` (settings, modal)
+and `PremiumPage` (onboarding, page 10) compose it. The section has no
+"purchased" callback: reacting to entitlement is the host's job, because
+entitlement arrives from a purchase, from `restorePurchases()`, from
+`Transaction.updates`, or from the user having subscribed before the screen
+ever opened, and a callback on the purchase button covers only the first.
+`PaywallView` swaps the section for its active badge and navigates nowhere;
+`PremiumPage` refreshes entitlements in its own `.task` and calls
+`onPurchased()` from a single `advanceIfEntitled()` — on arrival and on any
+later change to `isPremium` — so an already-subscribed user is never sold to
+and never stranded. `advanceIfEntitled()` holds back while `restoreState` is
+non-nil, so the restore confirmation is read before the page leaves.
 
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a

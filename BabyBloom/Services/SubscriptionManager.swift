@@ -89,6 +89,14 @@ final class SubscriptionManager {
     /// is the only writer.
     private(set) var isEntitled   = false
 
+    /// Whether `refreshEntitlements()` has answered at least once. Until it
+    /// has, `isEntitled == false` means "not asked yet", which is
+    /// indistinguishable from "not subscribed" — and a host that advances or
+    /// sells on that unresolved `false` gets it wrong for exactly the user who
+    /// already paid. Anything that BRANCHES on entitlement must wait for this;
+    /// anything that merely gates a feature can read `isPremium` directly.
+    private(set) var hasResolvedEntitlements = false
+
     /// Whether this Apple ID can still take the group's free trial. The trial
     /// is granted once per GROUP, not per product, so someone who started a
     /// weekly trial and cancelled gets no second one on the yearly plan —
@@ -154,7 +162,10 @@ final class SubscriptionManager {
 
     private var transactionListener: Task<Void, Never>?
 
-    private init() {
+    /// Not private: the StoreKit tests build a manager per `SKTestSession` so
+    /// each case starts from a clean entitlement state. Product code uses
+    /// `shared` — the app injects exactly one instance into the environment.
+    init() {
         transactionListener = listenForTransactions()
     }
 
@@ -193,7 +204,11 @@ final class SubscriptionManager {
                 await refreshEntitlements()
                 await transaction.finish()
             case .userCancelled:
-                break
+                // Where "You are currently subscribed" lands when the product
+                // is already owned: nothing was bought, yet this Apple ID may
+                // well be entitled. Re-read StoreKit so the host acts on the
+                // truth instead of on whatever `isEntitled` happened to hold.
+                await refreshEntitlements()
             case .pending:
                 // Ask to Buy / Strong Customer Authentication: the purchase is
                 // awaiting external approval. Surface this so the user gets feedback.
@@ -203,6 +218,9 @@ final class SubscriptionManager {
             }
         } catch {
             purchaseError = error.localizedDescription
+            // Same reasoning as `.userCancelled` above — a failed purchase says
+            // nothing about what this Apple ID already owns.
+            await refreshEntitlements()
         }
     }
 
@@ -238,6 +256,7 @@ final class SubscriptionManager {
             }
         }
         isEntitled = active
+        hasResolvedEntitlements = true
         await refreshIntroOfferEligibility()
     }
 
