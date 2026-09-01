@@ -3,7 +3,6 @@ import SwiftUI
 // MARK: - Page 7: Premium
 
 struct PremiumPage: View {
-    let babyName: String
     let onPurchased: () -> Void
     let onSkip: () -> Void
     @State private var appear = false
@@ -104,15 +103,21 @@ struct PremiumPage: View {
         .overlay(alignment: .topLeading) {
             if showClose {
                 Button(action: onSkip) {
+                    // Material background (not a hardcoded white/opacity pair) so the
+                    // X stays legible over both the purple hero and the near-white
+                    // body it scrolls onto; the tappable frame is 44pt per HIG even
+                    // though the visual circle stays a modest 34pt.
                     Image(systemName: "xmark")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
                         .frame(width: 34, height: 34)
-                        .background(.white.opacity(0.18), in: Circle())
+                        .background(.ultraThinMaterial, in: Circle())
+                        .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                 }
                 .padding(.top, 8)
                 .padding(.leading, BBTheme.Spacing.md)
-                .accessibilityLabel("common.close".l)
+                .accessibilityLabel("button.close".l)
                 .transition(reduceMotion ? .identity : .opacity)
             }
         }
@@ -128,7 +133,14 @@ struct PremiumPage: View {
         }
         .onDisappear { closeTask?.cancel() }
         .alert("premium.restore_title".l, isPresented: $showRestoreAlert) {
-            Button("button.close".l, role: .cancel) { store.clearRestoreState() }
+            // The user sees the confirmation first; advancing onboarding is a
+            // consequence of dismissing it, not a side effect of restoreState
+            // changing underneath the alert.
+            Button("button.close".l, role: .cancel) {
+                let wasSuccess = store.restoreState == .success
+                store.clearRestoreState()
+                if wasSuccess { onPurchased() }
+            }
         } message: {
             Text(store.restoreState == .success
                  ? "premium.restore_success".l

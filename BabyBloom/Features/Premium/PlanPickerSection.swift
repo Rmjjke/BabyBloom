@@ -10,6 +10,11 @@ import StoreKit
 struct PlanPickerSection: View {
     @Environment(SubscriptionManager.self) private var store
     @State private var selectedID = SubscriptionManager.yearlyID
+    // Load state, not purchase state: set once the initial reloadProducts()
+    // await returns, regardless of outcome. Gating retry on this (rather than
+    // on purchaseError) keeps a later purchase failure from unmounting the
+    // picker, and still catches an empty-but-error-free product list.
+    @State private var loadAttempted = false
 
     /// Called after a purchase completes with entitlement. The onboarding
     /// paywall finishes onboarding here; the settings paywall passes nothing
@@ -18,7 +23,8 @@ struct PlanPickerSection: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.lg) {
-            if store.purchaseError != nil && store.yearlyProduct == nil {
+            if loadAttempted && store.yearlyProduct == nil && store.monthlyProduct == nil
+                && store.weeklyProduct == nil {
                 loadErrorView
             } else {
                 planSelector
@@ -178,8 +184,12 @@ struct PlanPickerSection: View {
             BBPrimaryButton(ctaTitle, icon: "arrow.right") {
                 Task {
                     if let product = selectedProduct {
+                        // Fire onPurchased only on the entitlement TRANSITION —
+                        // an already-entitled user who cancels the sheet must
+                        // not retrigger the callback.
+                        let wasEntitled = store.isEntitled
                         await store.purchase(product)
-                        if store.isEntitled { onPurchased?() }
+                        if store.isEntitled && !wasEntitled { onPurchased?() }
                     }
                 }
             }
@@ -231,11 +241,16 @@ struct PlanPickerSection: View {
     // MARK: - Footer
 
     private var footerLinks: some View {
-        HStack(spacing: BBTheme.Spacing.lg) {
-            Link("premium.terms".l,
-                 destination: URL(string: "https://babybloom.app/terms")!)
-            Link("premium.privacy".l,
-                 destination: URL(string: "https://babybloom.app/privacy")!)
+        VStack(spacing: BBTheme.Spacing.xs) {
+            Text("premium.auto_renew".l)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: BBTheme.Spacing.lg) {
+                Link("premium.terms".l,
+                     destination: URL(string: "https://babybloom.app/terms")!)
+                Link("premium.privacy".l,
+                     destination: URL(string: "https://babybloom.app/privacy")!)
+            }
         }
         .font(.system(size: 11, design: .rounded))
         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -301,6 +316,7 @@ struct PlanPickerSection: View {
     /// loaded, falls back the selection so the CTA stays enabled.
     private func reloadProducts() async {
         await store.loadProducts()
+        loadAttempted = true
         if store.yearlyProduct == nil && store.monthlyProduct != nil {
             selectedID = SubscriptionManager.monthlyID
         }
