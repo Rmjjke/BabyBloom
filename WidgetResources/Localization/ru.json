@@ -309,6 +309,8 @@
   "premium.error_verification": "Не удалось проверить покупку. Попробуйте ещё раз.",
   "premium.error_load": "Не удалось загрузить варианты подписки. Проверьте соединение и попробуйте снова.",
   "premium.retry": "Повторить",
+  "premium.cta_trial_fmt": "Попробовать %d дн. бесплатно",
+  "premium.cta_subscribe": "Оформить подписку",
   "notification.feeding_title": "Время кормления 🍼",
   "notification.feeding_body": "Малыш давно не кормился. Не забудьте зафиксировать следующее кормление.",
   "notification.feeding_long_title": "Кормление идёт долго ⏱",

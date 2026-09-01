@@ -309,6 +309,8 @@
   "premium.error_verification": "Purchase verification failed. Please try again.",
   "premium.error_load": "Couldn't load subscription options. Check your connection and try again.",
   "premium.retry": "Retry",
+  "premium.cta_trial_fmt": "Try %d days free",
+  "premium.cta_subscribe": "Subscribe",
   "notification.feeding_title": "Feeding Time 🍼",
   "notification.feeding_body": "Your baby hasn't fed in a while. Don't forget to log the next feeding.",
   "notification.feeding_long_title": "Long Feeding Session ⏱",
