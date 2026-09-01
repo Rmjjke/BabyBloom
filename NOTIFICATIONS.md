@@ -173,12 +173,18 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 
 ## 7. Запрос разрешения
 
-`requestPermission()` запрашивает `[.alert, .sound, .badge]`. При выдаче разрешения
-сразу планирует `bb.engage.weekly_summary`.
+`requestPermission(completion:)` запрашивает `[.alert, .sound, .badge]`. При выдаче
+разрешения сразу планирует `bb.engage.weekly_summary`. Необязательный `completion`
+получает ответ пользователя **на главном акторе** — он нужен странице онбординга,
+которая идёт дальше при любом ответе.
 
 | Когда | Место в коде |
 |---|---|
-| По завершении онбординга | `BabyBloomApp.swift` → `OnboardingView(onComplete:)` → `NotificationManager.shared.requestPermission()` |
+| На странице «Уведомления» в онбординге (стр. 8 из 10, сразу после Generating) — по тапу на CTA | `NotificationsPage.swift` → `NotificationManager.shared.requestPermission { _ in onContinue() }` |
+
+Это единственная точка вызова во всём приложении. Раньше запрос уходил из
+`BabyBloomApp.swift` по завершении онбординга, и системный диалог появлялся
+поверх дашборда; этот вызов удалён.
 
 `onAppForegrounded()` вызывается при переходе сцены в active (`scenePhase`, `BabyBloomApp.swift`)
 и делает две вещи (см. §8).
