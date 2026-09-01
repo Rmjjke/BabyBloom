@@ -1,5 +1,18 @@
 # Stream B walk (en, light): the ten-page onboarding, the permission dialog
-# raised ON the notifications page, and NO dialog left over the Dashboard.
+# raised ON the notifications page, and the Dashboard reached with the greeting
+# readable.
+#
+# This flow is a SMOKE CHECK, not the regression guard for the old
+# dialog-over-Dashboard bug. It cannot be that guard: the same XCUITest driver
+# that auto-answers the alert on the notifications page would dismiss a
+# Dashboard alert too, before the greeting assertion ever ran. The guard is
+# static —
+#
+#     grep -rn requestPermission --include=*.swift
+#
+# must return exactly two hits: the declaration in NotificationManager.swift
+# and the single call site in NotificationsPage.swift. A third hit is the
+# regression.
 #
 # Traps honoured: waitForAnimationToEnd never settles (the shared backdrop
 # drifts forever) — explicit anchors only; hideKeyboard on the Name page
@@ -37,7 +50,7 @@ appId: com.nenita.app
 - takeScreenshot: 01-notify-en-light
 
 - tapOn: "Turn on notifications"
-- takeScreenshot: 02-notify-dialog-en-light
+- takeScreenshot: 02-after-cta-auto-advanced-en-light
 
 # The alert is answered by the driver; the page advances on the callback.
 - extendedWaitUntil: { visible: "The widget on your Home Screen", timeout: 25000 }

@@ -34,50 +34,55 @@ struct NotificationsPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // The pitch scrolls, the buttons do not. At the app's declared AX2
+            // ceiling the bullets alone outgrow an SE-class screen, and an
+            // overflowing VStack centres its children — which pushed BOTH
+            // buttons off a page that has no back button, dead-ending
+            // onboarding. Same arrangement as PremiumPage.
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: BBTheme.Spacing.xl) {
+                    onboardingHeroIcon("bell.badge.fill", color: BBTheme.Colors.primary)
+                        .scaleEffect(appear ? 1 : 0.9)
+                        .opacity(appear ? 1 : 0)
 
-            VStack(spacing: BBTheme.Spacing.xl) {
-                onboardingHeroIcon("bell.badge.fill", color: BBTheme.Colors.primary)
-                    .scaleEffect(appear ? 1 : 0.9)
-                    .opacity(appear ? 1 : 0)
+                    BBTheme.Typography.title3(String(format: "onboarding.notify.title".l, name))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, BBTheme.Spacing.lg)
+                        .opacity(appear ? 1 : 0)
 
-                BBTheme.Typography.title3(String(format: "onboarding.notify.title".l, name))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, BBTheme.Spacing.lg)
-                    .opacity(appear ? 1 : 0)
-
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-                    ForEach(bullets, id: \.key) { bullet in
-                        HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
-                            Image(systemName: bullet.icon)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(BBTheme.Colors.primary)
-                                .frame(width: 32, height: 32)
-                                .background(BBTheme.Colors.primary.opacity(0.1), in: Circle())
-                            Text(bullet.key.l)
-                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                        ForEach(bullets, id: \.key) { bullet in
+                            HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
+                                Image(systemName: bullet.icon)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(BBTheme.Colors.primary)
+                                    .frame(width: 32, height: 32)
+                                    .background(BBTheme.Colors.primary.opacity(0.1), in: Circle())
+                                Text(bullet.key.l)
+                                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 0)
+                            }
                         }
                     }
+                    .padding(BBTheme.Spacing.lg)
+                    .background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.lg)
+                    .bbShadow(BBTheme.Shadow.card)
+                    .offset(y: appear ? 0 : 30)
+                    .opacity(appear ? 1 : 0)
                 }
-                .padding(BBTheme.Spacing.lg)
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.lg)
-                .bbShadow(BBTheme.Shadow.card)
-                .offset(y: appear ? 0 : 30)
-                .opacity(appear ? 1 : 0)
+                .padding(.horizontal, BBTheme.Spacing.lg)
+                .padding(.vertical, BBTheme.Spacing.xl)
+                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, BBTheme.Spacing.lg)
-
-            Spacer()
 
             VStack(spacing: BBTheme.Spacing.sm) {
                 BBPrimaryButton("onboarding.notify.cta".l, icon: "bell.fill") { ask() }
-                Button(action: onContinue) {
+                Button(action: skip) {
                     Text("onboarding.notify.later".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -100,5 +105,14 @@ struct NotificationsPage: View {
         // A parent who already answered on a previous install gets no dialog at
         // all — the system resolves instantly and the callback still advances.
         NotificationManager.shared.requestPermission { _ in onContinue() }
+    }
+
+    /// Guarded like the CTA: SpringBoard takes ~20 ms to cover the app, and in
+    /// that window a CTA-then-"Not now" pair would call `onContinue()` twice.
+    /// `next()` is relative, so the second call would skip the widget page.
+    private func skip() {
+        guard !asking else { return }
+        asking = true
+        onContinue()
     }
 }
