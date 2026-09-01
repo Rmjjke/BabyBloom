@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Page 7: Widget showcase
+// MARK: - Widget showcase (page 8 of 10)
 
 /// The real widget views, not a screenshot: `BabyBloomMediumWidgetView` is the
 /// same type the extension renders, so this page cannot drift away from what

@@ -22,11 +22,15 @@ Notifications → Widget → Generating → Paywall. «Создать мой т�
 button; the Fact page ends with a plain `button.next`.
 
 **Why.** `GeneratingPage`'s last step says smart reminders are being
-configured — a lie while it ran before the permission ask, so notifications
-had to move ahead of the loader. With the loader last, its "your tracker is
-ready" crescendo lands directly on the paywall instead of being spent on two
-more info pages. The commitment CTA follows the loader it triggers: it now
-sits on the last page before it, which also buys spacing between the
+configured — backwards while it ran before the permission ask (claiming a
+permission that hadn't even been offered yet), so notifications had to move
+ahead of the loader. The move only fixes the claim for a parent who taps
+«Включить уведомления»: it is now honest for that path, and merely optimistic
+— not backwards — for one who taps «Не сейчас», since the step still runs
+without the permission it describes. With the loader last, its "your tracker
+is ready" crescendo lands directly on the paywall instead of being spent on
+two more info pages. The commitment CTA follows the loader it triggers: it
+now sits on the last page before it, which also buys spacing between the
 permission ask and the money ask (widget page + ~5s loader).
 
 Consequence for anyone adding a page: the four pages after Growth are all

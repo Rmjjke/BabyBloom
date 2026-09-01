@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Page 6: Notifications
+// MARK: - Notifications (page 7 of 10)
 
 /// The permission ask, placed BEFORE Generating — the loader's last step says
 /// smart reminders are being configured, which is only true once the parent has
