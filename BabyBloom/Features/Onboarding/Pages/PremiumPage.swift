@@ -120,11 +120,11 @@ struct PremiumPage: View {
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) { appear = true }
-            // The delay is review-safe ONLY because the button reliably
-            // appears: the task is tied to the page, not to any subview, and
-            // nothing cancels it.
+            // Five seconds, not three (owner ruling, 2026-09-01). The delay is
+            // review-safe ONLY because the button reliably appears: the task is
+            // tied to the page, not to any subview, and nothing cancels it.
             closeTask = Task {
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
                 withAnimation(.easeIn(duration: 0.3)) { showClose = true }
             }
         }
