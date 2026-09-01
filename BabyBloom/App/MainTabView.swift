@@ -95,6 +95,15 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.growth)
                     }
                 }
+                NavigationLink(destination: RecentActivityView()) {
+                    Label {
+                        Text("nav.recent_activity".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    } icon: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundStyle(BBTheme.Colors.primary)
+                    }
+                }
                 NavigationLink(destination: EventsView()) {
                     Label {
                         Text("nav.events".l)

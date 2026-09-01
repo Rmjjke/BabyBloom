@@ -14,6 +14,38 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-01 — A permanent Growth teaser, and a gate on creating events only
+
+The Dashboard's Growth section always shows the latest weight and
+`FeedingAdequacy`'s calm word for gain. The paid half — the weekly figure and
+the percentile — sits behind a `LockedInsightCard` that never goes away. Event
+CREATION asks for Premium at every entry point; viewing and deleting existing
+events stay free.
+
+**Why.** A free-first-days window was the alternative, and rejected: a section
+that vanishes after two days reads as breakage, in the one domain where the
+app must never frighten. A parent who has grown used to a calm word about
+their baby's weight and then finds it gone does not conclude "my trial
+expired". The permanent teaser is honest about what is paid without ever
+withdrawing what was shown.
+
+Deletion in particular stays free because a paywall in front of it would hold
+a person's own records hostage — the one thing a tracking app must not do. The
+same reasoning is why the Growth screen's newborn red flags are free.
+
+**Consequence.** Every creation path on the Events screen funnels through one
+gate (`addEvent(_:)`): the four quick-add tiles wrote a `CustomEvent` straight
+to the context, and left free they would have walked around the padlock two
+rows above them. Adding a fifth tile means going through that function, not
+around it. Each gated control carries a padlock badge — a control that looks
+free and answers with a paywall is a bait-and-switch.
+
+The free line reads `assessment.gain` and nothing else, so the 2026-08-25 rule
+holds on the Dashboard too. `DashboardGrowthSummary` is a pure function for
+exactly that reason: the rule is testable without a simulator.
+
+---
+
 ## 2026-09-01 — The widget gets a second, guarded colour catalog
 
 `WidgetResources/Colors.xcassets` duplicates the brand colorsets, and the

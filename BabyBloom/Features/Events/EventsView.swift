@@ -5,7 +5,9 @@ struct EventsView: View {
     @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -24,16 +26,48 @@ struct EventsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { showAddSheet = true } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(BBTheme.Colors.primary)
+                    Button { addEvent() } label: {
+                        // A badge, not a substitution: replacing the plus with
+                        // a padlock loses the "this adds something" affordance,
+                        // and the gate reads just as clearly beside it.
+                        ZStack(alignment: .bottomTrailing) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(BBTheme.Colors.primary)
+                            if !store.isPremium {
+                                // Offset outwards: the disc is nearly as wide as
+                                // the 22pt plus, so a flush badge would hide it.
+                                LockBadge().offset(x: 8, y: 6)
+                            }
+                        }
                     }
+                    // The plus is an icon-only control, so it needs its label
+                    // spelled out before the gate can be appended to it.
+                    .accessibilityLabel(Text("sheet.new_event".l))
+                    .bbLockedAccessibility(!store.isPremium)
                 }
             }
         }
         .sheet(isPresented: $showAddSheet) {
             AddEventSheet()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+    }
+
+    /// The single gate for creating an event on this screen. Both creation
+    /// paths — the toolbar sheet and the quick-add tiles — go through it, so
+    /// the padlock cannot promise a gate that a tile below it walks around.
+    private func addEvent(_ type: CustomEvent.EventType? = nil) {
+        guard store.isPremium else {
+            showPaywall = true
+            return
+        }
+        if let type {
+            quickAdd(type)
+        } else {
+            showAddSheet = true
         }
     }
 
@@ -43,12 +77,17 @@ struct EventsView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
                     Button {
-                        quickAdd(type)
+                        addEvent(type)
                     } label: {
                         VStack(spacing: BBTheme.Spacing.sm) {
-                            Image(systemName: type.icon)
-                                .font(.system(size: 26))
-                                .foregroundStyle(Color(hex: type.colorHex))
+                            ZStack(alignment: .bottomTrailing) {
+                                Image(systemName: type.icon)
+                                    .font(.system(size: 26))
+                                    .foregroundStyle(Color(hex: type.colorHex))
+                                if !store.isPremium {
+                                    LockBadge().offset(x: 8, y: 4)
+                                }
+                            }
                             Text(type.displayName.l)
                                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -57,6 +96,7 @@ struct EventsView: View {
                         .bbCardTonal(Color(hex: type.colorHex))
                     }
                     .buttonStyle(BBScaleButtonStyle())
+                    .bbLockedAccessibility(!store.isPremium)
                 }
             }
         }

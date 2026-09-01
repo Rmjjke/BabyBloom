@@ -91,18 +91,27 @@ struct BBQuickActionButton: View {
     let icon: String
     let title: String
     let color: Color
+    /// Draws a small padlock on the icon. The gate has to be visible BEFORE the
+    /// tap — a button that looks free and answers with a paywall is a
+    /// bait-and-switch.
+    var locked: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: BBTheme.Spacing.xs) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.22))
-                        .frame(width: 60, height: 60)
-                    Image(systemName: icon)
-                        .font(.system(size: 26, weight: .medium))
-                        .foregroundStyle(color)
+                ZStack(alignment: .bottomTrailing) {
+                    ZStack {
+                        Circle()
+                            .fill(color.opacity(0.22))
+                            .frame(width: 60, height: 60)
+                        Image(systemName: icon)
+                            .font(.system(size: 26, weight: .medium))
+                            .foregroundStyle(color)
+                    }
+                    if locked {
+                        LockBadge()
+                    }
                 }
                 Text(title)
                     .font(.system(size: 12, weight: .medium, design: .rounded))
@@ -111,6 +120,7 @@ struct BBQuickActionButton: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(BBScaleButtonStyle())
+        .bbLockedAccessibility(locked)
     }
 }
 

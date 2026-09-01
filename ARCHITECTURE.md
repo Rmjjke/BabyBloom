@@ -189,9 +189,22 @@ cannot fake a restore.
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a
 `LockedInsightCard` built from the SAME title key, which is why an e2e
-assertion on that title proves nothing without `-BBForcePremium`. And Export,
+assertion on that title proves nothing without `-BBForcePremium`. Export,
 gated at the navigation point in the settings list rather than inside
-`ExportView`.
+`ExportView`. The paid half of the Dashboard's Growth section, which falls
+back to a `LockedInsightCard` of its own. And **creating** an event: the
+Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
+tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
+branch, and each wears a padlock badge so the gate is visible before the tap.
+
+That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
+identically at every gate. It is `accessibilityHidden`; the words go on the
+enclosing button instead, via `View.bbLockedAccessibility(_:)`, which appends
+`premium.locked_a11y` as the control's accessibility **value** so VoiceOver
+reads "Events, Requires Premium" rather than losing the gate entirely.
+
+Viewing, and deleting, what is already recorded is never gated — recorded data
+is not held hostage.
 
 ## Notifications
 
@@ -206,8 +219,12 @@ Permission is requested when onboarding completes, not at launch.
 
 ## Navigation
 
-`MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth, Events
-and Profile live under More rather than in the bar. There is no separate
+`MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth,
+Recent activity, Events and Profile live under More rather than in the bar;
+`RecentActivityView` is the Dashboard's former recent-events section, moved out
+whole. The Dashboard's own sections run header → activeTimers → quickActions →
+stats → growth → progress, and its Growth header is a `NavigationLink` into
+`GrowthView` — the second route to that screen. There is no separate
 Settings screen: `ProfileView` carries the baby's details and the app settings
 on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
