@@ -25,7 +25,9 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            BBTheme.Colors.background.ignoresSafeArea()
+            // One ground for the whole flow: the pages slide over it, so the
+            // backdrop is continuous instead of restarting per page.
+            OnboardingBackground()
 
             VStack(spacing: 0) {
 

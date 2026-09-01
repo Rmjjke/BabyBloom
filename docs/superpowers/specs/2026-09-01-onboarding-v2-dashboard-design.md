@@ -71,8 +71,11 @@ New `BabyBloom/DesignSystem/Components/BrandMark.swift`:
 - Rendered ONCE in `OnboardingView`'s ZStack behind the page switcher;
   pages lose their own background fills and become transparent over it.
   `WelcomePage` drops its private copy.
-- Dark mode: same blobs at reduced opacity — the current near-black dark
-  onboarding gains the splash's warmth.
+- Dark mode: the same blobs at the SAME opacity set — implementation showed
+  one 0.12–0.20 band reads correctly in both themes (verified by eye:
+  visible warmth, intact text contrast), so no per-theme values exist to
+  drift apart. (Amended 2026-09-01 at stream review; the original text
+  demanded reduced dark opacity.)
 
 ### A3. Mechanical
 

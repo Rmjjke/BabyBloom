@@ -127,6 +127,26 @@ rejected.
 copies, plus per-locale `Resources/{en,ru,es}.lproj/InfoPlist.strings` for
 `CFBundleDisplayName`. Russian copy must decline the name («в Ночку»).
 
+## 2026-09-01 — One brand badge, one onboarding ground
+
+`BBLogo` is never placed raw. Every appearance goes through `BrandMark`,
+which clips the square app-icon art to a circle so its own opaque background
+becomes the badge fill.
+
+**Why.** The art was dropped raw into four places at four sizes; each read as
+a screenshot of the app icon rather than a mark, and the four drifted apart
+independently. One component makes the badge a decision instead of an
+accident, and it retired the last wreath glyph from the paywall hero along
+the way.
+
+**Also decided here.** The onboarding backdrop is rendered ONCE, by
+`OnboardingView`, as `OnboardingBackground` behind the page switcher — so
+onboarding pages must not paint an opaque ground of their own, or they punch
+a hole in it. Any page added to the flow inherits the backdrop by doing
+nothing. `OnboardingBackground` drifts on a `repeatForever` animation, which
+means Maestro's `waitForAnimationToEnd` has nothing to settle on during
+onboarding; no flow uses it there today, and none should start.
+
 ## 2026-08-09 — Bundle ID, App Group, iCloud container and target names stay `com.nenita` / `BabyBloom`
 
 **Why.** They are baked into existing stores; renaming them means data loss
