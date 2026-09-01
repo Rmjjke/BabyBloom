@@ -57,6 +57,8 @@ struct OnboardingView: View {
                     case .fact: FactPage(babyName: babyName, birthDate: birthDate,
                                          feedingType: feedingType, onContinue: next)
                     case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)
+                    case .notifications: NotificationsPage(babyName: babyName, onContinue: next)
+                    case .widgets: WidgetShowcasePage(babyName: babyName, onContinue: next)
                     case .premium: PremiumPage(onPurchased: { createAndFinish() },
                                                onSkip:      { createAndFinish() })
                     }
@@ -75,7 +77,7 @@ struct OnboardingView: View {
                 }
             }
         }
-        // Prices must be on screen by page 8. Loading starts with page 1 so a
+        // Prices must be on screen by page 10. Loading starts with page 1 so a
         // slow network spends onboarding time, not paywall time. PlanPickerSection
         // also calls loadProducts() on its own .task; the double call is
         // deliberate and idempotent (SubscriptionManager is safe to reload).

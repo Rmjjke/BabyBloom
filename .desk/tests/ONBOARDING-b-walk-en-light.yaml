@@ -1,0 +1,76 @@
+# Stream B walk (en, light): the ten-page onboarding, the permission dialog
+# raised ON the notifications page, and the Dashboard reached with the greeting
+# readable.
+#
+# This flow is a SMOKE CHECK, not the regression guard for the old
+# dialog-over-Dashboard bug. It cannot be that guard: the same XCUITest driver
+# that auto-answers the alert on the notifications page would dismiss a
+# Dashboard alert too, before the greeting assertion ever ran. The guard is
+# static —
+#
+#     grep -rn requestPermission --include=*.swift
+#
+# must return exactly two hits: the declaration in NotificationManager.swift
+# and the single call site in NotificationsPage.swift. A third hit is the
+# regression.
+#
+# Traps honoured: waitForAnimationToEnd never settles (the shared backdrop
+# drifts forever) — explicit anchors only; hideKeyboard on the Name page
+# advances a page — pressKey: Enter instead; and the system alert is
+# auto-answered by the XCUITest driver ~3s after it appears, so the flow waits
+# for the NEXT page rather than tapping "Allow" itself.
+appId: com.nenita.app
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+
+- extendedWaitUntil: { visible: "Start", timeout: 20000 }
+- tapOn: "Start"
+- tapOn: "Baby's name"
+- inputText: "Mia"
+- pressKey: Enter
+- tapOn: "Next"
+- tapOn: "Next"
+- tapOn: "Next"
+- tapOn: "Next"
+- extendedWaitUntil: { visible: "Build My Tracker", timeout: 20000 }
+- tapOn: "Build My Tracker"
+
+- extendedWaitUntil: { visible: "Turn on notifications", timeout: 30000 }
+- assertVisible: ".*Mia eats and sleeps.*"
+- assertVisible: ".*learns your rhythm.*"
+- assertVisible: ".*wake window.*"
+- assertVisible: ".*No spam.*"
+- assertVisible: "Not now"
+- takeScreenshot: 01-notify-en-light
+
+- tapOn: "Turn on notifications"
+- takeScreenshot: 02-after-cta-auto-advanced-en-light
+
+# The alert is answered by the driver; the page advances on the callback.
+- extendedWaitUntil: { visible: "The widget on your Home Screen", timeout: 25000 }
+- assertVisible: "Mia"
+- assertVisible: "Feeding in"
+- assertVisible: ".*40 min.*"
+- assertVisible: ".*Touch and hold the Home Screen.*Bitty.*"
+- takeScreenshot: 03-widget-en-light
+- tapOn: "Next"
+
+- extendedWaitUntil: { visible: "Bitty Premium", timeout: 20000 }
+- takeScreenshot: 04-premium-en-light
+- extendedWaitUntil: { visible: "Close", timeout: 20000 }
+- tapOn: "Close"
+
+# The regression guard: the greeting is readable the instant the Dashboard
+# arrives, with no permission alert over it.
+- extendedWaitUntil: { visible: { id: "tab_home" }, timeout: 20000 }
+- assertVisible: "Welcome to Bitty"
+- assertVisible: "Mia"
+- assertNotVisible: "Allow"
+- assertNotVisible: "Don't Allow"
+- takeScreenshot: 05-dashboard-no-dialog-en-light
