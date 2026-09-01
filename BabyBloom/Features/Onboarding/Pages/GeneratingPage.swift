@@ -4,17 +4,32 @@ import SwiftUI
 
 struct GeneratingPage: View {
     let babyName: String
+    let birthDate: Date
     let onDone: () -> Void
 
     @State private var completedSteps: Set<Int> = []
     @State private var showDone = false
 
-    private let steps: [(key: String, icon: String)] = [
-        ("onboarding.gen.step1", "heart.fill"),
-        ("onboarding.gen.step2", "chart.line.uptrend.xyaxis"),
-        ("onboarding.gen.step3", "moon.fill"),
-        ("onboarding.gen.step4", "bell.fill"),
-    ]
+    /// The second step names the baby and their age — the one line that makes
+    /// "personalizing" read as true rather than staged.
+    private var steps: [(text: String, icon: String)] {
+        let name = babyName.trimmingCharacters(in: .whitespaces)
+        let calibrating = String(format: "onboarding.gen.step_named".l,
+                                 name.isEmpty ? "baby.default_name".l : name,
+                                 Baby.describeAge(from: birthDate))
+        return [
+            ("onboarding.gen.step1".l, "heart.fill"),
+            (calibrating, "person.crop.circle.badge.checkmark"),
+            ("onboarding.gen.step2".l, "chart.line.uptrend.xyaxis"),
+            ("onboarding.gen.step3".l, "moon.fill"),
+            ("onboarding.gen.step4".l, "bell.fill"),
+        ]
+    }
+
+    /// Uneven on purpose: uniform ticks read as an animation, uneven ones as
+    /// work. Sums with the trailing pauses to ~4.6 s (owner: +40% over the
+    /// old 3.2 s).
+    private let stepDelays: [UInt64] = [450, 1_000, 650, 1_200, 550].map { $0 * 1_000_000 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,7 +82,7 @@ struct GeneratingPage: View {
                                 }
                                 .animation(.spring(response: 0.4), value: completedSteps.contains(i))
 
-                                Text(step.key.l)
+                                Text(step.text)
                                     .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                     .foregroundStyle(completedSteps.contains(i) ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
                                     .animation(.easeIn, value: completedSteps.contains(i))
@@ -87,8 +102,8 @@ struct GeneratingPage: View {
             Spacer()
         }
         .task {
-            for i in 0..<steps.count {
-                try? await Task.sleep(nanoseconds: 600_000_000)
+            for (i, delay) in stepDelays.enumerated() {
+                try? await Task.sleep(nanoseconds: delay)
                 withAnimation { completedSteps.insert(i) }
             }
             try? await Task.sleep(nanoseconds: 500_000_000)

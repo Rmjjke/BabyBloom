@@ -258,7 +258,6 @@
   "onboarding.feeding_title": "¿Cómo alimentas a tu bebé?",
   "onboarding.feeding_hint": "Para un seguimiento y consejos a tu medida",
   "onboarding.fact.title": "¿Sabías que...?",
-  "onboarding.fact.body": "Un recién nacido puede necesitar hasta 12 tomas al día. En las primeras semanas es casi imposible recordarlas todas. Nenita las registra por ti, con un solo toque.",
   "onboarding.fact.cta": "Crear mi registro",
   "onboarding.gen.title": "Configurando Nenita…",
   "onboarding.gen.title_named": "Configurando Nenita para %@…",
@@ -419,5 +418,14 @@
   "premium.per_week": "/ semana",
   "premium.save_fmt": "Ahorra %d%%",
   "premium.trial_fmt": "%d %@ gratis, luego %@",
-  "premium.price_only_fmt": "%@ · cancela cuando quieras"
+  "premium.price_only_fmt": "%@ · cancela cuando quieras",
+  "onboarding.fact.newborn1": "En las primeras semanas, %@ puede comer hasta 12 veces al día. Recordar cada toma es casi imposible: Bitty la registra con un toque.",
+  "onboarding.fact.newborn2": "Los recién nacidos duermen hasta 18 horas al día, en tramos cortos. El registro muestra el ritmo antes de que se sienta como tal.",
+  "onboarding.fact.infant1": "Hacia los 3 meses, %@ empezará a dormir hasta 6 horas seguidas. Verlo crecer en el registro anima a cualquier padre cansado.",
+  "onboarding.fact.infant2": "A los 3 meses, muchos bebés pasan a 6–8 tomas al día. El registro convierte «¿esto es normal?» en una gráfica clara.",
+  "onboarding.fact.older1": "Desde los 6 meses, %@ descubre la comida — aunque la leche sigue siendo lo principal. Registrar ambas mantiene la imagen completa.",
+  "onboarding.fact.older2": "Los bebés suelen duplicar su peso al nacer hacia los 5 meses. Las curvas de la OMS en Nenita muestran dónde está %@ en ese camino.",
+  "onboarding.fact.breast1": "Los bebés amamantados comen cada 2–3 horas, día y noche. Nenita recuerda qué pecho fue el último — para que tú no tengas que hacerlo.",
+  "onboarding.fact.formula1": "Con fórmula, los bebés suelen comer cada 3–4 horas. Con un registro, la próxima toma es previsible, no una adivinanza.",
+  "onboarding.gen.step_named": "Calibrando para %@ — %@"
 }
