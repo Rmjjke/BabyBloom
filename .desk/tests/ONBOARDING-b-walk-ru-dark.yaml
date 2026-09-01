@@ -1,0 +1,50 @@
+# Stream B walk (ru, dark): same flow, and the "Не сейчас" branch — which
+# raises no system alert at all and advances immediately.
+appId: com.nenita.app
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-appLanguage": "ru"
+      "-appAppearance": "dark"
+
+- extendedWaitUntil: { visible: "Начать", timeout: 20000 }
+- tapOn: "Начать"
+- tapOn: "Имя ребёнка"
+- inputText: "Мия"
+- pressKey: Enter
+- tapOn: "Далее"
+- tapOn: "Далее"
+- tapOn: "Далее"
+- tapOn: "Далее"
+- extendedWaitUntil: { visible: "Создать мой трекер", timeout: 20000 }
+- tapOn: "Создать мой трекер"
+
+- extendedWaitUntil: { visible: "Включить уведомления", timeout: 30000 }
+- assertVisible: ".*Мия ест и спит.*"
+- assertVisible: ".*подстраивается под ваш ритм.*"
+- assertVisible: ".*окно бодрствования.*"
+- assertVisible: ".*Без спама.*"
+- takeScreenshot: 06-notify-ru-dark
+
+# The secondary button: no dialog at all, straight to the widget page.
+- tapOn: "Не сейчас"
+- extendedWaitUntil: { visible: "Виджет на домашнем экране", timeout: 20000 }
+- assertNotVisible: "Разрешить"
+- assertVisible: "Мия"
+- assertVisible: ".*Долгое нажатие на домашний экран.*Ночка.*"
+- takeScreenshot: 07-widget-ru-dark
+- tapOn: "Далее"
+
+- extendedWaitUntil: { visible: "Ночка Premium", timeout: 20000 }
+- takeScreenshot: 08-premium-ru-dark
+- extendedWaitUntil: { visible: "Закрыть", timeout: 20000 }
+- tapOn: "Закрыть"
+
+- extendedWaitUntil: { visible: { id: "tab_home" }, timeout: 20000 }
+- assertVisible: "Добро пожаловать в Ночку"
+- assertVisible: "Мия"
+- assertNotVisible: "Разрешить"
+- takeScreenshot: 09-dashboard-no-dialog-ru-dark
