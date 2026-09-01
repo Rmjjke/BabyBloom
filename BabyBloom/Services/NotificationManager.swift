@@ -35,11 +35,16 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Permission
 
-    func requestPermission() {
+    /// - Parameter completion: the user's answer, delivered on the main actor.
+    ///   Onboarding's notifications page advances on EITHER answer, so it needs
+    ///   the callback; the `@MainActor` on the type is what lets a SwiftUI page
+    ///   pass a closure over its own (main-actor-isolated) state.
+    func requestPermission(completion: (@MainActor @Sendable (Bool) -> Void)? = nil) {
         UNUserNotificationCenter.current()
             .requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, _ in
-                guard granted else { return }
-                self?.scheduleWeeklySummary()
+                if granted { self?.scheduleWeeklySummary() }
+                guard let completion else { return }
+                Task { @MainActor in completion(granted) }
             }
     }
 

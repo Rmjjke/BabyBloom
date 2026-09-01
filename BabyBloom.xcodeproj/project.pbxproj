@@ -69,6 +69,7 @@
 		86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
 		92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */; };
+		95E5748D0F9E4A55D45F2E20 /* NotificationsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017D853B6CDFE505EBBE64D8 /* NotificationsPage.swift */; };
 		97135640A3A39C6C9A4C9929 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = F3D63328CD7ED001909F7DCD /* es.json */; };
 		9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */; };
 		9A2E7598C81EEBFE19E565BA /* NutritionRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86B2CFD78D4B411B68808C9 /* NutritionRenderDump.swift */; };
@@ -156,6 +157,7 @@
 /* Begin PBXFileReference section */
 		001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightMeasurement.swift; sourceTree = "<group>"; };
 		010391C632EC1AAB7BD0D0CB /* FeedingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingView.swift; sourceTree = "<group>"; };
+		017D853B6CDFE505EBBE64D8 /* NotificationsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsPage.swift; sourceTree = "<group>"; };
 		01F832BBE867DF06E7EE6F2E /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManagerTests.swift; sourceTree = "<group>"; };
 		02E985CD184447B03AA6F246 /* NutritionSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionSection.swift; sourceTree = "<group>"; };
@@ -479,6 +481,7 @@
 				0F91A302286246B091A55923 /* GeneratingPage.swift */,
 				7540A190C88F7AD53BB3E3E6 /* GrowthPage.swift */,
 				0A856FE301431E425A94C4CA /* NamePage.swift */,
+				017D853B6CDFE505EBBE64D8 /* NotificationsPage.swift */,
 				E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */,
 				FDEB05535F410B101D28D335 /* WelcomePage.swift */,
 			);
@@ -849,6 +852,7 @@
 				7B2737EB596E0135A560C902 /* NamePage.swift in Sources */,
 				E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */,
 				CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */,
+				95E5748D0F9E4A55D45F2E20 /* NotificationsPage.swift in Sources */,
 				3D576494896C8DCF89E129E3 /* NutritionSection.swift in Sources */,
 				282B1AA5BDE0C4DCBD9848B8 /* OnboardingBackground.swift in Sources */,
 				22635DE9DA65A975AC422C08 /* OnboardingFacts.swift in Sources */,

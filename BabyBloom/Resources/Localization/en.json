@@ -433,5 +433,11 @@
   "onboarding.fact.older2": "Babies double their birth weight by about 5 months. The WHO charts in Bitty show exactly where %@ is on that road.",
   "onboarding.fact.breast1": "Breastfed babies often eat every 2–3 hours around the clock. Bitty remembers which side was last — so you don't have to.",
   "onboarding.fact.formula1": "Formula-fed babies typically eat every 3–4 hours. A log makes the next feed predictable instead of a guess.",
-  "onboarding.gen.step_named": "Calibrating for %@ — %@"
+  "onboarding.gen.step_named": "Calibrating for %@ — %@",
+  "onboarding.notify.title": "%@ eats and sleeps to their own rhythm — we'll remind you when it's time",
+  "onboarding.notify.b1": "The feeding reminder learns your rhythm: after a few logged feeds it uses your own average interval instead of a table.",
+  "onboarding.notify.b2": "After a nap we count the wake window for your baby's age, so the next sleep is suggested at the right moment.",
+  "onboarding.notify.b3": "No spam: one pending reminder of each kind, and only a long feeding or a long sleep is allowed through Do Not Disturb.",
+  "onboarding.notify.cta": "Turn on notifications",
+  "onboarding.notify.later": "Not now"
 }

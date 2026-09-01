@@ -47,10 +47,11 @@ struct BabyBloomApp: App {
                 } else if hasCompletedOnboarding {
                     MainTabView()
                 } else {
-                    OnboardingView(onComplete: {
-                        hasCompletedOnboarding = true
-                        NotificationManager.shared.requestPermission()
-                    })
+                    // No permission request here any more: onboarding asks on
+                    // its own notifications page, where the ask is motivated.
+                    // Firing it from this closure put the system dialog on top
+                    // of the Dashboard the instant onboarding ended.
+                    OnboardingView(onComplete: { hasCompletedOnboarding = true })
                 }
             }
             .id(appLanguage)
