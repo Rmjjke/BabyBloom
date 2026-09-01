@@ -2,6 +2,11 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    /// The tab selection, owned by MainTabView. The active-timer cards use it
+    /// to jump to the screen that owns the timer — a card that shows a running
+    /// timer but cannot take you to it reads as broken (owner report, build 5).
+    @Binding var selectedTab: MainTabView.Tab
+
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var sleeps: [SleepEntry]
@@ -132,7 +137,7 @@ struct DashboardView: View {
                     title: "status.feeding_going".l,
                     subtitle: feeding.displayTitle,
                     startTime: feeding.startTime
-                )
+                ) { selectedTab = .feeding }
             }
             if let sleep = activeSleep {
                 ActiveTimerCard(
@@ -141,7 +146,7 @@ struct DashboardView: View {
                     title: "status.baby_sleeping".l,
                     subtitle: sleep.type.displayName.l,
                     startTime: sleep.startTime
-                )
+                ) { selectedTab = .sleep }
             }
         }
     }
@@ -344,8 +349,21 @@ struct ActiveTimerCard: View {
     let title: String
     let subtitle: String
     let startTime: Date
+    /// Where the card takes you — the screen that owns this timer.
+    let onTap: () -> Void
 
     var body: some View {
+        // Same shape as BBStatCard: whole card is the hit target, contentShape
+        // guarantees the full frame is hittable, and the shared scale style
+        // gives the press the same haptic-and-shrink every other card has.
+        Button(action: onTap) {
+            cardContent
+        }
+        .contentShape(Rectangle())
+        .buttonStyle(BBScaleButtonStyle())
+    }
+
+    private var cardContent: some View {
         HStack(spacing: BBTheme.Spacing.md) {
             ZStack {
                 Circle()
