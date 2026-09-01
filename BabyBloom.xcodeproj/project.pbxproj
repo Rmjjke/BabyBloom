@@ -41,6 +41,7 @@
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
+		4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */; };
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
@@ -178,6 +179,7 @@
 		32ED719AD860A85B4498F539 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		32FFE47A731EC428AFBF9100 /* DashboardGrowthSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardGrowthSummaryTests.swift; sourceTree = "<group>"; };
 		347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyProfileEditSheet.swift; sourceTree = "<group>"; };
+		34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockBadge.swift; sourceTree = "<group>"; };
 		3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingBreakdownCard.swift; sourceTree = "<group>"; };
 		35CC038C14DBB4D68AC2E233 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		35F49DA9A952161FFF0F24A0 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
@@ -323,6 +325,7 @@
 				3A2DCA65186F68E00645DF02 /* BBFab.swift */,
 				DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */,
 				7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */,
+				34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */,
 				AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */,
 			);
 			path = Components;
@@ -834,6 +837,7 @@
 				86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */,
 				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
 				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
+				4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
 				7B2737EB596E0135A560C902 /* NamePage.swift in Sources */,
 				E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */,

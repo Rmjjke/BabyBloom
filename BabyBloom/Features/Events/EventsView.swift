@@ -35,13 +35,16 @@ struct EventsView: View {
                                 .font(.system(size: 22))
                                 .foregroundStyle(BBTheme.Colors.primary)
                             if !store.isPremium {
-                                Image(systemName: "lock.fill")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                                    .offset(x: 5, y: 3)
+                                // Offset outwards: the disc is nearly as wide as
+                                // the 22pt plus, so a flush badge would hide it.
+                                LockBadge().offset(x: 8, y: 6)
                             }
                         }
                     }
+                    // The plus is an icon-only control, so it needs its label
+                    // spelled out before the gate can be appended to it.
+                    .accessibilityLabel(Text("sheet.new_event".l))
+                    .bbLockedAccessibility(!store.isPremium)
                 }
             }
         }
@@ -82,10 +85,7 @@ struct EventsView: View {
                                     .font(.system(size: 26))
                                     .foregroundStyle(Color(hex: type.colorHex))
                                 if !store.isPremium {
-                                    Image(systemName: "lock.fill")
-                                        .font(.system(size: 10, weight: .semibold))
-                                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                                        .offset(x: 8, y: 4)
+                                    LockBadge().offset(x: 8, y: 4)
                                 }
                             }
                             Text(type.displayName.l)
@@ -96,6 +96,7 @@ struct EventsView: View {
                         .bbCardTonal(Color(hex: type.colorHex))
                     }
                     .buttonStyle(BBScaleButtonStyle())
+                    .bbLockedAccessibility(!store.isPremium)
                 }
             }
         }

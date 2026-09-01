@@ -110,13 +110,7 @@ struct BBQuickActionButton: View {
                             .foregroundStyle(color)
                     }
                     if locked {
-                        // On the surface colour, not the tinted circle, so the
-                        // badge reads as an overlay rather than part of the glyph.
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                            .padding(4)
-                            .background(Circle().fill(BBTheme.Colors.surface))
+                        LockBadge()
                     }
                 }
                 Text(title)
@@ -126,6 +120,7 @@ struct BBQuickActionButton: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(BBScaleButtonStyle())
+        .bbLockedAccessibility(locked)
     }
 }
 

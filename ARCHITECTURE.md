@@ -197,6 +197,12 @@ Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
 
+That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
+identically at every gate. It is `accessibilityHidden`; the words go on the
+enclosing button instead, via `View.bbLockedAccessibility(_:)`, which appends
+`premium.locked_a11y` as the control's accessibility **value** so VoiceOver
+reads "Events, Requires Premium" rather than losing the gate entirely.
+
 Viewing, and deleting, what is already recorded is never gated — recorded data
 is not held hostage.
 

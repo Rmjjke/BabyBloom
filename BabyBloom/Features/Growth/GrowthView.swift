@@ -20,11 +20,13 @@ struct GrowthView: View {
     /// empty and reading from it would silently blank every card here.
     private var measurements: [WeightMeasurement] { entries.weightMeasurements }
 
-    // GrowthView is presented only as a push destination inside MoreView's
-    // NavigationStack (D6 IA change), so it must NOT wrap its own NavigationStack
-    // — that would nest a stack inside a stack (double nav bar). Title/toolbar
-    // attach to the enclosing MoreView stack. (DiaperView, now a top-level tab,
-    // keeps its own NavigationStack for the opposite reason.)
+    // GrowthView is only ever a push destination, and there are now two routes
+    // into it: the More tab's Growth row (D6 IA change) and the Dashboard's
+    // Growth section header. Both callers own the NavigationStack, so this view
+    // must NOT wrap one of its own — that would nest a stack inside a stack
+    // (double nav bar) on either route. Title/toolbar attach to whichever
+    // enclosing stack pushed it. (DiaperView, a top-level tab, keeps its own
+    // NavigationStack for the opposite reason.)
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
