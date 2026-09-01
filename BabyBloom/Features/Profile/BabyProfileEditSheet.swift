@@ -322,6 +322,8 @@ struct BabyProfileEditSheet: View {
         baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
         baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
         try? modelContext.save()
+        // A rename has to reach the widget, which prints the name.
+        WidgetRefresh.profileChanged()
         dismiss()
     }
 }

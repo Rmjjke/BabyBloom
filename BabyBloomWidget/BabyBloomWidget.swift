@@ -31,7 +31,7 @@ enum WidgetDataStore {
 // MARK: - Widget Provider
 struct BabyBloomProvider: TimelineProvider {
     func placeholder(in context: Context) -> BabyBloomEntry {
-        Self.placeholderEntry()
+        Self.placeholderSample()
     }
 
     func getSnapshot(in context: Context, completion: @escaping (BabyBloomEntry) -> Void) {
@@ -43,33 +43,75 @@ struct BabyBloomProvider: TimelineProvider {
         // Before anything is read: this process outlives a language change.
         LocalizationManager.shared.refreshFromStore()
         let entry = Self.fetchEntry()
-        // Reload roughly every 15 minutes to keep "time ago" values fresh.
-        let nextUpdate = Date().addingTimeInterval(15 * 60)
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
+        // Roughly every 15 minutes to keep the underlying data fresh. The
+        // countdown itself does NOT depend on this — `Text(_:style:)` is
+        // re-rendered by the system every minute — but the wording has to
+        // change the moment the feed falls due, so a second entry is placed
+        // exactly there rather than polling for it.
+        let refresh = Date().addingTimeInterval(15 * 60)
+        var entries = [entry]
+        if let due = entry.nextFeedingTime, due > entry.date, due < refresh {
+            entries.append(BabyBloomEntry(date: due,
+                                          babyName: entry.babyName,
+                                          lastFeedingTime: entry.lastFeedingTime,
+                                          sleepStartTime: entry.sleepStartTime,
+                                          lastSleepDuration: entry.lastSleepDuration,
+                                          todayFeedingCount: entry.todayFeedingCount,
+                                          isAsleep: entry.isAsleep,
+                                          nextFeedingTime: entry.nextFeedingTime))
+        }
+        completion(Timeline(entries: entries, policy: .after(refresh)))
     }
 
     // MARK: Data
 
-    /// Static placeholder used for the widget gallery and as a graceful
-    /// fallback whenever the shared store is unavailable or empty.
-    static func placeholderEntry() -> BabyBloomEntry {
+    /// The redacted loading placeholder WidgetKit shows while a real timeline
+    /// is being fetched — the only caller that WANTS invented data. (The
+    /// gallery is not this: WidgetKit fills that through `getSnapshot(in:)`
+    /// with `context.isPreview`, which returns real data here.) Deliberately
+    /// internally consistent: a logged feeding at one month old always has a
+    /// predicted next feed, so this carries one 45 minutes out and shows the
+    /// countdown that is the whole point of the widget, rather than the old
+    /// "time since" framing.
+    static func placeholderSample() -> BabyBloomEntry {
         BabyBloomEntry(
             date: Date(),
             babyName: "baby.default_name".l,
             lastFeedingTime: Date().addingTimeInterval(-7200),
+            sleepStartTime: Date().addingTimeInterval(-3 * 3600),
             lastSleepDuration: String(format: "duration.h_min".l, 2, 15),
             todayFeedingCount: 6,
-            isAsleep: false
+            isAsleep: false,
+            nextFeedingTime: Date().addingTimeInterval(45 * 60)
+        )
+    }
+
+    /// What `fetchEntry()` falls back to when there is nothing real to show:
+    /// no App Group store, or a store with no `Baby` yet. Kept separate from
+    /// `placeholderSample()` on purpose — that one is invented data for the
+    /// redacted loading state; this is what a real person who has not finished
+    /// onboarding actually sees, and showing them a fabricated "6 today" and
+    /// a 2h15m nap for a baby that doesn't exist would be a defect, not a
+    /// placeholder. Do NOT collapse these back into one function.
+    static func emptyEntry() -> BabyBloomEntry {
+        BabyBloomEntry(
+            date: Date(),
+            babyName: "baby.default_name".l,
+            lastFeedingTime: nil,
+            sleepStartTime: nil,
+            lastSleepDuration: nil,
+            todayFeedingCount: 0,
+            isAsleep: false,
+            nextFeedingTime: nil
         )
     }
 
     /// Reads live data from the shared App Group container. Any failure
-    /// (missing App Group, unopenable store, empty database) falls back to the
-    /// placeholder so the widget never crashes.
+    /// (missing App Group, unopenable store, empty database) falls back to
+    /// `emptyEntry()` so the widget never crashes and never invents data.
     static func fetchEntry() -> BabyBloomEntry {
         guard let container = WidgetDataStore.shared else {
-            return placeholderEntry()
+            return emptyEntry()
         }
         // A fresh context (not `mainContext`) so this works from any thread the
         // WidgetKit timeline machinery calls us on, without an actor hop.
@@ -80,7 +122,7 @@ struct BabyBloomProvider: TimelineProvider {
         babyDescriptor.fetchLimit = 1
         guard let baby = (try? ctx.fetch(babyDescriptor))?.first else {
             // No baby set up yet — nothing meaningful to show.
-            return placeholderEntry()
+            return emptyEntry()
         }
 
         // Recent feedings (cap the fetch; only need today's count + the latest).
@@ -90,6 +132,13 @@ struct BabyBloomProvider: TimelineProvider {
         feedingDescriptor.fetchLimit = 50
         let feedings = (try? ctx.fetch(feedingDescriptor)) ?? []
         let todayCount = feedings.filter { Calendar.current.isDateInToday($0.startTime) }.count
+
+        // The same arithmetic the feeding reminder is scheduled on, so the
+        // widget and the push cannot contradict each other.
+        let recent = Array(feedings.prefix(7).map(\.startTime))
+        let nextFeed = FeedingRhythm.nextFeed(afterLastFeedingAt: feedings.first?.startTime,
+                                              ageMonths: baby.ageInMonths,
+                                              recentFeedings: recent)
 
         // Latest sleep entry.
         var sleepDescriptor = FetchDescriptor<SleepEntry>(
@@ -102,9 +151,11 @@ struct BabyBloomProvider: TimelineProvider {
             date: Date(),
             babyName: baby.name.isEmpty ? "baby.default_name".l : baby.name,
             lastFeedingTime: feedings.first?.startTime,
+            sleepStartTime: lastSleep?.startTime,
             lastSleepDuration: lastSleep?.durationFormatted,
             todayFeedingCount: todayCount,
-            isAsleep: lastSleep?.isActive ?? false
+            isAsleep: lastSleep?.isActive ?? false,
+            nextFeedingTime: nextFeed
         )
     }
 }
@@ -115,12 +166,8 @@ struct BabyBloomWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                BabyBloomSmallWidgetView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                BabyBloomSmallWidgetView(entry: entry)
-            }
+            BabyBloomSmallWidgetView(entry: entry)
+                .containerBackground(for: .widget) { WidgetBackground() }
         }
         .configurationDisplayName("brand.name".l)
         .description("widget.description_small".l)
@@ -133,12 +180,8 @@ struct BabyBloomMediumWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                BabyBloomMediumWidgetView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                BabyBloomMediumWidgetView(entry: entry)
-            }
+            BabyBloomMediumWidgetView(entry: entry)
+                .containerBackground(for: .widget) { WidgetBackground() }
         }
         .configurationDisplayName(String(format: "widget.name_medium".l, "brand.name".l))
         .description("widget.description_medium".l)
@@ -152,21 +195,5 @@ struct BabyBloomWidgetBundle: WidgetBundle {
     var body: some Widget {
         BabyBloomWidget()
         BabyBloomMediumWidget()
-    }
-}
-
-// MARK: - Color Extension (duplicated for widget target)
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        default: (a, r, g, b) = (1, 1, 1, 0)
-        }
-        self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: Double(a) / 255)
     }
 }

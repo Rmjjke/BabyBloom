@@ -140,6 +140,9 @@ struct OnboardingView: View {
         growth.baby = baby
         modelContext.insert(growth)
         try? modelContext.save()
+        // The widget is already on the home screen for some parents; without
+        // this it keeps showing the default name until its own cadence.
+        WidgetRefresh.profileChanged()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 400_000_000)
             onComplete()

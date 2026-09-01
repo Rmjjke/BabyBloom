@@ -1,7 +1,6 @@
 import Foundation
 import OSLog
 import SwiftData
-import WidgetKit
 
 /// Deterministic data for driving the app in tests. Simulator-only.
 ///
@@ -120,7 +119,7 @@ enum SeedScenario: String, CaseIterable {
             // has no idea the fixture just replaced everything under it, and its
             // cached timeline would keep showing the PREVIOUS run's baby — and
             // the previous run's language — until iOS got round to a refresh.
-            WidgetCenter.shared.reloadAllTimelines()
+            WidgetRefresh.entriesChanged()
             // Named in the log so a flow's capture can confirm WHICH fixture its
             // assertions actually ran against.
             log.notice("Seeded scenario \(scenario.rawValue, privacy: .public).")

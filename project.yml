@@ -33,7 +33,7 @@ targets:
       - path: BabyBloom/Resources/Localization
         buildPhase: resources
     preBuildScripts:
-      - name: "Verify widget localization copies in sync"
+      - name: "Verify widget resource copies in sync"
         basedOnDependencyAnalysis: false
         script: |
           cd "$PROJECT_DIR"
@@ -41,6 +41,16 @@ targets:
           for f in en ru es; do
             if ! cmp -s "BabyBloom/Resources/Localization/$f.json" "WidgetResources/Localization/$f.json"; then
               echo "error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json"
+              exit 1
+            fi
+          done
+          # Same rule for the widget's copy of the brand colorsets. Keep this
+          # list in sync with the colorsets WidgetResources/Colors.xcassets holds.
+          for c in BBGradientStart BBGradientEnd BBAccent; do
+            app="BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json"
+            widget="WidgetResources/Colors.xcassets/$c.colorset/Contents.json"
+            if ! cmp -s "$app" "$widget"; then
+              echo "error: $widget is out of sync with $app. Run: cp \"$app\" \"$widget\""
               exit 1
             fi
           done
@@ -82,6 +92,15 @@ targets:
       - path: BabyBloom/Core/Localization
         excludes:
           - "**/.DS_Store"
+      # The next-feed arithmetic the widget counts down to. Pure, and shared
+      # with the app so the widget and the feeding reminder cannot disagree.
+      - path: BabyBloom/Core/Feeding
+        excludes:
+          - "**/.DS_Store"
+      # The one place WidgetCenter is called from. SeedScenario (in Core/Models
+      # above) reloads the widget after replacing the store, and the app tree is
+      # not otherwise compiled into this target, so the file is named explicitly.
+      - path: BabyBloom/Services/WidgetRefresh.swift
       # The widget's own views live in the APP's source tree so the app target
       # compiles them too — that is what lets BabyBloomTests render them per
       # locale via @testable import. Same arrangement as Core/Models above.
@@ -96,6 +115,14 @@ targets:
       # dedupe the file references with the app target; otherwise the .appex
       # gets NO Resources build phase and the widget renders raw i18n keys.
       - path: WidgetResources/Localization
+        buildPhase: resources
+      # Widget-side copy of the brand colorsets, kept in step with the app's
+      # catalog by the pre-build script. It CANNOT simply reference
+      # BabyBloom/Resources/Assets.xcassets: that path is inside the tree the
+      # app target already scans, and XcodeGen then dedupes the file
+      # references and ships an .appex with no Resources build phase at all —
+      # the same trap the localization JSONs are laid out to avoid.
+      - path: WidgetResources/Colors.xcassets
         buildPhase: resources
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.nenita.app.widget
