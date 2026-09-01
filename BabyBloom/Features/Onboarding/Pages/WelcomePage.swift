@@ -25,18 +25,9 @@ struct WelcomePage: View {
                         .blur(radius: 20)
 
                     VStack(spacing: BBTheme.Spacing.md) {
-                        // Logo mark
-                        ZStack {
-                            Circle()
-                                .fill(BBTheme.Colors.primary.opacity(0.08))
-                                .frame(width: 96, height: 96)
-                            Image("BBLogo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 60, height: 60)
-                        }
-                        .scaleEffect(appear ? 1 : 0.6)
-                        .opacity(appear ? 1 : 0)
+                        BrandMark(diameter: 96)
+                            .scaleEffect(appear ? 1 : 0.6)
+                            .opacity(appear ? 1 : 0)
 
                         VStack(spacing: 6) {
                             Text("brand.name".l)

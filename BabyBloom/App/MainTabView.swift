@@ -223,7 +223,10 @@ struct ProfileView: View {
                     showPaywall = true
                 } label: {
                     HStack {
-                        Label("settings.premium".l, systemImage: "laurel.leading")
+                        // A Label needs an SF Symbol, so BrandMark cannot serve
+                        // here; crown carries the premium reading the retired
+                        // wreath glyph used to.
+                        Label("settings.premium".l, systemImage: "crown.fill")
                             .foregroundStyle(BBTheme.Colors.primary)
                         Spacer()
                         if store.isPremium {

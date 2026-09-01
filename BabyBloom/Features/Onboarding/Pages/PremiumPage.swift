@@ -37,10 +37,7 @@ struct PremiumPage: View {
                     .ignoresSafeArea(edges: .top)
 
                     VStack(spacing: BBTheme.Spacing.md) {
-                        Image("BBLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 56, height: 56)
+                        BrandMark(diameter: 64, onGradient: true)
                             .padding(.top, 36)
                             .scaleEffect(appear ? 1 : 0.7)
 

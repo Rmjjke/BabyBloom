@@ -85,6 +85,7 @@
 		BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4832FE37F4C6031CD491FC1 /* EventsView.swift */; };
 		C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */; };
 		C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */; };
+		CAC9134A190451FE2B84F443 /* BrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F16E118F33FF497A01BC913 /* BrandMark.swift */; };
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
@@ -201,6 +202,7 @@
 		7540A190C88F7AD53BB3E3E6 /* GrowthPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthPage.swift; sourceTree = "<group>"; };
 		756CA42B2B02154C7E93929D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BabyBloomWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F16E118F33FF497A01BC913 /* BrandMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandMark.swift; sourceTree = "<group>"; };
 		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		80CD9E9FC340B4479EAAF3F4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		81EBDB06F0A203F086BCC22F /* BabyBloomWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloomWidget.entitlements; sourceTree = "<group>"; };
@@ -317,6 +319,7 @@
 				3A2DCA65186F68E00645DF02 /* BBFab.swift */,
 				DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */,
 				7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */,
+				7F16E118F33FF497A01BC913 /* BrandMark.swift */,
 				AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */,
 			);
 			path = Components;
@@ -801,6 +804,7 @@
 				FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */,
 				6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */,
 				728453337AF25648757458E8 /* BirthPage.swift in Sources */,
+				CAC9134A190451FE2B84F443 /* BrandMark.swift in Sources */,
 				3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */,
 				E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */,
 				A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */,
