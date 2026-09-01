@@ -439,5 +439,8 @@
   "onboarding.notify.b2": "After a nap we count the wake window for your baby's age, so the next sleep is suggested at the right moment.",
   "onboarding.notify.b3": "No spam: one pending reminder of each kind, and only a long feeding or a long sleep is allowed through Do Not Disturb.",
   "onboarding.notify.cta": "Turn on notifications",
-  "onboarding.notify.later": "Not now"
+  "onboarding.notify.later": "Not now",
+  "onboarding.widget.title": "The widget on your Home Screen",
+  "onboarding.widget.subtitle": "How long until the next feed — at a glance, without opening the app.",
+  "onboarding.widget.howto": "Touch and hold the Home Screen → “+” → %@"
 }

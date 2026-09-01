@@ -84,6 +84,7 @@
 		A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
 		AA9FA84C733D7FADFC1FBD1B /* GrowthInsightCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */; };
 		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
+		B1C004FA67AF9253C5A64460 /* WidgetShowcasePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB2DBBA9EBC220B6DB2BCB1 /* WidgetShowcasePage.swift */; };
 		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
 		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
@@ -263,6 +264,7 @@
 		F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoption.swift; sourceTree = "<group>"; };
 		FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypographyCapTests.swift; sourceTree = "<group>"; };
 		FDEB05535F410B101D28D335 /* WelcomePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomePage.swift; sourceTree = "<group>"; };
+		FEB2DBBA9EBC220B6DB2BCB1 /* WidgetShowcasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShowcasePage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -484,6 +486,7 @@
 				017D853B6CDFE505EBBE64D8 /* NotificationsPage.swift */,
 				E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */,
 				FDEB05535F410B101D28D335 /* WelcomePage.swift */,
+				FEB2DBBA9EBC220B6DB2BCB1 /* WidgetShowcasePage.swift */,
 			);
 			path = Pages;
 			sourceTree = "<group>";
@@ -874,6 +877,7 @@
 				FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */,
 				11094C9AC10A2830CF27EF8D /* WelcomePage.swift in Sources */,
 				FEB857F7EC799FE2797339E9 /* WidgetRefresh.swift in Sources */,
+				B1C004FA67AF9253C5A64460 /* WidgetShowcasePage.swift in Sources */,
 				F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

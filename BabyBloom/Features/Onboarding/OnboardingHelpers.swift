@@ -11,6 +11,7 @@ enum OnboardingStep: Int, CaseIterable {
     case fact
     case generating
     case notifications
+    case widgets
     case premium
 
     /// Quiz pages show the progress bar and bottom nav. The two pages added

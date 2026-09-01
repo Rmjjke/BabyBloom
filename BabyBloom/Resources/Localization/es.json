@@ -439,5 +439,8 @@
   "onboarding.notify.b2": "Después de una siesta calculamos la ventana de vigilia según la edad del bebé, para sugerir el siguiente sueño a tiempo.",
   "onboarding.notify.b3": "Sin spam: un solo aviso pendiente de cada tipo, y solo una toma o un sueño muy largos atraviesan el modo No molestar.",
   "onboarding.notify.cta": "Activar notificaciones",
-  "onboarding.notify.later": "Ahora no"
+  "onboarding.notify.later": "Ahora no",
+  "onboarding.widget.title": "El widget en la pantalla de inicio",
+  "onboarding.widget.subtitle": "Cuánto falta para la próxima toma, de un vistazo y sin abrir la app.",
+  "onboarding.widget.howto": "Mantén pulsada la pantalla de inicio → «+» → %@"
 }
