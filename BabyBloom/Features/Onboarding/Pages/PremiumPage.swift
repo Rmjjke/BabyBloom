@@ -4,9 +4,17 @@ import SwiftUI
 
 struct PremiumPage: View {
     let babyName: String
-    let onTrial: () -> Void
+    let onPurchased: () -> Void
     let onSkip: () -> Void
     @State private var appear = false
+    @State private var showClose = false
+    @State private var closeTask: Task<Void, Never>?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    // PlanPickerSection's restore button works from any host, but the
+    // success/nothing-found feedback lives here — PaywallView owns its own
+    // copy too, since restoreState is process-wide state, not page state.
+    @Environment(SubscriptionManager.self) private var store
+    @State private var showRestoreAlert = false
 
     private let features: [(icon: String, text: String)] = [
         ("infinity", "onboarding.premium.f1"),
@@ -30,9 +38,10 @@ struct PremiumPage: View {
                     .ignoresSafeArea(edges: .top)
 
                     VStack(spacing: BBTheme.Spacing.md) {
-                        Image(systemName: "laurel.leading")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.white.opacity(0.9))
+                        Image("BBLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 56, height: 56)
                             .padding(.top, 36)
                             .scaleEffect(appear ? 1 : 0.7)
 
@@ -85,35 +94,48 @@ struct PremiumPage: View {
                 .offset(y: appear ? 0 : 30)
                 .opacity(appear ? 1 : 0)
 
-                // Trial badge
-                Text("onboarding.premium.badge".l)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, BBTheme.Spacing.md)
+                PlanPickerSection(onPurchased: onPurchased)
+                    .padding(.horizontal, BBTheme.Spacing.lg)
+                    .padding(.vertical, BBTheme.Spacing.xl)
+                    .offset(y: appear ? 0 : 30)
                     .opacity(appear ? 1 : 0)
-
-                // CTAs
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    BBPrimaryButton("onboarding.premium.trial".l, icon: "arrow.right") {
-                        onTrial()
-                    }
-
-                    Button("onboarding.premium.skip".l) {
-                        onSkip()
-                    }
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            }
+        }
+        .overlay(alignment: .topLeading) {
+            if showClose {
+                Button(action: onSkip) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .frame(width: 34, height: 34)
+                        .background(.white.opacity(0.18), in: Circle())
                 }
-                .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.vertical, BBTheme.Spacing.xl)
-                .opacity(appear ? 1 : 0)
+                .padding(.top, 8)
+                .padding(.leading, BBTheme.Spacing.md)
+                .accessibilityLabel("common.close".l)
+                .transition(reduceMotion ? .identity : .opacity)
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-                appear = true
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) { appear = true }
+            // The delay is review-safe ONLY because the button reliably
+            // appears: the task is tied to the page, not to any subview, and
+            // nothing cancels it.
+            closeTask = Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                withAnimation(.easeIn(duration: 0.3)) { showClose = true }
             }
+        }
+        .onDisappear { closeTask?.cancel() }
+        .alert("premium.restore_title".l, isPresented: $showRestoreAlert) {
+            Button("button.close".l, role: .cancel) { store.clearRestoreState() }
+        } message: {
+            Text(store.restoreState == .success
+                 ? "premium.restore_success".l
+                 : "premium.restore_nothing".l)
+        }
+        .onChange(of: store.restoreState) { _, new in
+            showRestoreAlert = new != nil
         }
     }
 }
