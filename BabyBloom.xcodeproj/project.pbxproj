@@ -119,6 +119,7 @@
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
+		FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90B47FB42839937376FB6C1 /* PremiumHero.swift */; };
 		FEB857F7EC799FE2797339E9 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */; };
 		FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */; };
 		FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92018595E27242A50820D2B8 /* WidgetRenderDump.swift */; };
@@ -241,6 +242,7 @@
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
 		C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoptionTests.swift; sourceTree = "<group>"; };
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
+		C90B47FB42839937376FB6C1 /* PremiumHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumHero.swift; sourceTree = "<group>"; };
 		C9D97024281147567091924D /* GrowthCardRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthCardRenderDump.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
 		D180AE05B613883F4456A0EB /* Double+AppRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+AppRate.swift"; sourceTree = "<group>"; };
@@ -319,6 +321,7 @@
 			children = (
 				390F8BD3D44D73D72C6D2893 /* PaywallView.swift */,
 				A692D649B380A3DDE7CB5D21 /* PlanPickerSection.swift */,
+				C90B47FB42839937376FB6C1 /* PremiumHero.swift */,
 			);
 			path = Premium;
 			sourceTree = "<group>";
@@ -864,6 +867,7 @@
 				A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */,
 				A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */,
 				EA29B988F46E8BF5C8F6DA9F /* PlanPickerSection.swift in Sources */,
+				FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */,
 				D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */,
 				E78FAF366FEABEACBBABFD84 /* RecentActivityView.swift in Sources */,
 				7E62D06C8AA07E74F4692D98 /* RoundedCorner.swift in Sources */,
