@@ -13,7 +13,6 @@ struct DashboardView: View {
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
 
-    @Environment(\.modelContext) private var modelContext
     @State private var showQuickFeedingSheet = false
     @State private var showQuickSleepSheet = false
     @State private var showQuickDiaperSheet = false
@@ -47,14 +46,6 @@ struct DashboardView: View {
         sleeps.first(where: { $0.isActive })
     }
 
-    private var recentEvents: [RecentEvent] {
-        let all: [RecentEvent] =
-            feedings.map(RecentEvent.feeding)
-            + sleeps.map(RecentEvent.sleep)
-            + diapers.map(RecentEvent.diaper)
-        return Array(all.sorted { $0.eventTime > $1.eventTime }.prefix(6))
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -66,7 +57,6 @@ struct DashboardView: View {
                     quickActionsSection
                     statsSection
                     progressSection
-                    recentEventsSection
                 }
                 .padding(.horizontal, BBTheme.Spacing.md)
                 .padding(.bottom, BBTheme.Spacing.xl)
@@ -240,106 +230,6 @@ struct DashboardView: View {
             BBProgressCard(title: "nav.diapers", current: Double(todayDiapers.count), target: ageMonths < 1 ? 8 : 6, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
     }
-
-    // MARK: - Recent Events
-    private var recentEventsSection: some View {
-        let events = recentEvents
-        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.recent_events")
-            if events.isEmpty {
-                Text("empty.today_no_records".l)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(BBTheme.Spacing.xl)
-                    .background(BBTheme.Colors.surface)
-                    .cornerRadius(BBTheme.Radius.lg)
-                    .bbShadow(BBTheme.Shadow.card)
-            } else {
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(events) { event in
-                        SwipeToDeleteRow(onDelete: { delete(event) }) {
-                            row(for: event)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func row(for event: RecentEvent) -> some View {
-        switch event {
-        case .feeding(let entry):
-            BBEventRow(
-                icon: "heart.fill",
-                iconColor: BBTheme.Colors.feeding,
-                title: entry.displayTitle,
-                subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
-                time: entry.startTime.appTimeOfDay
-            )
-        case .sleep(let entry):
-            BBEventRow(
-                icon: "moon.fill",
-                iconColor: BBTheme.Colors.sleep,
-                title: entry.type.displayName.l,
-                subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
-                time: entry.startTime.appTimeOfDay
-            )
-        case .diaper(let entry):
-            BBEventRow(
-                icon: "drop.fill",
-                iconColor: BBTheme.Colors.diaper,
-                title: entry.displayTitle,
-                subtitle: entry.color?.displayName.l ?? "",
-                time: entry.time.appTimeOfDay
-            )
-        }
-    }
-
-    // MARK: - Delete
-    private func delete(_ event: RecentEvent) {
-        switch event {
-        case .feeding(let entry): deleteEntry(entry)
-        case .sleep(let entry):   deleteEntry(entry)
-        case .diaper(let entry):  deleteEntry(entry)
-        }
-    }
-
-    private func deleteEntry(_ entry: FeedingEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        // @Query may not update synchronously; compute from the pre-delete array.
-        let remaining = feedings.filter { $0 !== entry }
-        NotificationManager.shared.onFeedingDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
-        )
-    }
-
-    private func deleteEntry(_ entry: SleepEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        let remaining = sleeps.filter { $0 !== entry }
-        NotificationManager.shared.onSleepDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
-        )
-    }
-
-    private func deleteEntry(_ entry: DiaperEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        let remaining = diapers.filter { $0 !== entry }
-        NotificationManager.shared.onDiaperDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "baby.default_name".l,
-            lastRemainingDiaperTime: remaining.map(\.time).max()
-        )
-    }
 }
 
 // MARK: - Active Timer Card
@@ -392,29 +282,6 @@ struct ActiveTimerCard: View {
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
         .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
-    }
-}
-
-// MARK: - Recent Event for Dashboard
-enum RecentEvent: Identifiable {
-    case feeding(FeedingEntry)
-    case sleep(SleepEntry)
-    case diaper(DiaperEntry)
-
-    var id: PersistentIdentifier {
-        switch self {
-        case .feeding(let entry): return entry.persistentModelID
-        case .sleep(let entry):   return entry.persistentModelID
-        case .diaper(let entry):  return entry.persistentModelID
-        }
-    }
-
-    var eventTime: Date {
-        switch self {
-        case .feeding(let entry): return entry.startTime
-        case .sleep(let entry):   return entry.startTime
-        case .diaper(let entry):  return entry.time
-        }
     }
 }
 
