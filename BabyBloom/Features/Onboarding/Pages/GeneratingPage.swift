@@ -51,10 +51,9 @@ struct GeneratingPage: View {
                         .frame(width: 100, height: 100)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: completedSteps.count)
-                    Image("BBLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 44, height: 44)
+                    // Shadowless: the card shadow would blur across the
+                    // progress track only 22pt away.
+                    BrandMark(diameter: 44, shadowed: false)
                 }
 
                 VStack(spacing: BBTheme.Spacing.sm) {

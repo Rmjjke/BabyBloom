@@ -86,9 +86,7 @@ struct PaywallView: View {
             BBTheme.Colors.premiumGradient
 
             VStack(spacing: BBTheme.Spacing.md) {
-                Image(systemName: "laurel.leading")
-                    .font(.system(size: 52))
-                    .foregroundStyle(.white.opacity(0.9))
+                BrandMark(diameter: 64, onGradient: true)
                     .padding(.top, 36)
 
                 BBTheme.Typography.title1("onboarding.premium.title".l)
