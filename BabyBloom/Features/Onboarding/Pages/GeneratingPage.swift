@@ -1,6 +1,10 @@
 import SwiftUI
 
-// MARK: - Page 6: Generating
+// MARK: - Page 8: Generating
+
+/// Runs after the notifications and widget pages: its last step ("configuring
+/// smart reminders") is only honest once permission has been answered, and its
+/// finish lands straight on the paywall.
 
 struct GeneratingPage: View {
     let babyName: String

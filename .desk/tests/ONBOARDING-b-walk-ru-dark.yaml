@@ -1,5 +1,9 @@
 # Stream B walk (ru, dark): same flow, and the "Не сейчас" branch — which
 # raises no system alert at all and advances immediately.
+#
+# Page order (reordered 2026-09-01): Welcome → Name → Birth → Feeding → Growth
+# → Fact → Notifications → Widget → Generating → Premium. «Создать мой трекер»
+# is the WIDGET page's CTA now; the Fact page ends with a plain «Далее».
 appId: com.nenita.app
 ---
 - launchApp:
@@ -12,6 +16,8 @@ appId: com.nenita.app
 
 - extendedWaitUntil: { visible: "Начать", timeout: 20000 }
 - tapOn: "Начать"
+# See the en walk: wait for the Name page before tapping its field.
+- extendedWaitUntil: { visible: "Имя ребёнка", timeout: 20000 }
 - tapOn: "Имя ребёнка"
 - inputText: "Мия"
 - pressKey: Enter
@@ -19,10 +25,13 @@ appId: com.nenita.app
 - tapOn: "Далее"
 - tapOn: "Далее"
 - tapOn: "Далее"
-- extendedWaitUntil: { visible: "Создать мой трекер", timeout: 20000 }
-- tapOn: "Создать мой трекер"
 
-- extendedWaitUntil: { visible: "Включить уведомления", timeout: 30000 }
+# Fact page — its CTA is «Далее» as well, so anchor on the page's own badge.
+- extendedWaitUntil: { visible: "Знали ли вы?", timeout: 20000 }
+- takeScreenshot: 05-fact-ru-dark
+- tapOn: "Далее"
+
+- extendedWaitUntil: { visible: "Включить уведомления", timeout: 20000 }
 - assertVisible: ".*Мия ест и спит.*"
 - assertVisible: ".*подстраивается под ваш ритм.*"
 - assertVisible: ".*окно бодрствования.*"
@@ -35,10 +44,13 @@ appId: com.nenita.app
 - assertNotVisible: "Разрешить"
 - assertVisible: "Мия"
 - assertVisible: ".*Долгое нажатие на домашний экран.*Ночка.*"
+- assertVisible: "Создать мой трекер"
 - takeScreenshot: 07-widget-ru-dark
-- tapOn: "Далее"
+- tapOn: "Создать мой трекер"
 
-- extendedWaitUntil: { visible: "Ночка Premium", timeout: 20000 }
+# Generating runs here — self-advancing — and lands DIRECTLY on the paywall.
+# The loader is too short-lived to assert on (see the en walk's note).
+- extendedWaitUntil: { visible: "Ночка Premium", timeout: 40000 }
 - takeScreenshot: 08-premium-ru-dark
 - extendedWaitUntil: { visible: "Закрыть", timeout: 20000 }
 - tapOn: "Закрыть"

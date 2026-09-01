@@ -264,7 +264,6 @@
   "onboarding.feeding_title": "¿Cómo alimentas a tu bebé?",
   "onboarding.feeding_hint": "Para un seguimiento y consejos a tu medida",
   "onboarding.fact.title": "¿Sabías que...?",
-  "onboarding.fact.cta": "Crear mi registro",
   "onboarding.gen.title": "Configurando Nenita…",
   "onboarding.gen.title_named": "Configurando Nenita para %@…",
   "onboarding.gen.step1": "Personalizando el registro de tomas",
@@ -442,5 +441,6 @@
   "onboarding.notify.later": "Ahora no",
   "onboarding.widget.title": "El widget en la pantalla de inicio",
   "onboarding.widget.subtitle": "Cuánto falta para la próxima toma, de un vistazo y sin abrir la app.",
-  "onboarding.widget.howto": "Mantén pulsada la pantalla de inicio → «+» → %@"
+  "onboarding.widget.howto": "Mantén pulsada la pantalla de inicio → «+» → %@",
+  "onboarding.widget.cta": "Crear mi registro"
 }

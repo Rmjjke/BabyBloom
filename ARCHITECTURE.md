@@ -214,7 +214,10 @@ logged rhythm. The full catalogue — identifiers, age tables, scheduling
 triggers — is [NOTIFICATIONS.md](NOTIFICATIONS.md); it is a reference, keep it
 in step with the code.
 
-Permission is requested when onboarding completes, not at launch.
+Permission is requested from onboarding's own notifications page (page 7 of
+10, before the Generating loader whose last step promises reminders) — never
+at launch and never over the Dashboard. That page is the single call site of
+`requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.
 
 ## Navigation

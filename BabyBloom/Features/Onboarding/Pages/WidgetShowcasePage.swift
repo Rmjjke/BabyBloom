@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Page 9: Widget showcase
+// MARK: - Page 7: Widget showcase
 
 /// The real widget views, not a screenshot: `BabyBloomMediumWidgetView` is the
 /// same type the extension renders, so this page cannot drift away from what
@@ -71,7 +71,9 @@ struct WidgetShowcasePage: View {
 
             Spacer()
 
-            BBPrimaryButton("button.next".l, icon: "arrow.right", action: onContinue)
+            // The commitment CTA sits here, on the last page before Generating:
+            // "Build my tracker" is what the loader then visibly does.
+            BBPrimaryButton("onboarding.widget.cta".l, icon: "arrow.right", action: onContinue)
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, 40)
                 .opacity(appear ? 1 : 0)

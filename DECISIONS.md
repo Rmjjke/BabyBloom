@@ -14,6 +14,25 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-01 — The onboarding loader runs after the permission ask, and the commitment CTA sits on the widget page
+
+Onboarding order: Welcome → Name → Birth → Feeding → Growth → Fact →
+Notifications → Widget → Generating → Paywall. «Создать мой трекер»
+(`onboarding.widget.cta`, formerly `onboarding.fact.cta`) is the WIDGET page's
+button; the Fact page ends with a plain `button.next`.
+
+**Why.** `GeneratingPage`'s last step says smart reminders are being
+configured — a lie while it ran before the permission ask, so notifications
+had to move ahead of the loader. With the loader last, its "your tracker is
+ready" crescendo lands directly on the paywall instead of being spent on two
+more info pages. The commitment CTA follows the loader it triggers: it now
+sits on the last page before it, which also buys spacing between the
+permission ask and the money ask (widget page + ~5s loader).
+
+Consequence for anyone adding a page: the four pages after Growth are all
+non-quiz, so `isQuiz` / `quizProgress` and the shared bottom nav are untouched
+by any reordering among them — only the enum's case order defines the flow.
+
 ## 2026-09-01 — A permanent Growth teaser, and a gate on creating events only
 
 The Dashboard's Growth section always shows the latest weight and
