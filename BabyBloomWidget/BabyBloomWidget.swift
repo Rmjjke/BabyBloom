@@ -43,23 +43,23 @@ struct BabyBloomProvider: TimelineProvider {
         // Before anything is read: this process outlives a language change.
         LocalizationManager.shared.refreshFromStore()
         let entry = Self.fetchEntry()
-        // Roughly every 15 minutes to keep the underlying data fresh. The
-        // countdown itself does NOT depend on this — `Text(_:style:)` is
-        // re-rendered by the system every minute — but the wording has to
-        // change the moment the feed falls due, so a second entry is placed
-        // exactly there rather than polling for it.
-        let refresh = Date().addingTimeInterval(15 * 60)
-        var entries = [entry]
+        // One entry per minute for the whole refresh window, plus one exactly
+        // at the due moment. Every duration the views show is a static string
+        // computed from the entry's date (owner ruling: minutes, never
+        // seconds), so the entries ARE the clock — WidgetKit swaps them in on
+        // schedule and nothing is ever staler than a minute. Live
+        // `Text(_:style:)` was the previous mechanism and could not drop its
+        // seconds component.
+        let refresh = entry.date.addingTimeInterval(15 * 60)
+        var dates = stride(from: TimeInterval(0), to: 15 * 60, by: 60)
+            .map { entry.date.addingTimeInterval($0) }
         if let due = entry.nextFeedingTime, due > entry.date, due < refresh {
-            entries.append(BabyBloomEntry(date: due,
-                                          babyName: entry.babyName,
-                                          lastFeedingTime: entry.lastFeedingTime,
-                                          sleepStartTime: entry.sleepStartTime,
-                                          lastSleepDuration: entry.lastSleepDuration,
-                                          todayFeedingCount: entry.todayFeedingCount,
-                                          isAsleep: entry.isAsleep,
-                                          nextFeedingTime: entry.nextFeedingTime))
+            dates.append(due)
         }
+        // Set first: a due moment on the minute grid would otherwise produce
+        // two entries with an equal date, and equal-date behaviour is
+        // WidgetKit's to define, not ours to lean on.
+        let entries = Array(Set(dates)).sorted().map { entry.at($0) }
         completion(Timeline(entries: entries, policy: .after(refresh)))
     }
 
