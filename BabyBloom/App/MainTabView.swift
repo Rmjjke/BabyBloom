@@ -12,7 +12,7 @@ struct MainTabView: View {
         // use these to assert WHICH tab is open without depending on the
         // localized labels ("Feeding" also appears on the Dashboard).
         TabView(selection: $selectedTab) {
-            DashboardView()
+            DashboardView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("tab.home".l, systemImage: "house.fill")
                 }
