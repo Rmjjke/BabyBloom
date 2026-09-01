@@ -158,7 +158,13 @@ struct DashboardView: View {
                 BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
                 BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
                 BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
-                BBQuickActionButton(icon: "plus.circle.fill", title: "nav.events".l, color: BBTheme.Colors.events)  { showQuickEventSheet = true }
+                // Creating an event is Premium; the padlock says so before the
+                // tap. Viewing, editing and DELETING what is already recorded
+                // stays free — recorded data is never held hostage.
+                BBQuickActionButton(icon: "plus.circle.fill", title: "nav.events".l, color: BBTheme.Colors.events,
+                                    locked: !store.isPremium) {
+                    if store.isPremium { showQuickEventSheet = true } else { showPaywall = true }
+                }
             }
             .padding(BBTheme.Spacing.md)
             .background(BBTheme.Colors.surface)

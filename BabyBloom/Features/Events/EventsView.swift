@@ -5,7 +5,9 @@ struct EventsView: View {
     @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -24,8 +26,10 @@ struct EventsView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button { showAddSheet = true } label: {
-                        Image(systemName: "plus.circle.fill")
+                    Button { addEvent() } label: {
+                        // The badge is the toolbar's version of the Dashboard
+                        // quick action's padlock: same gate, same warning.
+                        Image(systemName: store.isPremium ? "plus.circle.fill" : "lock.fill")
                             .font(.system(size: 22))
                             .foregroundStyle(BBTheme.Colors.primary)
                     }
@@ -35,6 +39,24 @@ struct EventsView: View {
         .sheet(isPresented: $showAddSheet) {
             AddEventSheet()
         }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
+    }
+
+    /// The single gate for creating an event on this screen. Both creation
+    /// paths — the toolbar sheet and the quick-add tiles — go through it, so
+    /// the padlock cannot promise a gate that a tile below it walks around.
+    private func addEvent(_ type: CustomEvent.EventType? = nil) {
+        guard store.isPremium else {
+            showPaywall = true
+            return
+        }
+        if let type {
+            quickAdd(type)
+        } else {
+            showAddSheet = true
+        }
     }
 
     private var quickAddSection: some View {
@@ -43,12 +65,20 @@ struct EventsView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
                     Button {
-                        quickAdd(type)
+                        addEvent(type)
                     } label: {
                         VStack(spacing: BBTheme.Spacing.sm) {
-                            Image(systemName: type.icon)
-                                .font(.system(size: 26))
-                                .foregroundStyle(Color(hex: type.colorHex))
+                            ZStack(alignment: .bottomTrailing) {
+                                Image(systemName: type.icon)
+                                    .font(.system(size: 26))
+                                    .foregroundStyle(Color(hex: type.colorHex))
+                                if !store.isPremium {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                                        .offset(x: 8, y: 4)
+                                }
+                            }
                             Text(type.displayName.l)
                                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
