@@ -27,11 +27,20 @@ struct EventsView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button { addEvent() } label: {
-                        // The badge is the toolbar's version of the Dashboard
-                        // quick action's padlock: same gate, same warning.
-                        Image(systemName: store.isPremium ? "plus.circle.fill" : "lock.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(BBTheme.Colors.primary)
+                        // A badge, not a substitution: replacing the plus with
+                        // a padlock loses the "this adds something" affordance,
+                        // and the gate reads just as clearly beside it.
+                        ZStack(alignment: .bottomTrailing) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 22))
+                                .foregroundStyle(BBTheme.Colors.primary)
+                            if !store.isPremium {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                                    .offset(x: 5, y: 3)
+                            }
+                        }
                     }
                 }
             }
