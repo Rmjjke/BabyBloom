@@ -44,12 +44,81 @@ final class SubscriptionPurchaseTests: XCTestCase {
         return manager
     }
 
+    /// Skips, rather than hangs, when the simulator is not actually serving the
+    /// local store.
+    ///
+    /// `Nenita.storekit` is bound to the app **on the device**, by the scheme's
+    /// run action. `simctl erase` drops that binding and nothing on the command
+    /// line can restore it: `simctl` has no StoreKit subcommand, and XcodeGen
+    /// emits `storeKitConfiguration` into LaunchAction only. On a device in that
+    /// state StoreKit reaches for the real App Store, and every purchasing call
+    /// — `Product.purchase()`, `AppStore.sync()` — blocks forever on a "Sign in
+    /// to Apple Account" sheet no test can tap, wedging the whole suite.
+    ///
+    /// An out-of-band buy is the cheap probe for it: it comes back
+    /// `StoreKitError.notEntitled` in a fraction of a second on a device with no
+    /// local store, and succeeds instantly on a healthy one. The transaction it
+    /// leaves behind is cleared immediately, so the probe is invisible to the
+    /// test that follows.
+    @MainActor
+    private func requireLocalStore(_ session: SKTestSession) async throws {
+        do {
+            try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
+        } catch {
+            throw XCTSkip("""
+                This simulator is not serving Nenita.storekit (\(error)). Restore \
+                the binding by launching the app once from Xcode on the BabyBloom \
+                scheme — its run action carries the configuration — then re-run.
+                """)
+        }
+        session.clearTransactions()
+    }
+
+    // MARK: - The store itself
+
+    /// The paywall's whole contract with StoreKit: three products in one group,
+    /// each with a price the App Store returned, and the group's single
+    /// introductory offer sitting on the yearly plan. The 2026-08-27 rule —
+    /// prices, savings and trial lengths are never written in source — only
+    /// holds if these actually arrive.
+    @MainActor
+    func testProductsAndPricesComeFromTheShippedConfiguration() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        try await requireLocalStore(session)
+
+        let manager = await makeLoadedManager()
+
+        let yearly = try XCTUnwrap(manager.yearlyProduct)
+        let monthly = try XCTUnwrap(manager.monthlyProduct)
+        let weekly = try XCTUnwrap(manager.weeklyProduct)
+        XCTAssertNil(manager.purchaseError)
+
+        for product in [yearly, monthly, weekly] {
+            XCTAssertFalse(product.displayPrice.isEmpty, "\(product.id) must carry a price")
+            XCTAssertNotNil(product.subscription, "\(product.id) must be auto-renewable")
+        }
+
+        XCTAssertEqual(yearly.subscription?.introductoryOffer?.paymentMode, .freeTrial,
+                       "the yearly plan is the one the CTA promises a trial on")
+        XCTAssertNil(monthly.subscription?.introductoryOffer,
+                     "and the monthly plan has none, which is why the CTA reads per plan")
+
+        // The badge is arithmetic over two fetched prices, never a constant.
+        XCTAssertNotNil(
+            SubscriptionManager.savingsPercent(of: yearly.price, per: .year, count: 1,
+                                               comparedTo: monthly.price, per: .month, count: 1),
+            "yearly must annualize cheaper than monthly or the badge is a lie"
+        )
+    }
+
     // MARK: - Fresh purchase
 
     @MainActor
     func testBuyingTheYearlyPlanEntitlesTheUser() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
 
         let manager = await makeLoadedManager()
         let yearly = try XCTUnwrap(manager.yearlyProduct, "Nenita.storekit must serve the yearly plan")
@@ -87,7 +156,8 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testAnOutOfBandPurchaseResolvesAsEntitled() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
-        _ = try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
+        try await requireLocalStore(session)
+        try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
 
         let manager = SubscriptionManager()
         await manager.refreshEntitlements()
@@ -102,6 +172,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testAFailedTransactionLeavesTheUserFree() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
         session.failTransactionsEnabled = true
 
         let manager = await makeLoadedManager()
@@ -122,6 +193,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testACancelledPurchaseLeavesTheUserFreeAndTheCTAUsable() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
         session.failTransactionsEnabled = true
         session.failureError = .paymentCancelled
 
@@ -145,6 +217,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testBuyingAnOwnedProductKeepsTheEntitlement() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
 
         let manager = await makeLoadedManager()
         let yearly = try XCTUnwrap(manager.yearlyProduct)
@@ -164,7 +237,8 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testRestoreReportsSuccessForAPurchaseMadeOutOfBand() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
-        _ = try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
+        try await requireLocalStore(session)
+        try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
 
         let manager = await makeLoadedManager()
 
@@ -179,6 +253,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testRestoreReportsNothingFoundWhenThereIsNothingToRestore() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
 
         let manager = await makeLoadedManager()
 
@@ -197,6 +272,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     func testIntroOfferEligibilityFlipsOnceTheGroupsOfferIsUsed() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
+        try await requireLocalStore(session)
 
         let manager = await makeLoadedManager()
         XCTAssertTrue(manager.isEligibleForIntroOffer, "a fresh Apple ID may take the trial")

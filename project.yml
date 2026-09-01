@@ -154,6 +154,11 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: com.nenita.app.tests
       SWIFT_VERSION: 6.0
       GENERATE_INFOPLIST_FILE: YES
+      # StoreKitTest lives beside XCTest in the platform's Developer
+      # frameworks, not in the SDK's System/Library/Frameworks. Without this
+      # the bundle links but the test host cannot load it at launch, and the
+      # run dies as "Failed to establish communication with the test runner".
+      ENABLE_TESTING_SEARCH_PATHS: YES
     dependencies:
       - target: BabyBloom
       # StoreKitTest is a TEST-ONLY SDK framework — it drives purchases without
@@ -175,6 +180,18 @@ schemes:
       storeKitConfiguration: Nenita.storekit
     test:
       config: Debug
+      # The test host must run against the SAME local store as the app, or
+      # StoreKit in that process talks to the real App Store: SKTestSession
+      # reports `notEntitled` and `Product.purchase()` never returns, because
+      # it is waiting for a "Sign in to Apple Account" sheet nothing can tap.
+      #
+      # It has to travel in a TEST PLAN. `storeKitConfiguration:` under this
+      # `test:` action is one of XcodeGen's silently-dropped keys — it emits
+      # the reference into LaunchAction only, and the generated TestAction
+      # carries none.
+      testPlans:
+        - path: BabyBloom.xctestplan
+          defaultPlan: true
       targets:
         - BabyBloomTests
     profile:
