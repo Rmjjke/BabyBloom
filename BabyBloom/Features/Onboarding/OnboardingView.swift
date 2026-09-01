@@ -7,6 +7,7 @@ struct OnboardingView: View {
     let onComplete: () -> Void
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
     @State private var step: OnboardingStep = .welcome
     @State private var babyName = ""
     @State private var birthDate = Date()
@@ -53,9 +54,8 @@ struct OnboardingView: View {
                                              onBack: back)
                     case .fact: FactPage(onContinue: next)
                     case .generating: GeneratingPage(babyName: babyName, onDone: next)
-                    case .premium: PremiumPage(babyName: babyName,
-                                               onTrial:   { createAndFinish() },
-                                               onSkip:    { createAndFinish() })
+                    case .premium: PremiumPage(onPurchased: { createAndFinish() },
+                                               onSkip:      { createAndFinish() })
                     }
                 }
                 .transition(.asymmetric(
@@ -72,6 +72,11 @@ struct OnboardingView: View {
                 }
             }
         }
+        // Prices must be on screen by page 8. Loading starts with page 1 so a
+        // slow network spends onboarding time, not paywall time. PlanPickerSection
+        // also calls loadProducts() on its own .task; the double call is
+        // deliberate and idempotent (SubscriptionManager is safe to reload).
+        .task { await store.loadProducts() }
     }
 
     // MARK: Progress bar

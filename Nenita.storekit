@@ -50,11 +50,7 @@
           "familyShareable": false,
           "groupNumber": 2,
           "internalID": "6740000010",
-          "introductoryOffer": {
-            "internalID": "6740000011",
-            "paymentMode": "free",
-            "subscriptionPeriod": "P1W"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
               "description": "Unlimited history, smart reminders, export and advanced charts.",
@@ -76,11 +72,7 @@
           "familyShareable": false,
           "groupNumber": 3,
           "internalID": "6805185362",
-          "introductoryOffer": {
-            "internalID": "6740000011",
-            "paymentMode": "free",
-            "subscriptionPeriod": "P3D"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
               "description": "Full access, billed weekly",
