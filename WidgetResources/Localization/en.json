@@ -1,6 +1,11 @@
 {
   "brand.name": "Bitty",
   "dashboard.welcome": "Welcome to Bitty",
+  "dashboard.growth.title": "Growth",
+  "dashboard.growth.empty": "Add the first weighing and the picture of growth starts here",
+  "dashboard.growth.locked_title": "Gain and percentiles",
+  "dashboard.growth.locked_teaser": "See the weekly gain beside WHO references, and where your baby sits on the curve",
+  "dashboard.growth.percentile_fmt": "%d percentile",
   "tab.home": "Home",
   "tab.feeding": "Feeding",
   "tab.sleep": "Sleep",

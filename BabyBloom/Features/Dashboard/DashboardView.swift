@@ -19,6 +19,13 @@ struct DashboardView: View {
     @State private var showQuickEventSheet = false
     @State private var showQuickGrowthSheet = false
     @State private var showProfileEdit = false
+    @State private var showPaywall = false
+
+    /// Honours `-BBForcePremium`, so the paid half of the Growth section is
+    /// reachable in e2e without a purchase (see the platform-run skill).
+    @Environment(SubscriptionManager.self) private var store
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var baby: Baby? { babies.first }
 
@@ -56,6 +63,7 @@ struct DashboardView: View {
                     }
                     quickActionsSection
                     statsSection
+                    growthSection
                     progressSection
                 }
                 .padding(.horizontal, BBTheme.Spacing.md)
@@ -69,6 +77,7 @@ struct DashboardView: View {
         .sheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
         .sheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
         .sheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(isPresented: $showProfileEdit) {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
@@ -216,6 +225,206 @@ struct DashboardView: View {
         let mins = Int(Date().timeIntervalSince(last.startTime) / 60)
         if mins < 60 { return String(format: "stats.min_ago".l, mins) }
         return String(format: "stats.h_ago".l, mins / 60)
+    }
+
+    // MARK: - Growth
+
+    /// The free half is deliberately word-shaped. The Growth screen's rule
+    /// holds here too: weight gain is the only signal that speaks, and it
+    /// speaks in `FeedingAdequacy`'s vocabulary, never in a number that alarms
+    /// (DECISIONS 2026-08-25). Which of the free states applies is decided by
+    /// `DashboardGrowthSummary`, where the rule is unit-tested.
+    private var growthSection: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            // The whole header is the link, so the chevron is not a separate
+            // tap target that behaves differently from the words beside it.
+            NavigationLink {
+                GrowthView()
+            } label: {
+                HStack {
+                    BBTheme.Typography.title3("dashboard.growth.title".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                }
+            }
+            .buttonStyle(.plain)
+
+            growthCard
+
+            // A permanent teaser, not a free-first-days window: a section that
+            // vanished after two days would read as breakage, in the one domain
+            // where the app must never frighten (owner decision 2026-09-01).
+            if !store.isPremium {
+                LockedInsightCard(
+                    title: "dashboard.growth.locked_title".l,
+                    teaser: "dashboard.growth.locked_teaser".l
+                ) { showPaywall = true }
+            }
+        }
+    }
+
+    private var growthCard: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            switch growthSummary {
+            case .invitation:
+                // An invitation, not an empty state — the widget's rule. A
+                // parent who has not weighed yet is doing nothing wrong.
+                HintText(text: "dashboard.growth.empty".l)
+            case let .summary(weightKg, gain):
+                growthRow(label: "stat.weight".l,
+                          value: String(format: "%.2f", weightKg) + " " + "unit.kg".l,
+                          color: BBTheme.Colors.textPrimary)
+                gainRow(gain)
+                if store.isPremium, let percentile = latestPercentile {
+                    growthRow(label: "percentile.weight".l,
+                              value: String(format: "dashboard.growth.percentile_fmt".l,
+                                            Int(percentile.rounded())),
+                              color: BBTheme.Colors.textPrimary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(BBTheme.Spacing.md)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.lg)
+        .bbShadow(BBTheme.Shadow.card)
+    }
+
+    @ViewBuilder
+    private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
+        switch gain {
+        case .word(let signal):
+            growthRow(label: "nutrition.row_gain".l,
+                      value: gainValue(signal),
+                      color: gainColor(signal))
+        case .needsAnotherWeighing:
+            HintText(text: "nutrition.need_weighing".l)
+        case .unavailable:
+            // Past the age the gain reference covers the section says nothing
+            // about gain. "Not enough data" would be untrue.
+            EmptyView()
+        }
+    }
+
+    /// Premium prepends the figure to the same word the free line already
+    /// shows, rather than replacing it: one vocabulary across the app, and the
+    /// paid half reads as an addition instead of a different verdict.
+    private func gainValue(_ signal: FeedingAdequacy.Signal) -> String {
+        let word = statusWord(signal)
+        guard store.isPremium, let reading = gainReading else { return word }
+        let grams = Int(reading.gramsPerWeek.rounded())
+        let signed = grams > 0 ? "+\(grams)" : "\(grams)"
+        return String(format: "velocity.per_week_fmt".l, signed) + " · " + word
+    }
+
+    private func statusWord(_ signal: FeedingAdequacy.Signal) -> String {
+        switch signal {
+        case .below:         return "nutrition.status_below".l
+        case .within:        return "nutrition.status_within".l
+        case .notEnoughData: return "nutrition.status_unknown".l
+        }
+    }
+
+    /// `NutritionSection`'s mapping, unchanged: colour reinforces the word and
+    /// never carries the message on its own, and nothing here is red.
+    private func gainColor(_ signal: FeedingAdequacy.Signal) -> Color {
+        switch signal {
+        case .below:         return BBTheme.Colors.accent
+        case .within:        return BBTheme.Colors.success
+        case .notEnoughData: return BBTheme.Colors.textSecondary
+        }
+    }
+
+    /// At an accessibility size the label and its value cannot share a line
+    /// without one of them being proposed a width narrower than its own longest
+    /// word, and SwiftUI answers that by breaking INSIDE the word — the defect
+    /// `NutritionSection` documents. Same two layouts, same reason.
+    @ViewBuilder
+    private func growthRow(label: String, value: String, color: Color) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                growthLabel(label)
+                growthValue(value, color: color)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                growthLabel(label)
+                Spacer(minLength: BBTheme.Spacing.sm)
+                growthValue(value, color: color)
+                    .multilineTextAlignment(.trailing)
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func growthLabel(_ label: String) -> some View {
+        Text(label)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func growthValue(_ value: String, color: Color) -> some View {
+        Text(value)
+            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .semibold, design: .rounded))
+            .foregroundStyle(color)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    // MARK: - Growth derivations
+
+    private var growthSummary: DashboardGrowthSummary.Free {
+        DashboardGrowthSummary.free(
+            latestWeightKg: latestWeightKg,
+            assessment: adequacy,
+            withinReferenceAge: (baby?.correctedAgeDays ?? 0) <= FeedingAdequacy.maxAgeDays
+        )
+    }
+
+    /// The newest entry that actually carries a weight — a height-only entry
+    /// is more recent but says nothing about weight.
+    private var latestWeightKg: Double? {
+        growthEntries.compactMap(\.weightKg).first
+    }
+
+    /// Built exactly as `GrowthView` builds it, from the queries this screen
+    /// already holds; the window is weeks, so filtering in memory is free.
+    private var adequacy: FeedingAdequacy.Assessment? {
+        guard let baby else { return nil }
+        return FeedingAdequacy.assess(
+            birthDate: baby.birthDate,
+            correctedBirthDate: baby.correctedBirthDate,
+            isMale: baby.gender == .male,
+            measurements: growthEntries.weightMeasurements,
+            feeds: feedings.map { FeedingAdequacy.Feed(date: $0.startTime, type: $0.type) },
+            wetNappies: diapers.filter { $0.type == .wet || $0.type == .both }.map(\.time)
+        )
+    }
+
+    private var gainReading: WeightVelocity.Reading? {
+        guard let baby else { return nil }
+        return WeightVelocity.latest(
+            measurements: growthEntries.weightMeasurements,
+            correctedBirthDate: baby.correctedBirthDate,
+            isMale: baby.gender == .male
+        )
+    }
+
+    /// Corrected age, not chronological — the same rule the Growth screen's
+    /// percentile card follows.
+    private var latestPercentile: Double? {
+        guard let baby, let weight = latestWeightKg else { return nil }
+        return WHOGrowthStandard.percentile(
+            weightKg: weight,
+            ageDays: baby.correctedAgeDays,
+            isMale: baby.gender == .male
+        )
     }
 
     // MARK: - Progress

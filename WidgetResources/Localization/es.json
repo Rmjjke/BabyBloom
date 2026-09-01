@@ -1,6 +1,11 @@
 {
   "brand.name": "Nenita",
   "dashboard.welcome": "Te damos la bienvenida a Nenita",
+  "dashboard.growth.title": "Crecimiento",
+  "dashboard.growth.empty": "Añade el primer pesaje y aquí aparecerá el panorama del crecimiento",
+  "dashboard.growth.locked_title": "Evolución y percentiles",
+  "dashboard.growth.locked_teaser": "Consulta el aumento semanal junto a las referencias de la OMS y el lugar de tu bebé en la curva",
+  "dashboard.growth.percentile_fmt": "percentil %d",
   "tab.home": "Inicio",
   "tab.feeding": "Tomas",
   "tab.sleep": "Sueño",
