@@ -74,8 +74,14 @@ into a component both paywalls compose:
   - success → `createAndFinish()` (profile creation is unchanged);
   - cancel/failure → stay on the page, no error theatre beyond what the
     main paywall already shows.
-- "Continue with free version" stays, unchanged — skipping must remain
-  one tap.
+- Skip becomes an "X" close button, top-LEFT, fading in 3 seconds after
+  the screen appears (owner ruling, 2026-09-01 — replaces the "Continue
+  with free version" text button). Still one tap once visible; a
+  VoiceOver label ("close"), a comfortable hit target, and the fade
+  respects `reduceMotion` (appears without animation, same 3 s delay).
+  The delay is a common, review-safe pattern so long as the button
+  reliably exists; it must never fail to appear — the timer starts
+  `onAppear` and is not cancelled by scrolling.
 - Products start loading when ONBOARDING starts (not when the page
   appears), so prices are ready eight pages later; the picker's existing
   `premium.loading` state covers slow networks.
@@ -91,7 +97,8 @@ into a component both paywalls compose:
   `-hasCompletedOnboarding`), walk to the paywall, screenshot: three plans
   with real prices, yearly preselected with "Save NN%", CTA shows the
   7-day wording for yearly and price-only after switching to weekly;
-  purchase sheet appears on CTA tap; skip still lands on the Dashboard.
+  purchase sheet appears on CTA tap; the X is absent on arrival, present
+  after ~3 s, and lands on the Dashboard.
 - Both themes, RU at minimum (longest strings).
 - The main paywall re-shot once after extraction: pixel-parity is not
   required, but nothing may be lost (savings badge, trial line, legal).
