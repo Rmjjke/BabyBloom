@@ -52,8 +52,9 @@ struct OnboardingView: View {
                     case .growth: GrowthPage(weightKg: $growthWeightKg, heightCm: $growthHeightCm,
                                              headCm: $growthHeadCm, includeHead: $growthIncludeHead,
                                              onBack: back)
-                    case .fact: FactPage(onContinue: next)
-                    case .generating: GeneratingPage(babyName: babyName, onDone: next)
+                    case .fact: FactPage(babyName: babyName, birthDate: birthDate,
+                                         feedingType: feedingType, onContinue: next)
+                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)
                     case .premium: PremiumPage(onPurchased: { createAndFinish() },
                                                onSkip:      { createAndFinish() })
                     }

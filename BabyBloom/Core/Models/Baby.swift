@@ -105,11 +105,11 @@ final class Baby {
         Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
     }
 
-    private static func months(from date: Date) -> Int {
+    static func months(from date: Date) -> Int {
         Calendar.current.dateComponents([.month], from: date, to: Date()).month ?? 0
     }
 
-    private static func describeAge(from date: Date) -> String {
+    static func describeAge(from date: Date) -> String {
         let days = max(0, self.days(from: date))
         if days < 7 {
             return "\(days) \(days.dayWord)"
