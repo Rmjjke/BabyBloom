@@ -10,20 +10,9 @@ struct WelcomePage: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
 
-                // Hero
+                // Hero — the blobs behind it belong to OnboardingBackground now,
+                // shared by every page instead of stopping at this one.
                 ZStack {
-                    // Background blobs
-                    Circle()
-                        .fill(BBTheme.Colors.primary.opacity(0.12))
-                        .frame(width: 340, height: 340)
-                        .offset(x: 40, y: -20)
-                        .blur(radius: 30)
-                    Circle()
-                        .fill(Color(hex: "#E8A0BF").opacity(0.18))
-                        .frame(width: 220, height: 220)
-                        .offset(x: -60, y: 60)
-                        .blur(radius: 20)
-
                     VStack(spacing: BBTheme.Spacing.md) {
                         BrandMark(diameter: 96)
                             .scaleEffect(appear ? 1 : 0.6)
