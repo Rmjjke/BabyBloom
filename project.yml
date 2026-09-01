@@ -189,6 +189,12 @@ schemes:
       # `test:` action is one of XcodeGen's silently-dropped keys — it emits
       # the reference into LaunchAction only, and the generated TestAction
       # carries none.
+      #
+      # CAVEAT: BabyBloom.xctestplan names its targets by the pbxproj UUIDs
+      # XcodeGen generates. Those are deterministic from the target NAMES, so
+      # they are stable in practice — but rename a target and the plan silently
+      # points at nothing. If a rename ever happens, re-read the identifiers
+      # out of the regenerated .xcscheme and update the plan.
       testPlans:
         - path: BabyBloom.xctestplan
           defaultPlan: true

@@ -102,11 +102,21 @@ struct PremiumPage: View {
                 // resolved check costs at most one frame: the entitlement scan
                 // is a local read, and it flips `hasResolvedEntitlements`
                 // before the networked intro-offer lookup it precedes.
-                if store.hasResolvedEntitlements && !store.isPremium {
-                    PlanPickerSection()
-                        .padding(.horizontal, BBTheme.Spacing.lg)
-                        .padding(.vertical, BBTheme.Spacing.xl)
-                        .offset(y: appear ? 0 : 30)
+                if store.hasResolvedEntitlements {
+                    if !store.isPremium {
+                        PlanPickerSection()
+                            .padding(.horizontal, BBTheme.Spacing.lg)
+                            .padding(.vertical, BBTheme.Spacing.xl)
+                            .offset(y: appear ? 0 : 30)
+                            .opacity(appear ? 1 : 0)
+                    }
+                } else {
+                    // Normally a single frame. But if StoreKit never answers,
+                    // this is the whole screen for the five seconds before the
+                    // X fades in — and hero-plus-features-plus-nothing reads as
+                    // breakage rather than as waiting.
+                    ProgressView()
+                        .padding(.vertical, BBTheme.Spacing.xl * 2)
                         .opacity(appear ? 1 : 0)
                 }
             }
@@ -173,16 +183,17 @@ struct PremiumPage: View {
         .onChange(of: store.isPremium) { _, _ in advanceIfEntitled() }
     }
 
-    /// The onboarding paywall's single exit-on-entitlement path.
-    ///
-    /// Held back while a restore result is waiting to be shown: the user is
-    /// meant to read "Purchases restored" first and advance by dismissing it,
-    /// not to have the page vanish out from under the alert.
+    /// The onboarding paywall's single exit-on-entitlement path. The rule it
+    /// applies is `SubscriptionManager.mayAdvanceOnEntitlement` — pure, and
+    /// unit-tested, because the restore window it has to respect is a race.
     private func advanceIfEntitled() {
         guard !didAdvance,
-              store.hasResolvedEntitlements,
-              store.isPremium,
-              store.restoreState == nil else { return }
+              SubscriptionManager.mayAdvanceOnEntitlement(
+                  hasResolvedEntitlements: store.hasResolvedEntitlements,
+                  isPremium: store.isPremium,
+                  isRestoring: store.isRestoring,
+                  hasUnreadRestoreOutcome: store.restoreState != nil
+              ) else { return }
         didAdvance = true
         onPurchased()
     }

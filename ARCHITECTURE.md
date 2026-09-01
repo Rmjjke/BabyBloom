@@ -198,12 +198,23 @@ and `PremiumPage` (onboarding, page 10) compose it. The section has no
 entitlement arrives from a purchase, from `restorePurchases()`, from
 `Transaction.updates`, or from the user having subscribed before the screen
 ever opened, and a callback on the purchase button covers only the first.
-`PaywallView` swaps the section for its active badge and navigates nowhere;
-`PremiumPage` refreshes entitlements in its own `.task` and calls
-`onPurchased()` from a single `advanceIfEntitled()` — on arrival and on any
-later change to `isPremium` — so an already-subscribed user is never sold to
-and never stranded. `advanceIfEntitled()` holds back while `restoreState` is
-non-nil, so the restore confirmation is read before the page leaves.
+**Both hosts wait for `hasResolvedEntitlements` before showing either half** —
+selling on an unresolved answer is the defect, and it is not specific to
+onboarding. `PaywallView` then swaps the section for its active badge and
+navigates nowhere; `PremiumPage` refreshes entitlements in its own `.task` and
+calls `onPurchased()` from a single `advanceIfEntitled()` — on arrival and on
+any later change to `isPremium` — so an already-subscribed user is never sold
+to and never stranded. Neither screen shows an empty gap while it waits.
+
+The advance rule itself is `SubscriptionManager.mayAdvanceOnEntitlement`, a
+pure function, because what it encodes is a race: `restorePurchases()`
+publishes `isEntitled` inside `refreshEntitlements()` and then awaits the
+networked intro-offer lookup before assigning `restoreState`, so a host
+watching only `restoreState` can slip through the gap and end onboarding
+before "Purchases restored" is drawn. `isRestoring` spans the whole call and
+closes it; `restoreState` covers the rest, while the alert is up. Both halves
+are unit-tested without a simulator, which is the only way a race can be
+pinned.
 
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a

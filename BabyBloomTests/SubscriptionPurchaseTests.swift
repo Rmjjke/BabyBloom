@@ -60,10 +60,16 @@ final class SubscriptionPurchaseTests: XCTestCase {
     /// local store, and succeeds instantly on a healthy one. The transaction it
     /// leaves behind is cleared immediately, so the probe is invisible to the
     /// test that follows.
+    ///
+    /// It buys the MONTHLY plan on purpose. The yearly one carries the group's
+    /// single introductory offer, and probing with it would spend that offer —
+    /// leaving `testIntroOfferEligibilityFlipsOnceTheGroupsOfferIsUsed` betting
+    /// that `clearTransactions()` hands eligibility back. The monthly plan has
+    /// no offer, so there is no bet to lose.
     @MainActor
     private func requireLocalStore(_ session: SKTestSession) async throws {
         do {
-            try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
+            try await session.buyProduct(identifier: SubscriptionManager.monthlyID)
         } catch {
             throw XCTSkip("""
                 This simulator is not serving Nenita.storekit (\(error)). Restore \
@@ -205,6 +211,8 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertFalse(manager.isEntitled)
         XCTAssertFalse(manager.isLoading)
         XCTAssertFalse(manager.purchasePending)
+        XCTAssertTrue(manager.hasResolvedEntitlements,
+                      "a purchase that did not happen still leaves StoreKit's answer read")
     }
 
     // MARK: - Buying something already owned
@@ -229,6 +237,43 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertTrue(manager.isEntitled, "buying again must not drop what is owned")
         XCTAssertTrue(manager.isPremium)
         XCTAssertFalse(manager.isLoading)
+    }
+
+    /// **Build 9's exact shape.** The Apple ID already owns the subscription,
+    /// nothing in onboarding has asked StoreKit yet, and the user taps
+    /// Subscribe. StoreKit raises "You are currently subscribed" and completes
+    /// no purchase — so nothing about the outcome carries the entitlement, and
+    /// the only thing that can surface it is `purchase()` re-reading
+    /// entitlements on a non-success result.
+    ///
+    /// The abandonment is forced rather than left to SKTestSession's choice
+    /// about re-buying an owned subscription: this has to land on the
+    /// `.userCancelled`/error path deterministically, or it pins nothing.
+    /// Delete either re-read in `purchase()` and this test fails.
+    @MainActor
+    func testAnAbandonedPurchaseStillResolvesAnEntitlementTheAppleIDAlreadyHas() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        try await requireLocalStore(session)
+        try await session.buyProduct(identifier: SubscriptionManager.yearlyID)
+
+        // Fresh manager: `isEntitled` is false because nobody has asked, which
+        // is precisely the state onboarding reached the paywall in.
+        let manager = SubscriptionManager()
+        await manager.loadProducts()
+        XCTAssertFalse(manager.hasResolvedEntitlements, "nothing has asked StoreKit yet")
+        XCTAssertFalse(manager.isEntitled)
+
+        session.failTransactionsEnabled = true
+        session.failureError = .paymentCancelled
+        let yearly = try XCTUnwrap(manager.yearlyProduct)
+
+        await manager.purchase(yearly)
+
+        XCTAssertTrue(manager.hasResolvedEntitlements)
+        XCTAssertTrue(manager.isEntitled,
+                      "an abandoned purchase must still surface the subscription this ID owns")
+        XCTAssertTrue(manager.isPremium, "and the host must therefore be able to advance")
     }
 
     // MARK: - Restore

@@ -69,6 +69,35 @@ extension SubscriptionManager {
     }
 }
 
+// MARK: - Advancing on entitlement
+
+extension SubscriptionManager {
+
+    /// Whether a host that finishes its flow the moment entitlement arrives may
+    /// act on the state as it stands.
+    ///
+    /// Pure, and deliberately not left inline in the view: what this encodes is
+    /// a RACE, and a race is the one thing a simulator pass cannot pin. Same
+    /// reasoning as `DashboardGrowthSummary`.
+    ///
+    /// - `hasResolvedEntitlements` — an unresolved `false` is "not asked yet",
+    ///   not "not subscribed"; nobody may branch on it.
+    /// - `isRestoring` / `hasUnreadRestoreOutcome` — a restore owns its own
+    ///   transition. The user is meant to read "Purchases restored" and advance
+    ///   by dismissing it, not to have the page vanish from under the alert.
+    ///   Both are needed: the flag covers the window before `restoreState` is
+    ///   assigned, the outcome covers the window after, while the alert is up.
+    nonisolated static func mayAdvanceOnEntitlement(
+        hasResolvedEntitlements: Bool,
+        isPremium: Bool,
+        isRestoring: Bool,
+        hasUnreadRestoreOutcome: Bool
+    ) -> Bool {
+        guard hasResolvedEntitlements, isPremium else { return false }
+        return !isRestoring && !hasUnreadRestoreOutcome
+    }
+}
+
 // MARK: - Subscription Manager
 
 @MainActor
@@ -156,17 +185,42 @@ final class SubscriptionManager {
     private(set) var purchasePending = false
     private(set) var restoreState: RestoreState?
 
+    /// True from the instant a restore starts until its outcome is published in
+    /// `restoreState`.
+    ///
+    /// `restoreState` alone cannot mark that window. `refreshEntitlements()`
+    /// writes `isEntitled` and then AWAITS the networked intro-offer lookup
+    /// before `restorePurchases()` gets to assign `restoreState` — and an
+    /// `@Observable` host is free to run in that gap. It would see "entitled,
+    /// no restore pending", finish onboarding, and the "Purchases restored"
+    /// confirmation would never be shown. This flag spans the whole call, so
+    /// the window has no gap to lose.
+    private(set) var isRestoring = false
+
     enum RestoreState {
         case success, nothingFound
     }
 
-    private var transactionListener: Task<Void, Never>?
+    /// `nonisolated(unsafe)` so `deinit` — which is nonisolated, and cannot
+    /// touch MainActor state — can cancel it. Safe by construction rather than
+    /// by promise: `Task` is `Sendable`, this is assigned exactly once in
+    /// `init` and read exactly once in `deinit`, and nothing else ever touches
+    /// it. Widen that and the annotation stops being true.
+    private nonisolated(unsafe) var transactionListener: Task<Void, Never>?
 
     /// Not private: the StoreKit tests build a manager per `SKTestSession` so
     /// each case starts from a clean entitlement state. Product code uses
     /// `shared` — the app injects exactly one instance into the environment.
     init() {
         transactionListener = listenForTransactions()
+    }
+
+    /// Every manager owns a `Transaction.updates` loop, and the tests build one
+    /// per `SKTestSession`. Without this, a manager from a finished test keeps
+    /// listening and can `finish()` a transaction belonging to the next test's
+    /// session — a cross-test failure that would look like flakiness.
+    deinit {
+        transactionListener?.cancel()
     }
 
     // MARK: - Public API
@@ -226,9 +280,12 @@ final class SubscriptionManager {
 
     func restorePurchases() async {
         isLoading = true
+        isRestoring = true
         purchaseError = nil
         restoreState = nil
-        defer { isLoading = false }
+        // Cleared only on the way out — after `restoreState` has been assigned,
+        // which is the whole point of the flag.
+        defer { isLoading = false; isRestoring = false }
         do {
             try await AppStore.sync()
             await refreshEntitlements()
