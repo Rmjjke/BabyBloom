@@ -28,8 +28,7 @@ struct PremiumPage: View {
             VStack(spacing: 0) {
 
                 // Hero gradient header — shared with the settings paywall
-                PremiumHero(bleedsIntoStatusBar: true,
-                            badgeScale: appear ? 1 : 0.7)
+                PremiumHero(badgeScale: appear ? 1 : 0.7)
                     .offset(y: appear ? 0 : 20)
                     .opacity(appear ? 1 : 0)
 

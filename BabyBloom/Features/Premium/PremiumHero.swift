@@ -15,17 +15,13 @@ import SwiftUI
 /// the only version that survives Dynamic Type and a wrapping ru/es headline
 /// without clipping against `cornerRadius`.
 struct PremiumHero: View {
-    /// Onboarding's paywall owns the whole screen, so its gradient bleeds up
-    /// behind the status bar. The settings paywall sits under a navigation
-    /// bar, where bleeding would slide the band under the title.
-    var bleedsIntoStatusBar: Bool = false
     /// Onboarding pops the badge in with the rest of the page; the settings
     /// paywall has no entrance animation and leaves this at 1.
     var badgeScale: CGFloat = 1
 
     var body: some View {
         ZStack {
-            gradient
+            BBTheme.Colors.premiumGradient
 
             VStack(spacing: BBTheme.Spacing.sm) {
                 BrandMark(diameter: 52, onGradient: true)
@@ -43,17 +39,5 @@ struct PremiumHero: View {
             .padding(.vertical, BBTheme.Spacing.md)
         }
         .cornerRadius(BBTheme.Radius.xl, corners: [.bottomLeft, .bottomRight])
-    }
-
-    // The bleed cannot be a modifier applied conditionally to the ZStack: it
-    // must stay on the gradient alone, or the text would ride up under the
-    // status bar with it.
-    @ViewBuilder
-    private var gradient: some View {
-        if bleedsIntoStatusBar {
-            BBTheme.Colors.premiumGradient.ignoresSafeArea(edges: .top)
-        } else {
-            BBTheme.Colors.premiumGradient
-        }
     }
 }

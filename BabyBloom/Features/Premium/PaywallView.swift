@@ -21,8 +21,7 @@ struct PaywallView: View {
             VStack(spacing: 0) {
 
                 // ── Hero ────────────────────────────────────────────────
-                // Shared with onboarding's paywall; no bleed here because the
-                // navigation bar owns the top safe area.
+                // Shared with onboarding's paywall.
                 PremiumHero()
 
                 VStack(spacing: BBTheme.Spacing.lg) {
