@@ -1,10 +1,10 @@
 import SwiftUI
 
-// MARK: - Page 8: Notifications
+// MARK: - Notifications (page 7 of 10)
 
-/// The permission ask, placed right after Generating — whose last step just
-/// said we were setting up smart reminders, so the system dialog arrives as
-/// the answer to a promise instead of landing on the Dashboard uninvited.
+/// The permission ask, placed BEFORE Generating — the loader's last step says
+/// smart reminders are being configured, which is only true once the parent has
+/// answered this page. It also keeps the dialog off the Dashboard entirely.
 ///
 /// Both buttons advance. A parent who declines has still finished onboarding,
 /// and the bullets are the only pitch they get — there is no second ask.

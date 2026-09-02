@@ -264,7 +264,6 @@
   "onboarding.feeding_title": "How are you feeding?",
   "onboarding.feeding_hint": "For personalised tracking and tips",
   "onboarding.fact.title": "Did you know?",
-  "onboarding.fact.cta": "Build My Tracker",
   "onboarding.gen.title": "Setting up Bitty…",
   "onboarding.gen.title_named": "Setting up Bitty for %@…",
   "onboarding.gen.step1": "Personalising your feeding tracker",
@@ -442,5 +441,6 @@
   "onboarding.notify.later": "Not now",
   "onboarding.widget.title": "The widget on your Home Screen",
   "onboarding.widget.subtitle": "How long until the next feed — at a glance, without opening the app.",
-  "onboarding.widget.howto": "Touch and hold the Home Screen → “+” → %@"
+  "onboarding.widget.howto": "Touch and hold the Home Screen → “+” → %@",
+  "onboarding.widget.cta": "Build My Tracker"
 }

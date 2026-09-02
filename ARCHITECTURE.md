@@ -184,7 +184,37 @@ computed on every access as `isEntitled || override` — not stored — because
 `refreshEntitlements()` assigns unconditionally from a `.task` that runs on
 every appearance and would clobber an override written once at init.
 `restorePurchases` deliberately reports off `isEntitled`, so the override
-cannot fake a restore.
+cannot fake a restore. `hasResolvedEntitlements` says whether StoreKit has been
+asked at all: before the first `refreshEntitlements()`, `isEntitled == false`
+means "not asked", which is indistinguishable from "not subscribed". Anything
+that BRANCHES on entitlement — sell or do not sell — must wait for it; anything
+that merely gates a feature reads `isPremium` and lets the gate close itself
+when the answer arrives.
+
+**Two paywalls, one selling half.** `PlanPickerSection` is the plans, prices,
+trial promise, CTA, restore and legal footer; `PaywallView` (settings, modal)
+and `PremiumPage` (onboarding, page 10) compose it. The section has no
+"purchased" callback: reacting to entitlement is the host's job, because
+entitlement arrives from a purchase, from `restorePurchases()`, from
+`Transaction.updates`, or from the user having subscribed before the screen
+ever opened, and a callback on the purchase button covers only the first.
+**Both hosts wait for `hasResolvedEntitlements` before showing either half** —
+selling on an unresolved answer is the defect, and it is not specific to
+onboarding. `PaywallView` then swaps the section for its active badge and
+navigates nowhere; `PremiumPage` refreshes entitlements in its own `.task` and
+calls `onPurchased()` from a single `advanceIfEntitled()` — on arrival and on
+any later change to `isPremium` — so an already-subscribed user is never sold
+to and never stranded. Neither screen shows an empty gap while it waits.
+
+The advance rule itself is `SubscriptionManager.mayAdvanceOnEntitlement`, a
+pure function, because what it encodes is a race: `restorePurchases()`
+publishes `isEntitled` inside `refreshEntitlements()` and then awaits the
+networked intro-offer lookup before assigning `restoreState`, so a host
+watching only `restoreState` can slip through the gap and end onboarding
+before "Purchases restored" is drawn. `isRestoring` spans the whole call and
+closes it; `restoreState` covers the rest, while the alert is up. Both halves
+are unit-tested without a simulator, which is the only way a race can be
+pinned.
 
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a
@@ -214,7 +244,10 @@ logged rhythm. The full catalogue — identifiers, age tables, scheduling
 triggers — is [NOTIFICATIONS.md](NOTIFICATIONS.md); it is a reference, keep it
 in step with the code.
 
-Permission is requested when onboarding completes, not at launch.
+Permission is requested from onboarding's own notifications page (page 7 of
+10, before the Generating loader whose last step promises reminders) — never
+at launch and never over the Dashboard. That page is the single call site of
+`requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.
 
 ## Navigation

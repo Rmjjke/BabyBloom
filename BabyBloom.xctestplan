@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "1E0B4B2A-0001-4000-8000-000000000001",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "storeKitConfigurationFileReference" : {
+      "identifier" : "Nenita.storekit"
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:BabyBloom.xcodeproj",
+      "identifier" : "ECF575830BB605F17ED07516",
+      "name" : "BabyBloom"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:BabyBloom.xcodeproj",
+        "identifier" : "00D95F5EE2E8B681F336DE2C",
+        "name" : "BabyBloomTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -180,7 +180,7 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 
 | Когда | Место в коде |
 |---|---|
-| На странице «Уведомления» в онбординге (стр. 8 из 10, сразу после Generating) — по тапу на CTA | `NotificationsPage.swift` → `NotificationManager.shared.requestPermission { _ in onContinue() }` |
+| На странице «Уведомления» в онбординге (стр. 7 из 10, перед Generating) — по тапу на CTA | `NotificationsPage.swift` → `NotificationManager.shared.requestPermission { _ in onContinue() }` |
 
 Это единственная точка вызова во всём приложении. Раньше запрос уходил из
 `BabyBloomApp.swift` по завершении онбординга, и системный диалог появлялся

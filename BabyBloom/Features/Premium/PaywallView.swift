@@ -26,14 +26,22 @@ struct PaywallView: View {
 
                 VStack(spacing: BBTheme.Spacing.lg) {
 
-                    // Active badge (shown if already premium)
-                    if store.isPremium {
-                        activeBadge
-                    }
-
-                    // Plans + CTA + restore + legal (or load-error retry state)
-                    if !store.isPremium {
-                        PlanPickerSection()
+                    // Sell, or say it is already bought — but only once
+                    // StoreKit has actually answered. Before that, `isPremium`
+                    // is false because nothing has asked, and an entitled user
+                    // opening Settings would be shown the selling half and
+                    // could tap the CTA straight into "You are currently
+                    // subscribed". Unlike the onboarding host this screen
+                    // advances nowhere; it just waits.
+                    if store.hasResolvedEntitlements {
+                        if store.isPremium {
+                            activeBadge
+                        } else {
+                            PlanPickerSection()
+                        }
+                    } else {
+                        ProgressView()
+                            .padding(.vertical, BBTheme.Spacing.xl)
                     }
 
                     // Features

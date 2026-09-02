@@ -14,6 +14,60 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-02 — Advancing on entitlement belongs to the paywall's HOST, not to its purchase button
+
+`PlanPickerSection` has no `onPurchased` callback. `PremiumPage` observes
+`store.isPremium` and calls `onPurchased()` from one place; `PaywallView`
+observes nothing and navigates nowhere.
+
+**Why.** The callback used to fire on the `isEntitled` TRANSITION inside the
+button's closure — a deliberate fix so an already-entitled user who cancelled
+the sheet did not advance. It was right about its own bug and wrong as the
+ONLY advance path. Entitlement reaches the app four ways: a purchase, a
+restore, `Transaction.updates`, and simply being subscribed before the screen
+opened. A button closure sees the first. For the fourth — the case the owner
+hit on build 9, with a sandbox subscription active — buying an owned product
+raises StoreKit's "You are currently subscribed" alert and changes no state at
+all, so there was no transition to fire on and no way out of onboarding but
+the X.
+
+**Also decided here.** Nothing in onboarding asked StoreKit who the user was,
+so the paywall branched on an `isEntitled` that was `false` because it had
+never been read. `hasResolvedEntitlements` makes that distinction explicit and
+the selling half waits for it: a paywall must never sell on an unresolved
+answer. And `purchase()` re-reads entitlements on `.userCancelled` and on a
+thrown error, not only on success — a purchase that did not happen still says
+nothing about what the Apple ID already owns.
+
+**Consequence.** A new paywall host must observe `isPremium` itself. That is
+the intended cost: the alternative — a callback that looks like it covers
+purchase — is the arrangement that shipped this bug.
+
+---
+
+## 2026-09-01 — The onboarding loader runs after the permission ask, and the commitment CTA sits on the widget page
+
+Onboarding order: Welcome → Name → Birth → Feeding → Growth → Fact →
+Notifications → Widget → Generating → Paywall. «Создать мой трекер»
+(`onboarding.widget.cta`, formerly `onboarding.fact.cta`) is the WIDGET page's
+button; the Fact page ends with a plain `button.next`.
+
+**Why.** `GeneratingPage`'s last step says smart reminders are being
+configured — backwards while it ran before the permission ask (claiming a
+permission that hadn't even been offered yet), so notifications had to move
+ahead of the loader. The move only fixes the claim for a parent who taps
+«Включить уведомления»: it is now honest for that path, and merely optimistic
+— not backwards — for one who taps «Не сейчас», since the step still runs
+without the permission it describes. With the loader last, its "your tracker
+is ready" crescendo lands directly on the paywall instead of being spent on
+two more info pages. The commitment CTA follows the loader it triggers: it
+now sits on the last page before it, which also buys spacing between the
+permission ask and the money ask (widget page + ~5s loader).
+
+Consequence for anyone adding a page: the four pages after Growth are all
+non-quiz, so `isQuiz` / `quizProgress` and the shared bottom nav are untouched
+by any reordering among them — only the enum's case order defines the flow.
+
 ## 2026-09-01 — A permanent Growth teaser, and a gate on creating events only
 
 The Dashboard's Growth section always shows the latest weight and

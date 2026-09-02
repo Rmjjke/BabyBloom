@@ -16,10 +16,13 @@ struct PlanPickerSection: View {
     // picker, and still catches an empty-but-error-free product list.
     @State private var loadAttempted = false
 
-    /// Called after a purchase completes with entitlement. The onboarding
-    /// paywall finishes onboarding here; the settings paywall passes nothing
-    /// and shows its own active badge instead.
-    var onPurchased: (() -> Void)? = nil
+    // This section deliberately has NO "purchased" callback. Advancing on
+    // entitlement is the HOST's job, because the purchase button is not the
+    // only way entitlement arrives (restore, `Transaction.updates`, and an
+    // Apple ID that was already subscribed before the paywall ever appeared),
+    // and a callback wired to the button covers exactly one of those. The
+    // onboarding host observes `store.isPremium`; the settings paywall swaps
+    // this section for its active badge and navigates nowhere.
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.lg) {
@@ -184,12 +187,7 @@ struct PlanPickerSection: View {
             BBPrimaryButton(ctaTitle, icon: "arrow.right") {
                 Task {
                     if let product = selectedProduct {
-                        // Fire onPurchased only on the entitlement TRANSITION —
-                        // an already-entitled user who cancels the sheet must
-                        // not retrigger the callback.
-                        let wasEntitled = store.isEntitled
                         await store.purchase(product)
-                        if store.isEntitled && !wasEntitled { onPurchased?() }
                     }
                 }
             }
