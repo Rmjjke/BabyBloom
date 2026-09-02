@@ -21,7 +21,8 @@ struct PaywallView: View {
             VStack(spacing: 0) {
 
                 // ── Hero ────────────────────────────────────────────────
-                heroHeader
+                // Shared with onboarding's paywall.
+                PremiumHero()
 
                 VStack(spacing: BBTheme.Spacing.lg) {
 
@@ -87,31 +88,6 @@ struct PaywallView: View {
         .padding(.top, BBTheme.Spacing.sm)
     }
 
-    // MARK: - Hero Header
-
-    private var heroHeader: some View {
-        ZStack {
-            BBTheme.Colors.premiumGradient
-
-            VStack(spacing: BBTheme.Spacing.md) {
-                BrandMark(diameter: 64, onGradient: true)
-                    .padding(.top, 36)
-
-                BBTheme.Typography.title1("onboarding.premium.title".l)
-                    .foregroundStyle(.white)
-
-                Text("onboarding.premium.headline".l)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.82))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, BBTheme.Spacing.xl)
-                    .padding(.bottom, 32)
-            }
-        }
-        .frame(height: 220)
-        .cornerRadius(BBTheme.Radius.xl, corners: [.bottomLeft, .bottomRight])
-    }
-
     // MARK: - Active Badge
 
     private var activeBadge: some View {
@@ -157,7 +133,7 @@ struct PaywallView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(BBTheme.Colors.success)
                 }
-                .padding(.vertical, 12)
+                .padding(.vertical, 10)
                 .padding(.horizontal, BBTheme.Spacing.md)
 
                 if i < features.count - 1 {

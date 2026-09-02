@@ -31,35 +31,10 @@ struct PremiumPage: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
 
-                // Hero gradient header
-                ZStack {
-                    LinearGradient(
-                        colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea(edges: .top)
-
-                    VStack(spacing: BBTheme.Spacing.md) {
-                        BrandMark(diameter: 64, onGradient: true)
-                            .padding(.top, 36)
-                            .scaleEffect(appear ? 1 : 0.7)
-
-                        BBTheme.Typography.title1("onboarding.premium.title".l)
-                            .foregroundStyle(.white)
-
-                        Text("onboarding.premium.headline".l)
-                            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.82))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, BBTheme.Spacing.xl)
-                            .padding(.bottom, 32)
-                    }
+                // Hero gradient header — shared with the settings paywall
+                PremiumHero(badgeScale: appear ? 1 : 0.7)
                     .offset(y: appear ? 0 : 20)
-                }
-                .frame(height: 240)
-                .cornerRadius(BBTheme.Radius.xl, corners: [.bottomLeft, .bottomRight])
-                .opacity(appear ? 1 : 0)
+                    .opacity(appear ? 1 : 0)
 
                 // Features list
                 VStack(spacing: 0) {
@@ -78,7 +53,7 @@ struct PremiumPage: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(BBTheme.Colors.success)
                         }
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 10)
                         .padding(.horizontal, BBTheme.Spacing.md)
 
                         if i < features.count - 1 {
@@ -90,7 +65,7 @@ struct PremiumPage: View {
                 .cornerRadius(BBTheme.Radius.lg)
                 .bbShadow(BBTheme.Shadow.card)
                 .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.top, BBTheme.Spacing.xl)
+                .padding(.top, BBTheme.Spacing.lg)
                 .offset(y: appear ? 0 : 30)
                 .opacity(appear ? 1 : 0)
 
@@ -106,7 +81,7 @@ struct PremiumPage: View {
                     if !store.isPremium {
                         PlanPickerSection()
                             .padding(.horizontal, BBTheme.Spacing.lg)
-                            .padding(.vertical, BBTheme.Spacing.xl)
+                            .padding(.vertical, BBTheme.Spacing.lg)
                             .offset(y: appear ? 0 : 30)
                             .opacity(appear ? 1 : 0)
                     }
