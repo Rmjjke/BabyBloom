@@ -56,9 +56,9 @@ struct OnboardingView: View {
                                              onBack: back)
                     case .fact: FactPage(babyName: babyName, birthDate: birthDate,
                                          feedingType: feedingType, onContinue: next)
-                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)
                     case .notifications: NotificationsPage(babyName: babyName, onContinue: next)
                     case .widgets: WidgetShowcasePage(babyName: babyName, onContinue: next)
+                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)
                     case .premium: PremiumPage(onPurchased: { createAndFinish() },
                                                onSkip:      { createAndFinish() })
                     }

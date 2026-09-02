@@ -50,7 +50,9 @@ struct FactPage: View {
 
             Spacer()
 
-            BBPrimaryButton("onboarding.fact.cta".l, icon: "arrow.right") {
+            // A plain "Next": the commitment CTA now lives on the widget page,
+            // the last page before the loader it kicks off.
+            BBPrimaryButton("button.next".l, icon: "arrow.right") {
                 onContinue()
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
