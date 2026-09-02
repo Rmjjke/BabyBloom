@@ -249,7 +249,10 @@ final class SubscriptionPurchaseTests: XCTestCase {
     /// The abandonment is forced rather than left to SKTestSession's choice
     /// about re-buying an owned subscription: this has to land on the
     /// `.userCancelled`/error path deterministically, or it pins nothing.
-    /// Delete either re-read in `purchase()` and this test fails.
+    /// The forced `.paymentCancelled` lands on exactly ONE of the two re-reads
+    /// per OS — whichever path this OS routes it through has its re-read
+    /// pinned by this test; the sibling path is exercised only on OSes that
+    /// route the failure the other way.
     @MainActor
     func testAnAbandonedPurchaseStillResolvesAnEntitlementTheAppleIDAlreadyHas() async throws {
         let session = try makeSession()

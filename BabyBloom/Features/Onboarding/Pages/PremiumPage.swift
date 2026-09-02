@@ -181,6 +181,13 @@ struct PremiumPage: View {
         // button covered only the first, and covered none of them for a user
         // who arrived already subscribed.
         .onChange(of: store.isPremium) { _, _ in advanceIfEntitled() }
+        // A restore whose AppStore.sync() throws never assigns restoreState,
+        // so nothing else observes the flag clearing — without this, an
+        // entitlement that arrived mid-restore (e.g. via Transaction.updates)
+        // strands the user on the paywall until they tap the X.
+        .onChange(of: store.isRestoring) { _, restoring in
+            if !restoring { advanceIfEntitled() }
+        }
     }
 
     /// The onboarding paywall's single exit-on-entitlement path. The rule it
