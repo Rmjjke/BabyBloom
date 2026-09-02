@@ -264,7 +264,6 @@
   "onboarding.feeding_title": "Как кормите малыша?",
   "onboarding.feeding_hint": "Для персонализированного трекинга",
   "onboarding.fact.title": "Знали ли вы?",
-  "onboarding.fact.cta": "Создать мой трекер",
   "onboarding.gen.title": "Настраиваем Ночку…",
   "onboarding.gen.title_named": "Настраиваем Ночку для %@…",
   "onboarding.gen.step1": "Персонализируем трекер кормлений",
@@ -442,5 +441,6 @@
   "onboarding.notify.later": "Не сейчас",
   "onboarding.widget.title": "Виджет на домашнем экране",
   "onboarding.widget.subtitle": "Сколько осталось до следующего кормления — одним взглядом, не открывая приложение.",
-  "onboarding.widget.howto": "Долгое нажатие на домашний экран → «+» → %@"
+  "onboarding.widget.howto": "Долгое нажатие на домашний экран → «+» → %@",
+  "onboarding.widget.cta": "Создать мой трекер"
 }

@@ -2,6 +2,11 @@
 # raised ON the notifications page, and the Dashboard reached with the greeting
 # readable.
 #
+# Page order (reordered 2026-09-01): Welcome → Name → Birth → Feeding → Growth
+# → Fact → Notifications → Widget → Generating → Premium. The commitment CTA
+# "Build My Tracker" now lives on the WIDGET page, immediately before the
+# loader it kicks off; the Fact page ends with a plain "Next".
+#
 # This flow is a SMOKE CHECK, not the regression guard for the old
 # dialog-over-Dashboard bug. It cannot be that guard: the same XCUITest driver
 # that auto-answers the alert on the notifications page would dismiss a
@@ -31,6 +36,9 @@ appId: com.nenita.app
 
 - extendedWaitUntil: { visible: "Start", timeout: 20000 }
 - tapOn: "Start"
+# The page transition is 0.3s of animation on top of a fresh render; on a
+# loaded machine the field is not in the hierarchy yet when the tap fires.
+- extendedWaitUntil: { visible: "Baby's name", timeout: 20000 }
 - tapOn: "Baby's name"
 - inputText: "Mia"
 - pressKey: Enter
@@ -38,8 +46,12 @@ appId: com.nenita.app
 - tapOn: "Next"
 - tapOn: "Next"
 - tapOn: "Next"
-- extendedWaitUntil: { visible: "Build My Tracker", timeout: 20000 }
-- tapOn: "Build My Tracker"
+
+# Fact page — its CTA is now a plain "Next" too, so anchor on the page's own
+# badge before tapping, or the count of "Next" taps stops meaning anything.
+- extendedWaitUntil: { visible: "Did you know?", timeout: 20000 }
+- takeScreenshot: 00-fact-en-light
+- tapOn: "Next"
 
 - extendedWaitUntil: { visible: "Turn on notifications", timeout: 30000 }
 - assertVisible: ".*Mia eats and sleeps.*"
@@ -58,10 +70,19 @@ appId: com.nenita.app
 - assertVisible: "Feeding in"
 - assertVisible: ".*40 min.*"
 - assertVisible: ".*Touch and hold the Home Screen.*Bitty.*"
+- assertVisible: "Build My Tracker"
 - takeScreenshot: 03-widget-en-light
-- tapOn: "Next"
+- tapOn: "Build My Tracker"
 
-- extendedWaitUntil: { visible: "Bitty Premium", timeout: 20000 }
+# Generating runs here — self-advancing, ~5s — and lands DIRECTLY on the
+# paywall. Do not assert the loader itself: it is on screen for about as long
+# as a single hierarchy query takes on a loaded machine, so any assertion on it
+# is a coin flip. Instead, the assertNotVisible below is the discriminator: the
+# loader's ≥4s presence means a build that skipped straight from the widget
+# page to the paywall (Generating never ran) would still be caught here, right
+# after the tap, before the paywall has had time to arrive on its own.
+- assertNotVisible: "Bitty Premium"
+- extendedWaitUntil: { visible: "Bitty Premium", timeout: 40000 }
 - takeScreenshot: 04-premium-en-light
 - extendedWaitUntil: { visible: "Close", timeout: 20000 }
 - tapOn: "Close"
