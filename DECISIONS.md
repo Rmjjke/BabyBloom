@@ -14,6 +14,70 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — The word a parent reads is split from the gate that fires
+
+`FeedingAdequacy.Signal` keeps its three cases and its collapse of an
+above-reference gain onto `.within`. Every parent-facing surface renders
+`StatusWord`, which has four.
+
+**Why.** The collapse is the breakdown gate and must not change (2026-08-25);
+it is also the wrong vocabulary, and build 11 showed what that costs: the
+Dashboard printed a +10267 g/week gain as "within the reference" in green
+while the Growth screen, on the same data, said "above" it. A parent who sees
+two verdicts on one number stops trusting both. Widening `Signal` would have
+been the smaller diff and would have put the gate one `case` away from firing
+on a thriving baby. Keep them separate.
+
+## 2026-09-05 — Growth verdicts are measured against RECENT history, and against the weighing's own date
+
+Three rules settled together, all of them about which moment a number
+describes:
+
+- `WeightVelocity` divides by real elapsed duration; whole days stay a label.
+  Truncation only ever rounds the denominator down, so it only ever overstates
+  gain — the one direction that can suppress the low-gain signal the feature
+  exists for.
+- `GrowthTrend` reaches back at most 180 days for its peak. Unbounded, ordinary
+  regression to the mean becomes a flag that no later weighing can ever clear.
+  The number is a judgement, not a published threshold — retune it knowingly.
+- A single-value percentile is scored at the age on the WEIGHING date. Scored
+  at today's age it drifts downward every morning the app is opened, which is
+  movement the parent did not cause and cannot undo.
+
+**Why record it.** Each of these is a place where the obvious implementation is
+subtly wrong in the reassuring direction, and each was written the obvious way
+first.
+
+## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
+
+`ExportGenerator` writes raw growth rows — date, weight, height, head — and no
+percentile, gain band or centile-trend verdict. Verified, not merely observed:
+the file references none of `Core/Growth`.
+
+**Why.** A clinician reading the PDF has better instruments and their own
+chart; an app's verdict in that document would be a second opinion nobody
+asked for, printed with the authority of a record. If a verdict is ever added,
+it must come from these same functions and no others — a second implementation
+inside the exporter is how two surfaces start disagreeing.
+
+`FeedingRhythm` is the other accepted exception in this area: it reads
+CHRONOLOGICAL age at its call sites, unlike every growth reference. Left as
+is, because it schedules a reminder cadence rather than reaching a verdict,
+and a reminder is not measured against a table.
+
+## 2026-09-05 — A count above its reference is never styled as an alarm
+
+Nappy and feed references are floors with no ceiling. Exceeding one is
+reassurance, so no surface may render it red, flagged or triangled; the
+Dashboard's rings and `DiaperView`'s norm card are neutral above target and
+neutral below it.
+
+**Why.** `DiaperView` turned red with a warning triangle for a baby who wet
+MORE nappies than the norm — clinically inverted, and in the one domain where
+this app has to stay calm. The same reasoning covers `WeightVelocity.Band
+.above`, which takes the neutral primary tint rather than the green "within"
+tick: fast gain is not a worry, and it is not an achievement either.
+
 ## 2026-09-02 — Advancing on entitlement belongs to the paywall's HOST, not to its purchase button
 
 `PlanPickerSection` has no `onPurchased` callback. `PremiumPage` observes

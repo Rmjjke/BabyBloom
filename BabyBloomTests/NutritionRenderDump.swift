@@ -104,6 +104,15 @@ final class NutritionRenderDump: XCTestCase {
         static let noLogs = Scenario(firstWeighingDay: 30, gapDays: 9.6, startKg: 4.0,
                                      gramsPerDay: 17, feedsPerDay: nil, nappiesPerDay: nil)
 
+        /// Gain ABOVE the reference: 60 g/day where the 4-week-to-2-month band
+        /// tops out at 46.4. `FeedingAdequacy.Signal` collapses this onto
+        /// `.within` — deliberately, that collapse is the breakdown gate — so
+        /// the section used to print "within the reference" in green under a
+        /// gain card reading "above" it. The render is the evidence the two now
+        /// agree.
+        static let fastGain = Scenario(firstWeighingDay: 30, gapDays: 9, startKg: 4.0,
+                                       gramsPerDay: 60, feedsPerDay: 8, nappiesPerDay: 7)
+
         /// The fifth state, missing from the original matrix and found during
         /// the Task 6 review. Two weighings TWO days apart in the first week,
         /// which daily weighing makes ordinary: `FeedingAdequacy.window(for:)`
@@ -219,6 +228,22 @@ final class NutritionRenderDump: XCTestCase {
             XCTAssertEqual(below.nappies, .below)
             XCTAssertTrue(below.warrantsBreakdown)
             try dump("\(locale)-below", NutritionSection(assessment: below, band: velocity(.below)?.band))
+
+            // The C1 render: gate collapsed, word split. Both assertions
+            // matter — if the first ever fails, the breakdown gate has been
+            // "improved" into firing on a baby gaining fast.
+            let fast = try state(.fastGain)
+            XCTAssertEqual(fast.gain, .within, "the GATE must still collapse .above onto .within")
+            XCTAssertFalse(fast.warrantsBreakdown, "fast gain may never open the breakdown")
+            XCTAssertEqual(velocity(.fastGain)?.band, .above)
+            XCTAssertEqual(StatusWord.of(fast.gain, band: velocity(.fastGain)?.band), .above,
+                           "the WORD must say above")
+            try dump("\(locale)-above", NutritionSection(assessment: fast, band: velocity(.fastGain)?.band))
+
+            // The same fixture beside the gain card that always told the truth:
+            // the two lines must now read the same way.
+            try dump("\(locale)-stacked-above",
+                     neighbourhood(assessment: fast, reading: velocity(.fastGain)))
 
             let sparse = try state(.sparse)
             XCTAssertEqual(sparse.feeding, .below)
