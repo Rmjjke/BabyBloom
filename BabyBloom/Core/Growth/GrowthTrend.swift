@@ -30,6 +30,18 @@ enum GrowthTrend {
     static let minimumMeasurements = 3
     static let minimumSpanDays = 28
 
+    /// How far back the comparison may reach, in days.
+    ///
+    /// Unbounded, the peak is the all-time maximum, and an ordinary regression
+    /// to the mean becomes a PERMANENT flag: a baby that touched the 91st
+    /// centile at two months and settled on the 50th by eighteen is measured
+    /// against a peak a year in the past, and nothing it does afterwards can
+    /// lower that peak or clear the drop. Six months is long enough to contain
+    /// the fall NICE describes — weeks to months — and short enough that the
+    /// comparison is still about where this baby is heading now. The number is
+    /// a judgement rather than a published threshold; the owner may retune it.
+    static let peakLookbackDays = 180
+
     /// A rise past this many centile spaces is named as a crossing rather than
     /// reported as stability.
     ///
@@ -71,26 +83,39 @@ enum GrowthTrend {
         isMale: Bool,
         birthPercentile: Double?
     ) -> Assessment {
-        let sorted = measurements.sorted { $0.date < $1.date }
-        guard sorted.count >= minimumMeasurements,
-              let first = sorted.first,
-              let last = sorted.last,
-              days(from: first.date, to: last.date) >= minimumSpanDays
+        // Every weighing the WHO tables can actually score, each keeping its own
+        // date. The gates below are then evaluated on THIS array rather than on
+        // the raw input: they ask whether there is enough evidence, and a
+        // weighing the tables cannot score is not evidence. The old order gave
+        // the right answer by accident, because the tables happen to cover the
+        // whole age range the rest of the screen admits.
+        let scored: [(date: Date, z: Double)] = measurements
+            .sorted { $0.date < $1.date }
+            .compactMap { m in
+                let age = WHOGrowthStandard.correctedAgeDays(on: m.date,
+                                                             correctedBirthDate: correctedBirthDate)
+                guard let z = WHOGrowthStandard.zScore(weightKg: m.weightKg,
+                                                       ageDays: age, isMale: isMale) else { return nil }
+                return (m.date, z)
+            }
+
+        // Only the recent past can say anything about the current trajectory —
+        // see `peakLookbackDays`. Everything from here works on this window, so
+        // an old reading cannot supply a peak, a trough or a span the recent
+        // history does not have.
+        guard let newest = scored.last else { return .insufficientData }
+        let cutoff = newest.date.addingTimeInterval(-Double(peakLookbackDays) * 86_400)
+        let recent = scored.filter { $0.date >= cutoff }
+
+        guard recent.count >= minimumMeasurements,
+              let start = recent.first?.z,
+              days(from: recent[0].date, to: newest.date) >= minimumSpanDays
         else { return .insufficientData }
 
-        // Every weighing that the WHO tables can actually score.
-        let scores: [Double] = sorted.compactMap { m in
-            let age = max(0, days(from: correctedBirthDate, to: m.date))
-            return WHOGrowthStandard.zScore(weightKg: m.weightKg, ageDays: age, isMale: isMale)
-        }
-        guard scores.count >= minimumMeasurements, let latest = scores.last else {
-            return .insufficientData
-        }
-
+        let scores = recent.map(\.z)
+        let latest = newest.z
         let earlier = scores.dropLast()
-        guard let peak = earlier.max(), let start = scores.first else {
-            return .insufficientData
-        }
+        guard let peak = earlier.max() else { return .insufficientData }
 
         // A dip that has already recovered is not a downward trajectory, so the
         // latest reading has to be the lowest of the series for a fall to count.

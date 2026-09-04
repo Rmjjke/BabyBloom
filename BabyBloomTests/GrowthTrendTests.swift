@@ -100,6 +100,47 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertEqual(spaces, 3, accuracy: 0.15)
     }
 
+    // MARK: - The peak is recent, or it is not a peak
+
+    /// Regression to the mean must not raise a flag that can never clear.
+    ///
+    /// A baby high on the chart at one month, ordinary at ten and eleven: with
+    /// an all-time peak the fall from month one is measured forever, and no
+    /// weighing the parent takes afterwards can lower it. Everything outside
+    /// `peakLookbackDays` is out of the comparison, which leaves too little
+    /// recent history to say anything — and "we cannot say" is the honest
+    /// answer, not "your baby is falling".
+    func testAnAncientPeakDoesNotFlagAnOrdinaryEighteenMonthOld() {
+        let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
+        func on(_ day: Int, _ kg: Double) -> WeightMeasurement {
+            WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: day, to: old)!, weightKg: kg)
+        }
+        // Day 30 at roughly +2 SD, then the median at 10 and 13 months.
+        let m = [on(30, 5.7), on(300, 9.2), on(400, 10.4)]
+        let verdict = GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                         isMale: true, birthPercentile: 50)
+        if case .sustainedDrop = verdict {
+            XCTFail("an all-time peak raised a permanent flag: \(verdict)")
+        }
+        XCTAssertEqual(verdict, .insufficientData,
+                       "only one reading survives the lookback beside the latest")
+    }
+
+    /// The bound cuts history, not verdicts: a fall that happens INSIDE the
+    /// window is still reported.
+    func testAFallInsideTheLookbackWindowIsStillReported() throws {
+        let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
+        func on(_ day: Int, _ kg: Double) -> WeightMeasurement {
+            WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: day, to: old)!, weightKg: kg)
+        }
+        let m = [on(30, 5.7), on(300, 10.9), on(340, 9.6), on(400, 8.9)]
+        let verdict = GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                         isMale: true, birthPercentile: 50)
+        guard case .sustainedDrop = verdict else {
+            return XCTFail("expected a sustained drop inside the window, got \(verdict)")
+        }
+    }
+
     // MARK: - NICE thresholds scale with birth centile
 
     func testThresholdDependsOnBirthCentile() {

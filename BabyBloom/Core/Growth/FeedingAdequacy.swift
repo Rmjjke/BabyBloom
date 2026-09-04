@@ -237,9 +237,21 @@ enum FeedingAdequacy {
     /// day are a busy Tuesday, not a fortnight of evidence. Below half the days,
     /// the signal reports `notEnoughData`. Days logged outside the window do not
     /// count either — a well-logged fortnight ago is no evidence about this gap.
+    ///
+    /// The denominator is WHOLE CALENDAR DAYS, the one day-count convention this
+    /// module has — see `Assessment.windowDays`. It used to round the window's
+    /// real duration instead, which agrees with the calendar on every ordinary
+    /// window and disagrees across a daylight-saving transition: a 9-calendar-day
+    /// window lasts 8 d 23 h there, and the rounding turned that into 9 for the
+    /// header and could turn a 17 d 23 h one into 18 here — off by one against a
+    /// numerator that has always counted calendar days, which is enough to flip
+    /// the gate. Two conventions that agree almost always are worse than one,
+    /// because the run that would catch them is the one nobody makes in March.
     static func hasEnoughCoverage(_ dates: [Date], in window: DateInterval) -> Bool {
         let calendar = Calendar.current
-        let days = max(1, Int((window.duration / 86_400).rounded()))
+        let days = max(1, calendar.dateComponents([.day],
+                                                  from: window.start,
+                                                  to: window.end).day ?? 1)
         let covered = Set(dates.filter { window.contains($0) }.map { calendar.startOfDay(for: $0) })
         return Double(covered.count) / Double(days) >= 0.5
     }
