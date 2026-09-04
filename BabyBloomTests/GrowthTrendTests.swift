@@ -88,6 +88,30 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertEqual(assess(m), .stable)
     }
 
+    /// One wobbly last weighing must not hand the green tick back.
+    ///
+    /// The baby climbed from the median to the 97.5th centile and stayed there;
+    /// the next weighing came in a hundred grams light. A "latest is the highest
+    /// of the series" guard — the mirror of the fall's — read that dip as "no
+    /// longer rising" and returned `.stable`, which claims the channel is being
+    /// held by a baby two and a half spaces above where it started. The
+    /// from-start measurement is the whole rule; nothing else is needed.
+    func testAWobbleAtTheTopDoesNotRestoreTheGreenTick() throws {
+        let m = [at(30, medianDay30), at(60, medianDay60), at(120, plus2SDDay120), at(150, 8.85)]
+
+        // The fixture only means what it claims if the last reading really is
+        // below the one before it and still far above the start.
+        let z120 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: plus2SDDay120, ageDays: 120, isMale: true))
+        let z150 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: 8.85, ageDays: 150, isMale: true))
+        XCTAssertLessThan(z150, z120, "the last weighing must be a dip, or this tests nothing")
+        XCTAssertGreaterThan(z150, 1.3, "and must still sit well above the median it started at")
+
+        guard case let .crossingUp(spaces) = assess(m) else {
+            return XCTFail("a wobble at the top is still a crossing, got \(assess(m))")
+        }
+        XCTAssertGreaterThanOrEqual(spaces, GrowthTrend.upwardCrossingSpaces)
+    }
+
     // MARK: - Sustained drop
 
     /// Median at day 30 down to −2 SD at day 120 is three centile spaces, past
@@ -102,36 +126,68 @@ final class GrowthTrendTests: XCTestCase {
 
     // MARK: - The peak is recent, or it is not a peak
 
-    /// Regression to the mean must not raise a flag that can never clear.
-    ///
-    /// A baby high on the chart at one month, ordinary at ten and eleven: with
-    /// an all-time peak the fall from month one is measured forever, and no
-    /// weighing the parent takes afterwards can lower it. Everything outside
-    /// `peakLookbackDays` is out of the comparison, which leaves too little
-    /// recent history to say anything — and "we cannot say" is the honest
-    /// answer, not "your baby is falling".
-    func testAnAncientPeakDoesNotFlagAnOrdinaryEighteenMonthOld() {
-        let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
-        func on(_ day: Int, _ kg: Double) -> WeightMeasurement {
-            WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: day, to: old)!, weightKg: kg)
-        }
-        // Day 30 at roughly +2 SD, then the median at 10 and 13 months.
-        let m = [on(30, 5.7), on(300, 9.2), on(400, 10.4)]
-        let verdict = GrowthTrend.assess(measurements: m, correctedBirthDate: old,
-                                         isMale: true, birthPercentile: 50)
-        if case .sustainedDrop = verdict {
-            XCTFail("an all-time peak raised a permanent flag: \(verdict)")
-        }
-        XCTAssertEqual(verdict, .insufficientData,
-                       "only one reading survives the lookback beside the latest")
+    private func onOldTimeline(_ birth: Date, _ day: Int, _ kg: Double) -> WeightMeasurement {
+        WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: day, to: birth)!, weightKg: kg)
     }
 
-    /// The bound cuts history, not verdicts: a fall that happens INSIDE the
+    /// Regression to the mean must not raise a flag that can never clear.
+    ///
+    /// A baby high on the chart at one month, ordinary at ten and thirteen:
+    /// measured against an all-time peak the fall from month one is measured
+    /// forever, and no weighing the parent takes afterwards can lower it. The
+    /// peak is bounded to the recent window, where this baby is simply tracking
+    /// its channel — so the honest verdict is `.stable`, and the card keeps
+    /// working. Not `.insufficientData`: there are years of evidence here, and
+    /// the gates read all of it.
+    func testAnAncientPeakDoesNotFlagAnOrdinaryEighteenMonthOld() {
+        let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
+        let m = [onOldTimeline(old, 30, 5.7), onOldTimeline(old, 300, 9.2), onOldTimeline(old, 400, 10.4)]
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 50), .stable)
+    }
+
+    /// The toddler case the bound must not break: weighed at 12, 15, 18 and 24
+    /// months, with the last gap 182 days — two days past the lookback. Gating
+    /// the EVIDENCE on the recent window made this card read "not enough data"
+    /// permanently for a parent with two years of records, and a plain cutoff
+    /// left the comparison with nothing to measure against.
+    func testATwiceYearlyToddlerStillGetsAVerdict() {
+        let old = Calendar.current.date(byAdding: .day, value: -740, to: Date())!
+        // WHO boys medians at roughly 12, 15, 18 and 24 months.
+        let m = [onOldTimeline(old, 365, 9.65), onOldTimeline(old, 456, 10.6),
+                 onOldTimeline(old, 548, 11.3), onOldTimeline(old, 730, 12.15)]
+        XCTAssertNotEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                             isMale: true, birthPercentile: 50),
+                          .insufficientData)
+    }
+
+    /// The bound's deliberate blind spot, pinned so it is a choice and not a
+    /// surprise: a fall slow enough to stay under two centile spaces inside
+    /// every 180-day window is never reported, however far it travels. NICE's
+    /// thresholds describe a fall over weeks to months; catching this one would
+    /// mean restoring the permanent flag the bound exists to remove.
+    func testASlowFallSpreadOverYearsIsDeliberatelyNotReported() throws {
+        let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
+        let m = [onOldTimeline(old, 60, 6.2), onOldTimeline(old, 250, 8.3),
+                 onOldTimeline(old, 320, 8.7), onOldTimeline(old, 400, 9.3)]
+
+        // Unbounded, this WOULD have flagged — which is what makes the verdict
+        // below a consequence of the bound rather than of a gentle fixture.
+        let zFirst = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: 6.2, ageDays: 60, isMale: true))
+        let zLast = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: 9.3, ageDays: 400, isMale: true))
+        XCTAssertGreaterThanOrEqual((zFirst - zLast) / GrowthTrend.zPerCentileSpace, 2,
+                                    "the whole-history fall must exceed the threshold")
+
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 50), .stable)
+    }
+
+    /// The bound cuts references, not verdicts: a fall that happens INSIDE the
     /// window is still reported.
     func testAFallInsideTheLookbackWindowIsStillReported() throws {
         let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
         func on(_ day: Int, _ kg: Double) -> WeightMeasurement {
-            WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: day, to: old)!, weightKg: kg)
+            onOldTimeline(old, day, kg)
         }
         let m = [on(30, 5.7), on(300, 10.9), on(340, 9.6), on(400, 8.9)]
         let verdict = GrowthTrend.assess(measurements: m, correctedBirthDate: old,

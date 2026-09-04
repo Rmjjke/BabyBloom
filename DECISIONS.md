@@ -37,9 +37,18 @@ describes:
   Truncation only ever rounds the denominator down, so it only ever overstates
   gain — the one direction that can suppress the low-gain signal the feature
   exists for.
-- `GrowthTrend` reaches back at most 180 days for its peak. Unbounded, ordinary
-  regression to the mean becomes a flag that no later weighing can ever clear.
-  The number is a judgement, not a published threshold — retune it knowingly.
+- `GrowthTrend` bounds its REFERENCES — peak, trough, starting point — to the
+  last 180 days, and never its evidence gates, which read the whole scorable
+  history. Unbounded, ordinary regression to the mean becomes a flag that no
+  later weighing can ever clear; bounded the other way, a toddler weighed twice
+  a year would have a card reading "not enough data" forever. The window always
+  admits at least the two most recent weighings, however far apart: those two
+  are the current trajectory by definition, and a reference that sits among the
+  newest readings is always displaced by the next weighing — which is precisely
+  what the unclearable flag was not. The cost is deliberate: a fall slow enough
+  to stay under two spaces inside every 180-day window is never reported. That
+  is outside NICE's scope, whose thresholds describe weeks to months. The number
+  is a judgement, not a published threshold — retune it knowingly.
 - A single-value percentile is scored at the age on the WEIGHING date. Scored
   at today's age it drifts downward every morning the app is opened, which is
   movement the parent did not cause and cannot undo.
@@ -47,6 +56,36 @@ describes:
 **Why record it.** Each of these is a place where the obvious implementation is
 subtly wrong in the reassuring direction, and each was written the obvious way
 first.
+
+## 2026-09-05 — An upward centile crossing is reported, on a flat threshold, measured from the start
+
+`GrowthTrend.crossingUp(spaces:)` fires at a rise of two centile spaces or
+more, with `upwardCrossingSpaces` a flat 2 rather than `thresholdSpaces`, and
+the rise measured from the first reading in the window rather than from its
+lowest.
+
+**Why report it at all.** The detector is downward-only by clinical design and
+stays that way — a fast climb raises no flag. But its `.stable` case was
+returned for ANY non-fall, and the card renders that as "Holding its centile
+channel" behind a green tick. A baby that went from the 50th centile to the
+99th was told it was holding its channel. Downward-only scope is defensible;
+the wording claiming a bidirectional check was not.
+
+**Why a flat two.** NICE scales the fall threshold by birth centile because a
+baby born small has less room to fall before it matters. That argument has no
+upward counterpart — nothing about being born on the 95th centile makes a rise
+more or less worth naming — so borrowing the scaling would have been symmetry
+for its own sake, and would have made a baby born small announce every ordinary
+catch-up week.
+
+**Why from the start, not the trough.** A dip that has climbed back to its
+opening centile has crossed nothing, and measuring from the trough would
+announce a recovery as a rocket — it would also have contradicted the existing
+"a recovered dip is stable" rule one case away. There is deliberately no mirror
+of the fall's "latest is the extreme" guard either: the from-start measurement
+already collapses a recovered dip to about zero, while requiring the latest
+reading to be the highest handed the green tick back to any baby whose final
+weighing wobbled a little below the one before it.
 
 ## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
 
