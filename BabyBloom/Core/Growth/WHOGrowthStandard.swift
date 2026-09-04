@@ -92,8 +92,42 @@ enum WHOGrowthStandard {
 
     /// Normal CDF, expressed as a 1–99 percentile.
     static func percentile(fromZ z: Double) -> Double {
-        let p = 0.5 * (1 + erf(z / 2.0.squareRoot()))
-        return max(1, min(99, (p * 100).rounded()))
+        max(1, min(99, rawPercentile(fromZ: z).rounded()))
+    }
+
+    /// The same CDF with neither the rounding nor the 1–99 clamp.
+    ///
+    /// The clamp is right for everything that renders a percentile — the chart
+    /// has no 100th centile line and "0" is not a place a live baby sits — but
+    /// it hides whether the number is a measurement or the edge of the scale.
+    /// `percentileBadge` is the one caller that needs to tell them apart.
+    static func rawPercentile(fromZ z: Double) -> Double {
+        0.5 * (1 + erf(z / 2.0.squareRoot())) * 100
+    }
+
+    /// Corrected age in whole days on a given date, floored at zero — the age
+    /// every reference in `Core/Growth` expects, for a date that is not today.
+    static func correctedAgeDays(on date: Date, correctedBirthDate: Date) -> Int {
+        max(0, Calendar.current.dateComponents([.day], from: correctedBirthDate, to: date).day ?? 0)
+    }
+
+    /// The percentile of one weighing, scored at the age the baby actually was
+    /// **on the day that weighing was taken**.
+    ///
+    /// Not today's age. Scoring a three-week-old weighing against today's age
+    /// asks what the baby would weigh if it had not grown since, so the figure
+    /// slides downward every morning the app is opened without a new entry —
+    /// movement the parent did nothing to cause and cannot undo. `GrowthTrend`
+    /// has always scored each measurement at its own date; this is that rule,
+    /// for the cards that show a single value.
+    static func percentile(of measurement: WeightMeasurement,
+                           correctedBirthDate: Date,
+                           isMale: Bool) -> Double? {
+        percentile(
+            weightKg: measurement.weightKg,
+            ageDays: correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate),
+            isMale: isMale
+        )
     }
 
     // MARK: - Presentation

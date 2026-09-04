@@ -54,9 +54,11 @@ struct GrowthView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
-                // Percentile card
-                if let baby, let entry = latest, let weight = entry.weightKg {
-                    percentileSection(baby: baby, weight: weight, entry: entry)
+                // Percentile card. Keyed to the newest WEIGHING rather than the
+                // newest entry: recording this morning's height used to make the
+                // whole card vanish until the next time the baby was weighed.
+                if let baby, let weighing = measurements.last {
+                    percentileSection(baby: baby, weighing: weighing)
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
@@ -166,18 +168,30 @@ struct GrowthView: View {
 
     // MARK: - Percentile
     @ViewBuilder
-    private func percentileSection(baby: Baby, weight: Double, entry: GrowthEntry) -> some View {
+    private func percentileSection(baby: Baby, weighing: WeightMeasurement) -> some View {
         // Corrected age, not chronological: a baby born preterm has to be
-        // measured against the reference for the age it would be at term.
+        // measured against the reference for the age it would be at term. And
+        // the age ON THE WEIGHING DATE, not today's — see
+        // `WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`.
         if let percentile = WHOGrowthStandard.percentile(
-            weightKg: weight,
-            ageDays: baby.correctedAgeDays,
+            of: weighing,
+            correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
         ) {
-            percentileCard(percentile: percentile, months: baby.correctedAgeMonths)
+            percentileCard(percentile: percentile,
+                           months: monthsAtWeighing(baby: baby, weighing: weighing),
+                           weighedOn: weighing.date)
         } else {
             PercentileOutOfRangeCard()
         }
+    }
+
+    /// Corrected age in whole months on the day of the weighing — the age the
+    /// percentile beside it was actually scored at.
+    private func monthsAtWeighing(baby: Baby, weighing: WeightMeasurement) -> Int {
+        max(0, Calendar.current.dateComponents([.month],
+                                               from: baby.correctedBirthDate,
+                                               to: weighing.date).month ?? 0)
     }
 
     // MARK: - Insight blocks
@@ -283,7 +297,7 @@ struct GrowthView: View {
         )
     }
 
-    private func percentileCard(percentile: Double, months: Int) -> some View {
+    private func percentileCard(percentile: Double, months: Int, weighedOn: Date) -> some View {
         let label = WHOGrowthStandard.percentileLabel(percentile)
         let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
 
@@ -329,9 +343,17 @@ struct GrowthView: View {
                     }
                 }
 
-                Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                // Both lines describe the WEIGHING. The age is the one the
+                // figure was scored at, and the date says which weighing that
+                // was — without it "1 month old" reads as a claim about today
+                // when the last entry is three weeks back.
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
+                    Text(String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth))
+                }
+                .font(.system(size: 13, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(BBTheme.Spacing.md)
             .background(BBTheme.Colors.surface)

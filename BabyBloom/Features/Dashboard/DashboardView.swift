@@ -203,10 +203,12 @@ struct DashboardView: View {
                     color: BBTheme.Colors.diaper,
                     action: { showQuickDiaperSheet = true }
                 )
-                if let latest = growthEntries.first {
+                // The newest WEIGHING, not the newest entry: a height-only entry
+                // recorded today used to coalesce its nil weight into "0.00 kg".
+                if let weightKg = latestWeighing?.weightKg {
                     BBStatCard(
                         title: "stat.weight",
-                        value: String(format: "%.2f", latest.weightKg ?? 0),
+                        value: String(format: "%.2f", weightKg),
                         unit: "unit.kg",
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth,
@@ -391,9 +393,11 @@ struct DashboardView: View {
 
     /// The newest entry that actually carries a weight — a height-only entry
     /// is more recent but says nothing about weight.
-    private var latestWeightKg: Double? {
-        growthEntries.compactMap(\.weightKg).first
+    private var latestWeighing: WeightMeasurement? {
+        growthEntries.latestWeighing
     }
+
+    private var latestWeightKg: Double? { latestWeighing?.weightKg }
 
     /// Built exactly as `GrowthView` builds it, from the queries this screen
     /// already holds; the window is weeks, so filtering in memory is free.
@@ -418,13 +422,13 @@ struct DashboardView: View {
         )
     }
 
-    /// Corrected age, not chronological — the same rule the Growth screen's
-    /// percentile card follows.
+    /// Corrected age at the WEIGHING, not chronological age today — the same
+    /// rule the Growth screen's percentile card follows.
     private var latestPercentile: Double? {
-        guard let baby, let weight = latestWeightKg else { return nil }
+        guard let baby, let weighing = latestWeighing else { return nil }
         return WHOGrowthStandard.percentile(
-            weightKg: weight,
-            ageDays: baby.correctedAgeDays,
+            of: weighing,
+            correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
         )
     }

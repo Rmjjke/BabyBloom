@@ -115,4 +115,62 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "percentile.15_50".l)
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(51), "percentile.50_85".l)
     }
+
+    // MARK: - Scored at the weighing, not at the calendar
+
+    /// A day-30 weighing on the day-30 median is the 50th centile, and stays the
+    /// 50th centile however long the app goes unopened afterwards. Scored against
+    /// TODAY'S age instead, the same entry slid downward every morning — movement
+    /// the parent did nothing to cause.
+    func testAWeighingKeepsItsPercentileHoweverStaleItGets() throws {
+        let medianDay30 = 4.452
+        for daysSince in [0, 1, 30, 200] {
+            let today = Date()
+            let birth = Calendar.current.date(byAdding: .day, value: -(30 + daysSince), to: today)!
+            let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+            let p = try XCTUnwrap(WHOGrowthStandard.percentile(
+                of: WeightMeasurement(date: weighed, weightKg: medianDay30),
+                correctedBirthDate: birth,
+                isMale: true
+            ))
+            XCTAssertEqual(p, 50, "opened \(daysSince) days after the weighing")
+        }
+    }
+
+    /// Corrected age still selects the reference, now measured to the weighing
+    /// date rather than to today — the prematurity rule survives the fix.
+    func testTheAgeIsMeasuredFromTheCorrectedBirthDate() {
+        let today = Date()
+        let birth = Calendar.current.date(byAdding: .day, value: -100, to: today)!
+        let corrected = Calendar.current.date(byAdding: .day, value: 56, to: birth)!
+        let weighed = Calendar.current.date(byAdding: .day, value: 90, to: birth)!
+
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: weighed, correctedBirthDate: birth), 90)
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: weighed, correctedBirthDate: corrected), 34)
+        // A weighing taken before the corrected birth date is age zero, never
+        // negative — the same floor `Baby.correctedAgeDays` holds.
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: birth, correctedBirthDate: corrected), 0)
+    }
+
+    // MARK: - The newest WEIGHING, not the newest entry
+
+    /// A height-only entry recorded this morning is newer than every weighing and
+    /// says nothing about weight. Reading the raw newest entry printed "0.00 kg"
+    /// on the Dashboard and made the Growth screen's percentile card vanish.
+    func testAHeightOnlyEntryDoesNotHideTheLastWeighing() throws {
+        let today = Date()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let entries = [
+            GrowthEntry(date: today, weightKg: nil, heightCm: 60.0),
+            GrowthEntry(date: yesterday, weightKg: 5.2, heightCm: nil)
+        ]
+        let weighing = try XCTUnwrap(entries.latestWeighing)
+        XCTAssertEqual(weighing.weightKg, 5.2)
+        XCTAssertEqual(weighing.date, yesterday)
+    }
+
+    func testNoWeighingAtAllStaysNil() {
+        XCTAssertNil([GrowthEntry(date: Date(), weightKg: nil, heightCm: 60.0)].latestWeighing)
+        XCTAssertNil([GrowthEntry]().latestWeighing)
+    }
 }

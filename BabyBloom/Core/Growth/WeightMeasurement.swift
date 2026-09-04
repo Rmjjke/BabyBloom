@@ -21,4 +21,13 @@ extension Array where Element == GrowthEntry {
         }
         .sorted { $0.date < $1.date }
     }
+
+    /// The newest entry that actually carries a weight.
+    ///
+    /// Not `first` (or `last`) of the raw array: a height-only entry recorded
+    /// this morning is newer than every weighing and says nothing about weight.
+    /// Reading the raw newest entry produced both halves of the same defect —
+    /// the Dashboard's stat card printing "0.00 kg" from a coalesced nil, and
+    /// the Growth screen's percentile card disappearing entirely.
+    var latestWeighing: WeightMeasurement? { weightMeasurements.last }
 }
