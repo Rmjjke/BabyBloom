@@ -152,6 +152,42 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: birth, correctedBirthDate: corrected), 0)
     }
 
+    // MARK: - The badge is honest at the edge of the chart
+
+    /// The owner's repro: a weight so far above the chart that the percentile is
+    /// 100 before the clamp. "99" beside the band label "> 97th" reads as a
+    /// measured figure; it is the clamp talking.
+    func testTheBadgeStopsPretendingToPrecisionPastTheClamp() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+
+        let offChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 20.0),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(offChart.percentile, 99, "the ring still draws the clamped value")
+        XCTAssertEqual(offChart.badge, "percentile.badge_above97".l)
+        XCTAssertEqual(WHOGrowthStandard.percentileLabel(offChart.percentile),
+                       "percentile.above97".l, "badge and band label must agree")
+
+        // The bottom edge, symmetrically.
+        let underChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 1.5),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(underChart.badge, "percentile.badge_below3".l)
+    }
+
+    /// Everywhere the tables actually measure something, the badge is the
+    /// number — the honest edge must not swallow ordinary readings.
+    func testAnOrdinaryReadingKeepsItsNumber() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+        let reading = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 4.452),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(reading.percentile, 50)
+        XCTAssertEqual(reading.badge, "50")
+    }
+
     // MARK: - The newest WEIGHING, not the newest entry
 
     /// A height-only entry recorded this morning is newer than every weighing and

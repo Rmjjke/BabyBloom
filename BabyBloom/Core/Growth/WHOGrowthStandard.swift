@@ -130,6 +130,37 @@ enum WHOGrowthStandard {
         )
     }
 
+    /// The two figures the percentile card needs, from one z score.
+    ///
+    /// `percentile` clamps to 1–99, and at the edge of the chart that clamp is
+    /// the only thing speaking: the build-11 report showed a z of +12.45 —
+    /// p = 100 — drawn as a ring badge reading "99" beside the band label
+    /// "> 97th". Both are correct and together they read as a measured figure
+    /// with two digits of precision it does not have. Past the clamp the badge
+    /// names the side of the chart instead and stops there.
+    ///
+    /// Returned as a pair so the ring and its badge can never come from
+    /// different z scores.
+    static func percentileReading(of measurement: WeightMeasurement,
+                                  correctedBirthDate: Date,
+                                  isMale: Bool) -> (percentile: Double, badge: String)? {
+        let ageDays = correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate)
+        guard let z = zScore(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale) else {
+            return nil
+        }
+        let clamped = percentile(fromZ: z)
+        let raw = rawPercentile(fromZ: z)
+        let badge: String
+        if raw > 99.5 {
+            badge = "percentile.badge_above97".l
+        } else if raw < 0.5 {
+            badge = "percentile.badge_below3".l
+        } else {
+            badge = "\(Int(clamped))"
+        }
+        return (clamped, badge)
+    }
+
     // MARK: - Presentation
 
     /// Localized percentile band label. Bands share identical boundaries with

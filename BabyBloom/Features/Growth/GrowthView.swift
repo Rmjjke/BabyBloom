@@ -173,12 +173,13 @@ struct GrowthView: View {
         // measured against the reference for the age it would be at term. And
         // the age ON THE WEIGHING DATE, not today's — see
         // `WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`.
-        if let percentile = WHOGrowthStandard.percentile(
+        if let reading = WHOGrowthStandard.percentileReading(
             of: weighing,
             correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
         ) {
-            percentileCard(percentile: percentile,
+            percentileCard(percentile: reading.percentile,
+                           badge: reading.badge,
                            months: monthsAtWeighing(baby: baby, weighing: weighing),
                            weighedOn: weighing.date)
         } else {
@@ -297,25 +298,29 @@ struct GrowthView: View {
         )
     }
 
-    private func percentileCard(percentile: Double, months: Int, weighedOn: Date) -> some View {
+    /// The WHOLE card opens the explainer, not just the "?" glyph.
+    ///
+    /// A 20pt badge in the corner was the only way in, and the owner reported
+    /// tapping the card and getting nothing (build-11 review). The badge stays
+    /// as the AFFORDANCE — it is what tells a reader the explanation exists —
+    /// but it is no longer a control of its own: a button inside a button gives
+    /// two hit targets that do the same thing and one VoiceOver stop too many.
+    private func percentileCard(percentile: Double, badge: String,
+                                months: Int, weighedOn: Date) -> some View {
         let label = WHOGrowthStandard.percentileLabel(percentile)
         let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
 
-        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+        return Button {
+            showPercentileInfo = true
+        } label: {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HStack {
                 BBTheme.Typography.title3("section.who_percentiles".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
-                Button {
-                    showPercentileInfo = true
-                } label: {
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
-                }
-                .sheet(isPresented: $showPercentileInfo) {
-                    PercentileInfoSheet()
-                }
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
             }
 
             VStack(spacing: BBTheme.Spacing.md) {
@@ -337,7 +342,7 @@ struct GrowthView: View {
                             .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                             .frame(width: 64, height: 64)
                             .rotationEffect(.degrees(-90))
-                        Text("\(Int(percentile))")
+                        Text(badge)
                             .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
                             .foregroundStyle(color)
                     }
@@ -359,6 +364,18 @@ struct GrowthView: View {
             .background(BBTheme.Colors.surface)
             .cornerRadius(BBTheme.Radius.lg)
             .bbShadow(BBTheme.Shadow.card)
+            }
+            // The header's Spacer is empty space, and empty space in a Button's
+            // label is not hittable without this.
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(BBScaleButtonStyle())
+        // The card reads out as one control. Without the hint VoiceOver
+        // announces a wall of figures and then "Button", with nothing saying
+        // what the button does.
+        .accessibilityHint(Text("percentile.info_hint".l))
+        .sheet(isPresented: $showPercentileInfo) {
+            PercentileInfoSheet()
         }
     }
 

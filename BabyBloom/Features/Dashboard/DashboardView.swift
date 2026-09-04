@@ -287,9 +287,12 @@ struct DashboardView: View {
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
                 if store.isPremium, let percentile = latestPercentile {
+                    // `WHOGrowthStandard.percentile` has already rounded and
+                    // clamped; rounding it again was a second, invisible step
+                    // that could only ever disagree with the Growth screen.
                     growthRow(label: "percentile.weight".l,
                               value: String(format: "dashboard.growth.percentile_fmt".l,
-                                            Int(percentile.rounded())),
+                                            Int(percentile)),
                               color: BBTheme.Colors.textPrimary)
                 }
             }
