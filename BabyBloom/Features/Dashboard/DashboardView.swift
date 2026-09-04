@@ -437,16 +437,68 @@ struct DashboardView: View {
     }
 
     // MARK: - Progress
+
+    /// Targets come from the reference tables `FeedingAdequacy` already
+    /// publishes, on CORRECTED age.
+    ///
+    /// They used to be inline literals read off chronological age — 10 feeds
+    /// where the sourced band is 8–12 breast / 6–8 formula, 8 nappies where the
+    /// sourced minimum is 6 — so the same screen could show a ring two thirds
+    /// full above a Growth line saying the counts were within their reference.
+    /// One table, one answer.
     private var progressSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
-            let ageMonths = baby?.ageInMonths ?? 0
-            let targetFeedings: Double = ageMonths < 1 ? 10 : (ageMonths < 3 ? 8 : 6)
-            let targetSleep: Double = ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
-
-            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: targetFeedings, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
-            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: targetSleep, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
-            BBProgressCard(title: "nav.diapers", current: Double(todayDiapers.count), target: ageMonths < 1 ? 8 : 6, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
+            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
+            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
+            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
+    }
+
+    /// The MIDPOINT of the age band, not its lower bound.
+    ///
+    /// The band describes a normal day; its lower bound is the edge below which
+    /// `FeedingAdequacy` starts calling the count low. A ring that filled at the
+    /// lower bound would read as "eight is all this baby needs", which none of
+    /// the cited sources say. The style is derived from what was actually logged
+    /// today, exactly as `FeedingAdequacy` derives it, so a bottle-fed baby is
+    /// not measured against the breastfeeding column.
+    private var feedingTarget: Double {
+        // Past six months `feedingReference` stops, because feed frequency says
+        // little once solids start. This ring is a daily nudge and nothing reads
+        // it downstream, so it keeps the last band rather than vanishing.
+        let ageDays = min(baby?.correctedAgeDays ?? 0, FeedingAdequacy.maxAgeDays)
+        let style = FeedingAdequacy.style(of: todayFeedings.map {
+            FeedingAdequacy.Feed(date: $0.startTime, type: $0.type)
+        })
+        guard let reference = FeedingAdequacy.feedingReference(correctedAgeDays: ageDays,
+                                                               style: style) else {
+            return 8
+        }
+        return ((reference.lowerBound + reference.upperBound) / 2).rounded()
+    }
+
+    /// Wet nappies, against the wet-nappy minimum — the reference is about wet
+    /// nappies specifically, so counting every nappy against it would compare
+    /// two different things and always flatter the total.
+    private var todayWetNappies: Int {
+        todayDiapers.filter { $0.type == .wet || $0.type == .both }.count
+    }
+
+    /// POSTNATAL days, not corrected: the first-week ramp follows the birth,
+    /// which is the rule `FeedingAdequacy` states for this table.
+    private var wetNappyTarget: Double {
+        guard let baby else { return FeedingAdequacy.wetNappyMinimum(postnatalDays: 0) }
+        let postnatalDays = Calendar.current.dateComponents([.day], from: baby.birthDate, to: Date()).day ?? 0
+        return FeedingAdequacy.wetNappyMinimum(postnatalDays: postnatalDays)
+    }
+
+    /// Still a literal, and deliberately marked as one: the app carries no
+    /// sourced sleep-duration table, and inventing a reference to match the two
+    /// beside it would be worse than admitting this one is a rule of thumb.
+    /// The figures follow the usual AAP/NSF ranges for total sleep in 24 hours.
+    private var sleepTarget: Double {
+        let ageMonths = baby?.correctedAgeMonths ?? 0
+        return ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
     }
 }
 
