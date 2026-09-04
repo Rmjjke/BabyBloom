@@ -56,8 +56,11 @@ struct SplashView: View {
                 .position(x: geo.size.width / 2, y: geo.size.height * 0.82)
             }
             .opacity(fadingOut ? 0 : 1)
-            .ignoresSafeArea()
         }
+        // On the READER, not the ZStack: geo must measure the full screen, or
+        // the artwork's explicit frame stops at the safe-area edge and the
+        // insets show as bare-colour bands around it.
+        .ignoresSafeArea()
         .onAppear { play() }
     }
 
