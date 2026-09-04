@@ -197,6 +197,18 @@ struct CentileTrendCard: View {
                 }
             case let .sustainedDrop(spaces):
                 FlagRow(text: String(format: "trend.drop_fmt".l, String(format: "%.1f", spaces)))
+            case .crossingUp:
+                // Neutral by design: an upward crossing is a fact, not a
+                // finding. No tick — that belongs to `.stable` — and none of
+                // `FlagRow`'s alarm chrome either.
+                HStack(spacing: BBTheme.Spacing.sm) {
+                    Image(systemName: "arrow.up.right")
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    Text("trend.crossing_up".l)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }

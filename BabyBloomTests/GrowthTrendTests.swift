@@ -22,6 +22,7 @@ final class GrowthTrendTests: XCTestCase {
     private let medianDay30 = 4.452, medianDay60 = 5.541, medianDay90 = 6.346, medianDay120 = 6.970
     private let minus1SDDay120 = 6.217
     private let minus2SDDay90 = 4.992, minus2SDDay120 = 5.533
+    private let plus2SDDay120 = 8.616
 
     // MARK: - Not enough to say anything
 
@@ -54,6 +55,36 @@ final class GrowthTrendTests: XCTestCase {
     /// app would alarm a parent about something already over.
     func testDipFollowedByRecoveryIsStable() {
         let m = [at(30, medianDay30), at(90, minus2SDDay90), at(120, medianDay120)]
+        XCTAssertEqual(assess(m), .stable)
+    }
+
+    // MARK: - Upward crossing
+
+    /// The build-11 report, in one fixture: a baby tracking the median climbs to
+    /// the top of the chart, and the card said "Holding its centile channel"
+    /// with a green tick. Downward-only is a defensible clinical scope; calling
+    /// a rocket stability is not.
+    func testARapidUpwardCrossingIsNotReportedAsHoldingTheChannel() throws {
+        let m = [at(30, medianDay30), at(60, medianDay60), at(120, plus2SDDay120)]
+        guard case let .crossingUp(spaces) = assess(m) else {
+            return XCTFail("expected an upward crossing, got \(assess(m))")
+        }
+        XCTAssertGreaterThanOrEqual(spaces, GrowthTrend.upwardCrossingSpaces)
+        XCTAssertEqual(spaces, 3, accuracy: 0.4)
+    }
+
+    /// An upward crossing is never a flag, whatever the birth centile: the NICE
+    /// scaling is about how far a baby can afford to FALL and has no business
+    /// deciding this. Same data, same verdict, both ends of the scale.
+    func testTheUpwardThresholdDoesNotScaleWithBirthCentile() {
+        let m = [at(30, medianDay30), at(60, medianDay60), at(120, plus2SDDay120)]
+        XCTAssertEqual(assess(m, birthPercentile: 5), assess(m, birthPercentile: 95))
+    }
+
+    /// A rise inside the threshold is still stability — the new case must not
+    /// turn every good week into an announcement.
+    func testAModestRiseIsStillStable() {
+        let m = [at(30, medianDay30), at(60, medianDay60), at(120, 7.3)]
         XCTAssertEqual(assess(m), .stable)
     }
 

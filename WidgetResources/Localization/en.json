@@ -204,6 +204,7 @@
   "velocity.no_reference": "WHO gain references end at 12 months",
   "section.trend": "Centile Trend",
   "trend.stable": "Holding its centile channel",
+  "trend.crossing_up": "Crossing centile channels upward",
   "trend.drop_fmt": "Dropped about %@ centile spaces. Worth discussing with your pediatrician.",
   "trend.insufficient": "Three weighings over at least four weeks are needed",
   "premium.locked_hint": "Available with Premium",
