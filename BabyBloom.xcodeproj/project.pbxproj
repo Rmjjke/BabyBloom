@@ -41,6 +41,7 @@
 		40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		40F099D6E749944BC8D2C8A8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4ACFA220FE675C3DDDAC7265 /* PrivacyInfo.xcprivacy */; };
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
+		48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD4BA37056F98A21BACCC4E /* StatusWord.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
 		4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */; };
@@ -258,6 +259,7 @@
 		D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythm.swift; sourceTree = "<group>"; };
 		DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBHistorySection.swift; sourceTree = "<group>"; };
 		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DCD4BA37056F98A21BACCC4E /* StatusWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusWord.swift; sourceTree = "<group>"; };
 		DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFactsTests.swift; sourceTree = "<group>"; };
 		DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
@@ -567,6 +569,7 @@
 				9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */,
 				0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */,
 				582657DC180DE03128A75629 /* NewbornWeightLoss.swift */,
+				DCD4BA37056F98A21BACCC4E /* StatusWord.swift */,
 				001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */,
 				3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */,
 				9C25B2EC0FCAB1DDE48B3F66 /* WHOGrowthStandard.swift */,
@@ -916,6 +919,7 @@
 				40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */,
 				9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */,
 				73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */,
+				48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */,
 				C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */,
 				2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */,
 				75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */,

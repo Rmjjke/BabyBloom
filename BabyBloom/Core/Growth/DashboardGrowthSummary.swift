@@ -15,8 +15,11 @@ enum DashboardGrowthSummary {
     /// is not the same statement as "not enough data yet", and neither is a
     /// verdict.
     enum Gain: Equatable {
-        /// The calm word — `FeedingAdequacy`'s own vocabulary, never a number.
-        case word(FeedingAdequacy.Signal)
+        /// The calm word — never a number. `StatusWord`, not
+        /// `FeedingAdequacy.Signal`: the signal collapses an above-reference
+        /// gain into `.within` for the breakdown gate, which is right for the
+        /// gate and wrong for the sentence a parent reads.
+        case word(StatusWord)
         /// Inside the age the reference covers, but only one weighing so far.
         /// An invitation to weigh again, not a finding.
         case needsAnotherWeighing
@@ -34,9 +37,13 @@ enum DashboardGrowthSummary {
     /// - Parameters:
     ///   - latestWeightKg: newest recorded weight, nil when none exists.
     ///   - assessment: `FeedingAdequacy`'s verdict, nil when it cannot be made.
+    ///   - band: `WeightVelocity.latest(...)?.band` over the same two
+    ///     weighings the assessment covers. It only ever splits the WORD;
+    ///     nothing about the breakdown gate is decided here.
     ///   - withinReferenceAge: `correctedAgeDays <= FeedingAdequacy.maxAgeDays`.
     static func free(latestWeightKg: Double?,
                      assessment: FeedingAdequacy.Assessment?,
+                     band: WeightVelocity.Band?,
                      withinReferenceAge: Bool) -> Free {
         guard let weightKg = latestWeightKg else { return .invitation }
 
@@ -44,8 +51,9 @@ enum DashboardGrowthSummary {
         if !withinReferenceAge {
             gain = .unavailable
         } else if let assessment {
-            // `.gain` and nothing else — see this type's doc comment.
-            gain = .word(assessment.gain)
+            // `.gain` and nothing else — see this type's doc comment. The band
+            // is not a fourth signal: it re-reads the same weight gain.
+            gain = .word(StatusWord.of(assessment.gain, band: band))
         } else {
             gain = .needsAnotherWeighing
         }

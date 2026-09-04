@@ -7,11 +7,16 @@ import SwiftUI
 /// reinforcement only, so the row survives greyscale and VoiceOver.
 struct NutritionSection: View {
     let assessment: FeedingAdequacy.Assessment?
+    /// The gain band over the same two weighings the assessment covers. Passed
+    /// in rather than derived here so this stays a pure render, and required
+    /// rather than defaulted so a new call site cannot silently reintroduce the
+    /// contradiction it exists to fix — see `StatusWord`.
+    let band: WeightVelocity.Band?
 
     /// Drives the row layout only — never a font size. At an accessibility size
     /// the label and its status cannot share a line without one of them being
     /// proposed a width narrower than its own longest word, and SwiftUI answers
-    /// that by breaking INSIDE the word. See `row(icon:tint:label:value:signal:)`.
+    /// that by breaking INSIDE the word. See `row(icon:tint:label:value:word:)`.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -27,13 +32,16 @@ struct NutritionSection: View {
                     // The gain row shows STATUS ONLY. Grams per week stay in the
                     // Premium WeightGainCard, where they already are.
                     row(icon: "chart.line.uptrend.xyaxis", tint: BBTheme.Colors.growth,
-                        label: "nutrition.row_gain".l, value: nil, signal: assessment.gain)
+                        label: "nutrition.row_gain".l, value: nil,
+                        word: StatusWord.of(assessment.gain, band: band))
                     row(icon: "heart.fill", tint: BBTheme.Colors.feeding,
                         label: "nutrition.row_feeds".l,
-                        value: assessment.feedingsPerDay, signal: assessment.feeding)
+                        value: assessment.feedingsPerDay,
+                        word: StatusWord.of(assessment.feeding, band: nil))
                     row(icon: "drop.fill", tint: BBTheme.Colors.diaper,
                         label: "nutrition.row_nappies".l,
-                        value: assessment.wetNappiesPerDay, signal: assessment.nappies)
+                        value: assessment.wetNappiesPerDay,
+                        word: StatusWord.of(assessment.nappies, band: nil))
                 }
             } else {
                 HintText(text: "nutrition.need_weighing".l)
@@ -73,14 +81,14 @@ struct NutritionSection: View {
     /// user, who cannot see that the status has moved onto its own line.
     @ViewBuilder
     private func row(icon: String, tint: Color, label: String,
-                     value: Double?, signal: FeedingAdequacy.Signal) -> some View {
+                     value: Double?, word: StatusWord) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                     iconView(icon, tint: tint)
                     labelView(label)
                 }
-                statusView(value: value, signal: signal)
+                statusView(value: value, word: word)
                     .multilineTextAlignment(.leading)
                     // Hangs under the label rather than under the icon, so the
                     // pair still reads as one row and not as two entries.
@@ -93,7 +101,7 @@ struct NutritionSection: View {
                 iconView(icon, tint: tint)
                 labelView(label)
                 Spacer(minLength: BBTheme.Spacing.sm)
-                statusView(value: value, signal: signal)
+                statusView(value: value, word: word)
                     .multilineTextAlignment(.trailing)
             }
             .accessibilityElement(children: .combine)
@@ -126,32 +134,32 @@ struct NutritionSection: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func statusView(value: Double?, signal: FeedingAdequacy.Signal) -> some View {
-        Text(statusText(value: value, signal: signal))
+    private func statusView(value: Double?, word: StatusWord) -> some View {
+        Text(statusText(value: value, word: word))
             .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
                                             weight: .semibold, design: .rounded))
-            .foregroundStyle(color(for: signal))
+            .foregroundStyle(color(for: word))
             .fixedSize(horizontal: false, vertical: true)
     }
 
     /// A value is shown only when there IS one. `notEnoughData` must never
     /// render as "0 a day" — that would tell a parent their baby fed zero times
     /// when in truth they simply did not log.
-    private func statusText(value: Double?, signal: FeedingAdequacy.Signal) -> String {
-        let status: String
-        switch signal {
-        case .below:         status = "nutrition.status_below".l
-        case .within:        status = "nutrition.status_within".l
-        case .notEnoughData: return "nutrition.status_unknown".l
-        }
+    private func statusText(value: Double?, word: StatusWord) -> String {
+        let status = word.localizationKey.l
+        // `notEnoughData` carries no figure by construction, so the guard below
+        // covers it; spelling it out again would be a second rule to keep.
         guard let value else { return status }
         return String(format: "nutrition.per_day_fmt".l, value.appRate) + " · " + status
     }
 
-    private func color(for signal: FeedingAdequacy.Signal) -> Color {
-        switch signal {
+    /// `.above` takes the neutral primary tint, matching `WeightGainCard`:
+    /// gaining faster than the reference is neither a worry nor a tick.
+    private func color(for word: StatusWord) -> Color {
+        switch word {
         case .below:         return BBTheme.Colors.accent
         case .within:        return BBTheme.Colors.success
+        case .above:         return BBTheme.Colors.textPrimary
         case .notEnoughData: return BBTheme.Colors.textSecondary
         }
     }

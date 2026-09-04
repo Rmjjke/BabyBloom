@@ -409,6 +409,7 @@
   "nutrition.row_nappies": "Pañales mojados",
   "nutrition.status_below": "por debajo de la referencia",
   "nutrition.status_within": "dentro de la referencia",
+  "nutrition.status_above": "por encima de la referencia",
   "nutrition.status_unknown": "faltan datos",
   "nutrition.per_day_fmt": "%@ al día",
   "nutrition.need_weighing": "Se necesitan dos pesajes con al menos un día de diferencia",

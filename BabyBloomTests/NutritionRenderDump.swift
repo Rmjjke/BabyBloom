@@ -186,10 +186,10 @@ final class NutritionRenderDump: XCTestCase {
                 LocalizationManager.shared.setLanguage(locale)
                 let below = try state(.below)
                 let reading = try XCTUnwrap(velocity(.below))
-                try dump("\(locale)-below", NutritionSection(assessment: below))
+                try dump("\(locale)-below", NutritionSection(assessment: below, band: reading.band))
                 // `HintText` is a literal `.system(size: 13)`, so this one is
                 // here to SHOW whether the hint scales rather than to argue it.
-                try dump("\(locale)-needs-weighing", NutritionSection(assessment: nil))
+                try dump("\(locale)-needs-weighing", NutritionSection(assessment: nil, band: nil))
                 // Also alone, so a layout fault seen in the stack can be told
                 // apart from one the card has on its own.
                 try dump("\(locale)-breakdown",
@@ -211,20 +211,20 @@ final class NutritionRenderDump: XCTestCase {
             XCTAssertEqual(calm.gain, .within, "\(locale)-calm must be the reassuring state")
             XCTAssertEqual(calm.feeding, .within)
             XCTAssertEqual(calm.nappies, .within)
-            try dump("\(locale)-calm", NutritionSection(assessment: calm))
+            try dump("\(locale)-calm", NutritionSection(assessment: calm, band: velocity(.calm)?.band))
 
             let below = try state(.below)
             XCTAssertEqual(below.gain, .below, "\(locale)-below must be the state the feature exists for")
             XCTAssertEqual(below.feeding, .below)
             XCTAssertEqual(below.nappies, .below)
             XCTAssertTrue(below.warrantsBreakdown)
-            try dump("\(locale)-below", NutritionSection(assessment: below))
+            try dump("\(locale)-below", NutritionSection(assessment: below, band: velocity(.below)?.band))
 
             let sparse = try state(.sparse)
             XCTAssertEqual(sparse.feeding, .below)
             XCTAssertEqual(sparse.nappies, .notEnoughData, "\(locale)-sparse must have an unknown nappy signal")
             XCTAssertNil(sparse.wetNappiesPerDay, "an unlogged signal must carry no number to print")
-            try dump("\(locale)-sparse", NutritionSection(assessment: sparse))
+            try dump("\(locale)-sparse", NutritionSection(assessment: sparse, band: velocity(.sparse)?.band))
 
             // The fifth state: a window the adequacy module accepts and the
             // velocity module does not.
@@ -233,12 +233,12 @@ final class NutritionRenderDump: XCTestCase {
             XCTAssertEqual(short.feeding, .within, "feeds must still carry a real figure")
             XCTAssertEqual(short.nappies, .within, "nappies must still carry a real figure")
             XCTAssertNil(velocity(.shortWindow), "the gain row's emptiness must come from the real code path")
-            try dump("\(locale)-short-window", NutritionSection(assessment: short))
+            try dump("\(locale)-short-window", NutritionSection(assessment: short, band: velocity(.shortWindow)?.band))
 
             // Fewer than two weighings: a different nil, and a different screen.
             XCTAssertNil(assessment(from: [WeightMeasurement(date: day(30), weightKg: 4.0)],
                                     feeds: [], nappies: [], now: day(30)))
-            try dump("\(locale)-needs-weighing", NutritionSection(assessment: nil))
+            try dump("\(locale)-needs-weighing", NutritionSection(assessment: nil, band: nil))
 
             // Premium half.
             let reading = try XCTUnwrap(velocity(.below))
@@ -356,7 +356,7 @@ final class NutritionRenderDump: XCTestCase {
                                reading: WeightVelocity.Reading?) -> some View {
         VStack(spacing: BBTheme.Spacing.lg) {
             WeightGainCard(reading: reading)
-            NutritionSection(assessment: assessment)
+            NutritionSection(assessment: assessment, band: reading?.band)
             // Gated exactly as `GrowthView` gates it. Rendering it
             // unconditionally would put "Gain is below the reference" under a
             // calm gain figure — a screen the product cannot produce, and the

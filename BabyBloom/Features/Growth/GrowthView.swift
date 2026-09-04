@@ -250,17 +250,17 @@ struct GrowthView: View {
         // makes that state reachable at all.
         if baby.correctedAgeDays <= FeedingAdequacy.maxAgeDays {
             let assessment = adequacy(baby)
-            NutritionSection(assessment: assessment)
+            // One reading for both cards: the section's gain WORD and the
+            // breakdown's figure have to describe the same pair of weighings.
+            let reading = WeightVelocity.latest(
+                measurements: measurements,
+                correctedBirthDate: baby.correctedBirthDate,
+                isMale: baby.gender == .male
+            )
+            NutritionSection(assessment: assessment, band: reading?.band)
             if let assessment, assessment.warrantsBreakdown {
                 if store.isPremium {
-                    FeedingBreakdownCard(
-                        assessment: assessment,
-                        reading: WeightVelocity.latest(
-                            measurements: measurements,
-                            correctedBirthDate: baby.correctedBirthDate,
-                            isMale: baby.gender == .male
-                        )
-                    )
+                    FeedingBreakdownCard(assessment: assessment, reading: reading)
                 } else {
                     LockedInsightCard(
                         title: "breakdown.title".l,

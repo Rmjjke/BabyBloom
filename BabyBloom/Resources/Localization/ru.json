@@ -409,6 +409,7 @@
   "nutrition.row_nappies": "Мокрые подгузники",
   "nutrition.status_below": "ниже ориентира",
   "nutrition.status_within": "в пределах ориентира",
+  "nutrition.status_above": "выше ориентира",
   "nutrition.status_unknown": "мало данных",
   "nutrition.per_day_fmt": "%@ в сутки",
   "nutrition.need_weighing": "Нужны два взвешивания с интервалом от одного дня",

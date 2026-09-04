@@ -302,10 +302,10 @@ struct DashboardView: View {
     @ViewBuilder
     private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
         switch gain {
-        case .word(let signal):
+        case .word(let word):
             growthRow(label: "nutrition.row_gain".l,
-                      value: gainValue(signal),
-                      color: gainColor(signal))
+                      value: gainValue(word),
+                      color: gainColor(word))
         case .needsAnotherWeighing:
             HintText(text: "nutrition.need_weighing".l)
         case .unavailable:
@@ -318,28 +318,23 @@ struct DashboardView: View {
     /// Premium prepends the figure to the same word the free line already
     /// shows, rather than replacing it: one vocabulary across the app, and the
     /// paid half reads as an addition instead of a different verdict.
-    private func gainValue(_ signal: FeedingAdequacy.Signal) -> String {
-        let word = statusWord(signal)
-        guard store.isPremium, let reading = gainReading else { return word }
+    private func gainValue(_ word: StatusWord) -> String {
+        let status = word.localizationKey.l
+        guard store.isPremium, let reading = gainReading else { return status }
         let grams = Int(reading.gramsPerWeek.rounded())
         let signed = grams > 0 ? "+\(grams)" : "\(grams)"
-        return String(format: "velocity.per_week_fmt".l, signed) + " · " + word
-    }
-
-    private func statusWord(_ signal: FeedingAdequacy.Signal) -> String {
-        switch signal {
-        case .below:         return "nutrition.status_below".l
-        case .within:        return "nutrition.status_within".l
-        case .notEnoughData: return "nutrition.status_unknown".l
-        }
+        return String(format: "velocity.per_week_fmt".l, signed) + " · " + status
     }
 
     /// `NutritionSection`'s mapping, unchanged: colour reinforces the word and
-    /// never carries the message on its own, and nothing here is red.
-    private func gainColor(_ signal: FeedingAdequacy.Signal) -> Color {
-        switch signal {
+    /// never carries the message on its own, and nothing here is red. `.above`
+    /// takes the neutral `WeightGainCard` tint rather than the reassuring
+    /// green — gaining fast is not a problem, and it is not a tick either.
+    private func gainColor(_ word: StatusWord) -> Color {
+        switch word {
         case .below:         return BBTheme.Colors.accent
         case .within:        return BBTheme.Colors.success
+        case .above:         return BBTheme.Colors.textPrimary
         case .notEnoughData: return BBTheme.Colors.textSecondary
         }
     }
@@ -389,6 +384,7 @@ struct DashboardView: View {
         DashboardGrowthSummary.free(
             latestWeightKg: latestWeightKg,
             assessment: adequacy,
+            band: gainReading?.band,
             withinReferenceAge: (baby?.correctedAgeDays ?? 0) <= FeedingAdequacy.maxAgeDays
         )
     }

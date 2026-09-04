@@ -30,6 +30,7 @@ final class DashboardGrowthSummaryTests: XCTestCase {
         let summary = DashboardGrowthSummary.free(
             latestWeightKg: 4.2,
             assessment: assessment(gain: .within, feeding: .below, nappies: .below),
+            band: .within,
             withinReferenceAge: true
         )
         XCTAssertEqual(summary, .summary(weightKg: 4.2, gain: .word(.within)))
@@ -41,9 +42,39 @@ final class DashboardGrowthSummaryTests: XCTestCase {
         let summary = DashboardGrowthSummary.free(
             latestWeightKg: 4.2,
             assessment: assessment(gain: .below, feeding: .within, nappies: .within),
+            band: .below,
             withinReferenceAge: true
         )
         XCTAssertEqual(summary, .summary(weightKg: 4.2, gain: .word(.below)))
+    }
+
+    /// The build-11 contradiction, in one assertion: `FeedingAdequacy` collapses
+    /// an above-reference gain into `Signal.within` — deliberately, because that
+    /// collapse IS the breakdown gate (DECISIONS 2026-08-25) — and the Dashboard
+    /// used to print the collapsed word, so a `+10267 g/week` gain read "within
+    /// the reference" in green while the Growth screen said "above" it. The gate
+    /// is untouched; the word is not the gate's to decide.
+    func testGainAboveTheReferenceIsNotCalledWithinIt() {
+        let summary = DashboardGrowthSummary.free(
+            latestWeightKg: 8.8,
+            assessment: assessment(gain: .within, feeding: .within, nappies: .within),
+            band: .above,
+            withinReferenceAge: true
+        )
+        XCTAssertEqual(summary, .summary(weightKg: 8.8, gain: .word(.above)))
+    }
+
+    /// The pinning half of the same rule: a gain that really is inside the band
+    /// still reads as inside it. `.above` must split off ONLY when the band says
+    /// above — not whenever a band happens to be present.
+    func testGainInsideTheBandKeepsTheCalmWord() {
+        let summary = DashboardGrowthSummary.free(
+            latestWeightKg: 4.2,
+            assessment: assessment(gain: .within, feeding: .within, nappies: .within),
+            band: .within,
+            withinReferenceAge: true
+        )
+        XCTAssertEqual(summary, .summary(weightKg: 4.2, gain: .word(.within)))
     }
 
     // MARK: - The states that are not verdicts
@@ -52,6 +83,7 @@ final class DashboardGrowthSummaryTests: XCTestCase {
         let summary = DashboardGrowthSummary.free(
             latestWeightKg: nil,
             assessment: nil,
+            band: nil,
             withinReferenceAge: true
         )
         XCTAssertEqual(summary, .invitation)
@@ -61,6 +93,7 @@ final class DashboardGrowthSummaryTests: XCTestCase {
         let summary = DashboardGrowthSummary.free(
             latestWeightKg: 3.5,
             assessment: nil,
+            band: nil,
             withinReferenceAge: true
         )
         XCTAssertEqual(summary, .summary(weightKg: 3.5, gain: .needsAnotherWeighing))
@@ -72,6 +105,7 @@ final class DashboardGrowthSummaryTests: XCTestCase {
         let summary = DashboardGrowthSummary.free(
             latestWeightKg: 8.1,
             assessment: assessment(gain: .below, feeding: .below, nappies: .below),
+            band: .below,
             withinReferenceAge: false
         )
         XCTAssertEqual(summary, .summary(weightKg: 8.1, gain: .unavailable))

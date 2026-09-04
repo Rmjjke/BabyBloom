@@ -409,6 +409,7 @@
   "nutrition.row_nappies": "Wet diapers",
   "nutrition.status_below": "below the reference",
   "nutrition.status_within": "within the reference",
+  "nutrition.status_above": "above the reference",
   "nutrition.status_unknown": "not enough data",
   "nutrition.per_day_fmt": "%@ a day",
   "nutrition.need_weighing": "Two weighings at least a day apart are needed",
