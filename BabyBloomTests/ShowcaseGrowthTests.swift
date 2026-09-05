@@ -38,11 +38,11 @@ final class ShowcaseGrowthTests: XCTestCase {
                                                       ageDays: ageDays,
                                                       isMale: SeedScenario.showcaseIsMale)
         XCTAssertNotNil(percentile, "A weighing the tables cannot score renders the out-of-range card.")
-        // "#E05A5A" is the red the brief rules out; it is returned below the 3rd
-        // centile. Asserting on the colour rather than on a number keeps this
+        // `.beyond` is the tier the brief rules out; it is returned below the
+        // 3rd centile. Asserting on the tier rather than on a number keeps this
         // test honest if the band edges are ever retuned.
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(percentile!), "#6BBF6B",
-                       "The 2-month weight must land in a green band, not amber and not red.")
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(percentile!), .typical,
+                       "The 2-month weight must land in the typical tier, not at an edge and not beyond one.")
     }
 
     func testEveryWeighingIsScorableAndAboveTheThirdCentile() {

@@ -125,6 +125,14 @@ this app has to stay calm. The same reasoning covers `WeightVelocity.Band
 .above`, which takes the neutral primary tint rather than the green "within"
 tick: fast gain is not a worry, and it is not an achievement either.
 
+**Consequence.** The palette gained `BBAlert`, and red became a token instead
+of the `#E05A5A` literal repeated across the growth cards. Having exactly one
+name for it is the point: the colour now has a stated meaning — the growth
+flags and the tails of the percentile chart, never a count — and a fourth
+surface reaching for red has to justify itself against that sentence rather
+than copy a hex code. Re-theming still means editing colorsets; there is now
+one more of them.
+
 ## 2026-09-02 — Advancing on entitlement belongs to the paywall's HOST, not to its purchase button
 
 `PlanPickerSection` has no `onPurchased` callback. `PremiumPage` observes

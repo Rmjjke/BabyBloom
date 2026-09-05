@@ -308,7 +308,7 @@ struct GrowthView: View {
     private func percentileCard(percentile: Double, badge: String,
                                 months: Int, weighedOn: Date) -> some View {
         let label = WHOGrowthStandard.percentileLabel(percentile)
-        let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
+        let color = WHOGrowthStandard.percentileTint(percentile).color
 
         return Button {
             showPercentileInfo = true

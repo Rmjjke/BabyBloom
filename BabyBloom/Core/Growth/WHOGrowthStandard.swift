@@ -179,7 +179,7 @@ enum WHOGrowthStandard {
     // MARK: - Presentation
 
     /// Localized percentile band label. Bands share identical boundaries with
-    /// `percentileColor`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
+    /// `percentileTint`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
     static func percentileLabel(_ percentile: Double) -> String {
         switch percentile {
         case ..<3:  return "percentile.below3".l
@@ -191,16 +191,33 @@ enum WHOGrowthStandard {
         }
     }
 
-    /// Band color. Boundaries are identical to `percentileLabel` (3 / 15 / 50 / 85 / 97):
-    /// green in the healthy 15–85 range, orange at the edges, red beyond 3 / 97.
-    static func percentileColor(_ percentile: Double) -> String {
+    /// How far from the middle of the chart a percentile sits, for the surfaces
+    /// that tint it. Three tiers where `percentileLabel` names six bands: the
+    /// words say which band, the colour only says how far out.
+    ///
+    /// Returned as a case rather than a colour because this file is pure domain
+    /// logic and must not import SwiftUI (see ARCHITECTURE.md). The mapping to
+    /// actual tints lives with the views, in `BBTheme` tokens — it used to be
+    /// three hex literals here, which had no dark variant and rendered beside
+    /// the tokenized mint of the gain card on the very same screen.
+    enum PercentileTint: Equatable {
+        /// 15–85, the range the app calls normal.
+        case typical
+        /// 3–15 and 85–97 — worth noticing, not worth alarming over.
+        case edge
+        /// Below 3 or above 97, where the app says to ask someone qualified.
+        case beyond
+    }
+
+    /// Boundaries identical to `percentileLabel` (3 / 15 / 50 / 85 / 97), so a
+    /// reading can never read "normal" while showing the tint of a tail.
+    static func percentileTint(_ percentile: Double) -> PercentileTint {
         switch percentile {
-        case ..<3:  return "#E05A5A"
-        case ...15: return "#F5A45F"
-        case ...50: return "#6BBF6B"
-        case ...85: return "#6BBF6B"
-        case ...97: return "#F5A45F"
-        default:    return "#E05A5A"
+        case ..<3:  return .beyond
+        case ...15: return .edge
+        case ...85: return .typical
+        case ...97: return .edge
+        default:    return .beyond
         }
     }
 

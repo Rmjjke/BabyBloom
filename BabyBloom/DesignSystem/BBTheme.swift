@@ -17,6 +17,10 @@ enum BBTheme {
         static let background = Color("BBBackground")
         /// Mint green — success
         static let success = Color("BBSuccess")
+        /// Muted red — the one tint that means "raise this with someone".
+        /// Deliberately rare: it belongs to the growth flags and to the tails of
+        /// the percentile chart, and to nothing that is merely a count.
+        static let alert = Color("BBAlert")
         /// White / dark surface
         static let surface = Color("BBSurface")
         static let textPrimary = Color("BBTextPrimary")

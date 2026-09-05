@@ -102,15 +102,14 @@ final class WHOGrowthStandardTests: XCTestCase {
     /// Labels and colors must switch at the same 3 / 15 / 50 / 85 / 97 boundaries,
     /// otherwise a reading can read "normal" while showing red.
     func testLabelAndColorBoundariesAgree() {
-        let green = "#6BBF6B", orange = "#F5A45F", red = "#E05A5A"
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(2), red)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(3), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(15), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(16), green)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(85), green)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(86), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(97), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(98), red)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(2), .beyond)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(3), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(15), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(16), .typical)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(85), .typical)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(86), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(97), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(98), .beyond)
 
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "percentile.15_50".l)
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(51), "percentile.50_85".l)

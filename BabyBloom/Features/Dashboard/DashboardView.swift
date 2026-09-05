@@ -474,17 +474,29 @@ struct DashboardView: View {
         return ((band.lowerBound + band.upperBound) / 2).rounded()
     }
 
-    /// Derived from the WHOLE feeding log, not from today's entries.
+    /// Derived from a BOUNDED RECENT window, not from today's entries and not
+    /// from the lifetime log.
     ///
     /// Today's log is empty at breakfast and dominated by whatever happened
     /// since, so a style read off it flips as the day goes on — and with it the
     /// ring's denominator, which was observed swinging 9 → 10 → 7 between
-    /// glances. The adequacy call on this same screen already reads `feedings`
-    /// in full; one screen, one answer about how this baby is fed.
+    /// glances. The lifetime log has the opposite fault: a baby weaned onto
+    /// bottles last month is still mostly breastfeeds by volume, and the ring
+    /// would keep answering with a style the baby has left behind.
+    ///
+    /// So it takes the same window the Growth screen's answer is built on —
+    /// `FeedingAdequacy.assess` derives its style from the feeds inside
+    /// `window(for:)`, between the two most recent weighings — and the two
+    /// surfaces agree by construction. Before there are two weighings there is
+    /// no such window, and a fortnight stands in: long enough to survive a quiet
+    /// morning, short enough that a change in how this baby is fed reaches the
+    /// ring while it is still news.
     private var feedingStyle: FeedingAdequacy.FeedingStyle {
-        FeedingAdequacy.style(of: feedings.map {
-            FeedingAdequacy.Feed(date: $0.startTime, type: $0.type)
-        })
+        let fallback = DateInterval(start: Date().addingTimeInterval(-14 * 86_400), end: Date())
+        let window = FeedingAdequacy.window(for: growthEntries.weightMeasurements) ?? fallback
+        return FeedingAdequacy.style(of: feedings
+            .filter { window.contains($0.startTime) }
+            .map { FeedingAdequacy.Feed(date: $0.startTime, type: $0.type) })
     }
 
     /// Wet nappies, against the wet-nappy minimum — the reference is about wet
