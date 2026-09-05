@@ -58,6 +58,39 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertEqual(assess(m), .stable)
     }
 
+    /// The fall's mirror of the wobble defect, and the last way a single
+    /// weighing bought back the green tick.
+    ///
+    /// The baby fell from the median to three SD below and then came back
+    /// thirty grams. That made it no longer the lowest reading of its series, so
+    /// the old `latest <= scores.min()` guard sent it to `.stable` — a green
+    /// "holding its channel" tick for a baby sitting about four centile spaces
+    /// under its own peak.
+    func testAWobbleAtTheBottomDoesNotRestoreTheGreenTick() throws {
+        let m = [at(30, medianDay30), at(90, minus2SDDay90), at(120, 5.55)]
+
+        let z90 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: minus2SDDay90, ageDays: 90, isMale: true))
+        let z120 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: 5.55, ageDays: 120, isMale: true))
+        XCTAssertGreaterThan(z120, z90, "the last weighing must be a recovery, or this tests nothing")
+        XCTAssertLessThan(z120, -2 * GrowthTrend.zPerCentileSpace,
+                          "and must still sit two full spaces below the median it started at")
+
+        guard case let .sustainedDrop(spaces) = assess(m) else {
+            return XCTFail("a wobble at the bottom is still a fall, got \(assess(m))")
+        }
+        XCTAssertGreaterThanOrEqual(spaces, 2)
+    }
+
+    /// The case the dropped guard was written for, which arithmetic already
+    /// covers: a dip that has recovered all the way to its starting centile has
+    /// `peak - latest ≈ 0` and needs no guard to stay calm. Kept beside its
+    /// half-recovered sibling above so the difference between them is a fixture
+    /// rather than an argument.
+    func testAFullyRecoveredDipNeedsNoGuardToStayStable() {
+        XCTAssertEqual(assess([at(30, medianDay30), at(90, minus2SDDay90), at(120, medianDay120)]),
+                       .stable)
+    }
+
     // MARK: - Upward crossing
 
     /// The build-11 report, in one fixture: a baby tracking the median climbs to
@@ -104,7 +137,10 @@ final class GrowthTrendTests: XCTestCase {
         let z120 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: plus2SDDay120, ageDays: 120, isMale: true))
         let z150 = try XCTUnwrap(WHOGrowthStandard.zScore(weightKg: 8.85, ageDays: 150, isMale: true))
         XCTAssertLessThan(z150, z120, "the last weighing must be a dip, or this tests nothing")
-        XCTAssertGreaterThan(z150, 1.3, "and must still sit well above the median it started at")
+        // Two centile spaces above the median start, expressed in z: the
+        // pre-assertion has to IMPLY the verdict below, not merely gesture at it.
+        XCTAssertGreaterThan(z150, 2 * GrowthTrend.zPerCentileSpace,
+                             "and must still sit two full spaces above the median it started at")
 
         guard case let .crossingUp(spaces) = assess(m) else {
             return XCTFail("a wobble at the top is still a crossing, got \(assess(m))")
@@ -162,10 +198,14 @@ final class GrowthTrendTests: XCTestCase {
     }
 
     /// The bound's deliberate blind spot, pinned so it is a choice and not a
-    /// surprise: a fall slow enough to stay under two centile spaces inside
-    /// every 180-day window is never reported, however far it travels. NICE's
-    /// thresholds describe a fall over weeks to months; catching this one would
-    /// mean restoring the permanent flag the bound exists to remove.
+    /// surprise: a fall spread over several weighings, each step small enough
+    /// that no eligible peak sits a full threshold above the latest reading, is
+    /// never reported however far it travels in total. NICE's thresholds
+    /// describe a fall over weeks to months; catching this one would mean
+    /// restoring the permanent flag the bound exists to remove.
+    ///
+    /// Note what is NOT blind: a fall between two readings 200 days apart is
+    /// reported, because the window always keeps the two most recent weighings.
     func testASlowFallSpreadOverYearsIsDeliberatelyNotReported() throws {
         let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
         let m = [onOldTimeline(old, 60, 6.2), onOldTimeline(old, 250, 8.3),
@@ -197,6 +237,28 @@ final class GrowthTrendTests: XCTestCase {
         }
     }
 
+    /// A verdict is never computed over a two-day pair.
+    ///
+    /// Weighed at birth, at a month, then twice in one week: the whole-record
+    /// gates pass on four readings across 252 days, and a plain lookback cutoff
+    /// left the comparison holding nothing but the last two — 2 days apart,
+    /// where a full nappy outweighs a fortnight of growth. The window now widens
+    /// backwards until it spans four weeks, so the day-30 reading is in it and
+    /// the verdict is measured across 222 days.
+    ///
+    /// Pinned through the RISE, which is where widening can change an answer: on
+    /// the two-day pair alone the baby appears to have climbed 2.6 spaces off a
+    /// low start and the card would announce a crossing; measured from day 30 it
+    /// has gone nowhere.
+    func testAVerdictIsNeverComputedOverATwoDayPair() {
+        let old = Calendar.current.date(byAdding: .day, value: -300, to: Date())!
+        // z ≈ 0 at day 30, a dip at day 250, back to about the start at day 252.
+        let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
+                 onOldTimeline(old, 250, 6.9), onOldTimeline(old, 252, 8.6)]
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 50), .stable)
+    }
+
     // MARK: - NICE thresholds scale with birth centile
 
     func testThresholdDependsOnBirthCentile() {
@@ -223,5 +285,35 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertEqual(spaces, 1.5, accuracy: 0.2)
 
         XCTAssertEqual(assess(m, birthPercentile: 50), .stable)
+    }
+
+    /// The other half of the same fixture, recorded rather than suppressed: a
+    /// transposed weight (9.7 kg then 7.9 kg two days later) IS reported.
+    ///
+    /// Widening the window cannot prevent this and no version of the fix could:
+    /// widening only ever adds older readings to the set `peak` maximises over,
+    /// so it can only raise the peak and only increase the drop. What it does
+    /// change is the comparison behind the number — 2.86 spaces measured across
+    /// 222 days from the day-30 reading, not across the two-day pair.
+    ///
+    /// And the flag is right. The app cannot tell a transposed digit from a real
+    /// 1.8 kg loss, and of the two readings of that data one is a clerical error
+    /// the parent will spot on the history screen while the other is an
+    /// emergency. "Worth discussing with your pediatrician" is the correct
+    /// output for both.
+    func testALargeSuddenLossIsReportedRatherThanSmoothedAway() throws {
+        let old = Calendar.current.date(byAdding: .day, value: -300, to: Date())!
+        let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
+                 onOldTimeline(old, 250, 9.7), onOldTimeline(old, 252, 7.9)]
+        guard case let .sustainedDrop(spaces) = GrowthTrend.assess(
+            measurements: m, correctedBirthDate: old, isMale: true, birthPercentile: 50
+        ) else {
+            return XCTFail("a 1.8 kg loss must not be silent")
+        }
+        // Measured from day 30, not from the two-day pair: the pair alone would
+        // give (1.029 + 0.879) / zPerCentileSpace against a peak of 1.029 — the
+        // same number here only because day 250 happens to be the higher of the
+        // two candidates. What the window guarantees is that day 30 was eligible.
+        XCTAssertEqual(spaces, 2.86, accuracy: 0.05)
     }
 }

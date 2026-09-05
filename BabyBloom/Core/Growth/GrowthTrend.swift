@@ -42,13 +42,17 @@ enum GrowthTrend {
     /// the fall NICE describes — weeks to months — and short enough that the
     /// comparison is still about where this baby is heading now.
     ///
-    /// The cost is deliberate and worth naming: a fall slow enough to stay
-    /// under two centile spaces inside every 180-day window is never reported,
-    /// however far it travels over years. That is outside NICE's scope — its
-    /// thresholds describe a fall over weeks to months — and catching it would
-    /// mean reinstating the permanent flag this bound exists to remove. The
-    /// number is a judgement rather than a published threshold; the owner may
-    /// retune it.
+    /// The cost is deliberate and worth naming precisely. It is NOT "a fall
+    /// beyond 180 days is invisible": `referenceWindow` always keeps the two
+    /// most recent weighings, so for a parent who weighs rarely the effective
+    /// window is longer than the bound and a fall between two readings 200 days
+    /// apart is reported normally. What escapes is a fall spread over three or
+    /// more weighings, each step small enough that no eligible peak sits a full
+    /// `thresholdSpaces` above the latest reading. That shape is outside NICE's
+    /// scope — its thresholds describe a fall over weeks to months — and
+    /// catching it would mean reinstating the permanent flag this bound exists
+    /// to remove. The number is a judgement rather than a published threshold;
+    /// the owner may retune it.
     static let peakLookbackDays = 180
 
     /// A rise past this many centile spaces is named as a crossing rather than
@@ -124,60 +128,95 @@ enum GrowthTrend {
         // The gates decide whether to speak; this decides what the comparison is
         // measured against, and only the recent past can say where a baby is
         // heading now.
-        //
-        // Never fewer than the two most recent weighings, however far apart they
-        // are: those two ARE the current trajectory, and a plain cutoff drops
-        // one of them the moment a parent weighs twice more than six months
-        // apart — a toddler seen at 18 and 24 months is 182 days, two over the
-        // bound, and the card went dead. Reaching back for that one reading
-        // cannot bring back the defect this window exists to remove, because
-        // the reference then always sits among the two newest readings and the
-        // next weighing replaces it; the I4 flag was unclearable precisely
-        // because its peak was old and nothing newer could displace it.
-        let cutoff = newest.date.addingTimeInterval(-Double(peakLookbackDays) * 86_400)
-        let recent = scored.count >= 2 && scored[scored.count - 2].date < cutoff
-            ? Array(scored.suffix(2))
-            : scored.filter { $0.date >= cutoff }
+        let scores = referenceWindow(scored, newest: newest).map(\.z)
 
-        let scores = recent.map(\.z)
+        // Non-optional by construction: `referenceWindow` always returns at
+        // least two readings. `peak` seeds its search with `start` because
+        // `start` IS the first of the readings it searches — a seed, not a
+        // fallback for a case that cannot happen.
         let latest = newest.z
-        let earlier = scores.dropLast()
-        guard let peak = earlier.max(), let start = scores.first else {
-            return .insufficientData
+        let start = scores[0]
+        let peak = scores.dropLast().reduce(start) { Swift.max($0, $1) }
+
+        // FALL first, and unguarded. Both directions are now pure arithmetic
+        // against the window's own extremes, with no "the latest reading must
+        // be the extreme" test on either side.
+        //
+        // The guard that used to sit here (`latest <= scores.min()`) was the
+        // last way one wobbly weighing bought back the green tick: a baby that
+        // fell from the median to three SD below and then came back thirty
+        // grams was no longer the lowest of its series, so the card said it was
+        // holding its channel while it sat four centile spaces under its own
+        // peak. It was never load-bearing for the case it was written for — a
+        // fully recovered dip computes `peak - latest ≈ 0` on its own — and a
+        // half-recovered one is a fall that deserves saying so.
+        //
+        // The property that makes dropping it sound: `peak` is the maximum of
+        // the readings BEFORE the latest, so a baby at a new high always has a
+        // non-positive drop and can never be flagged.
+        let drop = (peak - latest) / zPerCentileSpace
+        if drop >= thresholdSpaces(birthPercentile: birthPercentile) {
+            return .sustainedDrop(spaces: drop)
         }
 
-        // A dip that has already recovered is not a downward trajectory, so the
-        // latest reading has to be the lowest of the window for a fall to count.
-        if latest <= (scores.min() ?? latest) {
-            let spaces = (peak - latest) / zPerCentileSpace
-            if spaces >= thresholdSpaces(birthPercentile: birthPercentile) {
-                return .sustainedDrop(spaces: spaces)
-            }
-        } else {
-            // The mirror, and the reason `.stable` can be trusted at all: this
-            // detector used to return `.stable` for ANY non-fall, so a climb
-            // from the 50th centile to the 99th was reported as "holding its
-            // channel" with a green tick (build-11 review).
-            //
-            // Measured from where the baby STARTED in this window, not from its
-            // lowest reading: a dip that has climbed back to its opening centile
-            // has crossed nothing, and measuring from the trough would announce
-            // a recovery as a rocket. The fall's peak-based rule is NICE's,
-            // about position lost from the best the baby ever held, and does not
-            // transfer to a direction nobody is worried about.
-            //
-            // No "latest is the highest" guard to match the fall's: the
-            // from-start measurement already collapses a recovered dip to about
-            // zero, and requiring the peak of the series handed the green tick
-            // back to any baby whose last weighing wobbled a little below the
-            // one before it — 50th to 97.5th, then a hundred grams light, and
-            // the card said "holding its channel" again.
-            let spaces = (latest - start) / zPerCentileSpace
-            if spaces >= upwardCrossingSpaces {
-                return .crossingUp(spaces: spaces)
-            }
+        // The rise, and the reason `.stable` can be trusted at all: this
+        // detector used to return `.stable` for ANY non-fall, so a climb from
+        // the 50th centile to the 99th was reported as "holding its channel"
+        // with a green tick (build-11 review).
+        //
+        // Measured from where the baby STARTED in this window, not from its
+        // lowest reading: a dip that has climbed back to its opening centile
+        // has crossed nothing, and measuring from the trough would announce a
+        // recovery as a rocket. The fall's peak-based rule is NICE's, about
+        // position lost from the best the baby ever held, and does not transfer
+        // to a direction nobody is worried about.
+        //
+        // Checked second, so a series that is both a fall from its peak and a
+        // rise from its start reports the fall. That is the clinical signal;
+        // the crossing is context.
+        let rise = (latest - start) / zPerCentileSpace
+        if rise >= upwardCrossingSpaces {
+            return .crossingUp(spaces: rise)
         }
         return .stable
+    }
+
+    /// The readings a verdict may be measured against: recent enough to
+    /// describe the current trajectory, and spread widely enough to be a trend
+    /// rather than two weighings on consecutive days.
+    ///
+    /// Walking back from the newest reading, a reading joins the window when
+    /// any of three things is true:
+    ///
+    /// 1. **The window is still a single reading.** A comparison needs two, so
+    ///    the two most recent weighings are always in, however far apart. Those
+    ///    two ARE the current trajectory, and a plain cutoff drops one of them
+    ///    the moment a parent weighs twice more than six months apart — a
+    ///    toddler seen at 18 and 24 months is 182 days, two over the bound, and
+    ///    the card went dead. This cannot bring back the flag the bound exists
+    ///    to remove: the reference then sits among the two newest readings and
+    ///    the next weighing displaces it, where an all-time peak never could be.
+    /// 2. **It is inside the lookback** — the bound itself.
+    /// 3. **The window does not yet span `minimumSpanDays`.** Without this the
+    ///    cutoff could leave a window two days wide — a parent who weighed at
+    ///    birth, at a month, and then twice in one week — and noise across a
+    ///    two-day pair was reported as a trend. The evidence gates ask for four
+    ///    weeks of history; the window a verdict is computed over honours the
+    ///    same floor.
+    private static func referenceWindow(
+        _ scored: [(date: Date, z: Double)],
+        newest: (date: Date, z: Double)
+    ) -> ArraySlice<(date: Date, z: Double)> {
+        let cutoff = newest.date.addingTimeInterval(-Double(peakLookbackDays) * 86_400)
+        var first = scored.count - 1
+        while first > 0 {
+            let isStillASingleReading = first == scored.count - 1
+            let nextIsInsideLookback = scored[first - 1].date >= cutoff
+            let spansEnough = days(from: scored[first].date, to: newest.date) >= minimumSpanDays
+            guard isStillASingleReading || nextIsInsideLookback || !spansEnough else { break }
+            first -= 1
+        }
+        return scored[first...]
     }
 
     private static func days(from: Date, to: Date) -> Int {

@@ -37,18 +37,26 @@ describes:
   Truncation only ever rounds the denominator down, so it only ever overstates
   gain — the one direction that can suppress the low-gain signal the feature
   exists for.
-- `GrowthTrend` bounds its REFERENCES — peak, trough, starting point — to the
-  last 180 days, and never its evidence gates, which read the whole scorable
+- `GrowthTrend` bounds its REFERENCES — peak and starting point — to the last
+  180 days, and never its evidence gates, which read the whole scorable
   history. Unbounded, ordinary regression to the mean becomes a flag that no
   later weighing can ever clear; bounded the other way, a toddler weighed twice
-  a year would have a card reading "not enough data" forever. The window always
-  admits at least the two most recent weighings, however far apart: those two
-  are the current trajectory by definition, and a reference that sits among the
-  newest readings is always displaced by the next weighing — which is precisely
-  what the unclearable flag was not. The cost is deliberate: a fall slow enough
-  to stay under two spaces inside every 180-day window is never reported. That
-  is outside NICE's scope, whose thresholds describe weeks to months. The number
-  is a judgement, not a published threshold — retune it knowingly.
+  a year would have a card reading "not enough data" forever. Two floors keep
+  the window usable: it always admits at least the two most recent weighings,
+  however far apart — those two are the current trajectory by definition, and a
+  reference sitting among the newest readings is displaced by the next
+  weighing, which is precisely what the unclearable flag was not — and it
+  widens backwards until it spans four weeks, so no verdict is ever computed
+  over a pair of weighings two days apart.
+  The cost is deliberate but narrower than "180 days": because of the
+  two-most-recent floor the effective window is longer than the bound whenever
+  weighings are sparse, so a fall between two readings 200 days apart IS
+  reported. What escapes is a fall spread across three or more weighings, each
+  step small enough that no eligible peak inside the window is a full threshold
+  above the latest — where the threshold is `thresholdSpaces`, 1, 2 or 3 spaces
+  by birth centile, not a flat two. That shape is outside NICE's scope, whose
+  thresholds describe weeks to months. The bound is a judgement, not a
+  published threshold — retune it knowingly.
 - A single-value percentile is scored at the age on the WEIGHING date. Scored
   at today's age it drifts downward every morning the app is opened, which is
   movement the parent did not cause and cannot undo.
