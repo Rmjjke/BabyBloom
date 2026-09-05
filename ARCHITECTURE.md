@@ -182,17 +182,31 @@ never at today's age — the same rule `GrowthTrend` has always followed.
 newborn weight loss — the physiological drop follows delivery, so it is
 counted from the actual birth.
 
-Each verdict card on the Growth screen — percentile, gain, centile trend,
-nutrition — carries a "?" badge and an explainer sheet behind it. All four are
-one mechanism, in `GrowthInsightCards.swift`: `GrowthExplainer` names the
-subject and resolves its icon, tint and copy keys (`<card's own key
-family>.info_title` / `.info_body` / `.info_hint`), and `ExplainerSheet`
-renders any of them. How the badge behaves depends on what the card's own tap
-already does, and `InsightCard(info:)` takes that as `InfoBadgeRole`: an
-unlocked card is wrapped in `ExplainerCard`, so the WHOLE card opens the
-explainer and the badge is a drawn-but-inert affordance (`.affordance`); a
-`LockedInsightCard`'s tap sells Premium, so there the badge is its own button
-(`.control`) and the explainer must not reach the card around it.
+Each verdict card on the Growth screen — first weeks, percentile (including its
+out-of-range state), gain, centile trend, nutrition — carries a "?" badge and an
+explainer sheet behind it. All five are one mechanism, in
+`GrowthInsightCards.swift`: `GrowthExplainer` names the subject and resolves its
+icon, tint and copy keys (`<card's own key family>.info_title` / `.info_body`),
+and `ExplainerSheet` renders any of them.
+
+How a card opens its explainer depends on what its own tap already does:
+
+- **Unlocked** — the card is wrapped in `ExplainerCard`, which makes the WHOLE
+  card open the sheet and *injects* the badge (`InfoBadge` draws only when the
+  `hasExplainer` environment value says one is wrapping it, so a card rendered
+  anywhere else cannot advertise an explainer that is not there). It is a
+  `contentShape` + `onTapGesture`, deliberately **not** a `Button`: a Button
+  flattens its label into one accessibility element and would destroy
+  `NutritionSection`'s one-stop-per-row structure. Non-visual access is an
+  `.accessibilityAction(named:)` — `explainer.action` — which propagates to the
+  card's children instead of replacing them.
+- **Locked** — a `LockedInsightCard`'s tap sells Premium and keeps it. The badge
+  is its own button there (`InfoBadgeRole.control`, a 44pt target held out of
+  the layout by negative padding), and because that button is inside the sell
+  Button's label it is invisible to VoiceOver, so the same named action is
+  attached to the card. `sell()` refuses to run while the explainer sheet is up,
+  which is what makes a double activation impossible rather than merely
+  unobserved.
 
 ## Premium
 

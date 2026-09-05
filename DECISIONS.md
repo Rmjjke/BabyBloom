@@ -25,12 +25,30 @@ not `growth.info.gain.body`).
 
 **Why.** Build-12 feedback was that three cards say a couple of words a parent
 cannot decode — the same complaint the percentile explainer already answered,
-so the answer had to be the same thing four times rather than four things.
+so the answer had to be the same thing five times rather than five things.
 Which tap opens it is not a style choice: a locked card exists to sell, and an
 explainer laid over its tap would trade the paywall for a help sheet, so the
 badge stays the smaller target there and the sell keeps the card. The key
 prefixes follow the card because a `growth.info.*` family would scatter one
 card's strings over two places in six JSON files.
+
+**The unlocked card is a tap gesture, not a Button, and that is not a style
+choice either.** A SwiftUI Button flattens its label into a single
+accessibility element: wrapping the cards in one silently collapsed
+`NutritionSection`'s three rows — built to read as one VoiceOver stop each, a
+label and its status as one statement — into a wall of text. A `contentShape`
+plus `onTapGesture` leaves the children as the card built them, and the
+explainer stays reachable without sight through a named accessibility action,
+which propagates to those children rather than replacing them. The price is the
+press bounce: animating a press would take a `DragGesture(minimumDistance: 0)`,
+which fights the enclosing `ScrollView`. A card is not a button-shaped control,
+so it does not need to bounce like one; a locked card, which IS a control, keeps
+its Button and its bounce.
+
+The badge is injected by `ExplainerCard` rather than drawn by each card,
+because a card that draws its own "?" advertises an explanation nothing opens
+the moment it is rendered anywhere else — which is exactly what the test render
+dumps showed.
 
 The nutrition copy says outright that **gain is the main signal and feeds and
 nappies are context** — the 2026-08-25 rule, finally stated to the parent
