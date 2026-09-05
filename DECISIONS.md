@@ -14,6 +14,53 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — One explainer pattern, and it never eats a sell tap
+
+Every verdict card on the Growth screen opens the same `ExplainerSheet`,
+parameterized by a `GrowthExplainer` case. On an unlocked card the whole card
+is the control and the "?" is only the affordance; on a `LockedInsightCard`
+the "?" is its own button and the card around it still opens the paywall.
+Explainer copy lives under the card's OWN key family (`velocity.info_body`,
+not `growth.info.gain.body`).
+
+**Why.** Build-12 feedback was that three cards say a couple of words a parent
+cannot decode — the same complaint the percentile explainer already answered,
+so the answer had to be the same thing five times rather than five things.
+Which tap opens it is not a style choice: a locked card exists to sell, and an
+explainer laid over its tap would trade the paywall for a help sheet, so the
+badge stays the smaller target there and the sell keeps the card. The key
+prefixes follow the card because a `growth.info.*` family would scatter one
+card's strings over two places in six JSON files.
+
+**The unlocked card is a tap gesture, not a Button, and that is not a style
+choice either.** A SwiftUI Button flattens its label into a single
+accessibility element: wrapping the cards in one silently collapsed
+`NutritionSection`'s three rows — built to read as one VoiceOver stop each, a
+label and its status as one statement — into a wall of text. A `contentShape`
+plus `onTapGesture` leaves the children as the card built them, and the
+explainer stays reachable without sight through a named action on the card's
+TITLE, not on the card: a container is not an accessibility element, and
+whether an action attached to one reaches the elements inside it is a promise
+this project has no way to verify — an accessibility feature nobody can check
+is one nobody knows they have. A title is an element with certainty, and it is
+where the "?" already is. The price is the
+press bounce: animating a press would take a `DragGesture(minimumDistance: 0)`,
+which fights the enclosing `ScrollView`. A card is not a button-shaped control,
+so it does not need to bounce like one; a locked card, which IS a control, keeps
+its Button and its bounce.
+
+The badge is injected by `ExplainerCard` rather than drawn by each card,
+because a card that draws its own "?" advertises an explanation nothing opens
+the moment it is rendered anywhere else — which is exactly what the test render
+dumps showed.
+
+The nutrition copy says outright that **gain is the main signal and feeds and
+nappies are context** — the 2026-08-25 rule, finally stated to the parent
+rather than only enforced in `FeedingAdequacy`. A parent who reads "8 feeds a
+day" beside a reference and is not told which line decides will invent the
+multi-signal alarm in their own head, which is the exact fear that rule exists
+to prevent.
+
 ## 2026-09-05 — The word a parent reads is split from the gate that fires
 
 `FeedingAdequacy.Signal` keeps its three cases and its collapse of an

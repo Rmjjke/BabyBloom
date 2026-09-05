@@ -9,7 +9,6 @@ struct GrowthView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
-    @State private var showPercentileInfo = false
     @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
@@ -44,8 +43,10 @@ struct GrowthView: View {
                 // First weeks — the only block that outranks the chart, and only
                 // while it applies. Free for everyone, flags included.
                 if let baby, let status = newbornStatus(baby) {
-                    NewbornProgressCard(status: status)
-                        .padding(.horizontal, BBTheme.Spacing.md)
+                    ExplainerCard(explainer: .newborn) {
+                        NewbornProgressCard(status: status)
+                    }
+                    .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
                 // Weight chart
@@ -183,7 +184,11 @@ struct GrowthView: View {
                            months: monthsAtWeighing(baby: baby, weighing: weighing),
                            weighedOn: weighing.date)
         } else {
-            PercentileOutOfRangeCard()
+            // Past 24 months the card holds a sentence instead of a figure, and
+            // that sentence is exactly the one a parent wants explained.
+            ExplainerCard(explainer: .percentile) {
+                PercentileOutOfRangeCard()
+            }
         }
     }
 
@@ -210,15 +215,18 @@ struct GrowthView: View {
     @ViewBuilder
     private func weightGainSection(_ baby: Baby) -> some View {
         if store.isPremium {
-            WeightGainCard(reading: WeightVelocity.latest(
-                measurements: measurements,
-                correctedBirthDate: baby.correctedBirthDate,
-                isMale: baby.gender == .male
-            ))
+            ExplainerCard(explainer: .gain) {
+                WeightGainCard(reading: WeightVelocity.latest(
+                    measurements: measurements,
+                    correctedBirthDate: baby.correctedBirthDate,
+                    isMale: baby.gender == .male
+                ))
+            }
         } else {
             LockedInsightCard(
                 title: "section.weight_gain".l,
-                teaser: "premium.teaser_gain".l
+                teaser: "premium.teaser_gain".l,
+                explainer: .gain
             ) { showPaywall = true }
         }
     }
@@ -227,16 +235,19 @@ struct GrowthView: View {
     @ViewBuilder
     private func trendSection(_ baby: Baby) -> some View {
         if store.isPremium {
-            CentileTrendCard(assessment: GrowthTrend.assess(
-                measurements: measurements,
-                correctedBirthDate: baby.correctedBirthDate,
-                isMale: baby.gender == .male,
-                birthPercentile: birthPercentile(baby)
-            ))
+            ExplainerCard(explainer: .trend) {
+                CentileTrendCard(assessment: GrowthTrend.assess(
+                    measurements: measurements,
+                    correctedBirthDate: baby.correctedBirthDate,
+                    isMale: baby.gender == .male,
+                    birthPercentile: birthPercentile(baby)
+                ))
+            }
         } else {
             LockedInsightCard(
                 title: "section.trend".l,
-                teaser: "premium.teaser_trend".l
+                teaser: "premium.teaser_trend".l,
+                explainer: .trend
             ) { showPaywall = true }
         }
     }
@@ -272,7 +283,16 @@ struct GrowthView: View {
                 correctedBirthDate: baby.correctedBirthDate,
                 isMale: baby.gender == .male
             )
-            NutritionSection(assessment: assessment, band: reading?.band)
+            // Free for everyone, so no sell tap to protect: the whole card
+            // opens the explainer in both states, including the "weigh again"
+            // one — a parent with no data yet is exactly who needs to read how
+            // to get some.
+            ExplainerCard(explainer: .nutrition) {
+                NutritionSection(assessment: assessment, band: reading?.band)
+            }
+            // The breakdown below is a different card with a different title,
+            // and its locked tap stays a pure sell — the section's explainer
+            // already covers what the three signals mean.
             if let assessment, assessment.warrantsBreakdown {
                 if store.isPremium {
                     FeedingBreakdownCard(assessment: assessment, reading: reading)
@@ -298,29 +318,22 @@ struct GrowthView: View {
         )
     }
 
-    /// The WHOLE card opens the explainer, not just the "?" glyph.
-    ///
-    /// A 20pt badge in the corner was the only way in, and the owner reported
-    /// tapping the card and getting nothing (build-11 review). The badge stays
-    /// as the AFFORDANCE — it is what tells a reader the explanation exists —
-    /// but it is no longer a control of its own: a button inside a button gives
-    /// two hit targets that do the same thing and one VoiceOver stop too many.
+    /// The whole card opens the explainer — the mechanics and the reasoning now
+    /// live in `ExplainerCard`, which the gain, trend and nutrition cards share.
     private func percentileCard(percentile: Double, badge: String,
                                 months: Int, weighedOn: Date) -> some View {
         let label = WHOGrowthStandard.percentileLabel(percentile)
         let color = WHOGrowthStandard.percentileTint(percentile).color
 
-        return Button {
-            showPercentileInfo = true
-        } label: {
+        return ExplainerCard(explainer: .percentile) {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
                 HStack {
-                    BBTheme.Typography.title3("section.who_percentiles".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    // The same title view every `InsightCard` header uses, so
+                    // this hand-built header carries the explainer to VoiceOver
+                    // exactly as the others do.
+                    InsightCardTitle("section.who_percentiles".l)
                     Spacer()
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
+                    InfoBadge()
                 }
 
                 VStack(spacing: BBTheme.Spacing.md) {
@@ -365,17 +378,6 @@ struct GrowthView: View {
                 .cornerRadius(BBTheme.Radius.lg)
                 .bbShadow(BBTheme.Shadow.card)
             }
-            // The header's Spacer is empty space, and empty space in a Button's
-            // label is not hittable without this.
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(BBScaleButtonStyle())
-        // The card reads out as one control. Without the hint VoiceOver
-        // announces a wall of figures and then "Button", with nothing saying
-        // what the button does.
-        .accessibilityHint(Text("percentile.info_hint".l))
-        .sheet(isPresented: $showPercentileInfo) {
-            PercentileInfoSheet()
         }
     }
 
@@ -539,44 +541,6 @@ struct GrowthEntryRow: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
-    }
-}
-
-// MARK: - Percentile Info Sheet
-struct PercentileInfoSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
-                    Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 56))
-                        .foregroundStyle(BBTheme.Colors.growth)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, BBTheme.Spacing.lg)
-
-                    BBTheme.Typography.title2("percentile.info_title".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-
-                    Text("percentile.info_body".l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                        .lineSpacing(4)
-
-                    Spacer()
-                }
-                .padding(BBTheme.Spacing.lg)
-            }
-            .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("button.close".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
-            }
-        }
     }
 }
 
