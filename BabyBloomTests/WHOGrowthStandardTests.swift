@@ -102,17 +102,134 @@ final class WHOGrowthStandardTests: XCTestCase {
     /// Labels and colors must switch at the same 3 / 15 / 50 / 85 / 97 boundaries,
     /// otherwise a reading can read "normal" while showing red.
     func testLabelAndColorBoundariesAgree() {
-        let green = "#6BBF6B", orange = "#F5A45F", red = "#E05A5A"
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(2), red)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(3), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(15), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(16), green)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(85), green)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(86), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(97), orange)
-        XCTAssertEqual(WHOGrowthStandard.percentileColor(98), red)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(2), .beyond)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(3), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(15), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(16), .typical)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(85), .typical)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(86), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(97), .edge)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(98), .beyond)
 
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "percentile.15_50".l)
         XCTAssertEqual(WHOGrowthStandard.percentileLabel(51), "percentile.50_85".l)
+    }
+
+    // MARK: - Scored at the weighing, not at the calendar
+
+    /// A day-30 weighing on the day-30 median is the 50th centile, and stays the
+    /// 50th centile however long the app goes unopened afterwards. Scored against
+    /// TODAY'S age instead, the same entry slid downward every morning — movement
+    /// the parent did nothing to cause.
+    func testAWeighingKeepsItsPercentileHoweverStaleItGets() throws {
+        let medianDay30 = 4.452
+        for daysSince in [0, 1, 30, 200] {
+            let today = Date()
+            let birth = Calendar.current.date(byAdding: .day, value: -(30 + daysSince), to: today)!
+            let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+            let p = try XCTUnwrap(WHOGrowthStandard.percentile(
+                of: WeightMeasurement(date: weighed, weightKg: medianDay30),
+                correctedBirthDate: birth,
+                isMale: true
+            ))
+            XCTAssertEqual(p, 50, "opened \(daysSince) days after the weighing")
+        }
+    }
+
+    /// Corrected age still selects the reference, now measured to the weighing
+    /// date rather than to today — the prematurity rule survives the fix.
+    func testTheAgeIsMeasuredFromTheCorrectedBirthDate() {
+        let today = Date()
+        let birth = Calendar.current.date(byAdding: .day, value: -100, to: today)!
+        let corrected = Calendar.current.date(byAdding: .day, value: 56, to: birth)!
+        let weighed = Calendar.current.date(byAdding: .day, value: 90, to: birth)!
+
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: weighed, correctedBirthDate: birth), 90)
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: weighed, correctedBirthDate: corrected), 34)
+        // A weighing taken before the corrected birth date is age zero, never
+        // negative — the same floor `Baby.correctedAgeDays` holds.
+        XCTAssertEqual(WHOGrowthStandard.correctedAgeDays(on: birth, correctedBirthDate: corrected), 0)
+    }
+
+    // MARK: - The badge is honest at the edge of the chart
+
+    /// The owner's repro: a weight so far above the chart that the percentile is
+    /// 100 before the clamp. "99" beside the band label "> 97th" reads as a
+    /// measured figure; it is the clamp talking.
+    func testTheBadgeStopsPretendingToPrecisionPastTheClamp() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+
+        let offChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 20.0),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(offChart.percentile, 99, "the ring still draws the clamped value")
+        XCTAssertEqual(offChart.badge, "percentile.badge_above97".l)
+        XCTAssertEqual(WHOGrowthStandard.percentileLabel(offChart.percentile),
+                       "percentile.above97".l, "badge and band label must agree")
+
+        // The bottom edge, symmetrically.
+        let underChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 1.5),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(underChart.badge, "percentile.badge_below3".l)
+    }
+
+    /// The sentence-shaped surfaces get the same honesty as the ring.
+    ///
+    /// The Dashboard renders "%d percentile" and kept printing "99-й перцентиль"
+    /// at the clamp while the Growth screen beside it already said "> 97-го" —
+    /// two surfaces, one weighing, two different claims about its precision.
+    func testTheDashboardRowIsAsHonestAsTheRingBadge() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+        let format = "%d percentile"
+
+        let offChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 20.0),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertTrue(offChart.isBeyondChart)
+        XCTAssertEqual(offChart.rowText(format: format), "percentile.above97".l,
+                       "past the clamp the row borrows the band label, as the card does")
+
+        let ordinary = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 4.452),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertFalse(ordinary.isBeyondChart)
+        XCTAssertEqual(ordinary.rowText(format: format), "50 percentile")
+    }
+
+    /// Everywhere the tables actually measure something, the badge is the
+    /// number — the honest edge must not swallow ordinary readings.
+    func testAnOrdinaryReadingKeepsItsNumber() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+        let reading = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 4.452),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(reading.percentile, 50)
+        XCTAssertEqual(reading.badge, "50")
+    }
+
+    // MARK: - The newest WEIGHING, not the newest entry
+
+    /// A height-only entry recorded this morning is newer than every weighing and
+    /// says nothing about weight. Reading the raw newest entry printed "0.00 kg"
+    /// on the Dashboard and made the Growth screen's percentile card vanish.
+    func testAHeightOnlyEntryDoesNotHideTheLastWeighing() throws {
+        let today = Date()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let entries = [
+            GrowthEntry(date: today, weightKg: nil, heightCm: 60.0),
+            GrowthEntry(date: yesterday, weightKg: 5.2, heightCm: nil)
+        ]
+        let weighing = try XCTUnwrap(entries.latestWeighing)
+        XCTAssertEqual(weighing.weightKg, 5.2)
+        XCTAssertEqual(weighing.date, yesterday)
+    }
+
+    func testNoWeighingAtAllStaysNil() {
+        XCTAssertNil([GrowthEntry(date: Date(), weightKg: nil, heightCm: 60.0)].latestWeighing)
+        XCTAssertNil([GrowthEntry]().latestWeighing)
     }
 }

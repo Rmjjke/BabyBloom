@@ -56,6 +56,24 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertNil(FeedingAdequacy.feedingReference(correctedAgeDays: 184, style: .breast))
     }
 
+    /// The gate and the table are separate questions, and the Dashboard's ring
+    /// depends on it: past six months `feedingReference` withholds a verdict
+    /// while `feedingBand` still names the last row, so a display target has a
+    /// number without any caller carrying an unreachable fallback.
+    func testTheBandOutlivesTheReferenceItGates() {
+        let pastTheRange = FeedingAdequacy.maxAgeDays + 1
+        XCTAssertNil(FeedingAdequacy.feedingReference(correctedAgeDays: pastTheRange, style: .breast))
+        XCTAssertEqual(FeedingAdequacy.feedingBand(correctedAgeDays: pastTheRange, style: .breast), 5...7)
+
+        // Inside the range the two must never disagree — the reference IS the
+        // band plus a gate.
+        for days in [0, 27, 28, 119, 120, FeedingAdequacy.maxAgeDays] {
+            XCTAssertEqual(FeedingAdequacy.feedingReference(correctedAgeDays: days, style: .breast),
+                           FeedingAdequacy.feedingBand(correctedAgeDays: days, style: .breast),
+                           "day \(days)")
+        }
+    }
+
     // MARK: - Wet nappy reference
 
     /// The charted ramp is not simply "the day number": it flattens at 3, so
@@ -232,6 +250,26 @@ final class FeedingAdequacyTests: XCTestCase {
 
         let oneDayShort = (0..<4).map { day(-$0) }
         XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage(oneDayShort, in: window))
+    }
+
+    /// A PART-DAY window counts whole calendar days, like every other day count
+    /// in this module.
+    ///
+    /// 10 d 15 h with five covered days: 5/10 is exactly the half that passes,
+    /// while rounding the real duration makes it 5/11 — 0.45 — and the figure
+    /// is withheld as "not enough data". Rounding and truncation disagree on
+    /// about half of all part-day windows, and part-day windows are the normal
+    /// case, because a weighing happens whenever a parent reaches the scales.
+    /// This fails on the rounding implementation.
+    func testAPartDayWindowIsCountedInWholeCalendarDays() {
+        let start = day(-11).addingTimeInterval(9 * 3_600)
+        let window = DateInterval(start: start, end: day(0))
+        XCTAssertEqual(window.duration / 86_400, 10.625, accuracy: 0.01,
+                       "the fixture is only a test if the window really is a part-day one")
+
+        let fiveCoveredDays = (0..<5).map { day(-$0) }
+        XCTAssertTrue(FeedingAdequacy.hasEnoughCoverage(fiveCoveredDays, in: window),
+                      "5/10 passes; rounding the duration to 11 days would withhold the figure")
     }
 
     /// The same exclusion, on the other counter: a parent who logged diligently

@@ -203,10 +203,12 @@ struct DashboardView: View {
                     color: BBTheme.Colors.diaper,
                     action: { showQuickDiaperSheet = true }
                 )
-                if let latest = growthEntries.first {
+                // The newest WEIGHING, not the newest entry: a height-only entry
+                // recorded today used to coalesce its nil weight into "0.00 kg".
+                if let weightKg = latestWeighing?.weightKg {
                     BBStatCard(
                         title: "stat.weight",
-                        value: String(format: "%.2f", latest.weightKg ?? 0),
+                        value: String(format: "%.2f", weightKg),
                         unit: "unit.kg",
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth,
@@ -284,10 +286,13 @@ struct DashboardView: View {
                           value: String(format: "%.2f", weightKg) + " " + "unit.kg".l,
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
-                if store.isPremium, let percentile = latestPercentile {
+                if store.isPremium, let reading = latestPercentile {
+                    // `rowText` already rounds, clamps and — past the chart's
+                    // edge — drops the fake-precise number for the band label,
+                    // so this line says exactly what the Growth screen's card
+                    // says about the same weighing.
                     growthRow(label: "percentile.weight".l,
-                              value: String(format: "dashboard.growth.percentile_fmt".l,
-                                            Int(percentile.rounded())),
+                              value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
                               color: BBTheme.Colors.textPrimary)
                 }
             }
@@ -302,10 +307,10 @@ struct DashboardView: View {
     @ViewBuilder
     private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
         switch gain {
-        case .word(let signal):
+        case .word(let word):
             growthRow(label: "nutrition.row_gain".l,
-                      value: gainValue(signal),
-                      color: gainColor(signal))
+                      value: gainValue(word),
+                      color: gainColor(word))
         case .needsAnotherWeighing:
             HintText(text: "nutrition.need_weighing".l)
         case .unavailable:
@@ -318,28 +323,23 @@ struct DashboardView: View {
     /// Premium prepends the figure to the same word the free line already
     /// shows, rather than replacing it: one vocabulary across the app, and the
     /// paid half reads as an addition instead of a different verdict.
-    private func gainValue(_ signal: FeedingAdequacy.Signal) -> String {
-        let word = statusWord(signal)
-        guard store.isPremium, let reading = gainReading else { return word }
+    private func gainValue(_ word: StatusWord) -> String {
+        let status = word.localizationKey.l
+        guard store.isPremium, let reading = gainReading else { return status }
         let grams = Int(reading.gramsPerWeek.rounded())
         let signed = grams > 0 ? "+\(grams)" : "\(grams)"
-        return String(format: "velocity.per_week_fmt".l, signed) + " · " + word
-    }
-
-    private func statusWord(_ signal: FeedingAdequacy.Signal) -> String {
-        switch signal {
-        case .below:         return "nutrition.status_below".l
-        case .within:        return "nutrition.status_within".l
-        case .notEnoughData: return "nutrition.status_unknown".l
-        }
+        return String(format: "velocity.per_week_fmt".l, signed) + " · " + status
     }
 
     /// `NutritionSection`'s mapping, unchanged: colour reinforces the word and
-    /// never carries the message on its own, and nothing here is red.
-    private func gainColor(_ signal: FeedingAdequacy.Signal) -> Color {
-        switch signal {
+    /// never carries the message on its own, and nothing here is red. `.above`
+    /// takes the neutral `WeightGainCard` tint rather than the reassuring
+    /// green — gaining fast is not a problem, and it is not a tick either.
+    private func gainColor(_ word: StatusWord) -> Color {
+        switch word {
         case .below:         return BBTheme.Colors.accent
         case .within:        return BBTheme.Colors.success
+        case .above:         return BBTheme.Colors.textPrimary
         case .notEnoughData: return BBTheme.Colors.textSecondary
         }
     }
@@ -389,15 +389,18 @@ struct DashboardView: View {
         DashboardGrowthSummary.free(
             latestWeightKg: latestWeightKg,
             assessment: adequacy,
+            band: gainReading?.band,
             withinReferenceAge: (baby?.correctedAgeDays ?? 0) <= FeedingAdequacy.maxAgeDays
         )
     }
 
     /// The newest entry that actually carries a weight — a height-only entry
     /// is more recent but says nothing about weight.
-    private var latestWeightKg: Double? {
-        growthEntries.compactMap(\.weightKg).first
+    private var latestWeighing: WeightMeasurement? {
+        growthEntries.latestWeighing
     }
+
+    private var latestWeightKg: Double? { latestWeighing?.weightKg }
 
     /// Built exactly as `GrowthView` builds it, from the queries this screen
     /// already holds; the window is weeks, so filtering in memory is free.
@@ -422,28 +425,115 @@ struct DashboardView: View {
         )
     }
 
-    /// Corrected age, not chronological — the same rule the Growth screen's
-    /// percentile card follows.
-    private var latestPercentile: Double? {
-        guard let baby, let weight = latestWeightKg else { return nil }
-        return WHOGrowthStandard.percentile(
-            weightKg: weight,
-            ageDays: baby.correctedAgeDays,
+    /// Corrected age at the WEIGHING, not chronological age today — the same
+    /// rule, and now the same call, the Growth screen's percentile card uses.
+    private var latestPercentile: WHOGrowthStandard.PercentileReading? {
+        guard let baby, let weighing = latestWeighing else { return nil }
+        return WHOGrowthStandard.percentileReading(
+            of: weighing,
+            correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
         )
     }
 
     // MARK: - Progress
+
+    /// Targets come from the reference tables `FeedingAdequacy` already
+    /// publishes, on CORRECTED age.
+    ///
+    /// They used to be inline literals read off chronological age — 10 feeds
+    /// where the sourced band is 8–12 breast / 6–8 formula, 8 nappies where the
+    /// sourced minimum is 6 — so the same screen could show a ring two thirds
+    /// full above a Growth line saying the counts were within their reference.
+    /// One table, one answer.
     private var progressSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
-            let ageMonths = baby?.ageInMonths ?? 0
-            let targetFeedings: Double = ageMonths < 1 ? 10 : (ageMonths < 3 ? 8 : 6)
-            let targetSleep: Double = ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
-
-            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: targetFeedings, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
-            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: targetSleep, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
-            BBProgressCard(title: "nav.diapers", current: Double(todayDiapers.count), target: ageMonths < 1 ? 8 : 6, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
+            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
+            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
+            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
+    }
+
+    /// The MIDPOINT of the feeding band; the nappy ring below takes its FLOOR.
+    ///
+    /// Not an inconsistency — the two tables are different shapes. The feeding
+    /// reference is a band describing a normal day, and its lower bound is the
+    /// edge below which `FeedingAdequacy` starts calling the count low; a ring
+    /// filling there would read as "eight is all this baby needs", which none of
+    /// the cited sources say. The nappy reference is a published minimum with no
+    /// ceiling at all, so its floor IS the target and there is no midpoint to
+    /// take.
+    private var feedingTarget: Double {
+        // `feedingBand`, not `feedingReference`: past six months the reference
+        // stops applying, because feed frequency says little once solids start.
+        // A ring is a daily nudge and no verdict reads it, so it keeps the last
+        // row rather than vanishing — which is exactly the distinction the band
+        // accessor exists for, and it leaves no unreachable branch here.
+        let ageDays = min(baby?.correctedAgeDays ?? 0, FeedingAdequacy.maxAgeDays)
+        let band = FeedingAdequacy.feedingBand(correctedAgeDays: ageDays, style: feedingStyle)
+        return ((band.lowerBound + band.upperBound) / 2).rounded()
+    }
+
+    /// Derived from a BOUNDED RECENT window, not from today's entries and not
+    /// from the lifetime log.
+    ///
+    /// Today's log is empty at breakfast and dominated by whatever happened
+    /// since, so a style read off it flips as the day goes on — and with it the
+    /// ring's denominator, which was observed swinging 9 → 10 → 7 between
+    /// glances. The lifetime log has the opposite fault: a baby weaned onto
+    /// bottles last month is still mostly breastfeeds by volume, and the ring
+    /// would keep answering with a style the baby has left behind.
+    ///
+    /// So it takes the same window the Growth screen's answer is built on —
+    /// `FeedingAdequacy.assess` derives its style from the feeds inside
+    /// `window(for:)`, between the two most recent weighings — and the two
+    /// surfaces agree by construction. Agreement is the point, not freshness:
+    /// that window is as old as the gap between the last two weighings, so for
+    /// a rarely-weighed baby it can be months behind. A ring that lagged
+    /// differently from the section it sits under would be worse than one that
+    /// lags with it. Before there are two weighings there is no such window,
+    /// and a fortnight stands in — long enough to survive a quiet morning.
+    private var feedingStyle: FeedingAdequacy.FeedingStyle {
+        let fallback = DateInterval(start: Date().addingTimeInterval(-14 * 86_400), end: Date())
+        let window = FeedingAdequacy.window(for: growthEntries.weightMeasurements) ?? fallback
+        return FeedingAdequacy.style(of: feedings
+            .filter { window.contains($0.startTime) }
+            .map { FeedingAdequacy.Feed(date: $0.startTime, type: $0.type) })
+    }
+
+    /// Wet nappies, against the wet-nappy minimum — the reference is about wet
+    /// nappies specifically, so counting every nappy against it would compare
+    /// two different things and always flatter the total.
+    ///
+    /// **This ring and `DiaperView`'s norm card answer different questions and
+    /// must not be "unified".** This one is wet nappies against a published
+    /// clinical floor; that one is every nappy against a target the parent set
+    /// themselves in the norm editor. Making either read the other's number
+    /// would put a figure under a label that does not describe it.
+    private var todayWetNappies: Int {
+        todayDiapers.filter { $0.type == .wet || $0.type == .both }.count
+    }
+
+    /// POSTNATAL days, not corrected: the first-week ramp follows the birth,
+    /// which is the rule `FeedingAdequacy` states for this table.
+    private var wetNappyTarget: Double {
+        guard let baby else { return FeedingAdequacy.wetNappyMinimum(postnatalDays: 0) }
+        let postnatalDays = Calendar.current.dateComponents([.day], from: baby.birthDate, to: Date()).day ?? 0
+        return FeedingAdequacy.wetNappyMinimum(postnatalDays: postnatalDays)
+    }
+
+    /// Still a literal, and deliberately marked as one: the app carries no
+    /// sourced sleep-duration table, and inventing a reference to match the two
+    /// beside it would be worse than admitting this one is a rule of thumb.
+    /// The figures follow the usual AAP/NSF ranges for total sleep in 24 hours.
+    ///
+    /// CORRECTED age, changed with its neighbours: every reference in
+    /// `Core/Growth` reads corrected age, and a preterm baby measured on
+    /// chronological age is held to the wrong row of every table on this screen.
+    /// A rule of thumb is no reason to keep the one age convention that differs.
+    private var sleepTarget: Double {
+        let ageMonths = baby?.correctedAgeMonths ?? 0
+        return ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
     }
 }
 

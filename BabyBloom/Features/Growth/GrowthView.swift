@@ -54,9 +54,11 @@ struct GrowthView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
-                // Percentile card
-                if let baby, let entry = latest, let weight = entry.weightKg {
-                    percentileSection(baby: baby, weight: weight, entry: entry)
+                // Percentile card. Keyed to the newest WEIGHING rather than the
+                // newest entry: recording this morning's height used to make the
+                // whole card vanish until the next time the baby was weighed.
+                if let baby, let weighing = measurements.last {
+                    percentileSection(baby: baby, weighing: weighing)
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
@@ -166,18 +168,31 @@ struct GrowthView: View {
 
     // MARK: - Percentile
     @ViewBuilder
-    private func percentileSection(baby: Baby, weight: Double, entry: GrowthEntry) -> some View {
+    private func percentileSection(baby: Baby, weighing: WeightMeasurement) -> some View {
         // Corrected age, not chronological: a baby born preterm has to be
-        // measured against the reference for the age it would be at term.
-        if let percentile = WHOGrowthStandard.percentile(
-            weightKg: weight,
-            ageDays: baby.correctedAgeDays,
+        // measured against the reference for the age it would be at term. And
+        // the age ON THE WEIGHING DATE, not today's — see
+        // `WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`.
+        if let reading = WHOGrowthStandard.percentileReading(
+            of: weighing,
+            correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
         ) {
-            percentileCard(percentile: percentile, months: baby.correctedAgeMonths)
+            percentileCard(percentile: reading.percentile,
+                           badge: reading.badge,
+                           months: monthsAtWeighing(baby: baby, weighing: weighing),
+                           weighedOn: weighing.date)
         } else {
             PercentileOutOfRangeCard()
         }
+    }
+
+    /// Corrected age in whole months on the day of the weighing — the age the
+    /// percentile beside it was actually scored at.
+    private func monthsAtWeighing(baby: Baby, weighing: WeightMeasurement) -> Int {
+        max(0, Calendar.current.dateComponents([.month],
+                                               from: baby.correctedBirthDate,
+                                               to: weighing.date).month ?? 0)
     }
 
     // MARK: - Insight blocks
@@ -250,17 +265,17 @@ struct GrowthView: View {
         // makes that state reachable at all.
         if baby.correctedAgeDays <= FeedingAdequacy.maxAgeDays {
             let assessment = adequacy(baby)
-            NutritionSection(assessment: assessment)
+            // One reading for both cards: the section's gain WORD and the
+            // breakdown's figure have to describe the same pair of weighings.
+            let reading = WeightVelocity.latest(
+                measurements: measurements,
+                correctedBirthDate: baby.correctedBirthDate,
+                isMale: baby.gender == .male
+            )
+            NutritionSection(assessment: assessment, band: reading?.band)
             if let assessment, assessment.warrantsBreakdown {
                 if store.isPremium {
-                    FeedingBreakdownCard(
-                        assessment: assessment,
-                        reading: WeightVelocity.latest(
-                            measurements: measurements,
-                            correctedBirthDate: baby.correctedBirthDate,
-                            isMale: baby.gender == .male
-                        )
-                    )
+                    FeedingBreakdownCard(assessment: assessment, reading: reading)
                 } else {
                     LockedInsightCard(
                         title: "breakdown.title".l,
@@ -283,60 +298,84 @@ struct GrowthView: View {
         )
     }
 
-    private func percentileCard(percentile: Double, months: Int) -> some View {
+    /// The WHOLE card opens the explainer, not just the "?" glyph.
+    ///
+    /// A 20pt badge in the corner was the only way in, and the owner reported
+    /// tapping the card and getting nothing (build-11 review). The badge stays
+    /// as the AFFORDANCE — it is what tells a reader the explanation exists —
+    /// but it is no longer a control of its own: a button inside a button gives
+    /// two hit targets that do the same thing and one VoiceOver stop too many.
+    private func percentileCard(percentile: Double, badge: String,
+                                months: Int, weighedOn: Date) -> some View {
         let label = WHOGrowthStandard.percentileLabel(percentile)
-        let color = Color(hex: WHOGrowthStandard.percentileColor(percentile))
+        let color = WHOGrowthStandard.percentileTint(percentile).color
 
-        return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            HStack {
-                BBTheme.Typography.title3("section.who_percentiles".l)
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                Button {
-                    showPercentileInfo = true
-                } label: {
+        return Button {
+            showPercentileInfo = true
+        } label: {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                HStack {
+                    BBTheme.Typography.title3("section.who_percentiles".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Spacer()
                     Image(systemName: "questionmark.circle.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
                 }
-                .sheet(isPresented: $showPercentileInfo) {
-                    PercentileInfoSheet()
-                }
-            }
 
-            VStack(spacing: BBTheme.Spacing.md) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("percentile.weight".l)
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                        BBTheme.Typography.metric(label)
-                            .foregroundStyle(color)
+                VStack(spacing: BBTheme.Spacing.md) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("percentile.weight".l)
+                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                            BBTheme.Typography.metric(label)
+                                .foregroundStyle(color)
+                        }
+                        Spacer()
+                        ZStack {
+                            Circle()
+                                .stroke(color.opacity(0.2), lineWidth: 6)
+                                .frame(width: 64, height: 64)
+                            Circle()
+                                .trim(from: 0, to: percentile / 100)
+                                .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                                .frame(width: 64, height: 64)
+                                .rotationEffect(.degrees(-90))
+                            Text(badge)
+                                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
+                                .foregroundStyle(color)
+                        }
                     }
-                    Spacer()
-                    ZStack {
-                        Circle()
-                            .stroke(color.opacity(0.2), lineWidth: 6)
-                            .frame(width: 64, height: 64)
-                        Circle()
-                            .trim(from: 0, to: percentile / 100)
-                            .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                            .frame(width: 64, height: 64)
-                            .rotationEffect(.degrees(-90))
-                        Text("\(Int(percentile))")
-                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
-                            .foregroundStyle(color)
-                    }
-                }
 
-                Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
+                    // Both lines describe the WEIGHING. The age is the one the
+                    // figure was scored at, and the date says which weighing that
+                    // was — without it "1 month old" reads as a claim about today
+                    // when the last entry is three weeks back.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
+                        Text(String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth))
+                    }
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(BBTheme.Spacing.md)
+                .background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.lg)
+                .bbShadow(BBTheme.Shadow.card)
             }
-            .padding(BBTheme.Spacing.md)
-            .background(BBTheme.Colors.surface)
-            .cornerRadius(BBTheme.Radius.lg)
-            .bbShadow(BBTheme.Shadow.card)
+            // The header's Spacer is empty space, and empty space in a Button's
+            // label is not hittable without this.
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(BBScaleButtonStyle())
+        // The card reads out as one control. Without the hint VoiceOver
+        // announces a wall of figures and then "Button", with nothing saying
+        // what the button does.
+        .accessibilityHint(Text("percentile.info_hint".l))
+        .sheet(isPresented: $showPercentileInfo) {
+            PercentileInfoSheet()
         }
     }
 

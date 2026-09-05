@@ -39,6 +39,12 @@ enum WeightVelocity {
 
     struct Reading: Equatable {
         let gramsPerDay: Double
+        /// Whole calendar days between the two weighings — a LABEL, and the
+        /// gate for `minimumIntervalDays`. Nothing divides by it: `gramsPerDay`
+        /// uses the real elapsed duration, so a part-day gap cannot inflate the
+        /// rate. Counted the same way `FeedingAdequacy.Assessment.windowDays`
+        /// is, and that identity is the point — the two numbers are printed
+        /// within a screen of each other.
         let intervalDays: Int
         /// Reference band for this age, in grams per week, or nil past 12 months.
         let expectedPerWeek: ClosedRange<Double>?
@@ -72,7 +78,18 @@ enum WeightVelocity {
         let intervalDays = days(from: earlier.date, to: later.date)
         guard intervalDays >= minimumIntervalDays else { return nil }
 
-        let gramsPerDay = (later.weightKg - earlier.weightKg) * 1000 / Double(intervalDays)
+        // Divided by the REAL elapsed time, not by `intervalDays`. Whole-day
+        // truncation only ever rounds the denominator DOWN, so it only ever
+        // overstates the gain — a 6 d 20 h gap divided by 6 inflates the rate by
+        // 13.9%, and the app's date-only picker inherits the time of day, so
+        // part-days are the norm rather than the exception. Overstating is the
+        // one direction that matters: it can lift a genuinely below-P15 gain
+        // into `.within`, which both reassures falsely and suppresses the
+        // growthGainLow notification this module exists to raise.
+        // `intervalDays` stays as the LABEL — see its doc comment and
+        // `FeedingAdequacy.Assessment.windowDays`, which must agree with it.
+        let elapsedDays = later.date.timeIntervalSince(earlier.date) / 86_400
+        let gramsPerDay = (later.weightKg - earlier.weightKg) * 1000 / elapsedDays
 
         // Compare at the middle of the interval: that is the age the average
         // rate actually describes.

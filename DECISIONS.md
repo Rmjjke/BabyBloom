@@ -14,6 +14,131 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — The word a parent reads is split from the gate that fires
+
+`FeedingAdequacy.Signal` keeps its three cases and its collapse of an
+above-reference gain onto `.within`. Every parent-facing surface renders
+`StatusWord`, which has four.
+
+**Why.** The collapse is the breakdown gate and must not change (2026-08-25);
+it is also the wrong vocabulary, and build 11 showed what that costs: the
+Dashboard printed a +10267 g/week gain as "within the reference" in green
+while the Growth screen, on the same data, said "above" it. A parent who sees
+two verdicts on one number stops trusting both. Widening `Signal` would have
+been the smaller diff and would have put the gate one `case` away from firing
+on a thriving baby. Keep them separate.
+
+## 2026-09-05 — Growth verdicts are measured against RECENT history, and against the weighing's own date
+
+Three rules settled together, all of them about which moment a number
+describes:
+
+- `WeightVelocity` divides by real elapsed duration; whole days stay a label.
+  Truncation only ever rounds the denominator down, so it only ever overstates
+  gain — the one direction that can suppress the low-gain signal the feature
+  exists for.
+- `GrowthTrend` bounds its REFERENCES — peak and starting point — to the last
+  180 days, and never its evidence gates, which read the whole scorable
+  history. Unbounded, ordinary regression to the mean becomes a flag that no
+  later weighing can ever clear; bounded the other way, a toddler weighed twice
+  a year would have a card reading "not enough data" forever. One floor keeps
+  the window usable — it always admits at least the two most recent weighings,
+  however far apart, because those two are the current trajectory by definition
+  — and beyond that **nothing reaches past the bound to find a reference**.
+  That last rule is what keeps the displacement property true: every reference
+  is inside the window or among the two newest readings, so the next weighing
+  displaces it, which is precisely what the unclearable flag was not.
+  A verdict also has to describe four weeks, and when the readings inside the
+  bound cannot span that — a parent whose only recent weighings are days apart
+  — the answer is `insufficientData`. Widening backwards to reach the span was
+  tried and reverted: it let a tight recent cluster pull in a peak from a year
+  earlier and flag an ordinary catch-down, unclearably, until the cluster grew
+  four weeks wide.
+  The remaining cost is narrower than "180 days": because of the
+  two-most-recent floor the effective window is longer than the bound whenever
+  weighings are sparse, so a fall between two readings 200 days apart IS
+  reported. What escapes is a fall spread across three or more weighings, each
+  step small enough that no eligible peak inside the window is a full threshold
+  above the latest — where the threshold is `thresholdSpaces`, 1, 2 or 3 spaces
+  by birth centile, not a flat two. That shape is outside NICE's scope, whose
+  thresholds describe weeks to months. The bound is a judgement, not a
+  published threshold — retune it knowingly.
+- A single-value percentile is scored at the age on the WEIGHING date. Scored
+  at today's age it drifts downward every morning the app is opened, which is
+  movement the parent did not cause and cannot undo.
+
+**Why record it.** Each of these is a place where the obvious implementation is
+subtly wrong in the reassuring direction, and each was written the obvious way
+first.
+
+## 2026-09-05 — An upward centile crossing is reported, on a flat threshold, measured from the start
+
+`GrowthTrend.crossingUp(spaces:)` fires at a rise of two centile spaces or
+more, with `upwardCrossingSpaces` a flat 2 rather than `thresholdSpaces`, and
+the rise measured from the first reading in the window rather than from its
+lowest.
+
+**Why report it at all.** The detector is downward-only by clinical design and
+stays that way — a fast climb raises no flag. But its `.stable` case was
+returned for ANY non-fall, and the card renders that as "Holding its centile
+channel" behind a green tick. A baby that went from the 50th centile to the
+99th was told it was holding its channel. Downward-only scope is defensible;
+the wording claiming a bidirectional check was not.
+
+**Why a flat two.** NICE scales the fall threshold by birth centile because a
+baby born small has less room to fall before it matters. That argument has no
+upward counterpart — nothing about being born on the 95th centile makes a rise
+more or less worth naming — so borrowing the scaling would have been symmetry
+for its own sake, and would have made a baby born small announce every ordinary
+catch-up week.
+
+**Why from the start, not the trough.** A dip that has climbed back to its
+opening centile has crossed nothing, and measuring from the trough would
+announce a recovery as a rocket — it would also have contradicted the existing
+"a recovered dip is stable" rule one case away. There is deliberately no mirror
+of the fall's "latest is the extreme" guard either: the from-start measurement
+already collapses a recovered dip to about zero, while requiring the latest
+reading to be the highest handed the green tick back to any baby whose final
+weighing wobbled a little below the one before it.
+
+## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
+
+`ExportGenerator` writes raw growth rows — date, weight, height, head — and no
+percentile, gain band or centile-trend verdict. Verified, not merely observed:
+the file references none of `Core/Growth`.
+
+**Why.** A clinician reading the PDF has better instruments and their own
+chart; an app's verdict in that document would be a second opinion nobody
+asked for, printed with the authority of a record. If a verdict is ever added,
+it must come from these same functions and no others — a second implementation
+inside the exporter is how two surfaces start disagreeing.
+
+`FeedingRhythm` is the other accepted exception in this area: it reads
+CHRONOLOGICAL age at its call sites, unlike every growth reference. Left as
+is, because it schedules a reminder cadence rather than reaching a verdict,
+and a reminder is not measured against a table.
+
+## 2026-09-05 — A count above its reference is never styled as an alarm
+
+Nappy and feed references are floors with no ceiling. Exceeding one is
+reassurance, so no surface may render it red, flagged or triangled; the
+Dashboard's rings and `DiaperView`'s norm card are neutral above target and
+neutral below it.
+
+**Why.** `DiaperView` turned red with a warning triangle for a baby who wet
+MORE nappies than the norm — clinically inverted, and in the one domain where
+this app has to stay calm. The same reasoning covers `WeightVelocity.Band
+.above`, which takes the neutral primary tint rather than the green "within"
+tick: fast gain is not a worry, and it is not an achievement either.
+
+**Consequence.** The palette gained `BBAlert`, and red became a token instead
+of the `#E05A5A` literal repeated across the growth cards. Having exactly one
+name for it is the point: the colour now has a stated meaning — the growth
+flags and the tails of the percentile chart, never a count — and a fourth
+surface reaching for red has to justify itself against that sentence rather
+than copy a hex code. Re-theming still means editing colorsets; there is now
+one more of them.
+
 ## 2026-09-02 — Advancing on entitlement belongs to the paywall's HOST, not to its purchase button
 
 `PlanPickerSection` has no `onPurchased` callback. `PremiumPage` observes

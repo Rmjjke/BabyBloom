@@ -92,14 +92,94 @@ enum WHOGrowthStandard {
 
     /// Normal CDF, expressed as a 1–99 percentile.
     static func percentile(fromZ z: Double) -> Double {
-        let p = 0.5 * (1 + erf(z / 2.0.squareRoot()))
-        return max(1, min(99, (p * 100).rounded()))
+        max(1, min(99, rawPercentile(fromZ: z).rounded()))
+    }
+
+    /// The same CDF with neither the rounding nor the 1–99 clamp.
+    ///
+    /// The clamp is right for everything that renders a percentile — the chart
+    /// has no 100th centile line and "0" is not a place a live baby sits — but
+    /// it hides whether the number is a measurement or the edge of the scale.
+    /// `percentileBadge` is the one caller that needs to tell them apart.
+    static func rawPercentile(fromZ z: Double) -> Double {
+        0.5 * (1 + erf(z / 2.0.squareRoot())) * 100
+    }
+
+    /// Corrected age in whole days on a given date, floored at zero — the age
+    /// every reference in `Core/Growth` expects, for a date that is not today.
+    static func correctedAgeDays(on date: Date, correctedBirthDate: Date) -> Int {
+        max(0, Calendar.current.dateComponents([.day], from: correctedBirthDate, to: date).day ?? 0)
+    }
+
+    /// The percentile of one weighing, scored at the age the baby actually was
+    /// **on the day that weighing was taken**.
+    ///
+    /// Not today's age. Scoring a three-week-old weighing against today's age
+    /// asks what the baby would weigh if it had not grown since, so the figure
+    /// slides downward every morning the app is opened without a new entry —
+    /// movement the parent did nothing to cause and cannot undo. `GrowthTrend`
+    /// has always scored each measurement at its own date; this is that rule,
+    /// for the cards that show a single value.
+    static func percentile(of measurement: WeightMeasurement,
+                           correctedBirthDate: Date,
+                           isMale: Bool) -> Double? {
+        percentile(
+            weightKg: measurement.weightKg,
+            ageDays: correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate),
+            isMale: isMale
+        )
+    }
+
+    /// The two figures the percentile card needs, from one z score.
+    ///
+    /// `percentile` clamps to 1–99, and at the edge of the chart that clamp is
+    /// the only thing speaking: the build-11 report showed a z of +12.45 —
+    /// p = 100 — drawn as a ring badge reading "99" beside the band label
+    /// "> 97th". Both are correct and together they read as a measured figure
+    /// with two digits of precision it does not have. Past the clamp the badge
+    /// names the side of the chart instead and stops there.
+    ///
+    /// Returned together so the ring, its badge and the Dashboard's row can
+    /// never come from different z scores.
+    static func percentileReading(of measurement: WeightMeasurement,
+                                  correctedBirthDate: Date,
+                                  isMale: Bool) -> PercentileReading? {
+        let ageDays = correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate)
+        guard let z = zScore(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale) else {
+            return nil
+        }
+        let raw = rawPercentile(fromZ: z)
+        return PercentileReading(percentile: percentile(fromZ: z),
+                                 isBeyondChart: raw > 99.5 || raw < 0.5)
+    }
+
+    struct PercentileReading: Equatable {
+        /// Clamped to 1–99 — what the ring draws and what the band label reads.
+        let percentile: Double
+        /// The true percentile is past the chart's edge, so the clamped number
+        /// is the scale talking rather than a measurement.
+        let isBeyondChart: Bool
+
+        /// Short text for the ring's badge: "> 97", "< 3", or the number.
+        var badge: String {
+            guard isBeyondChart else { return "\(Int(percentile))" }
+            return percentile > 50 ? "percentile.badge_above97".l : "percentile.badge_below3".l
+        }
+
+        /// The same honesty for a surface that renders a sentence rather than a
+        /// badge: past the edge it borrows the band label, which is already
+        /// prose in every language ("> 97th", "> 97-го"), instead of forcing a
+        /// two-digit number through a "%d percentile" format.
+        func rowText(format: String) -> String {
+            guard isBeyondChart else { return String(format: format, Int(percentile)) }
+            return percentileLabel(percentile)
+        }
     }
 
     // MARK: - Presentation
 
     /// Localized percentile band label. Bands share identical boundaries with
-    /// `percentileColor`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
+    /// `percentileTint`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
     static func percentileLabel(_ percentile: Double) -> String {
         switch percentile {
         case ..<3:  return "percentile.below3".l
@@ -111,16 +191,33 @@ enum WHOGrowthStandard {
         }
     }
 
-    /// Band color. Boundaries are identical to `percentileLabel` (3 / 15 / 50 / 85 / 97):
-    /// green in the healthy 15–85 range, orange at the edges, red beyond 3 / 97.
-    static func percentileColor(_ percentile: Double) -> String {
+    /// How far from the middle of the chart a percentile sits, for the surfaces
+    /// that tint it. Three tiers where `percentileLabel` names six bands: the
+    /// words say which band, the colour only says how far out.
+    ///
+    /// Returned as a case rather than a colour because this file is pure domain
+    /// logic and must not import SwiftUI (see ARCHITECTURE.md). The mapping to
+    /// actual tints lives with the views, in `BBTheme` tokens — it used to be
+    /// three hex literals here, which had no dark variant and rendered beside
+    /// the tokenized mint of the gain card on the very same screen.
+    enum PercentileTint: Equatable {
+        /// 15–85, the range the app calls normal.
+        case typical
+        /// 3–15 and 85–97 — worth noticing, not worth alarming over.
+        case edge
+        /// Below 3 or above 97, where the app says to ask someone qualified.
+        case beyond
+    }
+
+    /// Boundaries identical to `percentileLabel` (3 / 15 / 50 / 85 / 97), so a
+    /// reading can never read "normal" while showing the tint of a tail.
+    static func percentileTint(_ percentile: Double) -> PercentileTint {
         switch percentile {
-        case ..<3:  return "#E05A5A"
-        case ...15: return "#F5A45F"
-        case ...50: return "#6BBF6B"
-        case ...85: return "#6BBF6B"
-        case ...97: return "#F5A45F"
-        default:    return "#E05A5A"
+        case ..<3:  return .beyond
+        case ...15: return .edge
+        case ...85: return .typical
+        case ...97: return .edge
+        default:    return .beyond
         }
     }
 

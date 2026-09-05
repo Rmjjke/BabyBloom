@@ -16,8 +16,6 @@ struct DiaperView: View {
         entries.filter { Calendar.current.isDateInToday($0.time) }
     }
 
-    private var isOverNorm: Bool { todayEntries.count > dailyNorm }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -146,14 +144,19 @@ struct DiaperView: View {
                 )
             }
 
+            // Never `overLimit`. A nappy count is a MINIMUM — the reference
+            // tables this app cites give a floor and no ceiling — so more
+            // nappies than the norm is reassurance, and the card used to turn
+            // red with a warning triangle for it. Under the norm stays neutral
+            // too: a quiet morning is not a finding, and only weight gain
+            // raises anything in this app (DECISIONS 2026-08-25).
             BBProgressCard(
                 title: "stat.daily_norm",
                 current: Double(todayEntries.count),
                 target: Double(dailyNorm),
                 unit: "unit.pcs",
                 color: BBTheme.Colors.diaper,
-                icon: "checkmark.circle.fill",
-                overLimit: isOverNorm
+                icon: "checkmark.circle.fill"
             )
         }
     }

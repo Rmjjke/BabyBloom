@@ -44,6 +44,25 @@ final class WeightVelocityTests: XCTestCase {
         XCTAssertEqual(r.band, .below)
     }
 
+    /// The truncation defect, pinned from the side it actually hurts.
+    ///
+    /// 3 d 22 h with +82 g is 20.9 g/day — below the P15 of 26.95 for a boy in
+    /// the 4-week-to-2-month row, so the gain is `.below` and the app says so.
+    /// Dividing by truncated whole days made it 27.3 g/day, inside the band:
+    /// false reassurance, and the growthGainLow notification never fired. The
+    /// interval LABEL still reads 3 days, which is what the calendar says.
+    func testASubDayOffsetDoesNotInflateTheRate() throws {
+        let earlier = WeightMeasurement(date: at(35, 4.6).date, weightKg: 4.6)
+        let later = WeightMeasurement(
+            date: earlier.date.addingTimeInterval(3 * 86_400 + 22 * 3_600),
+            weightKg: 4.682
+        )
+        let r = try XCTUnwrap(measure(earlier, later))
+        XCTAssertEqual(r.gramsPerDay, 20.94, accuracy: 0.05)
+        XCTAssertEqual(r.intervalDays, 3)
+        XCTAssertEqual(r.band, .below, "27.3 g/day — the truncated figure — would have read .within")
+    }
+
     // MARK: - Bands against WHO references
 
     /// WHO 1-month increments for boys, 0–4 weeks: P15 = 24.3 g/day,

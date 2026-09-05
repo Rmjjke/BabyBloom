@@ -154,14 +154,29 @@ question, and each carries its source in its header:
 |---|---|
 | `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo). |
 | `WeightVelocity` | Is enough going on? Gain against WHO 1-month weight-velocity increments. |
-| `GrowthTrend` | Is the baby *sliding* down the chart? Centile-space movement, NICE faltering-growth thresholds. |
+| `GrowthTrend` | Is the baby holding its centile channel? Centile-space movement in EITHER direction — NICE faltering-growth thresholds for a fall, a flat two spaces for a rise. |
 | `NewbornWeightLoss` | The first two weeks, measured against birth weight — where a percentile is the wrong and actively frightening instrument. |
 | `FeedingAdequacy` | Is the baby getting enough food? Gain + feeds + wet nappies. |
+| `StatusWord` | Which word does a parent read for one of those signals? |
 
 The medical spine of `FeedingAdequacy`: **weight gain is the only trigger.**
 Feeds and nappy counts are context and never raise a concern on their own. If
 gain sits within the reference the app says nothing, whatever the other two
 say. Do not "improve" this into a multi-signal alarm.
+
+That rule is why `FeedingAdequacy.Signal` has no `.above`: `assess` collapses a
+gain above the reference onto `.within`, so the breakdown gate cannot fire on a
+baby gaining fast. **The gate's vocabulary is not the parent's.** Every surface
+that renders a `Signal` renders `StatusWord.of(signal, band:)` instead, which
+takes the `WeightVelocity.Band` for the same pair of weighings and splits
+`.above` back out. (`WeightGainCard` is not one of them: it renders the `Band`
+directly and always did say "above the reference" — it was the surface the
+build-11 contradiction was measured against.) Change the gate and the word
+together only if you mean to; they are separate on purpose.
+
+Single-value percentile cards score a weighing at the age the baby was **on the
+day it was taken** (`WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`),
+never at today's age — the same rule `GrowthTrend` has always followed.
 
 `Baby` also carries corrected age for preterm babies, used everywhere except
 newborn weight loss — the physiological drop follows delivery, so it is

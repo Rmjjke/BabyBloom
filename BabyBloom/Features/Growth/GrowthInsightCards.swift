@@ -34,6 +34,21 @@ struct HintText: View {
     }
 }
 
+/// The tint for a percentile, from the tier `WHOGrowthStandard` puts it in.
+///
+/// The mapping lives here rather than in Core because these are `BBTheme`
+/// tokens and Core imports no SwiftUI. It replaced three hex literals that had
+/// no dark variant and sat on the same screen as the tokenized greens below.
+extension WHOGrowthStandard.PercentileTint {
+    var color: Color {
+        switch self {
+        case .typical: return BBTheme.Colors.success
+        case .edge:    return BBTheme.Colors.accent
+        case .beyond:  return BBTheme.Colors.alert
+        }
+    }
+}
+
 /// A thing worth raising with a doctor. Never a diagnosis, always an invitation
 /// to ask someone qualified.
 private struct FlagRow: View {
@@ -43,7 +58,7 @@ private struct FlagRow: View {
         HStack(alignment: .top, spacing: BBTheme.Spacing.sm) {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(.system(size: 16))
-                .foregroundStyle(Color(hex: "#E05A5A"))
+                .foregroundStyle(BBTheme.Colors.alert)
             Text(text)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -51,7 +66,7 @@ private struct FlagRow: View {
         }
         .padding(BBTheme.Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "#E05A5A").opacity(0.10))
+        .background(BBTheme.Colors.alert.opacity(0.10))
         .cornerRadius(BBTheme.Radius.md)
     }
 }
@@ -74,12 +89,12 @@ struct NewbornProgressCard: View {
             if let percent = status.percentOfBirthWeight {
                 HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.metric(String(format: "newborn.percent_fmt".l, Int(percent.rounded())))
-                        .foregroundStyle(status.hasRegained ? Color(hex: "#6BBF6B") : BBTheme.Colors.textPrimary)
+                        .foregroundStyle(status.hasRegained ? BBTheme.Colors.success : BBTheme.Colors.textPrimary)
                     Spacer()
                     if status.hasRegained {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 20))
-                            .foregroundStyle(Color(hex: "#6BBF6B"))
+                            .foregroundStyle(BBTheme.Colors.success)
                     }
                 }
 
@@ -160,17 +175,17 @@ struct WeightGainCard: View {
     /// Only "below" is tinted as something to look at. A baby gaining fast is
     /// not a problem to flag in an app.
     ///
-    /// "Below" is `BBTheme.Colors.accent`, the token, not the `#F5A45F` literal
-    /// this card shipped with. `NutritionSection` says the same words a couple
-    /// of hundred points further down the same screen in the token colour, and
-    /// a render of the two stacked showed them as two different designs rather
-    /// than one — the literal has no dark variant, so dark mode widened the gap
-    /// instead of closing it. The token is the project's stated mechanism, so
-    /// the older card moved.
+    /// Both tints are TOKENS, not the `#F5A45F` and `#6BBF6B` literals this card
+    /// shipped with. `NutritionSection` says the same words a couple of hundred
+    /// points further down the same screen, and a render of the two stacked
+    /// showed them as two different designs rather than one — the literals have
+    /// no dark variant, so dark mode widened the gap instead of closing it.
+    /// "Below" moved first; "within" followed once the stacked render made the
+    /// remaining mint-versus-green mismatch impossible to argue for.
     private func color(for band: WeightVelocity.Band?) -> Color {
         switch band {
         case .below:  return BBTheme.Colors.accent
-        case .within: return Color(hex: "#6BBF6B")
+        case .within: return BBTheme.Colors.success
         case .above:  return BBTheme.Colors.textPrimary
         case nil:     return BBTheme.Colors.textPrimary
         }
@@ -190,13 +205,25 @@ struct CentileTrendCard: View {
             case .stable:
                 HStack(spacing: BBTheme.Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color(hex: "#6BBF6B"))
+                        .foregroundStyle(BBTheme.Colors.success)
                     Text("trend.stable".l)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
             case let .sustainedDrop(spaces):
                 FlagRow(text: String(format: "trend.drop_fmt".l, String(format: "%.1f", spaces)))
+            case .crossingUp:
+                // Neutral by design: an upward crossing is a fact, not a
+                // finding. No tick — that belongs to `.stable` — and none of
+                // `FlagRow`'s alarm chrome either.
+                HStack(spacing: BBTheme.Spacing.sm) {
+                    Image(systemName: "arrow.up.right")
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    Text("trend.crossing_up".l)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }

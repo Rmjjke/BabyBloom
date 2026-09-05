@@ -28,6 +28,10 @@ final class GrowthCardRenderDump: XCTestCase {
             try dump("\(locale)-gain-within", gainCard(gramsPerDay: 35))
             try dump("\(locale)-gain-below", gainCard(gramsPerDay: 12))
             try dump("\(locale)-trend-drop", CentileTrendCard(assessment: .sustainedDrop(spaces: 2.4)))
+            // The two non-alarm trend states side by side: only `.stable` may
+            // carry the green tick, and neither may look like the drop.
+            try dump("\(locale)-trend-stable", CentileTrendCard(assessment: .stable))
+            try dump("\(locale)-trend-crossing-up", CentileTrendCard(assessment: .crossingUp(spaces: 3.1)))
             try dump("\(locale)-locked", LockedInsightCard(
                 title: "section.weight_gain".l, teaser: "premium.teaser_gain".l, onUnlock: {}))
         }
