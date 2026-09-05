@@ -85,6 +85,10 @@ struct GrowthView: View {
             // Bottom clearance so the FAB never permanently covers the last row.
             .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
         }
+        // Every "not enough data" card on this screen offers the one action that
+        // resolves it, and they all open the sheet the "+" opens — one
+        // presentation, injected once, rather than a sheet per card.
+        .environment(\.addWeighingAction, { showAddSheet = true })
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .overlay(alignment: .bottomTrailing) {
             BBFab { showAddSheet = true }
@@ -222,11 +226,14 @@ struct GrowthView: View {
     private func weightGainSection(_ baby: Baby) -> some View {
         if store.isPremium {
             ExplainerCard(explainer: .gain) {
-                WeightGainCard(reading: WeightVelocity.latest(
-                    measurements: measurements,
-                    correctedBirthDate: baby.correctedBirthDate,
-                    isMale: baby.gender == .male
-                ))
+                WeightGainCard(
+                    reading: WeightVelocity.latest(
+                        measurements: measurements,
+                        correctedBirthDate: baby.correctedBirthDate,
+                        isMale: baby.gender == .male
+                    ),
+                    hasWeighing: !measurements.isEmpty
+                )
             }
         } else {
             LockedInsightCard(
@@ -294,7 +301,8 @@ struct GrowthView: View {
             // one — a parent with no data yet is exactly who needs to read how
             // to get some.
             ExplainerCard(explainer: .nutrition) {
-                NutritionSection(assessment: assessment, band: reading?.band)
+                NutritionSection(assessment: assessment, band: reading?.band,
+                                 hasWeighing: !measurements.isEmpty)
             }
             // The breakdown below is a different card with a different title,
             // and its locked tap stays a pure sell — the section's explainer
@@ -393,12 +401,20 @@ struct GrowthView: View {
             BBSectionHeader(title: "section.measurement_history")
 
             if entries.isEmpty {
-                EmptyStateView(
-                    icon: "ruler.fill",
-                    color: BBTheme.Colors.growth,
-                    title: "empty.no_measurements",
-                    subtitle: "empty.measurements_hint"
-                )
+                // The subtitle already says "add your first measurement" and had
+                // nothing to press — the same defect as the cards above, so it
+                // gets the same button. `EmptyStateView` is shared by four
+                // screens and stays untouched; the CTA is stacked under it here,
+                // centred to match the card's own alignment.
+                VStack(spacing: BBTheme.Spacing.md) {
+                    EmptyStateView(
+                        icon: "ruler.fill",
+                        color: BBTheme.Colors.growth,
+                        title: "empty.no_measurements",
+                        subtitle: "empty.measurements_hint"
+                    )
+                    AddWeighingButton()
+                }
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
                     ForEach(entries) { entry in

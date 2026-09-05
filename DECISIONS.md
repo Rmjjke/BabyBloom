@@ -14,6 +14,45 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — An empty state names the missing thing AND offers the action that resolves it
+
+Every Growth-screen state where a missing WEIGHING is what holds a card back
+carries a button that adds one — first weeks, gain, centile trend, nutrition
+and the measurement history. States missing something else (per-row "мало
+данных" for unlogged feeds/nappies, the breakdown's no-data line) correctly
+carry no weighing CTA: their resolving action lives on other tabs. The button is not decoration on the copy: the copy is
+written as an instruction ("one more weighing, three days after the previous
+one"), and the button performs it. Where a card's state depends on how much is
+already on file, the sentence follows (`hasWeighing`), so a parent is never
+asked for something they have already done.
+
+**Why.** Build 14, fresh install: the owner logged feedings and nappies for
+days and the Growth screen kept saying "not enough data". Every hint on it was
+true and none of them was usable — they named a requirement in the passive
+("two weighings are needed") without saying that only WEIGHINGS advance these
+cards, and the only way to add one was a "+" in the navigation bar two hundred
+points away. A parent reading "not enough data" while logging diligently does
+not conclude they are logging the wrong thing; they conclude the app is broken,
+and they stop logging. The nutrition hint therefore also says what the feeding
+and nappy counts are measured over, which is the sentence that answers the
+actual confusion.
+
+**The action is injected, never wired per card.** `GrowthView` puts it in the
+environment once (`\.addWeighingAction`), and the button draws itself only when
+something is there to answer it — the same rule `InfoBadge` follows, for the
+same reason: a card rendered in a dump, a preview or a future screen must not
+advertise an affordance that does nothing. One sheet presentation serves the
+whole screen.
+
+**The Dashboard's growth section is a gesture, not a `NavigationLink`** (the
+link shipped briefly within this branch and was reverted in review).
+Header and card are one tap target now, but a `NavigationLink` is a `Button`
+and flattens its label into a single accessibility element, which would undo
+the per-row VoiceOver structure the Dashboard and `NutritionSection` were
+deliberately built with. This is the trade `ExplainerCard` already made; making
+it again here rather than taking the convenient link is the point of recording
+it.
+
 ## 2026-09-05 — Adding a weighing never makes the app show less: one pairing rule, and it widens
 
 The gain reading is measured over `WeightVelocity.pair(in:)` — the newest

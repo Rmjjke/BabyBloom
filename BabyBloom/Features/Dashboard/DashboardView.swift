@@ -20,6 +20,9 @@ struct DashboardView: View {
     @State private var showQuickGrowthSheet = false
     @State private var showProfileEdit = false
     @State private var showPaywall = false
+    /// Drives the Growth push. A `@State` + `navigationDestination` rather than
+    /// a `NavigationLink`, because the link is a Button — see `growthSection`.
+    @State private var showGrowth = false
 
     /// Honours `-BBForcePremium`, so the paid half of the Growth section is
     /// reachable in e2e without a purchase (see the platform-run skill).
@@ -244,23 +247,43 @@ struct DashboardView: View {
     /// `DashboardGrowthSummary`, where the rule is unit-tested.
     private var growthSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            // The whole header is the link, so the chevron is not a separate
-            // tap target that behaves differently from the words beside it.
-            NavigationLink {
-                GrowthView()
-            } label: {
+            // Header AND card are one tap target: the chevron promised a
+            // destination that the data under it did not deliver, and a card
+            // showing "two weighings needed" is exactly where a parent taps to
+            // go and add one.
+            //
+            // A gesture, NOT a `NavigationLink` — the same trade `ExplainerCard`
+            // documents, for the same reason. A link is a Button, and a Button
+            // flattens its label into ONE accessibility element, which would
+            // destroy the per-row structure `growthRow` builds on purpose (label
+            // and value read as one statement, one stop per row — the rule
+            // DECISIONS 2026-09-05 "One explainer pattern" records for
+            // `NutritionSection`, which this card copies). The way in without
+            // sight is the named action on the header title, which is an element
+            // with certainty; nothing is attached to this container, because a
+            // container is not an accessibility element.
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
                 HStack {
                     BBTheme.Typography.title3("dashboard.growth.title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .accessibilityActions {
+                            Button("dashboard.growth.open".l) { showGrowth = true }
+                        }
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                        // Decoration: the named action above is the reachable
+                        // way in, and an unlabelled glyph announces nothing.
+                        .accessibilityHidden(true)
                 }
+                growthCard
             }
-            .buttonStyle(.plain)
-
-            growthCard
+            // A header row's Spacer is empty space, and empty space does not
+            // answer taps without this.
+            .contentShape(Rectangle())
+            .onTapGesture { showGrowth = true }
+            .navigationDestination(isPresented: $showGrowth) { GrowthView() }
 
             // A permanent teaser, not a free-first-days window: a section that
             // vanished after two days would read as breakage, in the one domain

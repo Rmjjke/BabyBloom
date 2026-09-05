@@ -227,6 +227,26 @@ How a card opens its explainer depends on what its own tap already does:
   which is what makes a double activation impossible rather than merely
   unobserved.
 
+Every Growth-screen state held back by a missing WEIGHING names that and
+offers the action that resolves it — first weeks, gain, centile trend and
+nutrition through `HintWithAddWeighing` (hint + CTA), and the measurement
+history's `EmptyStateView` with the same button stacked under it. States
+missing feeds or nappies (the per-row "мало данных", the breakdown's no-data
+line) carry no weighing CTA — their resolving action lives on other tabs. The CTA opens
+the same `AddGrowthSheet` the "+" opens. The action travels the way the
+explainer's does, through the environment (`\.addWeighingAction`, set once by
+`GrowthView` for the whole screen), so `AddWeighingButton` draws itself ONLY
+where something can answer it — a card rendered in a dump or a preview shows
+the hint alone, and `HintWithAddWeighing` reads the same value so the stack
+does not reserve a row for a button that will not be there. It is a real
+`Button` inside `ExplainerCard`'s tap gesture: the child control answers the
+tap first, so the CTA opens the sheet and the rest of the card still opens the
+explainer, and unlike the "?" badge it is its own VoiceOver element. The gain
+and nutrition cards take `hasWeighing` and ask for "one more weighing, N days
+after the previous one" once anything is on file — phrased against the previous
+weighing rather than the first, which keeps it true for two weighings taken on
+the same day (nutrition's empty state covers that case too).
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
@@ -325,9 +345,14 @@ at launch and never over the Dashboard. That page is the single call site of
 Recent activity, Events and Profile live under More rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
-stats → growth → progress, and its Growth header is a `NavigationLink` into
-`GrowthView` — the second route to that screen. There is no separate
-Settings screen: `ProfileView` carries the baby's details and the app settings
+stats → growth → progress. Its Growth header AND the data card under it are one
+tap target into `GrowthView` — the second route to that screen — built as a
+`contentShape` + `onTapGesture` driving a `navigationDestination`, not as a
+`NavigationLink`: a link is a Button and would flatten the card's per-row
+accessibility elements into one, the same trade `ExplainerCard` makes. The
+named action on the header title is the way in without sight. The locked teaser
+below is outside that gesture and keeps its own paywall tap. There is no
+separate Settings screen: `ProfileView` carries the baby's details and settings
 on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as

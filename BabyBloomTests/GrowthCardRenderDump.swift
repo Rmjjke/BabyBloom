@@ -27,6 +27,23 @@ final class GrowthCardRenderDump: XCTestCase {
             try dump("\(locale)-newborn-flagged", newbornCard(day: 15, weight: 3.05))
             try dump("\(locale)-gain-within", gainCard(gramsPerDay: 35))
             try dump("\(locale)-gain-below", gainCard(gramsPerDay: 12))
+            // The empty states a fresh install actually lands on, WITH the CTA
+            // the screen injects — three locales because the button's label and
+            // the hint above it share a card width, and Russian is the longest.
+            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true)))
+            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false)))
+            try dump("\(locale)-trend-insufficient", withCTA(CentileTrendCard(assessment: .insufficientData)))
+            // Both nutrition wordings: with one weighing on file the two cards
+            // above must ask for "one more", not for two.
+            try dump("\(locale)-nutrition-needs-next",
+                     withCTA(NutritionSection(assessment: nil, band: nil, hasWeighing: true)))
+            try dump("\(locale)-nutrition-needs-two",
+                     withCTA(NutritionSection(assessment: nil, band: nil, hasWeighing: false)))
+            try dump("\(locale)-newborn-needs-weighing", withCTA(newbornCardNoWeighing()))
+            // The same card with the action absent — the hint must sit flush
+            // against the card's bottom padding, with no gap where the button
+            // would have been.
+            try dump("\(locale)-newborn-needs-weighing-no-cta", newbornCardNoWeighing())
             try dump("\(locale)-trend-drop", CentileTrendCard(assessment: .sustainedDrop(spaces: 2.4)))
             // The two non-alarm trend states side by side: only `.stable` may
             // carry the green tick, and neither may look like the drop.
@@ -67,14 +84,35 @@ final class GrowthCardRenderDump: XCTestCase {
         return NewbornProgressCard(status: status)
     }
 
+    /// Birth weight recorded, nothing weighed yet: the first empty state a fresh
+    /// install can meet, and the one the CTA rule skipped until now.
+    private func newbornCardNoWeighing() -> some View {
+        let status = NewbornWeightLoss.analyse(
+            birthWeightKg: 3.5,
+            birthDate: birth,
+            measurements: [],
+            now: Calendar.current.date(byAdding: .day, value: 3, to: birth)!
+        )!
+        return NewbornProgressCard(status: status)
+    }
+
     private func gainCard(gramsPerDay: Double) -> some View {
         let start = at(0, 4.0)
         let end = WeightMeasurement(
             date: Calendar.current.date(byAdding: .day, value: 14, to: start.date)!,
             weightKg: 4.0 + gramsPerDay * 14 / 1000
         )
-        return WeightGainCard(reading: WeightVelocity.measure(
-            from: start, to: end, correctedBirthDate: birth, isMale: true))
+        return WeightGainCard(
+            reading: WeightVelocity.measure(from: start, to: end,
+                                            correctedBirthDate: birth, isMale: true),
+            hasWeighing: true)
+    }
+
+    /// Stands in for `GrowthView`, which is what sets the action an empty
+    /// state's CTA draws itself from — without it these cards render exactly as
+    /// they did before, hint and no button.
+    private func withCTA<V: View>(_ view: V) -> some View {
+        view.environment(\.addWeighingAction, {})
     }
 
     private func dump<V: View>(_ name: String, _ view: V, dark: Bool = false) throws {

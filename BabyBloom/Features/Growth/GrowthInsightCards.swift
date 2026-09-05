@@ -148,6 +148,108 @@ extension EnvironmentValues {
     }
 }
 
+// MARK: - "Not enough data" actions
+
+/// Set by the screen that owns the add-measurement sheet, for every card inside
+/// it. Same shape and the same reason as `explainerAction`: an empty state's
+/// button draws itself only where something can actually answer it, so a card
+/// rendered outside `GrowthView` — a dump, a preview — cannot offer a CTA that
+/// leads nowhere.
+typealias AddWeighingAction = @MainActor @Sendable () -> Void
+
+private struct AddWeighingActionKey: EnvironmentKey {
+    static let defaultValue: AddWeighingAction? = nil
+}
+
+extension EnvironmentValues {
+    var addWeighingAction: AddWeighingAction? {
+        get { self[AddWeighingActionKey.self] }
+        set { self[AddWeighingActionKey.self] = newValue }
+    }
+}
+
+/// A "not enough data" hint plus the one action that resolves it.
+///
+/// Every empty state on this screen used to name a requirement and then leave
+/// the parent to find the "+" in the navigation bar. The owner's build-14 fresh
+/// install shows what that costs: feedings and nappies were logged for days
+/// while the screen kept saying "not enough data", because nothing on it said
+/// that only WEIGHINGS move these cards. The hint now names the missing thing
+/// and the button adds it.
+struct HintWithAddWeighing: View {
+    let text: String
+
+    /// Read here as well as inside the button, so the stack does not RESERVE a
+    /// row for it. A `VStack` spaces its children by declaration, not by what
+    /// they draw: with the action unset, `AddWeighingButton` renders nothing but
+    /// the gap above it survives, and the render dumps showed exactly that
+    /// phantom tail under the hint.
+    @Environment(\.addWeighingAction) private var addWeighingAction
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            HintText(text: text)
+            if addWeighingAction != nil {
+                AddWeighingButton()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The CTA itself, drawn ONLY where `addWeighingAction` is set.
+///
+/// A real `Button` inside a card whose whole body is an `ExplainerCard` tap
+/// gesture: a child control answers the tap before its ancestor's gesture does,
+/// which is the arrangement `InfoBadgeRole.control` already relies on for the
+/// "?" badge. Unlike that badge, this one must also be reachable without sight
+/// — a `Button` is its own VoiceOver element inside an `ExplainerCard`, which
+/// leaves the children exactly as the card built them.
+///
+/// **There is no double-activation guard here, and it is not an oversight.**
+/// `LockedInsightCard.sell()` can refuse to sell while its own explainer is up
+/// because one view owns both flags; this button owns neither. The explainer's
+/// state lives in the `ExplainerCard` above it and the sheet's in `GrowthView`,
+/// and neither can see the other. What makes the pair impossible is the
+/// arrangement: a child control consumes the tap, so the card's gesture never
+/// runs (verified on the simulator, 2026-09-05 — tapping the CTA opens the
+/// add-measurement sheet and no explainer). If that ever stopped holding, both
+/// flags would go true in one tap and the outcome is UNDEFINED — UIKit may
+/// refuse the second presentation while its binding stays true, wedging that
+/// sheet shut. Nothing on this project's machines can verify which; treat any
+/// double-fire sighting as a bug here, not as a benign extra sheet.
+struct AddWeighingButton: View {
+    @Environment(\.addWeighingAction) private var addWeighingAction
+
+    var body: some View {
+        if let addWeighingAction {
+            Button(action: addWeighingAction) {
+                HStack(spacing: BBTheme.Spacing.xs) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body,
+                                                        weight: .semibold, design: .rounded))
+                    Text("growth.add_weighing".l)
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body,
+                                                        weight: .semibold, design: .rounded))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                }
+                .foregroundStyle(BBTheme.Colors.primary)
+                .padding(.horizontal, BBTheme.Spacing.md)
+                .padding(.vertical, BBTheme.Spacing.sm)
+                // Apple's minimum target, and it earns its keep here: this
+                // button sits inside a card that answers taps of its own, so a
+                // near miss opens the explainer instead of the sheet.
+                .frame(minHeight: 44)
+                .background(BBTheme.Colors.primary.opacity(0.12))
+                .cornerRadius(BBTheme.Radius.pill)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+}
+
 // MARK: - Explainers
 
 /// A subject a "?" badge can explain. One sheet, five subjects.
@@ -369,7 +471,10 @@ struct NewbornProgressCard: View {
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             } else {
-                HintText(text: "newborn.needs_weighing".l)
+                // The FIRST empty state a fresh install meets, and free — so it
+                // gets the same treatment as the three below it rather than
+                // being the one card that names a requirement and stops there.
+                HintWithAddWeighing(text: "newborn.needs_weighing".l)
             }
 
             ForEach(status.flags, id: \.self) { flag in
@@ -387,6 +492,11 @@ extension NewbornWeightLoss.Flag: Hashable {}
 
 struct WeightGainCard: View {
     let reading: WeightVelocity.Reading?
+    /// Whether anything has been weighed at all. Required rather than defaulted:
+    /// it decides WHICH requirement the empty state states, and a call site that
+    /// silently got the wrong one would tell a parent who has weighed once that
+    /// they need two weighings from scratch.
+    let hasWeighing: Bool
 
     var body: some View {
         InsightCard(title: "section.weight_gain".l) {
@@ -420,7 +530,13 @@ struct WeightGainCard: View {
                 HintText(text: "velocity.no_reference".l)
             }
         } else {
-            HintText(text: "velocity.needs_two".l)
+            // With one weighing on file the requirement is a SECOND one, and
+            // saying so is the difference between an instruction and a status.
+            // The interval is quoted from the first weighing, which matches
+            // `velocity.info_body` behind the "?" — both describe the same
+            // `WeightVelocity.minimumIntervalDays` floor.
+            HintWithAddWeighing(text: hasWeighing ? "velocity.needs_second".l
+                                                  : "velocity.needs_two".l)
         }
     }
 
@@ -468,7 +584,10 @@ struct CentileTrendCard: View {
         InsightCard(title: "section.trend".l) {
             switch assessment {
             case .insufficientData:
-                HintText(text: "trend.insufficient".l)
+                // The requirement is unchanged — three weighings over four
+                // weeks, the same claim `trend.info_body` makes — and only the
+                // way to act on it is new.
+                HintWithAddWeighing(text: "trend.insufficient".l)
             case .stable:
                 HStack(spacing: BBTheme.Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
