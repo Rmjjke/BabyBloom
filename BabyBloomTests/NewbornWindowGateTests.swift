@@ -158,7 +158,9 @@ final class NewbornWindowGateTests: XCTestCase {
         XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
             measurements: course.measurements,
             correctedBirthDate: course.birth,
-            isMale: false), "without the gate this parent gets a low-gain warning on day 12")
+            isMale: false,
+            intervalsMustEndAfter: nil),
+            "without the gate this parent gets a low-gain warning on day 12")
 
         XCTAssertFalse(NotificationManager.shared.shouldRaiseGainSignal(
             birthDate: course.birth,
@@ -166,6 +168,69 @@ final class NewbornWindowGateTests: XCTestCase {
             correctedBirthDate: course.birth,
             isMale: false,
             measurements: course.measurements,
+            now: now))
+    }
+
+    /// The chained interval, which the newest-interval gate does not reach.
+    ///
+    /// Born 3.50, down to 3.30 by day 10, up to 3.60 by day 40, seen on day 41.
+    /// The newest interval (day 10 → day 40) ends outside the window and IS
+    /// honestly below the reference — one genuinely slow month, which is noise
+    /// and must not interrupt anyone. The chain then walks back to day 0 → day
+    /// 10, which is the dip: below every reference by construction. Two in a
+    /// row, a "pattern", and a low-gain warning — assembled from one real
+    /// interval and one piece of physiology.
+    ///
+    /// The count-2 rule exists to demand INDEPENDENT evidence, so an interval
+    /// ending inside the window stops the chain rather than counting toward it.
+    func testTheChainCannotBeCompletedByAnIntervalInsideTheDip() {
+        let birth = birth(daysAgo: 41)
+        let measurements = [
+            WeightMeasurement(date: date(dayOfLife: 0, from: birth), weightKg: 3.50),
+            WeightMeasurement(date: date(dayOfLife: 10, from: birth), weightKg: 3.30),
+            WeightMeasurement(date: date(dayOfLife: 40, from: birth), weightKg: 3.60),
+        ]
+        // The newest interval is genuinely below and the window is long shut,
+        // so nothing above this stops the signal.
+        XCTAssertNil(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                    birthDate: birth,
+                                                    measurements: measurements,
+                                                    now: now))
+        XCTAssertEqual(WeightVelocity.latest(measurements: measurements,
+                                             correctedBirthDate: birth,
+                                             isMale: false)?.band, .below)
+        // Fail-on-current: with no boundary the dip completes the pattern.
+        XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
+            measurements: measurements, correctedBirthDate: birth,
+            isMale: false, intervalsMustEndAfter: nil),
+            "the fixture only tests the boundary if the chain closes without it")
+
+        XCTAssertFalse(NotificationManager.shared.shouldRaiseGainSignal(
+            birthDate: birth,
+            birthWeightKg: birthWeight,
+            correctedBirthDate: birth,
+            isMale: false,
+            measurements: measurements,
+            now: now),
+            "one slow month plus the dip is not two slow months")
+    }
+
+    /// The control: both intervals after the window and both genuinely below.
+    /// The boundary must not have turned the signal off in general — a
+    /// notification that never fires says nothing at all.
+    func testTwoPostWindowLowIntervalsStillFire() {
+        let birth = birth(daysAgo: 47)
+        let measurements = [
+            WeightMeasurement(date: date(dayOfLife: 26, from: birth), weightKg: 4.00),
+            WeightMeasurement(date: date(dayOfLife: 33, from: birth), weightKg: 4.02),
+            WeightMeasurement(date: date(dayOfLife: 40, from: birth), weightKg: 4.04),
+        ]
+        XCTAssertTrue(NotificationManager.shared.shouldRaiseGainSignal(
+            birthDate: birth,
+            birthWeightKg: birthWeight,
+            correctedBirthDate: birth,
+            isMale: false,
+            measurements: measurements,
             now: now))
     }
 

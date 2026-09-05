@@ -405,10 +405,14 @@ final class NotificationManager: @unchecked Sendable {
                                              birthDate: birthDate,
                                              measurements: measurements,
                                              now: now) == nil else { return false }
+        // The gate above covers the newest interval; this covers the ones the
+        // chain reaches back through. Without it a single genuinely slow month
+        // after the dip could be "confirmed" by the dip itself.
         return WeightVelocity.consecutiveBelowReference(
             measurements: measurements,
             correctedBirthDate: correctedBirthDate,
-            isMale: isMale
+            isMale: isMale,
+            intervalsMustEndAfter: NewbornWeightLoss.observationWindowEnd(birthDate: birthDate)
         )
     }
 

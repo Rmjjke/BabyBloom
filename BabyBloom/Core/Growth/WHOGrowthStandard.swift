@@ -105,8 +105,20 @@ enum WHOGrowthStandard {
         0.5 * (1 + erf(z / 2.0.squareRoot())) * 100
     }
 
-    /// Corrected age in whole days on a given date, floored at zero — the age
-    /// every reference in `Core/Growth` expects, for a date that is not today.
+    /// Corrected age in whole days on a given date, floored at zero.
+    ///
+    /// **Not for percentile scoring — use `correctedAgeDaysIfBorn` below.** The
+    /// floor answers "how old is this baby, at worst zero", which is a fair
+    /// question for an increment table and a wrong one for weight-for-age: a
+    /// preterm baby's pre-due weighing clamps to age 0 and scores against the
+    /// TERM newborn curve. That defect is the reason the nil-returning variant
+    /// exists, and it is why nothing in the app calls this any more.
+    ///
+    /// Kept rather than deleted because it is the plain, correct expression of
+    /// "corrected age on a date", and `WHOGrowthStandardTests` pins the
+    /// corrected-versus-chronological distinction through it — a real invariant
+    /// of this module that would lose its subject along with the function. If a
+    /// caller ever appears, check which of the two questions it is asking.
     static func correctedAgeDays(on date: Date, correctedBirthDate: Date) -> Int {
         max(0, Calendar.current.dateComponents([.day], from: correctedBirthDate, to: date).day ?? 0)
     }

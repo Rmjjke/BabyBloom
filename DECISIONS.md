@@ -123,8 +123,13 @@ and month one has a pair that reaches back into the window and never stops.
 The later endpoint cannot do that — any new weighing becomes the newest one
 and moves the endpoint out — which is why the post-window state is the one
 that carries an add-weighing button. A pair that spans the window and ENDS
-outside it is measured honestly, because `WeightVelocity` compares it at the
-interval's MIDPOINT age, the age the average actually describes.
+outside it is measured honestly, and the reason is stronger than the midpoint
+rule: **the WHO 0–4 week row is itself a birth-to-one-month increment, so it
+already CONTAINS the dip.** A pair ending at day 28 is the very quantity that
+row was built from and is comparable to it; a pair ending at day 10 is a
+fragment of it — the losing half — measured against the whole. That is the
+line that survives re-litigation, because it is a fact about the reference
+table rather than a judgement about which age to compare at.
 
 **Why the deferral has two cases rather than one.** They differ in what the
 parent can do about it. Inside the window the first-weeks card is on screen and
@@ -163,6 +168,14 @@ Unlike the gain gate this one is unconditional rather than requiring a birth
 weight: dropping points leaves `insufficientData`, an honest state that needs
 nothing put in its place, whereas deferring a gain verdict with no first-weeks
 card to hold it would be worse than the ordinary rules.
+
+**The cost, stated so it does not come back as a bug report: the first trend
+verdict now arrives around day 50 rather than day 28.** The card needs three
+scorable weighings spanning 28 days, and the earliest scorable one is day 22,
+so the earliest span ends near day 50. That is honest degradation rather than
+a regression — the verdicts it used to give before then were computed across
+the dip, which is what this entry removes — and `insufficientData` already
+says "not enough yet" in exactly the calm way this screen needs.
 
 **A weighing dated before `correctedBirthDate` is not percentile-scored at
 all.** `correctedAgeDays` clamps at zero, which is right for an increment table

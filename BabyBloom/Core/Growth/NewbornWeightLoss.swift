@@ -65,6 +65,20 @@ enum NewbornWeightLoss {
         return dayOfLife >= 0 && dayOfLife <= observationWindowDays
     }
 
+    /// The last moment that still counts as the newborn window, for callers
+    /// that filter by DATE rather than ask about today.
+    ///
+    /// Chronological, like everything else here — the dip follows delivery, not
+    /// maturity. Unconditional on birth weight, and both its callers depend on
+    /// that: `GrowthTrend` drops weighings inside it, and
+    /// `consecutiveBelowReference` refuses intervals ending inside it. Neither
+    /// leaves a verdict unheld the way the gain gate would, so neither has to
+    /// wait on a birth weight being recorded — the dip is biology, not a
+    /// consequence of the parent having found the discharge record.
+    static func observationWindowEnd(birthDate: Date) -> Date {
+        Calendar.current.date(byAdding: .day, value: observationWindowDays, to: birthDate) ?? birthDate
+    }
+
     /// Why a weight-GAIN verdict is being withheld, or nil when the ordinary
     /// rules apply.
     ///
@@ -116,9 +130,13 @@ enum NewbornWeightLoss {
         // `WeightVelocity.pair(in:)` and not a fresh "newest weighing" lookup:
         // that function is the one place the pairing rule lives, and the pair it
         // returns is the one every gain verdict is actually measured over.
-        // `consecutiveBelowReference` chains the same walk, so its newest
-        // interval ends on this same weighing and the notification is covered by
-        // the same check.
+        //
+        // This covers the NEWEST interval only, which is all a card ever shows.
+        // `consecutiveBelowReference` chains further back, and its later
+        // intervals need their own protection — it takes
+        // `intervalsMustEndAfter` for exactly that, because a chained interval
+        // lying inside the dip would otherwise supply the second half of a
+        // "pattern" the count-2 rule exists to demand real evidence for.
         guard let pair = WeightVelocity.pair(in: measurements) else { return nil }
         let dayOfLatest = days(from: birthDate, to: pair.later.date)
         guard dayOfLatest >= 0, dayOfLatest <= observationWindowDays else { return nil }

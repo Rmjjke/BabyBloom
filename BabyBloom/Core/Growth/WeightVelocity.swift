@@ -221,10 +221,30 @@ enum WeightVelocity {
     /// are still required, and each of them still clears `minimumIntervalDays`
     /// on its own, so a short pair can never BE an interval and two weighings a
     /// day apart cannot raise an alarm between them.
+    ///
+    /// - Parameter intervalsMustEndAfter: an interval whose LATER endpoint is
+    ///   at or before this date is not evidence, and the chain stops there
+    ///   rather than counting it. Callers pass the end of the newborn window;
+    ///   nil means no boundary applies.
+    ///
+    ///   This is the whole point of requiring `count` intervals: two in a row
+    ///   is a pattern only if the second one is INDEPENDENT evidence. An
+    ///   interval ending inside the physiological dip is below every reference
+    ///   by construction, so chaining onto it manufactures the pattern instead
+    ///   of finding one — a baby weighed 3.50 at birth, 3.30 on day 10 and
+    ///   3.60 on day 40 has exactly one genuinely slow month, and on day 41 the
+    ///   dip supplied the second "confirming" interval.
+    ///
+    ///   A DATE and not the newborn gate itself, because this module knows
+    ///   nothing about birth weight and should not: the clinical decision of
+    ///   what boundary to pass stays with the caller. Required rather than
+    ///   defaulted so a new call site has to state its boundary, even if that
+    ///   statement is nil.
     static func consecutiveBelowReference(
         measurements: [WeightMeasurement],
         correctedBirthDate: Date,
         isMale: Bool,
+        intervalsMustEndAfter: Date?,
         count: Int = 2
     ) -> Bool {
         let sorted = chronological(measurements)
@@ -235,6 +255,12 @@ enum WeightVelocity {
         var checked = 0
         var index = sorted.count - 1
         while index >= 1 && checked < count {
+            // Checked before the interval is measured, not after: an interval
+            // that ends inside the window is not a below-reference interval
+            // that we forgive, it is not evidence at all.
+            if let boundary = intervalsMustEndAfter, sorted[index].date <= boundary {
+                return false
+            }
             guard let earlier = measurableEarlierIndex(in: sorted, before: index),
                   let reading = measure(
                     from: sorted[earlier],

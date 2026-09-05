@@ -40,7 +40,7 @@ no product code at all. The ones that matter:
 | `-appLanguage en` \| `ru` \| `es` | pin the UI language, so selectors do not depend on the device locale |
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
-| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
+| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
 | `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 
 `BBSkipSplash`, `BBSeedScenario` and `BBForcePremium` are the only three backed
@@ -84,9 +84,15 @@ NOTHING may say so — the gain card, the nutrition gain row, the Dashboard's
 free line and the `growthGainLow` notification all defer to the first-weeks
 card — is checkable in the running app and not only in unit tests.
 
+`newbornStalePair` is the SAME course seen on day 25, and the pair of them is
+the point: only the observation day differs, so any difference on screen is
+the gate's doing. It reaches the second deferral — the first-weeks card is
+gone, and the gain card says the weighings are from the first weeks and offers
+an add-weighing button.
+
 **Spell the name right, and it will tell you if you did not.** The names are
 case-sensitive (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`,
-`showcase`). An unrecognised value logs
+`newbornStalePair`, `showcase`). An unrecognised value logs
 a fault naming it and the valid ones, then calls `fatalError` — the app dies on
 launch in every build configuration (`assertionFailure` would vanish under
 Release), so a typo fails the flow instead of quietly running it against the

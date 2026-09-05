@@ -222,10 +222,19 @@ It returns two cases, because they differ in what the parent can do:
   new one; a new weighing becomes the pair's later endpoint and ends the
   state, so it can never be permanent.
 
-The LATER endpoint, never the earlier one. A pair that spans the window and
-ends outside it is measured honestly — `WeightVelocity` compares it at the
-interval's MIDPOINT age — and gating on the earlier endpoint would silence the
-gain card forever for a baby whose only two weighings are birth and month one.
+The LATER endpoint, never the earlier one. The WHO 0–4 week row is itself a
+birth-to-one-month increment and already contains the dip, so a pair ending at
+day 28 is the quantity that row was built from while a pair ending at day 10 is
+its losing half measured against the whole. Gating on the earlier endpoint
+instead would silence the gain card forever for a baby whose only two weighings
+are birth and month one.
+
+`WeightVelocity.consecutiveBelowReference` takes the window's end date as
+`intervalsMustEndAfter` and stops the chain at an interval that ends inside it.
+The deferral above covers only the NEWEST interval, which is all a card shows;
+the notification chains further back, and an interval lying in the dip would
+otherwise supply the second half of the "pattern" the count-2 rule exists to
+demand independent evidence for.
 
 With no birth weight there is no deferral: `NewbornProgressCard` is absent too,
 so nothing would hold the verdict's place. That is the same state an install
@@ -259,7 +268,9 @@ and the per-measurement percentile entry points return nil:
   becomes the trend's peak and ordinary catch-down reads as faltering growth.
   Same rule as the gain gate, on the other verdict over the same days —
   unconditional here, because dropping points degrades to `insufficientData`
-  rather than leaving a verdict unheld.
+  rather than leaving a verdict unheld. The cost is that the first trend
+  verdict now lands near day 50 rather than day 28 — three scorable weighings
+  spanning 28 days, starting no earlier than day 22.
 - Before `correctedBirthDate`. `correctedAgeDays` clamps at zero;
   `correctedAgeDaysIfBorn` returns nil instead, because scoring a preterm
   baby's actual-birth weight against the term newborn curve is a category
@@ -465,7 +476,7 @@ entitlement:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 
 Widget views live in the **app's** source tree

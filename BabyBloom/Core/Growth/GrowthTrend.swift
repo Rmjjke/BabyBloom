@@ -139,9 +139,7 @@ enum GrowthTrend {
         //    `WHOGrowthStandard.correctedAgeDaysIfBorn` — a preterm baby's
         //    actual-birth weighing scored against the term newborn curve is not
         //    a low percentile, it is a category error.
-        let windowEnd = Calendar.current.date(byAdding: .day,
-                                              value: NewbornWeightLoss.observationWindowDays,
-                                              to: birthDate) ?? birthDate
+        let windowEnd = NewbornWeightLoss.observationWindowEnd(birthDate: birthDate)
         let scored: [(date: Date, z: Double)] = measurements
             .sorted { $0.date < $1.date }
             .filter { $0.date > windowEnd }
