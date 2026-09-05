@@ -182,6 +182,18 @@ never at today's age — the same rule `GrowthTrend` has always followed.
 newborn weight loss — the physiological drop follows delivery, so it is
 counted from the actual birth.
 
+Each verdict card on the Growth screen — percentile, gain, centile trend,
+nutrition — carries a "?" badge and an explainer sheet behind it. All four are
+one mechanism, in `GrowthInsightCards.swift`: `GrowthExplainer` names the
+subject and resolves its icon, tint and copy keys (`<card's own key
+family>.info_title` / `.info_body` / `.info_hint`), and `ExplainerSheet`
+renders any of them. How the badge behaves depends on what the card's own tap
+already does, and `InsightCard(info:)` takes that as `InfoBadgeRole`: an
+unlocked card is wrapped in `ExplainerCard`, so the WHOLE card opens the
+explainer and the badge is a drawn-but-inert affordance (`.affordance`); a
+`LockedInsightCard`'s tap sells Premium, so there the badge is its own button
+(`.control`) and the explainer must not reach the card around it.
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:

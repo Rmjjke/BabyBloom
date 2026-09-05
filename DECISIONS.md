@@ -14,6 +14,31 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — One explainer pattern, and it never eats a sell tap
+
+Every verdict card on the Growth screen opens the same `ExplainerSheet`,
+parameterized by a `GrowthExplainer` case. On an unlocked card the whole card
+is the control and the "?" is only the affordance; on a `LockedInsightCard`
+the "?" is its own button and the card around it still opens the paywall.
+Explainer copy lives under the card's OWN key family (`velocity.info_body`,
+not `growth.info.gain.body`).
+
+**Why.** Build-12 feedback was that three cards say a couple of words a parent
+cannot decode — the same complaint the percentile explainer already answered,
+so the answer had to be the same thing four times rather than four things.
+Which tap opens it is not a style choice: a locked card exists to sell, and an
+explainer laid over its tap would trade the paywall for a help sheet, so the
+badge stays the smaller target there and the sell keeps the card. The key
+prefixes follow the card because a `growth.info.*` family would scatter one
+card's strings over two places in six JSON files.
+
+The nutrition copy says outright that **gain is the main signal and feeds and
+nappies are context** — the 2026-08-25 rule, finally stated to the parent
+rather than only enforced in `FeedingAdequacy`. A parent who reads "8 feeds a
+day" beside a reference and is not told which line decides will invent the
+multi-signal alarm in their own head, which is the exact fear that rule exists
+to prevent.
+
 ## 2026-09-05 — The word a parent reads is split from the gate that fires
 
 `FeedingAdequacy.Signal` keeps its three cases and its collapse of an
