@@ -68,6 +68,12 @@ struct BabyBloomApp: App {
             // only ever set the environment; it never constrained the fonts.
             .dynamicTypeSize(...BBTheme.Typography.maxDynamicTypeSize)
             .environment(subscriptionManager)
+            // At the ROOT, not on a screen: entitlement follows the Apple ID,
+            // so a subscriber's cold launch must resolve it before they touch
+            // anything gated. Idempotent with the per-screen refreshes;
+            // Transaction.updates only covers NEW transactions, never the
+            // entitlements an install starts with.
+            .task { await subscriptionManager.refreshEntitlements() }
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
                 // Simulator-only, and only when launched with
@@ -88,6 +94,12 @@ struct BabyBloomApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NotificationManager.shared.onAppForegrounded()
+                // Expiry produces NO transaction — a lapsed subscription just
+                // drops out of currentEntitlements — so Transaction.updates
+                // cannot report it, and an app suspended for days would keep
+                // serving premium (or keep a cross-device purchase locked)
+                // until the next cold launch. Re-ask on every foregrounding.
+                Task { await subscriptionManager.refreshEntitlements() }
             }
         }
         .modelContainer(sharedModelContainer)

@@ -181,8 +181,17 @@ not give.
 
 `SubscriptionManager.isEntitled` is the StoreKit truth. `isPremium` is
 computed on every access as `isEntitled || override` — not stored — because
-`refreshEntitlements()` assigns unconditionally from a `.task` that runs on
-every appearance and would clobber an override written once at init.
+`refreshEntitlements()` assigns unconditionally and runs repeatedly (see
+below), which would clobber an override written once at init.
+Entitlement is resolved by `BabyBloomApp` itself: a root-level `.task` runs
+`refreshEntitlements()` during the splash on every launch, and the
+`scenePhase == .active` branch re-runs it on every foregrounding — a lapsed
+subscription produces NO transaction (it just drops out of
+`currentEntitlements`), so `Transaction.updates` can never report expiry, and
+without the foreground re-ask a suspended app would serve premium to a lapsed
+subscriber until the next cold launch. Screens with skin in the game
+(profile, both paywalls) still re-ask on appearance; all of these are
+idempotent reads of the same source.
 `restorePurchases` deliberately reports off `isEntitled`, so the override
 cannot fake a restore. `hasResolvedEntitlements` says whether StoreKit has been
 asked at all: before the first `refreshEntitlements()`, `isEntitled == false`
