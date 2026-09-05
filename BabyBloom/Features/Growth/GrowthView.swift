@@ -123,9 +123,15 @@ struct GrowthView: View {
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+                // Weight comes from `measurements`, not from `latest`: that
+                // accessor drops future-dated rows, and this card sits two
+                // cards above the percentile — which already reads them — so a
+                // raw newest entry printed 4.50 kg over a percentile scored on
+                // 4.30. Height and head stay on `latest`: no filter applies to
+                // them, and their "—" already covers a missing figure.
                 BBStatCard(
                     title: "stat.weight",
-                    value: latest.flatMap { $0.weightKg.map { String(format: "%.2f", $0) } } ?? "—",
+                    value: measurements.last.map { String(format: "%.2f", $0.weightKg) } ?? "—",
                     unit: "unit.kg",
                     icon: "scalemass.fill",
                     color: BBTheme.Colors.growth,

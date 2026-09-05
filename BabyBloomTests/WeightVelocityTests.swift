@@ -263,14 +263,18 @@ final class WeightVelocityTests: XCTestCase {
     /// gain printed from it, could differ between two renders of one history.
     /// Shuffled input is the only way to exercise that: the sort is free to
     /// return either order for equal keys.
+    ///
+    /// The answer is pinned as well as fixed. Between two arbitrary readings
+    /// the lighter duplicate becomes the newest weighing — 3.90 over 3.30 in
+    /// ten days is 60 g/day, not the 80 the heavier one would report — because
+    /// overstating a gain is the direction `measure(from:to:)` documents as
+    /// unsafe.
     func testTwoWeighingsAtOneInstantStillProduceOneAnswer() throws {
         let duplicates = [at(0, 3.30), at(10, 3.90), at(10, 4.10)]
-        let first = try XCTUnwrap(WeightVelocity.latest(
-            measurements: duplicates, correctedBirthDate: birth, isMale: true))
         for _ in 0..<20 {
-            let again = try XCTUnwrap(WeightVelocity.latest(
+            let reading = try XCTUnwrap(WeightVelocity.latest(
                 measurements: duplicates.shuffled(), correctedBirthDate: birth, isMale: true))
-            XCTAssertEqual(again.gramsPerDay, first.gramsPerDay, accuracy: 1e-9)
+            XCTAssertEqual(reading.gramsPerDay, 60, accuracy: 0.5)
         }
     }
 

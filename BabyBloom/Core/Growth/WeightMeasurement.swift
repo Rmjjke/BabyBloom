@@ -44,7 +44,9 @@ extension Array where Element == GrowthEntry {
     /// **The row is not deleted, and not hidden from the parent** — the
     /// measurement history still lists it, which is what lets them notice the
     /// wrong date and fix it. It simply carries no verdict until its date
-    /// arrives, at which point it starts counting on its own.
+    /// arrives, at which point it starts counting at the next re-render —
+    /// nothing schedules one, because this is recomputed per body evaluation
+    /// rather than cached behind a timer.
     var weightMeasurements: [WeightMeasurement] {
         let horizon = Date().addingTimeInterval(Self.futureDateTolerance)
         return compactMap { entry in
@@ -54,12 +56,18 @@ extension Array where Element == GrowthEntry {
         .sorted { $0.date < $1.date }
     }
 
-    /// The newest entry that actually carries a weight.
+    /// The newest entry that actually carries a weight, and a date that has
+    /// happened.
     ///
     /// Not `first` (or `last`) of the raw array: a height-only entry recorded
     /// this morning is newer than every weighing and says nothing about weight.
     /// Reading the raw newest entry produced both halves of the same defect —
     /// the Dashboard's stat card printing "0.00 kg" from a coalesced nil, and
     /// the Growth screen's percentile card disappearing entirely.
+    ///
+    /// It inherits `weightMeasurements`' future-date rule too, which matters
+    /// because this is the Dashboard's weight headline and the figure the
+    /// percentile card is scored from: a row dated next week must not become
+    /// the number the whole screen is built on.
     var latestWeighing: WeightMeasurement? { weightMeasurements.last }
 }

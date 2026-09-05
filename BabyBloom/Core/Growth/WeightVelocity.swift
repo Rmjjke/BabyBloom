@@ -157,9 +157,16 @@ enum WeightVelocity {
     /// nothing here can say which is right — so the tie-break is not a claim
     /// about the data, only a promise that one history always yields one
     /// number. Without it a card could print a different gain on each render.
+    ///
+    /// The LIGHTER of two duplicates lands last, so it becomes the newest
+    /// weighing. Between two arbitrary answers, take the one that does not
+    /// overstate the gain: `measure(from:to:)` explains why the errors are not
+    /// symmetric — overstating can lift a genuinely below-P15 gain into
+    /// `.within`, which reassures falsely and suppresses the growthGainLow
+    /// notification, while understating only shows a concern that is not there.
     private static func chronological(_ measurements: [WeightMeasurement]) -> [WeightMeasurement] {
         measurements.sorted {
-            $0.date == $1.date ? $0.weightKg < $1.weightKg : $0.date < $1.date
+            $0.date == $1.date ? $0.weightKg > $1.weightKg : $0.date < $1.date
         }
     }
 
