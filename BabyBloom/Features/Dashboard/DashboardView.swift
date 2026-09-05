@@ -487,10 +487,12 @@ struct DashboardView: View {
     /// So it takes the same window the Growth screen's answer is built on —
     /// `FeedingAdequacy.assess` derives its style from the feeds inside
     /// `window(for:)`, between the two most recent weighings — and the two
-    /// surfaces agree by construction. Before there are two weighings there is
-    /// no such window, and a fortnight stands in: long enough to survive a quiet
-    /// morning, short enough that a change in how this baby is fed reaches the
-    /// ring while it is still news.
+    /// surfaces agree by construction. Agreement is the point, not freshness:
+    /// that window is as old as the gap between the last two weighings, so for
+    /// a rarely-weighed baby it can be months behind. A ring that lagged
+    /// differently from the section it sits under would be worse than one that
+    /// lags with it. Before there are two weighings there is no such window,
+    /// and a fortnight stands in — long enough to survive a quiet morning.
     private var feedingStyle: FeedingAdequacy.FeedingStyle {
         let fallback = DateInterval(start: Date().addingTimeInterval(-14 * 86_400), end: Date())
         let window = FeedingAdequacy.window(for: growthEntries.weightMeasurements) ?? fallback

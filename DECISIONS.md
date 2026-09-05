@@ -41,14 +41,20 @@ describes:
   180 days, and never its evidence gates, which read the whole scorable
   history. Unbounded, ordinary regression to the mean becomes a flag that no
   later weighing can ever clear; bounded the other way, a toddler weighed twice
-  a year would have a card reading "not enough data" forever. Two floors keep
-  the window usable: it always admits at least the two most recent weighings,
-  however far apart — those two are the current trajectory by definition, and a
-  reference sitting among the newest readings is displaced by the next
-  weighing, which is precisely what the unclearable flag was not — and it
-  widens backwards until it spans four weeks, so no verdict is ever computed
-  over a pair of weighings two days apart.
-  The cost is deliberate but narrower than "180 days": because of the
+  a year would have a card reading "not enough data" forever. One floor keeps
+  the window usable — it always admits at least the two most recent weighings,
+  however far apart, because those two are the current trajectory by definition
+  — and beyond that **nothing reaches past the bound to find a reference**.
+  That last rule is what keeps the displacement property true: every reference
+  is inside the window or among the two newest readings, so the next weighing
+  displaces it, which is precisely what the unclearable flag was not.
+  A verdict also has to describe four weeks, and when the readings inside the
+  bound cannot span that — a parent whose only recent weighings are days apart
+  — the answer is `insufficientData`. Widening backwards to reach the span was
+  tried and reverted: it let a tight recent cluster pull in a peak from a year
+  earlier and flag an ordinary catch-down, unclearably, until the cluster grew
+  four weeks wide.
+  The remaining cost is narrower than "180 days": because of the
   two-most-recent floor the effective window is longer than the bound whenever
   weighings are sparse, so a fall between two readings 200 days apart IS
   reported. What escapes is a fall spread across three or more weighings, each

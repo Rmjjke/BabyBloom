@@ -240,23 +240,60 @@ final class GrowthTrendTests: XCTestCase {
     /// A verdict is never computed over a two-day pair.
     ///
     /// Weighed at birth, at a month, then twice in one week: the whole-record
-    /// gates pass on four readings across 252 days, and a plain lookback cutoff
-    /// left the comparison holding nothing but the last two — 2 days apart,
-    /// where a full nappy outweighs a fortnight of growth. The window now widens
-    /// backwards until it spans four weeks, so the day-30 reading is in it and
-    /// the verdict is measured across 222 days.
+    /// gates pass on four readings across 252 days, while the only readings
+    /// inside the lookback are the last two, 2 days apart — where a full nappy
+    /// outweighs a fortnight of growth. On that pair alone the baby appears to
+    /// have climbed 2.97 spaces and the card would announce a crossing.
     ///
-    /// Pinned through the RISE, which is where widening can change an answer: on
-    /// the two-day pair alone the baby appears to have climbed 2.6 spaces off a
-    /// low start and the card would announce a crossing; measured from day 30 it
-    /// has gone nowhere.
+    /// The answer is that nothing can be said yet, NOT a verdict measured
+    /// against the day-30 reading: reaching back past the lookback for a span is
+    /// how an ancient peak gets back into the comparison.
     func testAVerdictIsNeverComputedOverATwoDayPair() {
         let old = Calendar.current.date(byAdding: .day, value: -300, to: Date())!
         // z ≈ 0 at day 30, a dip at day 250, back to about the start at day 252.
         let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
                  onOldTimeline(old, 250, 6.9), onOldTimeline(old, 252, 8.6)]
         XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
-                                          isMale: true, birthPercentile: 50), .stable)
+                                          isMale: true, birthPercentile: 50), .insufficientData)
+    }
+
+    /// A tight recent cluster must not reach back through a year of history for
+    /// something to be measured against.
+    ///
+    /// Three weighings around the 97th centile at two to three months, then two
+    /// at the median at thirteen — ordinary catch-down, the textbook shape the
+    /// lookback exists to stop flagging. Widening the window to reach a span
+    /// walked it back 312 days, took the day-91 peak and reported a 2.8-space
+    /// drop; worse, a follow-up weighing a week later still could not span four
+    /// weeks within the cluster, so the flag was unclearable for another month.
+    /// Both the cluster and its follow-up must stay silent.
+    func testATightRecentClusterDoesNotReachBackForAnAncientPeak() {
+        let old = Calendar.current.date(byAdding: .day, value: -430, to: Date())!
+        // Day 30/63/91 at roughly +1.88 z; day 400/403 at about the median.
+        let cluster = [onOldTimeline(old, 30, 5.55), onOldTimeline(old, 63, 6.7),
+                       onOldTimeline(old, 91, 7.6),
+                       onOldTimeline(old, 400, 10.4), onOldTimeline(old, 403, 10.45)]
+
+        // Born below the 9th centile, where a single space is the threshold —
+        // the setting that made this reachable for ordinary catch-up growth.
+        for percentile in [5.0, 50.0] {
+            XCTAssertEqual(GrowthTrend.assess(measurements: cluster, correctedBirthDate: old,
+                                              isMale: true, birthPercentile: percentile),
+                           .insufficientData, "birth percentile \(percentile)")
+        }
+
+        // And a week later, which is when the old behaviour was still flagging.
+        let followUp = cluster + [onOldTimeline(old, 410, 10.5)]
+        XCTAssertEqual(GrowthTrend.assess(measurements: followUp, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 5),
+                       .insufficientData)
+
+        // Once the recent cluster is itself four weeks wide the card speaks
+        // again, measured entirely within the lookback — the flag was never
+        // suppressed, only refused until there was something to compute it on.
+        let settled = followUp + [onOldTimeline(old, 431, 10.6)]
+        XCTAssertEqual(GrowthTrend.assess(measurements: settled, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 5), .stable)
     }
 
     // MARK: - NICE thresholds scale with birth centile
@@ -287,33 +324,26 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertEqual(assess(m, birthPercentile: 50), .stable)
     }
 
-    /// The other half of the same fixture, recorded rather than suppressed: a
-    /// transposed weight (9.7 kg then 7.9 kg two days later) IS reported.
+    /// The other half of the same fixture, and a scope boundary worth stating:
+    /// a transposed weight (9.7 kg then 7.9 kg two days later) is NOT reported
+    /// by this detector.
     ///
-    /// Widening the window cannot prevent this and no version of the fix could:
-    /// widening only ever adds older readings to the set `peak` maximises over,
-    /// so it can only raise the peak and only increase the drop. What it does
-    /// change is the comparison behind the number — 2.86 spaces measured across
-    /// 222 days from the day-30 reading, not across the two-day pair.
+    /// Round 2 flagged it, by widening the window back to the day-30 reading to
+    /// find a span. That reach is what round 3 removed, because the same reach
+    /// pulled an ancient peak into an ordinary catch-down. What is left is
+    /// consistent rather than lucky: nothing in this app computes a trajectory
+    /// from a two-day interval — `WeightVelocity.minimumIntervalDays` refuses
+    /// the same pair for the same reason, that a full nappy outweighs the
+    /// signal. A rapid loss is a velocity question, and this detector answers
+    /// "is the baby sliding down the chart", which two days cannot support.
     ///
-    /// And the flag is right. The app cannot tell a transposed digit from a real
-    /// 1.8 kg loss, and of the two readings of that data one is a clerical error
-    /// the parent will spot on the history screen while the other is an
-    /// emergency. "Worth discussing with your pediatrician" is the correct
-    /// output for both.
-    func testALargeSuddenLossIsReportedRatherThanSmoothedAway() throws {
+    /// Recorded as a fixture so the silence is a decision someone can revisit,
+    /// not an accident nobody noticed.
+    func testARapidLossIsOutsideThisDetectorsScope() {
         let old = Calendar.current.date(byAdding: .day, value: -300, to: Date())!
         let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
                  onOldTimeline(old, 250, 9.7), onOldTimeline(old, 252, 7.9)]
-        guard case let .sustainedDrop(spaces) = GrowthTrend.assess(
-            measurements: m, correctedBirthDate: old, isMale: true, birthPercentile: 50
-        ) else {
-            return XCTFail("a 1.8 kg loss must not be silent")
-        }
-        // Measured from day 30, not from the two-day pair: the pair alone would
-        // give (1.029 + 0.879) / zPerCentileSpace against a peak of 1.029 — the
-        // same number here only because day 250 happens to be the higher of the
-        // two candidates. What the window guarantees is that day 30 was eligible.
-        XCTAssertEqual(spaces, 2.86, accuracy: 0.05)
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+                                          isMale: true, birthPercentile: 50), .insufficientData)
     }
 }

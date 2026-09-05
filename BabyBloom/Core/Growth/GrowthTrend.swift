@@ -31,8 +31,8 @@ enum GrowthTrend {
     static let minimumSpanDays = 28
 
     /// How far back the comparison's REFERENCES may reach, in days. It bounds
-    /// the peak, the trough and the starting point — never the evidence gates,
-    /// which read the whole history.
+    /// the peak and the starting point — never the evidence gates, which read
+    /// the whole history.
     ///
     /// Unbounded, the peak is the all-time maximum, and an ordinary regression
     /// to the mean becomes a PERMANENT flag: a baby that touched the 91st
@@ -42,17 +42,29 @@ enum GrowthTrend {
     /// the fall NICE describes — weeks to months — and short enough that the
     /// comparison is still about where this baby is heading now.
     ///
-    /// The cost is deliberate and worth naming precisely. It is NOT "a fall
-    /// beyond 180 days is invisible": `referenceWindow` always keeps the two
-    /// most recent weighings, so for a parent who weighs rarely the effective
-    /// window is longer than the bound and a fall between two readings 200 days
-    /// apart is reported normally. What escapes is a fall spread over three or
-    /// more weighings, each step small enough that no eligible peak sits a full
-    /// `thresholdSpaces` above the latest reading. That shape is outside NICE's
-    /// scope — its thresholds describe a fall over weeks to months — and
-    /// catching it would mean reinstating the permanent flag this bound exists
-    /// to remove. The number is a judgement rather than a published threshold;
-    /// the owner may retune it.
+    /// **Nothing reaches past this bound to find a reference.** That is what
+    /// makes the paragraph above true: every reference sits inside the window
+    /// or among the two newest readings, so the next weighing always displaces
+    /// it, where an all-time peak never could be. The one deliberate exception
+    /// is `referenceWindowStart`'s two-most-recent floor, whose pair is only
+    /// reached when everything else is already outside the bound.
+    ///
+    /// Two costs, both deliberate, both narrower than "a fall beyond 180 days
+    /// is invisible":
+    ///
+    /// - A fall spread over three or more weighings, each step small enough
+    ///   that no eligible peak sits a full `thresholdSpaces` above the latest
+    ///   reading, is never reported however far it travels in total. A fall
+    ///   between two readings 200 days apart IS reported, because the floor
+    ///   keeps that pair.
+    /// - A parent whose only recent weighings are days apart gets
+    ///   `insufficientData` until they span four weeks, rather than a verdict
+    ///   measured against something older than the bound.
+    ///
+    /// Both shapes are outside NICE's scope, whose thresholds describe a fall
+    /// over weeks to months, and catching either would mean reinstating the
+    /// permanent flag this bound exists to remove. The number is a judgement
+    /// rather than a published threshold; the owner may retune it.
     static let peakLookbackDays = 180
 
     /// A rise past this many centile spaces is named as a crossing rather than
@@ -128,12 +140,25 @@ enum GrowthTrend {
         // The gates decide whether to speak; this decides what the comparison is
         // measured against, and only the recent past can say where a baby is
         // heading now.
-        let scores = referenceWindow(scored, newest: newest).map(\.z)
+        let windowStart = referenceWindowStart(scored, newest: newest)
 
-        // Non-optional by construction: `referenceWindow` always returns at
+        // The comparison itself has to describe four weeks, and NOTHING widens
+        // the window past the lookback to reach that. If the readings inside
+        // the lookback cannot span it — a parent whose only recent weighings
+        // are three days apart — the honest answer is that nothing can be said
+        // yet, the same answer the evidence gates give. Reaching further back
+        // for a span instead would resurrect the ancient peak: a tight cluster
+        // today could pull in a reading a year old, flag a drop against it, and
+        // keep flagging until the cluster itself grew four weeks wide.
+        guard days(from: scored[windowStart].date, to: newest.date) >= minimumSpanDays else {
+            return .insufficientData
+        }
+
+        // Non-optional by construction: `referenceWindowStart` always leaves at
         // least two readings. `peak` seeds its search with `start` because
         // `start` IS the first of the readings it searches — a seed, not a
         // fallback for a case that cannot happen.
+        let scores = scored[windowStart...].map(\.z)
         let latest = newest.z
         let start = scores[0]
         let peak = scores.dropLast().reduce(start) { Swift.max($0, $1) }
@@ -181,42 +206,40 @@ enum GrowthTrend {
         return .stable
     }
 
-    /// The readings a verdict may be measured against: recent enough to
-    /// describe the current trajectory, and spread widely enough to be a trend
-    /// rather than two weighings on consecutive days.
+    /// Where the window a verdict may be measured against begins.
     ///
-    /// Walking back from the newest reading, a reading joins the window when
-    /// any of three things is true:
+    /// Two rules, and deliberately no third:
     ///
-    /// 1. **The window is still a single reading.** A comparison needs two, so
-    ///    the two most recent weighings are always in, however far apart. Those
-    ///    two ARE the current trajectory, and a plain cutoff drops one of them
-    ///    the moment a parent weighs twice more than six months apart — a
-    ///    toddler seen at 18 and 24 months is 182 days, two over the bound, and
-    ///    the card went dead. This cannot bring back the flag the bound exists
-    ///    to remove: the reference then sits among the two newest readings and
-    ///    the next weighing displaces it, where an all-time peak never could be.
-    /// 2. **It is inside the lookback** — the bound itself.
-    /// 3. **The window does not yet span `minimumSpanDays`.** Without this the
-    ///    cutoff could leave a window two days wide — a parent who weighed at
-    ///    birth, at a month, and then twice in one week — and noise across a
-    ///    two-day pair was reported as a trend. The evidence gates ask for four
-    ///    weeks of history; the window a verdict is computed over honours the
-    ///    same floor.
-    private static func referenceWindow(
+    /// 1. **Everything inside the lookback** — the bound itself, which is what
+    ///    keeps an ancient peak out of the comparison.
+    /// 2. **Never fewer than the two most recent weighings**, however far apart.
+    ///    A comparison needs two, and a plain cutoff drops one of them the
+    ///    moment a parent weighs twice more than six months apart — a toddler
+    ///    seen at 18 and 24 months is 182 days, two over the bound, and the card
+    ///    went dead. This cannot bring back the flag the bound exists to remove:
+    ///    the reference then sits among the two newest readings and the next
+    ///    weighing displaces it, where an all-time peak never could be.
+    ///
+    /// The rule that is NOT here: widening backwards to reach
+    /// `minimumSpanDays`. It looked like the obvious way to stop a verdict being
+    /// computed over a two-day pair, and it reopened exactly the hole the
+    /// lookback closes — three weighings around the 97th centile at two to three
+    /// months, then two at the median at thirteen, and the window walked back
+    /// 312 days for a peak and flagged a drop that no weighing could clear for
+    /// another four weeks. The span floor lives at the call site instead, where
+    /// failing it means `insufficientData` rather than a longer reach.
+    private static func referenceWindowStart(
         _ scored: [(date: Date, z: Double)],
         newest: (date: Date, z: Double)
-    ) -> ArraySlice<(date: Date, z: Double)> {
+    ) -> Int {
         let cutoff = newest.date.addingTimeInterval(-Double(peakLookbackDays) * 86_400)
         var first = scored.count - 1
-        while first > 0 {
-            let isStillASingleReading = first == scored.count - 1
-            let nextIsInsideLookback = scored[first - 1].date >= cutoff
-            let spansEnough = days(from: scored[first].date, to: newest.date) >= minimumSpanDays
-            guard isStillASingleReading || nextIsInsideLookback || !spansEnough else { break }
+        while first > 0, scored[first - 1].date >= cutoff {
             first -= 1
         }
-        return scored[first...]
+        // Rule 2. `scored` holds at least three readings by the time this runs,
+        // so this index is always a valid start with a reading after it.
+        return Swift.min(first, scored.count - 2)
     }
 
     private static func days(from: Date, to: Date) -> Int {
