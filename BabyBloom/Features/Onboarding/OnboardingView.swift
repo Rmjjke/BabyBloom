@@ -17,6 +17,10 @@ struct OnboardingView: View {
     @State private var growthHeightCm: Double = 50.0
     @State private var growthHeadCm: Double = 34.0
     @State private var growthIncludeHead: Bool = false
+    /// The measurements page's opt-out. True by default: most parents have the
+    /// discharge record to hand, and defaulting to "unknown" would bury the
+    /// question the page exists to ask.
+    @State private var knowsBirthMeasurements: Bool = true
     @State private var gestationalWeeks: Double = 34
     @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
@@ -49,6 +53,7 @@ struct OnboardingView: View {
                     case .feeding: FeedingPage(feedingType: $feedingType, babyName: babyName, onBack: back)
                     case .growth: GrowthPage(weightKg: $growthWeightKg, heightCm: $growthHeightCm,
                                              headCm: $growthHeadCm, includeHead: $growthIncludeHead,
+                                             knowsMeasurements: $knowsBirthMeasurements,
                                              onBack: back)
                     case .fact: FactPage(babyName: babyName, birthDate: birthDate,
                                          feedingType: feedingType, onContinue: next)
@@ -129,13 +134,18 @@ struct OnboardingView: View {
             birthDate: birthDate,
             gender: gender,
             feedingType: feedingType,
-            birthWeightKg: growthWeightKg,
-            birthHeightCm: growthHeightCm,
-            birthHeadCm: growthIncludeHead ? growthHeadCm : nil,
+            measurements: knowsBirthMeasurements
+                ? .init(weightKg: growthWeightKg,
+                        heightCm: growthHeightCm,
+                        headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil)
+                : nil,
             gestationalWeeks: wasBornEarly ? Int(gestationalWeeks) : nil
         )
         modelContext.insert(created.baby)
-        modelContext.insert(created.firstEntry)
+        // Absent when the parent answered "I don't remember" — the app then
+        // starts with an empty history, which every growth surface already
+        // handles as its ordinary first-run state.
+        if let firstEntry = created.firstEntry { modelContext.insert(firstEntry) }
         try? modelContext.save()
         // The widget is already on the home screen for some parents; without
         // this it keeps showing the default name until its own cadence.

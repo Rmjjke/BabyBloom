@@ -11,23 +11,33 @@ import Foundation
 /// saving stay with the view — this touches no model context.
 enum OnboardingBabyBuilder {
 
+    /// What the measurements page collected, or nil when the parent answered
+    /// "I don't remember".
+    ///
+    /// A struct rather than three optionals because they stand or fall
+    /// together: the page's weight is both the profile's birth weight and the
+    /// first weighing, so there is no state where one is known and the other
+    /// is not.
+    struct BirthMeasurements {
+        let weightKg: Double
+        let heightCm: Double
+        let headCircumferenceCm: Double?
+    }
+
     /// - Parameters:
-    ///   - birthWeightKg: the growth page's weight answer. The page asks for the
-    ///     measurements AT BIRTH, so this one number is both the profile's
-    ///     birth weight and the first weighing.
+    ///   - measurements: nil is a real answer, not a missing one — see the
+    ///     `birthWeightKg` assignment below.
     ///   - gestationalWeeks: nil unless the parent said the baby was born early.
-    ///     Still optional, unlike the birth weight: prematurity is a fact some
-    ///     parents genuinely do not have, and nil means "unknown" downstream.
+    ///     Prematurity is a fact some parents genuinely do not have, and nil
+    ///     means "unknown" downstream.
     static func build(
         name: String,
         birthDate: Date,
         gender: Baby.Gender,
         feedingType: Baby.FeedingType,
-        birthWeightKg: Double,
-        birthHeightCm: Double,
-        birthHeadCm: Double?,
+        measurements: BirthMeasurements?,
         gestationalWeeks: Int?
-    ) -> (baby: Baby, firstEntry: GrowthEntry) {
+    ) -> (baby: Baby, firstEntry: GrowthEntry?) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         let baby = Baby(
             name: trimmed.isEmpty ? "baby.default_name".l : trimmed,
@@ -35,18 +45,32 @@ enum OnboardingBabyBuilder {
             gender: gender,
             feedingType: feedingType
         )
-        // ALWAYS filled, never nil. It used to come from an optional toggle on
-        // the birth page — a second way to say the same thing, which most
-        // parents left off, and a nil birth weight silently switches off both
-        // `NewbornProgressCard` and the window gate that keeps the newborn dip
-        // from reading as a below-reference gain. One question, one answer.
+        // Filled whenever the parent knows it — which is now the common case,
+        // because the page asks for the birth weight outright instead of hiding
+        // it behind an optional toggle on the page before, where most parents
+        // walked past it.
+        //
+        // Nil is still a legitimate ANSWER, and it has to stay one: a slider
+        // cannot express "I don't know", so without the opt-out every parent
+        // who cannot find the discharge record would store an invented 3.5 kg
+        // as the baseline the 10%-loss flag is measured against. Nil turns the
+        // newborn instrument off — no first-weeks card, no gain deferral — and
+        // that is the correct behaviour, identical to an install from before
+        // this feature and to a parent who later clears the field in their
+        // profile.
         //
         // One way, and only at onboarding: `BabyProfileEditSheet` writes this
         // same field later WITHOUT touching history, because a correction to
         // the profile is not a new weighing and must not rewrite what was
         // recorded.
-        baby.birthWeightKg = birthWeightKg
+        baby.birthWeightKg = measurements?.weightKg
         baby.gestationalWeeks = gestationalWeeks
+
+        // No measurements, no entry: an unknown birth weight must not become a
+        // point on the chart either. A fabricated first point is worse there
+        // than on the profile, because every verdict measured over a pair that
+        // reaches back to it inherits the fiction.
+        guard let measurements else { return (baby, nil) }
 
         // Dated at the BIRTH, not at the moment onboarding finished. These are
         // the numbers off the discharge record: dating them today would stamp a
@@ -55,9 +79,9 @@ enum OnboardingBabyBuilder {
         // also gives every baby a real first point on the chart.
         let entry = GrowthEntry(
             date: birthDate,
-            weightKg: birthWeightKg,
-            heightCm: birthHeightCm,
-            headCircumferenceCm: birthHeadCm
+            weightKg: measurements.weightKg,
+            heightCm: measurements.heightCm,
+            headCircumferenceCm: measurements.headCircumferenceCm
         )
         entry.baby = baby
         return (baby, entry)

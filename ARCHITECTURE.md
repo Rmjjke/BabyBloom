@@ -56,13 +56,23 @@ model change — it is a change to every query in the app.
 **What onboarding writes, and when.** Its measurements page asks for the
 weight and height AT BIRTH — the discharge-record numbers — and
 `OnboardingBabyBuilder.build` turns that one answer into two things:
-`Baby.birthWeightKg`, which is therefore ALWAYS filled, and a first
+`Baby.birthWeightKg`, filled whenever the parent knows it, and a first
 `GrowthEntry` dated at `Baby.birthDate` rather than at the moment onboarding
 finished. The builder is a pure function taking no model context, so both
 rules are unit-testable; `createAndFinish` only inserts and saves what it
 returns. The flow is ONE-WAY and runs once:
 `BabyProfileEditSheet` writes `birthWeightKg` later without touching history,
 because a correction to the profile is not a new weighing.
+
+The page carries an «I don't remember» opt-out, and it produces a THIRD
+outcome rather than a default: `birthWeightKg` stays nil **and no first
+`GrowthEntry` is created at all**. A slider always holds a number, so without
+it every parent who cannot find the discharge record would store an invented
+3.5 kg as both the baseline the 10%-loss flag is measured against and the
+first point on the chart. Nil is what turns the newborn instrument off — no
+`NewbornProgressCard`, no gain deferral — which is also the state of every
+install from before this feature, and the state a parent reaches by clearing
+the field in their profile. All three are one code path, deliberately.
 
 `OrphanedEntryAdoption` is a one-shot migration for entries created before
 that link existed. Two things about it are load-bearing: it filters in memory

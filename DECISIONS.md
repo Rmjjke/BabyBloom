@@ -17,10 +17,10 @@ live with the workflow in `.desk/`.
 ## 2026-09-05 — Onboarding asks for the measurements AT BIRTH, and dates the first entry there
 
 The measurements page is titled "Height and weight at birth" and its answer
-does two jobs: it fills `Baby.birthWeightKg`, which is now ALWAYS set, and it
-becomes a `GrowthEntry` dated at `Baby.birthDate`. The separate optional
-birth-weight toggle on the birth page is gone; the gestational-weeks toggle
-stays.
+does two jobs: it fills `Baby.birthWeightKg` and becomes a `GrowthEntry` dated
+at `Baby.birthDate`. The separate optional birth-weight toggle on the birth
+page is gone; the gestational-weeks toggle stays. The page carries an
+«I don't remember» opt-out, which leaves the field nil and creates no entry.
 
 **Why one question instead of two.** The toggle was optional and off by
 default, so most parents walked past it — and a nil birth weight silently
@@ -36,8 +36,35 @@ like a week of no gain measured from a point the baby had already left. It
 also gives every baby a real first point on the chart from day one.
 
 **Why prematurity stays optional.** It is a fact some parents genuinely do not
-have, and nil means "unknown" everywhere downstream. The birth weight is
-different: the page now asks for it directly, so there is always an answer.
+have, and nil means "unknown" everywhere downstream.
+
+**Why the birth weight kept an opt-out too — the reversal of the reversal.**
+Removing the toggle removed a real protection along with the duplicate
+question: the deleted comment on it said a parent who does not know must be
+able to walk past without a made-up number being stored, and that is still
+true. A slider cannot express "I don't know"; it always holds a number, and
+the default is 3.5 kg. So a mandatory slider does not collect an answer from
+the parent who has no discharge record — it invents one, and stores the
+invention twice: as the profile baseline the 10%-loss flag is measured
+against, and as the first point on the chart, which every verdict measured
+over a pair reaching back to it then inherits.
+
+What changed is only WHERE the question is asked and how it reads. The old
+toggle was an off-by-default aside on a page about dates and gender, so the
+common answer was silence. The page now asks the question outright and the
+opt-out is a deliberate second answer, so nil means "this parent told us they
+do not know" rather than "this parent did not notice the question".
+
+That also makes the profile editor's optional toggle consistent rather than
+contradictory: nil is a legitimate answered state on both surfaces, and
+`BabyProfileEditSheet` is left exactly as it was.
+
+**Clearing the birth weight in the profile turns the newborn instrument off,
+and that is deliberate.** No `NewbornProgressCard`, and no gain deferral —
+the same state as never having known it, and the same state as an install
+from before this feature. Deferring a gain verdict with nothing put in its
+place would be worse than the ordinary rules, so the gate requires a birth
+weight for exactly the reason the card does.
 
 **No migration, deliberately.** Existing installs keep their first entry's
 original date and whatever `birthWeightKg` they have. A migration would have
@@ -50,12 +77,19 @@ is not a new weighing.
 
 ## 2026-09-05 — During the newborn window, no surface reports a weight-gain verdict
 
-`NewbornWeightLoss.windowActive(birthWeightKg:birthDate:now:)` is the single
-gate. While it is true, `FeedingAdequacy.assess` returns
+`NewbornWeightLoss.gainDeferral(birthWeightKg:birthDate:measurements:now:)` is
+the single gate. While it returns non-nil, `FeedingAdequacy.assess` returns
 `Signal.deferredToNewbornWindow` instead of a band-derived verdict, the gain
-card prints a deferral, the Dashboard's free line prints the same pointer, and
+card prints a deferral, the Dashboard's free line prints the calm word, and
 `growthGainLow` cannot fire. The first-weeks card is the verdict for this
 period.
+
+**The word a parent reads names the period, it does not point at a card.** It
+started as «см. «Первые недели»», which is true only on the Growth screen
+while the window is open — the Dashboard has no such card, and neither does
+the Growth screen once the window has closed on a stale pair. A one-line
+status has no room to say which; the gain card, which has room for a sentence,
+is the surface that says where the verdict lives.
 
 **Why.** A newborn loses 5–10% of its birth weight over the first days. Every
 WHO velocity reference starts well above zero, so a gain measured across that
