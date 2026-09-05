@@ -292,13 +292,12 @@ final class NutritionRenderDump: XCTestCase {
                      dark: true)
         }
 
-        // The calm neighbourhood, for the other half of the tint question. The
-        // two "below" tints are one colour now that `WeightGainCard` uses the
-        // token; the two "within" tints are not — that card's green is still
-        // the literal `#6BBF6B` while `NutritionSection` uses `BBSuccess`
-        // (#7FC7A4), a mint. Calm is the state most parents are in most days,
-        // so the remaining mismatch belongs in a picture rather than in a
-        // report as two hex codes.
+        // The calm neighbourhood, for the other half of the tint question. Both
+        // pairs are one colour now: this render is what argued the last literal
+        // out of `WeightGainCard`, whose "within" green was `#6BBF6B` against
+        // `NutritionSection`'s `BBSuccess` mint. Calm is the state most parents
+        // are in most days, so it stays in a picture — the image is the check
+        // that they have not drifted apart again.
         LocalizationManager.shared.setLanguage("en")
         let calm = try state(.calm)
         let calmReading = try XCTUnwrap(velocity(.calm))

@@ -160,17 +160,17 @@ struct WeightGainCard: View {
     /// Only "below" is tinted as something to look at. A baby gaining fast is
     /// not a problem to flag in an app.
     ///
-    /// "Below" is `BBTheme.Colors.accent`, the token, not the `#F5A45F` literal
-    /// this card shipped with. `NutritionSection` says the same words a couple
-    /// of hundred points further down the same screen in the token colour, and
-    /// a render of the two stacked showed them as two different designs rather
-    /// than one — the literal has no dark variant, so dark mode widened the gap
-    /// instead of closing it. The token is the project's stated mechanism, so
-    /// the older card moved.
+    /// Both tints are TOKENS, not the `#F5A45F` and `#6BBF6B` literals this card
+    /// shipped with. `NutritionSection` says the same words a couple of hundred
+    /// points further down the same screen, and a render of the two stacked
+    /// showed them as two different designs rather than one — the literals have
+    /// no dark variant, so dark mode widened the gap instead of closing it.
+    /// "Below" moved first; "within" followed once the stacked render made the
+    /// remaining mint-versus-green mismatch impossible to argue for.
     private func color(for band: WeightVelocity.Band?) -> Color {
         switch band {
         case .below:  return BBTheme.Colors.accent
-        case .within: return Color(hex: "#6BBF6B")
+        case .within: return BBTheme.Colors.success
         case .above:  return BBTheme.Colors.textPrimary
         case nil:     return BBTheme.Colors.textPrimary
         }
@@ -190,7 +190,7 @@ struct CentileTrendCard: View {
             case .stable:
                 HStack(spacing: BBTheme.Spacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color(hex: "#6BBF6B"))
+                        .foregroundStyle(BBTheme.Colors.success)
                     Text("trend.stable".l)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)

@@ -314,56 +314,56 @@ struct GrowthView: View {
             showPercentileInfo = true
         } label: {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            HStack {
-                BBTheme.Typography.title3("section.who_percentiles".l)
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
-            }
-
-            VStack(spacing: BBTheme.Spacing.md) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("percentile.weight".l)
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                        BBTheme.Typography.metric(label)
-                            .foregroundStyle(color)
-                    }
+                    BBTheme.Typography.title3("section.who_percentiles".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
                     Spacer()
-                    ZStack {
-                        Circle()
-                            .stroke(color.opacity(0.2), lineWidth: 6)
-                            .frame(width: 64, height: 64)
-                        Circle()
-                            .trim(from: 0, to: percentile / 100)
-                            .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                            .frame(width: 64, height: 64)
-                            .rotationEffect(.degrees(-90))
-                        Text(badge)
-                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
-                            .foregroundStyle(color)
-                    }
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
                 }
 
-                // Both lines describe the WEIGHING. The age is the one the
-                // figure was scored at, and the date says which weighing that
-                // was — without it "1 month old" reads as a claim about today
-                // when the last entry is three weeks back.
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
-                    Text(String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth))
+                VStack(spacing: BBTheme.Spacing.md) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("percentile.weight".l)
+                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                            BBTheme.Typography.metric(label)
+                                .foregroundStyle(color)
+                        }
+                        Spacer()
+                        ZStack {
+                            Circle()
+                                .stroke(color.opacity(0.2), lineWidth: 6)
+                                .frame(width: 64, height: 64)
+                            Circle()
+                                .trim(from: 0, to: percentile / 100)
+                                .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                                .frame(width: 64, height: 64)
+                                .rotationEffect(.degrees(-90))
+                            Text(badge)
+                                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
+                                .foregroundStyle(color)
+                        }
+                    }
+
+                    // Both lines describe the WEIGHING. The age is the one the
+                    // figure was scored at, and the date says which weighing that
+                    // was — without it "1 month old" reads as a claim about today
+                    // when the last entry is three weeks back.
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
+                        Text(String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth))
+                    }
+                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .font(.system(size: 13, weight: .regular, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(BBTheme.Spacing.md)
-            .background(BBTheme.Colors.surface)
-            .cornerRadius(BBTheme.Radius.lg)
-            .bbShadow(BBTheme.Shadow.card)
+                .padding(BBTheme.Spacing.md)
+                .background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.lg)
+                .bbShadow(BBTheme.Shadow.card)
             }
             // The header's Spacer is empty space, and empty space in a Button's
             // label is not hittable without this.
