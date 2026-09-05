@@ -34,6 +34,18 @@ final class GrowthCardRenderDump: XCTestCase {
             try dump("\(locale)-trend-crossing-up", CentileTrendCard(assessment: .crossingUp(spaces: 3.1)))
             try dump("\(locale)-locked", LockedInsightCard(
                 title: "section.weight_gain".l, teaser: "premium.teaser_gain".l, onUnlock: {}))
+            // The same card WITH an explainer behind it: the "?" is its own
+            // control here, because the card's own tap sells. Beside the plain
+            // `-locked` dump above it is also the check that a card with no
+            // explainer draws no badge at all.
+            try dump("\(locale)-locked-explained", LockedInsightCard(
+                title: "section.weight_gain".l, teaser: "premium.teaser_gain".l,
+                explainer: .gain, onUnlock: {}))
+            // Wrapped the way `GrowthView` wraps it, so the badge it injects is
+            // visible: this is the 24-months-and-over state, which no seed
+            // scenario reaches — every fixture baby is weeks old.
+            try dump("\(locale)-percentile-out-of-range",
+                     ExplainerCard(explainer: .percentile) { PercentileOutOfRangeCard() })
         }
 
         // Dark mode on the densest card, where contrast problems would show first.

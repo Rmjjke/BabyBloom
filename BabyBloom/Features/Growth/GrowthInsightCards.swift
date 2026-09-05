@@ -5,9 +5,10 @@ import SwiftUI
 /// The card shell every insight block sits in, so they read as one family.
 struct InsightCard<Content: View>: View {
     let title: String
-    /// Whether the header carries a "?" and what it does — see `InfoBadgeRole`.
-    /// Defaults to `.none`, so cards with no explainer behind them (first
-    /// weeks, the feeding breakdown) are untouched.
+    /// Whether the header's "?" is a control of its own — see `InfoBadgeRole`.
+    /// The default covers both cards with no explainer at all and cards an
+    /// `ExplainerCard` wraps, which is why it needs no argument at either kind
+    /// of call site: the badge decides for itself whether it exists.
     var info: InfoBadgeRole = .none
     @ViewBuilder var content: Content
 
@@ -23,66 +24,108 @@ struct InsightCard<Content: View>: View {
         .bbShadow(BBTheme.Shadow.card)
     }
 
-    @ViewBuilder
     private var header: some View {
         HStack {
             BBTheme.Typography.title3(title)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
-            switch info {
-            case .none:
-                EmptyView()
-            case .affordance:
-                Spacer()
-                InfoBadge()
-            case let .control(explainer, action):
-                Spacer()
-                Button(action: action) {
-                    InfoBadge()
-                        // The glyph is 20pt in a card the thumb aims at
-                        // roughly; the padding buys a target worth hitting
-                        // without moving the glyph.
-                        .padding(BBTheme.Spacing.sm)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .padding(-BBTheme.Spacing.sm)
-                .accessibilityLabel(Text(explainer.hintKey.l))
+            Spacer()
+            badge
+        }
+    }
+
+    @ViewBuilder
+    private var badge: some View {
+        switch info {
+        case .none:
+            // Draws itself only when an `ExplainerCard` is wrapping this card,
+            // so a card can never advertise an explanation that is not there.
+            InfoBadge()
+        case let .control(explainer, action):
+            Button(action: action) {
+                InfoBadge.glyph
+                    .frame(width: InfoBadge.hitTarget, height: InfoBadge.hitTarget)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            // The negative padding takes the oversized target back out of the
+            // LAYOUT, so the header row keeps the height a 20pt glyph gives it.
+            // Hit-testing is unaffected: it reads the button's own 44pt frame,
+            // and no ancestor here clips, so the target that overhangs the row
+            // still answers taps — which is the whole point, since a miss lands
+            // on the sell button underneath.
+            .padding(-InfoBadge.hitOverhang)
+            // Dead to VoiceOver — the enclosing Button flattens its label into
+            // one element — but XCUITest still matches it, which is how the
+            // free-state run-and-look taps the badge. The reachable way in is
+            // the named accessibility action on the card itself.
+            .accessibilityLabel(Text("explainer.action".l))
         }
     }
 }
 
-/// Whether a card's "?" is a control of its own, and what it opens.
+/// Whether a card's "?" is a control of its own.
 enum InfoBadgeRole {
+    /// The card has no explainer of its own, or the card AS A WHOLE is the way
+    /// into one (`ExplainerCard`), in which case the badge is only the
+    /// affordance that says so and draws itself from the environment.
     case none
-    /// Drawn but inert: the card AS A WHOLE is one button that opens the
-    /// explainer, so the glyph is only the affordance that says so.
-    case affordance
     /// Its own control. The card's tap is already spoken for — a locked card
     /// sells Premium — so the badge is the only way into the explainer, and it
     /// must not eat the sell tap.
     case control(GrowthExplainer, action: () -> Void)
 }
 
-/// The "?" itself. It is what tells a reader that an explanation exists.
+/// The "?" affordance, drawn ONLY inside an `ExplainerCard`.
+///
+/// The badge is injected rather than drawn on request: a card that renders one
+/// unconditionally advertises an explainer whether or not anything opens it,
+/// which is what the render dumps showed — a dead "?" on every card dumped
+/// outside `GrowthView`.
 struct InfoBadge: View {
-    var body: some View {
+    @Environment(\.hasExplainer) private var hasExplainer
+
+    /// Apple's minimum touch target. The glyph stays 20pt.
+    static let glyphSize: CGFloat = 20
+    static let hitTarget: CGFloat = 44
+    static var hitOverhang: CGFloat { (hitTarget - glyphSize) / 2 }
+
+    static var glyph: some View {
         Image(systemName: "questionmark.circle.fill")
-            .font(.system(size: 20))
+            .font(.system(size: glyphSize))
             .foregroundStyle(BBTheme.Colors.primary.opacity(0.7))
+    }
+
+    var body: some View {
+        if hasExplainer {
+            // Decoration: the card around it is the control, and announcing an
+            // unlabelled image before the card's own words helps nobody.
+            Self.glyph.accessibilityHidden(true)
+        }
+    }
+}
+
+private struct HasExplainerKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Set by `ExplainerCard` for everything inside it.
+    var hasExplainer: Bool {
+        get { self[HasExplainerKey.self] }
+        set { self[HasExplainerKey.self] = newValue }
     }
 }
 
 // MARK: - Explainers
 
-/// A subject a "?" badge can explain. One sheet, four subjects.
+/// A subject a "?" badge can explain. One sheet, five subjects.
 ///
 /// The percentile card had the only explainer on this screen and its own sheet
-/// type; build-12 feedback was that the other three verdict cards say a couple
-/// of words a parent cannot decode either. Four sheet types would be four
-/// things to keep looking alike, so the subject became data and the sheet is
-/// one view.
+/// type; build-12 feedback was that the other verdict cards say a couple of
+/// words a parent cannot decode either. Five sheet types would be five things
+/// to keep looking alike, so the subject became data and the sheet is one view.
 enum GrowthExplainer {
+    case newborn
     case percentile
     case gain
     case trend
@@ -94,6 +137,7 @@ enum GrowthExplainer {
     /// six JSON files.
     private var keyPrefix: String {
         switch self {
+        case .newborn:    "newborn"
         case .percentile: "percentile"
         case .gain:       "velocity"
         case .trend:      "trend"
@@ -103,12 +147,10 @@ enum GrowthExplainer {
 
     var titleKey: String { "\(keyPrefix).info_title" }
     var bodyKey: String { "\(keyPrefix).info_body" }
-    /// What the control does, for VoiceOver. Without it the card announces a
-    /// wall of figures and then "Button", with nothing saying what it opens.
-    var hintKey: String { "\(keyPrefix).info_hint" }
 
     var icon: String {
         switch self {
+        case .newborn:    "heart.text.square.fill"
         case .percentile: "chart.bar.xaxis"
         case .gain:       "scalemass.fill"
         case .trend:      "chart.line.uptrend.xyaxis"
@@ -120,6 +162,7 @@ enum GrowthExplainer {
     /// that card opening up rather than as a generic help screen.
     var tint: Color {
         switch self {
+        case .newborn:           BBTheme.Colors.success
         case .percentile, .gain: BBTheme.Colors.growth
         case .trend:             BBTheme.Colors.primary
         case .nutrition:         BBTheme.Colors.feeding
@@ -128,7 +171,7 @@ enum GrowthExplainer {
 }
 
 /// The explainer sheet: icon, title, copy, «Закрыть» — the shape the percentile
-/// explainer shipped with, now shared by all four subjects.
+/// explainer shipped with, now shared by every subject.
 struct ExplainerSheet: View {
     let explainer: GrowthExplainer
     @Environment(\.dismiss) private var dismiss
@@ -146,10 +189,11 @@ struct ExplainerSheet: View {
                     BBTheme.Typography.title2(explainer.titleKey.l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                    // One string with blank lines between paragraphs, as
-                    // `percentile.info_body` already was: the copy is prose a
-                    // translator has to be free to re-paragraph, not a list the
-                    // layout can assume the shape of.
+                    // One string, whatever shape the copy is: blank lines
+                    // between paragraphs everywhere, plus "• " bullets typed
+                    // into the middle of `percentile.info_body`. The layout
+                    // assumes neither, so a translator can re-shape a body
+                    // without a view change.
                     Text(explainer.bodyKey.l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -171,34 +215,44 @@ struct ExplainerSheet: View {
     }
 }
 
-/// Makes a whole card open its explainer.
+/// Makes a whole card open its explainer, and injects the "?" that says so.
 ///
 /// The WHOLE card is the control, not just the "?" glyph. A 20pt badge in the
 /// corner was the only way in, and the owner reported tapping the percentile
 /// card and getting nothing (build-11 review). The badge stays as the
-/// AFFORDANCE — it is what tells a reader the explanation exists — but it is
-/// not a control of its own inside here: a button inside a button gives two hit
-/// targets that do the same thing and one VoiceOver stop too many. Cards whose
-/// tap already sells Premium use `InfoBadgeRole.control` instead.
+/// AFFORDANCE, not a control of its own: a button inside a button gives two hit
+/// targets that do the same thing. Cards whose tap already sells Premium use
+/// `InfoBadgeRole.control` instead.
+///
+/// **A tap gesture, not a Button, and that is the whole design.** A Button
+/// flattens its label into ONE accessibility element, which would silently
+/// destroy the per-row VoiceOver structure `NutritionSection` builds on purpose
+/// — three rows, one stop each, the label and its status read as one statement.
+/// A `contentShape` plus `onTapGesture` leaves the children exactly as the card
+/// built them, and the explainer stays reachable without sight through the
+/// named accessibility action, which propagates to those same children. The
+/// cost is the press bounce a `BBScaleButtonStyle` gave: a press animation here
+/// would need a `DragGesture(minimumDistance: 0)`, and that gesture inside a
+/// `ScrollView` fights the scroll. A card is not a button-shaped control, so
+/// the plain tap is the honest trade.
 struct ExplainerCard<Content: View>: View {
     let explainer: GrowthExplainer
     @ViewBuilder var content: Content
     @State private var isPresented = false
 
     var body: some View {
-        Button {
-            isPresented = true
-        } label: {
-            content
-                // A card header's Spacer is empty space, and empty space in a
-                // Button's label is not hittable without this.
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(BBScaleButtonStyle())
-        .accessibilityHint(Text(explainer.hintKey.l))
-        .sheet(isPresented: $isPresented) {
-            ExplainerSheet(explainer: explainer)
-        }
+        content
+            .environment(\.hasExplainer, true)
+            // A card header's Spacer is empty space, and empty space does not
+            // answer taps without this.
+            .contentShape(Rectangle())
+            .onTapGesture { isPresented = true }
+            .accessibilityAction(named: Text("explainer.action".l)) {
+                isPresented = true
+            }
+            .sheet(isPresented: $isPresented) {
+                ExplainerSheet(explainer: explainer)
+            }
     }
 }
 
@@ -303,7 +357,7 @@ struct WeightGainCard: View {
     let reading: WeightVelocity.Reading?
 
     var body: some View {
-        InsightCard(title: "section.weight_gain".l, info: .affordance) {
+        InsightCard(title: "section.weight_gain".l) {
             guardedContent
         }
     }
@@ -379,7 +433,7 @@ struct CentileTrendCard: View {
     let assessment: GrowthTrend.Assessment
 
     var body: some View {
-        InsightCard(title: "section.trend".l, info: .affordance) {
+        InsightCard(title: "section.trend".l) {
             switch assessment {
             case .insufficientData:
                 HintText(text: "trend.insufficient".l)
@@ -447,7 +501,7 @@ struct LockedInsightCard: View {
     }
 
     var body: some View {
-        Button(action: onUnlock) {
+        Button(action: sell) {
             InsightCard(title: title, info: badge) {
                 HStack(alignment: .top, spacing: BBTheme.Spacing.sm) {
                     Image(systemName: "lock.fill")
@@ -467,11 +521,33 @@ struct LockedInsightCard: View {
             }
         }
         .buttonStyle(BBScaleButtonStyle())
+        // VoiceOver reads this card as ONE button whose activation sells —
+        // which is right, that is what the card is for — and the badge inside
+        // the label is not an element of its own there. So the explainer gets
+        // a named action on the card itself; without it the copy behind the "?"
+        // is reachable by sighted taps only.
+        .accessibilityActions {
+            if explainer != nil {
+                Button("explainer.action".l) { showExplainer = true }
+            }
+        }
         .sheet(isPresented: $showExplainer) {
             if let explainer {
                 ExplainerSheet(explainer: explainer)
             }
         }
+    }
+
+    /// A tap on the badge is answered by the badge: a child's gesture wins over
+    /// its ancestor's, so this action does not run at all. The guard is for the
+    /// case that arrangement stops holding — selling on top of a sheet that is
+    /// already on its way up is the double activation, and it is worth one
+    /// line to make it impossible rather than merely unobserved. `showExplainer`
+    /// is the flag AND the sheet's binding, so it cannot go stale: dismissing
+    /// the sheet clears it.
+    private func sell() {
+        guard !showExplainer else { return }
+        onUnlock()
     }
 }
 

@@ -43,8 +43,10 @@ struct GrowthView: View {
                 // First weeks — the only block that outranks the chart, and only
                 // while it applies. Free for everyone, flags included.
                 if let baby, let status = newbornStatus(baby) {
-                    NewbornProgressCard(status: status)
-                        .padding(.horizontal, BBTheme.Spacing.md)
+                    ExplainerCard(explainer: .newborn) {
+                        NewbornProgressCard(status: status)
+                    }
+                    .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
                 // Weight chart
@@ -182,7 +184,11 @@ struct GrowthView: View {
                            months: monthsAtWeighing(baby: baby, weighing: weighing),
                            weighedOn: weighing.date)
         } else {
-            PercentileOutOfRangeCard()
+            // Past 24 months the card holds a sentence instead of a figure, and
+            // that sentence is exactly the one a parent wants explained.
+            ExplainerCard(explainer: .percentile) {
+                PercentileOutOfRangeCard()
+            }
         }
     }
 
