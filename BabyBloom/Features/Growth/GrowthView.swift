@@ -85,6 +85,10 @@ struct GrowthView: View {
             // Bottom clearance so the FAB never permanently covers the last row.
             .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
         }
+        // Every "not enough data" card on this screen offers the one action that
+        // resolves it, and they all open the sheet the "+" opens — one
+        // presentation, injected once, rather than a sheet per card.
+        .environment(\.addWeighingAction, { showAddSheet = true })
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .overlay(alignment: .bottomTrailing) {
             BBFab { showAddSheet = true }
@@ -222,11 +226,14 @@ struct GrowthView: View {
     private func weightGainSection(_ baby: Baby) -> some View {
         if store.isPremium {
             ExplainerCard(explainer: .gain) {
-                WeightGainCard(reading: WeightVelocity.latest(
-                    measurements: measurements,
-                    correctedBirthDate: baby.correctedBirthDate,
-                    isMale: baby.gender == .male
-                ))
+                WeightGainCard(
+                    reading: WeightVelocity.latest(
+                        measurements: measurements,
+                        correctedBirthDate: baby.correctedBirthDate,
+                        isMale: baby.gender == .male
+                    ),
+                    hasWeighing: !measurements.isEmpty
+                )
             }
         } else {
             LockedInsightCard(

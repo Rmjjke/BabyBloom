@@ -379,7 +379,9 @@ final class NutritionRenderDump: XCTestCase {
     private func neighbourhood(assessment: FeedingAdequacy.Assessment,
                                reading: WeightVelocity.Reading?) -> some View {
         VStack(spacing: BBTheme.Spacing.lg) {
-            WeightGainCard(reading: reading)
+            // Every stack this dump builds has weighings behind it; the flag
+            // only picks which empty-state sentence would show without them.
+            WeightGainCard(reading: reading, hasWeighing: true)
             NutritionSection(assessment: assessment, band: reading?.band)
             // Gated exactly as `GrowthView` gates it. Rendering it
             // unconditionally would put "Gain is below the reference" under a

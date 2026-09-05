@@ -27,6 +27,14 @@ final class GrowthCardRenderDump: XCTestCase {
             try dump("\(locale)-newborn-flagged", newbornCard(day: 15, weight: 3.05))
             try dump("\(locale)-gain-within", gainCard(gramsPerDay: 35))
             try dump("\(locale)-gain-below", gainCard(gramsPerDay: 12))
+            // The empty states a fresh install actually lands on, WITH the CTA
+            // the screen injects — three locales because the button's label and
+            // the hint above it share a card width, and Russian is the longest.
+            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true)))
+            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false)))
+            try dump("\(locale)-trend-insufficient", withCTA(CentileTrendCard(assessment: .insufficientData)))
+            try dump("\(locale)-nutrition-needs-weighing",
+                     withCTA(NutritionSection(assessment: nil, band: nil)))
             try dump("\(locale)-trend-drop", CentileTrendCard(assessment: .sustainedDrop(spaces: 2.4)))
             // The two non-alarm trend states side by side: only `.stable` may
             // carry the green tick, and neither may look like the drop.
@@ -73,8 +81,17 @@ final class GrowthCardRenderDump: XCTestCase {
             date: Calendar.current.date(byAdding: .day, value: 14, to: start.date)!,
             weightKg: 4.0 + gramsPerDay * 14 / 1000
         )
-        return WeightGainCard(reading: WeightVelocity.measure(
-            from: start, to: end, correctedBirthDate: birth, isMale: true))
+        return WeightGainCard(
+            reading: WeightVelocity.measure(from: start, to: end,
+                                            correctedBirthDate: birth, isMale: true),
+            hasWeighing: true)
+    }
+
+    /// Stands in for `GrowthView`, which is what sets the action an empty
+    /// state's CTA draws itself from — without it these cards render exactly as
+    /// they did before, hint and no button.
+    private func withCTA<V: View>(_ view: V) -> some View {
+        view.environment(\.addWeighingAction, {})
     }
 
     private func dump<V: View>(_ name: String, _ view: V, dark: Bool = false) throws {

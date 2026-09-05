@@ -227,6 +227,19 @@ How a card opens its explainer depends on what its own tap already does:
   which is what makes a double activation impossible rather than merely
   unobserved.
 
+Every "not enough data" state on the Growth screen — gain, centile trend,
+nutrition — is a `HintWithAddWeighing`: the hint naming what is missing, plus a
+CTA that opens the same `AddGrowthSheet` the "+" opens. The action travels the
+same way the explainer's does, through the environment
+(`\.addWeighingAction`, set once by `GrowthView` for the whole screen), so
+`AddWeighingButton` draws itself ONLY where something can answer it — a card
+rendered in a dump or a preview shows the hint alone. It is a real `Button`
+inside `ExplainerCard`'s tap gesture: the child control answers the tap first,
+so the CTA opens the sheet and the rest of the card still opens the explainer,
+and unlike the "?" badge it is its own VoiceOver element. Which sentence the
+gain card shows depends on `hasWeighing` — the requirement is "add a second
+weighing" once one exists, and "two weighings" before that.
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
@@ -325,8 +338,9 @@ at launch and never over the Dashboard. That page is the single call site of
 Recent activity, Events and Profile live under More rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
-stats → growth → progress, and its Growth header is a `NavigationLink` into
-`GrowthView` — the second route to that screen. There is no separate
+stats → growth → progress, and its Growth header AND the data card under it are
+one `NavigationLink` into `GrowthView` — the second route to that screen. The
+locked teaser below them is outside that link and keeps its own paywall tap. There is no separate
 Settings screen: `ProfileView` carries the baby's details and the app settings
 on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)

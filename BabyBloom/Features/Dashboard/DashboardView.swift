@@ -244,23 +244,28 @@ struct DashboardView: View {
     /// `DashboardGrowthSummary`, where the rule is unit-tested.
     private var growthSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            // The whole header is the link, so the chevron is not a separate
-            // tap target that behaves differently from the words beside it.
+            // Header AND card are ONE link: the chevron promised a destination
+            // that the data under it did not deliver, and a card showing "two
+            // weighings needed" is exactly where a parent taps to go and add
+            // one. `.plain` keeps the card from being tinted as a button, and
+            // one link element is also the honest VoiceOver reading — header
+            // and card are a single destination, not two.
             NavigationLink {
                 GrowthView()
             } label: {
-                HStack {
-                    BBTheme.Typography.title3("dashboard.growth.title".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    HStack {
+                        BBTheme.Typography.title3("dashboard.growth.title".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                    }
+                    growthCard
                 }
             }
             .buttonStyle(.plain)
-
-            growthCard
 
             // A permanent teaser, not a free-first-days window: a section that
             // vanished after two days would read as breakage, in the one domain

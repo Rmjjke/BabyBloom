@@ -44,7 +44,14 @@ struct NutritionSection: View {
                         word: StatusWord.of(assessment.nappies, band: nil))
                 }
             } else {
-                HintText(text: "nutrition.need_weighing".l)
+                // The long form of the requirement, not the Dashboard's short
+                // `nutrition.need_weighing`: this is the card the owner watched
+                // stay empty while logging feedings and nappies, so here — where
+                // there is room and a button to press — it also says what those
+                // two logs are counted over. State-awareness is deliberately NOT
+                // added: "add a second weighing" would be wrong for the parent
+                // who has two on the same day, which is also this state.
+                HintWithAddWeighing(text: "nutrition.need_weighing_detail".l)
             }
         }
     }
