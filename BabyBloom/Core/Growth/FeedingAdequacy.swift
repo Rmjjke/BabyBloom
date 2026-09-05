@@ -239,14 +239,15 @@ enum FeedingAdequacy {
     /// count either — a well-logged fortnight ago is no evidence about this gap.
     ///
     /// The denominator is WHOLE CALENDAR DAYS, the one day-count convention this
-    /// module has — see `Assessment.windowDays`. It used to round the window's
-    /// real duration instead, which agrees with the calendar on every ordinary
-    /// window and disagrees across a daylight-saving transition: a 9-calendar-day
-    /// window lasts 8 d 23 h there, and the rounding turned that into 9 for the
-    /// header and could turn a 17 d 23 h one into 18 here — off by one against a
-    /// numerator that has always counted calendar days, which is enough to flip
-    /// the gate. Two conventions that agree almost always are worse than one,
-    /// because the run that would catch them is the one nobody makes in March.
+    /// module has — see `Assessment.windowDays`. It used to ROUND the window's
+    /// real duration instead, and rounding disagrees with truncation on about
+    /// half of all part-day windows, not on some exotic edge: 10 d 15 h rounds
+    /// to 11 while the calendar says 10, and the numerator has always counted
+    /// calendar days. Weighings are taken whenever a parent gets to the scales,
+    /// so part-day windows are the normal case and the disagreement is a
+    /// routine off-by-one in the gate that decides whether a figure is shown at
+    /// all — 5 covered days over a 10.6-day window is 0.50 and passes, or 0.45
+    /// and is withheld, depending only on which count ran.
     static func hasEnoughCoverage(_ dates: [Date], in window: DateInterval) -> Bool {
         let calendar = Calendar.current
         let days = max(1, calendar.dateComponents([.day],

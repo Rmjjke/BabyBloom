@@ -234,6 +234,26 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertFalse(FeedingAdequacy.hasEnoughCoverage(oneDayShort, in: window))
     }
 
+    /// A PART-DAY window counts whole calendar days, like every other day count
+    /// in this module.
+    ///
+    /// 10 d 15 h with five covered days: 5/10 is exactly the half that passes,
+    /// while rounding the real duration makes it 5/11 — 0.45 — and the figure
+    /// is withheld as "not enough data". Rounding and truncation disagree on
+    /// about half of all part-day windows, and part-day windows are the normal
+    /// case, because a weighing happens whenever a parent reaches the scales.
+    /// This fails on the rounding implementation.
+    func testAPartDayWindowIsCountedInWholeCalendarDays() {
+        let start = day(-11).addingTimeInterval(9 * 3_600)
+        let window = DateInterval(start: start, end: day(0))
+        XCTAssertEqual(window.duration / 86_400, 10.625, accuracy: 0.01,
+                       "the fixture is only a test if the window really is a part-day one")
+
+        let fiveCoveredDays = (0..<5).map { day(-$0) }
+        XCTAssertTrue(FeedingAdequacy.hasEnoughCoverage(fiveCoveredDays, in: window),
+                      "5/10 passes; rounding the duration to 11 days would withhold the figure")
+    }
+
     /// The same exclusion, on the other counter: a parent who logged diligently
     /// a fortnight ago and barely since has no coverage of THIS gap.
     func testCoverageIgnoresDaysLoggedOutsideTheWindow() {
