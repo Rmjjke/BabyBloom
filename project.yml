@@ -14,7 +14,7 @@ configs:
 settings:
   SWIFT_VERSION: 6.0
   MARKETING_VERSION: 1.0.0
-  CURRENT_PROJECT_VERSION: 11
+  CURRENT_PROJECT_VERSION: 12
   # Project-wide so the widget extension and the test bundle sign under the
   # same team as the app. Automatic signing fails on the .appex without it.
   DEVELOPMENT_TEAM: 6T959D75QM
