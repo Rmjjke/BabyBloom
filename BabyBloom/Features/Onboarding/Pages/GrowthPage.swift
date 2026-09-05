@@ -50,6 +50,8 @@ struct GrowthPage: View {
                             .multilineTextAlignment(.center)
                     }
 
+                    unknownToggle
+
                     if knowsMeasurements {
                         BBMeasureSlider(
                             title: "form.birth_weight_kg".l,
@@ -86,8 +88,6 @@ struct GrowthPage: View {
                         unknownNote
                     }
 
-                    unknownToggle
-
                     Spacer(minLength: BBTheme.Spacing.xl)
                 }
                 .padding(.horizontal, BBTheme.Spacing.lg)
@@ -109,6 +109,14 @@ struct GrowthPage: View {
     /// A toggle rather than a second way forward: "Next" stays the only
     /// advance on every onboarding page, which is what the walk flows and the
     /// progress bar both assume.
+    ///
+    /// **Above the sliders, not below them.** Below, it landed at y 749–783
+    /// with the bottom nav's "Next" button at 748–804 — the same place, with
+    /// the nav drawn on top, so the control was unreachable and every tap
+    /// advanced the page instead. The scroll content ends exactly where the nav
+    /// begins, so padding it clear would be a guess at that nav's height.
+    /// Above the question's own answer it is always on screen, and it reads as
+    /// the alternative answer it is.
     private var unknownToggle: some View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) { knowsMeasurements.toggle() }
