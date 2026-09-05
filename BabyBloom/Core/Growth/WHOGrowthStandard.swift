@@ -139,26 +139,41 @@ enum WHOGrowthStandard {
     /// with two digits of precision it does not have. Past the clamp the badge
     /// names the side of the chart instead and stops there.
     ///
-    /// Returned as a pair so the ring and its badge can never come from
-    /// different z scores.
+    /// Returned together so the ring, its badge and the Dashboard's row can
+    /// never come from different z scores.
     static func percentileReading(of measurement: WeightMeasurement,
                                   correctedBirthDate: Date,
-                                  isMale: Bool) -> (percentile: Double, badge: String)? {
+                                  isMale: Bool) -> PercentileReading? {
         let ageDays = correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate)
         guard let z = zScore(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale) else {
             return nil
         }
-        let clamped = percentile(fromZ: z)
         let raw = rawPercentile(fromZ: z)
-        let badge: String
-        if raw > 99.5 {
-            badge = "percentile.badge_above97".l
-        } else if raw < 0.5 {
-            badge = "percentile.badge_below3".l
-        } else {
-            badge = "\(Int(clamped))"
+        return PercentileReading(percentile: percentile(fromZ: z),
+                                 isBeyondChart: raw > 99.5 || raw < 0.5)
+    }
+
+    struct PercentileReading: Equatable {
+        /// Clamped to 1–99 — what the ring draws and what the band label reads.
+        let percentile: Double
+        /// The true percentile is past the chart's edge, so the clamped number
+        /// is the scale talking rather than a measurement.
+        let isBeyondChart: Bool
+
+        /// Short text for the ring's badge: "> 97", "< 3", or the number.
+        var badge: String {
+            guard isBeyondChart else { return "\(Int(percentile))" }
+            return percentile > 50 ? "percentile.badge_above97".l : "percentile.badge_below3".l
         }
-        return (clamped, badge)
+
+        /// The same honesty for a surface that renders a sentence rather than a
+        /// badge: past the edge it borrows the band label, which is already
+        /// prose in every language ("> 97th", "> 97-го"), instead of forcing a
+        /// two-digit number through a "%d percentile" format.
+        func rowText(format: String) -> String {
+            guard isBeyondChart else { return String(format: format, Int(percentile)) }
+            return percentileLabel(percentile)
+        }
     }
 
     // MARK: - Presentation

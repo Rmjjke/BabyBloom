@@ -286,13 +286,13 @@ struct DashboardView: View {
                           value: String(format: "%.2f", weightKg) + " " + "unit.kg".l,
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
-                if store.isPremium, let percentile = latestPercentile {
-                    // `WHOGrowthStandard.percentile` has already rounded and
-                    // clamped; rounding it again was a second, invisible step
-                    // that could only ever disagree with the Growth screen.
+                if store.isPremium, let reading = latestPercentile {
+                    // `rowText` already rounds, clamps and — past the chart's
+                    // edge — drops the fake-precise number for the band label,
+                    // so this line says exactly what the Growth screen's card
+                    // says about the same weighing.
                     growthRow(label: "percentile.weight".l,
-                              value: String(format: "dashboard.growth.percentile_fmt".l,
-                                            Int(percentile)),
+                              value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
                               color: BBTheme.Colors.textPrimary)
                 }
             }
@@ -426,10 +426,10 @@ struct DashboardView: View {
     }
 
     /// Corrected age at the WEIGHING, not chronological age today — the same
-    /// rule the Growth screen's percentile card follows.
-    private var latestPercentile: Double? {
+    /// rule, and now the same call, the Growth screen's percentile card uses.
+    private var latestPercentile: WHOGrowthStandard.PercentileReading? {
         guard let baby, let weighing = latestWeighing else { return nil }
-        return WHOGrowthStandard.percentile(
+        return WHOGrowthStandard.percentileReading(
             of: weighing,
             correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male
@@ -454,32 +454,48 @@ struct DashboardView: View {
         }
     }
 
-    /// The MIDPOINT of the age band, not its lower bound.
+    /// The MIDPOINT of the feeding band; the nappy ring below takes its FLOOR.
     ///
-    /// The band describes a normal day; its lower bound is the edge below which
-    /// `FeedingAdequacy` starts calling the count low. A ring that filled at the
-    /// lower bound would read as "eight is all this baby needs", which none of
-    /// the cited sources say. The style is derived from what was actually logged
-    /// today, exactly as `FeedingAdequacy` derives it, so a bottle-fed baby is
-    /// not measured against the breastfeeding column.
+    /// Not an inconsistency — the two tables are different shapes. The feeding
+    /// reference is a band describing a normal day, and its lower bound is the
+    /// edge below which `FeedingAdequacy` starts calling the count low; a ring
+    /// filling there would read as "eight is all this baby needs", which none of
+    /// the cited sources say. The nappy reference is a published minimum with no
+    /// ceiling at all, so its floor IS the target and there is no midpoint to
+    /// take.
     private var feedingTarget: Double {
-        // Past six months `feedingReference` stops, because feed frequency says
-        // little once solids start. This ring is a daily nudge and nothing reads
-        // it downstream, so it keeps the last band rather than vanishing.
+        // `feedingBand`, not `feedingReference`: past six months the reference
+        // stops applying, because feed frequency says little once solids start.
+        // A ring is a daily nudge and no verdict reads it, so it keeps the last
+        // row rather than vanishing — which is exactly the distinction the band
+        // accessor exists for, and it leaves no unreachable branch here.
         let ageDays = min(baby?.correctedAgeDays ?? 0, FeedingAdequacy.maxAgeDays)
-        let style = FeedingAdequacy.style(of: todayFeedings.map {
+        let band = FeedingAdequacy.feedingBand(correctedAgeDays: ageDays, style: feedingStyle)
+        return ((band.lowerBound + band.upperBound) / 2).rounded()
+    }
+
+    /// Derived from the WHOLE feeding log, not from today's entries.
+    ///
+    /// Today's log is empty at breakfast and dominated by whatever happened
+    /// since, so a style read off it flips as the day goes on — and with it the
+    /// ring's denominator, which was observed swinging 9 → 10 → 7 between
+    /// glances. The adequacy call on this same screen already reads `feedings`
+    /// in full; one screen, one answer about how this baby is fed.
+    private var feedingStyle: FeedingAdequacy.FeedingStyle {
+        FeedingAdequacy.style(of: feedings.map {
             FeedingAdequacy.Feed(date: $0.startTime, type: $0.type)
         })
-        guard let reference = FeedingAdequacy.feedingReference(correctedAgeDays: ageDays,
-                                                               style: style) else {
-            return 8
-        }
-        return ((reference.lowerBound + reference.upperBound) / 2).rounded()
     }
 
     /// Wet nappies, against the wet-nappy minimum — the reference is about wet
     /// nappies specifically, so counting every nappy against it would compare
     /// two different things and always flatter the total.
+    ///
+    /// **This ring and `DiaperView`'s norm card answer different questions and
+    /// must not be "unified".** This one is wet nappies against a published
+    /// clinical floor; that one is every nappy against a target the parent set
+    /// themselves in the norm editor. Making either read the other's number
+    /// would put a figure under a label that does not describe it.
     private var todayWetNappies: Int {
         todayDiapers.filter { $0.type == .wet || $0.type == .both }.count
     }
@@ -496,6 +512,11 @@ struct DashboardView: View {
     /// sourced sleep-duration table, and inventing a reference to match the two
     /// beside it would be worse than admitting this one is a rule of thumb.
     /// The figures follow the usual AAP/NSF ranges for total sleep in 24 hours.
+    ///
+    /// CORRECTED age, changed with its neighbours: every reference in
+    /// `Core/Growth` reads corrected age, and a preterm baby measured on
+    /// chronological age is held to the wrong row of every table on this screen.
+    /// A rule of thumb is no reason to keep the one age convention that differs.
     private var sleepTarget: Double {
         let ageMonths = baby?.correctedAgeMonths ?? 0
         return ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)

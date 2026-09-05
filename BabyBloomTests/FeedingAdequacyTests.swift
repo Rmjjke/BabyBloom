@@ -56,6 +56,24 @@ final class FeedingAdequacyTests: XCTestCase {
         XCTAssertNil(FeedingAdequacy.feedingReference(correctedAgeDays: 184, style: .breast))
     }
 
+    /// The gate and the table are separate questions, and the Dashboard's ring
+    /// depends on it: past six months `feedingReference` withholds a verdict
+    /// while `feedingBand` still names the last row, so a display target has a
+    /// number without any caller carrying an unreachable fallback.
+    func testTheBandOutlivesTheReferenceItGates() {
+        let pastTheRange = FeedingAdequacy.maxAgeDays + 1
+        XCTAssertNil(FeedingAdequacy.feedingReference(correctedAgeDays: pastTheRange, style: .breast))
+        XCTAssertEqual(FeedingAdequacy.feedingBand(correctedAgeDays: pastTheRange, style: .breast), 5...7)
+
+        // Inside the range the two must never disagree — the reference IS the
+        // band plus a gate.
+        for days in [0, 27, 28, 119, 120, FeedingAdequacy.maxAgeDays] {
+            XCTAssertEqual(FeedingAdequacy.feedingReference(correctedAgeDays: days, style: .breast),
+                           FeedingAdequacy.feedingBand(correctedAgeDays: days, style: .breast),
+                           "day \(days)")
+        }
+    }
+
     // MARK: - Wet nappy reference
 
     /// The charted ramp is not simply "the day number": it flattens at 3, so

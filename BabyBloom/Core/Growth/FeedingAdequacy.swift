@@ -95,7 +95,22 @@ enum FeedingAdequacy {
     static func feedingReference(correctedAgeDays: Int,
                                  style: FeedingStyle) -> ClosedRange<Double>? {
         guard correctedAgeDays <= maxAgeDays else { return nil }
+        return feedingBand(correctedAgeDays: correctedAgeDays, style: style)
+    }
 
+    /// The table row for an age, with no age gate.
+    ///
+    /// Two different questions, and separating them removes a dead branch from
+    /// every caller that has already clamped its age: `feedingReference` answers
+    /// "does this feature apply to a baby this old", which can be no, while this
+    /// answers "what does the table say", which always has an answer because the
+    /// switch's `default` covers every age above the last row.
+    ///
+    /// **Verdicts go through `feedingReference`, never through this.** A
+    /// reference restated past its published range is not evidence; this exists
+    /// for display targets, where a ring still needs a number.
+    static func feedingBand(correctedAgeDays: Int,
+                            style: FeedingStyle) -> ClosedRange<Double> {
         // A baby born preterm can be at a negative corrected age; the newborn
         // row is the right reference for them, and `..<28` already covers it.
         let breast: ClosedRange<Double>

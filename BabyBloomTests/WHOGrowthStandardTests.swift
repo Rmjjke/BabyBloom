@@ -176,6 +176,30 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(underChart.badge, "percentile.badge_below3".l)
     }
 
+    /// The sentence-shaped surfaces get the same honesty as the ring.
+    ///
+    /// The Dashboard renders "%d percentile" and kept printing "99-й перцентиль"
+    /// at the clamp while the Growth screen beside it already said "> 97-го" —
+    /// two surfaces, one weighing, two different claims about its precision.
+    func testTheDashboardRowIsAsHonestAsTheRingBadge() throws {
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+        let format = "%d percentile"
+
+        let offChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 20.0),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertTrue(offChart.isBeyondChart)
+        XCTAssertEqual(offChart.rowText(format: format), "percentile.above97".l,
+                       "past the clamp the row borrows the band label, as the card does")
+
+        let ordinary = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 4.452),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertFalse(ordinary.isBeyondChart)
+        XCTAssertEqual(ordinary.rowText(format: format), "50 percentile")
+    }
+
     /// Everywhere the tables actually measure something, the badge is the
     /// number — the honest edge must not swallow ordinary readings.
     func testAnOrdinaryReadingKeepsItsNumber() throws {
