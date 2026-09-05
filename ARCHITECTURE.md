@@ -188,25 +188,38 @@ day counts on the Growth screen describing one period
 answers a months-long question and owns its own window rules.
 
 **The newborn window outranks every gain verdict, through one predicate.**
-`NewbornWeightLoss.windowActive(birthWeightKg:birthDate:now:)` answers "is the
-first-weeks card the instrument in force right now" — a birth weight on the
-profile, and a baby no older than `observationWindowDays`. `analyse` itself is
-gated on it, so the card and the rule cannot disagree. While it is true, a
-newborn's physiological dip would land below every velocity reference, so no
-surface may report a gain verdict at all: `FeedingAdequacy.assess` returns
+`NewbornWeightLoss.gainDeferral(birthWeightKg:birthDate:measurements:now:)`
+answers "is a gain verdict withheld, and why". A newborn's physiological dip
+lands below every velocity reference, so while it returns non-nil no surface
+may report a gain at all: `FeedingAdequacy.assess` returns
 `Signal.deferredToNewbornWindow` (which `warrantsBreakdown` cannot fire on and
-`StatusWord` renders as `.firstWeeks`, a pointer rather than a finding),
-`WeightGainCard` takes a `defersToNewbornWindow` flag from `GrowthView`, and
-`NotificationManager.shouldRaiseGainSignal` refuses `growthGainLow`. Three
-consult sites, one predicate — the gate lives where a verdict is EMITTED, and
-deliberately not inside `WeightVelocity`, which is a WHO increment table and
-knows nothing about birth weight.
+`StatusWord` renders as `.firstWeeks`), `GrowthView` hands the case itself to
+`WeightGainCard`, and `NotificationManager.shouldRaiseGainSignal` refuses
+`growthGainLow`. Three consult sites, one predicate — the gate lives where a
+verdict is EMITTED, and deliberately not inside `WeightVelocity`, which is a
+WHO increment table and knows nothing about birth weight.
 
-It is asked of NOW, never of the pair being measured. After the window a pair
-that reaches back to the birth weighing is measured honestly, because
-`WeightVelocity` compares it at the interval's MIDPOINT age; gating on "the
-pair starts inside the window" would silence the gain card forever for a baby
-whose only two weighings are birth and month one.
+It returns two cases, because they differ in what the parent can do:
+
+- `.firstWeeksNow` — `windowActive` is true: a birth weight is on file and the
+  baby is no older than `observationWindowDays`. This is also what puts
+  `NewbornProgressCard` on screen (`analyse` is gated on the same predicate,
+  so the card and the rule cannot disagree), and that card holds the verdict.
+- `.measuredInFirstWeeks` — the window has closed, but the later endpoint of
+  `WeightVelocity.pair(in:)` still lies inside it. Without this the verdict
+  switched on the morning after the card vanished, off data that had not
+  changed. The card says the weighings are from the first weeks and asks for a
+  new one; a new weighing becomes the pair's later endpoint and ends the
+  state, so it can never be permanent.
+
+The LATER endpoint, never the earlier one. A pair that spans the window and
+ends outside it is measured honestly — `WeightVelocity` compares it at the
+interval's MIDPOINT age — and gating on the earlier endpoint would silence the
+gain card forever for a baby whose only two weighings are birth and month one.
+
+With no birth weight there is no deferral: `NewbornProgressCard` is absent too,
+so nothing would hold the verdict's place. That is the same state an install
+from before this feature is in, and the same state «не помню точно» produces.
 
 The medical spine of `FeedingAdequacy`: **weight gain is the only trigger.**
 Feeds and nappy counts are context and never raise a concern on their own. If

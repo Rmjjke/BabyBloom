@@ -71,12 +71,32 @@ and no new trigger was added. `warrantsBreakdown` still reads `gain == .below`
 and simply cannot see that case during the window. The one safety signal for
 this period, `NewbornWeightLoss.Flag`, is untouched and still free.
 
-**Why the gate asks about NOW, not about the pair being measured.** Gating on
-"the measured pair starts inside the window" reads more precise and is wrong:
-a baby whose only two weighings are the birth one and month one has a pair
-that reaches back forever, and the gain card would never speak again. After
-day 21 that pair is honest, because `WeightVelocity` compares it at the
-interval's MIDPOINT age — the age the average actually describes.
+**Two conditions, and neither alone is enough.** The gate defers when the baby
+is inside the window NOW, *or* when the later endpoint of the measured pair
+still lies inside it.
+
+The second condition is not a refinement, it is the day-22 cliff. With only
+the first, a baby weighed at birth and on day 10 and not since is silent on
+day 21 and prints "below the reference" everywhere on day 22 — and fires
+`growthGainLow` — off data that has not changed, the morning after
+`NewbornProgressCard` disappeared. The reading is a reading about the dip
+whatever the calendar says.
+
+**Rejected: gating on the pair's EARLIER endpoint.** It reads more natural,
+since the dip is at the start of the interval, and it is the one variant that
+can silence the card permanently: a baby whose only two weighings are birth
+and month one has a pair that reaches back into the window and never stops.
+The later endpoint cannot do that — any new weighing becomes the newest one
+and moves the endpoint out — which is why the post-window state is the one
+that carries an add-weighing button. A pair that spans the window and ENDS
+outside it is measured honestly, because `WeightVelocity` compares it at the
+interval's MIDPOINT age, the age the average actually describes.
+
+**Why the deferral has two cases rather than one.** They differ in what the
+parent can do about it. Inside the window the first-weeks card is on screen and
+already asks for weighings, so a second ask would be the same request twice.
+Outside it that card is gone and nothing else is asking, so the gain card says
+so itself and offers the weighing that ends the state.
 
 **Why `deferredToNewbornWindow` is a case and not `notEnoughData`.** The data
 is there; it is being read by the right instrument. Reusing `notEnoughData`

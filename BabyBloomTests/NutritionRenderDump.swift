@@ -342,8 +342,13 @@ final class NutritionRenderDump: XCTestCase {
                             nappies: [Date],
                             now: Date) -> FeedingAdequacy.Assessment? {
         FeedingAdequacy.assess(
-            // nil: these stacks are about the ordinary gain verdicts, and a
-            // birth weight would defer every one of them to the newborn window.
+            // nil, and NOT because a birth weight would change these verdicts:
+            // this fixture's `now` is months past the newborn window and its
+            // weighings sit at the end of that stretch, so `gainDeferral` would
+            // return nil either way. It is nil because these stacks are about
+            // the ordinary gain verdicts and the newborn gate is not one of the
+            // inputs they vary — the deferral states have their own dumps, in
+            // `GrowthCardRenderDump`.
             birthDate: birth,
             birthWeightKg: nil,
             correctedBirthDate: birth,
@@ -384,7 +389,7 @@ final class NutritionRenderDump: XCTestCase {
         VStack(spacing: BBTheme.Spacing.lg) {
             // Every stack this dump builds has weighings behind it; the flag
             // only picks which empty-state sentence would show without them.
-            WeightGainCard(reading: reading, hasWeighing: true, defersToNewbornWindow: false)
+            WeightGainCard(reading: reading, hasWeighing: true, deferral: nil)
             NutritionSection(assessment: assessment, band: reading?.band, hasWeighing: true)
             // Gated exactly as `GrowthView` gates it. Rendering it
             // unconditionally would put "Gain is below the reference" under a

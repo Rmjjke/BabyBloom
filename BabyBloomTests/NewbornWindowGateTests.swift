@@ -187,6 +187,134 @@ final class NewbornWindowGateTests: XCTestCase {
             now: now))
     }
 
+    // MARK: - The day-22 cliff
+
+    /// The defect the pair-endpoint condition exists to remove: with only the
+    /// "is the baby inside the window now" test, this history is silent on day
+    /// 21 and prints a below-reference verdict on day 22 — off data that has
+    /// not changed, the morning after `NewbornProgressCard` disappeared.
+    ///
+    /// Fails on the now-only gate at every assertion below the first two.
+    func testAStaleFirstWeeksPairStillDefersAfterTheWindowCloses() throws {
+        let course = newbornCourse(observedOnDay: 22)
+
+        // The two facts that made the cliff: the window is shut, and the
+        // reading it would release is `.below`.
+        XCTAssertFalse(NewbornWeightLoss.windowActive(birthWeightKg: birthWeight,
+                                                      birthDate: course.birth, now: now),
+                       "day 22 is past the window — the first-weeks card is gone")
+        XCTAssertEqual(WeightVelocity.latest(measurements: course.measurements,
+                                             correctedBirthDate: course.birth,
+                                             isMale: false)?.band, .below)
+
+        XCTAssertEqual(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                      birthDate: course.birth,
+                                                      measurements: course.measurements,
+                                                      now: now),
+                       .measuredInFirstWeeks)
+
+        let assessment = try XCTUnwrap(assess(birth: course.birth,
+                                              birthWeightKg: birthWeight,
+                                              measurements: course.measurements))
+        XCTAssertEqual(assessment.gain, .deferredToNewbornWindow)
+        XCTAssertFalse(assessment.warrantsBreakdown)
+
+        XCTAssertFalse(NotificationManager.shared.shouldRaiseGainSignal(
+            birthDate: course.birth,
+            birthWeightKg: birthWeight,
+            correctedBirthDate: course.birth,
+            isMale: false,
+            measurements: course.measurements,
+            now: now), "the notification must not fire the day the card vanished")
+    }
+
+    /// The same cliff on a baby who has REGAINED — the textbook healthy course,
+    /// and the fixture that shows the defect is not about sick babies. Birth
+    /// weight back by day 10 is exactly what `NewbornWeightLoss` calls a good
+    /// outcome, and the velocity reference still reads that 50 g over ten days
+    /// as below P15.
+    func testARegainedNewbornAlsoDefersAfterTheWindowCloses() throws {
+        let birth = birth(daysAgo: 22)
+        let measurements = [
+            WeightMeasurement(date: birth, weightKg: birthWeight),
+            WeightMeasurement(date: date(dayOfLife: 10, from: birth), weightKg: 3.55),
+        ]
+        // Regained, by the module's own reckoning.
+        let status = try XCTUnwrap(NewbornWeightLoss.analyse(
+            birthWeightKg: birthWeight, birthDate: birth, measurements: measurements,
+            now: date(dayOfLife: 21, from: birth)))
+        XCTAssertTrue(status.hasRegained)
+
+        XCTAssertEqual(WeightVelocity.latest(measurements: measurements,
+                                             correctedBirthDate: birth,
+                                             isMale: false)?.band, .below,
+                       "the fixture only tests the gate if the raw velocity is below")
+
+        XCTAssertEqual(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                      birthDate: birth,
+                                                      measurements: measurements,
+                                                      now: now),
+                       .measuredInFirstWeeks)
+        let assessment = try XCTUnwrap(assess(birth: birth,
+                                              birthWeightKg: birthWeight,
+                                              measurements: measurements))
+        XCTAssertEqual(assessment.gain, .deferredToNewbornWindow)
+    }
+
+    /// The property that makes the pair-endpoint rule safe, and the reason the
+    /// EARLIER endpoint was rejected: the deferral always has an exit, and it is
+    /// the exact thing the card asks for.
+    func testANewWeighingEndsTheStaleDeferral() throws {
+        let birth = birth(daysAgo: 25)
+        let firstWeeksOnly = [
+            WeightMeasurement(date: birth, weightKg: birthWeight),
+            WeightMeasurement(date: date(dayOfLife: 10, from: birth), weightKg: 3.30),
+        ]
+        XCTAssertEqual(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                      birthDate: birth,
+                                                      measurements: firstWeeksOnly,
+                                                      now: now),
+                       .measuredInFirstWeeks)
+
+        let withTodaysWeighing = firstWeeksOnly + [
+            WeightMeasurement(date: date(dayOfLife: 25, from: birth), weightKg: 4.2)
+        ]
+        XCTAssertNil(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                    birthDate: birth,
+                                                    measurements: withTodaysWeighing,
+                                                    now: now),
+                     "one weighing outside the window moves the pair's later endpoint out")
+        let assessment = try XCTUnwrap(assess(birth: birth,
+                                              birthWeightKg: birthWeight,
+                                              measurements: withTodaysWeighing))
+        XCTAssertEqual(assessment.gain, .within)
+    }
+
+    /// The deferral names WHICH shape it is, because the card says different
+    /// things and only one of them carries a button.
+    func testTheTwoDeferralShapesAreDistinguished() {
+        let inWindow = newbornCourse(observedOnDay: 12)
+        XCTAssertEqual(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                      birthDate: inWindow.birth,
+                                                      measurements: inWindow.measurements,
+                                                      now: now),
+                       .firstWeeksNow)
+        // No weighings at all, still inside the window: the first-weeks card is
+        // on screen asking for one, so the gain card must defer to it rather
+        // than fall through to "two weighings needed".
+        XCTAssertEqual(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                      birthDate: birth(daysAgo: 3),
+                                                      measurements: [],
+                                                      now: now),
+                       .firstWeeksNow)
+        // Past the window with nothing to pair: no deferral, and the card falls
+        // back to its own "two weighings needed" hint.
+        XCTAssertNil(NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeight,
+                                                    birthDate: birth(daysAgo: 40),
+                                                    measurements: [],
+                                                    now: now))
+    }
+
     // MARK: - After the window
 
     func testOrdinaryRulesResumeAfterTheWindow() throws {

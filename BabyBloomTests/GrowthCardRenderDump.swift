@@ -30,8 +30,8 @@ final class GrowthCardRenderDump: XCTestCase {
             // The empty states a fresh install actually lands on, WITH the CTA
             // the screen injects — three locales because the button's label and
             // the hint above it share a card width, and Russian is the longest.
-            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true, defersToNewbornWindow: false)))
-            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false, defersToNewbornWindow: false)))
+            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true, deferral: nil)))
+            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false, deferral: nil)))
             try dump("\(locale)-trend-insufficient", withCTA(CentileTrendCard(assessment: .insufficientData)))
             // Both nutrition wordings: with one weighing on file the two cards
             // above must ask for "one more", not for two.
@@ -44,6 +44,12 @@ final class GrowthCardRenderDump: XCTestCase {
             // against the card's bottom padding, with no gap where the button
             // would have been.
             try dump("\(locale)-newborn-needs-weighing-no-cta", newbornCardNoWeighing())
+            // The two deferral states. Both go through `withCTA`, so the dump
+            // also shows that only the stale one draws a button — the in-window
+            // one has no CTA even with the action available, because the
+            // first-weeks card above it is the one doing the asking.
+            try dump("\(locale)-gain-defer-now", withCTA(gainDeferralCard(.firstWeeksNow)))
+            try dump("\(locale)-gain-defer-stale", withCTA(gainDeferralCard(.measuredInFirstWeeks)))
             try dump("\(locale)-trend-drop", CentileTrendCard(assessment: .sustainedDrop(spaces: 2.4)))
             // The two non-alarm trend states side by side: only `.stable` may
             // carry the green tick, and neither may look like the drop.
@@ -68,6 +74,10 @@ final class GrowthCardRenderDump: XCTestCase {
         // Dark mode on the densest card, where contrast problems would show first.
         LocalizationManager.shared.setLanguage("ru")
         try dump("ru-newborn-flagged-dark", newbornCard(day: 15, weight: 3.05), dark: true)
+        // The stale deferral in dark too: it is the only card on this screen
+        // whose body is a paragraph followed by a control, and the CTA's tint
+        // is the one that has to hold in both schemes.
+        try dump("ru-gain-defer-stale-dark", gainDeferralCard(.measuredInFirstWeeks), dark: true)
 
         print("CARDS_DIR=\(dir.path)")
     }
@@ -106,7 +116,19 @@ final class GrowthCardRenderDump: XCTestCase {
             reading: WeightVelocity.measure(from: start, to: end,
                                             correctedBirthDate: birth, isMale: true),
             hasWeighing: true,
-            defersToNewbornWindow: false)
+            deferral: nil)
+    }
+
+    /// The two deferral states — the whole point of the newborn gate, and the
+    /// states no fixture used to render. They differ in more than wording: only
+    /// the stale one carries a CTA, and a dump is the cheapest way to see that
+    /// the card still reads as one family with the verdict states above.
+    ///
+    /// `hasWeighing: true` throughout — a deferral outranks it, so the flag is
+    /// unread here, and false would suggest these states are about an empty
+    /// history when they are the opposite.
+    private func gainDeferralCard(_ deferral: NewbornWeightLoss.GainDeferral) -> some View {
+        WeightGainCard(reading: nil, hasWeighing: true, deferral: deferral)
     }
 
     /// Stands in for `GrowthView`, which is what sets the action an empty

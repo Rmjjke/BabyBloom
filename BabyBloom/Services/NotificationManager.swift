@@ -397,9 +397,14 @@ final class NotificationManager: @unchecked Sendable {
         // exactly the parents least able to hear it calmly.
         // `scheduleNewbornFlagIfNeeded` still speaks for this period, on the two
         // thresholds that genuinely warrant a review.
-        guard !NewbornWeightLoss.windowActive(birthWeightKg: birthWeightKg,
-                                              birthDate: birthDate,
-                                              now: now) else { return false }
+        //
+        // The same predicate the cards read, so the notification cannot fire on
+        // a screen that is deferring — including on day 22, where the window has
+        // closed but the newest weighing is still inside it.
+        guard NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeightKg,
+                                             birthDate: birthDate,
+                                             measurements: measurements,
+                                             now: now) == nil else { return false }
         return WeightVelocity.consecutiveBelowReference(
             measurements: measurements,
             correctedBirthDate: correctedBirthDate,

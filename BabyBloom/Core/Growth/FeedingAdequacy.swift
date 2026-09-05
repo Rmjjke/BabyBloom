@@ -384,14 +384,16 @@ enum FeedingAdequacy {
         // `.within`: the two Signal cases this module publishes are "below its
         // reference" and "not below it".
         let gain: Signal
-        if NewbornWeightLoss.windowActive(birthWeightKg: birthWeightKg,
+        if NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeightKg,
                                           birthDate: birthDate,
-                                          now: now) {
+                                          measurements: measurements,
+                                          now: now) != nil {
             // The dip IS the expected course in these weeks, and every velocity
             // reference starts above it — so a reading taken here would print
             // "below the reference" on a baby doing exactly the normal thing.
-            // `NewbornProgressCard` answers this period against birth weight,
-            // which is the instrument that fits it.
+            // Which of the two deferral shapes it is does not change this
+            // module's answer: both mean "no gain verdict". Only the gain card,
+            // which has room for a sentence, tells them apart.
             gain = .deferredToNewbornWindow
         } else {
             switch reading?.band {

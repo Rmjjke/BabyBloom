@@ -220,13 +220,15 @@ struct GrowthView: View {
         )
     }
 
-    /// True while the first-weeks card holds the weight verdict for this
-    /// screen. Read from the module that owns the rule, never re-derived from
-    /// `newbornStatus` being non-nil — that would be a second definition one
-    /// refactor away from drifting.
-    private func defersToNewbornWindow(_ baby: Baby) -> Bool {
-        NewbornWeightLoss.windowActive(birthWeightKg: baby.birthWeightKg,
-                                       birthDate: baby.birthDate)
+    /// Why the gain verdict is being withheld, if it is. Read from the module
+    /// that owns the rule, never re-derived from `newbornStatus` being non-nil
+    /// — that would be a second definition one refactor away from drifting, and
+    /// it would miss the stale-pair case entirely, which is precisely the case
+    /// where `newbornStatus` IS nil.
+    private func gainDeferral(_ baby: Baby) -> NewbornWeightLoss.GainDeferral? {
+        NewbornWeightLoss.gainDeferral(birthWeightKg: baby.birthWeightKg,
+                                       birthDate: baby.birthDate,
+                                       measurements: measurements)
     }
 
     /// Premium. The number itself stays hidden for free users — the teaser says
@@ -242,7 +244,7 @@ struct GrowthView: View {
                         isMale: baby.gender == .male
                     ),
                     hasWeighing: !measurements.isEmpty,
-                    defersToNewbornWindow: defersToNewbornWindow(baby)
+                    deferral: gainDeferral(baby)
                 )
             }
         } else {
