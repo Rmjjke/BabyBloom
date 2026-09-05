@@ -214,9 +214,10 @@ struct HintWithAddWeighing: View {
 /// arrangement: a child control consumes the tap, so the card's gesture never
 /// runs (verified on the simulator, 2026-09-05 — tapping the CTA opens the
 /// add-measurement sheet and no explainer). If that ever stopped holding, both
-/// flags would go true in one tap and the second sheet would arrive uninvited
-/// the moment the first is dismissed — both bindings stay true, so nothing is
-/// lost, it is simply presented at a moment nobody asked for.
+/// flags would go true in one tap and the outcome is UNDEFINED — UIKit may
+/// refuse the second presentation while its binding stays true, wedging that
+/// sheet shut. Nothing on this project's machines can verify which; treat any
+/// double-fire sighting as a bug here, not as a benign extra sheet.
 struct AddWeighingButton: View {
     @Environment(\.addWeighingAction) private var addWeighingAction
 

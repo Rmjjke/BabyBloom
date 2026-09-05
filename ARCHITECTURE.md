@@ -227,10 +227,12 @@ How a card opens its explainer depends on what its own tap already does:
   which is what makes a double activation impossible rather than merely
   unobserved.
 
-Every "not enough data" state on the Growth screen names what is missing and
+Every Growth-screen state held back by a missing WEIGHING names that and
 offers the action that resolves it — first weeks, gain, centile trend and
 nutrition through `HintWithAddWeighing` (hint + CTA), and the measurement
-history's `EmptyStateView` with the same button stacked under it. The CTA opens
+history's `EmptyStateView` with the same button stacked under it. States
+missing feeds or nappies (the per-row "мало данных", the breakdown's no-data
+line) carry no weighing CTA — their resolving action lives on other tabs. The CTA opens
 the same `AddGrowthSheet` the "+" opens. The action travels the way the
 explainer's does, through the environment (`\.addWeighingAction`, set once by
 `GrowthView` for the whole screen), so `AddWeighingButton` draws itself ONLY

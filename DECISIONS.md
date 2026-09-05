@@ -16,9 +16,11 @@ live with the workflow in `.desk/`.
 
 ## 2026-09-05 — An empty state names the missing thing AND offers the action that resolves it
 
-Every "not enough data" state on the Growth screen carries a button that adds
-what is missing — first weeks, gain, centile trend, nutrition and the
-measurement history. The button is not decoration on the copy: the copy is
+Every Growth-screen state where a missing WEIGHING is what holds a card back
+carries a button that adds one — first weeks, gain, centile trend, nutrition
+and the measurement history. States missing something else (per-row "мало
+данных" for unlogged feeds/nappies, the breakdown's no-data line) correctly
+carry no weighing CTA: their resolving action lives on other tabs. The button is not decoration on the copy: the copy is
 written as an instruction ("one more weighing, three days after the previous
 one"), and the button performs it. Where a card's state depends on how much is
 already on file, the sentence follows (`hasWeighing`), so a parent is never
@@ -42,7 +44,8 @@ same reason: a card rendered in a dump, a preview or a future screen must not
 advertise an affordance that does nothing. One sheet presentation serves the
 whole screen.
 
-**The Dashboard's growth section stays a gesture, not a `NavigationLink`.**
+**The Dashboard's growth section is a gesture, not a `NavigationLink`** (the
+link shipped briefly within this branch and was reverted in review).
 Header and card are one tap target now, but a `NavigationLink` is a `Button`
 and flattens its label into a single accessibility element, which would undo
 the per-row VoiceOver structure the Dashboard and `NutritionSection` were
