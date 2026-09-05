@@ -12,6 +12,12 @@ struct NutritionSection: View {
     /// rather than defaulted so a new call site cannot silently reintroduce the
     /// contradiction it exists to fix — see `StatusWord`.
     let band: WeightVelocity.Band?
+    /// Whether anything has been weighed at all — the same flag `WeightGainCard`
+    /// takes, so the two empty states a screen apart give the same instruction
+    /// ("one more weighing") rather than one asking for two and the other for
+    /// one more. Required for the reason `band` is: a call site that got it
+    /// wrong would state a requirement the parent has already met.
+    let hasWeighing: Bool
 
     /// Drives the row layout only — never a font size. At an accessibility size
     /// the label and its status cannot share a line without one of them being
@@ -48,10 +54,15 @@ struct NutritionSection: View {
                 // `nutrition.need_weighing`: this is the card the owner watched
                 // stay empty while logging feedings and nappies, so here — where
                 // there is room and a button to press — it also says what those
-                // two logs are counted over. State-awareness is deliberately NOT
-                // added: "add a second weighing" would be wrong for the parent
-                // who has two on the same day, which is also this state.
-                HintWithAddWeighing(text: "nutrition.need_weighing_detail".l)
+                // two logs are counted over.
+                //
+                // "One more weighing" is phrased against the PREVIOUS one rather
+                // than "a second, after the first", so it stays true for the
+                // parent whose two weighings fall on the same day — also this
+                // state, and the reason the count word cannot simply be
+                // decremented.
+                HintWithAddWeighing(text: hasWeighing ? "nutrition.need_next_weighing".l
+                                                      : "nutrition.need_weighing_detail".l)
             }
         }
     }

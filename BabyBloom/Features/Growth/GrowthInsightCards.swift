@@ -179,10 +179,19 @@ extension EnvironmentValues {
 struct HintWithAddWeighing: View {
     let text: String
 
+    /// Read here as well as inside the button, so the stack does not RESERVE a
+    /// row for it. A `VStack` spaces its children by declaration, not by what
+    /// they draw: with the action unset, `AddWeighingButton` renders nothing but
+    /// the gap above it survives, and the render dumps showed exactly that
+    /// phantom tail under the hint.
+    @Environment(\.addWeighingAction) private var addWeighingAction
+
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             HintText(text: text)
-            AddWeighingButton()
+            if addWeighingAction != nil {
+                AddWeighingButton()
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -196,6 +205,18 @@ struct HintWithAddWeighing: View {
 /// "?" badge. Unlike that badge, this one must also be reachable without sight
 /// — a `Button` is its own VoiceOver element inside an `ExplainerCard`, which
 /// leaves the children exactly as the card built them.
+///
+/// **There is no double-activation guard here, and it is not an oversight.**
+/// `LockedInsightCard.sell()` can refuse to sell while its own explainer is up
+/// because one view owns both flags; this button owns neither. The explainer's
+/// state lives in the `ExplainerCard` above it and the sheet's in `GrowthView`,
+/// and neither can see the other. What makes the pair impossible is the
+/// arrangement: a child control consumes the tap, so the card's gesture never
+/// runs (verified on the simulator, 2026-09-05 — tapping the CTA opens the
+/// add-measurement sheet and no explainer). If that ever stopped holding, both
+/// flags would go true in one tap and the second sheet would arrive uninvited
+/// the moment the first is dismissed — both bindings stay true, so nothing is
+/// lost, it is simply presented at a moment nobody asked for.
 struct AddWeighingButton: View {
     @Environment(\.addWeighingAction) private var addWeighingAction
 
@@ -449,7 +470,10 @@ struct NewbornProgressCard: View {
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             } else {
-                HintText(text: "newborn.needs_weighing".l)
+                // The FIRST empty state a fresh install meets, and free — so it
+                // gets the same treatment as the three below it rather than
+                // being the one card that names a requirement and stops there.
+                HintWithAddWeighing(text: "newborn.needs_weighing".l)
             }
 
             ForEach(status.flags, id: \.self) { flag in

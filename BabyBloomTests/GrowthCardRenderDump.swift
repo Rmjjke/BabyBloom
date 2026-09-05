@@ -33,8 +33,17 @@ final class GrowthCardRenderDump: XCTestCase {
             try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true)))
             try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false)))
             try dump("\(locale)-trend-insufficient", withCTA(CentileTrendCard(assessment: .insufficientData)))
-            try dump("\(locale)-nutrition-needs-weighing",
-                     withCTA(NutritionSection(assessment: nil, band: nil)))
+            // Both nutrition wordings: with one weighing on file the two cards
+            // above must ask for "one more", not for two.
+            try dump("\(locale)-nutrition-needs-next",
+                     withCTA(NutritionSection(assessment: nil, band: nil, hasWeighing: true)))
+            try dump("\(locale)-nutrition-needs-two",
+                     withCTA(NutritionSection(assessment: nil, band: nil, hasWeighing: false)))
+            try dump("\(locale)-newborn-needs-weighing", withCTA(newbornCardNoWeighing()))
+            // The same card with the action absent — the hint must sit flush
+            // against the card's bottom padding, with no gap where the button
+            // would have been.
+            try dump("\(locale)-newborn-needs-weighing-no-cta", newbornCardNoWeighing())
             try dump("\(locale)-trend-drop", CentileTrendCard(assessment: .sustainedDrop(spaces: 2.4)))
             // The two non-alarm trend states side by side: only `.stable` may
             // carry the green tick, and neither may look like the drop.
@@ -71,6 +80,18 @@ final class GrowthCardRenderDump: XCTestCase {
             birthDate: birth,
             measurements: [at(day, weight)],
             now: Calendar.current.date(byAdding: .day, value: day, to: birth)!
+        )!
+        return NewbornProgressCard(status: status)
+    }
+
+    /// Birth weight recorded, nothing weighed yet: the first empty state a fresh
+    /// install can meet, and the one the CTA rule skipped until now.
+    private func newbornCardNoWeighing() -> some View {
+        let status = NewbornWeightLoss.analyse(
+            birthWeightKg: 3.5,
+            birthDate: birth,
+            measurements: [],
+            now: Calendar.current.date(byAdding: .day, value: 3, to: birth)!
         )!
         return NewbornProgressCard(status: status)
     }
