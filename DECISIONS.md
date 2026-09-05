@@ -14,6 +14,95 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — Adding a weighing never makes the app show less: one pairing rule, and it widens
+
+The gain reading is measured over `WeightVelocity.pair(in:)` — the newest
+weighing paired with the most recent EARLIER one that clears
+`minimumIntervalDays`, found by walking backwards. Only when no such partner
+exists does the "two measurements needed" hint appear. `FeedingAdequacy
+.window(for:)` and `consecutiveBelowReference` both go through that same
+walk; the last-two rule survives only as `window(for:)`'s fallback for the
+case where no gain can be measured at all.
+
+**Why.** A parent on build 13 weighed on day 0 and day 7 and had a verdict,
+weighed again on day 8, and the gain card demanded "2 measurements" while
+holding three — deleting the new weighing brought the verdict back. More data
+showing less reads as the app breaking, and it teaches a parent not to log.
+The short noisy tail is absorbed into a longer interval rather than allowed to
+silence the verdict; `minimumIntervalDays` still holds, because the interval
+that gets measured is the widened one and it clears the floor on its own.
+
+**The newest weighing always stays in the pair.** The card claims to describe
+the CURRENT trajectory, so a measurable older pair (day 0 → day 7, with day 8
+on file) is a statement about the past wearing the present's clothes.
+
+**Three surfaces, one pair.** The nutrition window follows the gain's pair
+rather than the last two weighings, because one Growth screen prints three day
+counts of the same window — section header, gain card, breakdown card — and
+`FeedingAdequacy.Assessment.windowDays` documents the whole-day rule that
+exists to keep those three identical. A
+header reading "over 1 day" above a card reading "over 8 days" is the same
+defect that rule was written for, arriving through the pairing instead of
+through the arithmetic. The last-two fallback stays for a gap under three
+days: there is no gain to contradict there, and feeds and nappies over two
+days are still countable.
+
+**The notification moved too, and that was the point of checking.**
+`consecutiveBelowReference` walks the same chain, so a curious re-weigh the
+morning after cannot break a run of two below-reference intervals. What moved
+is which weighing an interval starts from; the count and the per-interval
+floor did not, so two intervals are still required and each still clears
+`minimumIntervalDays` on its own — two weighings a day apart cannot raise an
+alarm between them. Noise in the MIDDLE of a history is absorbed the same way:
+weighings on days 0, 14, 15 and 29 now chain 0→15 and 15→29 and can report a
+pattern, where the raw-pair walk hit the one-day 14→15 step and reported
+nothing. Left on raw consecutive pairs, a single extra weighing would suppress
+the `growthGainLow` signal entirely, which is the same defect in the surface
+where it costs most: a notification that does not fire says nothing at all.
+
+`GrowthTrend` is deliberately NOT part of this. Its window rules answer a
+different question — where a baby is heading over months — and it already
+refuses to widen backwards to reach a span (see its `referenceWindowStart`
+doc, which records what that cost).
+
+## 2026-09-05 — A future-dated weighing is refused at the picker AND ignored at the read
+
+Two guards, deliberately not one. `AddGrowthSheet`'s date picker is bounded to
+`birthDate...today` (clamping the lower bound with `min(birthDate, now)`, so a
+drifted birth date cannot form an inverted range and trap). And the
+`weightMeasurements` accessor — the single door every growth analysis reads
+through — drops any entry dated more than 24 hours ahead of this device's
+clock.
+
+**Why.** The build-13 report started with a weighing dated September 17 in
+early September. A future date is not a typo the growth engine can absorb: the
+entry sorts to the end of the history and becomes the newest half of every
+pair, and the interval it defines has not elapsed, so the measured gain is
+divided by days that are still to come. That UNDERSTATES the rate — the one
+direction `WeightVelocity.measure` documents as unsafe, because it can turn a
+healthy `.within` into `.below` and fire `growthGainLow` off arithmetic about
+the future.
+
+**The picker alone would not have been enough**, and the pair fallback above
+is why it matters more now than it did: rows entered before the bound existed,
+and rows synced from a phone with a wrong clock, still arrive. Under the old
+last-two rule such a row often produced no reading at all; under the fallback
+it produces a confident wrong one. Filtering at the read boundary rather than
+on save also covers the rows already in people's databases, which a save-time
+validation never could.
+
+**24 hours, not zero.** The picker legitimately stamps the chosen DAY with the
+clock at the moment the sheet opened, and cross-device clock skew is real, so a
+genuine row can sit a little ahead of `now`. **The row is not deleted and not
+hidden** — the measurement history still shows it, which is how a parent
+notices the wrong date, and it starts counting by itself once its date
+arrives.
+
+The birth-date pickers (`BabyProfileEditSheet`, onboarding's `BirthPage`) were
+already bounded `...Date()`; the event-time pickers (sleep, nappies, events)
+are deliberately left alone — a future event time is a scheduling mistake with
+no clinical reading downstream.
+
 ## 2026-09-05 — One explainer pattern, and it never eats a sell tap
 
 Every verdict card on the Growth screen opens the same `ExplainerSheet`,

@@ -486,9 +486,11 @@ struct DashboardView: View {
     ///
     /// So it takes the same window the Growth screen's answer is built on —
     /// `FeedingAdequacy.assess` derives its style from the feeds inside
-    /// `window(for:)`, between the two most recent weighings — and the two
-    /// surfaces agree by construction. Agreement is the point, not freshness:
-    /// that window is as old as the gap between the last two weighings, so for
+    /// `window(for:)`, over the pair of weighings the gain is measured from
+    /// (`WeightVelocity.pair(in:)`, which walks back past a tail too short to
+    /// measure) — and the two surfaces agree by construction, through the same
+    /// function rather than through two copies of one rule. Agreement is the
+    /// point, not freshness: that window is as old as the pair it spans, so for
     /// a rarely-weighed baby it can be months behind. A ring that lagged
     /// differently from the section it sits under would be worse than one that
     /// lags with it. Before there are two weighings there is no such window,

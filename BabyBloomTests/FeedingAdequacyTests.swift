@@ -122,17 +122,55 @@ final class FeedingAdequacyTests: XCTestCase {
         Self.calendar.date(byAdding: .hour, value: offset, to: now)!
     }
 
-    func testWindowSpansTheTwoMostRecentWeighings() throws {
+    func testWindowSpansTheNewestMeasurablePair() throws {
         let measurements = [
             WeightMeasurement(date: day(-30), weightKg: 3.4),
             WeightMeasurement(date: day(-9),  weightKg: 4.0),
             WeightMeasurement(date: day(0),   weightKg: 4.3),
         ]
         let window = FeedingAdequacy.window(for: measurements)
-        // The older weighing is history; the assessment covers the latest gap.
+        // Nothing here sits inside the velocity floor, so the newest measurable
+        // pair is the last two. The older weighing is history; the assessment
+        // covers the latest gap.
         XCTAssertEqual(Self.calendar.dateComponents([.day],
                                                     from: try XCTUnwrap(window).start,
                                                     to: try XCTUnwrap(window).end).day, 9)
+    }
+
+    /// The window follows the pair the GAIN is measured over, not the last two
+    /// weighings, once a short tail widens that pair.
+    ///
+    /// One Growth screen prints three day counts of the same window — this
+    /// section's header, the gain card and the breakdown card. Left on the last
+    /// two, the header would read "over 1 day" above a card reading "over 8
+    /// days", each true of a different pair, and the feed rate underneath would
+    /// be counted over a stretch the gain never described.
+    func testWindowFollowsTheWidenedGainPairRatherThanTheLastTwoWeighings() throws {
+        let measurements = [
+            WeightMeasurement(date: day(-8), weightKg: 4.00),
+            WeightMeasurement(date: day(-1), weightKg: 4.25),
+            WeightMeasurement(date: day(0),  weightKg: 4.26),
+        ]
+        let window = try XCTUnwrap(FeedingAdequacy.window(for: measurements))
+        XCTAssertEqual(window.start, day(-8))
+        XCTAssertEqual(window.end, day(0))
+    }
+
+    /// The fallback the widening did NOT take away: two weighings closer
+    /// together than `WeightVelocity.minimumIntervalDays` still define a window.
+    /// There is no gain to report over them, but feeds and nappies over two days
+    /// are countable, and withholding the whole section because the gain is
+    /// unknown is the same "shows less" defect from the other side. Nothing
+    /// contradicts anything here — with no reading, no card prints a rival
+    /// interval.
+    func testAGapTooShortForAGainStillDefinesAFeedingWindow() throws {
+        let measurements = [
+            WeightMeasurement(date: day(-2), weightKg: 4.00),
+            WeightMeasurement(date: day(0),  weightKg: 4.06),
+        ]
+        XCTAssertNil(WeightVelocity.pair(in: measurements))
+        let window = try XCTUnwrap(FeedingAdequacy.window(for: measurements))
+        XCTAssertEqual(window.duration, 2 * 86_400)
     }
 
     func testWindowIsNilWithFewerThanTwoWeighings() {
@@ -538,6 +576,39 @@ final class FeedingAdequacyTests: XCTestCase {
                                                           isMale: true))
         XCTAssertEqual(assessment.windowDays, reading.intervalDays,
                        "the section header and the cards either side of it name one period")
+    }
+
+    /// The same one-period promise, through the case that can actually break
+    /// it now: a short tail moves the gain onto an older pair, and the header
+    /// has to move with it.
+    ///
+    /// On the last-two rule this fails three ways at once — `windowDays` reads
+    /// 1 against the card's 8, the gain reads `notEnoughData` while the card
+    /// shows a band, and the feed rate is 16 a day because two days of feeds
+    /// were divided by a one-day window.
+    func testWindowDaysAndTheGainFollowTheSameWidenedPair() throws {
+        let birth = birthDate(ageDays: 40)
+        let measurements = [
+            WeightMeasurement(date: day(-8), weightKg: 4.00),
+            WeightMeasurement(date: day(-1), weightKg: 4.25),
+            WeightMeasurement(date: day(0),  weightKg: 4.26),
+        ]
+        let assessment = try XCTUnwrap(FeedingAdequacy.assess(
+            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            measurements: measurements,
+            feeds: feeds(perDay: 8, days: 8),
+            wetNappies: nappies(perDay: 7, days: 8),
+            now: now
+        ))
+        let reading = try XCTUnwrap(WeightVelocity.latest(measurements: measurements,
+                                                          correctedBirthDate: birth,
+                                                          isMale: true))
+        XCTAssertEqual(reading.intervalDays, 8)
+        XCTAssertEqual(assessment.windowDays, reading.intervalDays,
+                       "the header names the period the gain card names")
+        XCTAssertNotEqual(assessment.gain, .notEnoughData)
+        XCTAssertEqual(try XCTUnwrap(assessment.feedingsPerDay), 8, accuracy: 0.01,
+                       "feeds are counted over the same widened window")
     }
 
     /// The one case where a real-seconds day count and a calendar day count

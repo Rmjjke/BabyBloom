@@ -250,8 +250,10 @@ enum SeedScenario: String, CaseIterable {
     /// and the chart's back arrow reaches it in one tap.
     ///
     /// The binding reason is the Nutrition card. It counts feeds and nappies
-    /// across `FeedingAdequacy.window(for:)` — the gap between the last two
-    /// weighings, which here is the 18 days from day 42 to day 60. A history
+    /// across `FeedingAdequacy.window(for:)` — the pair of weighings the gain
+    /// is measured from, which here is the 18 days from day 42 to day 60 (the
+    /// last two, since nothing in this fixture sits closer than the velocity
+    /// floor). A history
     /// shorter than that gap is averaged over days that hold no entries, and the
     /// card reported "5 a day" from a fixture logging eight. Three weeks covers
     /// the whole window with room at both edges.

@@ -39,8 +39,11 @@ enum WeightVelocity {
 
     struct Reading: Equatable {
         let gramsPerDay: Double
-        /// Whole calendar days between the two weighings — a LABEL, and the
-        /// gate for `minimumIntervalDays`. Nothing divides by it: `gramsPerDay`
+        /// Whole calendar days between the two weighings this reading was
+        /// measured over — which is `pair(in:)`'s pair, not necessarily the
+        /// last two on file. A LABEL, and the gate for `minimumIntervalDays`:
+        /// a widened pair describes itself honestly, and every surface printing
+        /// a day count reads this one. Nothing divides by it: `gramsPerDay`
         /// uses the real elapsed duration, so a part-day gap cannot inflate the
         /// rate. Counted the same way `FeedingAdequacy.Assessment.windowDays`
         /// is, and that identity is the point — the two numbers are printed
@@ -74,9 +77,8 @@ enum WeightVelocity {
         correctedBirthDate: Date,
         isMale: Bool
     ) -> Reading? {
-        guard earlier.weightKg > 0, later.weightKg > 0, later.date > earlier.date else { return nil }
+        guard isMeasurable(from: earlier, to: later) else { return nil }
         let intervalDays = days(from: earlier.date, to: later.date)
-        guard intervalDays >= minimumIntervalDays else { return nil }
 
         // Divided by the REAL elapsed time, not by `intervalDays`. Whole-day
         // truncation only ever rounds the denominator DOWN, so it only ever
@@ -117,20 +119,83 @@ enum WeightVelocity {
         )
     }
 
-    /// The two most recent weighings, or nil if there are not two usable ones.
+    /// Whether these two weighings can produce a reading at all: both positive,
+    /// in order, and far enough apart for the trend to outweigh the noise.
+    ///
+    /// Split out of `measure` so the pair SEARCH below asks the same question
+    /// the measurement answers. A second copy of these guards is how the card
+    /// and the window it is reported against start describing different pairs.
+    private static func isMeasurable(from earlier: WeightMeasurement,
+                                     to later: WeightMeasurement) -> Bool {
+        guard earlier.weightKg > 0, later.weightKg > 0, later.date > earlier.date else { return false }
+        return days(from: earlier.date, to: later.date) >= minimumIntervalDays
+    }
+
+    /// The newest weighing paired with the most recent earlier one it can
+    /// actually be measured against, or nil when no such partner exists.
+    ///
+    /// A tail of weighings too close together to measure is ABSORBED into the
+    /// longer interval rather than allowed to silence the verdict, and the
+    /// newest weighing always stays in the pair — the reading claims to be the
+    /// current trajectory. `Reading.intervalDays` then describes the widened
+    /// pair, so the cards need no separate bookkeeping. Both choices, and what
+    /// they cost, are in DECISIONS: "Adding a weighing never makes the app show
+    /// less" (2026-09-05).
+    static func pair(in measurements: [WeightMeasurement]) -> (earlier: WeightMeasurement,
+                                                              later: WeightMeasurement)? {
+        let sorted = chronological(measurements)
+        guard sorted.count >= 2,
+              let earlier = measurableEarlierIndex(in: sorted, before: sorted.count - 1)
+        else { return nil }
+        return (sorted[earlier], sorted[sorted.count - 1])
+    }
+
+    /// Oldest first, with a tie-break, because `sorted(by:)` is not guaranteed
+    /// stable and the walk above reads whichever duplicate lands last.
+    ///
+    /// Two weighings stamped the same instant contradict each other, and
+    /// nothing here can say which is right — so the tie-break is not a claim
+    /// about the data, only a promise that one history always yields one
+    /// number. Without it a card could print a different gain on each render.
+    ///
+    /// The LIGHTER of two duplicates lands last, so it becomes the newest
+    /// weighing. Between two arbitrary answers, take the one that does not
+    /// overstate the gain: `measure(from:to:)` explains why the errors are not
+    /// symmetric — overstating can lift a genuinely below-P15 gain into
+    /// `.within`, which reassures falsely and suppresses the growthGainLow
+    /// notification, while understating only shows a concern that is not there.
+    private static func chronological(_ measurements: [WeightMeasurement]) -> [WeightMeasurement] {
+        measurements.sorted {
+            $0.date == $1.date ? $0.weightKg > $1.weightKg : $0.date < $1.date
+        }
+    }
+
+    /// Gain over `pair(in:)`, or nil when no two weighings can be measured
+    /// against each other — the honest "weigh again in a few days" case.
     static func latest(
         measurements: [WeightMeasurement],
         correctedBirthDate: Date,
         isMale: Bool
     ) -> Reading? {
-        let sorted = measurements.sorted { $0.date < $1.date }
-        guard sorted.count >= 2 else { return nil }
+        guard let pair = pair(in: measurements) else { return nil }
         return measure(
-            from: sorted[sorted.count - 2],
-            to: sorted[sorted.count - 1],
+            from: pair.earlier,
+            to: pair.later,
             correctedBirthDate: correctedBirthDate,
             isMale: isMale
         )
+    }
+
+    /// The nearest weighing before `index` that `index` can be measured
+    /// against. Indices, not values, so a caller can keep walking from it.
+    private static func measurableEarlierIndex(in sorted: [WeightMeasurement],
+                                               before index: Int) -> Int? {
+        var candidate = index - 1
+        while candidate >= 0 {
+            if isMeasurable(from: sorted[candidate], to: sorted[index]) { return candidate }
+            candidate -= 1
+        }
+        return nil
     }
 
     /// Whether the last `count` consecutive intervals all came in below the
@@ -139,28 +204,48 @@ enum WeightVelocity {
     /// One slow fortnight is noise — a mistimed weighing, a cold, a growth
     /// pause. Two in a row is a pattern, and only a pattern is worth interrupting
     /// a parent's day over.
+    ///
+    /// "Consecutive" means the MEASURABLE intervals, chained by the same
+    /// backwards walk `pair(in:)` uses: each interval ends where the next
+    /// begins, and weighings too close together to measure are absorbed into
+    /// the interval around them rather than ending the run. Stepping over raw
+    /// consecutive pairs instead
+    /// let one curious re-weigh suppress the signal — a baby weighed on days 0,
+    /// 14 and 28, both intervals below the reference, stopped being a pattern
+    /// the moment a day-29 weighing was added. That is the same "more data
+    /// shows less" defect `pair(in:)` exists to remove, in the surface where it
+    /// costs the most: a notification that never fires says nothing at all.
+    ///
+    /// What the walk changed is only which weighing an interval STARTS from.
+    /// The count and the per-interval floor are untouched: `count` intervals
+    /// are still required, and each of them still clears `minimumIntervalDays`
+    /// on its own, so a short pair can never BE an interval and two weighings a
+    /// day apart cannot raise an alarm between them.
     static func consecutiveBelowReference(
         measurements: [WeightMeasurement],
         correctedBirthDate: Date,
         isMale: Bool,
         count: Int = 2
     ) -> Bool {
-        let sorted = measurements.sorted { $0.date < $1.date }
+        let sorted = chronological(measurements)
+        // A necessary condition, not a sufficient one: `count` intervals need
+        // at least `count + 1` weighings, and the walk below decides the rest.
         guard sorted.count >= count + 1 else { return false }
 
         var checked = 0
         var index = sorted.count - 1
         while index >= 1 && checked < count {
-            guard let reading = measure(
-                from: sorted[index - 1],
-                to: sorted[index],
-                correctedBirthDate: correctedBirthDate,
-                isMale: isMale
-            ) else { return false }
+            guard let earlier = measurableEarlierIndex(in: sorted, before: index),
+                  let reading = measure(
+                    from: sorted[earlier],
+                    to: sorted[index],
+                    correctedBirthDate: correctedBirthDate,
+                    isMale: isMale
+                  ) else { return false }
             // No reference (past 12 months) means nothing to be below.
             guard reading.band == .below else { return false }
             checked += 1
-            index -= 1
+            index = earlier
         }
         return checked == count
     }

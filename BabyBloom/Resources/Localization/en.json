@@ -426,7 +426,7 @@
   "nutrition.per_day_fmt": "%@ a day",
   "nutrition.need_weighing": "Two weighings at least a day apart are needed",
   "nutrition.info_title": "About Nutrition",
-  "nutrition.info_body": "A calm summary of the period between your last two weighings: weight gain, feedings a day and wet diapers a day — compared with the references for your baby's age.\n\nGain is the main signal: if weight is growing normally, all is well, even if the number of feedings looks low. Feedings and diapers are context only.\n\nTo get data here: add two weighings at least a day apart, and log feedings and wet diapers through the day.",
+  "nutrition.info_body": "A calm summary of the period between the two weighings your gain is calculated from: weight gain, feedings a day and wet diapers a day — compared with the references for your baby's age.\n\nGain is the main signal: if weight is growing normally, all is well, even if the number of feedings looks low. Feedings and diapers are context only.\n\nTo get data here: add two weighings at least a day apart, and log feedings and wet diapers through the day.",
   "breakdown.title": "Gain is below the reference",
   "breakdown.gain_fmt": "%d g/week over %d %@. The reference for this age is %d–%d g/week.",
   "breakdown.feeds_fmt": "Feedings: %@ a day, reference %d–%d.",
