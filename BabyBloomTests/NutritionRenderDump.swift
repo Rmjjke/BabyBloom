@@ -342,7 +342,10 @@ final class NutritionRenderDump: XCTestCase {
                             nappies: [Date],
                             now: Date) -> FeedingAdequacy.Assessment? {
         FeedingAdequacy.assess(
+            // nil: these stacks are about the ordinary gain verdicts, and a
+            // birth weight would defer every one of them to the newborn window.
             birthDate: birth,
+            birthWeightKg: nil,
             correctedBirthDate: birth,
             isMale: true,
             measurements: measurements,
@@ -381,7 +384,7 @@ final class NutritionRenderDump: XCTestCase {
         VStack(spacing: BBTheme.Spacing.lg) {
             // Every stack this dump builds has weighings behind it; the flag
             // only picks which empty-state sentence would show without them.
-            WeightGainCard(reading: reading, hasWeighing: true)
+            WeightGainCard(reading: reading, hasWeighing: true, defersToNewbornWindow: false)
             NutritionSection(assessment: assessment, band: reading?.band, hasWeighing: true)
             // Gated exactly as `GrowthView` gates it. Rendering it
             // unconditionally would put "Gain is below the reference" under a

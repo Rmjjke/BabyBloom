@@ -5,11 +5,10 @@ import SwiftUI
 struct BirthPage: View {
     @Binding var birthDate: Date
     @Binding var gender: Baby.Gender
-    /// Birth weight and prematurity live here rather than on the growth page on
-    /// purpose: they are facts about the birth, and a page away from the "weight
-    /// today" slider they cannot be mistaken for it.
-    @Binding var birthWeightKg: Double
-    @Binding var recordsBirthWeight: Bool
+    /// Prematurity lives here because it is a fact about the birth. Birth
+    /// weight used to sit beside it, as an optional toggle, back when the next
+    /// page asked for the weight TODAY; that page now asks for the measurements
+    /// at birth, so the same number is collected once, there.
     @Binding var gestationalWeeks: Double
     @Binding var wasBornEarly: Bool
     let onBack: () -> Void
@@ -74,22 +73,10 @@ struct BirthPage: View {
                     .cornerRadius(BBTheme.Radius.lg)
                     .bbShadow(BBTheme.Shadow.card)
 
-                    // Both optional and both off by default. A parent who does not
-                    // know the birth weight must be able to walk past this without
-                    // a made-up number being stored — the newborn screen would then
-                    // measure a real baby against fiction.
-                    BBOptionalMeasureToggle(
-                        title: "form.birth_weight_kg".l,
-                        hint: "form.birth_weight_hint".l,
-                        isOn: $recordsBirthWeight,
-                        value: $birthWeightKg,
-                        range: 0.5...6.0, step: 0.05,
-                        display: String(format: "%.2f \("unit.kg".l)", birthWeightKg),
-                        minLabel: "0.5 \("unit.kg".l)",
-                        maxLabel: "6 \("unit.kg".l)",
-                        color: BBTheme.Colors.growth
-                    )
-
+                    // Off by default: a parent who does not know the gestational
+                    // age must be able to walk past this without a made-up
+                    // number being stored — corrected age would then measure a
+                    // real baby against fiction.
                     BBOptionalMeasureToggle(
                         title: "form.preterm".l,
                         hint: "form.preterm_hint".l,

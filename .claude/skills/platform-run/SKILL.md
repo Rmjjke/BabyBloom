@@ -40,7 +40,7 @@ no product code at all. The ones that matter:
 | `-appLanguage en` \| `ru` \| `es` | pin the UI language, so selectors do not depend on the device locale |
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
-| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
+| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
 | `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 
 `BBSkipSplash`, `BBSeedScenario` and `BBForcePremium` are the only three backed
@@ -77,8 +77,16 @@ scenario's data untouched). Under Maestro the value goes in the same
 > simulator, or pick a simulator that was never signed in. A simulator with no
 > account does not sync at all, which is the normal state for a test run.
 
+`newbornWindow` is the fixture for the newborn gate: a twelve-day-old, birth
+weight on the profile and a first entry dated at the birth, whose weight
+history reads below every velocity reference. It exists so the rule that
+NOTHING may say so — the gain card, the nutrition gain row, the Dashboard's
+free line and the `growthGainLow` notification all defer to the first-weeks
+card — is checkable in the running app and not only in unit tests.
+
 **Spell the name right, and it will tell you if you did not.** The names are
-case-sensitive (`lowGain`, `healthy`, `sparseLogs`). An unrecognised value logs
+case-sensitive (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`,
+`showcase`). An unrecognised value logs
 a fault naming it and the valid ones, then calls `fatalError` — the app dies on
 launch in every build configuration (`assertionFailure` would vanish under
 Release), so a typo fails the flow instead of quietly running it against the

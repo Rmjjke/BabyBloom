@@ -497,6 +497,11 @@ struct WeightGainCard: View {
     /// silently got the wrong one would tell a parent who has weighed once that
     /// they need two weighings from scratch.
     let hasWeighing: Bool
+    /// `NewbornWeightLoss.windowActive` — the one gate, consulted rather than
+    /// re-derived. Required rather than defaulted for the reason
+    /// `NutritionSection.band` is: a new call site must not be able to opt out
+    /// of a clinical rule by leaving an argument off.
+    let defersToNewbornWindow: Bool
 
     var body: some View {
         InsightCard(title: "section.weight_gain".l) {
@@ -504,9 +509,17 @@ struct WeightGainCard: View {
         }
     }
 
+    /// No "add a weighing" button here, deliberately. `NewbornProgressCard`
+    /// sits directly above this card while the window is open, it is the card
+    /// that wants the data, and it already asks for it in its own empty state —
+    /// a second ask a hundred points below would be the same request twice, in
+    /// the card that has just said it is not the one judging. The FAB and the
+    /// toolbar "+" are on screen throughout.
     @ViewBuilder
     private var guardedContent: some View {
-        if let reading {
+        if defersToNewbornWindow {
+            HintText(text: "velocity.first_weeks".l)
+        } else if let reading {
             HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                 BBTheme.Typography.metric(
                     String(format: "velocity.per_week_fmt".l, formatted(reading.gramsPerWeek))

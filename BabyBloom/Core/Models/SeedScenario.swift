@@ -43,6 +43,15 @@ enum SeedScenario: String, CaseIterable {
     /// Gain below reference, nothing else logged — proves "not enough data"
     /// renders instead of zero.
     case sparseLogs
+    /// A twelve-day-old mid-dip: the newborn window, with a weight history that
+    /// reads below every velocity reference and must NOT be reported as such.
+    ///
+    /// The one fixture for the gate in `NewbornWeightLoss.windowActive`. Without
+    /// it that gate is checkable only in unit tests, and it is a rule about what
+    /// four SCREENS are allowed to say — the first-weeks card holds the verdict,
+    /// the gain card and the nutrition gain row defer to it, and the low-gain
+    /// notification stays down.
+    case newbornWindow
     /// A plausible, well-populated two-month-old for App Store captures.
     ///
     /// Unlike the three above it is not tuned to a threshold — it is tuned to
@@ -158,6 +167,7 @@ enum SeedScenario: String, CaseIterable {
 
     private func seed(into context: ModelContext) {
         guard self != .showcase else { return Self.seedShowcase(into: context) }
+        guard self != .newbornWindow else { return Self.seedNewbornWindow(into: context) }
 
         let calendar = Calendar.current
         let now = Date()
@@ -221,6 +231,56 @@ enum SeedScenario: String, CaseIterable {
                 context.insert(feed)
             }
             for index in 0..<nappiesPerDay {
+                let nappy = DiaperEntry(time: daysAgo(day).addingTimeInterval(Double(index) * 3600),
+                                        type: .wet)
+                nappy.baby = baby
+                context.insert(nappy)
+            }
+        }
+    }
+
+    // MARK: - Newborn window fixture
+
+    /// Day 12 of a normal newborn course, seeded the way onboarding now seeds
+    /// it: a birth weight on the profile AND a first `GrowthEntry` dated at the
+    /// birth.
+    ///
+    /// The weights are the unit fixture of `NewbornWindowGateTests`, on purpose
+    /// — 3.5 kg at birth, 3.25 by day 4, 3.30 by day 10 — so the screen and the
+    /// tests are arguing about the same baby. Both measurable intervals come in
+    /// below the WHO velocity reference and the run is only meaningful because
+    /// of that: what it proves is that nothing on screen SAYS so.
+    private static func seedNewbornWindow(into context: ModelContext) {
+        let calendar = Calendar.current
+        let now = Date()
+        func daysAgo(_ n: Int) -> Date { calendar.date(byAdding: .day, value: -n, to: now) ?? now }
+
+        let baby = Baby(name: "Mia", birthDate: daysAgo(12), gender: .female, feedingType: .breast)
+        baby.birthWeightKg = 3.5
+        context.insert(baby)
+
+        for (daysOld, kg) in [(0, 3.5), (4, 3.25), (10, 3.30)] {
+            let entry = GrowthEntry(date: daysAgo(12 - daysOld), weightKg: kg,
+                                    heightCm: 50, headCircumferenceCm: nil)
+            entry.baby = baby
+            context.insert(entry)
+        }
+
+        // Logged across the gain's window (day 4 to day 10) so the nutrition
+        // card's other two rows carry real figures beside the deferred gain
+        // row — a deferral among two blanks would not show that the section
+        // still works, which is half of what this fixture is for. Eight feeds
+        // and seven nappies are mid-band for a newborn, so neither reads as a
+        // concern of its own.
+        for day in 3...8 {
+            for index in 0..<8 {
+                let start = daysAgo(day).addingTimeInterval(Double(index) * 3600)
+                let feed = FeedingEntry(startTime: start, type: .breast, side: .left, volumeML: nil)
+                feed.endTime = start.addingTimeInterval(15 * 60)
+                feed.baby = baby
+                context.insert(feed)
+            }
+            for index in 0..<7 {
                 let nappy = DiaperEntry(time: daysAgo(day).addingTimeInterval(Double(index) * 3600),
                                         type: .wet)
                 nappy.baby = baby

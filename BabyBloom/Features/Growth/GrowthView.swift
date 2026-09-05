@@ -220,6 +220,15 @@ struct GrowthView: View {
         )
     }
 
+    /// True while the first-weeks card holds the weight verdict for this
+    /// screen. Read from the module that owns the rule, never re-derived from
+    /// `newbornStatus` being non-nil — that would be a second definition one
+    /// refactor away from drifting.
+    private func defersToNewbornWindow(_ baby: Baby) -> Bool {
+        NewbornWeightLoss.windowActive(birthWeightKg: baby.birthWeightKg,
+                                       birthDate: baby.birthDate)
+    }
+
     /// Premium. The number itself stays hidden for free users — the teaser says
     /// what it would tell them, which is honest without giving it away.
     @ViewBuilder
@@ -232,7 +241,8 @@ struct GrowthView: View {
                         correctedBirthDate: baby.correctedBirthDate,
                         isMale: baby.gender == .male
                     ),
-                    hasWeighing: !measurements.isEmpty
+                    hasWeighing: !measurements.isEmpty,
+                    defersToNewbornWindow: defersToNewbornWindow(baby)
                 )
             }
         } else {
@@ -270,6 +280,7 @@ struct GrowthView: View {
     private func adequacy(_ baby: Baby) -> FeedingAdequacy.Assessment? {
         FeedingAdequacy.assess(
             birthDate: baby.birthDate,
+            birthWeightKg: baby.birthWeightKg,
             correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male,
             measurements: measurements,

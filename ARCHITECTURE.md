@@ -53,6 +53,17 @@ owner. Entries carry a `baby` link so the cascade rules mean something, but
 nothing reads that link for scoping. Multi-baby support is therefore not a
 model change — it is a change to every query in the app.
 
+**What onboarding writes, and when.** Its measurements page asks for the
+weight and height AT BIRTH — the discharge-record numbers — and
+`OnboardingBabyBuilder.build` turns that one answer into two things:
+`Baby.birthWeightKg`, which is therefore ALWAYS filled, and a first
+`GrowthEntry` dated at `Baby.birthDate` rather than at the moment onboarding
+finished. The builder is a pure function taking no model context, so both
+rules are unit-testable; `createAndFinish` only inserts and saves what it
+returns. The flow is ONE-WAY and runs once:
+`BabyProfileEditSheet` writes `birthWeightKg` later without touching history,
+because a correction to the profile is not a new weighing.
+
 `OrphanedEntryAdoption` is a one-shot migration for entries created before
 that link existed. Two things about it are load-bearing: it filters in memory
 rather than expressing `baby == nil` as a `#Predicate` (SwiftData does not
@@ -175,6 +186,27 @@ walk to find each interval's start. That shared walk is what keeps the three
 day counts on the Growth screen describing one period
 (see DECISIONS 2026-09-05). `GrowthTrend` is the exception and stays one: it
 answers a months-long question and owns its own window rules.
+
+**The newborn window outranks every gain verdict, through one predicate.**
+`NewbornWeightLoss.windowActive(birthWeightKg:birthDate:now:)` answers "is the
+first-weeks card the instrument in force right now" — a birth weight on the
+profile, and a baby no older than `observationWindowDays`. `analyse` itself is
+gated on it, so the card and the rule cannot disagree. While it is true, a
+newborn's physiological dip would land below every velocity reference, so no
+surface may report a gain verdict at all: `FeedingAdequacy.assess` returns
+`Signal.deferredToNewbornWindow` (which `warrantsBreakdown` cannot fire on and
+`StatusWord` renders as `.firstWeeks`, a pointer rather than a finding),
+`WeightGainCard` takes a `defersToNewbornWindow` flag from `GrowthView`, and
+`NotificationManager.shouldRaiseGainSignal` refuses `growthGainLow`. Three
+consult sites, one predicate — the gate lives where a verdict is EMITTED, and
+deliberately not inside `WeightVelocity`, which is a WHO increment table and
+knows nothing about birth weight.
+
+It is asked of NOW, never of the pair being measured. After the window a pair
+that reaches back to the birth weighing is measured honestly, because
+`WeightVelocity` compares it at the interval's MIDPOINT age; gating on "the
+pair starts inside the window" would silence the gain card forever for a baby
+whose only two weighings are birth and month one.
 
 The medical spine of `FeedingAdequacy`: **weight gain is the only trigger.**
 Feeds and nappy counts are context and never raise a concern on their own. If
@@ -391,7 +423,7 @@ entitlement:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 
 Widget views live in the **app's** source tree

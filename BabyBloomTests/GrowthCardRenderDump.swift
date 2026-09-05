@@ -30,8 +30,8 @@ final class GrowthCardRenderDump: XCTestCase {
             // The empty states a fresh install actually lands on, WITH the CTA
             // the screen injects — three locales because the button's label and
             // the hint above it share a card width, and Russian is the longest.
-            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true)))
-            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false)))
+            try dump("\(locale)-gain-needs-second", withCTA(WeightGainCard(reading: nil, hasWeighing: true, defersToNewbornWindow: false)))
+            try dump("\(locale)-gain-needs-two", withCTA(WeightGainCard(reading: nil, hasWeighing: false, defersToNewbornWindow: false)))
             try dump("\(locale)-trend-insufficient", withCTA(CentileTrendCard(assessment: .insufficientData)))
             // Both nutrition wordings: with one weighing on file the two cards
             // above must ask for "one more", not for two.
@@ -105,7 +105,8 @@ final class GrowthCardRenderDump: XCTestCase {
         return WeightGainCard(
             reading: WeightVelocity.measure(from: start, to: end,
                                             correctedBirthDate: birth, isMale: true),
-            hasWeighing: true)
+            hasWeighing: true,
+            defersToNewbornWindow: false)
     }
 
     /// Stands in for `GrowthView`, which is what sets the action an empty

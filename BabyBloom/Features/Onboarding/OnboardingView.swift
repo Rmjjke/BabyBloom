@@ -17,8 +17,6 @@ struct OnboardingView: View {
     @State private var growthHeightCm: Double = 50.0
     @State private var growthHeadCm: Double = 34.0
     @State private var growthIncludeHead: Bool = false
-    @State private var birthWeightKg: Double = 3.4
-    @State private var recordsBirthWeight: Bool = false
     @State private var gestationalWeeks: Double = 34
     @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
@@ -45,8 +43,6 @@ struct OnboardingView: View {
                     case .welcome: WelcomePage(onStart: next)
                     case .name: NamePage(name: $babyName, onBack: back)
                     case .birth: BirthPage(birthDate: $birthDate, gender: $gender,
-                                           birthWeightKg: $birthWeightKg,
-                                           recordsBirthWeight: $recordsBirthWeight,
                                            gestationalWeeks: $gestationalWeeks,
                                            wasBornEarly: $wasBornEarly,
                                            onBack: back)
@@ -128,27 +124,18 @@ struct OnboardingView: View {
     private func createAndFinish() {
         guard !isCreating else { return }
         isCreating = true
-        let name = babyName.trimmingCharacters(in: .whitespaces)
-        let baby = Baby(
-            name: name.isEmpty ? "baby.default_name".l : name,
+        let created = OnboardingBabyBuilder.build(
+            name: babyName,
             birthDate: birthDate,
             gender: gender,
-            feedingType: feedingType
+            feedingType: feedingType,
+            birthWeightKg: growthWeightKg,
+            birthHeightCm: growthHeightCm,
+            birthHeadCm: growthIncludeHead ? growthHeadCm : nil,
+            gestationalWeeks: wasBornEarly ? Int(gestationalWeeks) : nil
         )
-        // Left nil when the parent did not record them — nil means "unknown"
-        // everywhere downstream, and every growth feature degrades to still
-        // being useful without them.
-        baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
-        baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
-        modelContext.insert(baby)
-        let growth = GrowthEntry(
-            date: Date(),
-            weightKg: growthWeightKg,
-            heightCm: growthHeightCm,
-            headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil
-        )
-        growth.baby = baby
-        modelContext.insert(growth)
+        modelContext.insert(created.baby)
+        modelContext.insert(created.firstEntry)
         try? modelContext.save()
         // The widget is already on the home screen for some parents; without
         // this it keeps showing the default name until its own cadence.

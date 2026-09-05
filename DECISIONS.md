@@ -14,6 +14,83 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — Onboarding asks for the measurements AT BIRTH, and dates the first entry there
+
+The measurements page is titled "Height and weight at birth" and its answer
+does two jobs: it fills `Baby.birthWeightKg`, which is now ALWAYS set, and it
+becomes a `GrowthEntry` dated at `Baby.birthDate`. The separate optional
+birth-weight toggle on the birth page is gone; the gestational-weeks toggle
+stays.
+
+**Why one question instead of two.** The toggle was optional and off by
+default, so most parents walked past it — and a nil birth weight silently
+switches off `NewbornProgressCard`, the free safety card, AND the newborn
+window gate below. The app was asking the same number twice and usually
+getting it once. Asking for the birth measurements outright is also the
+question a parent can actually answer in week one: the numbers are on the
+discharge record, whereas "weight today" needs scales they may not own.
+
+**Why the entry is dated at the birth.** It is what the number IS. Dating it
+today stamps a birth weight onto day 5 and makes the physiological dip look
+like a week of no gain measured from a point the baby had already left. It
+also gives every baby a real first point on the chart from day one.
+
+**Why prematurity stays optional.** It is a fact some parents genuinely do not
+have, and nil means "unknown" everywhere downstream. The birth weight is
+different: the page now asks for it directly, so there is always an answer.
+
+**No migration, deliberately.** Existing installs keep their first entry's
+original date and whatever `birthWeightKg` they have. A migration would have
+to guess that an old first entry "meant" the birth — and for a parent who
+installed at four months it plainly did not, so re-dating it would move a real
+weighing to a date it never happened on and change every verdict computed from
+it. The one-way rule has the same shape: `BabyProfileEditSheet` writes
+`birthWeightKg` without touching history, because a correction to the profile
+is not a new weighing.
+
+## 2026-09-05 — During the newborn window, no surface reports a weight-gain verdict
+
+`NewbornWeightLoss.windowActive(birthWeightKg:birthDate:now:)` is the single
+gate. While it is true, `FeedingAdequacy.assess` returns
+`Signal.deferredToNewbornWindow` instead of a band-derived verdict, the gain
+card prints a deferral, the Dashboard's free line prints the same pointer, and
+`growthGainLow` cannot fire. The first-weeks card is the verdict for this
+period.
+
+**Why.** A newborn loses 5–10% of its birth weight over the first days. Every
+WHO velocity reference starts well above zero, so a gain measured across that
+dip is below the reference by construction — the app would tell a parent their
+baby is gaining too slowly for doing exactly the normal thing, in the fortnight
+they are least able to hear it calmly. `NewbornWeightLoss` exists because a
+growth curve is the wrong instrument here; the gate is that same judgement
+applied to gain. The hole was already open for anyone who weighed early;
+dating the first entry at the birth made it universal, which is what forced it.
+
+**This does not weaken the 2026-08-25 rule.** Gain is still the only trigger,
+and no new trigger was added. `warrantsBreakdown` still reads `gain == .below`
+and simply cannot see that case during the window. The one safety signal for
+this period, `NewbornWeightLoss.Flag`, is untouched and still free.
+
+**Why the gate asks about NOW, not about the pair being measured.** Gating on
+"the measured pair starts inside the window" reads more precise and is wrong:
+a baby whose only two weighings are the birth one and month one has a pair
+that reaches back forever, and the gain card would never speak again. After
+day 21 that pair is honest, because `WeightVelocity` compares it at the
+interval's MIDPOINT age — the age the average actually describes.
+
+**Why `deferredToNewbornWindow` is a case and not `notEnoughData`.** The data
+is there; it is being read by the right instrument. Reusing `notEnoughData`
+would print "not enough data" beside three weighings, and would have silently
+compiled at every switch instead of forcing each surface to decide what to
+say.
+
+**Why the notification is gated at its call site, not inside
+`consecutiveBelowReference`.** That function belongs to `WeightVelocity`, a
+transcribed WHO table with a walk over it. Putting a newborn-period policy
+inside it would make the two `Core/Growth` modules depend on each other and
+bury a clinical rule in arithmetic. The gate belongs where a verdict is
+emitted.
+
 ## 2026-09-05 — An empty state names the missing thing AND offers the action that resolves it
 
 Every Growth-screen state where a missing WEIGHING is what holds a card back

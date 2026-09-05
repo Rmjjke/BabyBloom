@@ -348,6 +348,11 @@ struct DashboardView: View {
     /// paid half reads as an addition instead of a different verdict.
     private func gainValue(_ word: StatusWord) -> String {
         let status = word.localizationKey.l
+        // During the newborn window the figure is withheld from the paid line
+        // too. The deferral says this reading is not the one to read yet;
+        // printing the grams beside it would hand back exactly the number the
+        // gate exists to keep out of a parent's hands this fortnight.
+        guard word != .firstWeeks else { return status }
         guard store.isPremium, let reading = gainReading else { return status }
         let grams = Int(reading.gramsPerWeek.rounded())
         let signed = grams > 0 ? "+\(grams)" : "\(grams)"
@@ -363,7 +368,7 @@ struct DashboardView: View {
         case .below:         return BBTheme.Colors.accent
         case .within:        return BBTheme.Colors.success
         case .above:         return BBTheme.Colors.textPrimary
-        case .notEnoughData: return BBTheme.Colors.textSecondary
+        case .notEnoughData, .firstWeeks: return BBTheme.Colors.textSecondary
         }
     }
 
@@ -431,6 +436,7 @@ struct DashboardView: View {
         guard let baby else { return nil }
         return FeedingAdequacy.assess(
             birthDate: baby.birthDate,
+            birthWeightKg: baby.birthWeightKg,
             correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male,
             measurements: growthEntries.weightMeasurements,

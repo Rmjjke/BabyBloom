@@ -51,6 +51,36 @@ enum NewbornWeightLoss {
         var hasRegained: Bool { regainedOn != nil }
     }
 
+    /// Whether this module — rather than a growth reference — is the instrument
+    /// in force right now: a birth weight to measure against, and a baby still
+    /// inside the observation window.
+    ///
+    /// **The single gate for the physiological dip, and the only copy of that
+    /// rule.** While it is true, every surface that would otherwise print a
+    /// weight-GAIN verdict defers to the first-weeks card instead: a baby that
+    /// is 6% down on day 4 is doing exactly what a newborn does, and a gain
+    /// measured across that dip lands below any velocity reference. Four
+    /// surfaces consult this — `FeedingAdequacy.assess`, `WeightGainCard` via
+    /// `GrowthView`, the Dashboard's free line through the assessment, and
+    /// `NotificationManager`'s `growthGainLow` — and none of them re-derives
+    /// it, because a second copy is how one of them starts alarming again.
+    ///
+    /// Asked of NOW, not of the pair being measured. After day 21 a pair that
+    /// reaches back to the birth weighing is measured honestly: the dip is
+    /// months of gain ago in relative terms, the average across it is a real
+    /// average, and `WeightVelocity` compares it at the interval's MIDPOINT
+    /// age, which is the age that average describes. Gating on "the pair starts
+    /// inside the window" instead would silence the gain card for a baby whose
+    /// only two weighings are birth and month one — permanently, since that
+    /// pair never stops reaching back.
+    static func windowActive(birthWeightKg: Double?,
+                             birthDate: Date,
+                             now: Date = Date()) -> Bool {
+        guard let birthWeight = birthWeightKg, birthWeight > 0 else { return false }
+        let dayOfLife = days(from: birthDate, to: now)
+        return dayOfLife >= 0 && dayOfLife <= observationWindowDays
+    }
+
     /// Analyses the newborn window, or returns nil when it does not apply:
     /// no birth weight recorded, or the baby is past the observation window.
     ///
@@ -63,10 +93,13 @@ enum NewbornWeightLoss {
         measurements: [WeightMeasurement],
         now: Date = Date()
     ) -> Status? {
-        guard let birthWeight = birthWeightKg, birthWeight > 0 else { return nil }
+        // Applicability is `windowActive`'s to decide, so the card and the gate
+        // can never disagree about whether these are the first weeks.
+        guard windowActive(birthWeightKg: birthWeightKg, birthDate: birthDate, now: now),
+              let birthWeight = birthWeightKg
+        else { return nil }
 
         let dayOfLife = days(from: birthDate, to: now)
-        guard dayOfLife >= 0, dayOfLife <= observationWindowDays else { return nil }
 
         // Anything dated before the birth is bad data, not a measurement.
         let relevant = measurements

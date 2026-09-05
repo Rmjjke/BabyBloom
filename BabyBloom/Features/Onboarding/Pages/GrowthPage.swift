@@ -1,7 +1,12 @@
 import SwiftUI
 
-// MARK: - Page 4: Growth measurements
+// MARK: - Page 4: Measurements at birth
 
+/// Asks for the BIRTH weight and height — the numbers on the discharge record.
+/// They fill `Baby.birthWeightKg` and the first `GrowthEntry`, dated at the
+/// birth, in one answer; `OnboardingBabyBuilder` explains why that is one
+/// question rather than two. The slider defaults (3.5 kg, 50 cm) are
+/// birth-typical already and did not move.
 struct GrowthPage: View {
     @Binding var weightKg: Double
     @Binding var heightCm: Double

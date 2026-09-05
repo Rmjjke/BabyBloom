@@ -21,6 +21,12 @@ enum FeedingAdequacy {
         case below
         case within
         case notEnoughData
+        /// Gain only, and only while `NewbornWeightLoss.windowActive` is true:
+        /// the first-weeks card holds the verdict for this period, so this one
+        /// is not made. Distinct from `notEnoughData` on purpose — the data is
+        /// there, it is simply being read by the right instrument. Feeding and
+        /// nappy signals never take this case.
+        case deferredToNewbornWindow
     }
 
     /// How the baby was actually fed over the window. Derived from the logged
@@ -337,14 +343,20 @@ enum FeedingAdequacy {
         let nappies: Signal
 
         /// The single gate for the breakdown card. Weight is the only trigger:
-        /// see the module comment.
+        /// see the module comment. `.deferredToNewbornWindow` is not `.below`,
+        /// so the breakdown cannot open on a newborn's physiological dip.
         var warrantsBreakdown: Bool { gain == .below }
     }
 
     /// nil when the feature does not apply at all: no second weighing to define
     /// a window, or a baby past six months.
+    ///
+    /// `birthWeightKg` is here for one reason: the newborn gate. It is required
+    /// rather than defaulted to nil so a new call site cannot silently opt out
+    /// of it and start reading a physiological dip as a below-reference gain.
     static func assess(
         birthDate: Date,
+        birthWeightKg: Double?,
         correctedBirthDate: Date,
         isMale: Bool,
         measurements: [WeightMeasurement],
@@ -372,10 +384,21 @@ enum FeedingAdequacy {
         // `.within`: the two Signal cases this module publishes are "below its
         // reference" and "not below it".
         let gain: Signal
-        switch reading?.band {
-        case .below:            gain = .below
-        case .within, .above:   gain = .within
-        case nil:               gain = .notEnoughData
+        if NewbornWeightLoss.windowActive(birthWeightKg: birthWeightKg,
+                                          birthDate: birthDate,
+                                          now: now) {
+            // The dip IS the expected course in these weeks, and every velocity
+            // reference starts above it — so a reading taken here would print
+            // "below the reference" on a baby doing exactly the normal thing.
+            // `NewbornProgressCard` answers this period against birth weight,
+            // which is the instrument that fits it.
+            gain = .deferredToNewbornWindow
+        } else {
+            switch reading?.band {
+            case .below:            gain = .below
+            case .within, .above:   gain = .within
+            case nil:               gain = .notEnoughData
+            }
         }
 
         let windowFeeds = feeds.filter { window.contains($0.date) }

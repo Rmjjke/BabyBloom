@@ -22,6 +22,10 @@ enum StatusWord: Equatable {
     /// simply not the same statement as "within the reference".
     case above
     case notEnoughData
+    /// The first weeks own this verdict — see
+    /// `NewbornWeightLoss.windowActive`. A pointer, not a finding, and tinted
+    /// like the neutral states rather than like a concern.
+    case firstWeeks
 
     /// `band` comes from `WeightVelocity.latest` over the same pair of
     /// weighings the assessment covers — `FeedingAdequacy.assess` pairs them
@@ -30,6 +34,7 @@ enum StatusWord: Equatable {
         switch signal {
         case .below:         return .below
         case .notEnoughData: return .notEnoughData
+        case .deferredToNewbornWindow: return .firstWeeks
         // Only this case splits: `.within` stands for "not below", which the
         // band resolves into the two things it actually covers.
         case .within:        return band == .above ? .above : .within
@@ -44,6 +49,7 @@ enum StatusWord: Equatable {
         case .within:        return "nutrition.status_within"
         case .above:         return "nutrition.status_above"
         case .notEnoughData: return "nutrition.status_unknown"
+        case .firstWeeks:    return "nutrition.status_first_weeks"
         }
     }
 }
