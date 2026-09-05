@@ -140,8 +140,8 @@ final class SubscriptionManager {
     ///
     /// Computed rather than stored, and that is the whole point: an override
     /// applied once at init would be silently clobbered, because
-    /// `refreshEntitlements()` assigns unconditionally and `MainTabView` calls
-    /// it from a `.task` on every appearance — long before Growth is reached.
+    /// `refreshEntitlements()` assigns unconditionally and runs from the app
+    /// root's `.task` at every launch — long before Growth is reached.
     var isPremium: Bool {
         #if targetEnvironment(simulator)
         return isEntitled || Self.forcePremiumOverride
@@ -255,6 +255,10 @@ final class SubscriptionManager {
             switch result {
             case .success(let verification):
                 let transaction = try checked(verification)
+                // Safe against the cancellation guard in refreshEntitlements()
+                // only because PlanPickerSection calls purchase() from an
+                // UNSTRUCTURED Task. Move this into a view's .task and a
+                // dismissal would skip both the publish and finish().
                 await refreshEntitlements()
                 await transaction.finish()
             case .userCancelled:
@@ -312,6 +316,12 @@ final class SubscriptionManager {
                 break
             }
         }
+        // A cancelled scan (the caller's .task dying with its view) terminates
+        // the sequence EARLY and would fall through with `active == false` —
+        // publishing that asserts "resolved: not subscribed" about a user
+        // nobody finished checking, and `hasResolvedEntitlements` is exactly
+        // the flag the paywalls trust not to lie.
+        guard !Task.isCancelled else { return }
         isEntitled = active
         hasResolvedEntitlements = true
         await refreshIntroOfferEligibility()

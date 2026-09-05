@@ -3,7 +3,9 @@ import XCTest
 
 /// The rule the onboarding paywall exits on.
 ///
-/// These need no simulator and no StoreKit, which is the entire point: what
+/// The guard tests need no simulator and no StoreKit, which is the entire
+/// point (the cancellation test at the bottom touches a real manager, but
+/// still needs no StoreKit configuration): what
 /// `mayAdvanceOnEntitlement` encodes is a RACE inside `restorePurchases()`, and
 /// a race is the one thing a run-and-look pass cannot pin. The window is real —
 /// `refreshEntitlements()` publishes `isEntitled` and then AWAITS the networked
@@ -75,5 +77,30 @@ final class AdvanceOnEntitlementTests: XCTestCase {
             hasResolvedEntitlements: true, isPremium: true,
             isRestoring: false, hasUnreadRestoreOutcome: false
         ))
+    }
+
+    // MARK: - A cancelled resolution publishes nothing
+
+    /// `Transaction.currentEntitlements` terminates EARLY when its task is
+    /// cancelled — a paywall dismissed mid-scan does exactly that — and the
+    /// loop then falls through with `active == false`. Publishing that would
+    /// assert "resolved: not subscribed" about a user nobody finished
+    /// checking, and `hasResolvedEntitlements` is precisely the flag the
+    /// paywalls trust not to lie. Environment-proof: the guard sits AFTER the
+    /// loop, so nothing is published regardless of what the sequence yields
+    /// under cancellation.
+    @MainActor
+    func testACancelledRefreshLeavesEntitlementsUnresolved() async {
+        let manager = SubscriptionManager()
+        let task = Task { @MainActor in
+            // Model a `.task` whose view died mid-flight, deterministically:
+            // cancelled before the scan, not racing it.
+            withUnsafeCurrentTask { $0?.cancel() }
+            await manager.refreshEntitlements()
+        }
+        await task.value
+        XCTAssertFalse(manager.hasResolvedEntitlements,
+                       "a cancelled scan must not claim StoreKit answered")
+        XCTAssertFalse(manager.isEntitled)
     }
 }

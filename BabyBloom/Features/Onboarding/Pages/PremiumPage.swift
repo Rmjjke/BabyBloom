@@ -70,11 +70,12 @@ struct PremiumPage: View {
                 .opacity(appear ? 1 : 0)
 
                 // Sell only once StoreKit has actually answered, and only to
-                // someone it says is not subscribed. Nothing refreshes
-                // entitlements earlier in onboarding, so `isEntitled` is a
-                // not-asked-yet `false` on arrival here — which is what sold a
-                // full "Try 7 days free" to a paying user on build 9. The
-                // resolved check costs at most one frame: the entitlement scan
+                // someone it says is not subscribed. The app root's launch
+                // refresh has usually answered long before page 10, but this
+                // page must not depend on that ordering — selling on an
+                // unresolved `false` is what sold a full "Try 7 days free" to
+                // a paying user on build 9. The resolved check costs at most
+                // one frame: the entitlement scan
                 // is a local read, and it flips `hasResolvedEntitlements`
                 // before the networked intro-offer lookup it precedes.
                 if store.hasResolvedEntitlements {
@@ -145,8 +146,11 @@ struct PremiumPage: View {
             showRestoreAlert = new != nil
         }
         .task {
-            // The one place onboarding asks StoreKit who this is. Without it
-            // the page branches on a `false` nobody ever verified.
+            // Not redundant with the app root's launch refresh: for a user
+            // entitled BEFORE arrival, `isPremium` never changes while this
+            // page is up, so `.onChange(of: isPremium)` never fires — this
+            // arrival-time re-ask plus `advanceIfEntitled()` is their only
+            // exit that isn't the X.
             await store.refreshEntitlements()
             advanceIfEntitled()
         }

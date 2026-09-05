@@ -103,8 +103,9 @@ the paid card works, throws, or renders blank — the half of the app people pay
 for would be structurally untestable.
 
 **Why it is not a one-liner.** `refreshEntitlements()` assigns unconditionally
-and `MainTabView` calls it from a `.task` on every appearance, so an override
-written once at init is clobbered before Growth is ever reached. It is therefore
+and runs from the app root's `.task` at every launch (and again on every
+foregrounding), so an override written once at init is clobbered before
+Growth is ever reached. It is therefore
 read on every access: `isEntitled` stays the StoreKit truth and `isPremium`
 computes `isEntitled || override`. `restorePurchases` deliberately reports off
 `isEntitled`, so the override cannot fake a restore.
