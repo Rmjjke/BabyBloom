@@ -151,13 +151,32 @@ final class WeightVelocityTests: XCTestCase {
             measurements: [at(30, 4.0), at(44, 4.15)], correctedBirthDate: birth, isMale: true))
     }
 
-    /// An unmeasurable interval breaks the run rather than being treated as low —
-    /// otherwise two weighings a day apart could raise an alarm.
-    func testUnmeasurableIntervalBreaksTheRun() {
+    /// A weighing too close to the one before it never BECOMES an interval — it
+    /// is absorbed into the longer one around it. So three weighings whose last
+    /// two sit a day apart hold one measurable interval, not two, and one
+    /// interval is never a pattern. This is what keeps two weighings a day apart
+    /// from raising an alarm between them.
+    func testANoiseWeighingCannotManufactureASecondInterval() {
         let m = [at(30, 4.0), at(44, 4.15), at(45, 4.16)]
         XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
             measurements: m, correctedBirthDate: birth, isMale: true))
     }
+
+    /// The notification half of "adding a weighing must never show less": two
+    /// low intervals were a pattern, and a curious re-weigh the next morning
+    /// used to make the newest raw pair unmeasurable and silence the run
+    /// entirely. The short tail is absorbed into the interval around it instead.
+    func testAShortTailDoesNotSuppressARunThatWasAlreadyThere() {
+        let established = [at(30, 4.0), at(44, 4.15), at(58, 4.30)]
+        XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
+            measurements: established, correctedBirthDate: birth, isMale: true))
+
+        XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
+            measurements: established + [at(59, 4.31)], correctedBirthDate: birth, isMale: true),
+            "one extra weighing cannot un-say a pattern the parent already had")
+    }
+
+    // MARK: - Pair fallback
 
     func testLatestUsesTheTwoMostRecentWeighings() throws {
         let r = try XCTUnwrap(WeightVelocity.latest(
@@ -167,5 +186,57 @@ final class WeightVelocityTests: XCTestCase {
         ))
         XCTAssertEqual(r.intervalDays, 14)
         XCTAssertEqual(r.gramsPerDay, 50, accuracy: 0.01)
+    }
+
+    /// The defect this fallback exists for: weighed on day 0 and day 7, the
+    /// parent had a verdict; weighing again on day 8 took it away, because the
+    /// newest pair spanned one day. Three weighings must not say less than two.
+    func testAShortTailWidensThePairInsteadOfSilencingTheReading() throws {
+        let r = try XCTUnwrap(WeightVelocity.latest(
+            measurements: [at(0, 3.30), at(7, 3.55), at(8, 3.58)],
+            correctedBirthDate: birth,
+            isMale: true
+        ))
+        // 280 g over the widened 0→8 pair, and the label describes that pair.
+        XCTAssertEqual(r.intervalDays, 8)
+        XCTAssertEqual(r.gramsPerDay, 35, accuracy: 0.01)
+    }
+
+    /// The other direction of the same promise: removing the tail leaves the
+    /// pair that was already being reported, not a hint.
+    func testDeletingTheShortTailLeavesTheOriginalPairReading() throws {
+        let r = try XCTUnwrap(WeightVelocity.latest(
+            measurements: [at(0, 3.30), at(7, 3.55)],
+            correctedBirthDate: birth,
+            isMale: true
+        ))
+        XCTAssertEqual(r.intervalDays, 7)
+        XCTAssertEqual(r.gramsPerDay, 250.0 / 7, accuracy: 0.01)
+    }
+
+    /// The honest nil the "two measurements" hint is still for: every weighing
+    /// inside three days of the newest, so no pair can be measured at all.
+    func testWeighingsClusteredInsideTheFloorHaveNoPair() {
+        let clustered = [at(0, 3.30), at(1, 3.32), at(2, 3.35)]
+        XCTAssertNil(WeightVelocity.pair(in: clustered))
+        XCTAssertNil(WeightVelocity.latest(measurements: clustered,
+                                           correctedBirthDate: birth, isMale: true))
+    }
+
+    /// The fallback walks back from the NEWEST weighing, never to an older pair
+    /// that happens to be measurable: the card claims to describe the current
+    /// trajectory, and 20→40 would be a statement about last month.
+    func testTheFallbackKeepsTheNewestWeighingInThePair() throws {
+        let pair = try XCTUnwrap(WeightVelocity.pair(
+            in: [at(0, 3.30), at(20, 4.00), at(40, 4.70), at(41, 4.72)]))
+        XCTAssertEqual(pair.earlier.date, at(20, 4.00).date)
+        XCTAssertEqual(pair.later.date, at(41, 4.72).date)
+
+        let r = try XCTUnwrap(WeightVelocity.latest(
+            measurements: [at(0, 3.30), at(20, 4.00), at(40, 4.70), at(41, 4.72)],
+            correctedBirthDate: birth,
+            isMale: true
+        ))
+        XCTAssertEqual(r.intervalDays, 21)
     }
 }

@@ -597,7 +597,8 @@ struct AddGrowthSheet: View {
                         color: BBTheme.Colors.accent
                     )
 
-                    DatePicker("form.measurement_date".l, selection: $date, displayedComponents: .date)
+                    DatePicker("form.measurement_date".l, selection: $date,
+                               in: dateRange, displayedComponents: .date)
                         .datePickerStyle(.compact)
                         .tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md)
@@ -612,12 +613,32 @@ struct AddGrowthSheet: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationTitle("sheet.new_measurement".l)
             .navigationBarTitleDisplayMode(.inline)
+            // A selection outside the picker's range renders as an empty field
+            // and cannot be corrected by tapping it, so the seed is clamped
+            // before it is ever shown rather than trusted to be in range.
+            .onAppear { date = min(max(date, dateRange.lowerBound), dateRange.upperBound) }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
         }
+    }
+
+    /// Birth to today. A weighing dated into the future is not a typo the app
+    /// can absorb: it lands at the end of the history and becomes the newest
+    /// half of every pair, so the gain, the nutrition window and the trend all
+    /// describe an interval that has not happened yet — the build-13 report was
+    /// a September-17 weighing entered in September, which took the gain card
+    /// down to its "two measurements needed" hint.
+    ///
+    /// `min` against today keeps a birth date that has somehow drifted past it —
+    /// clock skew, a synced row from a device set wrong — from forming an
+    /// inverted range, which traps at runtime rather than misbehaving.
+    private var dateRange: ClosedRange<Date> {
+        let now = Date()
+        let lower = babies.first.map { min($0.birthDate, now) } ?? .distantPast
+        return lower...now
     }
 
     private func save() {

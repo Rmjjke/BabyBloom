@@ -159,6 +159,16 @@ question, and each carries its source in its header:
 | `FeedingAdequacy` | Is the baby getting enough food? Gain + feeds + wet nappies. |
 | `StatusWord` | Which word does a parent read for one of those signals? |
 
+**Which two weighings a verdict is measured over is one rule, in one place:**
+`WeightVelocity.pair(in:)`. It takes the newest weighing and walks backwards
+to the most recent earlier one at least `minimumIntervalDays` away, so a tail
+of weighings too close together to measure is absorbed into a longer interval
+instead of silencing the card. `WeightVelocity.latest`, `FeedingAdequacy
+.window(for:)` and `consecutiveBelowReference` all go through it, which is
+what keeps the three day counts on the Growth screen describing one period
+(see DECISIONS 2026-09-05). `GrowthTrend` is the exception and stays one: it
+answers a months-long question and owns its own window rules.
+
 The medical spine of `FeedingAdequacy`: **weight gain is the only trigger.**
 Feeds and nappy counts are context and never raise a concern on their own. If
 gain sits within the reference the app says nothing, whatever the other two

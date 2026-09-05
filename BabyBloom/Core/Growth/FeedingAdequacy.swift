@@ -169,10 +169,26 @@ enum FeedingAdequacy {
 
     // MARK: - Window
 
-    /// The interval the assessment covers: between the two most recent
-    /// weighings. Feeds and nappies are counted over this same window, so a
-    /// "few feeds" figure can never sit beside a gain measured across a
-    /// different week.
+    /// The interval the assessment covers: the pair of weighings the gain is
+    /// measured over, or the two most recent ones when no gain can be measured
+    /// at all. Feeds and nappies are counted over this same window, so a "few
+    /// feeds" figure can never sit beside a gain measured across a different
+    /// week.
+    ///
+    /// **The gain's pair comes first, and that is not a detail.**
+    /// `WeightVelocity.pair(in:)` widens past a tail of weighings too close
+    /// together to measure, so the last two on file are not always the pair the
+    /// card describes. One screen prints three day counts of the same window —
+    /// this section's header, the gain card and the breakdown card — and taking
+    /// the last two here while the card had widened would put "over 1 day"
+    /// directly above "over 8 days", each true of a different pair. Deferring
+    /// to the same pair keeps the one count this module promises.
+    ///
+    /// The last-two fallback stays for the case where NOTHING can be measured:
+    /// two weighings two days apart still support a feeding and nappy rate, and
+    /// withholding the whole section because the gain is unknown would be the
+    /// same "shows less" defect from the other side. No count contradicts
+    /// another there — with no reading, no card prints a rival interval.
     ///
     /// **A window shorter than one full day is withheld.** Two weighings within
     /// a day are realistic — daily weighing in the first week, a clinic
@@ -189,6 +205,9 @@ enum FeedingAdequacy {
     /// day" meaning something, and later tasks need a two-day window to still
     /// produce an assessment.
     static func window(for measurements: [WeightMeasurement]) -> DateInterval? {
+        if let pair = WeightVelocity.pair(in: measurements) {
+            return DateInterval(start: pair.earlier.date, end: pair.later.date)
+        }
         let sorted = measurements.sorted { $0.date < $1.date }
         guard sorted.count >= 2 else { return nil }
         let start = sorted[sorted.count - 2].date
@@ -339,10 +358,11 @@ enum FeedingAdequacy {
         guard let window = window(for: measurements) else { return nil }
 
         // `WeightVelocity.latest` pairs the same two weighings `window(for:)`
-        // does. Repeating that sort-and-take-last-two here would be a third copy
-        // of the pairing, and the day one of them drifted the gain would be
-        // measured over a different pair than the window it is reported
-        // against — the one thing this module promises cannot happen.
+        // does — both go through `WeightVelocity.pair(in:)`, which is the only
+        // place the pairing rule lives. Repeating it here would be a third copy,
+        // and the day one of them drifted the gain would be measured over a
+        // different pair than the window it is reported against — the one thing
+        // this module promises cannot happen.
         let reading = WeightVelocity.latest(
             measurements: measurements,
             correctedBirthDate: correctedBirthDate,

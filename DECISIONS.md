@@ -14,6 +14,69 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-05 — Adding a weighing never makes the app show less: one pairing rule, and it widens
+
+The gain reading is measured over `WeightVelocity.pair(in:)` — the newest
+weighing paired with the most recent EARLIER one that clears
+`minimumIntervalDays`, found by walking backwards. Only when no such partner
+exists does the "two measurements needed" hint appear. `FeedingAdequacy
+.window(for:)` and `consecutiveBelowReference` both go through that same
+walk; the last-two rule survives only as `window(for:)`'s fallback for the
+case where no gain can be measured at all.
+
+**Why.** A parent on build 13 weighed on day 0 and day 7 and had a verdict,
+weighed again on day 8, and the gain card demanded "2 measurements" while
+holding three — deleting the new weighing brought the verdict back. More data
+showing less reads as the app breaking, and it teaches a parent not to log.
+The short noisy tail is absorbed into a longer interval rather than allowed to
+silence the verdict; `minimumIntervalDays` still holds, because the interval
+that gets measured is the widened one and it clears the floor on its own.
+
+**The newest weighing always stays in the pair.** The card claims to describe
+the CURRENT trajectory, so a measurable older pair (day 0 → day 7, with day 8
+on file) is a statement about the past wearing the present's clothes.
+
+**Three surfaces, one pair.** The nutrition window follows the gain's pair
+rather than the last two weighings, because one Growth screen prints three day
+counts of the same window — section header, gain card, breakdown card — and
+the 2026-09-05 whole-day-count rule below exists to keep them identical. A
+header reading "over 1 day" above a card reading "over 8 days" is the same
+defect that rule was written for, arriving through the pairing instead of
+through the arithmetic. The last-two fallback stays for a gap under three
+days: there is no gain to contradict there, and feeds and nappies over two
+days are still countable.
+
+**The notification moved too, and that was the point of checking.**
+`consecutiveBelowReference` walks the same chain, so a curious re-weigh the
+morning after cannot break a run of two below-reference intervals. Its own
+definition is untouched — two CONSECUTIVE intervals, each clearing the floor
+on its own — so two weighings a day apart still cannot raise an alarm between
+them. Left on raw consecutive pairs, a single extra weighing would suppress
+the `growthGainLow` signal entirely, which is the same defect in the surface
+where it costs most: a notification that does not fire says nothing at all.
+
+`GrowthTrend` is deliberately NOT part of this. Its window rules answer a
+different question — where a baby is heading over months — and it already
+refuses to widen backwards to reach a span (see its `referenceWindowStart`
+doc, which records what that cost).
+
+## 2026-09-05 — A measurement date cannot be in the future, and the picker enforces it
+
+`AddGrowthSheet`'s date picker is bounded to `birthDate...today`, clamping the
+lower bound with `min(birthDate, now)` so a drifted birth date cannot form an
+inverted range and trap.
+
+**Why.** The build-13 report started with a weighing dated September 17 in
+early September. A future date is not a typo the growth engine can absorb: the
+entry sorts to the end of the history and becomes the newest half of every
+pair, so the gain, the nutrition window and the trend all describe an interval
+that has not happened yet. Validating on save would be the weaker fix — it
+explains an error after the fact, where a bounded picker cannot produce one.
+The birth-date pickers (`BabyProfileEditSheet`, onboarding's `BirthPage`) were
+already bounded `...Date()`; the event-time pickers (feeds, sleep, nappies,
+events) are deliberately left alone — a future event time is a scheduling
+mistake with no clinical reading downstream.
+
 ## 2026-09-05 — One explainer pattern, and it never eats a sell tap
 
 Every verdict card on the Growth screen opens the same `ExplainerSheet`,
