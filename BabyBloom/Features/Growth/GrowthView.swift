@@ -616,7 +616,10 @@ struct AddGrowthSheet: View {
             // A selection outside the picker's range renders as an empty field
             // and cannot be corrected by tapping it, so the seed is clamped
             // before it is ever shown rather than trusted to be in range.
-            .onAppear { date = min(max(date, dateRange.lowerBound), dateRange.upperBound) }
+            .onAppear {
+                let range = dateRange
+                date = min(max(date, range.lowerBound), range.upperBound)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

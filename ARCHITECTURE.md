@@ -159,13 +159,20 @@ question, and each carries its source in its header:
 | `FeedingAdequacy` | Is the baby getting enough food? Gain + feeds + wet nappies. |
 | `StatusWord` | Which word does a parent read for one of those signals? |
 
+`GrowthEntry` rows become `WeightMeasurement`s through one accessor,
+`[GrowthEntry].weightMeasurements`, and that accessor is the engine's door:
+it drops entries with no weight AND entries dated more than a day ahead of the
+device clock, so a future-dated or clock-skewed row carries no verdict while
+still showing in the measurement history (DECISIONS 2026-09-05).
+
 **Which two weighings a verdict is measured over is one rule, in one place:**
 `WeightVelocity.pair(in:)`. It takes the newest weighing and walks backwards
 to the most recent earlier one at least `minimumIntervalDays` away, so a tail
 of weighings too close together to measure is absorbed into a longer interval
-instead of silencing the card. `WeightVelocity.latest`, `FeedingAdequacy
-.window(for:)` and `consecutiveBelowReference` all go through it, which is
-what keeps the three day counts on the Growth screen describing one period
+instead of silencing the card. `WeightVelocity.latest` and `FeedingAdequacy
+.window(for:)` call it; `consecutiveBelowReference` chains the same backwards
+walk to find each interval's start. That shared walk is what keeps the three
+day counts on the Growth screen describing one period
 (see DECISIONS 2026-09-05). `GrowthTrend` is the exception and stays one: it
 answers a months-long question and owns its own window rules.
 

@@ -426,7 +426,7 @@
   "nutrition.per_day_fmt": "%@ al día",
   "nutrition.need_weighing": "Se necesitan dos pesajes con al menos un día de diferencia",
   "nutrition.info_title": "Sobre la nutrición",
-  "nutrition.info_body": "Un resumen tranquilo del periodo entre los dos últimos pesajes: el aumento de peso, las tomas al día y los pañales mojados al día, en comparación con las referencias para su edad.\n\nLa señal principal es el aumento de peso: si el peso crece con normalidad, todo está bien, aunque las tomas parezcan pocas. Las tomas y los pañales son solo contexto.\n\nPara que aparezcan los datos: añade dos pesajes con al menos un día de diferencia y anota las tomas y los pañales mojados a lo largo del día.",
+  "nutrition.info_body": "Un resumen tranquilo del periodo entre los dos pesajes con los que se calcula el aumento: el aumento de peso, las tomas al día y los pañales mojados al día, en comparación con las referencias para su edad.\n\nLa señal principal es el aumento de peso: si el peso crece con normalidad, todo está bien, aunque las tomas parezcan pocas. Las tomas y los pañales son solo contexto.\n\nPara que aparezcan los datos: añade dos pesajes con al menos un día de diferencia y anota las tomas y los pañales mojados a lo largo del día.",
   "breakdown.title": "El aumento está por debajo de la referencia",
   "breakdown.gain_fmt": "%d g/sem en %d %@. La referencia para esta edad es %d–%d g/sem.",
   "breakdown.feeds_fmt": "Tomas: %@ al día, referencia %d–%d.",

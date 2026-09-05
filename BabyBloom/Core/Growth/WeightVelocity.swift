@@ -134,31 +134,33 @@ enum WeightVelocity {
     /// The newest weighing paired with the most recent earlier one it can
     /// actually be measured against, or nil when no such partner exists.
     ///
-    /// **Adding a weighing must never make the app show less.** The strict
-    /// last-two rule this replaced did exactly that: a parent who weighed on
-    /// day 0 and day 7, saw their gain, then weighed again on day 8 out of
-    /// curiosity, lost the verdict entirely — the newest pair spanned one day,
-    /// below `minimumIntervalDays`, and the card fell back to "two measurements
-    /// needed" while holding three. More data showed less, which reads as the
-    /// app breaking.
-    ///
-    /// So the short noisy tail is ABSORBED into a longer interval rather than
-    /// silencing the verdict: walking backwards, the first partner that clears
-    /// the floor wins, and everything between it and the newest weighing is
-    /// inside the interval instead of defining one. The reading's
-    /// `intervalDays` then describes the widened pair, which is what the cards
-    /// print — no separate bookkeeping.
-    ///
-    /// The newest weighing always stays in the pair. The reading claims to be
-    /// the CURRENT trajectory, and a pair that stops at day 7 while day 8 is on
-    /// file is a statement about the past dressed as one about now.
+    /// A tail of weighings too close together to measure is ABSORBED into the
+    /// longer interval rather than allowed to silence the verdict, and the
+    /// newest weighing always stays in the pair — the reading claims to be the
+    /// current trajectory. `Reading.intervalDays` then describes the widened
+    /// pair, so the cards need no separate bookkeeping. Both choices, and what
+    /// they cost, are in DECISIONS: "Adding a weighing never makes the app show
+    /// less" (2026-09-05).
     static func pair(in measurements: [WeightMeasurement]) -> (earlier: WeightMeasurement,
                                                               later: WeightMeasurement)? {
-        let sorted = measurements.sorted { $0.date < $1.date }
+        let sorted = chronological(measurements)
         guard sorted.count >= 2,
               let earlier = measurableEarlierIndex(in: sorted, before: sorted.count - 1)
         else { return nil }
         return (sorted[earlier], sorted[sorted.count - 1])
+    }
+
+    /// Oldest first, with a tie-break, because `sorted(by:)` is not guaranteed
+    /// stable and the walk above reads whichever duplicate lands last.
+    ///
+    /// Two weighings stamped the same instant contradict each other, and
+    /// nothing here can say which is right — so the tie-break is not a claim
+    /// about the data, only a promise that one history always yields one
+    /// number. Without it a card could print a different gain on each render.
+    private static func chronological(_ measurements: [WeightMeasurement]) -> [WeightMeasurement] {
+        measurements.sorted {
+            $0.date == $1.date ? $0.weightKg < $1.weightKg : $0.date < $1.date
+        }
     }
 
     /// Gain over `pair(in:)`, or nil when no two weighings can be measured
@@ -196,26 +198,29 @@ enum WeightVelocity {
     /// pause. Two in a row is a pattern, and only a pattern is worth interrupting
     /// a parent's day over.
     ///
-    /// The intervals are the MEASURABLE ones, chained by the same backwards walk
-    /// `pair(in:)` uses: each interval ends where the next begins, and weighings
-    /// too close together to measure are absorbed into the interval around them
-    /// rather than ending the run. Stepping over raw consecutive pairs instead
+    /// "Consecutive" means the MEASURABLE intervals, chained by the same
+    /// backwards walk `pair(in:)` uses: each interval ends where the next
+    /// begins, and weighings too close together to measure are absorbed into
+    /// the interval around them rather than ending the run. Stepping over raw
+    /// consecutive pairs instead
     /// let one curious re-weigh suppress the signal — a baby weighed on days 0,
     /// 14 and 28, both intervals below the reference, stopped being a pattern
     /// the moment a day-29 weighing was added. That is the same "more data
     /// shows less" defect `pair(in:)` exists to remove, in the surface where it
     /// costs the most: a notification that never fires says nothing at all.
     ///
-    /// What has NOT changed: a short pair can never BE an interval. Every
-    /// interval below still clears `minimumIntervalDays` on its own, so two
-    /// weighings a day apart cannot raise an alarm between them.
+    /// What the walk changed is only which weighing an interval STARTS from.
+    /// The count and the per-interval floor are untouched: `count` intervals
+    /// are still required, and each of them still clears `minimumIntervalDays`
+    /// on its own, so a short pair can never BE an interval and two weighings a
+    /// day apart cannot raise an alarm between them.
     static func consecutiveBelowReference(
         measurements: [WeightMeasurement],
         correctedBirthDate: Date,
         isMale: Bool,
         count: Int = 2
     ) -> Bool {
-        let sorted = measurements.sorted { $0.date < $1.date }
+        let sorted = chronological(measurements)
         // A necessary condition, not a sufficient one: `count` intervals need
         // at least `count + 1` weighings, and the walk below decides the rest.
         guard sorted.count >= count + 1 else { return false }

@@ -122,14 +122,16 @@ final class FeedingAdequacyTests: XCTestCase {
         Self.calendar.date(byAdding: .hour, value: offset, to: now)!
     }
 
-    func testWindowSpansTheTwoMostRecentWeighings() throws {
+    func testWindowSpansTheNewestMeasurablePair() throws {
         let measurements = [
             WeightMeasurement(date: day(-30), weightKg: 3.4),
             WeightMeasurement(date: day(-9),  weightKg: 4.0),
             WeightMeasurement(date: day(0),   weightKg: 4.3),
         ]
         let window = FeedingAdequacy.window(for: measurements)
-        // The older weighing is history; the assessment covers the latest gap.
+        // Nothing here sits inside the velocity floor, so the newest measurable
+        // pair is the last two. The older weighing is history; the assessment
+        // covers the latest gap.
         XCTAssertEqual(Self.calendar.dateComponents([.day],
                                                     from: try XCTUnwrap(window).start,
                                                     to: try XCTUnwrap(window).end).day, 9)
