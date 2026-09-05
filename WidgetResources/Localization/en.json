@@ -228,6 +228,7 @@
   "premium.teaser_trend": "See whether your baby is holding its centile channel over time",
   "growth.corrected_age_fmt": "Corrected age: %@",
   "percentile.out_of_range": "WHO percentiles cover the first 24 months",
+  "percentile.before_due_date": "WHO percentiles start from the due date. Until then the weighings are still saved and shown on the chart.",
   "growth.who_footnote": "WHO reference ranges. Not a substitute for a doctor's examination.",
   "growth.add_weighing": "Add a weighing",
   "percentile.info_title": "About Weight Percentile",

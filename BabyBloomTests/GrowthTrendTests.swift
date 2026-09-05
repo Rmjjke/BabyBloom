@@ -12,6 +12,7 @@ final class GrowthTrendTests: XCTestCase {
     private func assess(_ measurements: [WeightMeasurement], birthPercentile: Double? = 50) -> GrowthTrend.Assessment {
         GrowthTrend.assess(
             measurements: measurements,
+            birthDate: birth,
             correctedBirthDate: birth,
             isMale: true,
             birthPercentile: birthPercentile
@@ -178,7 +179,7 @@ final class GrowthTrendTests: XCTestCase {
     func testAnAncientPeakDoesNotFlagAnOrdinaryEighteenMonthOld() {
         let old = Calendar.current.date(byAdding: .day, value: -420, to: Date())!
         let m = [onOldTimeline(old, 30, 5.7), onOldTimeline(old, 300, 9.2), onOldTimeline(old, 400, 10.4)]
-        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 50), .stable)
     }
 
@@ -192,7 +193,7 @@ final class GrowthTrendTests: XCTestCase {
         // WHO boys medians at roughly 12, 15, 18 and 24 months.
         let m = [onOldTimeline(old, 365, 9.65), onOldTimeline(old, 456, 10.6),
                  onOldTimeline(old, 548, 11.3), onOldTimeline(old, 730, 12.15)]
-        XCTAssertNotEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        XCTAssertNotEqual(GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                              isMale: true, birthPercentile: 50),
                           .insufficientData)
     }
@@ -218,7 +219,7 @@ final class GrowthTrendTests: XCTestCase {
         XCTAssertGreaterThanOrEqual((zFirst - zLast) / GrowthTrend.zPerCentileSpace, 2,
                                     "the whole-history fall must exceed the threshold")
 
-        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 50), .stable)
     }
 
@@ -230,7 +231,7 @@ final class GrowthTrendTests: XCTestCase {
             onOldTimeline(old, day, kg)
         }
         let m = [on(30, 5.7), on(300, 10.9), on(340, 9.6), on(400, 8.9)]
-        let verdict = GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        let verdict = GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                          isMale: true, birthPercentile: 50)
         guard case .sustainedDrop = verdict else {
             return XCTFail("expected a sustained drop inside the window, got \(verdict)")
@@ -253,7 +254,7 @@ final class GrowthTrendTests: XCTestCase {
         // z ≈ 0 at day 30, a dip at day 250, back to about the start at day 252.
         let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
                  onOldTimeline(old, 250, 6.9), onOldTimeline(old, 252, 8.6)]
-        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 50), .insufficientData)
     }
 
@@ -277,14 +278,14 @@ final class GrowthTrendTests: XCTestCase {
         // Born below the 9th centile, where a single space is the threshold —
         // the setting that made this reachable for ordinary catch-up growth.
         for percentile in [5.0, 50.0] {
-            XCTAssertEqual(GrowthTrend.assess(measurements: cluster, correctedBirthDate: old,
+            XCTAssertEqual(GrowthTrend.assess(measurements: cluster, birthDate: old, correctedBirthDate: old,
                                               isMale: true, birthPercentile: percentile),
                            .insufficientData, "birth percentile \(percentile)")
         }
 
         // And a week later, which is when the old behaviour was still flagging.
         let followUp = cluster + [onOldTimeline(old, 410, 10.5)]
-        XCTAssertEqual(GrowthTrend.assess(measurements: followUp, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: followUp, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 5),
                        .insufficientData)
 
@@ -292,7 +293,7 @@ final class GrowthTrendTests: XCTestCase {
         // again, measured entirely within the lookback — the flag was never
         // suppressed, only refused until there was something to compute it on.
         let settled = followUp + [onOldTimeline(old, 431, 10.6)]
-        XCTAssertEqual(GrowthTrend.assess(measurements: settled, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: settled, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 5), .stable)
     }
 
@@ -343,7 +344,90 @@ final class GrowthTrendTests: XCTestCase {
         let old = Calendar.current.date(byAdding: .day, value: -300, to: Date())!
         let m = [onOldTimeline(old, 0, 3.346), onOldTimeline(old, 30, 4.452),
                  onOldTimeline(old, 250, 9.7), onOldTimeline(old, 252, 7.9)]
-        XCTAssertEqual(GrowthTrend.assess(measurements: m, correctedBirthDate: old,
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: old, correctedBirthDate: old,
                                           isMale: true, birthPercentile: 50), .insufficientData)
+    }
+    // MARK: - The newborn window is not evidence of a trend
+
+    /// A baby born on the 90th centile that settles onto the low 30s over its
+    /// first two months — ordinary catch-down growth, and the shape the birth
+    /// entry made the DEFAULT rather than a quirk of parents who weighed early.
+    ///
+    /// With the birth weighing in the scored set it is a 2.6-space fall from a
+    /// peak that is the birth point itself, over the 2-space threshold its own
+    /// 90th centile sets: `sustainedDrop`, on a healthy baby, on the card that
+    /// exists to name faltering growth. The control below is the same
+    /// measurements with the window moved off them, which is exactly the old
+    /// behaviour — it flags, so this fixture is a test of the exclusion and not
+    /// of a calm shape.
+    func testMonthOneCatchDownIsNotFlaggedOffTheBirthWeighing() {
+        let m = [at(0, 4.0), at(25, 4.1), at(45, 4.8), at(60, 5.2)]
+        XCTAssertEqual(assess(m, birthPercentile: 90), .stable)
+
+        // The control: the same four weighings, with a birth date 100 days
+        // earlier so none of them falls inside the newborn window.
+        let shifted = Calendar.current.date(byAdding: .day, value: -100, to: birth)!
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: shifted,
+                                          correctedBirthDate: birth, isMale: true,
+                                          birthPercentile: 90),
+                       .sustainedDrop(spaces: 2.6492371945032924),
+                       "without the exclusion this healthy baby is flagged — that is the defect")
+    }
+
+    /// The other side: the exclusion drops the first three weeks, not the
+    /// verdict. A genuine fall measured entirely outside the window is reported
+    /// exactly as before.
+    func testAFallAfterTheWindowIsStillFlagged() {
+        let m = [at(30, 4.452), at(60, 4.9), at(90, 5.1)]
+        guard case let .sustainedDrop(spaces) = assess(m) else {
+            return XCTFail("a 2.7-space fall over two months is what this card is for")
+        }
+        XCTAssertEqual(spaces, 2.73, accuracy: 0.05)
+    }
+
+    /// The exclusion is by DATE and unconditional — it does not wait on a birth
+    /// weight being recorded, because dropping points leaves `insufficientData`,
+    /// an honest state that needs nothing put in its place. (The gain gate does
+    /// require one: deferring a verdict with no first-weeks card to hold it
+    /// would be worse than the ordinary rules.)
+    func testTheExclusionDoesNotDependOnABirthWeightBeingKnown() {
+        // Three weighings, all inside the window: nothing left to score.
+        XCTAssertEqual(assess([at(0, 3.6), at(7, 3.5), at(18, 4.0)]), .insufficientData)
+    }
+
+    // MARK: - Preterm
+
+    /// A weighing taken before the corrected birth date carries no percentile,
+    /// so it carries no z either and cannot become a peak. Scored against the
+    /// term newborn curve, a 1.4 kg baby born ten weeks early reads as the
+    /// 0.4th centile — arithmetic about a comparison that does not exist.
+    func testWeighingsBeforeTheDueDateAreNotScored() {
+        // Born 70 days before the due date; `birth` here is the DUE date.
+        let actualBirth = Calendar.current.date(byAdding: .day, value: -70, to: birth)!
+        let beforeDue = WeightMeasurement(date: actualBirth, weightKg: 1.4)
+        XCTAssertNil(WHOGrowthStandard.percentile(of: beforeDue,
+                                                  correctedBirthDate: birth, isMale: true))
+        XCTAssertNil(WHOGrowthStandard.percentileReading(of: beforeDue,
+                                                         correctedBirthDate: birth, isMale: true))
+
+        // And the trend ignores it rather than treating it as a 0.4th-centile
+        // peak the baby then "climbs" away from.
+        let m = [beforeDue, at(30, 4.452), at(60, 5.541), at(90, 6.346)]
+        XCTAssertEqual(GrowthTrend.assess(measurements: m, birthDate: actualBirth,
+                                          correctedBirthDate: birth, isMale: true,
+                                          birthPercentile: nil), .stable)
+    }
+
+    /// `WeightVelocity` deliberately keeps its clamp — an increment table's
+    /// newborn row is roughly right for a preterm baby at catch-up rates, and
+    /// the gain signal is the one a parent most needs in that period.
+    func testVelocityStillReadsAPretermPairRatherThanGoingSilent() {
+        let actualBirth = Calendar.current.date(byAdding: .day, value: -70, to: birth)!
+        let day = { (d: Int) in Calendar.current.date(byAdding: .day, value: d, to: actualBirth)! }
+        let reading = WeightVelocity.measure(
+            from: WeightMeasurement(date: day(0), weightKg: 1.40),
+            to: WeightMeasurement(date: day(14), weightKg: 1.72),
+            correctedBirthDate: birth, isMale: true)
+        XCTAssertNotNil(reading?.band)
     }
 }

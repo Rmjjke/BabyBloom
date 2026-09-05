@@ -102,8 +102,14 @@ enum GrowthTrend {
     }
 
     /// Assesses the weight history. `birthPercentile` may be nil.
+    ///
+    /// `birthDate` is the CHRONOLOGICAL one, and it is not interchangeable with
+    /// `correctedBirthDate` here: it bounds the newborn window, which follows
+    /// delivery rather than maturity — the same reason `NewbornWeightLoss` is
+    /// uncorrected.
     static func assess(
         measurements: [WeightMeasurement],
+        birthDate: Date,
         correctedBirthDate: Date,
         isMale: Bool,
         birthPercentile: Double?
@@ -114,12 +120,35 @@ enum GrowthTrend {
         // weighing the tables cannot score is not evidence. The old order gave
         // the right answer by accident, because the tables happen to cover the
         // whole age range the rest of the screen admits.
+        //
+        // TWO exclusions beyond the tables' own range, and both drop weighings
+        // that are real data but cannot carry a centile verdict:
+        //
+        // 1. **Inside the newborn window.** A baby is 5–10% down on day 4 by
+        //    physiology, which in centile space is a fall of one to two spaces
+        //    — NICE's own thresholds — from a peak the birth weighing sets.
+        //    Month-one catch-up then reads as a sustained drop from that peak,
+        //    and the birth entry this branch introduced made that shape the
+        //    DEFAULT rather than a quirk of parents who weighed early. It is
+        //    the rule the gain gate encodes, applied to the other verdict
+        //    computed over the same days. Unconditional, unlike the gain gate:
+        //    dropping points leaves the card at `insufficientData`, an honest
+        //    state that needs nothing put in its place, so it does not have to
+        //    wait on a birth weight being on file.
+        // 2. **Before the corrected birth date.** See
+        //    `WHOGrowthStandard.correctedAgeDaysIfBorn` — a preterm baby's
+        //    actual-birth weighing scored against the term newborn curve is not
+        //    a low percentile, it is a category error.
+        let windowEnd = Calendar.current.date(byAdding: .day,
+                                              value: NewbornWeightLoss.observationWindowDays,
+                                              to: birthDate) ?? birthDate
         let scored: [(date: Date, z: Double)] = measurements
             .sorted { $0.date < $1.date }
+            .filter { $0.date > windowEnd }
             .compactMap { m in
-                let age = WHOGrowthStandard.correctedAgeDays(on: m.date,
-                                                             correctedBirthDate: correctedBirthDate)
-                guard let z = WHOGrowthStandard.zScore(weightKg: m.weightKg,
+                guard let age = WHOGrowthStandard.correctedAgeDaysIfBorn(
+                        on: m.date, correctedBirthDate: correctedBirthDate),
+                      let z = WHOGrowthStandard.zScore(weightKg: m.weightKg,
                                                        ageDays: age, isMale: isMale) else { return nil }
                 return (m.date, z)
             }

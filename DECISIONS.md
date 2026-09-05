@@ -145,6 +145,50 @@ inside it would make the two `Core/Growth` modules depend on each other and
 bury a clinical rule in arithmetic. The gate belongs where a verdict is
 emitted.
 
+## 2026-09-05 — The newborn window is excluded from the centile trend, and a preterm baby is not scored before its due date
+
+Two exclusions in `GrowthTrend`'s scored set, and a matching nil from
+`WHOGrowthStandard`'s two per-measurement entry points.
+
+**Weighings inside `birth + observationWindowDays` are dropped.** The
+physiological dip is a fall of one to two centile spaces — NICE's own
+thresholds — so a birth weighing becomes the trend's peak and ordinary
+month-one catch-down reads as sustained faltering growth. A baby born on the
+90th centile settling onto the low 30s by two months scored a 2.6-space drop
+against its own 2-space threshold: `sustainedDrop`, on a healthy baby, on the
+card whose whole job is to name faltering growth. It is the rule the gain gate
+encodes, applied to the other verdict computed over the same days.
+
+Unlike the gain gate this one is unconditional rather than requiring a birth
+weight: dropping points leaves `insufficientData`, an honest state that needs
+nothing put in its place, whereas deferring a gain verdict with no first-weeks
+card to hold it would be worse than the ordinary rules.
+
+**A weighing dated before `correctedBirthDate` is not percentile-scored at
+all.** `correctedAgeDays` clamps at zero, which is right for an increment table
+and wrong for weight-for-age: a 1.4 kg baby born ten weeks early, weighed on
+its actual birth day, scores the 0.4th percentile against the TERM newborn
+curve — a comparison with babies that spent ten more weeks growing. It was
+arithmetically fine and the first thing the Growth screen showed a parent whose
+baby was in intensive care. `percentile(of:)` and `percentileReading(of:)`
+return nil, `GrowthTrend` skips the point, and the percentile card says the
+tables start at the due date rather than borrowing the "past 24 months"
+sentence, which is true and about a different baby.
+
+The entry itself is still created and still appears in the history and on the
+chart — it is real data, and only the *verdicts* are withheld.
+
+**`WeightVelocity` keeps its clamp**, deliberately. It reads an increment
+table, whose newborn row is roughly right for a preterm baby growing at
+catch-up rates, and gain is the signal a parent most needs during that period.
+
+**Consequence, and it is correct rather than a bug:
+`thresholdSpaces(birthPercentile:)` now applies more often.** That mapping IS
+NICE's rule — one space for a baby born below the 9th centile, two between,
+three above — and it was previously reached only by the minority who had
+recorded a birth weight. Onboarding now asks for one, so most babies get the
+threshold their birth centile actually calls for instead of the middle default.
+
 ## 2026-09-05 — An empty state names the missing thing AND offers the action that resolves it
 
 Every Growth-screen state where a missing WEIGHING is what holds a card back

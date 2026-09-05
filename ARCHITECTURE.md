@@ -250,6 +250,25 @@ Single-value percentile cards score a weighing at the age the baby was **on the
 day it was taken** (`WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`),
 never at today's age — the same rule `GrowthTrend` has always followed.
 
+**Two kinds of weighing carry no CENTILE verdict, and both are still real data
+in the history and on the chart.** `GrowthTrend` drops them from its scored set
+and the per-measurement percentile entry points return nil:
+
+- Inside `birth + NewbornWeightLoss.observationWindowDays`. The physiological
+  dip is a one-to-two-space fall in centile terms, so the birth weighing
+  becomes the trend's peak and ordinary catch-down reads as faltering growth.
+  Same rule as the gain gate, on the other verdict over the same days —
+  unconditional here, because dropping points degrades to `insufficientData`
+  rather than leaving a verdict unheld.
+- Before `correctedBirthDate`. `correctedAgeDays` clamps at zero;
+  `correctedAgeDaysIfBorn` returns nil instead, because scoring a preterm
+  baby's actual-birth weight against the term newborn curve is a category
+  error, not a low percentile. `WeightVelocity` keeps the clamp on purpose —
+  an increment table's newborn row is roughly right at catch-up rates.
+
+`GrowthTrend.assess` therefore takes the CHRONOLOGICAL `birthDate` alongside
+the corrected one; the newborn window follows delivery, not maturity.
+
 `Baby` also carries corrected age for preterm babies, used everywhere except
 newborn weight loss — the physiological drop follows delivery, so it is
 counted from the actual birth.

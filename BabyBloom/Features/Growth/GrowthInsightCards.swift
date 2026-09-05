@@ -676,6 +676,18 @@ struct PercentileOutOfRangeCard: View {
     }
 }
 
+/// The other end of the same honesty, for a baby born preterm whose weighing
+/// predates its due date. WHO weight-for-age starts at term, so there is no
+/// number — scoring one against the term newborn curve would answer "0.4th
+/// percentile" and put it in front of a parent whose baby is in intensive care.
+struct PercentileBeforeDueDateCard: View {
+    var body: some View {
+        InsightCard(title: "section.who_percentiles".l) {
+            HintText(text: "percentile.before_due_date".l)
+        }
+    }
+}
+
 // MARK: - Premium gate
 
 /// Stands in for a Premium-only card. Says what the block would tell them

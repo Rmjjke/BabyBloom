@@ -46,11 +46,13 @@ enum SeedScenario: String, CaseIterable {
     /// A twelve-day-old mid-dip: the newborn window, with a weight history that
     /// reads below every velocity reference and must NOT be reported as such.
     ///
-    /// The one fixture for the gate in `NewbornWeightLoss.windowActive`. Without
+    /// The one fixture for the gate in `NewbornWeightLoss.gainDeferral`. Without
     /// it that gate is checkable only in unit tests, and it is a rule about what
-    /// four SCREENS are allowed to say — the first-weeks card holds the verdict,
-    /// the gain card and the nutrition gain row defer to it, and the low-gain
-    /// notification stays down.
+    /// a parent is ALLOWED TO SEE: the first-weeks card holds the verdict, and
+    /// the gain card, the nutrition gain row and the Dashboard's free line all
+    /// defer to it while the low-gain notification stays down. (Four things on
+    /// screen, three consult sites — the nutrition row and the Dashboard line
+    /// both read the same `FeedingAdequacy` assessment.)
     case newbornWindow
     /// A plausible, well-populated two-month-old for App Store captures.
     ///

@@ -193,6 +193,15 @@ struct GrowthView: View {
                            badge: reading.badge,
                            months: monthsAtWeighing(baby: baby, weighing: weighing),
                            weighedOn: weighing.date)
+        } else if WHOGrowthStandard.correctedAgeDaysIfBorn(
+                    on: weighing.date,
+                    correctedBirthDate: baby.correctedBirthDate) == nil {
+            // A preterm baby before its due date. `PercentileOutOfRangeCard`
+            // would say the WHO tables stop at 24 months, which is true and has
+            // nothing to do with this baby — the tables have not STARTED yet.
+            ExplainerCard(explainer: .percentile) {
+                PercentileBeforeDueDateCard()
+            }
         } else {
             // Past 24 months the card holds a sentence instead of a figure, and
             // that sentence is exactly the one a parent wants explained.
@@ -263,6 +272,7 @@ struct GrowthView: View {
             ExplainerCard(explainer: .trend) {
                 CentileTrendCard(assessment: GrowthTrend.assess(
                     measurements: measurements,
+                    birthDate: baby.birthDate,
                     correctedBirthDate: baby.correctedBirthDate,
                     isMale: baby.gender == .male,
                     birthPercentile: birthPercentile(baby)

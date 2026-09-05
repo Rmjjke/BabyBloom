@@ -228,6 +228,7 @@
   "premium.teaser_trend": "Comprueba si tu bebé se mantiene en su percentil con el tiempo",
   "growth.corrected_age_fmt": "Edad corregida: %@",
   "percentile.out_of_range": "Los percentiles de la OMS cubren los primeros 24 meses",
+  "percentile.before_due_date": "Los percentiles de la OMS empiezan en la fecha prevista de parto. Hasta entonces los pesajes se guardan igualmente y aparecen en el gráfico.",
   "growth.who_footnote": "Referencias de la OMS. No sustituyen la consulta médica.",
   "growth.add_weighing": "Añadir un pesaje",
   "percentile.info_title": "Sobre el percentil de peso",

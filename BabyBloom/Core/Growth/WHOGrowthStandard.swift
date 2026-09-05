@@ -111,6 +111,30 @@ enum WHOGrowthStandard {
         max(0, Calendar.current.dateComponents([.day], from: correctedBirthDate, to: date).day ?? 0)
     }
 
+    /// The same age, but **nil rather than clamped** when the weighing predates
+    /// the corrected birth date.
+    ///
+    /// The clamp above is wrong for a percentile and dangerously so. A baby born
+    /// ten weeks early is weighed on its actual birth day at 1.4 kg, and that
+    /// date is 70 days before its due date: clamping to age 0 scores 1.4 kg
+    /// against the TERM newborn curve and returns the 0.4th percentile. It is
+    /// arithmetically fine and clinically meaningless — the comparison is with
+    /// babies that spent ten more weeks growing — and it is the first thing the
+    /// Growth screen shows a parent whose baby is in intensive care.
+    ///
+    /// WHO weight-for-age starts at term. There is no honest number before it,
+    /// so `percentile` and `percentileReading` return nil and the surfaces fall
+    /// back to their existing "nothing to say yet" states.
+    ///
+    /// `WeightVelocity` deliberately keeps the clamp: it reads an INCREMENT
+    /// table, where the newborn row's band is roughly right for a preterm baby
+    /// growing at catch-up rates, and it is the signal a parent most needs
+    /// during that period.
+    static func correctedAgeDaysIfBorn(on date: Date, correctedBirthDate: Date) -> Int? {
+        let days = Calendar.current.dateComponents([.day], from: correctedBirthDate, to: date).day ?? 0
+        return days >= 0 ? days : nil
+    }
+
     /// The percentile of one weighing, scored at the age the baby actually was
     /// **on the day that weighing was taken**.
     ///
@@ -120,14 +144,16 @@ enum WHOGrowthStandard {
     /// movement the parent did nothing to cause and cannot undo. `GrowthTrend`
     /// has always scored each measurement at its own date; this is that rule,
     /// for the cards that show a single value.
+    ///
+    /// nil for a weighing taken before the corrected birth date — see
+    /// `correctedAgeDaysIfBorn`.
     static func percentile(of measurement: WeightMeasurement,
                            correctedBirthDate: Date,
                            isMale: Bool) -> Double? {
-        percentile(
-            weightKg: measurement.weightKg,
-            ageDays: correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate),
-            isMale: isMale
-        )
+        guard let ageDays = correctedAgeDaysIfBorn(on: measurement.date,
+                                                   correctedBirthDate: correctedBirthDate)
+        else { return nil }
+        return percentile(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale)
     }
 
     /// The two figures the percentile card needs, from one z score.
@@ -144,10 +170,10 @@ enum WHOGrowthStandard {
     static func percentileReading(of measurement: WeightMeasurement,
                                   correctedBirthDate: Date,
                                   isMale: Bool) -> PercentileReading? {
-        let ageDays = correctedAgeDays(on: measurement.date, correctedBirthDate: correctedBirthDate)
-        guard let z = zScore(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale) else {
-            return nil
-        }
+        guard let ageDays = correctedAgeDaysIfBorn(on: measurement.date,
+                                                   correctedBirthDate: correctedBirthDate),
+              let z = zScore(weightKg: measurement.weightKg, ageDays: ageDays, isMale: isMale)
+        else { return nil }
         let raw = rawPercentile(fromZ: z)
         return PercentileReading(percentile: percentile(fromZ: z),
                                  isBeyondChart: raw > 99.5 || raw < 0.5)
