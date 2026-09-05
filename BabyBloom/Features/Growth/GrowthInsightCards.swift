@@ -26,8 +26,7 @@ struct InsightCard<Content: View>: View {
 
     private var header: some View {
         HStack {
-            BBTheme.Typography.title3(title)
-                .foregroundStyle(BBTheme.Colors.textPrimary)
+            InsightCardTitle(title)
             Spacer()
             badge
         }
@@ -40,7 +39,7 @@ struct InsightCard<Content: View>: View {
             // Draws itself only when an `ExplainerCard` is wrapping this card,
             // so a card can never advertise an explanation that is not there.
             InfoBadge()
-        case let .control(explainer, action):
+        case let .control(action):
             Button(action: action) {
                 InfoBadge.glyph
                     .frame(width: InfoBadge.hitTarget, height: InfoBadge.hitTarget)
@@ -72,7 +71,33 @@ enum InfoBadgeRole {
     /// Its own control. The card's tap is already spoken for — a locked card
     /// sells Premium — so the badge is the only way into the explainer, and it
     /// must not eat the sell tap.
-    case control(GrowthExplainer, action: () -> Void)
+    case control(action: () -> Void)
+}
+
+/// A card's title, and the one element that carries its explainer to VoiceOver.
+///
+/// The named action goes HERE rather than on `ExplainerCard`'s content, because
+/// that content is a container and a container is not an accessibility element.
+/// Whether a custom action on one reaches the elements inside it is a promise
+/// nothing on this project's machines can verify, and an accessibility feature
+/// that cannot be checked is a feature nobody knows they have. A title is an
+/// element with certainty. It is also where the "?" sits, so what a sighted
+/// reader sees and what VoiceOver offers are in the same place.
+struct InsightCardTitle: View {
+    let title: String
+    @Environment(\.explainerAction) private var explainerAction
+
+    init(_ title: String) { self.title = title }
+
+    var body: some View {
+        BBTheme.Typography.title3(title)
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .accessibilityActions {
+                if let explainerAction {
+                    Button("explainer.action".l) { explainerAction() }
+                }
+            }
+    }
 }
 
 /// The "?" affordance, drawn ONLY inside an `ExplainerCard`.
@@ -82,7 +107,7 @@ enum InfoBadgeRole {
 /// which is what the render dumps showed — a dead "?" on every card dumped
 /// outside `GrowthView`.
 struct InfoBadge: View {
-    @Environment(\.hasExplainer) private var hasExplainer
+    @Environment(\.explainerAction) private var explainerAction
 
     /// Apple's minimum touch target. The glyph stays 20pt.
     static let glyphSize: CGFloat = 20
@@ -96,7 +121,7 @@ struct InfoBadge: View {
     }
 
     var body: some View {
-        if hasExplainer {
+        if explainerAction != nil {
             // Decoration: the card around it is the control, and announcing an
             // unlabelled image before the card's own words helps nobody.
             Self.glyph.accessibilityHidden(true)
@@ -104,15 +129,22 @@ struct InfoBadge: View {
     }
 }
 
-private struct HasExplainerKey: EnvironmentKey {
-    static let defaultValue = false
+/// `@MainActor @Sendable` because an `EnvironmentKey`'s default must be
+/// `Sendable` under Swift 6, and every caller of this is a view body — which is
+/// already on the main actor.
+private struct ExplainerActionKey: EnvironmentKey {
+    static let defaultValue: ExplainerAction? = nil
 }
 
+typealias ExplainerAction = @MainActor @Sendable () -> Void
+
 extension EnvironmentValues {
-    /// Set by `ExplainerCard` for everything inside it.
-    var hasExplainer: Bool {
-        get { self[HasExplainerKey.self] }
-        set { self[HasExplainerKey.self] = newValue }
+    /// Set by `ExplainerCard` for everything inside it. Non-nil means an
+    /// explainer is one tap away — which is what draws the badge — and calling
+    /// it is what the title's VoiceOver action does.
+    var explainerAction: ExplainerAction? {
+        get { self[ExplainerActionKey.self] }
+        set { self[ExplainerActionKey.self] = newValue }
     }
 }
 
@@ -229,12 +261,15 @@ struct ExplainerSheet: View {
 /// destroy the per-row VoiceOver structure `NutritionSection` builds on purpose
 /// — three rows, one stop each, the label and its status read as one statement.
 /// A `contentShape` plus `onTapGesture` leaves the children exactly as the card
-/// built them, and the explainer stays reachable without sight through the
-/// named accessibility action, which propagates to those same children. The
-/// cost is the press bounce a `BBScaleButtonStyle` gave: a press animation here
-/// would need a `DragGesture(minimumDistance: 0)`, and that gesture inside a
-/// `ScrollView` fights the scroll. A card is not a button-shaped control, so
-/// the plain tap is the honest trade.
+/// built them. The cost is the press bounce a `BBScaleButtonStyle` gave: a press
+/// animation here would need a `DragGesture(minimumDistance: 0)`, and that
+/// gesture inside a `ScrollView` fights the scroll. A card is not a
+/// button-shaped control, so the plain tap is the honest trade.
+///
+/// The way in without sight is therefore not this view at all — it is the named
+/// action `InsightCardTitle` puts on the title, reached through the closure
+/// passed down here. Nothing is attached to this container: a container is not
+/// an accessibility element, and an action on one would be a guess.
 struct ExplainerCard<Content: View>: View {
     let explainer: GrowthExplainer
     @ViewBuilder var content: Content
@@ -242,14 +277,11 @@ struct ExplainerCard<Content: View>: View {
 
     var body: some View {
         content
-            .environment(\.hasExplainer, true)
+            .environment(\.explainerAction, { isPresented = true })
             // A card header's Spacer is empty space, and empty space does not
             // answer taps without this.
             .contentShape(Rectangle())
             .onTapGesture { isPresented = true }
-            .accessibilityAction(named: Text("explainer.action".l)) {
-                isPresented = true
-            }
             .sheet(isPresented: $isPresented) {
                 ExplainerSheet(explainer: explainer)
             }
@@ -496,8 +528,8 @@ struct LockedInsightCard: View {
     /// own button inside the card rather than the card itself being the way in
     /// — the opposite of `ExplainerCard`, for the opposite reason.
     private var badge: InfoBadgeRole {
-        guard let explainer else { return .none }
-        return .control(explainer) { showExplainer = true }
+        guard explainer != nil else { return .none }
+        return .control { showExplainer = true }
     }
 
     var body: some View {

@@ -197,9 +197,11 @@ How a card opens its explainer depends on what its own tap already does:
   anywhere else cannot advertise an explainer that is not there). It is a
   `contentShape` + `onTapGesture`, deliberately **not** a `Button`: a Button
   flattens its label into one accessibility element and would destroy
-  `NutritionSection`'s one-stop-per-row structure. Non-visual access is an
-  `.accessibilityAction(named:)` — `explainer.action` — which propagates to the
-  card's children instead of replacing them.
+  `NutritionSection`'s one-stop-per-row structure. Non-visual access is a named
+  action (`explainer.action`) carried by `InsightCardTitle` — the card's title,
+  an element that certainly exists and the place the "?" sits — which reaches
+  the sheet through the closure `ExplainerCard` puts in the environment.
+  Nothing is attached to the container itself.
 - **Locked** — a `LockedInsightCard`'s tap sells Premium and keeps it. The badge
   is its own button there (`InfoBadgeRole.control`, a 44pt target held out of
   the layout by negative padding), and because that button is inside the sell

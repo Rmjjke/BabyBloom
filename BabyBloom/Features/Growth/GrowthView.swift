@@ -328,8 +328,10 @@ struct GrowthView: View {
         return ExplainerCard(explainer: .percentile) {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
                 HStack {
-                    BBTheme.Typography.title3("section.who_percentiles".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    // The same title view every `InsightCard` header uses, so
+                    // this hand-built header carries the explainer to VoiceOver
+                    // exactly as the others do.
+                    InsightCardTitle("section.who_percentiles".l)
                     Spacer()
                     InfoBadge()
                 }

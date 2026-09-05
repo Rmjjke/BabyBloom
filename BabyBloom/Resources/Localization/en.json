@@ -198,7 +198,7 @@
   "newborn.flag_not_regained": "Birth weight has not been reached by day 14. Worth discussing with your pediatrician.",
   "newborn.needs_weighing": "Add a weighing to follow the first weeks",
   "newborn.info_title": "About the First Weeks",
-  "newborn.info_body": "In the first days a baby normally loses some weight — around 5–10% over the first 3–5 days. Then it comes back, and by day 10–14 most babies weigh what they did at birth.\n\nThis card watches two things: how deep the dip went, and whether birth weight was back by day 14. If the loss passes 10%, or day 14 arrives without it, the card says so and suggests seeing your pediatrician. It is an observation, not a diagnosis.\n\nThe card is free and shows for the first three weeks: putting this behind a subscription would not be right. To get data here: your baby's birth weight in their profile, and at least one weighing.",
+  "newborn.info_body": "In the first days a baby normally loses some weight — around 5–10% over the first 3–5 days. Then it comes back, and by day 10–14 most babies weigh what they did at birth.\n\nThis card watches two things: how far below birth weight the latest weighing is, and whether birth weight was back by day 14. If the loss passes 10%, or day 14 arrives without it, the card says so and suggests seeing your pediatrician. It is an observation, not a diagnosis.\n\nThe card is free and shows for the first three weeks: putting this behind a subscription would not be right. To get data here: your baby's birth weight in their profile, and at least one weighing.",
   "section.weight_gain": "Weight Gain",
   "velocity.per_week_fmt": "%@ g/week",
   "velocity.expected_fmt": "Reference: %d–%d g/week",

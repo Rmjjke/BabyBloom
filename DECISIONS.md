@@ -38,8 +38,12 @@ accessibility element: wrapping the cards in one silently collapsed
 `NutritionSection`'s three rows — built to read as one VoiceOver stop each, a
 label and its status as one statement — into a wall of text. A `contentShape`
 plus `onTapGesture` leaves the children as the card built them, and the
-explainer stays reachable without sight through a named accessibility action,
-which propagates to those children rather than replacing them. The price is the
+explainer stays reachable without sight through a named action on the card's
+TITLE, not on the card: a container is not an accessibility element, and
+whether an action attached to one reaches the elements inside it is a promise
+this project has no way to verify — an accessibility feature nobody can check
+is one nobody knows they have. A title is an element with certainty, and it is
+where the "?" already is. The price is the
 press bounce: animating a press would take a `DragGesture(minimumDistance: 0)`,
 which fights the enclosing `ScrollView`. A card is not a button-shaped control,
 so it does not need to bounce like one; a locked card, which IS a control, keeps
