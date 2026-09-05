@@ -20,7 +20,7 @@ struct NutritionSection: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        InsightCard(title: "section.nutrition".l) {
+        InsightCard(title: "section.nutrition".l, info: .affordance) {
             if let assessment {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                     Text(String(format: "nutrition.window_fmt".l,
