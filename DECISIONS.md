@@ -133,9 +133,16 @@ table rather than a judgement about which age to compare at.
 
 **Why the deferral has two cases rather than one.** They differ in what the
 parent can do about it. Inside the window the first-weeks card is on screen and
-already asks for weighings, so a second ask would be the same request twice.
+already asks for weighings — through the same `HintWithAddWeighing` the entry
+below this one describes — so a second ask would be the same request twice.
 Outside it that card is gone and nothing else is asking, so the gain card says
-so itself and offers the weighing that ends the state.
+so itself and offers the weighing that ends the state, on that one shared CTA
+mechanism rather than a button of its own.
+
+A deferral is NOT one of the "held back by a missing weighing" states that
+entry is about: there is data, it is simply the wrong data to read a current
+gain from, which is why the deferral outranks `hasWeighing` and why the
+in-window case carries no CTA despite being a hint.
 
 **Why `deferredToNewbornWindow` is a case and not `notEnoughData`.** The data
 is there; it is being read by the right instrument. Reusing `notEnoughData`

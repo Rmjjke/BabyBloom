@@ -332,6 +332,15 @@ after the previous one" once anything is on file — phrased against the previou
 weighing rather than the first, which keeps it true for two weighings taken on
 the same day (nutrition's empty state covers that case too).
 
+**The gain card's two newborn deferrals are not empty states, and only one of
+them carries the CTA.** Both have plenty of data — see the gate above — so
+neither reads `hasWeighing`, which the deferral outranks. `.firstWeeksNow` has
+no button: `NewbornProgressCard` is on the same screen by the same condition,
+it is the card holding the verdict, and its own empty state already asks for
+the weighing. `.measuredInFirstWeeks` has one, through the same
+`HintWithAddWeighing`, because that card is gone by then and a weighing is
+literally what ends the state. No card on this screen shows two CTAs.
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
