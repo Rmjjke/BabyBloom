@@ -359,12 +359,17 @@ final class FeedingAdequacyTests: XCTestCase {
         Calendar.current.date(byAdding: .day, value: -ageDays, to: now)!
     }
 
+    /// `birthWeightKg` defaults to nil — an unknown birth weight, which is what
+    /// every fixture here meant before the newborn gate existed and is what
+    /// keeps the gate out of tests that are not about it.
     private func assess(gain: Double, feedsPerDay: Int, nappiesPerDay: Int,
                         days: Int = 9, ageDays: Int = 40,
+                        birthWeightKg: Double? = nil,
                         feedType: FeedingEntry.FeedingType = .breast) -> FeedingAdequacy.Assessment? {
         let birth = birthDate(ageDays: ageDays)
         return FeedingAdequacy.assess(
             birthDate: birth,
+            birthWeightKg: birthWeightKg,
             correctedBirthDate: birth,
             isMale: true,
             measurements: measurements(gainGramsPerDay: gain, days: days),
@@ -451,6 +456,7 @@ final class FeedingAdequacyTests: XCTestCase {
         let dueDate = Calendar.current.date(byAdding: .day, value: 30, to: now)!
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
             birthDate: birth,
+            birthWeightKg: nil,
             correctedBirthDate: dueDate,
             isMale: true,
             measurements: measurements(gainGramsPerDay: 30, days: 9),
@@ -488,7 +494,7 @@ final class FeedingAdequacyTests: XCTestCase {
     func testUnloggedSignalsAreNotEnoughDataRatherThanZero() throws {
         let birth = birthDate(ageDays: 40)
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements(gainGramsPerDay: 5, days: 9),
             feeds: [], wetNappies: [], now: now
         ))
@@ -509,7 +515,7 @@ final class FeedingAdequacyTests: XCTestCase {
     func testTheFeedingReferenceIsOfferedEvenWhenNothingWasLogged() throws {
         let birth = birthDate(ageDays: 40)
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements(gainGramsPerDay: 5, days: 9),
             feeds: [], wetNappies: [], now: now
         ))
@@ -566,7 +572,7 @@ final class FeedingAdequacyTests: XCTestCase {
             WeightMeasurement(date: now, weightKg: 4.3),
         ]
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements, feeds: [], wetNappies: [], now: now
         ))
         XCTAssertEqual(assessment.windowDays, 9, "9.58 days is 9 whole days, not 10")
@@ -594,7 +600,7 @@ final class FeedingAdequacyTests: XCTestCase {
             WeightMeasurement(date: day(0),  weightKg: 4.26),
         ]
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements,
             feeds: feeds(perDay: 8, days: 8),
             wetNappies: nappies(perDay: 7, days: 8),
@@ -645,7 +651,7 @@ final class FeedingAdequacyTests: XCTestCase {
             WeightMeasurement(date: end,   weightKg: 4.3),
         ]
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements, feeds: [], wetNappies: [], now: end
         ))
         let reading = try XCTUnwrap(WeightVelocity.latest(measurements: measurements,
@@ -674,7 +680,7 @@ final class FeedingAdequacyTests: XCTestCase {
         // so the coverage gate is comfortably satisfied.
         let wetNappies = (0...229).map { hours(-$0) }
         let assessment = try XCTUnwrap(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: measurements, feeds: [], wetNappies: wetNappies, now: now
         ))
         XCTAssertEqual(assessment.windowDays, 9)
@@ -697,7 +703,7 @@ final class FeedingAdequacyTests: XCTestCase {
     func testAssessmentIsNilWithoutTwoWeighings() {
         let birth = birthDate(ageDays: 40)
         XCTAssertNil(FeedingAdequacy.assess(
-            birthDate: birth, correctedBirthDate: birth, isMale: true,
+            birthDate: birth, birthWeightKg: nil, correctedBirthDate: birth, isMale: true,
             measurements: [WeightMeasurement(date: day(0), weightKg: 4.0)],
             feeds: [], wetNappies: [], now: now
         ))

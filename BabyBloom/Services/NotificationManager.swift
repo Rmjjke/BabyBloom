@@ -258,6 +258,8 @@ final class NotificationManager: @unchecked Sendable {
             now: now
         )
         scheduleGainSignalIfNeeded(
+            birthDate: birthDate,
+            birthWeightKg: birthWeightKg,
             correctedBirthDate: correctedBirthDate,
             isMale: isMale,
             measurements: measurements,
@@ -333,7 +335,19 @@ final class NotificationManager: @unchecked Sendable {
     }
 
     /// Premium: analysis rather than safety.
+    ///
+    /// **Gated at this call site rather than inside
+    /// `consecutiveBelowReference`.** That function is part of `WeightVelocity`,
+    /// which knows nothing about birth weight and should not: it is a WHO
+    /// increment table with a walk over it, and pushing a newborn-period policy
+    /// into it would make the two Core/Growth modules depend on each other and
+    /// bury a clinical rule inside arithmetic. The gate belongs where a verdict
+    /// is EMITTED, and this is the emitting site — the same shape
+    /// `FeedingAdequacy.assess` and `WeightGainCard` use, all three reading the
+    /// one predicate in `NewbornWeightLoss`.
     private func scheduleGainSignalIfNeeded(
+        birthDate: Date,
+        birthWeightKg: Double?,
         correctedBirthDate: Date,
         isMale: Bool,
         measurements: [WeightMeasurement],
@@ -342,10 +356,13 @@ final class NotificationManager: @unchecked Sendable {
     ) {
         cancel(.growthGainLow)
         guard isPremium else { return }
-        guard WeightVelocity.consecutiveBelowReference(
-            measurements: measurements,
+        guard shouldRaiseGainSignal(
+            birthDate: birthDate,
+            birthWeightKg: birthWeightKg,
             correctedBirthDate: correctedBirthDate,
-            isMale: isMale
+            isMale: isMale,
+            measurements: measurements,
+            now: now
         ) else { return }
 
         // At most one of these a week. An app about a worrying subject must not
@@ -358,6 +375,45 @@ final class NotificationManager: @unchecked Sendable {
              title: "notification.gain_low_title".l,
              body:  "notification.gain_low_body".l,
              in:    4 * 3600)
+    }
+
+    /// Whether the weight history warrants the low-gain signal at all — the
+    /// premium check and the once-a-week throttle stay above, since neither is
+    /// about the data.
+    ///
+    /// Split out for the reason the primitive-taking `onGrowthDataChanged` is:
+    /// the decision is testable without a notification centre, and a clinical
+    /// gate that cannot be asserted is a gate nobody knows they have.
+    func shouldRaiseGainSignal(
+        birthDate: Date,
+        birthWeightKg: Double?,
+        correctedBirthDate: Date,
+        isMale: Bool,
+        measurements: [WeightMeasurement],
+        now: Date = Date()
+    ) -> Bool {
+        // A newborn's dip chains two below-reference intervals in the first
+        // fortnight without anything being wrong, and this signal would land on
+        // exactly the parents least able to hear it calmly.
+        // `scheduleNewbornFlagIfNeeded` still speaks for this period, on the two
+        // thresholds that genuinely warrant a review.
+        //
+        // The same predicate the cards read, so the notification cannot fire on
+        // a screen that is deferring — including on day 22, where the window has
+        // closed but the newest weighing is still inside it.
+        guard NewbornWeightLoss.gainDeferral(birthWeightKg: birthWeightKg,
+                                             birthDate: birthDate,
+                                             measurements: measurements,
+                                             now: now) == nil else { return false }
+        // The gate above covers the newest interval; this covers the ones the
+        // chain reaches back through. Without it a single genuinely slow month
+        // after the dip could be "confirmed" by the dip itself.
+        return WeightVelocity.consecutiveBelowReference(
+            measurements: measurements,
+            correctedBirthDate: correctedBirthDate,
+            isMale: isMale,
+            intervalsMustEndAfter: NewbornWeightLoss.observationWindowEnd(birthDate: birthDate)
+        )
     }
 
     private func days(from: Date, to: Date) -> Int {

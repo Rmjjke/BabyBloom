@@ -1,8 +1,10 @@
 import Foundation
 
-/// The word a parent reads for one signal against its reference — four states,
-/// where `FeedingAdequacy.Signal` has three. The fourth exists for weight gain
-/// alone; feeding and nappy counts pass a nil band and keep their three.
+/// The word a parent reads for one signal against its reference — five states,
+/// where `FeedingAdequacy.Signal` has four. The extra one is `.above`, and it
+/// exists for weight gain alone; feeding and nappy counts pass a nil band and
+/// never reach it. (`.firstWeeks` is not the difference: `Signal` has that case
+/// too, as `.deferredToNewbornWindow`.)
 ///
 /// `Signal` has no `.above`: `FeedingAdequacy.assess` maps a gain above the
 /// reference onto `.within`, and that collapse is deliberate and must stay —
@@ -22,6 +24,17 @@ enum StatusWord: Equatable {
     /// simply not the same statement as "within the reference".
     case above
     case notEnoughData
+    /// The first weeks own this verdict — see
+    /// `NewbornWeightLoss.gainDeferral`. Not a finding, and tinted like the
+    /// neutral states rather than like a concern.
+    ///
+    /// **The word names the period, it does not point at a card.** It started
+    /// as «см. «Первые недели»», which is true on the Growth screen and false
+    /// on the Dashboard, where that card does not exist — and false on the
+    /// Growth screen too in the `.measuredInFirstWeeks` case, where the card
+    /// has already gone. A one-line status has no room to explain which; the
+    /// gain card, which does, is the surface that says where the verdict lives.
+    case firstWeeks
 
     /// `band` comes from `WeightVelocity.latest` over the same pair of
     /// weighings the assessment covers — `FeedingAdequacy.assess` pairs them
@@ -30,6 +43,7 @@ enum StatusWord: Equatable {
         switch signal {
         case .below:         return .below
         case .notEnoughData: return .notEnoughData
+        case .deferredToNewbornWindow: return .firstWeeks
         // Only this case splits: `.within` stands for "not below", which the
         // band resolves into the two things it actually covers.
         case .within:        return band == .above ? .above : .within
@@ -37,13 +51,14 @@ enum StatusWord: Equatable {
     }
 
     /// Localization key for the status word. The three original keys are
-    /// unchanged, so no existing surface moves.
+    /// unchanged, so no existing surface moved when the later two arrived.
     var localizationKey: String {
         switch self {
         case .below:         return "nutrition.status_below"
         case .within:        return "nutrition.status_within"
         case .above:         return "nutrition.status_above"
         case .notEnoughData: return "nutrition.status_unknown"
+        case .firstWeeks:    return "nutrition.status_first_weeks"
         }
     }
 }

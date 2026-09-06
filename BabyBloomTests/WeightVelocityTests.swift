@@ -159,19 +159,20 @@ final class WeightVelocityTests: XCTestCase {
         // +150 g then +550 g over 14 days each: below, then comfortably inside.
         let m = [at(30, 4.0), at(44, 4.15), at(58, 4.70)]
         XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
-            measurements: m, correctedBirthDate: birth, isMale: true))
+            measurements: m, correctedBirthDate: birth, isMale: true, intervalsMustEndAfter: nil))
     }
 
     func testTwoLowIntervalsInARowArePattern() {
         // ~11 g/day twice running, well under the P15 for this age.
         let m = [at(30, 4.0), at(44, 4.15), at(58, 4.30)]
         XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
-            measurements: m, correctedBirthDate: birth, isMale: true))
+            measurements: m, correctedBirthDate: birth, isMale: true, intervalsMustEndAfter: nil))
     }
 
     func testTooFewWeighingsCannotFormAPattern() {
         XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
-            measurements: [at(30, 4.0), at(44, 4.15)], correctedBirthDate: birth, isMale: true))
+            measurements: [at(30, 4.0), at(44, 4.15)], correctedBirthDate: birth,
+            isMale: true, intervalsMustEndAfter: nil))
     }
 
     /// A weighing too close to the one before it never BECOMES an interval — it
@@ -182,7 +183,7 @@ final class WeightVelocityTests: XCTestCase {
     func testANoiseWeighingCannotManufactureASecondInterval() {
         let m = [at(30, 4.0), at(44, 4.15), at(45, 4.16)]
         XCTAssertFalse(WeightVelocity.consecutiveBelowReference(
-            measurements: m, correctedBirthDate: birth, isMale: true))
+            measurements: m, correctedBirthDate: birth, isMale: true, intervalsMustEndAfter: nil))
     }
 
     /// The notification half of "adding a weighing must never show less": two
@@ -192,10 +193,11 @@ final class WeightVelocityTests: XCTestCase {
     func testAShortTailDoesNotSuppressARunThatWasAlreadyThere() {
         let established = [at(30, 4.0), at(44, 4.15), at(58, 4.30)]
         XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
-            measurements: established, correctedBirthDate: birth, isMale: true))
+            measurements: established, correctedBirthDate: birth, isMale: true, intervalsMustEndAfter: nil))
 
         XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
-            measurements: established + [at(59, 4.31)], correctedBirthDate: birth, isMale: true),
+            measurements: established + [at(59, 4.31)], correctedBirthDate: birth,
+            isMale: true, intervalsMustEndAfter: nil),
             "one extra weighing cannot un-say a pattern the parent already had")
     }
 
@@ -206,7 +208,7 @@ final class WeightVelocityTests: XCTestCase {
     func testNoiseInsideTheHistoryDoesNotBreakTheRun() {
         let m = [at(0, 3.30), at(14, 3.45), at(15, 3.46), at(29, 3.60)]
         XCTAssertTrue(WeightVelocity.consecutiveBelowReference(
-            measurements: m, correctedBirthDate: birth, isMale: true))
+            measurements: m, correctedBirthDate: birth, isMale: true, intervalsMustEndAfter: nil))
     }
 
     // MARK: - Pair fallback

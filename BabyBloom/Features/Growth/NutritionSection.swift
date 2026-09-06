@@ -178,7 +178,9 @@ struct NutritionSection: View {
         case .below:         return BBTheme.Colors.accent
         case .within:        return BBTheme.Colors.success
         case .above:         return BBTheme.Colors.textPrimary
-        case .notEnoughData: return BBTheme.Colors.textSecondary
+        // A deferral is not a verdict, so it takes the same quiet tint the
+        // "we cannot say yet" state does.
+        case .notEnoughData, .firstWeeks: return BBTheme.Colors.textSecondary
         }
     }
 }

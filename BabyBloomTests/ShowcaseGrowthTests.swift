@@ -97,6 +97,7 @@ final class ShowcaseGrowthTests: XCTestCase {
                                                           ageDays: 0,
                                                           isMale: SeedScenario.showcaseIsMale)
         let assessment = GrowthTrend.assess(measurements: points,
+                                            birthDate: birth,
                                             correctedBirthDate: birth,
                                             isMale: SeedScenario.showcaseIsMale,
                                             birthPercentile: birthPercentile)

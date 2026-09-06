@@ -193,6 +193,15 @@ struct GrowthView: View {
                            badge: reading.badge,
                            months: monthsAtWeighing(baby: baby, weighing: weighing),
                            weighedOn: weighing.date)
+        } else if WHOGrowthStandard.correctedAgeDaysIfBorn(
+                    on: weighing.date,
+                    correctedBirthDate: baby.correctedBirthDate) == nil {
+            // A preterm baby before its due date. `PercentileOutOfRangeCard`
+            // would say the WHO tables stop at 24 months, which is true and has
+            // nothing to do with this baby — the tables have not STARTED yet.
+            ExplainerCard(explainer: .percentile) {
+                PercentileBeforeDueDateCard()
+            }
         } else {
             // Past 24 months the card holds a sentence instead of a figure, and
             // that sentence is exactly the one a parent wants explained.
@@ -220,6 +229,17 @@ struct GrowthView: View {
         )
     }
 
+    /// Why the gain verdict is being withheld, if it is. Read from the module
+    /// that owns the rule, never re-derived from `newbornStatus` being non-nil
+    /// — that would be a second definition one refactor away from drifting, and
+    /// it would miss the stale-pair case entirely, which is precisely the case
+    /// where `newbornStatus` IS nil.
+    private func gainDeferral(_ baby: Baby) -> NewbornWeightLoss.GainDeferral? {
+        NewbornWeightLoss.gainDeferral(birthWeightKg: baby.birthWeightKg,
+                                       birthDate: baby.birthDate,
+                                       measurements: measurements)
+    }
+
     /// Premium. The number itself stays hidden for free users — the teaser says
     /// what it would tell them, which is honest without giving it away.
     @ViewBuilder
@@ -232,7 +252,8 @@ struct GrowthView: View {
                         correctedBirthDate: baby.correctedBirthDate,
                         isMale: baby.gender == .male
                     ),
-                    hasWeighing: !measurements.isEmpty
+                    hasWeighing: !measurements.isEmpty,
+                    deferral: gainDeferral(baby)
                 )
             }
         } else {
@@ -251,6 +272,7 @@ struct GrowthView: View {
             ExplainerCard(explainer: .trend) {
                 CentileTrendCard(assessment: GrowthTrend.assess(
                     measurements: measurements,
+                    birthDate: baby.birthDate,
                     correctedBirthDate: baby.correctedBirthDate,
                     isMale: baby.gender == .male,
                     birthPercentile: birthPercentile(baby)
@@ -270,6 +292,7 @@ struct GrowthView: View {
     private func adequacy(_ baby: Baby) -> FeedingAdequacy.Assessment? {
         FeedingAdequacy.assess(
             birthDate: baby.birthDate,
+            birthWeightKg: baby.birthWeightKg,
             correctedBirthDate: baby.correctedBirthDate,
             isMale: baby.gender == .male,
             measurements: measurements,

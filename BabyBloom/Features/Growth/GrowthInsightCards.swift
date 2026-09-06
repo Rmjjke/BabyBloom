@@ -496,7 +496,15 @@ struct WeightGainCard: View {
     /// it decides WHICH requirement the empty state states, and a call site that
     /// silently got the wrong one would tell a parent who has weighed once that
     /// they need two weighings from scratch.
+    ///
+    /// Read only when `deferral` is nil — a deferral IS data, so it never falls
+    /// through to an "add a weighing to get started" sentence.
     let hasWeighing: Bool
+    /// `NewbornWeightLoss.gainDeferral` — the one gate, consulted rather than
+    /// re-derived. Required rather than defaulted for the reason
+    /// `NutritionSection.band` is: a new call site must not be able to opt out
+    /// of a clinical rule by leaving an argument off.
+    let deferral: NewbornWeightLoss.GainDeferral?
 
     var body: some View {
         InsightCard(title: "section.weight_gain".l) {
@@ -506,7 +514,9 @@ struct WeightGainCard: View {
 
     @ViewBuilder
     private var guardedContent: some View {
-        if let reading {
+        if let deferral {
+            deferralContent(deferral)
+        } else if let reading {
             HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                 BBTheme.Typography.metric(
                     String(format: "velocity.per_week_fmt".l, formatted(reading.gramsPerWeek))
@@ -537,6 +547,44 @@ struct WeightGainCard: View {
             // `WeightVelocity.minimumIntervalDays` floor.
             HintWithAddWeighing(text: hasWeighing ? "velocity.needs_second".l
                                                   : "velocity.needs_two".l)
+        }
+    }
+
+    /// The two deferral states, and the CTA belongs to exactly one of them.
+    ///
+    /// `.firstWeeksNow` gets no button. `NewbornProgressCard` is on screen
+    /// while the window is open — `GrowthView` renders it from the same
+    /// `windowActive` condition — and it is the card that wants the weighings
+    /// and already asks for them in its own empty state. Two cards asking for
+    /// the same thing, one of which has just said it is not the one judging,
+    /// is the ask made twice. (The percentile and chart sections sit BETWEEN
+    /// the two cards, so "directly above" would be wrong; what makes the
+    /// argument work is that both cards are on the same screen at the same
+    /// time, not that they are adjacent.)
+    ///
+    /// `.measuredInFirstWeeks` gets the button, because the first-weeks card is
+    /// gone by then and nothing else on the screen is asking. A weighing is
+    /// also the exact thing that ends this state — it moves the pair's later
+    /// endpoint out of the window — so this is an instruction the button
+    /// performs, which is exactly what `HintWithAddWeighing` is for.
+    ///
+    /// It is the SAME CTA mechanism every other empty state on this screen
+    /// uses: one `\.addWeighingAction` injected by `GrowthView`, one sheet
+    /// presentation, one button that draws itself only where something can
+    /// answer it. A second hand-rolled button here would have been a second
+    /// mechanism to keep in step, and the first one to drift.
+    ///
+    /// Note this is NOT one of the "held back by a missing weighing" states
+    /// DECISIONS 2026-09-05 describes — there is plenty of data, it is simply
+    /// the wrong data to read a current gain from. The CTA is here because a
+    /// weighing resolves it, not because the card is empty.
+    @ViewBuilder
+    private func deferralContent(_ deferral: NewbornWeightLoss.GainDeferral) -> some View {
+        switch deferral {
+        case .firstWeeksNow:
+            HintText(text: "velocity.first_weeks".l)
+        case .measuredInFirstWeeks:
+            HintWithAddWeighing(text: "velocity.first_weeks_stale".l)
         }
     }
 
@@ -624,6 +672,18 @@ struct PercentileOutOfRangeCard: View {
     var body: some View {
         InsightCard(title: "section.who_percentiles".l) {
             HintText(text: "percentile.out_of_range".l)
+        }
+    }
+}
+
+/// The other end of the same honesty, for a baby born preterm whose weighing
+/// predates its due date. WHO weight-for-age starts at term, so there is no
+/// number — scoring one against the term newborn curve would answer "0.4th
+/// percentile" and put it in front of a parent whose baby is in intensive care.
+struct PercentileBeforeDueDateCard: View {
+    var body: some View {
+        InsightCard(title: "section.who_percentiles".l) {
+            HintText(text: "percentile.before_due_date".l)
         }
     }
 }

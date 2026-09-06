@@ -53,6 +53,27 @@ owner. Entries carry a `baby` link so the cascade rules mean something, but
 nothing reads that link for scoping. Multi-baby support is therefore not a
 model change — it is a change to every query in the app.
 
+**What onboarding writes, and when.** Its measurements page asks for the
+weight and height AT BIRTH — the discharge-record numbers — and
+`OnboardingBabyBuilder.build` turns that one answer into two things:
+`Baby.birthWeightKg`, filled whenever the parent knows it, and a first
+`GrowthEntry` dated at `Baby.birthDate` rather than at the moment onboarding
+finished. The builder is a pure function taking no model context, so both
+rules are unit-testable; `createAndFinish` only inserts and saves what it
+returns. The flow is ONE-WAY and runs once:
+`BabyProfileEditSheet` writes `birthWeightKg` later without touching history,
+because a correction to the profile is not a new weighing.
+
+The page carries an «I don't remember» opt-out, and it produces a THIRD
+outcome rather than a default: `birthWeightKg` stays nil **and no first
+`GrowthEntry` is created at all**. A slider always holds a number, so without
+it every parent who cannot find the discharge record would store an invented
+3.5 kg as both the baseline the 10%-loss flag is measured against and the
+first point on the chart. Nil is what turns the newborn instrument off — no
+`NewbornProgressCard`, no gain deferral — which is also the state of every
+install from before this feature, and the state a parent reaches by clearing
+the field in their profile. All three are one code path, deliberately.
+
 `OrphanedEntryAdoption` is a one-shot migration for entries created before
 that link existed. Two things about it are load-bearing: it filters in memory
 rather than expressing `baby == nil` as a `#Predicate` (SwiftData does not
@@ -176,6 +197,49 @@ day counts on the Growth screen describing one period
 (see DECISIONS 2026-09-05). `GrowthTrend` is the exception and stays one: it
 answers a months-long question and owns its own window rules.
 
+**The newborn window outranks every gain verdict, through one predicate.**
+`NewbornWeightLoss.gainDeferral(birthWeightKg:birthDate:measurements:now:)`
+answers "is a gain verdict withheld, and why". A newborn's physiological dip
+lands below every velocity reference, so while it returns non-nil no surface
+may report a gain at all: `FeedingAdequacy.assess` returns
+`Signal.deferredToNewbornWindow` (which `warrantsBreakdown` cannot fire on and
+`StatusWord` renders as `.firstWeeks`), `GrowthView` hands the case itself to
+`WeightGainCard`, and `NotificationManager.shouldRaiseGainSignal` refuses
+`growthGainLow`. Three consult sites, one predicate — the gate lives where a
+verdict is EMITTED, and deliberately not inside `WeightVelocity`, which is a
+WHO increment table and knows nothing about birth weight.
+
+It returns two cases, because they differ in what the parent can do:
+
+- `.firstWeeksNow` — `windowActive` is true: a birth weight is on file and the
+  baby is no older than `observationWindowDays`. This is also what puts
+  `NewbornProgressCard` on screen (`analyse` is gated on the same predicate,
+  so the card and the rule cannot disagree), and that card holds the verdict.
+- `.measuredInFirstWeeks` — the window has closed, but the later endpoint of
+  `WeightVelocity.pair(in:)` still lies inside it. Without this the verdict
+  switched on the morning after the card vanished, off data that had not
+  changed. The card says the weighings are from the first weeks and asks for a
+  new one; a new weighing becomes the pair's later endpoint and ends the
+  state, so it can never be permanent.
+
+The LATER endpoint, never the earlier one. The WHO 0–4 week row is itself a
+birth-to-one-month increment and already contains the dip, so a pair ending at
+day 28 is the quantity that row was built from while a pair ending at day 10 is
+its losing half measured against the whole. Gating on the earlier endpoint
+instead would silence the gain card forever for a baby whose only two weighings
+are birth and month one.
+
+`WeightVelocity.consecutiveBelowReference` takes the window's end date as
+`intervalsMustEndAfter` and stops the chain at an interval that ends inside it.
+The deferral above covers only the NEWEST interval, which is all a card shows;
+the notification chains further back, and an interval lying in the dip would
+otherwise supply the second half of the "pattern" the count-2 rule exists to
+demand independent evidence for.
+
+With no birth weight there is no deferral: `NewbornProgressCard` is absent too,
+so nothing would hold the verdict's place. That is the same state an install
+from before this feature is in, and the same state «не помню точно» produces.
+
 The medical spine of `FeedingAdequacy`: **weight gain is the only trigger.**
 Feeds and nappy counts are context and never raise a concern on their own. If
 gain sits within the reference the app says nothing, whatever the other two
@@ -194,6 +258,27 @@ together only if you mean to; they are separate on purpose.
 Single-value percentile cards score a weighing at the age the baby was **on the
 day it was taken** (`WHOGrowthStandard.percentile(of:correctedBirthDate:isMale:)`),
 never at today's age — the same rule `GrowthTrend` has always followed.
+
+**Two kinds of weighing carry no CENTILE verdict, and both are still real data
+in the history and on the chart.** `GrowthTrend` drops them from its scored set
+and the per-measurement percentile entry points return nil:
+
+- Inside `birth + NewbornWeightLoss.observationWindowDays`. The physiological
+  dip is a one-to-two-space fall in centile terms, so the birth weighing
+  becomes the trend's peak and ordinary catch-down reads as faltering growth.
+  Same rule as the gain gate, on the other verdict over the same days —
+  unconditional here, because dropping points degrades to `insufficientData`
+  rather than leaving a verdict unheld. The cost is that the first trend
+  verdict now lands near day 50 rather than day 28 — three scorable weighings
+  spanning 28 days, starting no earlier than day 22.
+- Before `correctedBirthDate`. `correctedAgeDays` clamps at zero;
+  `correctedAgeDaysIfBorn` returns nil instead, because scoring a preterm
+  baby's actual-birth weight against the term newborn curve is a category
+  error, not a low percentile. `WeightVelocity` keeps the clamp on purpose —
+  an increment table's newborn row is roughly right at catch-up rates.
+
+`GrowthTrend.assess` therefore takes the CHRONOLOGICAL `birthDate` alongside
+the corrected one; the newborn window follows delivery, not maturity.
 
 `Baby` also carries corrected age for preterm babies, used everywhere except
 newborn weight loss — the physiological drop follows delivery, so it is
@@ -246,6 +331,15 @@ and nutrition cards take `hasWeighing` and ask for "one more weighing, N days
 after the previous one" once anything is on file — phrased against the previous
 weighing rather than the first, which keeps it true for two weighings taken on
 the same day (nutrition's empty state covers that case too).
+
+**The gain card's two newborn deferrals are not empty states, and only one of
+them carries the CTA.** Both have plenty of data — see the gate above — so
+neither reads `hasWeighing`, which the deferral outranks. `.firstWeeksNow` has
+no button: `NewbornProgressCard` is on the same screen by the same condition,
+it is the card holding the verdict, and its own empty state already asks for
+the weighing. `.measuredInFirstWeeks` has one, through the same
+`HintWithAddWeighing`, because that card is gone by then and a weighing is
+literally what ends the state. No card on this screen shows two CTAs.
 
 ## Premium
 
@@ -391,7 +485,7 @@ entitlement:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 
 Widget views live in the **app's** source tree

@@ -51,6 +51,111 @@ enum NewbornWeightLoss {
         var hasRegained: Bool { regainedOn != nil }
     }
 
+    /// Whether this module — rather than a growth reference — is the instrument
+    /// in force right now: a birth weight to measure against, and a baby still
+    /// inside the observation window.
+    ///
+    /// This is what decides whether `NewbornProgressCard` is on screen. It is
+    /// half of the gain gate; `gainDeferral` below is the whole of it.
+    static func windowActive(birthWeightKg: Double?,
+                             birthDate: Date,
+                             now: Date = Date()) -> Bool {
+        guard let birthWeight = birthWeightKg, birthWeight > 0 else { return false }
+        let dayOfLife = days(from: birthDate, to: now)
+        return dayOfLife >= 0 && dayOfLife <= observationWindowDays
+    }
+
+    /// The last moment that still counts as the newborn window, for callers
+    /// that filter by DATE rather than ask about today.
+    ///
+    /// Chronological, like everything else here — the dip follows delivery, not
+    /// maturity. Unconditional on birth weight, and both its callers depend on
+    /// that: `GrowthTrend` drops weighings inside it, and
+    /// `consecutiveBelowReference` refuses intervals ending inside it. Neither
+    /// leaves a verdict unheld the way the gain gate would, so neither has to
+    /// wait on a birth weight being recorded — the dip is biology, not a
+    /// consequence of the parent having found the discharge record.
+    static func observationWindowEnd(birthDate: Date) -> Date {
+        Calendar.current.date(byAdding: .day, value: observationWindowDays, to: birthDate) ?? birthDate
+    }
+
+    /// Why a weight-GAIN verdict is being withheld, or nil when the ordinary
+    /// rules apply.
+    ///
+    /// **The single gate for the physiological dip, and the only copy of that
+    /// rule.** A newborn loses 5–10% of its birth weight over the first days,
+    /// and every WHO velocity reference starts well above zero, so a gain
+    /// measured across that dip is below the reference by construction. Three
+    /// call sites consult this — `FeedingAdequacy.assess` (which carries it to
+    /// the nutrition row, the Dashboard's free line and the breakdown gate),
+    /// `GrowthView`'s gain card, and `NotificationManager.shouldRaiseGainSignal`
+    /// — and none re-derives it, because a second copy is how one of them
+    /// starts alarming again.
+    ///
+    /// **Two conditions, and the second one is the day-22 cliff.** Asking only
+    /// "is the baby inside the window NOW" left the verdict switching on the
+    /// morning after `NewbornProgressCard` vanished, computed over exactly the
+    /// weighings the card had been holding: a baby weighed at birth and on day
+    /// 10 and not since is silent on day 21 and reads "below the reference" on
+    /// day 22, off data that has not changed. So the pair's LATER endpoint is
+    /// checked too — if the newest weighing in the measured pair still lies
+    /// inside the window, the reading is a reading about the dip whatever the
+    /// calendar says today.
+    ///
+    /// **Rejected: gating on the pair's EARLIER endpoint.** That reads more
+    /// natural — the dip is at the start of the interval — and it is the one
+    /// shape that can silence the card forever: a baby whose only two weighings
+    /// are birth and month one has a pair that reaches back into the window and
+    /// never stops. The later endpoint cannot do that. Any new weighing becomes
+    /// the newest one and moves the endpoint out of the window, so the deferral
+    /// always has an exit the parent can reach — which is why the post-window
+    /// card asks for exactly that.
+    ///
+    /// A pair that spans the window and ENDS outside it is measured honestly:
+    /// `WeightVelocity` compares it at the interval's MIDPOINT age, which is the
+    /// age the average actually describes (birth 3.5 kg → 4.4 kg on day 30 is a
+    /// healthy month and reads as one).
+    ///
+    /// With no birth weight there is no deferral at all: `NewbornProgressCard`
+    /// is not on screen either, so nothing would be holding the verdict in its
+    /// place — see DECISIONS, "the newborn instrument stays off".
+    static func gainDeferral(birthWeightKg: Double?,
+                             birthDate: Date,
+                             measurements: [WeightMeasurement],
+                             now: Date = Date()) -> GainDeferral? {
+        guard let birthWeight = birthWeightKg, birthWeight > 0 else { return nil }
+        if windowActive(birthWeightKg: birthWeight, birthDate: birthDate, now: now) {
+            return .firstWeeksNow
+        }
+        // `WeightVelocity.pair(in:)` and not a fresh "newest weighing" lookup:
+        // that function is the one place the pairing rule lives, and the pair it
+        // returns is the one every gain verdict is actually measured over.
+        //
+        // This covers the NEWEST interval only, which is all a card ever shows.
+        // `consecutiveBelowReference` chains further back, and its later
+        // intervals need their own protection — it takes
+        // `intervalsMustEndAfter` for exactly that, because a chained interval
+        // lying inside the dip would otherwise supply the second half of a
+        // "pattern" the count-2 rule exists to demand real evidence for.
+        guard let pair = WeightVelocity.pair(in: measurements) else { return nil }
+        let dayOfLatest = days(from: birthDate, to: pair.later.date)
+        guard dayOfLatest >= 0, dayOfLatest <= observationWindowDays else { return nil }
+        return .measuredInFirstWeeks
+    }
+
+    /// The two shapes a deferral takes. They differ in what the parent can DO
+    /// about it, which is why the gain card says something different for each.
+    enum GainDeferral: Equatable {
+        /// The baby is inside the window: the first-weeks card is on screen and
+        /// holds the verdict. Nothing to ask for — that card asks for its own
+        /// weighings.
+        case firstWeeksNow
+        /// The window has closed, but the newest weighing is still inside it.
+        /// The first-weeks card is gone, so this state has to say so itself AND
+        /// ask for the weighing that ends it.
+        case measuredInFirstWeeks
+    }
+
     /// Analyses the newborn window, or returns nil when it does not apply:
     /// no birth weight recorded, or the baby is past the observation window.
     ///
@@ -63,10 +168,13 @@ enum NewbornWeightLoss {
         measurements: [WeightMeasurement],
         now: Date = Date()
     ) -> Status? {
-        guard let birthWeight = birthWeightKg, birthWeight > 0 else { return nil }
+        // Applicability is `windowActive`'s to decide, so the card and the gate
+        // can never disagree about whether these are the first weeks.
+        guard windowActive(birthWeightKg: birthWeightKg, birthDate: birthDate, now: now),
+              let birthWeight = birthWeightKg
+        else { return nil }
 
         let dayOfLife = days(from: birthDate, to: now)
-        guard dayOfLife >= 0, dayOfLife <= observationWindowDays else { return nil }
 
         // Anything dated before the birth is bad data, not a measurement.
         let relevant = measurements

@@ -17,8 +17,10 @@ struct OnboardingView: View {
     @State private var growthHeightCm: Double = 50.0
     @State private var growthHeadCm: Double = 34.0
     @State private var growthIncludeHead: Bool = false
-    @State private var birthWeightKg: Double = 3.4
-    @State private var recordsBirthWeight: Bool = false
+    /// The measurements page's opt-out. True by default: most parents have the
+    /// discharge record to hand, and defaulting to "unknown" would bury the
+    /// question the page exists to ask.
+    @State private var knowsBirthMeasurements: Bool = true
     @State private var gestationalWeeks: Double = 34
     @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
@@ -45,14 +47,13 @@ struct OnboardingView: View {
                     case .welcome: WelcomePage(onStart: next)
                     case .name: NamePage(name: $babyName, onBack: back)
                     case .birth: BirthPage(birthDate: $birthDate, gender: $gender,
-                                           birthWeightKg: $birthWeightKg,
-                                           recordsBirthWeight: $recordsBirthWeight,
                                            gestationalWeeks: $gestationalWeeks,
                                            wasBornEarly: $wasBornEarly,
                                            onBack: back)
                     case .feeding: FeedingPage(feedingType: $feedingType, babyName: babyName, onBack: back)
                     case .growth: GrowthPage(weightKg: $growthWeightKg, heightCm: $growthHeightCm,
                                              headCm: $growthHeadCm, includeHead: $growthIncludeHead,
+                                             knowsMeasurements: $knowsBirthMeasurements,
                                              onBack: back)
                     case .fact: FactPage(babyName: babyName, birthDate: birthDate,
                                          feedingType: feedingType, onContinue: next)
@@ -128,27 +129,23 @@ struct OnboardingView: View {
     private func createAndFinish() {
         guard !isCreating else { return }
         isCreating = true
-        let name = babyName.trimmingCharacters(in: .whitespaces)
-        let baby = Baby(
-            name: name.isEmpty ? "baby.default_name".l : name,
+        let created = OnboardingBabyBuilder.build(
+            name: babyName,
             birthDate: birthDate,
             gender: gender,
-            feedingType: feedingType
+            feedingType: feedingType,
+            measurements: knowsBirthMeasurements
+                ? .init(weightKg: growthWeightKg,
+                        heightCm: growthHeightCm,
+                        headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil)
+                : nil,
+            gestationalWeeks: wasBornEarly ? Int(gestationalWeeks) : nil
         )
-        // Left nil when the parent did not record them — nil means "unknown"
-        // everywhere downstream, and every growth feature degrades to still
-        // being useful without them.
-        baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
-        baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
-        modelContext.insert(baby)
-        let growth = GrowthEntry(
-            date: Date(),
-            weightKg: growthWeightKg,
-            heightCm: growthHeightCm,
-            headCircumferenceCm: growthIncludeHead ? growthHeadCm : nil
-        )
-        growth.baby = baby
-        modelContext.insert(growth)
+        modelContext.insert(created.baby)
+        // Absent when the parent answered "I don't remember" — the app then
+        // starts with an empty history, which every growth surface already
+        // handles as its ordinary first-run state.
+        if let firstEntry = created.firstEntry { modelContext.insert(firstEntry) }
         try? modelContext.save()
         // The widget is already on the home screen for some parents; without
         // this it keeps showing the default name until its own cadence.
