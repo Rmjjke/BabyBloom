@@ -664,6 +664,22 @@ struct AddGrowthSheet: View {
             .onAppear {
                 let range = dateRange
                 date = min(max(date, range.lowerBound), range.upperBound)
+                // The sheet opens on the baby's current numbers, not a newborn's:
+                // a 6 kg baby offered the 3.5 kg default starts every weighing
+                // with a long drag across the slider. Each field seeds from the
+                // newest entry that actually has it — a height-only measurement
+                // must not reset the weight back to factory. Clamped for the
+                // same reason as the date above: a value outside the slider's
+                // range must never be the value the slider shows.
+                if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg {
+                    weightKg = min(max(w, 1.0), 20.0)
+                }
+                if let h = growthEntries.first(where: { $0.heightCm != nil })?.heightCm {
+                    heightCm = min(max(h, 30.0), 130.0)
+                }
+                if let hc = growthEntries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm {
+                    headCm = min(max(hc, 25.0), 55.0)
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
