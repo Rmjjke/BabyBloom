@@ -245,9 +245,9 @@ struct PlanPickerSection: View {
 
             HStack(spacing: BBTheme.Spacing.lg) {
                 Link("premium.terms".l,
-                     destination: URL(string: "https://babybloom.app/terms")!)
+                     destination: URL(string: "https://bitty.okapps.org/bitty/terms")!)
                 Link("premium.privacy".l,
-                     destination: URL(string: "https://babybloom.app/privacy")!)
+                     destination: URL(string: "https://bitty.okapps.org/bitty/privacy")!)
             }
         }
         .font(.system(size: 11, design: .rounded))
