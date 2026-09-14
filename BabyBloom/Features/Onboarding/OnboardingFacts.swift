@@ -17,19 +17,45 @@ enum OnboardingFacts {
         let ageRange: Range<Int>
         /// nil = any feeding type.
         let feeding: Baby.FeedingType?
+        /// Localization key naming the authority behind the fact.
+        let sourceKey: String
+        /// Where the fact comes from. Every fact must carry one — App Review
+        /// (guideline 1.4.1) requires health information to cite its source,
+        /// and a fact we cannot source does not belong in the pool.
+        let source: URL
     }
+
+    private static let aapFeedingAmounts = URL(string: "https://www.healthychildren.org/English/ages-stages/baby/feeding-nutrition/Pages/how-often-and-how-much-should-your-baby-eat.aspx")!
+    private static let nhsSleep = URL(string: "https://www.nhs.uk/baby/caring-for-a-newborn/helping-your-baby-to-sleep/")!
 
     /// Order is stable on purpose: the seed indexes into the eligible subset,
     /// so a new fact appended at the end never reshuffles existing picks.
     static let pool: [Fact] = [
-        Fact(key: "onboarding.fact.newborn1", number: 12, ageRange: 0..<2,   feeding: nil),
-        Fact(key: "onboarding.fact.newborn2", number: 18, ageRange: 0..<2,   feeding: nil),
-        Fact(key: "onboarding.fact.infant1",  number: 6,  ageRange: 2..<5,   feeding: nil),
-        Fact(key: "onboarding.fact.infant2",  number: 8,  ageRange: 2..<5,   feeding: nil),
-        Fact(key: "onboarding.fact.older1",   number: 6,  ageRange: 5..<36,  feeding: nil),
-        Fact(key: "onboarding.fact.older2",   number: 5,  ageRange: 5..<36,  feeding: nil),
-        Fact(key: "onboarding.fact.breast1",  number: 3,  ageRange: 0..<12,  feeding: .breast),
-        Fact(key: "onboarding.fact.formula1", number: 4,  ageRange: 0..<12,  feeding: .formula),
+        Fact(key: "onboarding.fact.newborn1", number: 12, ageRange: 0..<2,   feeding: nil,
+             sourceKey: "source.aap_feeding_amount", source: aapFeedingAmounts),
+        Fact(key: "onboarding.fact.newborn2", number: 18, ageRange: 0..<2,   feeding: nil,
+             sourceKey: "source.nhs_sleep", source: nhsSleep),
+        Fact(key: "onboarding.fact.infant1",  number: 6,  ageRange: 2..<5,   feeding: nil,
+             sourceKey: "source.nhs_sleep", source: nhsSleep),
+        Fact(key: "onboarding.fact.infant2",  number: 8,  ageRange: 2..<5,   feeding: nil,
+             sourceKey: "source.aap_feeding_amount", source: aapFeedingAmounts),
+        Fact(key: "onboarding.fact.older1",   number: 6,  ageRange: 5..<36,  feeding: nil,
+             sourceKey: "source.who_complementary",
+             source: URL(string: "https://www.who.int/health-topics/complementary-feeding")!),
+        // The weight-for-age page, not the standards index: the fact's claim
+        // («от рождения до 5 лет») is that page's own chart titles, so the
+        // citation states what the fact states — review found the previous
+        // doubling claim was not on the cited page, and a citation that does
+        // not support its sentence is worse for App Review than none.
+        Fact(key: "onboarding.fact.older2",   number: 5,  ageRange: 5..<36,  feeding: nil,
+             sourceKey: "source.who_standards",
+             source: URL(string: "https://www.who.int/tools/child-growth-standards/standards/weight-for-age")!),
+        Fact(key: "onboarding.fact.breast1",  number: 3,  ageRange: 0..<12,  feeding: .breast,
+             sourceKey: "source.aap_breastfeeding",
+             source: URL(string: "https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/How-Often-to-Breastfeed.aspx")!),
+        Fact(key: "onboarding.fact.formula1", number: 4,  ageRange: 0..<12,  feeding: .formula,
+             sourceKey: "source.aap_formula",
+             source: URL(string: "https://www.healthychildren.org/English/ages-stages/baby/formula-feeding/Pages/amount-and-schedule-of-formula-feedings.aspx")!),
     ]
 
     /// Age-eligible facts for this baby; feeding-typed facts require a match

@@ -46,6 +46,26 @@ final class OnboardingFactsTests: XCTestCase {
         }
     }
 
+    /// Guideline 1.4.1 shipped citations on three surfaces; a source label
+    /// that renders as its raw key would look exactly like the missing
+    /// citation Apple rejected. Covers the facts' sourceKeys AND every
+    /// explainer sheet's source labels in one sweep.
+    func testEverySourceLabelResolvesInEveryLanguage() {
+        let original = LocalizationManager.shared.language
+        defer { LocalizationManager.shared.setLanguage(original) }
+        let explainerKeys = GrowthExplainer.allCases.flatMap { $0.sources.map(\.labelKey) }
+        for lang in SupportedLanguage.allCases {
+            LocalizationManager.shared.setLanguage(lang)
+            for fact in OnboardingFacts.pool {
+                XCTAssertNotEqual(fact.sourceKey.l, fact.sourceKey,
+                                  "\(fact.sourceKey) unresolved in \(lang)")
+            }
+            for key in explainerKeys + ["common.source", "common.sources"] {
+                XCTAssertNotEqual(key.l, key, "\(key) unresolved in \(lang)")
+            }
+        }
+    }
+
     func testBodySubstitutesTheNameAndFallsBackWhenEmpty() {
         let named = OnboardingFacts.body(for: OnboardingFacts.pool[0], name: "Vlad")
         XCTAssertTrue(named.contains("Vlad"))
