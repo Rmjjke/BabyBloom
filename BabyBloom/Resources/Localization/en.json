@@ -457,7 +457,7 @@
   "onboarding.fact.infant1": "Around 3 months, %@ will start sleeping up to 6 hours at a stretch. Seeing it build in the log is the encouragement tired parents deserve.",
   "onboarding.fact.infant2": "By 3 months, many babies settle into 6–8 feeds a day. A log turns 'is this normal?' into a chart you can actually read.",
   "onboarding.fact.older1": "From 6 months, %@ discovers food — while milk still does the heavy lifting. Tracking both keeps the picture whole.",
-  "onboarding.fact.older2": "Babies double their birth weight by about 5 months. The WHO charts in Bitty show exactly where %@ is on that road.",
+  "onboarding.fact.older2": "The WHO charts follow a child's weight from birth to 5 years. In Bitty, %@ is measured against exactly those charts.",
   "onboarding.fact.breast1": "Breastfed babies often eat every 2–3 hours around the clock. Bitty remembers which side was last — so you don't have to.",
   "onboarding.fact.formula1": "Formula-fed babies typically eat every 3–4 hours. A log makes the next feed predictable instead of a guess.",
   "onboarding.gen.step_named": "Calibrating for %@ — %@",
@@ -470,5 +470,18 @@
   "onboarding.widget.title": "The widget on your Home Screen",
   "onboarding.widget.subtitle": "How long until the next feed — at a glance, without opening the app.",
   "onboarding.widget.howto": "Touch and hold the Home Screen → “+” → %@",
-  "onboarding.widget.cta": "Build My Tracker"
+  "onboarding.widget.cta": "Build My Tracker",
+  "common.source": "Source",
+  "common.sources": "Sources",
+  "source.who_standards": "WHO Child Growth Standards",
+  "source.who_velocity": "WHO growth velocity standards",
+  "source.who_complementary": "WHO — complementary feeding",
+  "source.nice_ng75": "NICE guideline NG75 (faltering growth)",
+  "source.aap_feeding_amount": "AAP — how often and how much to feed",
+  "source.aap_breastfeeding": "AAP — how often to breastfeed",
+  "source.aap_formula": "AAP — formula feeding schedule",
+  "source.nhs_enough_milk": "NHS — is my baby getting enough milk?",
+  "source.nhs_baby_weight": "NHS — baby height and weight",
+  "source.nhs_sleep": "NHS — helping your baby to sleep",
+  "source.nhs_nappy_chart": "NHS Cambridge — wet nappy chart"
 }

@@ -43,6 +43,22 @@ struct FactPage: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, BBTheme.Spacing.lg)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    // Guideline 1.4.1: health information cites its source,
+                    // and the citation is easy for the user to find — right
+                    // under the claim, as a tappable link.
+                    // `primary` tint and a 44pt floor, matching the growth
+                    // screen's citations — one affordance for one concept.
+                    // The arrow rides inside the Text so it scales with type.
+                    Link(destination: fact.source) {
+                        Text("\("common.source".l): \(fact.sourceKey.l) \(Image(systemName: "arrow.up.right"))")
+                            .multilineTextAlignment(.center)
+                            .font(BBTheme.Typography.scaled(12, relativeTo: .caption1, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.primary)
+                            .frame(minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .padding(.horizontal, BBTheme.Spacing.lg)
                 }
                 .offset(y: appear ? 0 : 20)
                 .opacity(appear ? 1 : 0)

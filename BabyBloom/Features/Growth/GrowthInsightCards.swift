@@ -258,7 +258,7 @@ struct AddWeighingButton: View {
 /// type; build-12 feedback was that the other verdict cards say a couple of
 /// words a parent cannot decode either. Five sheet types would be five things
 /// to keep looking alike, so the subject became data and the sheet is one view.
-enum GrowthExplainer {
+enum GrowthExplainer: CaseIterable {
     case newborn
     case percentile
     case gain
@@ -302,6 +302,37 @@ enum GrowthExplainer {
         case .nutrition:         BBTheme.Colors.feeding
         }
     }
+
+    /// The references each card's numbers actually come from, shown as
+    /// tappable links at the bottom of the sheet. Guideline 1.4.1 requires
+    /// health information to cite its sources where the user can find them —
+    /// and these are the same documents the arithmetic behind the card is
+    /// implemented from (see Core/Growth), so the sheet cites what the code
+    /// really uses rather than a decorative bibliography.
+    var sources: [(labelKey: String, url: URL)] {
+        switch self {
+        case .newborn: [
+            ("source.nice_ng75", URL(string: "https://www.nice.org.uk/guidance/ng75")!),
+            ("source.nhs_baby_weight", URL(string: "https://www.nhs.uk/baby/babys-development/height-weight-and-reviews/baby-height-and-weight/")!),
+        ]
+        case .percentile: [
+            ("source.who_standards", URL(string: "https://www.who.int/tools/child-growth-standards/standards/weight-for-age")!),
+        ]
+        case .gain: [
+            ("source.who_velocity", URL(string: "https://www.who.int/tools/child-growth-standards/standards/weight-velocity")!),
+        ]
+        case .trend: [
+            ("source.nice_ng75", URL(string: "https://www.nice.org.uk/guidance/ng75")!),
+        ]
+        case .nutrition: [
+            ("source.aap_feeding_amount", URL(string: "https://www.healthychildren.org/English/ages-stages/baby/feeding-nutrition/Pages/how-often-and-how-much-should-your-baby-eat.aspx")!),
+            ("source.nhs_enough_milk", URL(string: "https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding-problems/enough-milk/")!),
+            // The nappy ramp over days 1-4 really comes from this chart
+            // (FeedingAdequacy documents the derivation), so it is cited too.
+            ("source.nhs_nappy_chart", URL(string: "https://www.cuh.nhs.uk/rosie-hospital/maternity/infant-feeding/signs-your-baby-is-getting-enough-milk/")!),
+        ]
+        }
+    }
 }
 
 /// The explainer sheet: icon, title, copy, «Закрыть» — the shape the percentile
@@ -332,6 +363,33 @@ struct ExplainerSheet: View {
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .lineSpacing(4)
+
+                    // Guideline 1.4.1: the documents behind the card's
+                    // arithmetic, as links the user can actually open. Tinted
+                    // `primary`, not the card's own tint — the pastel tints sit
+                    // near 1.8:1 on the light background, and a citation the
+                    // reviewer cannot read fails the "easy to find" wording of
+                    // the guideline. The arrow rides inside the Text so it
+                    // scales with Dynamic Type instead of shrinking beside it.
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                        Text("common.sources".l)
+                            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .semibold, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+
+                        ForEach(explainer.sources, id: \.url) { source in
+                            Link(destination: source.url) {
+                                Text("\(source.labelKey.l) \(Image(systemName: "arrow.up.right"))")
+                                    .multilineTextAlignment(.leading)
+                                    .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .medium, design: .rounded))
+                                    .foregroundStyle(BBTheme.Colors.primary)
+                                    // The 44pt floor the project already holds
+                                    // its small controls to (see InfoBadge).
+                                    .frame(minHeight: 44, alignment: .leading)
+                                    .contentShape(Rectangle())
+                            }
+                        }
+                    }
+                    .padding(.top, BBTheme.Spacing.sm)
 
                     Spacer()
                 }
@@ -785,13 +843,28 @@ struct CorrectedAgeChip: View {
     }
 }
 
-/// The line that keeps every number on this screen in its place.
+/// The line that keeps every number on this screen in its place — and the
+/// link to the WHO standards behind them: App Review (guideline 1.4.1)
+/// requires health information to cite a source the user can open.
 struct WHOFootnote: View {
     var body: some View {
-        Text("growth.who_footnote".l)
-            .font(.system(size: 11, weight: .regular, design: .rounded))
-            .foregroundStyle(BBTheme.Colors.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 4) {
+            Text("growth.who_footnote".l)
+                .font(.system(size: 11, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // `primary`, not `growth`: the pastel tint reads ~1.7:1 on the
+            // light background, and this citation exists to be found. The
+            // arrow lives inside the Text so it scales with the label.
+            Link(destination: URL(string: "https://www.who.int/tools/child-growth-standards/standards")!) {
+                Text("\("common.source".l): \("source.who_standards".l) \(Image(systemName: "arrow.up.right"))")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .frame(minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
