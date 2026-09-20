@@ -35,32 +35,45 @@ struct BabyAvatarView: View {
 // MARK: - Baby Profile Edit Sheet
 
 struct BabyProfileEditSheet: View {
-    @Bindable var baby: Baby
+    // Not `@Bindable`: no control on this sheet binds to the model any more,
+    // and the type is what says so — a `$baby.…` binding would be the defect
+    // this sheet was fixed for.
+    let baby: Baby
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    // Only for the entitlement `NotificationManager` needs in `save()` — this
+    // sheet sells nothing.
+    @Environment(SubscriptionManager.self) private var store
 
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var editedName: String
     @State private var showRemovePhotoAlert = false
 
-    // Edited locally and written back in `save()`: the model stores these as
-    // optionals ("unknown" is a real answer) while the sliders need concrete
-    // values to sit on.
+    // EVERY field on this sheet is edited locally and written back in `save()`,
+    // so Cancel discards the lot. The controls used to write to the model as the
+    // parent touched them, which made Cancel a lie: half of them — gender,
+    // feeding type, the photo — were already committed by the time it was
+    // tapped, and the birth date committed on every scroll of the picker.
+    //
+    // The optional pair below is buffered for a second reason too: the model
+    // stores them as optionals ("unknown" is a real answer) while the sliders
+    // need concrete values to sit on.
+    @State private var editedName: String
+    @State private var editedBirthDate: Date
+    @State private var editedGender: Baby.Gender
+    @State private var editedFeedingType: Baby.FeedingType
+    @State private var editedPhotoData: Data?
     @State private var recordsBirthWeight: Bool
     @State private var birthWeightKg: Double
     @State private var wasBornEarly: Bool
     @State private var gestationalWeeks: Double
 
-    // Buffered for a different reason than the sliders: bound straight to the
-    // model, the picker committed every scroll of the wheel, so Cancel did not
-    // cancel — and each intermediate date dragged the history through
-    // `save()`'s re-dating with it.
-    @State private var editedBirthDate: Date
-
     init(baby: Baby) {
         self.baby = baby
         _editedName = State(initialValue: baby.name)
         _editedBirthDate = State(initialValue: baby.birthDate)
+        _editedGender = State(initialValue: baby.gender)
+        _editedFeedingType = State(initialValue: baby.feedingType)
+        _editedPhotoData = State(initialValue: baby.photoData)
         _recordsBirthWeight = State(initialValue: baby.birthWeightKg != nil)
         _birthWeightKg = State(initialValue: baby.birthWeightKg ?? 3.4)
         _wasBornEarly = State(initialValue: baby.gestationalWeeks != nil)
@@ -84,8 +97,9 @@ struct BabyProfileEditSheet: View {
                             TextField("onboarding.name_placeholder".l, text: $editedName)
                                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
+                                // Return only dismisses the keyboard — the name
+                                // is committed by Save like everything else.
                                 .submitLabel(.done)
-                                .onSubmit { saveName() }
                         }
                     }
 
@@ -144,7 +158,7 @@ struct BabyProfileEditSheet: View {
                                 ForEach(Baby.Gender.allCases, id: \.self) { gender in
                                     Button {
                                         withAnimation(.spring(response: 0.3)) {
-                                            baby.gender = gender
+                                            editedGender = gender
                                         }
                                     } label: {
                                         HStack(spacing: 6) {
@@ -152,14 +166,14 @@ struct BabyProfileEditSheet: View {
                                             Text(gender.displayName.l)
                                                 .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                                         }
-                                        .foregroundStyle(baby.gender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                                        .foregroundStyle(editedGender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 10)
-                                        .background(baby.gender == gender ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                        .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                         .cornerRadius(BBTheme.Radius.md)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                                .strokeBorder(baby.gender == gender ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                                .strokeBorder(editedGender == gender ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
                                         )
                                         .bbShadow(BBTheme.Shadow.card)
                                     }
@@ -179,19 +193,19 @@ struct BabyProfileEditSheet: View {
                                 ForEach(Baby.FeedingType.allCases, id: \.self) { ft in
                                     Button {
                                         withAnimation(.spring(response: 0.3)) {
-                                            baby.feedingType = ft
+                                            editedFeedingType = ft
                                         }
                                     } label: {
                                         Text(ft.displayName.l)
                                             .font(.system(size: 13, weight: .medium, design: .rounded))
-                                            .foregroundStyle(baby.feedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                                            .foregroundStyle(editedFeedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                             .frame(maxWidth: .infinity)
                                             .padding(.vertical, 10)
-                                            .background(baby.feedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                            .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
                                             .cornerRadius(BBTheme.Radius.md)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                                    .strokeBorder(baby.feedingType == ft ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                                                    .strokeBorder(editedFeedingType == ft ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
                                             )
                                             .bbShadow(BBTheme.Shadow.card)
                                     }
@@ -237,7 +251,7 @@ struct BabyProfileEditSheet: View {
             loadPhoto(item)
         }
         .alert("profile.remove_photo".l, isPresented: $showRemovePhotoAlert) {
-            Button("button.delete".l, role: .destructive) { baby.photoData = nil }
+            Button("button.delete".l, role: .destructive) { editedPhotoData = nil }
             Button("button.cancel".l, role: .cancel) {}
         }
     }
@@ -247,7 +261,7 @@ struct BabyProfileEditSheet: View {
     private var avatarSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
             ZStack(alignment: .bottomTrailing) {
-                BabyAvatarView(photoData: baby.photoData, gender: baby.gender, size: 100)
+                BabyAvatarView(photoData: editedPhotoData, gender: editedGender, size: 100)
                     .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 3))
 
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
@@ -265,7 +279,7 @@ struct BabyProfileEditSheet: View {
                 .buttonStyle(.plain)
             }
 
-            if baby.photoData != nil {
+            if editedPhotoData != nil {
                 Button {
                     showRemovePhotoAlert = true
                 } label: {
@@ -309,7 +323,7 @@ struct BabyProfileEditSheet: View {
                 let compressed = UIImage(data: data)
                     .flatMap { resized($0, maxDimension: 800) }
                     .flatMap { $0.jpegData(compressionQuality: 0.8) }
-                await MainActor.run { baby.photoData = compressed ?? data }
+                await MainActor.run { editedPhotoData = compressed ?? data }
             }
         }
     }
@@ -333,24 +347,14 @@ struct BabyProfileEditSheet: View {
     ///
     /// This is the one field on the sheet whose correction reaches history, and
     /// it has to: the entries dated on the old birth day ARE the birth
-    /// measurements by construction (`OnboardingBabyBuilder` dates its first
-    /// entry at `birthDate`), so leaving them behind would strand them before
-    /// the new birth date, where the growth engine reads them as bad data. They
-    /// are moved to the very instant the `Baby` now carries, which is what keeps
-    /// onboarding's `entry.date == birthDate` invariant true after an edit.
-    ///
-    /// Deliberately narrow — only the birth day moves. Every other weighing
-    /// happened when it happened, and the 2026-09-05 one-way rule still holds
-    /// for the rest of the sheet: a profile correction is not a new weighing.
+    /// measurements by construction, so leaving them behind strands them before
+    /// the new birth date, where the growth engine reads them as bad data.
+    /// `BirthDateChange` owns both rules — which entries move, and how far the
+    /// date itself may — and documents why.
     private func saveBirthDate() {
-        // Clamped as well as bounded, because the picker's range is enforced in
-        // DAYS while the value it hands back is an INSTANT: choose the bound's
-        // own day and the selection keeps its old time of day, which can sit
-        // hours after the measurement that set the bound. Landing exactly ON
-        // that measurement is the honest reading of "the birth is no later than
-        // the first weighing" — and it keeps `NewbornWeightLoss`'s
-        // `date >= birthDate` filter satisfied.
-        let newBirthDate = min(editedBirthDate, latestSelectableBirthDate)
+        let newBirthDate = BirthDateChange.commit(selected: editedBirthDate,
+                                                  oldBirthDate: baby.birthDate,
+                                                  entries: baby.growthEntries ?? [])
         guard newBirthDate != baby.birthDate else { return }
         // Selected against the OLD birth date, before it is overwritten.
         let birthMeasurements = BirthDateChange.entriesToRedate(
@@ -364,16 +368,29 @@ struct BabyProfileEditSheet: View {
     private func save() {
         saveName()
         saveBirthDate()
+        baby.gender = editedGender
+        baby.feedingType = editedFeedingType
+        baby.photoData = editedPhotoData
         // Toggling either off clears the stored value: the parent is saying they
         // do not know it, which is not the same as leaving a stale number behind.
         baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
         baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
         try? modelContext.save()
-        // A rename has to reach the widget, which prints the name. Nothing else
-        // needs waking after a birth-date change: ages and percentiles are all
-        // derived per render, and the growth notifications are recomputed
-        // cancel-before-add whenever `GrowthView` appears.
+        // A rename has to reach the widget, which prints the name.
         WidgetRefresh.profileChanged()
+        // Every other growth mutation re-derives the notifications from the
+        // surviving data, and this is one: the birth date moves the weigh-in
+        // reminder, the newborn flag and the gain signal, and the re-dated birth
+        // measurement is an input to all three. Waiting for the next `GrowthView`
+        // visit would leave a reminder scheduled off the old date free to fire
+        // first. Cancel-before-add, so calling it here is safe.
+        if let entries = baby.growthEntries {
+            NotificationManager.shared.onGrowthDataChanged(
+                baby: baby,
+                entries: entries,
+                isPremium: store.isPremium
+            )
+        }
         dismiss()
     }
 }
