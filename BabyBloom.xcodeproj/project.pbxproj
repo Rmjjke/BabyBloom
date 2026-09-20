@@ -51,6 +51,7 @@
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
 		55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */; };
+		5772245E6796465274126611 /* BirthDateChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */; };
 		5A51B05B0B810D61B1B12783 /* FeedingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A787D90FE23982EC1A46C2 /* FeedingPage.swift */; };
 		5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E466FD0062F3779056BB259 /* BBButton.swift */; };
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
@@ -101,6 +102,7 @@
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
+		CFD7D6C092C5A2D19A61BFA0 /* BirthDateChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */; };
 		D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */; };
 		D5B62D6C3442249FD0AD3BEE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
 		D6010D3FA365E292CCEE4407 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
@@ -207,6 +209,7 @@
 		3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocity.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
 		46CFF5A9567092348158A1F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChangeTests.swift; sourceTree = "<group>"; };
 		4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomApp.swift; sourceTree = "<group>"; };
 		4ACFA220FE675C3DDDAC7265 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4E466FD0062F3779056BB259 /* BBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBButton.swift; sourceTree = "<group>"; };
@@ -217,6 +220,7 @@
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
+		64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChange.swift; sourceTree = "<group>"; };
 		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
 		7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMeasureSlider.swift; sourceTree = "<group>"; };
@@ -429,6 +433,7 @@
 			children = (
 				E350D7D19C609665E914DE63 /* AdvanceOnEntitlementTests.swift */,
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
+				47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */,
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				32FFE47A731EC428AFBF9100 /* DashboardGrowthSummaryTests.swift */,
 				E20695F09E09928450CDCEC8 /* DateAppLocaleTests.swift */,
@@ -573,6 +578,7 @@
 		92872E639174190CE7FD2042 /* Growth */ = {
 			isa = PBXGroup;
 			children = (
+				64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */,
 				1F8F5697AB65FB87CF2F480A /* DashboardGrowthSummary.swift */,
 				9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */,
 				0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */,
@@ -880,6 +886,7 @@
 				CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */,
 				FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */,
 				6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */,
+				CFD7D6C092C5A2D19A61BFA0 /* BirthDateChange.swift in Sources */,
 				728453337AF25648757458E8 /* BirthPage.swift in Sources */,
 				CAC9134A190451FE2B84F443 /* BrandMark.swift in Sources */,
 				3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */,
@@ -947,6 +954,7 @@
 			files = (
 				95648819E3BE5FFB3251FA33 /* AdvanceOnEntitlementTests.swift in Sources */,
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
+				5772245E6796465274126611 /* BirthDateChangeTests.swift in Sources */,
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				1A344BC33279ABD22C6B9E90 /* DashboardGrowthSummaryTests.swift in Sources */,
 				19712AA4FA93D6A64A2671FA /* DateAppLocaleTests.swift in Sources */,

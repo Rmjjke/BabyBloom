@@ -14,6 +14,64 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-20 — The birth-day measurement follows the birth date
+
+Correcting the birth date in `BabyProfileEditSheet` moves every growth entry
+dated on the OLD birth DAY to the new birth date, and nothing else. The picker
+is bounded at the day BEFORE the earliest non-birth-day measurement (or today,
+whichever is earlier), and `BirthDateChange.commit` clamps the stored value to
+that same bound. The rules live in `BirthDateChange`, pure and pinned by tests.
+
+**Every field on that sheet is now buffered until Save.** Name, birth date,
+gender, feeding type and the photo were written to the model as the parent
+touched them, so Cancel discarded nothing but the sliders, and Return in the
+name field committed a rename. Nothing on this sheet is an action in its own
+right — it is one form with one commit point — so there is no field left
+deliberately write-through.
+
+**Why history moves at all, when the 2026-09-05 one-way rule says profile
+corrections never touch it.** It is not the same kind of edit. Those entries
+ARE the birth measurement — `OnboardingBabyBuilder` creates the first entry
+dated AT `birthDate`, so the entry and the field are two recordings of one
+fact, and correcting one without the other makes them disagree. Moving the
+birth date forward used to strand that entry BEFORE the birth, where
+`NewbornWeightLoss.analyse` drops it as bad data and a preterm baby's
+`correctedBirthDate` can strand it further still: the parent fixes a typo and
+silently loses the first point on the chart and the anchor the whole newborn
+window is measured against. Every other weighing happened when it happened and
+is left alone, which is the one-way rule still holding for the rest.
+
+**By calendar DAY, not by instant.** Onboarding's own entry matches the birth
+instant exactly, but a parent who typed the discharge numbers in by hand
+picked the day and got the sheet's clock. A measurement recorded on the birth
+day is a birth measurement whatever its time. The day is the DEVICE's, so far
+enough travel can move an entry off the birth day; `BirthDateChange` documents
+why that is accepted rather than fixed with a stored day key.
+
+**Why the picker is bounded, and why it is also clamped on Save.** A birth
+date later than a real weighing dates that weighing before the birth, and
+re-dating cannot repair it — a day-3 weighing is not a birth measurement and
+must not be moved. The bound refuses that state; the clamp is needed because
+the range is enforced in days while the value is an instant, so a selection on
+the bound's own day keeps the old time of day and could otherwise land past the
+bound. Same two-guard shape as the future-dated weighing (2026-09-05), and the
+reason both live in `commit` rather than in the view: a rule the view owns
+privately is a rule no test can reach.
+
+**Why the first weighing's whole DAY is out, so "born the day of the first
+weighing" is not selectable.** Membership is by calendar day — that is what
+makes a hand-entered birth measurement follow the date — so a birth date
+landing on the first weighing's day would reclassify that weighing as a birth
+measurement, and the NEXT edit would silently drag a weighing the parent never
+touched. Refusing the day closes that class instead of leaving it one edit
+away. The cost is real but small and recoverable: a parent whose baby really
+was weighed again on the day of birth re-dates or deletes that row explicitly
+— an edit they can see, on the row they mean — and the birth date then follows.
+
+**No migration, again deliberately** — this changes nothing already stored.
+Existing installs keep their dates until a parent edits the birth date, which
+is the only moment the app learns the old one was wrong.
+
 ## 2026-09-05 — Onboarding asks for the measurements AT BIRTH, and dates the first entry there
 
 The measurements page is titled "Height and weight at birth" and its answer
@@ -333,7 +391,8 @@ notices the wrong date, and it starts counting by itself once its date
 arrives.
 
 The birth-date pickers (`BabyProfileEditSheet`, onboarding's `BirthPage`) were
-already bounded `...Date()`; the event-time pickers (sleep, nappies, events)
+already bounded `...Date()` — the profile one has since been tightened further,
+see 2026-09-20; the event-time pickers (sleep, nappies, events)
 are deliberately left alone — a future event time is a scheduling mistake with
 no clinical reading downstream.
 
