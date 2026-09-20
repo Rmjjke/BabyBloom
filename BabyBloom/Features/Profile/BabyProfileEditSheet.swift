@@ -384,13 +384,14 @@ struct BabyProfileEditSheet: View {
         // measurement is an input to all three. Waiting for the next `GrowthView`
         // visit would leave a reminder scheduled off the old date free to fire
         // first. Cancel-before-add, so calling it here is safe.
-        if let entries = baby.growthEntries {
-            NotificationManager.shared.onGrowthDataChanged(
-                baby: baby,
-                entries: entries,
-                isPremium: store.isPremium
-            )
-        }
+        // `?? []`, not `if let`: with no entries at all the schedule is purely
+        // date-driven (the weigh-in reminder hangs off `birthDate`), which is
+        // the one case that must not skip the refresh.
+        NotificationManager.shared.onGrowthDataChanged(
+            baby: baby,
+            entries: baby.growthEntries ?? [],
+            isPremium: store.isPremium
+        )
         dismiss()
     }
 }

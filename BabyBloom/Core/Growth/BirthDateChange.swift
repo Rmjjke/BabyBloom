@@ -58,10 +58,11 @@ enum BirthDateChange {
     /// is not a birth measurement and must not be moved.
     ///
     /// Floored at the CURRENT birth date so the bound can never exclude the
-    /// value the picker already holds. A baby already stored with its first
-    /// weighing on the birth day — data from before this rule, or after the time
-    /// zone shift above — would otherwise hand SwiftUI a selection outside its
-    /// own range; the floor turns that into "you may not move it forward",
+    /// value the picker already holds. A store already holding a weighing dated
+    /// BEFORE the birth — a legacy row from before `AddGrowthSheet` was bounded,
+    /// or an entry pushed off the birth day by the time-zone shift above — would
+    /// otherwise hand SwiftUI a selection outside its own range; the floor
+    /// turns that into "you may not move it forward",
     /// which is the right answer anyway. Same defensive shape as
     /// `AddGrowthSheet`'s `min(birthDate, now)` lower bound — see DECISIONS,
     /// 2026-09-05.
