@@ -62,7 +62,11 @@ finished. The builder is a pure function taking no model context, so both
 rules are unit-testable; `createAndFinish` only inserts and saves what it
 returns. The flow is ONE-WAY and runs once:
 `BabyProfileEditSheet` writes `birthWeightKg` later without touching history,
-because a correction to the profile is not a new weighing.
+because a correction to the profile is not a new weighing. The birth DATE is
+the one field that does reach history, and it is what keeps the invariant
+above true: the sheet buffers it until Save, then uses `BirthDateChange` to
+move the entries dated on the old birth DAY onto the new birth date and to
+bound its picker at `min(today, earliest non-birth-day measurement)`.
 
 The page carries an «I don't remember» opt-out, and it produces a THIRD
 outcome rather than a default: `birthWeightKg` stays nil **and no first

@@ -51,9 +51,16 @@ struct BabyProfileEditSheet: View {
     @State private var wasBornEarly: Bool
     @State private var gestationalWeeks: Double
 
+    // Buffered for a different reason than the sliders: bound straight to the
+    // model, the picker committed every scroll of the wheel, so Cancel did not
+    // cancel — and each intermediate date dragged the history through
+    // `save()`'s re-dating with it.
+    @State private var editedBirthDate: Date
+
     init(baby: Baby) {
         self.baby = baby
         _editedName = State(initialValue: baby.name)
+        _editedBirthDate = State(initialValue: baby.birthDate)
         _recordsBirthWeight = State(initialValue: baby.birthWeightKg != nil)
         _birthWeightKg = State(initialValue: baby.birthWeightKg ?? 3.4)
         _wasBornEarly = State(initialValue: baby.gestationalWeeks != nil)
@@ -88,8 +95,8 @@ struct BabyProfileEditSheet: View {
                             Text("profile.birth_date".l)
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
-                            DatePicker("", selection: $baby.birthDate,
-                                       in: ...Date(),
+                            DatePicker("", selection: $editedBirthDate,
+                                       in: ...latestSelectableBirthDate,
                                        displayedComponents: .date)
                                 .labelsHidden()
                                 .datePickerStyle(.compact)
@@ -279,6 +286,13 @@ struct BabyProfileEditSheet: View {
 
     // MARK: - Helpers
 
+    /// Recomputed per body evaluation rather than stored: it depends on `now`,
+    /// and the sheet can sit open across midnight.
+    private var latestSelectableBirthDate: Date {
+        BirthDateChange.latestSelectableBirthDate(entries: baby.growthEntries ?? [],
+                                                  oldBirthDate: baby.birthDate)
+    }
+
     private func formSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(BBTheme.Spacing.md)
@@ -315,14 +329,50 @@ struct BabyProfileEditSheet: View {
         if !trimmed.isEmpty { baby.name = trimmed }
     }
 
+    /// Commits the buffered birth date, taking the birth measurements with it.
+    ///
+    /// This is the one field on the sheet whose correction reaches history, and
+    /// it has to: the entries dated on the old birth day ARE the birth
+    /// measurements by construction (`OnboardingBabyBuilder` dates its first
+    /// entry at `birthDate`), so leaving them behind would strand them before
+    /// the new birth date, where the growth engine reads them as bad data. They
+    /// are moved to the very instant the `Baby` now carries, which is what keeps
+    /// onboarding's `entry.date == birthDate` invariant true after an edit.
+    ///
+    /// Deliberately narrow — only the birth day moves. Every other weighing
+    /// happened when it happened, and the 2026-09-05 one-way rule still holds
+    /// for the rest of the sheet: a profile correction is not a new weighing.
+    private func saveBirthDate() {
+        // Clamped as well as bounded, because the picker's range is enforced in
+        // DAYS while the value it hands back is an INSTANT: choose the bound's
+        // own day and the selection keeps its old time of day, which can sit
+        // hours after the measurement that set the bound. Landing exactly ON
+        // that measurement is the honest reading of "the birth is no later than
+        // the first weighing" — and it keeps `NewbornWeightLoss`'s
+        // `date >= birthDate` filter satisfied.
+        let newBirthDate = min(editedBirthDate, latestSelectableBirthDate)
+        guard newBirthDate != baby.birthDate else { return }
+        // Selected against the OLD birth date, before it is overwritten.
+        let birthMeasurements = BirthDateChange.entriesToRedate(
+            entries: baby.growthEntries ?? [],
+            oldBirthDate: baby.birthDate
+        )
+        for entry in birthMeasurements { entry.date = newBirthDate }
+        baby.birthDate = newBirthDate
+    }
+
     private func save() {
         saveName()
+        saveBirthDate()
         // Toggling either off clears the stored value: the parent is saying they
         // do not know it, which is not the same as leaving a stale number behind.
         baby.birthWeightKg = recordsBirthWeight ? birthWeightKg : nil
         baby.gestationalWeeks = wasBornEarly ? Int(gestationalWeeks) : nil
         try? modelContext.save()
-        // A rename has to reach the widget, which prints the name.
+        // A rename has to reach the widget, which prints the name. Nothing else
+        // needs waking after a birth-date change: ages and percentiles are all
+        // derived per render, and the growth notifications are recomputed
+        // cancel-before-add whenever `GrowthView` appears.
         WidgetRefresh.profileChanged()
         dismiss()
     }

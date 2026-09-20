@@ -14,6 +14,44 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-20 — The birth-day measurement follows the birth date
+
+Correcting the birth date in `BabyProfileEditSheet` moves every growth entry
+dated on the OLD birth DAY to the new birth date, and nothing else. The field
+is buffered until Save (so Cancel cancels), and its picker is bounded at
+`min(today, earliest non-birth-day measurement)`. The rules live in
+`BirthDateChange`, pure and pinned by tests.
+
+**Why history moves at all, when the 2026-09-05 one-way rule says profile
+corrections never touch it.** It is not the same kind of edit. Those entries
+ARE the birth measurement — `OnboardingBabyBuilder` creates the first entry
+dated AT `birthDate`, so the entry and the field are two recordings of one
+fact, and correcting one without the other makes them disagree. Moving the
+birth date forward used to strand that entry BEFORE the birth, where
+`NewbornWeightLoss.analyse` drops it as bad data and a preterm baby's
+`correctedBirthDate` can strand it further still: the parent fixes a typo and
+silently loses the first point on the chart and the anchor the whole newborn
+window is measured against. Every other weighing happened when it happened and
+is left alone, which is the one-way rule still holding for the rest.
+
+**By calendar DAY, not by instant.** Onboarding's own entry matches the birth
+instant exactly, but a parent who typed the discharge numbers in by hand
+picked the day and got the sheet's clock. A measurement recorded on the birth
+day is a birth measurement whatever its time.
+
+**Why the picker is bounded, and why it is also clamped on Save.** A birth
+date later than a real weighing dates that weighing before the birth, and
+re-dating cannot repair it — a day-3 weighing is not a birth measurement and
+must not be moved. The bound refuses that state; the clamp is needed because
+the range is enforced in days while the value is an instant, so choosing the
+bound's own day would otherwise keep the old time of day and could land hours
+after the weighing that set the bound. Same two-guard shape as the
+future-dated weighing (2026-09-05).
+
+**No migration, again deliberately** — this changes nothing already stored.
+Existing installs keep their dates until a parent edits the birth date, which
+is the only moment the app learns the old one was wrong.
+
 ## 2026-09-05 — Onboarding asks for the measurements AT BIRTH, and dates the first entry there
 
 The measurements page is titled "Height and weight at birth" and its answer
