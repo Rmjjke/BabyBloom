@@ -357,64 +357,25 @@ struct GrowthView: View {
 
     /// The whole card opens the explainer — the mechanics and the reasoning now
     /// live in `ExplainerCard`, which the gain, trend and nutrition cards share.
+    ///
+    /// The card itself is `PercentileCard`, shared with onboarding's showcase
+    /// page so the two can never drift. The explainer wrapper stays HERE: it is
+    /// what injects the "?" badge, and nothing in onboarding would open a sheet.
     private func percentileCard(percentile: Double, badge: String,
                                 months: Int, weighedOn: Date) -> some View {
-        let label = WHOGrowthStandard.percentileLabel(percentile)
-        let color = WHOGrowthStandard.percentileTint(percentile).color
-
-        return ExplainerCard(explainer: .percentile) {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-                HStack {
-                    // The same title view every `InsightCard` header uses, so
-                    // this hand-built header carries the explainer to VoiceOver
-                    // exactly as the others do.
-                    InsightCardTitle("section.who_percentiles".l)
-                    Spacer()
-                    InfoBadge()
-                }
-
-                VStack(spacing: BBTheme.Spacing.md) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("percentile.weight".l)
-                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                            BBTheme.Typography.metric(label)
-                                .foregroundStyle(color)
-                        }
-                        Spacer()
-                        ZStack {
-                            Circle()
-                                .stroke(color.opacity(0.2), lineWidth: 6)
-                                .frame(width: 64, height: 64)
-                            Circle()
-                                .trim(from: 0, to: percentile / 100)
-                                .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                                .frame(width: 64, height: 64)
-                                .rotationEffect(.degrees(-90))
-                            Text(badge)
-                                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
-                                .foregroundStyle(color)
-                        }
-                    }
-
-                    // Both lines describe the WEIGHING. The age is the one the
-                    // figure was scored at, and the date says which weighing that
-                    // was — without it "1 month old" reads as a claim about today
-                    // when the last entry is three weeks back.
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(String(format: "percentile.by_who_fmt".l, months, months.monthWord))
-                        Text(String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth))
-                    }
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding(BBTheme.Spacing.md)
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.lg)
-                .bbShadow(BBTheme.Shadow.card)
-            }
+        ExplainerCard(explainer: .percentile) {
+            // Both lines describe the WEIGHING. The age is the one the figure
+            // was scored at, and the date says which weighing that was —
+            // without it "1 month old" reads as a claim about today when the
+            // last entry is three weeks back.
+            PercentileCard(
+                percentile: percentile,
+                badge: badge,
+                captionLines: [
+                    String(format: "percentile.by_who_fmt".l, months, months.monthWord),
+                    String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth),
+                ]
+            )
         }
     }
 
