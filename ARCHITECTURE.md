@@ -383,9 +383,10 @@ is a drift this project has already paid for.
 Eleven pages, and **the enum's case order is the flow**: `OnboardingStep` —
 welcome, name, birth, feeding, growth, fact, growthShowcase, notifications,
 widgets, generating, premium. The first four after welcome are the quiz
-(`isQuiz`, progress bar, shared bottom nav); the six after `growth` are info
-pages, so inserting or reordering among them touches neither `quizProgress`
-nor the nav (DECISIONS 2026-09-01).
+(`isQuiz`, progress bar, shared bottom nav); the five info pages after `growth`
+— fact, growthShowcase, notifications, widgets, generating, and not the paywall,
+which sells rather than informs — are not, so inserting or reordering among them
+touches neither `quizProgress` nor the nav (DECISIONS 2026-09-01).
 
 Two of those pages show the REAL product rather than a picture of it.
 `WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed

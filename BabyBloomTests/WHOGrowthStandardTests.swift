@@ -57,8 +57,13 @@ final class WHOGrowthStandardTests: XCTestCase {
             ) else {
                 return XCTFail("no weight for day \(point.day), male=\(point.male)")
             }
-            // A tenth of the tolerance the z test allows, expressed in kg: the
-            // curves span 2–15 kg, so 0.03 is tighter than the 0.02 z above.
+            // 0.03 kg is the same budget the z test allows, converted at the
+            // WORST exchange rate in the table. One z is `m * s` kg to first
+            // order, smallest at day 0 (3.23 × 0.142 ≈ 0.46 kg/z) and largest
+            // at 730 days (12.15 × 0.114 ≈ 1.39 kg/z), so 0.02 z buys between
+            // 0.009 and 0.028 kg. 0.03 covers the loosest of those; it is NOT
+            // a tightening of the z tolerance, and treating it as one is how a
+            // real error at day 0 would slip through.
             XCTAssertEqual(kg, point.kg, accuracy: 0.03,
                            "day \(point.day), male=\(point.male), z=\(point.z)")
         }

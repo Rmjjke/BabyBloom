@@ -24,6 +24,15 @@ final class PercentileCardRenderDump: XCTestCase {
     private let weighedOn = Date(timeIntervalSince1970: 1_700_000_000)
 
     func testDumpPercentileCards() throws {
+        // Restored so this dump cannot leak a language into the suites that run
+        // after it — several of them assert on localized output in this same
+        // process. A teardown block rather than an override of `tearDown`:
+        // XCTestCase's is nonisolated and this class is @MainActor, and the
+        // block captures only the Sendable language value, never `self`.
+        // (Same reasoning, same shape, as `NutritionRenderDump`.)
+        let originalLanguage = LocalizationManager.shared.language
+        addTeardownBlock { LocalizationManager.shared.setLanguage(originalLanguage) }
+
         let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("bb-percentile")
         try? FileManager.default.removeItem(at: dir)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

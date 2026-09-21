@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Page 0: Welcome
+// MARK: - Welcome (page 1 of 11)
 
 struct WelcomePage: View {
     let onStart: () -> Void

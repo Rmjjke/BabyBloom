@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Generating (page 9 of 10)
+// MARK: - Generating (page 10 of 11)
 
 /// Runs after the notifications and widget pages: its last step ("configuring
 /// smart reminders") is only honest once permission has been answered, and its

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Page 7: Premium
+// MARK: - Premium (page 11 of 11)
 
 struct PremiumPage: View {
     let onPurchased: () -> Void

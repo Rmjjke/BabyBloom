@@ -16,8 +16,10 @@ enum OnboardingStep: Int, CaseIterable {
     case premium
 
     /// Quiz pages show the progress bar and bottom nav. The five info pages
-    /// that follow Growth are not quiz pages, so neither the bar nor
-    /// `quizProgress`'s denominator moves when the flow grows or is reordered.
+    /// that follow Growth — fact, growthShowcase, notifications, widgets,
+    /// generating, and NOT the paywall, which is a sell rather than an info
+    /// page — are not quiz pages, so neither the bar nor `quizProgress`'s
+    /// denominator moves when the flow grows or is reordered.
     var isQuiz: Bool {
         switch self {
         case .name, .birth, .feeding, .growth: return true
