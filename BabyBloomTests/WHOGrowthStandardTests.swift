@@ -44,6 +44,44 @@ final class WHOGrowthStandardTests: XCTestCase {
         }
     }
 
+    /// The inverse, against the SAME published table.
+    ///
+    /// `weight(atZ:ageDays:isMale:)` draws the WHO corridor on the onboarding
+    /// showcase page, and a slipped sign or exponent there would put the 3rd
+    /// centile above the 97th in front of a parent three minutes into the app —
+    /// a drawing no assertion in the app itself would ever look at.
+    func testWeightAtZMatchesPublishedWHOCurves() {
+        for point in Self.reference {
+            guard let kg = WHOGrowthStandard.weight(
+                atZ: point.z, ageDays: point.day, isMale: point.male
+            ) else {
+                return XCTFail("no weight for day \(point.day), male=\(point.male)")
+            }
+            // 0.03 kg is the same budget the z test allows, converted at the
+            // WORST exchange rate in the table. One z is `m * s` kg to first
+            // order, smallest at day 0 (3.23 × 0.142 ≈ 0.46 kg/z) and largest
+            // at 730 days (12.15 × 0.114 ≈ 1.39 kg/z), so 0.02 z buys between
+            // 0.009 and 0.028 kg. 0.03 covers the loosest of those; it is NOT
+            // a tightening of the z tolerance, and treating it as one is how a
+            // real error at day 0 would slip through.
+            XCTAssertEqual(kg, point.kg, accuracy: 0.03,
+                           "day \(point.day), male=\(point.male), z=\(point.z)")
+        }
+    }
+
+    /// The corridor cannot cross itself at any age the sketch samples.
+    func testTheCorridorKeepsItsOrderAcrossTheFirstSixMonths() throws {
+        for day in stride(from: 0, through: 182, by: 7) {
+            for isMale in [true, false] {
+                let low = try XCTUnwrap(WHOGrowthStandard.weight(atZ: -1.8807936, ageDays: day, isMale: isMale))
+                let mid = try XCTUnwrap(WHOGrowthStandard.weight(atZ: 0, ageDays: day, isMale: isMale))
+                let high = try XCTUnwrap(WHOGrowthStandard.weight(atZ: 1.8807936, ageDays: day, isMale: isMale))
+                XCTAssertLessThan(low, mid, "day \(day), male=\(isMale)")
+                XCTAssertLessThan(mid, high, "day \(day), male=\(isMale)")
+            }
+        }
+    }
+
     func testMedianWeightIsExactlyTheFiftiethPercentile() {
         XCTAssertEqual(WHOGrowthStandard.percentile(weightKg: 3.346, ageDays: 0, isMale: true), 50)
         XCTAssertEqual(WHOGrowthStandard.percentile(weightKg: 8.946, ageDays: 365, isMale: false), 50)

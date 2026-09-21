@@ -14,6 +14,80 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-21 — Onboarding shows the ONE real number it has, and labels everything else a sketch
+
+A `growthShowcase` page sits between Fact and Notifications (eleven pages now).
+It renders `PercentileCard` — the Growth screen's own card, extracted, not
+copied — fed by the parent's own answers: the birth weight scored at day 0
+through `WHOGrowthStandard.percentileReading`, via the pure, unit-tested
+`OnboardingGrowthPreview`. Beside it, a WHO corridor drawn from the real LMS
+tables, the baby's real point on it, and a DASHED forward line captioned
+«Набросок — настоящая кривая появится по вашим взвешиваниям». Three bullets
+name only capabilities that exist today.
+
+**Why show rather than tell.** The growth engine is the product's strongest
+claim and the one a parent cannot evaluate from a sentence. `WidgetShowcasePage`
+already established the form — render the real view with constructed data — and
+this page is the same move with data that is not constructed at all. The parent
+recognises their own baby's weight in it, which no mock-up can buy.
+
+**Why the card is extracted and not duplicated.** A second hand-kept copy of a
+card that states a clinical figure would drift, and this project has paid for
+that class of drift before (the build-11 contradiction between two surfaces
+reading one number). One view, one call site each. Proved pixel-equivalent at
+the extraction: the pre-split private markup and the shared view rendered
+byte-identical PNGs across three locales, both schemes and both tails.
+
+**Why extremes are neutral HERE and red on the Growth screen.** Below the 3rd
+or above the 97th, `tone: .neutralOnly` swaps `BBAlert` for the neutral
+`textPrimary`. Nothing is withheld — the band label still reads «< 3-й» in
+full, and the ring's badge still names the side of the chart; only the alarm
+is. On the Growth screen a red reading arrives with its explainer, the chart,
+the history and the copy telling the parent to ask someone qualified. Three
+minutes into onboarding there is none of that, and a parent who has just typed
+their newborn's discharge weight is the last person who should meet a red
+number they cannot act on. This is the 2026-09-05 rule about colour one step
+further: the word carries the finding, the colour only ever carries urgency,
+and there is no urgency the app can serve on this page.
+
+**Why a forward line at all, and why dashed.** A flat corridor with one dot
+does not read as a growth chart, and the page has to show what the screen
+becomes. Drawing invented weighings would be the one unforgivable version — the
+parent would recognise it later as a promise the app never made — so the line
+follows the baby's own centile, is dashed, and is captioned as a sketch. The
+corridor underneath is genuinely the WHO standard, which is why
+`WHOGrowthStandard.weight(atZ:ageDays:isMale:)` was added rather than a
+plausible curve drawn in the view.
+
+**The showcase may only draw what the app draws — so the weight chart gained
+the corridor.** The first cut of this page shipped a WHO corridor that existed
+nowhere else: `WeightChartView` was an index-axis polyline of the baby's own
+weights, and `weight(atZ:)` had exactly one caller, the sketch. The dashed line
+was honestly labelled and the corridor was not — a caption saying "the real
+curve appears from your weighings" is a promise about the CHART, and the chart
+had no bands. The picture is the promise. Rather than delete the corridor from
+the preview, the chart was made to match it: an age axis (which the band
+requires, and which fixes the old chart's own distortion of unevenly spaced
+weighings), the shared `WHOCorridor` sampler, and one legend wording in both
+places. The rule this leaves behind: **a showcase page may render the real view
+with real data, or a clearly labelled sketch of a view that exists — never a
+picture of a feature.**
+
+**Consequence, deliberate: the baby's line now looks flat over short
+windows.** The y-axis is the union of the baby's weights and the corridor, so
+a fortnight's 150 g gain spans a few percent of the chart's height where the
+old self-normalising chart stretched it across most of it. That is what every
+paper growth chart does — the corridor only means something on its own scale
+— and the gain verdict is stated in words on the card below. Do not rescale y
+to the baby's own range for "readability": it silently deletes the corridor.
+
+**Why «не помню точно» and a pre-due-date preterm birth get the SAME
+invitation.** They are different causes with one honest answer: there is no
+number yet. Splitting them would mean explaining prematurity and the WHO
+tables' starting point on an onboarding page, to a parent whose baby may be in
+intensive care. The invitation names the action that produces a number and says
+nothing else; the sketch stays, so the page still shows what it is for.
+
 ## 2026-09-20 — The birth-day measurement follows the birth date
 
 Correcting the birth date in `BabyProfileEditSheet` moves every growth entry

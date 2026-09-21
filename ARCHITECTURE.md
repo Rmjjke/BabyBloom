@@ -347,6 +347,62 @@ the weighing. `.measuredInFirstWeeks` has one, through the same
 `HintWithAddWeighing`, because that card is gone by then and a weighing is
 literally what ends the state. No card on this screen shows two CTAs.
 
+**The weight chart is drawn on an AGE axis, over the WHO corridor.**
+`WeightChartView` takes `[WeightMeasurement]` — already through the engine's
+door, so the chart plots exactly what the cards below it score — plus
+`correctedBirthDate` and the sex, and places each point at its age in days
+rather than at its index in the list. That is what lets a band mean anything:
+the corridor is a function of age, and evenly spaced points would sit over the
+wrong part of it. `WHOCorridor.samples(fromAgeDays:toAgeDays:isMale:)` is the
+shared sampler, pure and unit-tested, and it carries the two clinical clamps as
+geometry: **the band starts at age 0**, never earlier — a preterm baby's
+pre-due-date weighings keep their negative ages on the axis and get no band
+beneath them, the drawing face of `correctedAgeDaysIfBorn` returning nil — and
+**it stops at `maxAgeDays`**, past which the chart draws the line alone. The y
+window spans the baby's weights *and* the band, so neither is clipped. One
+weighing is enough to draw (the chart widens to a 28-day window around it),
+which is what every fresh install has, and the corridor is free for everyone —
+the showcase page promises it before anyone has paid.
+
+`showsWHOCorridor` exists for a caller that ever reuses this shell for height
+or head circumference: those are different tables, and a weight corridor under
+a length is the wrong standard, not an approximation.
+
+**The percentile card is `PercentileCard` (`Features/Growth/`), and it is
+shared with onboarding.** `GrowthView` wraps it in the `ExplainerCard` above —
+that wrapper is what injects the "?" — and passes two caption lines; the
+onboarding showcase page renders it bare, with one caption line and
+`tone: .neutralOnly`. The tone is the only behavioural difference: below the
+3rd centile or above the 97th the tail takes the neutral `textPrimary` instead
+of `BBAlert`, while the band LABEL is unchanged (DECISIONS 2026-09-21). It is
+one view rather than two because a hand-copied card stating a clinical figure
+is a drift this project has already paid for.
+
+## Onboarding
+
+Eleven pages, and **the enum's case order is the flow**: `OnboardingStep` —
+welcome, name, birth, feeding, growth, fact, growthShowcase, notifications,
+widgets, generating, premium. The first four after welcome are the quiz
+(`isQuiz`, progress bar, shared bottom nav); the five info pages after `growth`
+— fact, growthShowcase, notifications, widgets, generating, and not the paywall,
+which sells rather than informs — are not, so inserting or reordering among them
+touches neither `quizProgress` nor the nav (DECISIONS 2026-09-01).
+
+Two of those pages show the REAL product rather than a picture of it.
+`WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed
+entry. `GrowthShowcasePage` renders `PercentileCard` with the parent's own
+answers: `OnboardingGrowthPreview.state(...)` — pure, unit-tested — scores the
+birth weight at day 0 through the same
+`WHOGrowthStandard.percentileReading(of:correctedBirthDate:isMale:)` the Growth
+screen calls, and returns `.invitation` for the two cases with no honest
+number (no birth measurement, and a preterm birth before the corrected due
+date). The corridor drawing beside it samples `WHOCorridor` — the same sampler
+the Growth screen's chart draws, with the same fill, the same median stroke and
+the same `WHOCorridorLegend` underneath, so the parent recognises the real
+chart when they reach it. Only the baby's forward line is illustrative: it is
+dashed and labelled as a sketch, because it is the one thing the app cannot
+know yet. Nothing on either page is seeded, saved or read back.
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
@@ -382,7 +438,7 @@ when the answer arrives.
 
 **Two paywalls, one selling half.** `PlanPickerSection` is the plans, prices,
 trial promise, CTA, restore and legal footer; `PaywallView` (settings, modal)
-and `PremiumPage` (onboarding, page 10) compose it. The section has no
+and `PremiumPage` (onboarding, page 11) compose it. The section has no
 "purchased" callback: reacting to entitlement is the host's job, because
 entitlement arrives from a purchase, from `restorePurchases()`, from
 `Transaction.updates`, or from the user having subscribed before the screen
@@ -433,8 +489,8 @@ logged rhythm. The full catalogue — identifiers, age tables, scheduling
 triggers — is [NOTIFICATIONS.md](NOTIFICATIONS.md); it is a reference, keep it
 in step with the code.
 
-Permission is requested from onboarding's own notifications page (page 7 of
-10, before the Generating loader whose last step promises reminders) — never
+Permission is requested from onboarding's own notifications page (page 8 of
+11, before the Generating loader whose last step promises reminders) — never
 at launch and never over the Dashboard. That page is the single call site of
 `requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.

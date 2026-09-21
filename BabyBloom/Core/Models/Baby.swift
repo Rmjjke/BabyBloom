@@ -51,7 +51,7 @@ final class Baby {
 
     /// Born before 37 completed weeks — the threshold at which growth references
     /// expect a corrected age.
-    var isPreterm: Bool { (gestationalWeeks ?? Self.termWeeks) < Self.pretermThresholdWeeks }
+    var isPreterm: Bool { Self.isPreterm(gestationalWeeks: gestationalWeeks) }
 
     /// The date this baby would have been born on had the pregnancy reached term.
     ///
@@ -62,13 +62,7 @@ final class Baby {
     /// Correction stops once the baby is two years old, the usual clinical
     /// convention, so beyond that this is just `birthDate`.
     var correctedBirthDate: Date {
-        guard isPreterm, let weeks = gestationalWeeks, ageInDays <= Self.correctionCutoffDays else {
-            return birthDate
-        }
-        // Guard against nonsense stored ages producing an absurd correction.
-        let clamped = min(max(weeks, Self.minGestationalWeeks), Self.termWeeks)
-        let offsetDays = (Self.termWeeks - clamped) * 7
-        return Calendar.current.date(byAdding: .day, value: offsetDays, to: birthDate) ?? birthDate
+        Self.correctedBirthDate(birthDate: birthDate, gestationalWeeks: gestationalWeeks)
     }
 
     /// Age corrected for prematurity, in days, never negative.
@@ -100,6 +94,36 @@ final class Baby {
     private static let minGestationalWeeks = 22
     /// Two years, after which prematurity is no longer corrected for.
     private static let correctionCutoffDays = 730
+
+    /// `isPreterm` and `correctedBirthDate` as pure functions of the two fields
+    /// they read.
+    ///
+    /// Static as well as stored because onboarding has to score the birth
+    /// weight against the WHO tables BEFORE any `Baby` exists — and it must do
+    /// it by this rule, not by a second copy of the 40-week arithmetic sitting
+    /// in a view, free to drift from this one. The instance members above are
+    /// now the only callers that read the stored fields.
+    static func isPreterm(gestationalWeeks: Int?) -> Bool {
+        (gestationalWeeks ?? termWeeks) < pretermThresholdWeeks
+    }
+
+    /// - Parameter now: the moment the two-year correction cutoff is measured
+    ///   against. Defaulted so the instance property reads today, and injectable
+    ///   so the rule is testable without waiting two years.
+    static func correctedBirthDate(birthDate: Date,
+                                   gestationalWeeks: Int?,
+                                   now: Date = Date()) -> Date {
+        let ageInDays = Calendar.current.dateComponents([.day], from: birthDate, to: now).day ?? 0
+        guard isPreterm(gestationalWeeks: gestationalWeeks),
+              let weeks = gestationalWeeks,
+              ageInDays <= correctionCutoffDays else {
+            return birthDate
+        }
+        // Guard against nonsense stored ages producing an absurd correction.
+        let clamped = min(max(weeks, minGestationalWeeks), termWeeks)
+        let offsetDays = (termWeeks - clamped) * 7
+        return Calendar.current.date(byAdding: .day, value: offsetDays, to: birthDate) ?? birthDate
+    }
 
     private static func days(from date: Date) -> Int {
         Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0

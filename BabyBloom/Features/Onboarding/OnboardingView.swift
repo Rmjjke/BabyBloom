@@ -57,6 +57,16 @@ struct OnboardingView: View {
                                              onBack: back)
                     case .fact: FactPage(babyName: babyName, birthDate: birthDate,
                                          feedingType: feedingType, onContinue: next)
+                    case .growthShowcase:
+                        // The measurements page's opt-out is what nil means
+                        // here — see `OnboardingGrowthPreview`. Same expression
+                        // as `createAndFinish`'s, and for the same reason: an
+                        // invented 3.5 kg must not become a percentile either.
+                        GrowthShowcasePage(babyName: babyName, birthDate: birthDate,
+                                           gender: gender,
+                                           birthWeightKg: knowsBirthMeasurements ? growthWeightKg : nil,
+                                           gestationalWeeks: wasBornEarly ? Int(gestationalWeeks) : nil,
+                                           onContinue: next)
                     case .notifications: NotificationsPage(babyName: babyName, onContinue: next)
                     case .widgets: WidgetShowcasePage(babyName: babyName, onContinue: next)
                     case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)

@@ -1,11 +1,12 @@
-# Stream B walk (en, light): the ten-page onboarding, the permission dialog
+# Stream B walk (en, light): the eleven-page onboarding, the permission dialog
 # raised ON the notifications page, and the Dashboard reached with the greeting
 # readable.
 #
-# Page order (reordered 2026-09-01): Welcome → Name → Birth → Feeding → Growth
-# → Fact → Notifications → Widget → Generating → Premium. The commitment CTA
-# "Build My Tracker" now lives on the WIDGET page, immediately before the
-# loader it kicks off; the Fact page ends with a plain "Next".
+# Page order (growth showcase inserted 2026-09-21): Welcome → Name → Birth →
+# Feeding → Growth → Fact → Growth showcase → Notifications → Widget →
+# Generating → Premium. The commitment CTA "Build My Tracker" lives on the
+# WIDGET page, immediately before the loader it kicks off; the Fact page and
+# the showcase page both end with a plain "Next".
 #
 # This flow is a SMOKE CHECK, not the regression guard for the old
 # dialog-over-Dashboard bug. It cannot be that guard: the same XCUITest driver
@@ -51,6 +52,18 @@ appId: com.nenita.app
 # badge before tapping, or the count of "Next" taps stops meaning anything.
 - extendedWaitUntil: { visible: "Did you know?", timeout: 20000 }
 - takeScreenshot: 00-fact-en-light
+- tapOn: "Next"
+
+# Growth showcase — its CTA is a plain "Next" too, so anchor on the page's own
+# title. The caption is the discriminator that matters: 3.50 kg is the
+# measurements page's untouched default, so a build that stopped feeding the
+# real birth weight into the card would still show the card and fail here.
+- extendedWaitUntil: { visible: ".*by WHO standards.*", timeout: 20000 }
+- assertVisible: "WHO Percentiles"
+- assertVisible: ".*Mia at birth: 3.50.*"
+- assertVisible: ".*the real curve appears from your own weighings.*"
+- assertVisible: ".*where Mia sits among peers.*"
+- takeScreenshot: 00b-showcase-en-light
 - tapOn: "Next"
 
 - extendedWaitUntil: { visible: "Turn on notifications", timeout: 30000 }

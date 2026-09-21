@@ -84,6 +84,27 @@ enum WHOGrowthStandard {
         return (pow(weightKg / c.m, c.l) - 1) / (c.l * c.s)
     }
 
+    /// The weight sitting `z` standard deviations from the median at this age —
+    /// the exact inverse of `zScore`, from the same LMS coefficients.
+    ///
+    /// Added for onboarding's showcase sketch, which draws a WHO corridor: "what
+    /// does the 3rd centile weigh at ten weeks" is this question, and answering
+    /// it in the view would have meant a second, approximate copy of the
+    /// standard next to the exact one. The corridor a parent meets on their
+    /// third minute in the app is therefore the same reference every number in
+    /// the app is scored against.
+    static func weight(atZ z: Double, ageDays: Int, isMale: Bool) -> Double? {
+        guard let c = lms(ageDays: ageDays, isMale: isMale), c.m > 0, c.s > 0 else { return nil }
+        if abs(c.l) < 1e-9 {
+            return c.m * exp(z * c.s)
+        }
+        // A non-positive base has no real fractional power. The published
+        // coefficients never produce one inside ±3 z — a guard, not a case.
+        let base = 1 + c.l * c.s * z
+        guard base > 0 else { return nil }
+        return c.m * pow(base, 1 / c.l)
+    }
+
     /// Weight percentile, rounded and clamped to the 1–99 range shown to users.
     static func percentile(weightKg: Double, ageDays: Int, isMale: Bool) -> Double? {
         guard let z = zScore(weightKg: weightKg, ageDays: ageDays, isMale: isMale) else { return nil }

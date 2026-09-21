@@ -1,9 +1,10 @@
 # Stream B walk (ru, dark): same flow, and the "Не сейчас" branch — which
 # raises no system alert at all and advances immediately.
 #
-# Page order (reordered 2026-09-01): Welcome → Name → Birth → Feeding → Growth
-# → Fact → Notifications → Widget → Generating → Premium. «Создать мой трекер»
-# is the WIDGET page's CTA now; the Fact page ends with a plain «Далее».
+# Page order (growth showcase inserted 2026-09-21): Welcome → Name → Birth →
+# Feeding → Growth → Fact → Growth showcase → Notifications → Widget →
+# Generating → Premium. «Создать мой трекер» is the WIDGET page's CTA; the Fact
+# page and the showcase page both end with a plain «Далее».
 appId: com.nenita.app
 ---
 - launchApp:
@@ -29,6 +30,17 @@ appId: com.nenita.app
 # Fact page — its CTA is «Далее» as well, so anchor on the page's own badge.
 - extendedWaitUntil: { visible: "Знали ли вы?", timeout: 20000 }
 - takeScreenshot: 05-fact-ru-dark
+- tapOn: "Далее"
+
+# Growth showcase — «Далее» again, so anchor on the page's own title. 3.50 кг is
+# the measurements page's untouched default: asserting it is what proves the
+# card is fed the parent's REAL answer rather than drawn from a fixture.
+- extendedWaitUntil: { visible: ".*по стандартам ВОЗ.*", timeout: 20000 }
+- assertVisible: "Перцентили ВОЗ"
+- assertVisible: ".*Мия при рождении: 3.50.*"
+- assertVisible: ".*настоящая кривая появится по вашим взвешиваниям.*"
+- assertVisible: ".*где Мия среди сверстников.*"
+- takeScreenshot: 05b-showcase-ru-dark
 - tapOn: "Далее"
 
 - extendedWaitUntil: { visible: "Включить уведомления", timeout: 20000 }
