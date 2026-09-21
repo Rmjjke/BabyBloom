@@ -49,9 +49,14 @@ struct GrowthView: View {
                     .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
-                // Weight chart
-                if entries.count >= 2 {
-                    chartSection
+                // Weight chart. Keyed to WEIGHINGS rather than entries, and to
+                // one rather than two: with the WHO corridor under it a single
+                // point is worth drawing — it shows where the baby sits — and
+                // that single point is what every fresh install has. Two
+                // height-only entries used to satisfy the old gate and render
+                // an empty frame.
+                if let baby, !measurements.isEmpty {
+                    chartSection(baby)
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
 
@@ -170,10 +175,12 @@ struct GrowthView: View {
     }
 
     // MARK: - Chart
-    private var chartSection: some View {
+    private func chartSection(_ baby: Baby) -> some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.weight_chart")
-            WeightChartView(entries: Array(entries.reversed()))
+            WeightChartView(measurements: measurements,
+                            correctedBirthDate: baby.correctedBirthDate,
+                            isMale: baby.gender == .male)
         }
     }
 
@@ -432,19 +439,110 @@ struct GrowthView: View {
 }
 
 // MARK: - Weight Chart
-struct WeightChartView: View {
-    let entries: [GrowthEntry]
 
-    private var weights: [Double] {
-        entries.compactMap { $0.weightKg }
+/// The baby's weighings over an AGE axis, on the WHO corridor.
+///
+/// **The axis is age in days, not the index of the entry**, and that change is
+/// what makes the band mean anything: the corridor is a function of age, so
+/// points spaced by the order they were recorded would sit over the wrong part
+/// of it. It also fixes the old chart's own distortion — three weighings in one
+/// week and a fourth three months later used to be drawn evenly spaced.
+///
+/// The corridor itself comes from `WHOCorridor`, the same sampler onboarding's
+/// showcase sketch draws, so the preview a parent is shown in their third
+/// minute is a picture of this chart (DECISIONS 2026-09-21).
+///
+/// Free for everyone. The percentile card beside it is free, and the showcase
+/// page shows this corridor to every parent before they have paid anything —
+/// putting it behind the paywall afterwards would make that page a bait.
+struct WeightChartView: View {
+    /// Already through the engine's door (`[GrowthEntry].weightMeasurements`),
+    /// oldest first: weight-bearing and not dated into the future, so the chart
+    /// plots exactly what the cards below it score.
+    let measurements: [WeightMeasurement]
+    /// What the age axis and the corridor are measured from — corrected, so a
+    /// preterm baby's points sit against the reference for the age it would be
+    /// at term.
+    let correctedBirthDate: Date
+    let isMale: Bool
+    /// WEIGHT-for-age only. Nothing else on this screen is plotted today, but a
+    /// caller that ever reuses this shell for height or head circumference must
+    /// pass `false`: those are different tables, and drawing a weight corridor
+    /// under a length is not an approximation, it is the wrong standard.
+    var showsWHOCorridor: Bool = true
+
+    /// Chart geometry in DATA space, computed once per body rather than per
+    /// point — `place` is called for every sample of three curves plus every
+    /// weighing, and reading a computed property there made it quadratic.
+    private struct Frame {
+        let ageRange: ClosedRange<Int>
+        let weightRange: ClosedRange<Double>
+        let samples: [WHOCorridor.Sample]
     }
 
-    private var minWeight: Double { weights.min() ?? 0 }
-    private var maxWeight: Double { weights.max() ?? 1 }
+    /// The narrowest window the chart will draw. A single weighing — which is
+    /// every fresh install that answered the measurements page — would
+    /// otherwise be a zero-width axis; four weeks around it shows the point
+    /// sitting in the corridor, which is the whole reason one point is now
+    /// worth charting at all.
+    private static let minimumSpanDays = 28
+    private static let inset: CGFloat = 6
+
+    private var points: [(ageDays: Int, kg: Double)] {
+        measurements.map {
+            (Calendar.current.dateComponents([.day], from: correctedBirthDate, to: $0.date).day ?? 0,
+             $0.weightKg)
+        }
+    }
+
+    private func frame(for points: [(ageDays: Int, kg: Double)]) -> Frame? {
+        guard let first = points.first else { return nil }
+        var low = points.reduce(first.ageDays) { min($0, $1.ageDays) }
+        var high = points.reduce(first.ageDays) { max($0, $1.ageDays) }
+        if high - low < Self.minimumSpanDays {
+            // Centred on the data, then pulled back so the window never opens
+            // empty space BEFORE the due date: no band can be drawn there and
+            // no weighing sits there, so a fresh install's single birth point
+            // would otherwise be pinned to the middle of a half-blank chart.
+            // The floor is `min(low, 0)`, not 0 — a preterm baby's pre-due-date
+            // weighings carry negative ages and must stay on the axis.
+            let middle = (low + high) / 2
+            low = max(middle - Self.minimumSpanDays / 2, min(low, 0))
+            high = low + Self.minimumSpanDays
+        }
+        let samples = showsWHOCorridor
+            ? WHOCorridor.samples(fromAgeDays: low, toAgeDays: high, isMale: isMale)
+            : []
+
+        // The y window spans the baby AND the band, so the corridor is never
+        // clipped and the baby's own line keeps its shape inside it.
+        var minKg = points.reduce(first.kg) { min($0, $1.kg) }
+        var maxKg = points.reduce(first.kg) { max($0, $1.kg) }
+        for sample in samples {
+            minKg = min(minKg, sample.low)
+            maxKg = max(maxKg, sample.high)
+        }
+        let pad = max((maxKg - minKg) * 0.08, 0.05)
+        return Frame(ageRange: low...high,
+                     weightRange: (minKg - pad)...(maxKg + pad),
+                     samples: samples)
+    }
+
+    private func place(ageDays: Int, kg: Double, in frame: Frame, size: CGSize) -> CGPoint {
+        let ageSpan = CGFloat(max(frame.ageRange.upperBound - frame.ageRange.lowerBound, 1))
+        let kgSpan = max(frame.weightRange.upperBound - frame.weightRange.lowerBound, 0.01)
+        let usableWidth = max(size.width - Self.inset * 2, 1)
+        return CGPoint(
+            x: Self.inset + CGFloat(ageDays - frame.ageRange.lowerBound) / ageSpan * usableWidth,
+            // Heavier sits higher.
+            y: size.height - CGFloat((kg - frame.weightRange.lowerBound) / kgSpan) * size.height
+        )
+    }
 
     var body: some View {
-        VStack {
-            if weights.count >= 2 {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            let points = points
+            if let frame = frame(for: points) {
                 GeometryReader { geo in
                     ZStack(alignment: .bottomLeading) {
                         // Grid lines
@@ -455,42 +553,46 @@ struct WeightChartView: View {
                                 .offset(y: -CGFloat(i) * geo.size.height / 3)
                         }
 
-                        // Line
-                        Path { path in
-                            for (index, weight) in weights.enumerated() {
-                                let x = CGFloat(index) / CGFloat(weights.count - 1) * geo.size.width
-                                let normalised = (weight - minWeight) / max(maxWeight - minWeight, 0.01)
-                                let y = geo.size.height - (normalised * geo.size.height * 0.8 + geo.size.height * 0.1)
-                                if index == 0 {
-                                    path.move(to: CGPoint(x: x, y: y))
-                                } else {
-                                    path.addLine(to: CGPoint(x: x, y: y))
-                                }
-                            }
+                        if !frame.samples.isEmpty {
+                            corridor(frame, size: geo.size)
+                                .fill(BBTheme.Colors.growth.opacity(0.16))
+                            curve(frame.samples.map { ($0.ageDays, $0.mid) }, frame, size: geo.size)
+                                .stroke(BBTheme.Colors.growth.opacity(0.5),
+                                        style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
                         }
-                        .stroke(BBTheme.Colors.growth, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
 
-                        // Dots
-                        ForEach(weights.indices, id: \.self) { index in
-                            let x = CGFloat(index) / CGFloat(weights.count - 1) * geo.size.width
-                            let normalised = (weights[index] - minWeight) / max(maxWeight - minWeight, 0.01)
-                            let y = geo.size.height - (normalised * geo.size.height * 0.8 + geo.size.height * 0.1)
+                        curve(points.map { ($0.ageDays, $0.kg) }, frame, size: geo.size)
+                            .stroke(BBTheme.Colors.growth,
+                                    style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+
+                        ForEach(points.indices, id: \.self) { index in
+                            let dot = place(ageDays: points[index].ageDays, kg: points[index].kg,
+                                            in: frame, size: geo.size)
                             Circle()
                                 .fill(BBTheme.Colors.growth)
-                                .frame(width: 8, height: 8)
-                                .offset(x: x - 4, y: y - 4)
+                                .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2))
+                                .frame(width: 9, height: 9)
+                                .position(x: dot.x, y: dot.y)
                         }
                     }
                 }
                 .frame(height: 160)
                 .padding(.horizontal, BBTheme.Spacing.sm)
+                // Decoration: the cards below state every verdict this picture
+                // hints at, and a path description helps nobody.
+                .accessibilityHidden(true)
+
+                if !frame.samples.isEmpty {
+                    WHOCorridorLegend()
+                }
             }
 
-            // Labels
+            // The baby's lightest and heaviest, not the axis bounds — the axis
+            // now spans the corridor too.
             HStack {
-                Text(String(format: "%.2f \("unit.kg".l)", minWeight))
+                Text(String(format: "%.2f \("unit.kg".l)", points.map(\.kg).min() ?? 0))
                 Spacer()
-                Text(String(format: "%.2f \("unit.kg".l)", maxWeight))
+                Text(String(format: "%.2f \("unit.kg".l)", points.map(\.kg).max() ?? 0))
             }
             .font(.system(size: 11, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -499,6 +601,41 @@ struct WeightChartView: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
+    }
+
+    private func curve(_ values: [(Int, Double)], _ frame: Frame, size: CGSize) -> Path {
+        var path = Path()
+        for (index, value) in values.enumerated() {
+            let point = place(ageDays: value.0, kg: value.1, in: frame, size: size)
+            if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
+        }
+        return path
+    }
+
+    /// The 3rd–97th band as one closed shape: the 97th out, the 3rd back.
+    private func corridor(_ frame: Frame, size: CGSize) -> Path {
+        var path = curve(frame.samples.map { ($0.ageDays, $0.high) }, frame, size: size)
+        for sample in frame.samples.reversed() {
+            path.addLine(to: place(ageDays: sample.ageDays, kg: sample.low, in: frame, size: size))
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// One wording for the band, wherever it is drawn. The showcase page carries
+/// the identical line, so the parent meets the same sentence twice.
+struct WHOCorridorLegend: View {
+    var body: some View {
+        HStack(spacing: BBTheme.Spacing.xs) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(BBTheme.Colors.growth.opacity(0.28))
+                .frame(width: 16, height: 8)
+            Text("chart.who_corridor".l)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 

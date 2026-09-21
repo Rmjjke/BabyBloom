@@ -471,6 +471,7 @@
   "onboarding.widget.subtitle": "Сколько осталось до следующего кормления — одним взглядом, не открывая приложение.",
   "onboarding.widget.howto": "Долгое нажатие на домашний экран → «+» → %@",
   "onboarding.widget.cta": "Создать мой трекер",
+  "chart.who_corridor": "Коридор ВОЗ: 3–97-й перцентили",
   "onboarding.showcase.title": "Как растёт %@ — по стандартам ВОЗ",
   "onboarding.showcase.caption_fmt": "%@ при рождении: %@",
   "onboarding.showcase.invite": "Добавьте первое взвешивание — и %@ появится на графике ВОЗ",

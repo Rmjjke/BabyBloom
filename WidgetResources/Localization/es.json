@@ -471,6 +471,7 @@
   "onboarding.widget.subtitle": "Cuánto falta para la próxima toma, de un vistazo y sin abrir la app.",
   "onboarding.widget.howto": "Mantén pulsada la pantalla de inicio → «+» → %@",
   "onboarding.widget.cta": "Crear mi registro",
+  "chart.who_corridor": "Corredor de la OMS: percentiles 3–97",
   "onboarding.showcase.title": "Cómo crece %@, según los estándares de la OMS",
   "onboarding.showcase.caption_fmt": "%@ al nacer: %@",
   "onboarding.showcase.invite": "Añade el primer pesaje y %@ aparecerá en la curva de la OMS",

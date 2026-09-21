@@ -143,6 +143,11 @@ struct GrowthShowcasePage: View {
             )
             .frame(height: 150)
 
+            // The same legend, in the same words, as the real chart's — so the
+            // band the parent meets here is recognisably the band they will
+            // find on the Growth screen.
+            WHOCorridorLegend()
+
             // The label is not a caption, it is the honesty: the corridor is
             // real WHO data, the baby's forward line is not, and the parent has
             // to be told which is which before they read anything into it.
@@ -191,12 +196,15 @@ struct GrowthShowcasePage: View {
 /// The WHO weight-for-age corridor over the first six months, the baby's real
 /// birth point on it, and a dashed line forward.
 ///
-/// The bands are not decoration: `WHOGrowthStandard.weight(atZ:ageDays:isMale:)`
-/// reads the published LMS coefficients, so the 3rd, 50th and 97th centiles are
-/// where the standard puts them and the parent's own point lands at its true
-/// height between them. The DASHED line is the illustration — it follows the
-/// baby's own centile forward, which is what a healthy course looks like and is
-/// exactly what the app cannot yet know. The label beside the drawing says so.
+/// The band is not decoration and it is not this view's invention: it comes
+/// from `WHOCorridor`, the sampler the Growth screen's own weight chart draws,
+/// with the same fill, the same median stroke and the same legend underneath.
+/// That parity is the point — this page promises the parent a chart, and the
+/// chart it promises now exists (DECISIONS 2026-09-21).
+///
+/// What remains illustrative is the DASHED line, which follows the baby's own
+/// centile forward: a plausible healthy course, and exactly the thing the app
+/// cannot yet know. The label beside the drawing says so.
 ///
 /// Plain `Path`s rather than Charts: three curves and a dot do not need a chart
 /// engine, and this must stay legible at 150pt with no axes to read.
@@ -214,63 +222,65 @@ private struct GrowthCorridorSketch: View {
     /// enough that the first weeks — the part a newborn's parent is living in —
     /// are not squeezed into the left margin.
     private static let spanDays = 182
-    private static let sampleDays = Array(stride(from: 0, through: spanDays, by: 7))
-    /// z for the 97th centile; the 3rd is its mirror.
-    private static let tailZ = 1.8807936
-
-    private var lower: [CGPoint] { curve(z: -Self.tailZ) }
-    private var upper: [CGPoint] { curve(z: Self.tailZ) }
-    private var median: [CGPoint] { curve(z: 0) }
-
-    /// The baby's own z, held constant across the window — "tracking its
-    /// centile", the shape the dashed line illustrates.
-    private var ownZ: Double? {
-        birthWeightKg.flatMap { WHOGrowthStandard.zScore(weightKg: $0, ageDays: 0, isMale: isMale) }
-    }
-
-    /// Day/weight pairs in DATA space; `place` maps them onto the canvas.
-    private func curve(z: Double) -> [CGPoint] {
-        Self.sampleDays.compactMap { day in
-            WHOGrowthStandard.weight(atZ: z, ageDays: day, isMale: isMale)
-                .map { CGPoint(x: CGFloat(day), y: $0) }
-        }
-    }
-
-    /// The weight window the drawing spans: the whole corridor, plus a little
-    /// air so the 3rd centile is not welded to the bottom edge. Clamped to
-    /// include the baby's own point, which can sit outside the corridor.
-    private var weightRange: ClosedRange<CGFloat> {
-        let lows = lower.map(\.y), highs = upper.map(\.y)
-        var minKg = lows.min() ?? 2, maxKg = highs.max() ?? 10
-        if let z = ownZ, let own = WHOGrowthStandard.weight(atZ: z, ageDays: 0, isMale: isMale) {
-            minKg = Swift.min(minKg, own)
-            maxKg = Swift.max(maxKg, own)
-        }
-        let pad = (maxKg - minKg) * 0.08
-        return (minKg - pad)...(maxKg + pad)
-    }
-
     /// Horizontal breathing room. The one real point sits at day 0, and without
     /// this its marker is half outside the canvas — the run-and-look shots on
     /// both iPhone 17 and SE showed a clipped dot at the left edge.
     private static let inset: CGFloat = 6
 
-    private func place(_ point: CGPoint, in size: CGSize) -> CGPoint {
-        let range = weightRange
-        let spanKg = Swift.max(range.upperBound - range.lowerBound, 0.01)
+    /// Everything the drawing needs, resolved ONCE. These were computed
+    /// properties read from inside `place`, which made the whole drawing
+    /// quadratic in the sample count.
+    private struct Geometry {
+        let samples: [WHOCorridor.Sample]
+        let weightRange: ClosedRange<Double>
+        /// The baby's own centile, held constant across the window — "tracking
+        /// its centile", the shape the dashed line illustrates. nil when there
+        /// is no birth weight to track.
+        let ownCurve: [(ageDays: Int, kg: Double)]?
+    }
+
+    private var geometry: Geometry {
+        let samples = WHOCorridor.samples(fromAgeDays: 0, toAgeDays: Self.spanDays,
+                                          isMale: isMale, maxSamples: 27)
+        var minKg = samples.map(\.low).min() ?? 2
+        var maxKg = samples.map(\.high).max() ?? 10
+
+        var ownCurve: [(ageDays: Int, kg: Double)]?
+        if let birthWeightKg {
+            // The dot's own weight is used as given — it is already on this
+            // axis, and pushing it through z and back would only add rounding.
+            minKg = Swift.min(minKg, birthWeightKg)
+            maxKg = Swift.max(maxKg, birthWeightKg)
+            if let z = WHOGrowthStandard.zScore(weightKg: birthWeightKg, ageDays: 0, isMale: isMale) {
+                ownCurve = samples.compactMap { sample in
+                    WHOGrowthStandard.weight(atZ: z, ageDays: sample.ageDays, isMale: isMale)
+                        .map { (sample.ageDays, $0) }
+                }
+            }
+        }
+
+        let pad = (maxKg - minKg) * 0.08
+        return Geometry(samples: samples,
+                        weightRange: (minKg - pad)...(maxKg + pad),
+                        ownCurve: ownCurve)
+    }
+
+    private func place(ageDays: Int, kg: Double, in geometry: Geometry, size: CGSize) -> CGPoint {
+        let spanKg = Swift.max(geometry.weightRange.upperBound - geometry.weightRange.lowerBound, 0.01)
         let usableWidth = Swift.max(size.width - Self.inset * 2, 1)
         return CGPoint(
-            x: Self.inset + point.x / CGFloat(Self.spanDays) * usableWidth,
+            x: Self.inset + CGFloat(ageDays) / CGFloat(Self.spanDays) * usableWidth,
             // Heavier babies sit higher, so the weight axis is inverted.
-            y: size.height - (point.y - range.lowerBound) / spanKg * size.height
+            y: size.height - CGFloat((kg - geometry.weightRange.lowerBound) / spanKg) * size.height
         )
     }
 
-    private func path(_ points: [CGPoint], in size: CGSize) -> Path {
+    private func path(_ values: [(ageDays: Int, kg: Double)],
+                      in geometry: Geometry, size: CGSize) -> Path {
         var path = Path()
-        for (index, point) in points.enumerated() {
-            let placed = place(point, in: size)
-            if index == 0 { path.move(to: placed) } else { path.addLine(to: placed) }
+        for (index, value) in values.enumerated() {
+            let point = place(ageDays: value.ageDays, kg: value.kg, in: geometry, size: size)
+            if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
         }
         return path
     }
@@ -278,33 +288,33 @@ private struct GrowthCorridorSketch: View {
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
+            let geometry = geometry
             ZStack {
                 // The 3rd–97th band: one closed shape, the upper curve out and
                 // the lower curve back.
-                corridor(in: size)
+                corridor(geometry, size: size)
                     .fill(BBTheme.Colors.growth.opacity(0.16))
 
-                path(median, in: size)
+                path(geometry.samples.map { ($0.ageDays, $0.mid) }, in: geometry, size: size)
                     .stroke(BBTheme.Colors.growth.opacity(0.5),
                             style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
 
-                if let z = ownZ {
-                    path(curve(z: z), in: size)
+                if let ownCurve = geometry.ownCurve, let birthWeightKg {
+                    path(ownCurve, in: geometry, size: size)
                         .trim(from: 0, to: drawn ? 1 : 0)
                         .stroke(BBTheme.Colors.growth,
                                 style: StrokeStyle(lineWidth: 2.5, lineCap: .round,
                                                    dash: [5, 5]))
 
-                    // The one real thing on the drawing.
-                    if let own = WHOGrowthStandard.weight(atZ: z, ageDays: 0, isMale: isMale) {
-                        let dot = place(CGPoint(x: 0, y: own), in: size)
-                        Circle()
-                            .fill(BBTheme.Colors.growth)
-                            .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2.5))
-                            .position(x: dot.x, y: dot.y)
-                            .opacity(drawn ? 1 : 0)
-                    }
+                    // The one real thing on the drawing, at the weight the
+                    // parent actually typed.
+                    let dot = place(ageDays: 0, kg: birthWeightKg, in: geometry, size: size)
+                    Circle()
+                        .fill(BBTheme.Colors.growth)
+                        .frame(width: 10, height: 10)
+                        .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2.5))
+                        .position(x: dot.x, y: dot.y)
+                        .opacity(drawn ? 1 : 0)
                 }
             }
         }
@@ -317,9 +327,12 @@ private struct GrowthCorridorSketch: View {
         }
     }
 
-    private func corridor(in size: CGSize) -> Path {
-        var path = path(upper, in: size)
-        for point in lower.reversed() { path.addLine(to: place(point, in: size)) }
+    private func corridor(_ geometry: Geometry, size: CGSize) -> Path {
+        var path = path(geometry.samples.map { ($0.ageDays, $0.high) }, in: geometry, size: size)
+        for sample in geometry.samples.reversed() {
+            path.addLine(to: place(ageDays: sample.ageDays, kg: sample.low,
+                                   in: geometry, size: size))
+        }
         path.closeSubpath()
         return path
     }

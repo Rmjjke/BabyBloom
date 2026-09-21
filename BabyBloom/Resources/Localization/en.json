@@ -471,6 +471,7 @@
   "onboarding.widget.subtitle": "How long until the next feed — at a glance, without opening the app.",
   "onboarding.widget.howto": "Touch and hold the Home Screen → “+” → %@",
   "onboarding.widget.cta": "Build My Tracker",
+  "chart.who_corridor": "WHO corridor: 3rd–97th percentiles",
   "onboarding.showcase.title": "How %@ is growing — by WHO standards",
   "onboarding.showcase.caption_fmt": "%@ at birth: %@",
   "onboarding.showcase.invite": "Add the first weighing and %@ will appear on the WHO chart",

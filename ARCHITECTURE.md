@@ -347,6 +347,27 @@ the weighing. `.measuredInFirstWeeks` has one, through the same
 `HintWithAddWeighing`, because that card is gone by then and a weighing is
 literally what ends the state. No card on this screen shows two CTAs.
 
+**The weight chart is drawn on an AGE axis, over the WHO corridor.**
+`WeightChartView` takes `[WeightMeasurement]` — already through the engine's
+door, so the chart plots exactly what the cards below it score — plus
+`correctedBirthDate` and the sex, and places each point at its age in days
+rather than at its index in the list. That is what lets a band mean anything:
+the corridor is a function of age, and evenly spaced points would sit over the
+wrong part of it. `WHOCorridor.samples(fromAgeDays:toAgeDays:isMale:)` is the
+shared sampler, pure and unit-tested, and it carries the two clinical clamps as
+geometry: **the band starts at age 0**, never earlier — a preterm baby's
+pre-due-date weighings keep their negative ages on the axis and get no band
+beneath them, the drawing face of `correctedAgeDaysIfBorn` returning nil — and
+**it stops at `maxAgeDays`**, past which the chart draws the line alone. The y
+window spans the baby's weights *and* the band, so neither is clipped. One
+weighing is enough to draw (the chart widens to a 28-day window around it),
+which is what every fresh install has, and the corridor is free for everyone —
+the showcase page promises it before anyone has paid.
+
+`showsWHOCorridor` exists for a caller that ever reuses this shell for height
+or head circumference: those are different tables, and a weight corridor under
+a length is the wrong standard, not an approximation.
+
 **The percentile card is `PercentileCard` (`Features/Growth/`), and it is
 shared with onboarding.** `GrowthView` wraps it in the `ExplainerCard` above —
 that wrapper is what injects the "?" — and passes two caption lines; the
@@ -374,8 +395,10 @@ birth weight at day 0 through the same
 `WHOGrowthStandard.percentileReading(of:correctedBirthDate:isMale:)` the Growth
 screen calls, and returns `.invitation` for the two cases with no honest
 number (no birth measurement, and a preterm birth before the corrected due
-date). The corridor drawing beside it reads the real tables through
-`WHOGrowthStandard.weight(atZ:ageDays:isMale:)`; the baby's forward line is
+date). The corridor drawing beside it samples `WHOCorridor` — the same sampler
+the Growth screen's chart draws, with the same fill, the same median stroke and
+the same `WHOCorridorLegend` underneath, so the parent recognises the real
+chart when they reach it. Only the baby's forward line is illustrative: it is
 dashed and labelled as a sketch, because it is the one thing the app cannot
 know yet. Nothing on either page is seeded, saved or read back.
 

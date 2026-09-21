@@ -59,6 +59,20 @@ corridor underneath is genuinely the WHO standard, which is why
 `WHOGrowthStandard.weight(atZ:ageDays:isMale:)` was added rather than a
 plausible curve drawn in the view.
 
+**The showcase may only draw what the app draws — so the weight chart gained
+the corridor.** The first cut of this page shipped a WHO corridor that existed
+nowhere else: `WeightChartView` was an index-axis polyline of the baby's own
+weights, and `weight(atZ:)` had exactly one caller, the sketch. The dashed line
+was honestly labelled and the corridor was not — a caption saying "the real
+curve appears from your weighings" is a promise about the CHART, and the chart
+had no bands. The picture is the promise. Rather than delete the corridor from
+the preview, the chart was made to match it: an age axis (which the band
+requires, and which fixes the old chart's own distortion of unevenly spaced
+weighings), the shared `WHOCorridor` sampler, and one legend wording in both
+places. The rule this leaves behind: **a showcase page may render the real view
+with real data, or a clearly labelled sketch of a view that exists — never a
+picture of a feature.**
+
 **Why «не помню точно» and a pre-due-date preterm birth get the SAME
 invitation.** They are different causes with one honest answer: there is no
 number yet. Splitting them would mean explaining prematurity and the WHO
