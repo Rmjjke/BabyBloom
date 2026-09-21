@@ -73,6 +73,14 @@ places. The rule this leaves behind: **a showcase page may render the real view
 with real data, or a clearly labelled sketch of a view that exists — never a
 picture of a feature.**
 
+**Consequence, deliberate: the baby's line now looks flat over short
+windows.** The y-axis is the union of the baby's weights and the corridor, so
+a fortnight's 150 g gain spans a few percent of the chart's height where the
+old self-normalising chart stretched it across most of it. That is what every
+paper growth chart does — the corridor only means something on its own scale
+— and the gain verdict is stated in words on the card below. Do not rescale y
+to the baby's own range for "readability": it silently deletes the corridor.
+
 **Why «не помню точно» and a pre-due-date preterm birth get the SAME
 invitation.** They are different causes with one honest answer: there is no
 number yet. Splitting them would mean explaining prematurity and the WHO
