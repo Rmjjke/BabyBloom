@@ -2,9 +2,11 @@ import XCTest
 @testable import BabyBloom
 
 /// The free history window is a calendar question — "the last 15 days" — asked
-/// of a list sorted by instants. Every trap in it (the inclusive edge, a DST
-/// day that is not 24 hours, the premium case that must not filter at all)
-/// is cheaper to pin here than on a simulator.
+/// of a list sorted by instants, and then reconciled with the row caps two of
+/// the five surfaces already had. Every trap in it (the inclusive edge, a DST
+/// day that is not 24 hours, a cap that makes the window invisible, the
+/// premium case that must not filter at all, and the promise that deleting
+/// still reaches everything) is cheaper to pin here than on a simulator.
 final class HistoryWindowTests: XCTestCase {
 
     /// A fixed calendar in a zone that actually observes DST, so the tests
@@ -36,7 +38,7 @@ final class HistoryWindowTests: XCTestCase {
     func testWindowSpansExactlyFifteenDays() {
         let cal = calendar()
         let now = date(cal, 2026, 9, 22, 14, 37)
-        let cutoff = HistoryWindow.cutoff(now: now, calendar: cal)
+        let cutoff = try! XCTUnwrap(HistoryWindow.cutoff(now: now, calendar: cal))
 
         let days = cal.dateComponents([.day],
                                       from: cutoff,
@@ -45,7 +47,8 @@ final class HistoryWindowTests: XCTestCase {
     }
 
     /// The constant and the arithmetic are wired to each other, not to a 14
-    /// typed twice.
+    /// typed twice. The constant is also spelled out in six JSON strings —
+    /// see the comment on `freeDays`.
     func testFreeDaysIsFifteen() {
         XCTAssertEqual(HistoryWindow.freeDays, 15)
     }
@@ -120,7 +123,7 @@ final class HistoryWindowTests: XCTestCase {
     }
 
     /// The fresh-install case, and the common one: nothing older than the
-    /// window means no footer, so `hiddenCount` must be exactly zero rather
+    /// window means no footer, so the hidden count must be exactly zero rather
     /// than merely small.
     func testAllRecentHidesNothing() {
         let cal = calendar()
@@ -172,5 +175,130 @@ final class HistoryWindowTests: XCTestCase {
 
         XCTAssertEqual(result.visible.count, 1)
         XCTAssertEqual(result.hiddenCount, 1)
+    }
+
+    // MARK: - windowCostsRows
+    //
+    // The four combinations of "does the window bind" × "does the cap bind".
+    // Only the first may show the lock: everywhere else the lock would be
+    // claiming credit for rows the cap is taking, and offering to sell rows a
+    // subscriber would not get either.
+
+    func testFooterShowsWhenTheWINDOWIsWhatCostsRows() {
+        // 12 inside the window, 63 in total, cap 20: a free account sees 12
+        // rows where a subscriber would see 20. The window is the limiter.
+        XCTAssertTrue(HistoryWindow.windowCostsRows(windowed: 12, total: 63, cap: 20))
+    }
+
+    func testFooterHidesWhenTheCAPIsWhatCostsRows() {
+        // 45 inside the window, 63 in total, cap 20: both accounts see the
+        // same twenty rows. Showing "the last 15 days" under a list that stops
+        // seven days back would be false, and the sell would deliver nothing.
+        XCTAssertFalse(HistoryWindow.windowCostsRows(windowed: 45, total: 63, cap: 20))
+    }
+
+    func testFooterHidesWhenNeitherLimitBinds() {
+        XCTAssertFalse(HistoryWindow.windowCostsRows(windowed: 8, total: 8, cap: 20))
+    }
+
+    /// Exactly on the cap from both sides — the boundary the `min` exists for.
+    func testFooterHidesWhenTheWindowedCountStillFillsTheCap() {
+        XCTAssertFalse(HistoryWindow.windowCostsRows(windowed: 20, total: 21, cap: 20))
+        XCTAssertTrue(HistoryWindow.windowCostsRows(windowed: 19, total: 21, cap: 20))
+    }
+
+    /// `BBHistorySection` is the uncapped case of the same formula.
+    func testUncappedReducesToAnythingOutsideTheWindow() {
+        XCTAssertTrue(HistoryWindow.windowCostsRows(windowed: 45, total: 63, cap: nil))
+        XCTAssertFalse(HistoryWindow.windowCostsRows(windowed: 63, total: 63, cap: nil))
+    }
+
+    // MARK: - list
+
+    func testListWindowsBeforeCapping() {
+        let cal = calendar()
+        let now = date(cal, 2026, 9, 22, 12, 0)
+        // Five rows a day for six days: three days inside the window, three
+        // well outside it.
+        let inside  = (0..<3).flatMap { d in (0..<5).map { _ in cal.date(byAdding: .day, value: -d, to: now)! } }
+        let outside = (0..<3).map { d in date(cal, 2026, 8, 20 + d) }
+
+        let model = HistoryWindow.list(inside + outside, date: { $0 },
+                                       cutoff: HistoryWindow.cutoff(now: now, calendar: cal),
+                                       cap: 20)
+
+        // Capping first would have filled all twenty rows from the 18 recent
+        // ones and reported nothing hidden.
+        XCTAssertEqual(model.visible.count, 15)
+        XCTAssertTrue(model.showsLockedFooter)
+    }
+
+    /// The hostage guarantee, as a property of the type rather than a
+    /// discipline at five call sites: whatever the window and the cap do to
+    /// what is RENDERED, "delete all" is handed the whole input back.
+    func testDeletableIsAlwaysTheFullInputRegardlessOfWindowOrCap() {
+        let cal = calendar()
+        let now = date(cal, 2026, 9, 22, 12, 0)
+        let items = (0..<40).map { cal.date(byAdding: .day, value: -$0, to: now)! }
+
+        for cap in [nil, 5, 20, 1_000] as [Int?] {
+            for cutoff in [nil, HistoryWindow.cutoff(now: now, calendar: cal)] {
+                let model = HistoryWindow.list(items, date: { $0 }, cutoff: cutoff, cap: cap)
+                XCTAssertEqual(model.deletable, items,
+                               "delete-all must receive the pre-window, pre-cap array (cap \(String(describing: cap)))")
+                XCTAssertLessThanOrEqual(model.visible.count, model.deletable.count)
+            }
+        }
+    }
+
+    /// The confirmation's question is broader than the footer's: it must own
+    /// up to rows held back by the CAP too, not only by the window.
+    func testDeletesRowsNotShownCoversTheCapAsWellAsTheWindow() {
+        let cal = calendar()
+        let now = date(cal, 2026, 9, 22, 12, 0)
+        let recent = (0..<40).map { cal.date(byAdding: .hour, value: -$0, to: now)! }
+
+        // Premium, so the window takes nothing — but the cap takes 20.
+        let capped = HistoryWindow.list(recent, date: { $0 }, cutoff: nil, cap: 20)
+        XCTAssertFalse(capped.showsLockedFooter)
+        XCTAssertTrue(capped.deletesRowsNotShown)
+
+        // Nothing held back at all.
+        let whole = HistoryWindow.list(recent, date: { $0 }, cutoff: nil, cap: nil)
+        XCTAssertFalse(whole.deletesRowsNotShown)
+    }
+
+    func testListOnAFreshInstallShowsNothingAndSellsNothing() {
+        let model = HistoryWindow.list([Date](), date: { $0 },
+                                       cutoff: HistoryWindow.cutoff(), cap: 20)
+        XCTAssertTrue(model.visible.isEmpty)
+        XCTAssertTrue(model.deletable.isEmpty)
+        XCTAssertFalse(model.showsLockedFooter)
+        XCTAssertFalse(model.deletesRowsNotShown)
+    }
+
+    /// A subscriber is never shown the lock, whatever the data looks like.
+    func testPremiumNeverShowsTheFooter() {
+        let cal = calendar()
+        let items = (0..<50).map { date(cal, 2026, 1, 1).addingTimeInterval(Double($0) * 86_400) }
+
+        XCTAssertFalse(HistoryWindow.list(items, date: { $0 }, cutoff: nil).showsLockedFooter)
+        XCTAssertFalse(HistoryWindow.list(items, date: { $0 }, cutoff: nil, cap: 20).showsLockedFooter)
+    }
+
+    /// Everything outside the window, uncapped: no rows, and the footer
+    /// carries the whole list on its own rather than an empty state claiming
+    /// there are no records.
+    func testEverythingOutsideTheWindowLeavesTheFooterAlone() {
+        let cal = calendar()
+        let now = date(cal, 2026, 9, 22, 12, 0)
+        let items = [date(cal, 2026, 8, 1), date(cal, 2026, 7, 1)]
+
+        let model = HistoryWindow.list(items, date: { $0 },
+                                       cutoff: HistoryWindow.cutoff(now: now, calendar: cal))
+
+        XCTAssertTrue(model.visible.isEmpty)
+        XCTAssertFalse(model.deletable.isEmpty)
+        XCTAssertTrue(model.showsLockedFooter)
     }
 }

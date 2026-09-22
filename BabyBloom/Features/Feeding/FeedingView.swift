@@ -189,7 +189,7 @@ struct FeedingView: View {
             emptyColor: BBTheme.Colors.feeding,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_first_feeding",
-            isPremium: store.isPremium,
+            historyCutoff: store.historyCutoff,
             row: { FeedingEntryRow(entry: $0) },
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },

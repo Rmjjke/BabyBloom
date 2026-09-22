@@ -191,7 +191,7 @@ struct DiaperView: View {
             emptyColor: BBTheme.Colors.diaper,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_above",
-            isPremium: store.isPremium,
+            historyCutoff: store.historyCutoff,
             row: { DiaperEntryRow(entry: $0) },
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },

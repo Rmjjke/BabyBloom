@@ -23,25 +23,29 @@ struct RecentActivityView: View {
 
     /// The free history window, applied BEFORE the twenty-row cap — same
     /// ordering and same reason as `EventsView`: the footer must mean "older
-    /// than 15 days", not "beyond twenty rows".
-    private var recentEvents: (visible: [RecentEvent], hiddenCount: Int) {
+    /// than 15 days", not "beyond twenty rows", and it is suppressed entirely
+    /// where the cap rather than the window is what costs rows.
+    ///
+    /// There is no delete-all here by design: this screen is a read-only view
+    /// onto three lists that each have their own, and every row it CAN reach
+    /// stays swipe-deletable.
+    private var model: HistoryWindow.List<RecentEvent> {
         let all: [RecentEvent] =
             feedings.map(RecentEvent.feeding)
             + sleeps.map(RecentEvent.sleep)
             + diapers.map(RecentEvent.diaper)
-        let sorted = all.sorted { $0.eventTime > $1.eventTime }
-        let window = HistoryWindow.split(sorted,
-                                         date: { $0.eventTime },
-                                         cutoff: HistoryWindow.cutoff(isPremium: store.isPremium))
-        return (Array(window.visible.prefix(20)), window.hiddenCount)
+        return HistoryWindow.list(all.sorted { $0.eventTime > $1.eventTime },
+                                  date: { $0.eventTime },
+                                  cutoff: store.historyCutoff,
+                                  cap: 20)
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-                let window = recentEvents
-                let events = window.visible
-                if events.isEmpty && window.hiddenCount == 0 {
+                let model = self.model
+                let events = model.visible
+                if model.deletable.isEmpty {
                     Text("empty.today_no_records".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -59,7 +63,7 @@ struct RecentActivityView: View {
                             }
                         }
                     }
-                    if window.hiddenCount > 0 {
+                    if model.showsLockedFooter {
                         BBLockedHistoryFooter { showPaywall = true }
                     }
                 }

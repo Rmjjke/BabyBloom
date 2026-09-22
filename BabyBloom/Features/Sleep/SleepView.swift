@@ -176,7 +176,7 @@ struct SleepView: View {
             emptyColor: BBTheme.Colors.sleep,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_sleep",
-            isPremium: store.isPremium,
+            historyCutoff: store.historyCutoff,
             row: { entry in
                 BBEventRow(
                     icon: entry.type.icon,

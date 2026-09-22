@@ -104,21 +104,24 @@ struct EventsView: View {
 
     /// The free history window, applied BEFORE the twenty-row cap.
     ///
-    /// Order matters for what the footer means. Windowing first makes
-    /// `hiddenCount` "events older than 15 days" — the thing the footer offers
-    /// to sell. Capping first would fold "beyond twenty rows" into the same
-    /// count, and the footer would then promise a subscription unlocks rows
-    /// that a subscriber does not get either.
-    private var window: (visible: [CustomEvent], hiddenCount: Int) {
-        HistoryWindow.split(events,
-                            date: { $0.time },
-                            cutoff: HistoryWindow.cutoff(isPremium: store.isPremium))
+    /// Order matters for what the footer means. Windowing first makes the
+    /// footer "events older than 15 days" — the thing it offers to sell.
+    /// Capping first would fold "beyond twenty rows" into it, and the footer
+    /// would promise a subscription unlocks rows a subscriber does not get
+    /// either. `HistoryWindow` then suppresses the footer entirely whenever
+    /// the CAP, not the window, is what is costing rows.
+    private var model: HistoryWindow.List<CustomEvent> {
+        HistoryWindow.list(events,
+                           date: { $0.time },
+                           cutoff: store.historyCutoff,
+                           cap: 20)
     }
 
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.history")
-            if events.isEmpty {
+            let model = self.model
+            if model.deletable.isEmpty {
                 EmptyStateView(
                     icon: "star.fill",
                     color: BBTheme.Colors.events,
@@ -126,9 +129,8 @@ struct EventsView: View {
                     subtitle: "empty.events_hint"
                 )
             } else {
-                let window = self.window
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(window.visible.prefix(20)) { event in
+                    ForEach(model.visible) { event in
                         SwipeToDeleteRow(onDelete: { delete(event) }) {
                             BBEventRow(
                                 icon: event.type.icon,
@@ -141,8 +143,18 @@ struct EventsView: View {
                         }
                     }
                 }
-                if window.hiddenCount > 0 {
+                if model.showsLockedFooter {
                     BBLockedHistoryFooter { showPaywall = true }
+                }
+                // This screen is the one windowed surface with no swipe reach
+                // to its unrendered rows: an event older than the free window
+                // has no row to swipe and export is itself paid, so without a
+                // delete-all over the FULL array those records would be
+                // unreachable for a free or lapsed account — held hostage in
+                // exactly the sense DECISIONS 2026-09-01 forbids. Creating an
+                // event is gated; erasing one never is.
+                BBDeleteHistoryButton(deletesHiddenRows: model.deletesRowsNotShown) {
+                    deleteAll(model.deletable)
                 }
             }
         }
@@ -157,6 +169,13 @@ struct EventsView: View {
 
     private func delete(_ event: CustomEvent) {
         modelContext.delete(event)
+        try? modelContext.save()
+    }
+
+    /// Receives the full `events` array, never the rendered slice — see the
+    /// comment on the button that calls it.
+    private func deleteAll(_ items: [CustomEvent]) {
+        items.forEach { modelContext.delete($0) }
         try? modelContext.save()
     }
 }
