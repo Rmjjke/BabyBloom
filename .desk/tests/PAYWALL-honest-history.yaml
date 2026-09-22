@@ -24,6 +24,18 @@
 # would be claiming credit for rows the cap is taking, and selling a
 # subscription that delivers nothing on that screen). The delete button must
 # still be there, and must still reach the 21-day-old rows.
+#
+# **Only the FIRST launch carries `clearState`.** It has four launches, and
+# clearState reinstalls the app every time — enough simulator I/O, running
+# alongside the rest of the suite, to push the onboarding walks' Generating
+# discriminator over its known ~5s margin (knowledge.md ▸ Flaky). It is also
+# unnecessary here: `-BBSeedScenario` wipes the store itself before seeding, so
+# the seeder is the isolation, and launch arguments live in the volatile
+# argument domain and do not survive a `stopApp` into the next launch — which
+# is why `-BBForcePremium` set on the second launch is absent from the third.
+# The one clearState at the top is what isolates this flow from the PREVIOUS
+# one; the last launch is deliberately `clearState: false` because its whole
+# point is to read the store the step before it wrote.
 appId: com.nenita.app
 tags: [regression]
 ---
@@ -105,7 +117,6 @@ tags: [regression]
 
 # ── Same fixture, entitlement on: rows, no lock ──────────────────────
 - launchApp:
-    clearState: true
     stopApp: true
     arguments:
       "-BBSkipSplash": "true"
@@ -135,7 +146,6 @@ tags: [regression]
 
 # ── Events: the CAP is the limiter, so no lock — but delete stays ─────
 - launchApp:
-    clearState: true
     stopApp: true
     arguments:
       "-BBSkipSplash": "true"
