@@ -9,6 +9,10 @@ struct DiaperView: View {
     @State private var showNormEditor = false
     @State private var historyFilter: HistoryFilter = .day
     @AppStorage("diaperDailyNorm") private var dailyNorm = 8
+    /// The history list's free window sells from here; nothing else on this
+    /// screen is gated.
+    @Environment(SubscriptionManager.self) private var store
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
 
@@ -59,6 +63,9 @@ struct DiaperView: View {
         }
         .sheet(isPresented: $showAddSheet) {
             AddDiaperSheet()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 
@@ -184,9 +191,11 @@ struct DiaperView: View {
             emptyColor: BBTheme.Colors.diaper,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_above",
+            historyCutoff: store.historyCutoff,
             row: { DiaperEntryRow(entry: $0) },
             onDelete: { delete($0) },
-            onDeleteAll: { deleteAll($0) }
+            onDeleteAll: { deleteAll($0) },
+            onUnlock: { showPaywall = true }
         )
     }
 

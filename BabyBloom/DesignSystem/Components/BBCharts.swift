@@ -284,8 +284,32 @@ struct BBWeeklyBarChart: View {
 // MARK: - Delete History Button
 
 struct BBDeleteHistoryButton: View {
+    /// What the button actually reaches, which decides whether the
+    /// confirmation may speak of "the selected period".
+    ///
+    /// Only `BBHistorySection` has a `BBHistoryFilterPicker` above it, so only
+    /// there does a period exist to refer to. `EventsView`'s button wipes the
+    /// whole event history, and telling that parent their records will go "in
+    /// the selected period" names a scope they never chose and reads as a
+    /// subset — an under-warning on an irreversible action.
+    enum Scope { case selectedPeriod, everything }
+
+    var scope: Scope = .selectedPeriod
+    /// Whether the range also holds rows that are not on screen — because the
+    /// free history window is hiding them, or because a row cap is. The plain
+    /// confirmation would be a half-truth then: a parent who cannot see those
+    /// rows has no way to know the button reaches them.
+    var deletesHiddenRows = false
     let onDelete: () -> Void
     @State private var showConfirm = false
+
+    private var confirmationMessage: String {
+        guard deletesHiddenRows else { return "confirm.delete_message".l }
+        switch scope {
+        case .selectedPeriod: return "confirm.delete_message_hidden".l
+        case .everything:     return "confirm.delete_message_all".l
+        }
+    }
 
     var body: some View {
         Button {
@@ -307,7 +331,7 @@ struct BBDeleteHistoryButton: View {
             Button("button.delete".l, role: .destructive) { onDelete() }
             Button("button.cancel".l, role: .cancel) {}
         } message: {
-            Text("confirm.delete_message".l)
+            Text(confirmationMessage)
         }
     }
 }

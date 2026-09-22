@@ -150,6 +150,26 @@ final class SubscriptionManager {
         #endif
     }
 
+    /// How far back the activity lists may read — `nil` for unlimited.
+    ///
+    /// The one place the free history window meets the entitlement, so that
+    /// the five list surfaces forward a date instead of each re-deriving the
+    /// rule from `isPremium`.
+    ///
+    /// **It fails OPEN while StoreKit has not answered.** Truncating a list on
+    /// an unresolved `isEntitled == false` would hide a paying parent's own
+    /// records and put a "buy this" row under them — the same mistake that
+    /// sold a full "Try 7 days free" to a subscriber on build 9, which is why
+    /// `hasResolvedEntitlements` exists. Truncation is a branch on entitlement,
+    /// not a plain feature gate, so it waits. The cost of failing open is that
+    /// a free user sees an untruncated list for the frame or two before the
+    /// local entitlement scan returns; the cost of failing closed is charging
+    /// someone twice for what they already own.
+    var historyCutoff: Date? {
+        guard hasResolvedEntitlements else { return nil }
+        return HistoryWindow.cutoff(isPremium: isPremium)
+    }
+
     #if targetEnvironment(simulator)
     /// Simulator-only Premium override for e2e flows, in the same class of
     /// scaffolding as `SeedScenario`.

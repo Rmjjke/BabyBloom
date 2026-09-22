@@ -1,0 +1,218 @@
+# The paywall makes two honest claims, and this flow holds it to both.
+#
+#   1. It no longer sells «Несколько профилей детей» — a feature the app does
+#      not have. Asserted on the paywall the history lock itself opens.
+#   2. «Неограниченная история» is a real distinction: a free account's
+#      activity lists stop at 15 calendar days and say so, a subscriber's do
+#      not, and the rows behind the lock are still DELETABLE by the free
+#      account that cannot see them.
+#
+# Not named AC*: AC1-3 belong to the nutrition task and the numbering is per
+# task, not global.
+#
+# **Fixture choice is load-bearing.** `newbornStalePair` logs feeds and nappies
+# 16-21 days back and NOTHING since, so every row is outside the 15-day window:
+# the lock is the first thing on the screen and no flow has to scroll a
+# 150-row list to reach it (`showcase`'s Month range takes ~45 paged scrolls —
+# see .desk/app-map.md). It also exercises the branch where the visible list is
+# empty but the footer still stands, which is the case a naive "no records"
+# empty state would have got wrong.
+#
+# `showcase` then covers the opposite shape for the Events screen, where a
+# twenty-row cap sits under the window: 63 events, 45 of them inside the
+# window, so the CAP is the binding limit and the lock must NOT appear (it
+# would be claiming credit for rows the cap is taking, and selling a
+# subscription that delivers nothing on that screen). The delete button must
+# still be there, and must still reach the 21-day-old rows.
+#
+# **Only the FIRST launch carries `clearState`.** It has four launches, and
+# clearState reinstalls the app every time — enough simulator I/O, running
+# alongside the rest of the suite, to push the onboarding walks' Generating
+# discriminator over its known ~5s margin (knowledge.md ▸ Flaky). It is also
+# unnecessary here: `-BBSeedScenario` wipes the store itself before seeding, so
+# the seeder is the isolation, and launch arguments live in the volatile
+# argument domain and do not survive a `stopApp` into the next launch — which
+# is why `-BBForcePremium` set on the second launch is absent from the third.
+# The one clearState at the top is what isolates this flow from the PREVIOUS
+# one; the last launch is deliberately `clearState: false` because its whole
+# point is to read the store the step before it wrote.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "newbornStalePair"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+
+# ── Recent activity: everything is older than the window ─────────────
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Recent activity"
+- assertVisible: "Showing the last 15 days"
+- assertVisible: "Full history is in Premium"
+
+# The whole row sells — the only entry point the window offers.
+- tapOn: "Showing the last 15 days"
+- extendedWaitUntil:
+    visible: "Unlimited tracking history"
+    timeout: 10000
+# The promise the window exists to keep is on the paywall it opens, and the
+# promise the app could not keep is gone from it.
+- assertNotVisible: "Multiple children profiles"
+- swipe:
+    start: "50%,20%"
+    end: "50%,95%"
+# The nav chevron, not `back`: a left-edge swipe is eaten inside a list, and
+# tab_more stays in the hierarchy under a pushed screen (see app-map).
+- extendedWaitUntil:
+    visible: "Recent activity"
+    timeout: 10000
+- tapOn:
+    point: "9%,9%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+
+# ── Feeding: the lock stands alone, and delete still reaches past it ──
+- tapOn:
+    text: "Feeding"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Month"
+    direction: DOWN
+    centerElement: true
+- tapOn: "Month"
+- assertVisible: "Showing the last 15 days"
+# "No Records" would be a lie about a list that has 48 of them.
+- assertNotVisible: "No Records"
+# The hostage guarantee: a free account can still erase what it cannot see,
+# and the confirmation says that is what the button does.
+- tapOn: "Delete History"
+- extendedWaitUntil:
+    visible: "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone."
+    timeout: 10000
+- tapOn: "Cancel"
+
+# ── Same fixture, entitlement on: rows, no lock ──────────────────────
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "newbornStalePair"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Recent activity"
+# A POSITIVE anchor before the absence: four assertNotVisible in a row would
+# all pass on a tap that missed and left us on the previous screen.
+- assertVisible: "Recent activity"
+- assertVisible: "Wet"
+- assertNotVisible: "Showing the last 15 days"
+
+# ── Events: the CAP is the limiter, so no lock — but delete stays ─────
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "showcase"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Events"
+- assertVisible: "History"
+- repeat:
+    times: 12
+    commands:
+      - scroll
+# 45 of the 63 events are inside the window and the list renders 20, so the
+# window costs this screen nothing and the lock would be a falsehood.
+- assertNotVisible: "Showing the last 15 days"
+# The regression this screen nearly shipped: without a delete-all here, the
+# events older than the window had no swipe, no button and no export, and were
+# unreachable for a free account.
+- assertVisible: "Delete History"
+- tapOn: "Delete History"
+# Events has no range picker, so its confirmation must NOT say "in the
+# selected period" — that would understate a wipe of the whole history.
+- assertNotVisible: "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone."
+- extendedWaitUntil:
+    visible: "All records will be deleted, including entries that are not shown. This action cannot be undone."
+    timeout: 10000
+- tapOn: "Delete"
+- extendedWaitUntil:
+    visible: "No Records"
+    timeout: 10000
+
+# Same store, no reseed, entitlement on: if delete-all had spared the rows the
+# free account could not see, the 21-day-old events would be here.
+- launchApp:
+    clearState: false
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn: "Events"
+- assertVisible: "History"
+- assertVisible: "No Records"

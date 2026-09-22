@@ -471,6 +471,8 @@ back to a `LockedInsightCard` of its own. And **creating** an event: the
 Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
+And **how far back the five activity lists read** — the free history window
+below, the only gate that bounds something already recorded.
 
 That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
@@ -478,8 +480,67 @@ enclosing button instead, via `View.bbLockedAccessibility(_:)`, which appends
 `premium.locked_a11y` as the control's accessibility **value** so VoiceOver
 reads "Events, Requires Premium" rather than losing the gate entirely.
 
-Viewing, and deleting, what is already recorded is never gated — recorded data
-is not held hostage.
+**The free history window.** Activity lists show a free account the last 15
+calendar days and offer the rest for sale. `Core/History/HistoryWindow.swift`
+is the whole mechanism and it is pure Foundation: `freeDays` (15) — a number
+also spelled out in six JSON strings, see the comment on the constant — and
+`cutoff()`, `startOfDay(now − 14 days)`.
+
+`HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
+surfaces use. It returns three things: `visible` (windowed, then capped),
+`showsLockedFooter`, and `deletable` — the **untouched input**, which is what
+makes the no-hostage rule a property of the type instead of a discipline at
+five call sites.
+
+- **Where the boundary comes from.** Views never compute it. They forward
+  `SubscriptionManager.historyCutoff`, the one place the entitlement, the
+  15-day arithmetic and the unresolved-entitlement grace meet. It returns `nil`
+  (unlimited) for a subscriber **and while `hasResolvedEntitlements` is
+  false** — truncating on an unresolved `isEntitled == false` would hide a
+  paying parent's records and sell to them, the build-9 mistake. Every failure
+  in this file fails open.
+- **Window before cap.** `BBHistorySection` (Feeding, Sleep, Diapers) passes no
+  cap and applies the window after the range picker's own filter.
+  `EventsView` and `RecentActivityView` pass `cap: 20`, applied *after* the
+  window, so the footer means "older than 15 days" and not "beyond twenty
+  rows".
+- **The lock appears only where the window is the binding limit.**
+  `windowCostsRows` compares what is drawn with the window against what would
+  be drawn without it. Where a cap is what is costing rows — 45 events inside
+  the window, twenty rendered — a free account and a subscriber see the same
+  list, so the lock would state a falsehood and sell nothing. A fresh install
+  sees no lock either.
+
+All five render the same `BBLockedHistoryFooter`
+(`DesignSystem/Components/`, its own file like `LockBadge`): calm tint, 44pt
+target, whole row taps through to `PaywallView`, one accessibility element
+labelled with the window and valued `premium.locked_a11y`.
+
+What it does NOT touch: every `@Query` still reads the whole store. Statistics,
+the weekly charts, `FeedingAdequacy`, `WeightVelocity`, exports, the widget and
+notifications all consume the unwindowed arrays; only the arrays a list view
+renders pass through `list`. **Growth measurement history is exempt** — the
+weighings are the clinical spine and `GrowthView` renders all of them.
+
+**Deleting is never gated and never windowed.** Every surface that windows a
+list owes it a delete path over the *unwindowed* array, and all four that can
+delete have one: `BBHistorySection` hands `onDeleteAll` the full
+picker-filtered range, and `EventsView` grew a `BBDeleteHistoryButton` for
+exactly this reason — its older events had no swipe to reach them and export is
+itself paid. (`RecentActivityView` has none by design: it is a read-only view
+onto three lists that each have their own, and every row it can reach stays
+swipe-deletable.) `BBDeleteHistoryButton` warns whenever
+`deletable.count > visible.count` — deliberately broader than the footer's
+test, since the confirmation must own up to rows the cap is holding back too —
+and picks its wording from its `Scope`: `confirm.delete_message_hidden` ("in
+the selected period") only where a `BBHistoryFilterPicker` gives that phrase a
+referent, and `confirm.delete_message_all` on `EventsView`, whose button wipes
+the whole event history. Recorded data is not held hostage.
+
+One bound worth naming: "delete history" acts on the *picker's* range, so on
+the three tracker screens the widest it reaches is `filter.year`. Entries older
+than a year are not reachable by that button — from either tier, and for
+reasons that predate the window.
 
 ## Notifications
 
