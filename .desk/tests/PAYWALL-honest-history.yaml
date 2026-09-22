@@ -179,8 +179,11 @@ tags: [regression]
 # unreachable for a free account.
 - assertVisible: "Delete History"
 - tapOn: "Delete History"
+# Events has no range picker, so its confirmation must NOT say "in the
+# selected period" — that would understate a wipe of the whole history.
+- assertNotVisible: "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone."
 - extendedWaitUntil:
-    visible: "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone."
+    visible: "All records will be deleted, including entries that are not shown. This action cannot be undone."
     timeout: 10000
 - tapOn: "Delete"
 - extendedWaitUntil:

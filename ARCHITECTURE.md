@@ -529,10 +529,13 @@ picker-filtered range, and `EventsView` grew a `BBDeleteHistoryButton` for
 exactly this reason — its older events had no swipe to reach them and export is
 itself paid. (`RecentActivityView` has none by design: it is a read-only view
 onto three lists that each have their own, and every row it can reach stays
-swipe-deletable.) `BBDeleteHistoryButton` switches to
-`confirm.delete_message_hidden` whenever `deletable.count > visible.count` —
-deliberately broader than the footer's test, since the confirmation must own up
-to rows the cap is holding back too. Recorded data is not held hostage.
+swipe-deletable.) `BBDeleteHistoryButton` warns whenever
+`deletable.count > visible.count` — deliberately broader than the footer's
+test, since the confirmation must own up to rows the cap is holding back too —
+and picks its wording from its `Scope`: `confirm.delete_message_hidden` ("in
+the selected period") only where a `BBHistoryFilterPicker` gives that phrase a
+referent, and `confirm.delete_message_all` on `EventsView`, whose button wipes
+the whole event history. Recorded data is not held hostage.
 
 One bound worth naming: "delete history" acts on the *picker's* range, so on
 the three tracker screens the widest it reaches is `filter.year`. Entries older

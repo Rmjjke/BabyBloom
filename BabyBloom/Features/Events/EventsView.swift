@@ -153,7 +153,12 @@ struct EventsView: View {
                 // unreachable for a free or lapsed account — held hostage in
                 // exactly the sense DECISIONS 2026-09-01 forbids. Creating an
                 // event is gated; erasing one never is.
-                BBDeleteHistoryButton(deletesHiddenRows: model.deletesRowsNotShown) {
+                // `.everything`: this screen has no range picker, so its
+                // confirmation must not borrow the other screens' "in the
+                // selected period" — there is no period, and the phrase would
+                // understate an irreversible wipe of the whole event history.
+                BBDeleteHistoryButton(scope: .everything,
+                                      deletesHiddenRows: model.deletesRowsNotShown) {
                     deleteAll(model.deletable)
                 }
             }

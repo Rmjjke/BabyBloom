@@ -66,6 +66,13 @@ enum HistoryWindow {
     /// inside.
     ///
     /// Order is preserved, so a sorted input stays sorted.
+    ///
+    /// **Not for views — use `list(_:date:cutoff:cap:)`.** This is the
+    /// primitive underneath it, and it returns only the visible slice: a view
+    /// wiring "delete all" to what comes back here would delete exactly the
+    /// rows the reader can see and spare the ones they cannot, which is the
+    /// failure `List.deletable` exists to make impossible. It stays non-private
+    /// so the boundary arithmetic can be tested on its own.
     static func split<T>(_ items: [T],
                          date: (T) -> Date,
                          cutoff: Date?) -> (visible: [T], hiddenCount: Int) {

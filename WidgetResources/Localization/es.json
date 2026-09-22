@@ -248,6 +248,7 @@
   "history.unlock": "El historial completo está en Premium",
   "confirm.delete_message": "Esta acción no se puede deshacer.",
   "confirm.delete_message_hidden": "Se eliminarán todos los registros del periodo seleccionado, incluidos los que no se muestran. Esta acción no se puede deshacer.",
+  "confirm.delete_message_all": "Se eliminarán todos los registros, incluidos los que no se muestran. Esta acción no se puede deshacer.",
   "form.start_time": "Inicio",
   "form.end_time": "Fin",
   "settings.language": "Idioma",

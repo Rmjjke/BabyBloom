@@ -248,6 +248,7 @@
   "history.unlock": "Вся история — в Premium",
   "confirm.delete_message": "Это действие нельзя отменить.",
   "confirm.delete_message_hidden": "Будут удалены все записи за выбранный период, включая те, что не показаны. Это действие нельзя отменить.",
+  "confirm.delete_message_all": "Будут удалены все записи, включая те, что не показаны. Это действие нельзя отменить.",
   "form.start_time": "Начало",
   "form.end_time": "Конец",
   "settings.language": "Язык",
