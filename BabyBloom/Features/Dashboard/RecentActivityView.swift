@@ -16,22 +16,32 @@ struct RecentActivityView: View {
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
 
-    private var recentEvents: [RecentEvent] {
+    /// The free history window, applied BEFORE the twenty-row cap — same
+    /// ordering and same reason as `EventsView`: the footer must mean "older
+    /// than 15 days", not "beyond twenty rows".
+    private var recentEvents: (visible: [RecentEvent], hiddenCount: Int) {
         let all: [RecentEvent] =
             feedings.map(RecentEvent.feeding)
             + sleeps.map(RecentEvent.sleep)
             + diapers.map(RecentEvent.diaper)
-        return Array(all.sorted { $0.eventTime > $1.eventTime }.prefix(20))
+        let sorted = all.sorted { $0.eventTime > $1.eventTime }
+        let window = HistoryWindow.split(sorted,
+                                         date: { $0.eventTime },
+                                         cutoff: HistoryWindow.cutoff(isPremium: store.isPremium))
+        return (Array(window.visible.prefix(20)), window.hiddenCount)
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-                let events = recentEvents
-                if events.isEmpty {
+                let window = recentEvents
+                let events = window.visible
+                if events.isEmpty && window.hiddenCount == 0 {
                     Text("empty.today_no_records".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -49,6 +59,9 @@ struct RecentActivityView: View {
                             }
                         }
                     }
+                    if window.hiddenCount > 0 {
+                        BBLockedHistoryFooter { showPaywall = true }
+                    }
                 }
             }
             .padding(.horizontal, BBTheme.Spacing.md)
@@ -57,6 +70,9 @@ struct RecentActivityView: View {
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .navigationTitle("nav.recent_activity".l)
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+        }
     }
 
     @ViewBuilder

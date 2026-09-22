@@ -102,6 +102,19 @@ struct EventsView: View {
         }
     }
 
+    /// The free history window, applied BEFORE the twenty-row cap.
+    ///
+    /// Order matters for what the footer means. Windowing first makes
+    /// `hiddenCount` "events older than 15 days" — the thing the footer offers
+    /// to sell. Capping first would fold "beyond twenty rows" into the same
+    /// count, and the footer would then promise a subscription unlocks rows
+    /// that a subscriber does not get either.
+    private var window: (visible: [CustomEvent], hiddenCount: Int) {
+        HistoryWindow.split(events,
+                            date: { $0.time },
+                            cutoff: HistoryWindow.cutoff(isPremium: store.isPremium))
+    }
+
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.history")
@@ -113,8 +126,9 @@ struct EventsView: View {
                     subtitle: "empty.events_hint"
                 )
             } else {
+                let window = self.window
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(events.prefix(20)) { event in
+                    ForEach(window.visible.prefix(20)) { event in
                         SwipeToDeleteRow(onDelete: { delete(event) }) {
                             BBEventRow(
                                 icon: event.type.icon,
@@ -126,6 +140,9 @@ struct EventsView: View {
                             )
                         }
                     }
+                }
+                if window.hiddenCount > 0 {
+                    BBLockedHistoryFooter { showPaywall = true }
                 }
             }
         }

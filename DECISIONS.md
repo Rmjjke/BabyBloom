@@ -14,6 +14,66 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-22 — The paywall's history promise becomes true: 15 free days, and the multi-profile line goes
+
+Two halves of one problem — the paywall was selling things that did not exist.
+
+**«Несколько профилей детей» / "Multiple children profiles" is deleted**
+(`onboarding.premium.f4`, from both `PaywallView` and `PremiumPage` and from
+all six JSONs). The app has one `Baby` and no way to add a second. Nothing was
+put in its place: a paywall with four true lines sells better than one with
+five where the fifth is a lie a buyer discovers after paying. The key numbering
+keeps its gap — resequencing f5 to f4 would silently change what three
+translations of those keys say.
+
+**«Неограниченная история» stays, and is made true.** Free accounts now see the
+last 15 calendar days of activity history; older rows collapse into one locked
+row that opens the paywall. The alternative was to delete that line too, and it
+was rejected: unlimited history is the one thing a tracking app can honestly
+charge for, and the fix that keeps a promise is worth more than the fix that
+withdraws it.
+
+**This supersedes the viewing half of 2026-09-01** («A permanent Growth teaser,
+and a gate on creating events only»), which recorded that "viewing and deleting
+existing events stay free". Viewing is now bounded. The reasoning that entry
+gave is not contradicted, because the part it was actually protecting is
+untouched:
+
+- **Nothing is deleted or migrated.** Every row stays in the store, every
+  `@Query` still reads all of it, and subscribing restores the full list
+  instantly. This is a view filter, not a retention policy.
+- **Deleting stays free and stays total.** "Delete history" acts on the whole
+  filtered range including the rows behind the lock, and the confirmation says
+  so (`confirm.delete_message_hidden`). A paywall may decline to show a parent
+  their own records; it must never hold them hostage, and a delete button that
+  quietly spared what the reader could not see would be the worse betrayal —
+  a parent who deletes and then subscribes would find the old rows back.
+- **The last 15 days stay free forever**, so nothing ever vanishes from under a
+  parent who was looking at it — the same rule that produced the permanent
+  Growth teaser instead of a free-first-days window. A row ages out one day at
+  a time, on a boundary the parent can name, rather than a section disappearing.
+- **Growth weighings are exempt.** They are the clinical spine: the chart, the
+  percentile, the velocity and the newborn red flags all read the full curve,
+  and a two-week view of a weight history is medically useless. The same
+  instinct that keeps the newborn red flags free keeps the weighings visible.
+
+Why 15 days and not 7 or 30: a fortnight plus today covers the whole of the
+`BBWeeklyBarChart`'s current and previous week (a parent comparing "this week
+against last" never hits the lock), and it is long enough that the lock is met
+by someone who has been using the app for a while rather than on day eight.
+
+The boundary is `startOfDay(now − 14 days)`, not `now − 15 × 86400`: a parent
+counts days, not seconds, and the anchored form also means the window does not
+slide under a row while the screen is open and that a 23- or 25-hour DST day
+still counts as one day. `HistoryWindow` is pure Foundation so all of that is
+pinned in unit tests rather than on a simulator.
+
+On `EventsView` and `RecentActivityView` the window is applied **before** their
+existing twenty-row caps. Capping first would fold "beyond twenty rows" into
+the hidden count, and the footer would then be offering to sell rows that a
+subscriber does not get either — the exact species of false promise this task
+exists to remove.
+
 ## 2026-09-21 — Onboarding shows the ONE real number it has, and labels everything else a sketch
 
 A `growthShowcase` page sits between Fact and Notifications (eleven pages now).

@@ -8,11 +8,15 @@ struct PaywallView: View {
 
     @State private var showRestoreAlert = false
 
+    /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
+    /// absent: the app has one baby and no way to add a second, so the line
+    /// sold something that does not exist. Numbering is left with the gap
+    /// rather than resequenced — renaming f5 to f4 would silently change what
+    /// every translation of those two keys says.
     private let features: [(icon: String, key: String)] = [
         ("infinity",                  "onboarding.premium.f1"),
         ("bell.badge.fill",           "onboarding.premium.f2"),
         ("square.and.arrow.up.fill",  "onboarding.premium.f3"),
-        ("person.2.fill",             "onboarding.premium.f4"),
         ("chart.bar.fill",            "onboarding.premium.f5"),
     ]
 

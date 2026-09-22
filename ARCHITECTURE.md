@@ -478,8 +478,33 @@ enclosing button instead, via `View.bbLockedAccessibility(_:)`, which appends
 `premium.locked_a11y` as the control's accessibility **value** so VoiceOver
 reads "Events, Requires Premium" rather than losing the gate entirely.
 
-Viewing, and deleting, what is already recorded is never gated — recorded data
-is not held hostage.
+**The free history window.** Activity lists show a free account the last 15
+calendar days and offer the rest for sale. `Core/History/HistoryWindow.swift`
+is the whole mechanism and it is pure Foundation: `freeDays` (15),
+`cutoff(isPremium:now:calendar:)` — `startOfDay(now − 14 days)`, or `nil` for a
+subscriber — and `split(_:date:cutoff:)`, which returns the visible slice and a
+count of what is behind it. Call sites pass the *entitlement*, never a date of
+their own, so five surfaces cannot disagree about what "15 days" means.
+
+Five surfaces apply it, all rendering the same `BBLockedHistoryFooter`
+(`DesignSystem/Components/BBHistorySection.swift`) when — and only when —
+`hiddenCount > 0`: `BBHistorySection` (Feeding, Sleep, Diapers) applies it after
+the range picker's own filter, and `EventsView` / `RecentActivityView` apply it
+*before* their existing twenty-row cap, so the footer means "older than 15
+days" rather than "beyond twenty rows". A fresh install sees no lock at all.
+
+What it does NOT touch: every `@Query` still reads the whole store. Statistics,
+the weekly charts, `FeedingAdequacy`, `WeightVelocity`, exports, the widget and
+notifications all consume the unwindowed arrays; only the arrays a list view
+renders pass through `split`. **Growth measurement history is exempt** — the
+weighings are the clinical spine and `GrowthView` renders all of them.
+
+Viewing what is already recorded is otherwise ungated, and **deleting is never
+gated and never windowed**: `BBHistorySection` hands `onDeleteAll` the full
+picker-filtered range, not the visible slice, and `BBDeleteHistoryButton`
+switches to `confirm.delete_message_hidden` whenever the two differ, so the
+confirmation admits it is removing rows the reader cannot see. Recorded data is
+not held hostage.
 
 ## Notifications
 

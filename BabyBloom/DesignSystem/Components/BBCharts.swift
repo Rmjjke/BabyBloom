@@ -284,6 +284,10 @@ struct BBWeeklyBarChart: View {
 // MARK: - Delete History Button
 
 struct BBDeleteHistoryButton: View {
+    /// Whether the range also holds rows the free history window is hiding.
+    /// The plain confirmation would be a half-truth then — a parent who cannot
+    /// see those rows has no way to know the button reaches them.
+    var deletesHiddenRows = false
     let onDelete: () -> Void
     @State private var showConfirm = false
 
@@ -307,7 +311,7 @@ struct BBDeleteHistoryButton: View {
             Button("button.delete".l, role: .destructive) { onDelete() }
             Button("button.cancel".l, role: .cancel) {}
         } message: {
-            Text("confirm.delete_message".l)
+            Text(deletesHiddenRows ? "confirm.delete_message_hidden".l : "confirm.delete_message".l)
         }
     }
 }

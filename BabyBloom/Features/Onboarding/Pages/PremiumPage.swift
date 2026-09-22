@@ -19,11 +19,14 @@ struct PremiumPage: View {
     // keeps this page from firing a second time while the transition animates.
     @State private var didAdvance = false
 
+    // Must stay identical to `PaywallView.features` — the two paywalls are the
+    // same offer seen at two moments, and a line present in one and missing
+    // from the other is a discrepancy a buyer can catch. `f4` (multi-profile)
+    // is gone from both: the app has no second baby to give.
     private let features: [(icon: String, text: String)] = [
         ("infinity", "onboarding.premium.f1"),
         ("bell.badge.fill", "onboarding.premium.f2"),
         ("square.and.arrow.up.fill", "onboarding.premium.f3"),
-        ("person.2.fill", "onboarding.premium.f4"),
         ("chart.bar.fill", "onboarding.premium.f5"),
     ]
 

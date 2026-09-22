@@ -11,6 +11,10 @@ struct FeedingView: View {
     // opened showing the default (breast) instead of the just-tapped type.
     @State private var addSheetRequest: FeedingSheetRequest?
     @State private var historyFilter: HistoryFilter = .day
+    /// The history list's free window sells from here; nothing else on this
+    /// screen is gated.
+    @Environment(SubscriptionManager.self) private var store
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
 
@@ -84,6 +88,9 @@ struct FeedingView: View {
         }
         .sheet(item: $addSheetRequest) { request in
             AddFeedingSheet(initialType: request.type)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 
@@ -182,9 +189,11 @@ struct FeedingView: View {
             emptyColor: BBTheme.Colors.feeding,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_first_feeding",
+            isPremium: store.isPremium,
             row: { FeedingEntryRow(entry: $0) },
             onDelete: { delete($0) },
-            onDeleteAll: { deleteAll($0) }
+            onDeleteAll: { deleteAll($0) },
+            onUnlock: { showPaywall = true }
         )
     }
 

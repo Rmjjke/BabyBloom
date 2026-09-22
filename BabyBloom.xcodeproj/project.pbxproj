@@ -114,6 +114,7 @@
 		D6010D3FA365E292CCEE4407 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
 		D60724F29DD2FC8D921A4F45 /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
 		D62F3083B4A3410B018A342E /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
+		D755C7DF7251C68F54558C31 /* HistoryWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */; };
 		D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */; };
 		D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */; };
 		DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */; };
@@ -133,6 +134,7 @@
 		F147E3FF308F14D84E3E98B9 /* GrowthShowcasePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BA2D1C6628C94C4AD48E95 /* GrowthShowcasePage.swift */; };
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
+		F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */; };
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
@@ -229,6 +231,7 @@
 		582657DC180DE03128A75629 /* NewbornWeightLoss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLoss.swift; sourceTree = "<group>"; };
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
+		5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindow.swift; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
 		64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChange.swift; sourceTree = "<group>"; };
 		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
@@ -297,6 +300,7 @@
 		EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+AppLocale.swift"; sourceTree = "<group>"; };
 		F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGrowthPreviewTests.swift; sourceTree = "<group>"; };
 		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
+		F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindowTests.swift; sourceTree = "<group>"; };
 		F3D63328CD7ED001909F7DCD /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoption.swift; sourceTree = "<group>"; };
 		FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypographyCapTests.swift; sourceTree = "<group>"; };
@@ -459,6 +463,7 @@
 				AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */,
 				C9D97024281147567091924D /* GrowthCardRenderDump.swift */,
 				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
+				F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				D4EAC3A72A4E3588441CFAEB /* NewbornWindowGateTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
@@ -650,6 +655,14 @@
 			path = Feeding;
 			sourceTree = "<group>";
 		};
+		C7E56D64BDBFE7742EE75251 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
 		CE505E1442B8AAE18EE0FAD3 = {
 			isa = PBXGroup;
 			children = (
@@ -700,6 +713,7 @@
 			children = (
 				C5A7E4DC3E62B062807E07CA /* Feeding */,
 				92872E639174190CE7FD2042 /* Growth */,
+				C7E56D64BDBFE7742EE75251 /* History */,
 				77F93CE06E083049FB882844 /* Localization */,
 				28C9C1E0E311C9496C19DE5B /* Models */,
 			);
@@ -937,6 +951,7 @@
 				F147E3FF308F14D84E3E98B9 /* GrowthShowcasePage.swift in Sources */,
 				86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */,
 				FED7E258489CADAD70A16DB3 /* GrowthView.swift in Sources */,
+				F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */,
 				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
 				4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
@@ -992,6 +1007,7 @@
 				A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */,
 				54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */,
 				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
+				D755C7DF7251C68F54558C31 /* HistoryWindowTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				08397073EA2C1C14B5E247EF /* NewbornWindowGateTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,

@@ -7,6 +7,10 @@ struct SleepView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
+    /// The history list's free window sells from here; nothing else on this
+    /// screen is gated.
+    @Environment(SubscriptionManager.self) private var store
+    @State private var showPaywall = false
 
     private var baby: Baby? { babies.first }
 
@@ -79,6 +83,9 @@ struct SleepView: View {
         }
         .sheet(isPresented: $showAddSheet) {
             AddSleepSheet()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 
@@ -169,6 +176,7 @@ struct SleepView: View {
             emptyColor: BBTheme.Colors.sleep,
             emptyTitle: "empty.no_records",
             emptySubtitle: "empty.add_sleep",
+            isPremium: store.isPremium,
             row: { entry in
                 BBEventRow(
                     icon: entry.type.icon,
@@ -180,7 +188,8 @@ struct SleepView: View {
                 )
             },
             onDelete: { delete($0) },
-            onDeleteAll: { deleteAll($0) }
+            onDeleteAll: { deleteAll($0) },
+            onUnlock: { showPaywall = true }
         )
     }
 
