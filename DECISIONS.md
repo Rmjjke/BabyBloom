@@ -14,6 +14,51 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-23 — The weight chart has labelled axes and a readout; its time axis is labelled in dates
+
+The owner's report (build 21): the chart showed a line and a band and said
+nothing. The only text under it — the baby's lightest and heaviest weight at
+the two ends — sat exactly where an x-axis's first and last labels sit, so it
+read as "from 3.50 to 7.70" along a time axis that had no labels at all, and
+two same-day weighings stood on one vertical that no number explained. The
+chart is now Swift Charts with a kg axis and a date axis, the min/max row is
+gone, and a readout above the plot states one weighing: weight, date, age at
+that date.
+
+**Dates on the axis, age in the readout.** The geometry is unchanged — a point
+still sits at its age from the corrected birth, which the corridor needs
+(2026-09-21) — so the only question was the labels. Dates, because "when did
+the weight jump" is asked in dates, and because an age axis for a preterm baby
+is CORRECTED age, which a parent would have to decode off the tick labels
+(and a pre-due-date weighing would sit at "−6 weeks"). The readout gives the
+chronological age at the weighing, the same age the app's header prints.
+
+**A readout plus tap, not a callout and not a drag-scrub.** The chart sits in
+the Growth screen's vertical ScrollView: a scrub gesture fights the scroll, and
+a callout at a point near the edge clips at the card. A line of text above the
+plot has neither problem and — since it shows the latest weighing by default —
+says something before anyone finds the tap. The tap picks the nearest weighing
+in SCREEN space, not by date alone, because two weighings on one day stand on
+one vertical and only the tap's height separates them.
+
+**A tick label too close to the right edge is dropped, not shortened.** Swift
+Charts starts a date label at its tick and truncates it at the plot's end
+("25 д…"); the readout already states the latest date, so losing that one
+label costs nothing.
+
+**An age is never printed as "0 months".** Rendering the readout surfaced it:
+`describeAge` switched to calendar months at day 30, and day 30 of a 31-day
+month is not yet a month, so the app header read "0 месяцев" on that day. The
+percentile card under the chart had the same defect for the whole first
+month — it printed whole corrected months ("для ребёнка 0 месяцев") right
+under a readout saying "4 недели" about the same weighing. Both now go through
+`Baby.describeAge(from:to:)`: days, then weeks until a calendar month has
+actually elapsed, then months. Age 0 has its own words: the readout says "при
+рождении" (chronological), and the percentile card says "для новорождённого"
+(corrected) — not "0 дней", which is what every fresh install's only weighing
+would otherwise print, and not "at birth", which a preterm baby scored on its
+due date was not.
+
 ## 2026-09-23 — Usage statistics are on by default everywhere, EU included (opt-out, not opt-in)
 
 The «Статистика использования» toggle defaults to ON for every region; a parent

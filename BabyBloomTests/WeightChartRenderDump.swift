@@ -60,12 +60,26 @@ final class WeightChartRenderDump: XCTestCase {
             // the corrected due date and carry NEGATIVE ages. No band may be
             // drawn under them — it starts at the due date.
             try dump(dir, "\(locale)-preterm", chart(
-                [at(-70, 1.40), at(-56, 1.75), at(-28, 2.55), at(0, 3.30), at(35, 4.60)]))
+                [at(-70, 1.40), at(-56, 1.75), at(-28, 2.55), at(0, 3.30), at(35, 4.60)],
+                bornDaysEarly: 70))
 
             // Past the tables: every point is older than 24 months, so the
             // chart draws the baby's line and NO band at all.
             try dump(dir, "\(locale)-past-tables", chart([
                 at(760, 12.40), at(800, 12.80), at(860, 13.30),
+            ]))
+
+            // The owner's report (2026-09-23): a long flat stretch, then two
+            // weighings on one day. The readout and the date axis are what
+            // make "when did it jump, and to what" answerable.
+            try dump(dir, "\(locale)-same-day-jump", chart([
+                at(0, 3.50), at(40, 4.60), at(46, 6.55), at(46, 7.70).later(hours: 3),
+            ]))
+
+            // Nearly two years: the tick labels carry a four-digit year, and
+            // the widest of them must still clear the right edge.
+            try dump(dir, "\(locale)-two-years", chart([
+                at(0, 3.40), at(60, 5.30), at(180, 7.90), at(365, 9.60), at(540, 10.90), at(700, 12.00),
             ]))
 
             // The opt-out for a caller that ever reuses this shell for height.
@@ -84,9 +98,15 @@ final class WeightChartRenderDump: XCTestCase {
         print("CHART_DIR=\(dir.path)")
     }
 
-    private func chart(_ measurements: [WeightMeasurement], corridor: Bool = true) -> some View {
+    /// `bornDaysEarly` moves the ACTUAL birth back from `birth`, which stays
+    /// the corrected one the geometry is drawn from — the readout's age is
+    /// chronological.
+    private func chart(_ measurements: [WeightMeasurement],
+                       corridor: Bool = true,
+                       bornDaysEarly: Int = 0) -> some View {
         WeightChartView(measurements: measurements,
                         correctedBirthDate: birth,
+                        birthDate: Calendar.current.date(byAdding: .day, value: -bornDaysEarly, to: birth)!,
                         isMale: true,
                         showsWHOCorridor: corridor)
     }
@@ -103,5 +123,11 @@ final class WeightChartRenderDump: XCTestCase {
             return XCTFail("could not render \(name)")
         }
         try data.write(to: dir.appendingPathComponent("\(name).png"))
+    }
+}
+
+private extension WeightMeasurement {
+    func later(hours: Int) -> WeightMeasurement {
+        WeightMeasurement(date: date.addingTimeInterval(TimeInterval(hours * 3600)), weightKg: weightKg)
     }
 }
