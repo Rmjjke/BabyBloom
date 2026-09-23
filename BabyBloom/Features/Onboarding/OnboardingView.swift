@@ -24,6 +24,10 @@ struct OnboardingView: View {
     @State private var gestationalWeeks: Double = 34
     @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
+    /// Set only by the loader's own completion, so the paywall can say it was
+    /// reached THROUGH Generating. The e2e walks assert this rather than the
+    /// loader, which is too short-lived to catch (DECISIONS 2026-09-22).
+    @State private var generatingFinished = false
 
     var body: some View {
         ZStack {
@@ -69,9 +73,14 @@ struct OnboardingView: View {
                                            onContinue: next)
                     case .notifications: NotificationsPage(babyName: babyName, onContinue: next)
                     case .widgets: WidgetShowcasePage(babyName: babyName, onContinue: next)
-                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate, onDone: next)
+                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate,
+                                                     onDone: { generatingFinished = true; next() })
                     case .premium: PremiumPage(onPurchased: { createAndFinish() },
                                                onSkip:      { createAndFinish() })
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier(generatingFinished
+                                                 ? "onboarding.premium.afterGenerating"
+                                                 : "onboarding.premium")
                     }
                 }
                 .transition(.asymmetric(

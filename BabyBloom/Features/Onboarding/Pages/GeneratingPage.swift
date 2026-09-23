@@ -104,6 +104,11 @@ struct GeneratingPage: View {
             Spacer()
             Spacer()
         }
+        // A stable anchor for driving the flow by hand. The e2e walks do NOT
+        // wait on it — the page can be gone before Maestro's tap returns;
+        // they assert `onboarding.premium.afterGenerating` (OnboardingView).
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("onboarding.generating")
         .task {
             for (i, delay) in stepDelays.enumerated() {
                 try? await Task.sleep(nanoseconds: delay)
@@ -112,6 +117,8 @@ struct GeneratingPage: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             withAnimation { showDone = true }
             try? await Task.sleep(nanoseconds: 300_000_000)
+            // `try?` swallows cancellation: without this a torn-down loader still "finishes".
+            guard !Task.isCancelled else { return }
             onDone()
         }
     }

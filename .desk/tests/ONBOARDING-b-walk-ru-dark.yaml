@@ -61,10 +61,10 @@ appId: com.nenita.app
 - tapOn: "Создать мой трекер"
 
 # Generating runs here — self-advancing — and lands DIRECTLY on the paywall.
-# The loader is too short-lived to assert on (see the en walk's note), so the
-# assertNotVisible below is the discriminator instead: it catches a build that
-# skipped Generating and went straight from the widget page to the paywall.
-- assertNotVisible: "Ночка Premium"
+# The discriminator is the paywall's `onboarding.premium.afterGenerating`,
+# set only by the loader's completion (see the en walk's note for why the
+# loader itself cannot be asserted without a race).
+- extendedWaitUntil: { visible: { id: "onboarding.premium.afterGenerating" }, timeout: 40000 }
 - extendedWaitUntil: { visible: "Ночка Premium", timeout: 40000 }
 - takeScreenshot: 08-premium-ru-dark
 - extendedWaitUntil: { visible: "Закрыть", timeout: 20000 }

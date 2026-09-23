@@ -403,6 +403,12 @@ chart when they reach it. Only the baby's forward line is illustrative: it is
 dashed and labelled as a sketch, because it is the one thing the app cannot
 know yet. Nothing on either page is seeded, saved or read back.
 
+The loader-to-paywall hand-off is observable to tests: `GeneratingPage`'s
+`onDone` sets `generatingFinished`, and the paywall's accessibility identifier
+is `onboarding.premium.afterGenerating` only then (`onboarding.premium`
+otherwise). The e2e walks assert that id rather than the ~5 s loader, which
+Maestro cannot reliably catch (DECISIONS 2026-09-22).
+
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
