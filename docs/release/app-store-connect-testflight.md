@@ -72,6 +72,23 @@
 
 ## Шаг 6. Собрать и загрузить
 
+**Перед архивом — ключ аналитики.** Ключ Amplitude хранится только в
+`Config/Secrets.xcconfig`: файл в `.gitignore`, репозиторий публичный,
+коммитить его нельзя. Если файла нет, аналитика в сборке тихо выключена, поэтому
+**Archive в Release падает**, если ключ пустой (`AMPLITUDE_API_KEY is empty —
+Config/Secrets.xcconfig missing; this archive would ship analytics OFF`),
+остался заглушкой из шаблона или его длина не 32 символа. Шаблон лежит в
+`Config/Secrets.example.xcconfig`: скопировать его в `Config/Secrets.xcconfig`
+и вписать ключ после `=`. Проверить сам ключ (а не только наличие файла), не
+печатая его:
+
+```bash
+sed -n 's/^AMPLITUDE_API_KEY *= *//p' Config/Secrets.xcconfig 2>/dev/null | tr -d '[:space:]' | awk '{ k = $0 } END { print (length(k) == 32 && k != "your-amplitude-api-key") ? "key OK (32 chars)" : "key MISSING or malformed" }'
+```
+
+Логи сборки из такой копии не публиковать: xcodebuild печатает все настройки
+сборки, ключ в том числе.
+
 ```bash
 xcodegen generate
 open BabyBloom.xcodeproj

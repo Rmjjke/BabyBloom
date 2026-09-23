@@ -117,7 +117,7 @@ struct GrowthView: View {
             AddGrowthSheet()
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .lockedCard)
         }
         // Every path here is cancel-before-add, so re-deriving on each visit
         // costs nothing and keeps signals honest if data changed elsewhere.
@@ -827,7 +827,7 @@ struct AddGrowthSheet: View {
                 isPremium: store.isPremium
             )
         }
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.growth)
         dismiss()
     }
 }

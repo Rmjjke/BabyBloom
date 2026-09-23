@@ -50,6 +50,24 @@ iOS Distribution found". Details and the working upload command are in
 `.desk/knowledge.md`. Bash needs `dangerouslyDisableSandbox` for any network
 step — the sandbox has none.
 
+**The Amplitude key must be present for an archive.** It lives only in the
+gitignored `Config/Secrets.xcconfig` (template:
+`Config/Secrets.example.xcconfig`; the repo is public — never commit it). A
+Release **archive** FAILS on purpose in the pre-build phase "Refuse a Release
+archive without the Amplitude key" when the key is empty, still the
+template's placeholder, or not 32 characters (`error: AMPLITUDE_API_KEY is
+…`), because the build would ship with analytics off or rejected; any other
+Release build only warns, and Debug builds do not care. Check the KEY, not
+just the file, without printing it:
+
+    sed -n 's/^AMPLITUDE_API_KEY *= *//p' Config/Secrets.xcconfig 2>/dev/null | tr -d '[:space:]' | awk '{ k = $0 } END { print (length(k) == 32 && k != "your-amplitude-api-key") ? "key OK (32 chars)" : "key MISSING or malformed" }'
+
+**Never paste a raw xcodebuild log from a checkout that has the file:**
+xcodebuild prints every build setting as an `export` line for each script
+phase, the key included. Pipe the log through
+`sed "s/$(sed -n 's/^AMPLITUDE_API_KEY *= *//p' Config/Secrets.xcconfig)/<REDACTED>/g"`
+before sharing it.
+
 ## Reporting
 
 State: (1) succeeded / failed, (2) the artifact path on success, (3) on

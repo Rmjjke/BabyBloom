@@ -19,6 +19,25 @@ settings:
   # same team as the app. Automatic signing fails on the .appex without it.
   DEVELOPMENT_TEAM: 6T959D75QM
 
+# Remote Swift packages. Pinned EXACTLY — including the two transitive ones
+# Amplitude-Swift pulls in with open `from:` ranges: the analytics SDK is a
+# privacy surface, and a patch release can change what it collects by default
+# (AmplitudeCore owns remote config and diagnostics). A version bump is a
+# deliberate change with its source re-read, not a resolve. Only AmplitudeSwift
+# is linked; the other two are listed to pin them, same URLs as its manifest.
+# Package.resolved (committed) is part of the pin: any diff to it needs the
+# same privacy review.
+packages:
+  AmplitudeSwift:
+    url: https://github.com/amplitude/Amplitude-Swift
+    exactVersion: 1.19.0
+  AmplitudeCore:
+    url: https://github.com/amplitude/AmplitudeCore-Swift.git
+    exactVersion: 1.5.2
+  AnalyticsConnector:
+    url: https://github.com/amplitude/analytics-connector-ios.git
+    exactVersion: 1.3.3
+
 targets:
   BabyBloom:
     type: application
@@ -54,6 +73,40 @@ targets:
               exit 1
             fi
           done
+      # An archive with no usable Amplitude key would ship analytics OFF (or
+      # rejected by Amplitude) without a word. Checks only whether the key is
+      # empty, still the Secrets.example.xcconfig placeholder, or not the 32
+      # characters an Amplitude key has — and never echoes it. Note xcodebuild
+      # itself prints every build setting, the key included, for each script
+      # phase, so raw build logs are not shareable.
+      - name: "Refuse a Release archive without the Amplitude key"
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "$CONFIGURATION" = "Release" ]; then
+            problem=""
+            if [ -z "$AMPLITUDE_API_KEY" ]; then
+              problem="AMPLITUDE_API_KEY is empty — Config/Secrets.xcconfig missing"
+            elif [ "$AMPLITUDE_API_KEY" = "your-amplitude-api-key" ]; then
+              problem="AMPLITUDE_API_KEY is still the Secrets.example.xcconfig placeholder"
+            elif [ "${#AMPLITUDE_API_KEY}" -ne 32 ]; then
+              problem="AMPLITUDE_API_KEY is not 32 characters long"
+            fi
+            if [ -n "$problem" ]; then
+              if [ "$ACTION" = "install" ]; then
+                echo "error: $problem; this archive would ship analytics OFF"
+                exit 1
+              fi
+              echo "warning: $problem; this Release build has analytics OFF"
+            fi
+          fi
+    # The Amplitude API key reaches Info.plist as $(AMPLITUDE_API_KEY), and its
+    # ONLY source is this xcconfig chain: App.xcconfig (committed, empty
+    # default) optionally includes Secrets.xcconfig (gitignored). The key must
+    # NOT be added under `settings:` below — a target setting outranks the
+    # xcconfig and would silently pin it empty. The repo is public.
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.nenita.app
       INFOPLIST_FILE: BabyBloom/Resources/Info.plist
@@ -77,6 +130,10 @@ targets:
     dependencies:
       - target: BabyBloomWidget
         embed: true
+      # Product analytics. The APP only: the widget must never link it, and
+      # nothing outside Services/Analytics may import it.
+      - package: AmplitudeSwift
+        product: AmplitudeSwift
 
   BabyBloomWidget:
     type: app-extension

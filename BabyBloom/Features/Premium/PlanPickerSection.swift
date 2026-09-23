@@ -115,6 +115,11 @@ struct PlanPickerSection: View {
         let isSelected = selectedID == id
 
         return Button {
+            // A change only: the yearly preselection is not the parent's pick,
+            // and re-tapping the chosen row says nothing new.
+            if !isSelected, let plan = AnalyticsEvent.Plan(productID: id) {
+                Analytics.shared.track(.planSelected(plan))
+            }
             withAnimation(.spring(response: 0.3)) { selectedID = id }
         } label: {
             HStack(alignment: .center, spacing: BBTheme.Spacing.sm) {

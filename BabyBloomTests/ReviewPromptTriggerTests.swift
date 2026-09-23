@@ -15,6 +15,11 @@ final class ReviewPromptTriggerTests: XCTestCase {
     private var service: ReviewPromptService!
     private var context: ModelContext!
     private var requests = 0
+    /// An isolated facade: the trigger's analytics never touch the app's own
+    /// `UserDefaults` from a test.
+    private var analyticsSuite: String!
+    private var analyticsSpy: SpyAnalyticsBackend!
+    private var analytics: Analytics!
 
     override func setUp() async throws {
         suiteName = "ReviewPromptTriggerTests.\(UUID().uuidString)"
@@ -22,7 +27,8 @@ final class ReviewPromptTriggerTests: XCTestCase {
         // A fixed noon: quiet hours would otherwise fail this suite at night.
         service = ReviewPromptService(defaults: defaults,
                                       calendar: ReviewPromptTestClock.calendar,
-                                      clock: { ReviewPromptTestClock.noon })
+                                      clock: { ReviewPromptTestClock.noon },
+                                      track: { _ in })
         // Every threshold met, so any refusal below is the routing's doing.
         service.recordFirstLaunchIfNeeded(
             now: ReviewPromptTestClock.noon.addingTimeInterval(-10 * 86_400))
@@ -38,27 +44,32 @@ final class ReviewPromptTriggerTests: XCTestCase {
         }
         try context.save()
         requests = 0
+        analyticsSuite = "ReviewPromptTriggerTests.analytics.\(UUID().uuidString)"
+        analyticsSpy = SpyAnalyticsBackend()
+        analytics = Analytics(backend: analyticsSpy, defaults: UserDefaults(suiteName: analyticsSuite)!)
     }
 
     override func tearDown() async throws {
         defaults.removePersistentDomain(forName: suiteName)
+        UserDefaults().removePersistentDomain(forName: analyticsSuite)
     }
 
     private func root() -> ReviewPromptTrigger {
         .live(service: service,
               context: context,
+              analytics: analytics,
               transactionFailedThisSession: { false },
               request: { [unowned self] in self.requests += 1 })
     }
 
     func testASaveOnATabAsksImmediately() {
-        root().entrySaved()
+        root().entrySaved(.feeding)
         XCTAssertEqual(requests, 1)
     }
 
     func testADeferredTriggerNotesTheSaveButNeverAsks() {
         let inSheet = root().deferred
-        inSheet.entrySaved()
+        inSheet.entrySaved(.feeding)
         inSheet.sheetDismissed()
 
         XCTAssertEqual(requests, 0)
@@ -72,7 +83,7 @@ final class ReviewPromptTriggerTests: XCTestCase {
         let quickSheet = tab.deferred
         let addSheet = quickSheet.deferred
 
-        addSheet.entrySaved()
+        addSheet.entrySaved(.feeding)
         quickSheet.sheetDismissed()   // the add sheet closes, inside the quick sheet
         XCTAssertEqual(requests, 0)
 
@@ -92,7 +103,7 @@ final class ReviewPromptTriggerTests: XCTestCase {
     /// A paywall seen inside the quick sheet cancels the save before it.
     func testAPaywallInBetweenCancelsThePendingSave() {
         let tab = root()
-        tab.deferred.entrySaved()
+        tab.deferred.entrySaved(.feeding)
         service.discardPendingSave()
         tab.sheetDismissed()
         XCTAssertEqual(requests, 0)
@@ -103,10 +114,24 @@ final class ReviewPromptTriggerTests: XCTestCase {
     func testTheInertDefaultNeverRecordsASave() {
         let inert = EnvironmentValues().reviewPrompt
         XCTAssertTrue(inert.isDeferred)
-        inert.entrySaved()
+        inert.entrySaved(.feeding)
         inert.sheetDismissed()
         XCTAssertFalse(ReviewPromptService.shared.hasPendingSave)
         XCTAssertFalse(service.hasPendingSave)
         XCTAssertEqual(requests, 0)
+    }
+
+    /// A save reports `first_entry` through the trigger it was made on —
+    /// inside a sheet too — once per kind, and never anything per entry.
+    func testSavesReportTheFirstOfEachKindAndNothingElse() {
+        let tab = root()
+        tab.entrySaved(.feeding)
+        tab.deferred.entrySaved(.feeding)
+        tab.deferred.deferred.entrySaved(.diaper)
+        EnvironmentValues().reviewPrompt.entrySaved(.sleep)   // inert: not reported
+        XCTAssertEqual(analyticsSpy.names, ["first_entry", "first_entry"])
+        let expected: [AnalyticsValue?] = [.token(AnalyticsEvent.EntryKind.feeding),
+                                           .token(AnalyticsEvent.EntryKind.diaper)]
+        XCTAssertEqual(analyticsSpy.sent.map { $0.properties["kind"] }, expected)
     }
 }

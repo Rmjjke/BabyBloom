@@ -11,6 +11,8 @@ import SwiftUI
 /// Red is this app's colour for "your data is about to go away", and the
 /// delete button two rows below is using it.
 struct BBLockedHistoryFooter: View {
+    /// Which list is drawing it, for `history_lock_shown`.
+    let surface: AnalyticsEvent.HistorySurface
     let onUnlock: () -> Void
 
     var body: some View {
@@ -55,5 +57,10 @@ struct BBLockedHistoryFooter: View {
         // line already says it.
         .accessibilityLabel(Text("history.free_window".l))
         .bbLockedAccessibility(true)
+        // On insertion, not on scroll: the hosting lists are plain VStacks, so
+        // this reads "a day on which a capped list was opened", whether or not
+        // the parent scrolled down to the row. The facade sends it at most
+        // once per surface per local day.
+        .onAppear { Analytics.shared.noteHistoryLockShown(surface) }
     }
 }

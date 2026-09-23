@@ -66,7 +66,7 @@ struct DiaperView: View {
             AddDiaperSheet()
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .historyLock)
         }
     }
 
@@ -196,6 +196,7 @@ struct DiaperView: View {
             row: { DiaperEntryRow(entry: $0) },
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
+            lockSurface: .diaper,
             onUnlock: { showPaywall = true }
         )
     }
@@ -209,7 +210,7 @@ struct DiaperView: View {
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l
         )
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.diaper)
     }
 
     private func delete(_ entry: DiaperEntry) {
@@ -464,7 +465,7 @@ struct AddDiaperSheet: View {
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l
         )
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.diaper)
         dismiss()
     }
 }

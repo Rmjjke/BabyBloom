@@ -14,6 +14,148 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-23 — Product analytics on Amplitude, made privacy-safe by configuration, a typed payload and a daily aggregate — with no timeline in it
+
+**Amplitude, not TelemetryDeck.** Backlog #8 approved TelemetryDeck on
+2026-09-05 for its optics — privacy-first by positioning, no ATT prompt. The
+owner switched to Amplitude (US region) before the task started: he already
+runs it on another project, so there is one account, one set of habits, and its
+funnels, cohorts and retention charts are stronger than TelemetryDeck's for the
+questions this task exists to answer (where onboarding loses people, which
+paywall surface converts, whether parents come back). The optics TelemetryDeck
+bought by positioning are bought here by design instead:
+
+- **A typed payload, and a test that pins it.** Every event is a case of a
+  closed `AnalyticsEvent` enum; a property value can only be a Bool, an Int or a
+  case of one of our own token enums, so there is no path from a `String` a
+  parent typed — a name, a note — into a payload. That part is by construction.
+  The rest is not: `.int` takes any Int, so which numbers go out is fixed by the
+  closed enum, a test that stops compiling when a case is added, and a
+  hand-kept allow-list the test walks every case against. Today the one Int is
+  `seconds_visible`. Anyone adding an Int property is adding a number to the
+  privacy surface and should read this first.
+- **No care timeline — a daily aggregate instead.** The first draft sent
+  `entry_logged(kind)` on every save. Each such event carries its own client
+  time under a persistent id, so the backend could rebuild a baby's care
+  timeline — feeds every three hours, a night of waking. That is the pattern
+  the FTC treated as disclosure of health data in the Flo Health case: an app
+  sharing "events" that, in context, reveal health information, with
+  third-party analytics. So there is none. `daily_activity` goes out once, at
+  the first foregrounding of a new local day, for the PREVIOUS day only, and
+  says per kind only whether it was logged at all, plus ONE bucketed total
+  (0 / 1-5 / 6-15 / 16+). A second draft bucketed each kind (…4-7 | 8+); its
+  feeding edge sat exactly on the clinical 8-12 feeds a day guideline, which
+  made the bucket a verdict. It is sent with its time set to noon of the day
+  it reports and outside any session (`sessionId -1`): the moment of sending
+  is the first open after midnight, which in this product is often the first
+  night feed. The store syncs over CloudKit, so it describes the baby's logged
+  day across the family's devices, not this install's own usage — which is
+  still the product question (is the tracker being used, how heavily) and
+  nothing finer. `first_entry(kind)` stays: one per kind per install is
+  activation, not a timeline.
+- **No sessions.** With per-entry events gone, the SDK's session start/end
+  events were the one intraday timeline left — app opens, which in a newborn
+  tracker follow the night feeds. `autocapture` is empty; DAU and retention
+  run on `daily_activity`, which marks active days. The SDK still numbers
+  sessions internally, so funnel events (paywall, onboarding) keep a session id
+  and their own time — one-off moments, not a daily rhythm.
+- **Configuration, read from the SDK source rather than from memory.** No user
+  id, ever. IP address off, so the SDK no longer asks the server to geolocate
+  the request; city, DMA and region off for intent; **country off too** — with
+  no IP, Amplitude-Swift fills `country` itself from the locale's region code,
+  which the first draft missed. Carrier off; IDFA unreachable. IDFV off as well
+  — the IDFV is shared by every app from the same developer account, and the
+  owner's other Amplitude project is exactly the dataset it would join with; a
+  random per-install id costs only continuity across a reinstall. Autocapture
+  is off entirely (element interactions would read on-screen text, names
+  included), and remote autocapture config is off so the dashboard cannot
+  re-enable any of it. No ATT: nothing here is tracking in Apple's sense. What
+  the client cannot prove is what the server does with the connection's IP; the
+  owner checks one TestFlight event in User Look-Up for empty Country, City and
+  Region.
+- **Off where it should be.** A no-op — no SDK constructed, no state written —
+  with no key, on the simulator and in Debug builds, so tests and development
+  never pollute the data. Sending builds say where they came from in
+  `build_channel`, detected the way AmplitudeCore does it (provisioning profile
+  → `development`, sandbox receipt → `testflight`), so a Release build run from
+  Xcode or handed to QA never reads as `appstore`.
+- **An opt-out that breaks the link.** «Статистика использования», default on,
+  honoured at launch; an opted-out launch never constructs the SDK, because
+  constructing it alone reaches Amplitude's config endpoint. Turning it off
+  mid-session wipes the SDK's queue and stored ids and mints a new device id,
+  and retires that instance until the next launch — the live SDK keeps a
+  session id and an event counter no public API resets. That alone was not
+  enough: the retired instance's session bookkeeping keeps running on every
+  foregrounding and writes the old event counter back into the storage just
+  cleared, so the next SDK would have continued it. The wipe is therefore owed
+  forward too — a persisted flag makes the next `make()` reset storage before
+  the SDK reads it — and after opt-out → relaunch → opt-in the device id is new
+  and `event_id` starts at 1 (both verified on the simulator against the real
+  SDK's own queue). A retired backend spends no once-only marker; the parent's
+  own opt-out does (no false firsts, no back-filled day from a declined
+  period). The label says "usage statistics", not "anonymous": a persistent
+  per-install id is pseudonymous, and the label must not promise more than the
+  code does.
+
+**The App Store privacy label must declare Device ID, Product Interaction and
+Purchase History** — all for Analytics, not linked to the user's identity, not
+used for tracking. A random install id is still a device-level identifier in
+Apple's taxonomy, and `purchase_result`, `restore_result` and `plan_selected`
+are purchase history; under-declaring is the failure that costs a review.
+
+**Crash Data and Other Diagnostic Data are declared too (App Functionality, not
+linked, not tracking), conservatively.** AmplitudeCore subscribes to a
+server-side diagnostics switch that can turn Amplitude's own SDK telemetry —
+crash capture included — back on; `enableDiagnostics: false` is only the
+starting value and no public API holds it there. Drop these two declarations
+only with Amplitude's WRITTEN confirmation that diagnostics and crash capture
+stay off for this project; a verbal "it is disabled" is exactly the assumption
+the server switch makes false. The app's `PrivacyInfo.xcprivacy` matches all
+five. (The SDK's own bundled manifest declares Linked = true and Coarse
+Location, because it is written for customers who set user ids and keep IP
+geolocation; ours sets neither.)
+
+**Everything is pinned exactly, and `Package.resolved` is part of the pin.**
+Amplitude-Swift asks for its two dependencies with open `from:` ranges, and
+AmplitudeCore is the package that owns remote config and diagnostics, so both
+are pinned `exactVersion` in `project.yml` alongside it. Any diff to those pins
+or to `Package.resolved` is a privacy change and gets the source re-read.
+
+**App lifecycle events stay off,** for the same reason as sessions and one more:
+install/update/open/background would add an open-time stamp per foreground,
+for information we already have — `daily_activity` gives active days, every
+event carries the app version, `onboarding_page_viewed(welcome)` marks a new
+install inside the funnel, and App Store Connect counts installs
+authoritatively. It also keeps the full vocabulary auditable: our typed list
+and nothing the SDK adds.
+
+**The backend stays swappable.** Mixpanel was deferred (not rejected) on
+2026-09-05 with the condition that a move changes one file, not the call sites;
+that holds for any vendor. Call sites know `Analytics.shared` and
+`AnalyticsEvent`; only `AmplitudeAnalyticsBackend.swift` imports the SDK.
+
+**The API key never enters the repository — the repo is public.** It lives in
+a gitignored `Config/Secrets.xcconfig`, optionally included by the committed
+`Config/App.xcconfig`, so a clone without it builds and runs with analytics as
+a no-op. A client key ships inside the binary anyway; keeping it out of a
+public repo stops it being scraped and fed junk events. The flip side — an
+archive made where the file is missing ships with analytics silently off — is
+closed by a build phase that fails a Release archive with an empty key.
+
+Smaller calls made on the way: `restore_result` has a fourth outcome,
+`cancelled`, and `purchase_result` a fifth, `already_subscribed` — a parent
+backing out, or an owner told "you are already subscribed", is not a failure.
+`purchase_result` is reported before entitlement is published, so it precedes
+`onboarding_completed` in the funnel. `paywall_shown` waits until StoreKit has
+answered and skips subscribers, who see the badge rather than an offer.
+`first_entry` is remembered in UserDefaults rather than read from the store,
+because onboarding's birth-dated weighing would otherwise make every parent's
+first real weighing a second; an install already past onboarding when
+analytics arrives reports no firsts at all rather than false ones.
+`plan_selected` counts changes only, since yearly is preselected.
+
+---
+
 ## 2026-09-22 — The rating prompt is asked for at a moment of success, never over a worry, and never seen on TestFlight
 
 `requestReview` is a request, not a dialog we own: iOS decides whether to show
@@ -76,9 +218,8 @@ checking at 23:00 still sees the sheet — while the blockers still hold.
 Considered and dropped: "not the first session of the day". It has no reason
 we could state that the 3-day and 20-entry rules do not already cover, and it
 would need a session-start clock of its own. The analytics event
-`review_prompt_requested` waits for the TelemetryDeck analytics task (a TODO
-marks the spot) — until then, how often we ask is visible only in the
-`ReviewPrompt` log category.
+`review_prompt_requested` waited for the analytics task (a TODO marked the
+spot); it shipped with Amplitude on 2026-09-23 — see that entry.
 
 ---
 

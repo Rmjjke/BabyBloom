@@ -64,7 +64,7 @@ struct RecentActivityView: View {
                         }
                     }
                     if model.showsLockedFooter {
-                        BBLockedHistoryFooter { showPaywall = true }
+                        BBLockedHistoryFooter(surface: .recentActivity) { showPaywall = true }
                     }
                 }
             }
@@ -75,7 +75,7 @@ struct RecentActivityView: View {
         .navigationTitle("nav.recent_activity".l)
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .historyLock)
         }
     }
 

@@ -18,6 +18,12 @@ struct PremiumPage: View {
     // `createAndFinish()`, which is itself re-entrancy guarded, but the flag
     // keeps this page from firing a second time while the transition animates.
     @State private var didAdvance = false
+    /// Set when `paywall_shown` goes out — only to a parent it will sell to;
+    /// an Apple ID that is already subscribed is advanced, not sold to.
+    @State private var shownAt: Date?
+    /// The X is live until the page is gone; a double tap must not report or
+    /// skip twice.
+    @State private var didSkip = false
 
     // Must stay identical to `PaywallView.features` — the two paywalls are the
     // same offer seen at two moments, and a line present in one and missing
@@ -102,7 +108,12 @@ struct PremiumPage: View {
         }
         .overlay(alignment: .topLeading) {
             if showClose {
-                Button(action: onSkip) {
+                Button {
+                    guard !didSkip else { return }
+                    didSkip = true
+                    if let shownAt { Analytics.shared.track(.paywallClosedX(since: shownAt)) }
+                    onSkip()
+                } label: {
                     // Material background (not a hardcoded white/opacity pair) so the
                     // X stays legible over both the purple hero and the near-white
                     // body it scrolls onto; the tappable frame is 44pt per HIG even
@@ -122,6 +133,7 @@ struct PremiumPage: View {
             }
         }
         .onAppear {
+            reportShownIfSelling()
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) { appear = true }
             // Five seconds, not three (owner ruling, 2026-09-01). The delay is
             // review-safe ONLY because the button reliably appears: the task is
@@ -163,6 +175,7 @@ struct PremiumPage: View {
         // button covered only the first, and covered none of them for a user
         // who arrived already subscribed.
         .onChange(of: store.isPremium) { _, _ in advanceIfEntitled() }
+        .onChange(of: store.hasResolvedEntitlements) { _, _ in reportShownIfSelling() }
         // A restore whose AppStore.sync() throws never assigns restoreState,
         // so nothing else observes the flag clearing — without this, an
         // entitlement that arrived mid-restore (e.g. via Transaction.updates)
@@ -170,6 +183,12 @@ struct PremiumPage: View {
         .onChange(of: store.isRestoring) { _, restoring in
             if !restoring { advanceIfEntitled() }
         }
+    }
+
+    private func reportShownIfSelling() {
+        guard shownAt == nil, store.hasResolvedEntitlements, !store.isPremium else { return }
+        shownAt = Date()
+        Analytics.shared.track(.paywallShown(.onboarding))
     }
 
     /// The onboarding paywall's single exit-on-entitlement path. The rule it

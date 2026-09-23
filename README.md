@@ -61,8 +61,9 @@ Femtech Wellness iOS — мягкие пастельные тона, округ�
 - **Storage:** SwiftData (local) + CloudKit (sync)
 - **Notifications:** UserNotifications / APNs
 - **Widgets:** WidgetKit
+- **Analytics:** Amplitude (Swift SDK via SPM, US region) — typed events only, no-op without a key, opt-out in Settings
 - **Testing:** XCTest
-- **Build:** XcodeGen
+- **Build:** XcodeGen (+ Swift Package Manager; secrets in a gitignored `Config/Secrets.xcconfig`)
 
 ## Архитектура
 
@@ -73,6 +74,7 @@ BabyBloom/
 │   ├── Models/             # SwiftData models (CloudKit-compatible): Baby, FeedingEntry...
 │   └── Localization/       # JSON-based LocalizationManager (ru/en)
 ├── Services/               # NotificationManager, SubscriptionManager (StoreKit 2)
+│   └── Analytics/          # Analytics facade, typed AnalyticsEvent, one file per backend (Amplitude, no-op, log spy)
 ├── DesignSystem/
 │   ├── BBTheme.swift       # Colors, spacing, typography, shadows
 │   └── Components/         # BBButton, BBCard, BBCharts, BBHistorySection...
@@ -90,6 +92,7 @@ BabyBloom/
 BabyBloomWidget/            # WidgetKit extension (live data via App Group)
 WidgetResources/            # Widget copies of localization JSONs (keep in sync!)
 BabyBloomTests/             # Unit tests
+Config/                     # App.xcconfig (committed); Secrets.xcconfig (gitignored — the Amplitude key)
 ```
 
 Дерево выше — карта, а не архитектура. Как система работает на самом деле —

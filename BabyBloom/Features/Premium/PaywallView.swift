@@ -3,10 +3,19 @@ import SwiftUI
 // MARK: - Paywall View
 
 struct PaywallView: View {
+    /// Required, with no default: every presentation site has to say where the
+    /// paywall was opened from, or the conversion funnel loses its first step.
+    let source: AnalyticsEvent.PaywallSource
+
     @Environment(SubscriptionManager.self) private var store
     @Environment(\.dismiss) private var dismiss
 
     @State private var showRestoreAlert = false
+    /// Set when `paywall_shown` goes out — only once this screen is actually
+    /// SELLING: the settings row opens it for subscribers too, and they see
+    /// the active badge, not an offer.
+    @State private var shownAt: Date?
+    @State private var closeReported = false
 
     /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
     /// absent: the app has one baby and no way to add a second, so the line
@@ -74,15 +83,27 @@ struct PaywallView: View {
         .task {
             await store.refreshEntitlements()
         }
-        // A save earlier in the same quick sheet is no longer a moment of
-        // success once an upsell has been put in front of the parent.
-        .onAppear { ReviewPromptService.shared.discardPendingSave() }
+        .onAppear {
+            // A save earlier in the same quick sheet is no longer a moment of
+            // success once an upsell has been put in front of the parent.
+            ReviewPromptService.shared.discardPendingSave()
+            reportShownIfSelling()
+        }
+        .onChange(of: store.hasResolvedEntitlements) { _, _ in reportShownIfSelling() }
     }
 
     // MARK: - Close Button (modal dismissal)
 
     private var closeButton: some View {
-        Button { dismiss() } label: {
+        Button {
+            // Once, and only for a paywall that was reported shown: a double
+            // tap lands twice before the sheet is gone.
+            if let shownAt, !closeReported {
+                closeReported = true
+                Analytics.shared.track(.paywallClosedX(since: shownAt))
+            }
+            dismiss()
+        } label: {
             Image(systemName: "xmark")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -93,6 +114,12 @@ struct PaywallView: View {
         }
         .padding(.trailing, BBTheme.Spacing.sm)
         .padding(.top, BBTheme.Spacing.sm)
+    }
+
+    private func reportShownIfSelling() {
+        guard shownAt == nil, store.hasResolvedEntitlements, !store.isPremium else { return }
+        shownAt = Date()
+        Analytics.shared.track(.paywallShown(source))
     }
 
     // MARK: - Active Badge

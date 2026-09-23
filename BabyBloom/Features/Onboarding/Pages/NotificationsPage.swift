@@ -104,7 +104,10 @@ struct NotificationsPage: View {
         asking = true
         // A parent who already answered on a previous install gets no dialog at
         // all — the system resolves instantly and the callback still advances.
-        NotificationManager.shared.requestPermission { _ in onContinue() }
+        NotificationManager.shared.requestPermission { granted in
+            Analytics.shared.track(.notificationPermission(granted: granted))
+            onContinue()
+        }
     }
 
     /// Guarded like the CTA: SpringBoard takes ~20 ms to cover the app, and in

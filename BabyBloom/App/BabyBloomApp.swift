@@ -78,6 +78,13 @@ struct BabyBloomApp: App {
                 LocalizationManager.shared.setLanguage(appLanguage)
                 // Starts the review prompt's three-day clock; written once.
                 ReviewPromptService.shared.recordFirstLaunchIfNeeded()
+                // Applies the stored opt-out before anything can be sent; a
+                // no-op build (no key, simulator, Debug) constructs no SDK.
+                // The counter is how `daily_activity` reads yesterday.
+                let context = sharedModelContainer.mainContext
+                Analytics.shared.start(hasCompletedOnboarding: hasCompletedOnboarding) { day in
+                    DailyActivityCounter.counts(in: context, over: day)
+                }
                 // Simulator-only, and only when launched with
                 // `-BBSeedScenario <name>`. Runs before the adoption pass so
                 // the pass sees the seeded data — which is already linked to
@@ -102,6 +109,10 @@ struct BabyBloomApp: App {
                 // serving premium (or keep a cross-device purchase locked)
                 // until the next cold launch. Re-ask on every foregrounding.
                 Task { await subscriptionManager.refreshEntitlements() }
+                // Yesterday's aggregate goes out on the first foregrounding of
+                // a new day; a widget is added on the Home Screen, outside the
+                // app, so coming back is also the only moment to notice one.
+                Task { await Analytics.shared.appBecameActive() }
             }
         }
         .modelContainer(sharedModelContainer)
