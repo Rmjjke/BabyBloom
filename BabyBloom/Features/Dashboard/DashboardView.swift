@@ -75,11 +75,13 @@ struct DashboardView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .navigationBarHidden(true)
         }
-        .sheet(isPresented: $showQuickFeedingSheet) { FeedingQuickSheet() }
-        .sheet(isPresented: $showQuickSleepSheet)   { SleepQuickSheet() }
-        .sheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
-        .sheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
-        .sheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
+        // `entrySheet`: a save inside any of these asks for the review prompt
+        // only once the sheet is gone (see `ReviewPromptTrigger`).
+        .entrySheet(isPresented: $showQuickFeedingSheet) { FeedingQuickSheet() }
+        .entrySheet(isPresented: $showQuickSleepSheet)   { SleepQuickSheet() }
+        .entrySheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
+        .entrySheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
+        .entrySheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(isPresented: $showProfileEdit) {
             if let baby {

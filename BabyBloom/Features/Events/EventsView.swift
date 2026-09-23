@@ -5,6 +5,7 @@ struct EventsView: View {
     @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
     @State private var showPaywall = false
@@ -48,7 +49,7 @@ struct EventsView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
+        .entrySheet(isPresented: $showAddSheet) {
             AddEventSheet()
         }
         .sheet(isPresented: $showPaywall) {
@@ -170,6 +171,7 @@ struct EventsView: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
+        reviewPrompt.entrySaved()
     }
 
     private func delete(_ event: CustomEvent) {
@@ -189,6 +191,7 @@ struct EventsView: View {
 struct AddEventSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: CustomEvent.EventType = .bath
     @State private var notes = ""
@@ -315,6 +318,7 @@ struct AddEventSheet: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
+        reviewPrompt.entrySaved()
         dismiss()
     }
 }

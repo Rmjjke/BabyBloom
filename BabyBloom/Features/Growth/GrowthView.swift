@@ -113,7 +113,7 @@ struct GrowthView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
+        .entrySheet(isPresented: $showAddSheet) {
             AddGrowthSheet()
         }
         .sheet(isPresented: $showPaywall) {
@@ -691,6 +691,7 @@ struct GrowthEntryRow: View {
 struct AddGrowthSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(SubscriptionManager.self) private var store
@@ -826,6 +827,7 @@ struct AddGrowthSheet: View {
                 isPremium: store.isPremium
             )
         }
+        reviewPrompt.entrySaved()
         dismiss()
     }
 }

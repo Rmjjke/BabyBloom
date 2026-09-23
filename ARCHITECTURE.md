@@ -556,6 +556,38 @@ at launch and never over the Dashboard. That page is the single call site of
 `requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.
 
+## The review prompt
+
+The App Store rating prompt is requested from exactly one place, and only
+after an entry is saved. `ReviewPromptPolicy` (`Core/Review/`, pure) decides;
+`ReviewPromptService` (`Services/`) remembers the first launch, the last
+requested version and date in `UserDefaults`, and holds a per-process
+"a save is waiting" flag; `ReviewPromptTrigger` is the SwiftUI side. Save
+paths call `@Environment(\.reviewPrompt).entrySaved()` and nothing more.
+`MainTabView` installs the live trigger (`.reviewPromptHost()`), which on a
+tab asks the policy at once; every sheet that can save an entry is presented
+with `.entrySheet` instead of `.sheet`, which hands its content a DEFERRED
+trigger and asks only from its `onDismiss` — the outermost one's, so the
+Dashboard's quick sheets (whole tab screens with their own add sheets) wait
+until the parent is back on a tab. Onboarding sits outside `MainTabView` and
+gets the inert default, so it cannot reach the prompt; nor can launch, a tab
+switch or Cancel, because only a save sets the flag; `PaywallView` clears it
+on appearing, so a declined upsell inside a quick sheet is not followed by a
+rating prompt. Timer STOPS ask, because that is when the entry becomes a
+finished record; timer starts do not, because nothing is finished yet. Nothing
+is asked in quiet hours, 22:00–07:00 on the device's local clock, whatever the
+trigger; the refusal records nothing, so the next daytime save that meets the
+rules asks. The thresholds — quiet hours included, all timing and counts — are
+checked first; only a yes goes on to read the
+store for the blockers, through the growth engine's own predicates —
+`gainDeferral` + `WeightVelocity.latest` for a below-reference gain,
+`NewbornWeightLoss.analyse` flags — plus
+`SubscriptionManager.transactionFailedThisSession`, a flag that, unlike
+`purchaseError`, the next paywall visit does not clear. A user cancel does not
+set it; a restore that finds nothing does. The system
+never says whether it showed anything: TestFlight builds never show it, so
+"no prompt on TestFlight" is not a bug (DECISIONS 2026-09-22).
+
 ## Navigation
 
 `MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth,
@@ -599,17 +631,18 @@ iOS folds `-key value` launch arguments into `UserDefaults`' argument domain,
 so every `@AppStorage` key is drivable from the command line with no product
 code: `-hasCompletedOnboarding`, `-appLanguage`, `-appAppearance`.
 
-Three hooks *are* product code, and two of them are gated on
+Four hooks *are* product code, and three of them are gated on
 `#if targetEnvironment(simulator)` — not on `DEBUG`, because a
 release-optimized QA build is still a real build on a real device and no
-shipped binary may carry a path that wipes data or hands out a paid
-entitlement:
+shipped binary may carry a path that wipes data, hands out a paid
+entitlement or spends a rating prompt:
 
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
+| `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |
 
 Widget views live in the **app's** source tree
 (`Features/Widget/WidgetViews.swift`) and the widget target compiles them from

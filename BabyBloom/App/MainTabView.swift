@@ -48,6 +48,9 @@ struct MainTabView: View {
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
+        // Here and not at the app root: onboarding must never see a live
+        // trigger, and everything that saves an entry lives under this view.
+        .reviewPromptHost()
         // Tab bar appearance is left to the system (D6): the default translucent
         // bar reads correctly in light/dark and is ready for Liquid Glass. No
         // UITabBarAppearance opaque override.

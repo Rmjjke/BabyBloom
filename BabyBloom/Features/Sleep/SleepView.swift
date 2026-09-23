@@ -5,6 +5,7 @@ struct SleepView: View {
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var entries: [SleepEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
     /// The history list's free window sells from here; nothing else on this
@@ -81,7 +82,7 @@ struct SleepView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
+        .entrySheet(isPresented: $showAddSheet) {
             AddSleepSheet()
         }
         .sheet(isPresented: $showPaywall) {
@@ -215,6 +216,8 @@ struct SleepView: View {
             ageMonths: baby?.ageInMonths ?? 0,
             endedAt: endedAt
         )
+        // A finished record, like a manual save; starting a sleep never asks.
+        reviewPrompt.entrySaved()
     }
 
     private func delete(_ entry: SleepEntry) {
@@ -281,6 +284,7 @@ struct AddSleepSheet: View {
     @State private var sheetDetent: PresentationDetent = .large
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: SleepEntry.SleepType = .nap
     @State private var selectedLocation: SleepEntry.SleepLocation = .crib
@@ -394,6 +398,7 @@ struct AddSleepSheet: View {
             ageMonths: babies.first?.ageInMonths ?? 0,
             endedAt: endTime
         )
+        reviewPrompt.entrySaved()
         dismiss()
     }
 }
