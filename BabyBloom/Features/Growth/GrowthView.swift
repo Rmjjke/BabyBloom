@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Charts
 
 struct GrowthView: View {
     @Query(sort: \GrowthEntry.date, order: .reverse) private var entries: [GrowthEntry]
@@ -180,6 +181,7 @@ struct GrowthView: View {
             BBSectionHeader(title: "section.weight_chart")
             WeightChartView(measurements: measurements,
                             correctedBirthDate: baby.correctedBirthDate,
+                            birthDate: baby.birthDate,
                             isMale: baby.gender == .male)
         }
     }
@@ -198,7 +200,7 @@ struct GrowthView: View {
         ) {
             percentileCard(percentile: reading.percentile,
                            badge: reading.badge,
-                           months: monthsAtWeighing(baby: baby, weighing: weighing),
+                           correctedBirthDate: baby.correctedBirthDate,
                            weighedOn: weighing.date)
         } else if WHOGrowthStandard.correctedAgeDaysIfBorn(
                     on: weighing.date,
@@ -216,14 +218,6 @@ struct GrowthView: View {
                 PercentileOutOfRangeCard()
             }
         }
-    }
-
-    /// Corrected age in whole months on the day of the weighing — the age the
-    /// percentile beside it was actually scored at.
-    private func monthsAtWeighing(baby: Baby, weighing: WeightMeasurement) -> Int {
-        max(0, Calendar.current.dateComponents([.month],
-                                               from: baby.correctedBirthDate,
-                                               to: weighing.date).month ?? 0)
     }
 
     // MARK: - Insight blocks
@@ -368,9 +362,18 @@ struct GrowthView: View {
     /// The card itself is `PercentileCard`, shared with onboarding's showcase
     /// page so the two can never drift. The explainer wrapper stays HERE: it is
     /// what injects the "?" badge, and nothing in onboarding would open a sheet.
+    /// The age in the caption is the CORRECTED age on the day of the weighing —
+    /// the one the figure was actually scored at — as a phrase, not whole
+    /// months: every weighing in the first month used to read "0 months". Age 0
+    /// is "a newborn", which is true of a term birth and of a preterm baby on
+    /// its due date alike; "0 days old" is what every fresh install saw.
     private func percentileCard(percentile: Double, badge: String,
-                                months: Int, weighedOn: Date) -> some View {
-        ExplainerCard(explainer: .percentile) {
+                                correctedBirthDate: Date, weighedOn: Date) -> some View {
+        let ageDays = Calendar.current.dateComponents([.day], from: correctedBirthDate, to: weighedOn).day ?? 0
+        let ageLine = ageDays <= 0
+            ? "percentile.by_who_newborn".l
+            : String(format: "percentile.by_who_fmt".l, Baby.describeAge(from: correctedBirthDate, to: weighedOn))
+        return ExplainerCard(explainer: .percentile) {
             // Both lines describe the WEIGHING. The age is the one the figure
             // was scored at, and the date says which weighing that was —
             // without it "1 month old" reads as a claim about today when the
@@ -379,7 +382,7 @@ struct GrowthView: View {
                 percentile: percentile,
                 badge: badge,
                 captionLines: [
-                    String(format: "percentile.by_who_fmt".l, months, months.monthWord),
+                    ageLine,
                     String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth),
                 ]
             )
@@ -440,13 +443,22 @@ struct GrowthView: View {
 
 // MARK: - Weight Chart
 
-/// The baby's weighings over an AGE axis, on the WHO corridor.
+/// The baby's weighings on a TIME axis, over the WHO corridor, with a readout
+/// that states one weighing in words.
 ///
-/// **The axis is age in days, not the index of the entry**, and that change is
+/// **Points sit at their age, not at the index of the entry**, and that is
 /// what makes the band mean anything: the corridor is a function of age, so
 /// points spaced by the order they were recorded would sit over the wrong part
-/// of it. It also fixes the old chart's own distortion — three weighings in one
-/// week and a fourth three months later used to be drawn evenly spaced.
+/// of it. The axis is LABELLED in calendar dates — date is corrected birth plus
+/// age, so the spacing is identical — because a parent asking "when did the
+/// weight jump" thinks in dates, and a preterm parent would otherwise have to
+/// decode corrected age off the tick labels. The age goes into the readout.
+///
+/// **The readout above the plot, not a callout on it.** The latest weighing by
+/// default, the nearest one to a tap otherwise. A callout clips at the card's
+/// edge and a drag-scrub fights the screen's vertical scroll; a line of text
+/// above the chart has neither problem and says something before anyone
+/// discovers the tap (DECISIONS 2026-09-23).
 ///
 /// The corridor itself comes from `WHOCorridor`, the same sampler onboarding's
 /// showcase sketch draws, so the preview a parent is shown in their third
@@ -460,10 +472,14 @@ struct WeightChartView: View {
     /// oldest first: weight-bearing and not dated into the future, so the chart
     /// plots exactly what the cards below it score.
     let measurements: [WeightMeasurement]
-    /// What the age axis and the corridor are measured from — corrected, so a
+    /// What the points and the corridor are placed by — corrected, so a
     /// preterm baby's points sit against the reference for the age it would be
     /// at term.
     let correctedBirthDate: Date
+    /// The actual birth, which the readout's age is counted from: the same
+    /// chronological age the rest of the app prints. Only the geometry is
+    /// corrected.
+    let birthDate: Date
     let isMale: Bool
     /// WEIGHT-for-age only. Nothing else on this screen is plotted today, but a
     /// caller that ever reuses this shell for height or head circumference must
@@ -471,13 +487,24 @@ struct WeightChartView: View {
     /// under a length is not an approximation, it is the wrong standard.
     var showsWHOCorridor: Bool = true
 
-    /// Chart geometry in DATA space, computed once per body rather than per
-    /// point — `place` is called for every sample of three curves plus every
-    /// weighing, and reading a computed property there made it quadratic.
+    /// The weighing the readout describes; nil means the latest. An index, not
+    /// a date: a birth-date correction re-dates every birth-day entry to the
+    /// same instant, and a date key could then never reach the second one. The
+    /// index does not stay on another weighing: any change to `measurements`
+    /// resets it (after at most one frame, since `onChange` runs post-render).
+    @State private var selectedIndex: Int?
+
+    /// Chart geometry, computed once per body rather than per mark.
     private struct Frame {
-        let ageRange: ClosedRange<Int>
+        let xDomain: ClosedRange<Date>
+        let spanDays: Int
         let weightRange: ClosedRange<Double>
-        let samples: [WHOCorridor.Sample]
+        let band: [BandPoint]
+    }
+
+    private struct BandPoint {
+        let date: Date
+        let sample: WHOCorridor.Sample
     }
 
     /// The narrowest window the chart will draw. A single weighing — which is
@@ -486,19 +513,21 @@ struct WeightChartView: View {
     /// sitting in the corridor, which is the whole reason one point is now
     /// worth charting at all.
     private static let minimumSpanDays = 28
-    private static let inset: CGFloat = 6
 
-    private var points: [(ageDays: Int, kg: Double)] {
-        measurements.map {
-            (Calendar.current.dateComponents([.day], from: correctedBirthDate, to: $0.date).day ?? 0,
-             $0.weightKg)
-        }
+    private func date(atAgeDays days: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: days, to: correctedBirthDate) ?? correctedBirthDate
     }
 
-    private func frame(for points: [(ageDays: Int, kg: Double)]) -> Frame? {
-        guard let first = points.first else { return nil }
-        var low = points.reduce(first.ageDays) { min($0, $1.ageDays) }
-        var high = points.reduce(first.ageDays) { max($0, $1.ageDays) }
+    private func layout() -> Frame? {
+        guard let first = measurements.first, let last = measurements.last else { return nil }
+        let ages = measurements.map {
+            Calendar.current.dateComponents([.day], from: correctedBirthDate, to: $0.date).day ?? 0
+        }
+        var low = ages.min() ?? 0
+        var high = ages.max() ?? 0
+        // Whole days floor the time of day away; without the extra day the band
+        // would stop short of an afternoon weighing on the last day.
+        if date(atAgeDays: high) < last.date { high += 1 }
         if high - low < Self.minimumSpanDays {
             // Centred on the data, then pulled back so the window never opens
             // empty space BEFORE the due date: no band can be drawn there and
@@ -516,110 +545,210 @@ struct WeightChartView: View {
 
         // The y window spans the baby AND the band, so the corridor is never
         // clipped and the baby's own line keeps its shape inside it.
-        var minKg = points.reduce(first.kg) { min($0, $1.kg) }
-        var maxKg = points.reduce(first.kg) { max($0, $1.kg) }
+        var minKg = measurements.map(\.weightKg).min() ?? first.weightKg
+        var maxKg = measurements.map(\.weightKg).max() ?? first.weightKg
         for sample in samples {
             minKg = min(minKg, sample.low)
             maxKg = max(maxKg, sample.high)
         }
+        // Half a kilo at least: with no band (past two years, or opted out) a
+        // single weighing would span 0.1 kg and every tick would print alike.
+        if maxKg - minKg < 0.5 {
+            let middle = (maxKg + minKg) / 2
+            minKg = middle - 0.25
+            maxKg = middle + 0.25
+        }
         let pad = max((maxKg - minKg) * 0.08, 0.05)
-        return Frame(ageRange: low...high,
+        return Frame(xDomain: min(date(atAgeDays: low), first.date)...max(date(atAgeDays: high), last.date),
+                     spanDays: high - low,
                      weightRange: (minKg - pad)...(maxKg + pad),
-                     samples: samples)
+                     band: samples.map { BandPoint(date: date(atAgeDays: $0.ageDays), sample: $0) })
     }
 
-    private func place(ageDays: Int, kg: Double, in frame: Frame, size: CGSize) -> CGPoint {
-        let ageSpan = CGFloat(max(frame.ageRange.upperBound - frame.ageRange.lowerBound, 1))
-        let kgSpan = max(frame.weightRange.upperBound - frame.weightRange.lowerBound, 0.01)
-        let usableWidth = max(size.width - Self.inset * 2, 1)
-        return CGPoint(
-            x: Self.inset + CGFloat(ageDays - frame.ageRange.lowerBound) / ageSpan * usableWidth,
-            // Heavier sits higher.
-            y: size.height - CGFloat((kg - frame.weightRange.lowerBound) / kgSpan) * size.height
-        )
+    private var shownIndex: Int? {
+        if let selectedIndex, measurements.indices.contains(selectedIndex) { return selectedIndex }
+        return measurements.indices.last
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            let points = points
-            if let frame = frame(for: points) {
-                GeometryReader { geo in
-                    ZStack(alignment: .bottomLeading) {
-                        // Grid lines
-                        ForEach(0..<4) { i in
-                            Rectangle()
-                                .fill(BBTheme.Colors.primary.opacity(0.08))
-                                .frame(height: 1)
-                                .offset(y: -CGFloat(i) * geo.size.height / 3)
-                        }
-
-                        if !frame.samples.isEmpty {
-                            corridor(frame, size: geo.size)
-                                .fill(BBTheme.Colors.growth.opacity(0.16))
-                            curve(frame.samples.map { ($0.ageDays, $0.mid) }, frame, size: geo.size)
-                                .stroke(BBTheme.Colors.growth.opacity(0.5),
-                                        style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
-                        }
-
-                        curve(points.map { ($0.ageDays, $0.kg) }, frame, size: geo.size)
-                            .stroke(BBTheme.Colors.growth,
-                                    style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-
-                        ForEach(points.indices, id: \.self) { index in
-                            let dot = place(ageDays: points[index].ageDays, kg: points[index].kg,
-                                            in: frame, size: geo.size)
-                            Circle()
-                                .fill(BBTheme.Colors.growth)
-                                .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2))
-                                .frame(width: 9, height: 9)
-                                .position(x: dot.x, y: dot.y)
-                        }
-                    }
-                }
-                .frame(height: 160)
-                .padding(.horizontal, BBTheme.Spacing.sm)
-                // Decoration: the cards below state every verdict this picture
-                // hints at, and a path description helps nobody.
-                .accessibilityHidden(true)
-
-                if !frame.samples.isEmpty {
+            if let frame = layout(), let shown = shownIndex {
+                readout(measurements[shown])
+                chart(frame, shown: shown)
+                if !frame.band.isEmpty {
                     WHOCorridorLegend()
                 }
             }
-
-            // The baby's lightest and heaviest, not the axis bounds — the axis
-            // now spans the corridor too.
-            HStack {
-                Text(String(format: "%.2f \("unit.kg".l)", points.map(\.kg).min() ?? 0))
-                Spacer()
-                Text(String(format: "%.2f \("unit.kg".l)", points.map(\.kg).max() ?? 0))
-            }
-            .font(.system(size: 11, weight: .medium, design: .rounded))
-            .foregroundStyle(BBTheme.Colors.textSecondary)
         }
         .padding(BBTheme.Spacing.md)
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
+        // A new or deleted weighing returns the readout to the latest one — the
+        // weighing the parent just entered is the one they want to see.
+        .onChange(of: measurements) { selectedIndex = nil }
     }
 
-    private func curve(_ values: [(Int, Double)], _ frame: Frame, size: CGSize) -> Path {
-        var path = Path()
-        for (index, value) in values.enumerated() {
-            let point = place(ageDays: value.0, kg: value.1, in: frame, size: size)
-            if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
-        }
-        return path
+    /// "12 сент. · 2 месяца" — the readout's second line, and what VoiceOver
+    /// reads for each point.
+    private func caption(_ weighing: WeightMeasurement) -> String {
+        let ageDays = Calendar.current.dateComponents([.day], from: birthDate, to: weighing.date).day ?? 0
+        let age = ageDays <= 0 ? "chart.at_birth".l : Baby.describeAge(from: birthDate, to: weighing.date)
+        return "\(weighing.date.appDayMonth) · \(age)"
     }
 
-    /// The 3rd–97th band as one closed shape: the 97th out, the 3rd back.
-    private func corridor(_ frame: Frame, size: CGSize) -> Path {
-        var path = curve(frame.samples.map { ($0.ageDays, $0.high) }, frame, size: size)
-        for sample in frame.samples.reversed() {
-            path.addLine(to: place(ageDays: sample.ageDays, kg: sample.low, in: frame, size: size))
+    private func readout(_ weighing: WeightMeasurement) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(String(format: "%.2f \("unit.kg".l)", weighing.weightKg))
+                .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .bold))
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+            Text(caption(weighing))
+                .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .medium))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
         }
-        path.closeSubpath()
-        return path
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("growth.weight_chart.readout")
+    }
+
+    private func chart(_ frame: Frame, shown: Int) -> some View {
+        Chart {
+            ForEach(frame.band, id: \.sample.ageDays) { point in
+                AreaMark(x: .value("chart.axis.date".l, point.date),
+                         yStart: .value("chart.axis.weight".l, point.sample.low),
+                         yEnd: .value("chart.axis.weight".l, point.sample.high))
+                    .foregroundStyle(BBTheme.Colors.growth.opacity(0.16))
+                    .accessibilityHidden(true)
+                LineMark(x: .value("chart.axis.date".l, point.date),
+                         y: .value("chart.axis.weight".l, point.sample.mid),
+                         series: .value("series", "median"))
+                    .foregroundStyle(BBTheme.Colors.growth.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                    .accessibilityHidden(true)
+            }
+
+            RuleMark(x: .value("chart.axis.date".l, measurements[shown].date))
+                .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.35))
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                .accessibilityHidden(true)
+
+            ForEach(measurements.indices, id: \.self) { index in
+                let weighing = measurements[index]
+                LineMark(x: .value("chart.axis.date".l, weighing.date),
+                         y: .value("chart.axis.weight".l, weighing.weightKg),
+                         series: .value("series", "baby"))
+                    .foregroundStyle(BBTheme.Colors.growth)
+                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    .accessibilityHidden(true)
+            }
+
+            // Points after the line, so no stretch of line is drawn over a dot.
+            ForEach(measurements.indices, id: \.self) { index in
+                let weighing = measurements[index]
+                let isSelected = index == shown
+                PointMark(x: .value("chart.axis.date".l, weighing.date),
+                          y: .value("chart.axis.weight".l, weighing.weightKg))
+                    .symbol {
+                        Circle()
+                            .fill(BBTheme.Colors.growth)
+                            .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2))
+                            .frame(width: isSelected ? 14 : 9, height: isSelected ? 14 : 9)
+                    }
+                    .accessibilityLabel(caption(weighing))
+                    .accessibilityValue(String(format: "%.2f \("unit.kg".l)", weighing.weightKg))
+            }
+        }
+        .chartLegend(.hidden)
+        // Padding so a point on either edge is not cut in half by the plot.
+        .chartXScale(domain: frame.xDomain, range: .plotDimension(padding: 8))
+        .chartYScale(domain: frame.weightRange)
+        .chartYAxis {
+            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                AxisGridLine()
+                    .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.12))
+                AxisValueLabel {
+                    if let kg = value.as(Double.self) {
+                        Text("\(Self.axisWeight(kg)) \("unit.kg".l)")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                AxisGridLine()
+                    .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.08))
+                // A label starts at its tick, and one too close to the right
+                // edge is truncated to "25 д…" rather than moved — so it is
+                // left out. The readout already states the latest date.
+                if let date = value.as(Date.self), date <= Self.lastLabelledTick(in: frame.xDomain) {
+                    AxisValueLabel {
+                        Text(Self.tickLabel(date, spanDays: frame.spanDays))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                }
+            }
+        }
+        .chartOverlay { proxy in
+            GeometryReader { geometry in
+                Rectangle()
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+                    .onTapGesture { location in
+                        select(nearest: location, shown: shown, proxy: proxy, geometry: geometry)
+                    }
+                    .accessibilityHidden(true)
+            }
+        }
+        // Only a tap that moves the readout ticks — not the reset after a save.
+        .sensoryFeedback(.selection, trigger: selectedIndex) { _, new in new != nil }
+        .frame(height: 190)
+        .accessibilityIdentifier("growth.weight_chart")
+    }
+
+    /// Nearest in SCREEN space, not by date alone: two weighings on one day
+    /// stand on one vertical, and only the tap's height can tell them apart.
+    private func select(nearest location: CGPoint, shown: Int, proxy: ChartProxy, geometry: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        let origin = geometry[plotFrame].origin
+        let tap = CGPoint(x: location.x - origin.x, y: location.y - origin.y)
+        func distance(_ weighing: WeightMeasurement) -> CGFloat {
+            guard let x = proxy.position(forX: weighing.date),
+                  let y = proxy.position(forY: weighing.weightKg) else { return .infinity }
+            return hypot(x - tap.x, y - tap.y)
+        }
+        if let nearest = measurements.indices.min(by: { distance(measurements[$0]) < distance(measurements[$1]) }),
+           nearest != shown {
+            selectedIndex = nearest
+        }
+    }
+
+    private static func lastLabelledTick(in domain: ClosedRange<Date>) -> Date {
+        let span = domain.upperBound.timeIntervalSince(domain.lowerBound)
+        return domain.upperBound.addingTimeInterval(-span * 0.18)
+    }
+
+    private static func axisWeight(_ kg: Double) -> String {
+        kg.rounded() == kg ? String(Int(kg)) : String(format: "%.1f", kg)
+    }
+
+    /// Day and month while the window is a few months wide; month alone past
+    /// that, where four day-precise labels would not fit; month and a
+    /// four-digit year for windows near a year and longer. Not a two-digit
+    /// year — "Sep 25" reads as a day — and not the locale's own month-year
+    /// style either: Russian appends "г.", and three of those collide.
+    private static func tickLabel(_ date: Date, spanDays: Int) -> String {
+        let locale = LocalizationManager.shared.language.locale
+        switch spanDays {
+        case ..<120: return date.formatted(.dateTime.day().month().locale(locale))
+        case ..<330: return date.formatted(.dateTime.month().locale(locale))
+        default:
+            let formatter = DateFormatter()
+            formatter.locale = locale
+            formatter.dateFormat = "LLL yyyy"
+            return formatter.string(from: date)
+        }
     }
 }
 

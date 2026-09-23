@@ -348,12 +348,18 @@ the weighing. `.measuredInFirstWeeks` has one, through the same
 literally what ends the state. No card on this screen shows two CTAs.
 
 **The weight chart is drawn on an AGE axis, over the WHO corridor.**
-`WeightChartView` takes `[WeightMeasurement]` — already through the engine's
-door, so the chart plots exactly what the cards below it score — plus
-`correctedBirthDate` and the sex, and places each point at its age in days
-rather than at its index in the list. That is what lets a band mean anything:
-the corridor is a function of age, and evenly spaced points would sit over the
-wrong part of it. `WHOCorridor.samples(fromAgeDays:toAgeDays:isMale:)` is the
+`WeightChartView` (Swift Charts) takes `[WeightMeasurement]` — already through
+the engine's door, so the chart plots exactly what the cards below it score —
+plus `correctedBirthDate`, `birthDate` and the sex, and places each point at
+its age from the corrected birth rather than at its index in the list. That is
+what lets a band mean anything: the corridor is a function of age, and evenly
+spaced points would sit over the wrong part of it. The time axis is LABELLED
+in calendar dates (corrected birth + age, so the spacing is the same), the
+weight axis in kg, and a readout above the plot states one weighing — weight,
+date, chronological age at that date from `birthDate`. It shows the latest by
+default; a tap selects the weighing nearest the tap in screen space, marked
+with a rule, and any change to the measurements resets it to the latest
+(DECISIONS 2026-09-23). `WHOCorridor.samples(fromAgeDays:toAgeDays:isMale:)` is the
 shared sampler, pure and unit-tested, and it carries the two clinical clamps as
 geometry: **the band starts at age 0**, never earlier — a preterm baby's
 pre-due-date weighings keep their negative ages on the axis and get no band

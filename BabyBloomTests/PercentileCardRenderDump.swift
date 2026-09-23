@@ -39,10 +39,12 @@ final class PercentileCardRenderDump: XCTestCase {
 
         for locale in ["en", "ru", "es"] {
             LocalizationManager.shared.setLanguage(locale)
-            try dump(dir, "\(locale)-p40", growthScreenCard(percentile: 40, badge: "40", months: 1))
-            try dump(dir, "\(locale)-p1", growthScreenCard(percentile: 1, badge: "< 3", months: 0))
-            try dump(dir, "\(locale)-p99", growthScreenCard(percentile: 99, badge: "> 97", months: 6))
-            try dump(dir, "\(locale)-p40-dark", growthScreenCard(percentile: 40, badge: "40", months: 1),
+            try dump(dir, "\(locale)-p40", growthScreenCard(percentile: 40, badge: "40", ageDays: 35))
+            // A fresh install: the birth weighing is the only one.
+            try dump(dir, "\(locale)-p40-newborn", growthScreenCard(percentile: 40, badge: "40", ageDays: 0))
+            try dump(dir, "\(locale)-p1", growthScreenCard(percentile: 1, badge: "< 3", ageDays: 12))
+            try dump(dir, "\(locale)-p99", growthScreenCard(percentile: 99, badge: "> 97", ageDays: 190))
+            try dump(dir, "\(locale)-p40-dark", growthScreenCard(percentile: 40, badge: "40", ageDays: 35),
                      dark: true)
 
             try dump(dir, "\(locale)-onboarding-p40", showcaseCard(percentile: 40, badge: "40"))
@@ -57,13 +59,20 @@ final class PercentileCardRenderDump: XCTestCase {
 
     /// Exactly as `GrowthView` composes it — the `ExplainerCard` wrapper
     /// included, because that wrapper is what injects the "?" badge.
-    private func growthScreenCard(percentile: Double, badge: String, months: Int) -> some View {
-        ExplainerCard(explainer: .percentile) {
+    /// `ageDays` is the corrected age AT the weighing; the caption phrases it
+    /// the way the screen does — "a newborn", days, weeks or months, never
+    /// "0 months".
+    private func growthScreenCard(percentile: Double, badge: String, ageDays: Int) -> some View {
+        let correctedBirth = Calendar.current.date(byAdding: .day, value: -ageDays, to: weighedOn)!
+        return ExplainerCard(explainer: .percentile) {
             PercentileCard(
                 percentile: percentile,
                 badge: badge,
                 captionLines: [
-                    String(format: "percentile.by_who_fmt".l, months, months.monthWord),
+                    ageDays == 0
+                        ? "percentile.by_who_newborn".l
+                        : String(format: "percentile.by_who_fmt".l,
+                                 Baby.describeAge(from: correctedBirth, to: weighedOn)),
                     String(format: "percentile.as_of_fmt".l, weighedOn.appDayMonth),
                 ]
             )

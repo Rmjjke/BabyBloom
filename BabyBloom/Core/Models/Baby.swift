@@ -125,23 +125,27 @@ final class Baby {
         return Calendar.current.date(byAdding: .day, value: offsetDays, to: birthDate) ?? birthDate
     }
 
-    private static func days(from date: Date) -> Int {
-        Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
+    private static func days(from date: Date, to end: Date = Date()) -> Int {
+        Calendar.current.dateComponents([.day], from: date, to: end).day ?? 0
     }
 
-    static func months(from date: Date) -> Int {
-        Calendar.current.dateComponents([.month], from: date, to: Date()).month ?? 0
+    static func months(from date: Date, to end: Date = Date()) -> Int {
+        Calendar.current.dateComponents([.month], from: date, to: end).month ?? 0
     }
 
-    static func describeAge(from date: Date) -> String {
-        let days = max(0, self.days(from: date))
+    /// - Parameter end: the moment the age is read at — today by default; the
+    ///   weight chart passes a weighing's date to say how old the baby was then.
+    static func describeAge(from date: Date, to end: Date = Date()) -> String {
+        let days = max(0, self.days(from: date, to: end))
+        let months = max(0, self.months(from: date, to: end))
         if days < 7 {
             return "\(days) \(days.dayWord)"
-        } else if days < 30 {
+        } else if days < 30 || months == 0 {
+            // Day 30 of a 31-day month is not yet a calendar month: without the
+            // second condition it read "0 months".
             let weeks = days / 7
             return "\(weeks) \(weeks.weekWord)"
         } else {
-            let months = max(0, self.months(from: date))
             return "\(months) \(months.monthWord)"
         }
     }
