@@ -12,15 +12,19 @@ final class ReviewPromptServiceTests: XCTestCase {
     /// The service's clock; tests move it to cross quiet hours or a day.
     private var clockNow = ReviewPromptTestClock.noon
     private let tenDaysAgo = ReviewPromptTestClock.noon.addingTimeInterval(-10 * 86_400)
+    /// What the service reported to analytics, instead of the shared facade.
+    private var tracked: [AnalyticsEvent] = []
 
     private func makeService() -> ReviewPromptService {
         ReviewPromptService(defaults: defaults,
                             calendar: ReviewPromptTestClock.calendar,
-                            clock: { [unowned self] in self.clockNow })
+                            clock: { [unowned self] in self.clockNow },
+                            track: { [unowned self] in self.tracked.append($0) })
     }
 
     override func setUp() {
         super.setUp()
+        tracked = []
         suiteName = "ReviewPromptServiceTests.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
     }
@@ -87,6 +91,8 @@ final class ReviewPromptServiceTests: XCTestCase {
         // The next save in the same version is refused.
         service.noteEntrySaved()
         XCTAssertFalse(service.consumePendingSave(in: context, transactionFailedThisSession: false))
+        // The system never says whether it showed anything; this is the count.
+        XCTAssertEqual(tracked, [.reviewPromptRequested], "reported per request, never per refusal")
     }
 
     func testTooFewEntriesInTheStoreRefuses() throws {
@@ -97,6 +103,7 @@ final class ReviewPromptServiceTests: XCTestCase {
         service.noteEntrySaved()
         XCTAssertFalse(service.consumePendingSave(in: context, transactionFailedThisSession: false))
         XCTAssertFalse(service.hasPendingSave, "a refused save is consumed, not left armed")
+        XCTAssertTrue(tracked.isEmpty)
     }
 
     func testFailedTransactionThisSessionRefuses() throws {

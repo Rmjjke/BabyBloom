@@ -86,7 +86,7 @@ struct SleepView: View {
             AddSleepSheet()
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .historyLock)
         }
     }
 
@@ -190,6 +190,7 @@ struct SleepView: View {
             },
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
+            lockSurface: .sleep,
             onUnlock: { showPaywall = true }
         )
     }
@@ -217,7 +218,7 @@ struct SleepView: View {
             endedAt: endedAt
         )
         // A finished record, like a manual save; starting a sleep never asks.
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.sleep)
     }
 
     private func delete(_ entry: SleepEntry) {
@@ -398,7 +399,7 @@ struct AddSleepSheet: View {
             ageMonths: babies.first?.ageInMonths ?? 0,
             endedAt: endTime
         )
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.sleep)
         dismiss()
     }
 }

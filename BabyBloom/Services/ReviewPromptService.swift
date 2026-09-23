@@ -21,6 +21,9 @@ final class ReviewPromptService {
     /// fixed zone and instant; the app runs on the device's own clock.
     private let calendar: Calendar
     private let clock: () -> Date
+    /// Injected so tests record `review_prompt_requested` instead of reaching
+    /// the shared facade.
+    private let track: @MainActor (AnalyticsEvent) -> Void
     private static let log = Logger(subsystem: "com.nenita.app", category: "ReviewPrompt")
 
     /// A save that happened inside a sheet and is waiting for that sheet to
@@ -30,10 +33,12 @@ final class ReviewPromptService {
 
     init(defaults: UserDefaults = .standard,
          calendar: Calendar = .autoupdatingCurrent,
-         clock: @escaping () -> Date = Date.init) {
+         clock: @escaping () -> Date = Date.init,
+         track: @escaping @MainActor (AnalyticsEvent) -> Void = { Analytics.shared.track($0) }) {
         self.defaults = defaults
         self.calendar = calendar
         self.clock = clock
+        self.track = track
     }
 
     // MARK: - Persistence
@@ -106,8 +111,9 @@ final class ReviewPromptService {
             return false
         }
         recordRequest(version: state.currentVersion, at: now)
-        // TODO(TelemetryDeck analytics task): emit `review_prompt_requested`
-        // here — the system never says whether it showed anything.
+        // The system never says whether it showed anything, so this count of
+        // how often we ASK is the only number there will ever be.
+        track(.reviewPromptRequested)
         Self.log.notice("Review prompt requested.")
         return true
     }

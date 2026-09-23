@@ -2,19 +2,93 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- No tracking, no third-party SDKs, no analytics. -->
+	<!-- No tracking: no ATT, no IDFA, no data broker, nothing joined with
+	     other companies' data. -->
 	<key>NSPrivacyTracking</key>
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 
-	<!-- Nothing is "collected" in Apple's sense: baby data stays on device and
-	     syncs only to the user's own iCloud private database, which we cannot
-	     read. No data reaches a server we control. -->
+	<!-- Baby data stays on device and syncs only to the user's own iCloud
+	     private database, which we cannot read — none of it is "collected".
+	     What IS collected is product analytics (Amplitude, US region, opt-out
+	     in Settings): typed behavioural events, a random per-install device
+	     id, and which plan was bought (purchase / restore / plan events). No
+	     user id is ever set and no account exists to link it to, hence
+	     Linked = false.
+	     Crash Data and Other Diagnostic Data are declared conservatively: the
+	     app turns Amplitude's SDK diagnostics off, but AmplitudeCore can turn
+	     them — crash capture included — back on from its server, and no public
+	     API prevents it. Drop these two only with Amplitude's written
+	     confirmation (DECISIONS 2026-09-23).
+	     Keep every entry in step with the App Store Connect privacy answers
+	     (ARCHITECTURE.md › Analytics). -->
 	<key>NSPrivacyCollectedDataTypes</key>
-	<array/>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeProductInteraction</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeDeviceID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePurchaseHistory</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCrashData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherDiagnosticData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
 
-	<!-- Required-reason APIs. UserDefaults is the only one this app touches. -->
+	<!-- Required-reason APIs. UserDefaults is the only one this app's own code
+	     touches (the Amplitude SDK declares its own in its bundled manifest). -->
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>

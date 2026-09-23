@@ -26,8 +26,14 @@ struct ReviewPromptTrigger {
     let note: @MainActor () -> Void
     let flush: @MainActor () -> Void
     let isDeferred: Bool
+    /// Where a save is reported to analytics (`first_entry`). Every save path
+    /// already calls `entrySaved` once per finished record, so this is the
+    /// app's one choke point for it; injected so tests never reach the shared
+    /// facade. A sheet's deferred trigger keeps it; `.inert` drops it.
+    var logged: @MainActor (AnalyticsEvent.EntryKind) -> Void = { _ in }
 
-    @MainActor func entrySaved() {
+    @MainActor func entrySaved(_ kind: AnalyticsEvent.EntryKind) {
+        logged(kind)
         note()
         if !isDeferred { flush() }
     }
@@ -39,7 +45,7 @@ struct ReviewPromptTrigger {
     /// What a sheet's content receives: it keeps the ability to note a save
     /// and loses the ability to ask.
     var deferred: ReviewPromptTrigger {
-        ReviewPromptTrigger(note: note, flush: {}, isDeferred: true)
+        ReviewPromptTrigger(note: note, flush: {}, isDeferred: true, logged: logged)
     }
 
     static var inert: ReviewPromptTrigger {
@@ -47,10 +53,12 @@ struct ReviewPromptTrigger {
     }
 
     /// The trigger `MainTabView` installs. `request` is the environment's
-    /// `requestReview`, injected so tests can count calls.
+    /// `requestReview`, injected so tests can count calls; `analytics` so they
+    /// can hand in an isolated facade.
     @MainActor
     static func live(service: ReviewPromptService,
                      context: ModelContext,
+                     analytics: Analytics,
                      transactionFailedThisSession: @escaping @MainActor () -> Bool,
                      request: @escaping @MainActor () -> Void) -> ReviewPromptTrigger {
         ReviewPromptTrigger(
@@ -66,7 +74,8 @@ struct ReviewPromptTrigger {
                     request()
                 }
             },
-            isDeferred: false
+            isDeferred: false,
+            logged: { analytics.noteEntrySaved($0) }
         )
     }
 
@@ -109,6 +118,7 @@ private struct ReviewPromptHost: ViewModifier {
         content.environment(\.reviewPrompt, .live(
             service: .shared,
             context: modelContext,
+            analytics: .shared,
             transactionFailedThisSession: { store.transactionFailedThisSession },
             request: { requestReview() }
         ))

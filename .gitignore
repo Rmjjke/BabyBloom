@@ -8,6 +8,11 @@
 # Superpowers scratch
 .superpowers/
 
+# Local secrets (the Amplitude API key). The repo is public; the committed
+# Config/App.xcconfig includes this file optionally. Template:
+# Config/Secrets.example.xcconfig
+Config/Secrets.xcconfig
+
 # Desk workflow (solo mode — cards and logs stay local).
 # The e2e suite is the exception: tests are a regression asset and must
 # survive a clone, so .desk/tests/ is tracked.

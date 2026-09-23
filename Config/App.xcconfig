@@ -1,0 +1,10 @@
+// Build settings for the BabyBloom app target (wired in project.yml via
+// `configFiles`). Committed, so it must never hold a secret: the repo is public.
+//
+// The Amplitude API key defaults to empty, and an empty key makes analytics a
+// no-op — a fresh clone builds and runs without it. A local key goes in
+// Secrets.xcconfig (gitignored, see Secrets.example.xcconfig); `#include?` is
+// the OPTIONAL include, so a missing file is not an error. The default must
+// stay ABOVE the include, or it would overwrite the key the include set.
+AMPLITUDE_API_KEY =
+#include? "Secrets.xcconfig"

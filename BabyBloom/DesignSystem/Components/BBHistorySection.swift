@@ -23,6 +23,7 @@ struct BBHistorySection<Entry: PersistentModel & Identifiable, Row: View>: View 
     @ViewBuilder let row: (Entry) -> Row
     let onDelete: (Entry) -> Void
     let onDeleteAll: ([Entry]) -> Void
+    let lockSurface: AnalyticsEvent.HistorySurface
     let onUnlock: () -> Void
 
     private var filtered: [Entry] {
@@ -61,7 +62,7 @@ struct BBHistorySection<Entry: PersistentModel & Identifiable, Row: View>: View 
                 // the empty state taking over: "no records" would be a lie
                 // about a list that has records.
                 if model.showsLockedFooter {
-                    BBLockedHistoryFooter(onUnlock: onUnlock)
+                    BBLockedHistoryFooter(surface: lockSurface, onUnlock: onUnlock)
                 }
                 // `model.deletable`, never `model.visible`: a paywall may gate
                 // what a parent can SEE of their own records, never what they

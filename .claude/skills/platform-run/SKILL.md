@@ -43,13 +43,19 @@ no product code at all. The ones that matter:
 | `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
 | `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 | `-BBForceReviewPrompt true` | **simulator only** — skip the review prompt's thresholds, quiet hours (22:00–07:00 local) included, but not its blockers, so one save at any hour on a fresh seed brings up the system rating sheet: at once for a quick add or timer stop on a tab, and only once the OUTERMOST entry sheet has dismissed for a save inside a sheet. The system sheet reads `Not Now` (en); a refused request logs `Review prompt not requested: …` at info level under category `ReviewPrompt` (see the log command below) |
+| `-BBAnalyticsSpy true` | **simulator only** — analytics payloads go to the unified log instead of the no-op backend: `Analytics spy event: <name> <key=value…>` at notice level under category `Analytics` (and `Analytics spy: optedOut=…` when the Settings toggle flips). Needs a non-empty key in the build — pass a dummy one, never the real key: `xcodebuild … AMPLITUDE_API_KEY=dummy-local-key build`. Stream with `--predicate 'subsystem == "com.nenita.app" AND category == "Analytics"'` |
+| `-BBAnalyticsDayOffset N` | **simulator only** — moves ONLY the analytics facade's clock N days ahead. Relaunch an install (no `clearState`) with `1` and the first foregrounding sends `daily_activity` for the real today (noon, no session) — pair it with `-BBAnalyticsSpy true` to see it in the log. ⚠️ It leaves the day and widget-probe markers IN THE FUTURE: the next launch without it pulls them back to today and sends nothing that day, so a walk that follows one using the hook starts from a quiet day — use `clearState` if you need a clean first day |
+| `-BBAnalyticsLocalSDK true` | **simulator only** — the REAL Amplitude backend, uploading to a dead local port: nothing is sent, and the SDK's own queue (`<data container>/Library/Application Support/amplitude/…`) and identity suite (`Library/Preferences/com.amplitude.storage.amplitude-swift-storage-*.plist`) show device id, event id, session id and time. Build with a DUMMY key (`AMPLITUDE_API_KEY=dummy-local-key`): constructing the SDK still fetches Amplitude's remote config with it. `-hasCompletedOnboarding true` must be passed on EVERY launch — it is an argument, not a stored default |
 
-`BBSkipSplash`, `BBSeedScenario`, `BBForcePremium` and `BBForceReviewPrompt`
-are the only four backed by product code (`BabyBloomApp.showingSplash`,
-`SeedScenario.seedIfRequested`, `SubscriptionManager.isPremium` and
-`ReviewPromptService.forceOverride`) — the splash is `@State`, not
-`@AppStorage`, and none of the seeder, the entitlement or the review-prompt
-override is a stored default: each is read from the launch argument alone.
+`BBSkipSplash`, `BBSeedScenario`, `BBForcePremium`, `BBForceReviewPrompt`,
+`BBAnalyticsSpy`, `BBAnalyticsDayOffset` and `BBAnalyticsLocalSDK` are the only
+seven backed by product code (`BabyBloomApp.showingSplash`,
+`SeedScenario.seedIfRequested`, `SubscriptionManager.isPremium`,
+`ReviewPromptService.forceOverride`, `Analytics.spyRequested`,
+`Analytics.dayOffset` and `Analytics.localSDKRequested`) — the splash is
+`@State`, not `@AppStorage`, and none of the seeder, the entitlement, the
+review-prompt override or the three analytics hooks is a stored default: each
+is read from the launch argument alone.
 Without `-BBSkipSplash` every cold launch costs ~5s (SplashView.play: 4.6s +
 a 0.4s fade). With it the Dashboard is up in under 3s.
 

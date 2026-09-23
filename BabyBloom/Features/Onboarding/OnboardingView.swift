@@ -102,6 +102,11 @@ struct OnboardingView: View {
         // also calls loadProducts() on its own .task; the double call is
         // deliberate and idempotent (SubscriptionManager is safe to reload).
         .task { await store.loadProducts() }
+        // Every page change goes through `step`, forward or back, so this is
+        // the funnel's single choke point; `initial` reports the welcome page.
+        .onChange(of: step, initial: true) { _, page in
+            Analytics.shared.track(.onboardingPageViewed(.init(page)))
+        }
     }
 
     // MARK: Progress bar
@@ -148,6 +153,7 @@ struct OnboardingView: View {
     private func createAndFinish() {
         guard !isCreating else { return }
         isCreating = true
+        Analytics.shared.track(.onboardingCompleted(birthMeasurementsKnown: knowsBirthMeasurements))
         let created = OnboardingBabyBuilder.build(
             name: babyName,
             birthDate: birthDate,

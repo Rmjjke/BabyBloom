@@ -91,7 +91,7 @@ struct FeedingView: View {
             AddFeedingSheet(initialType: request.type)
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .historyLock)
         }
     }
 
@@ -194,6 +194,7 @@ struct FeedingView: View {
             row: { FeedingEntryRow(entry: $0) },
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
+            lockSurface: .feeding,
             onUnlock: { showPaywall = true }
         )
     }
@@ -223,7 +224,7 @@ struct FeedingView: View {
         NotificationManager.shared.onFeedingTimerStopped(ageMonths: baby?.ageInMonths ?? 0)
         // Stopping is what turns a running feed into a finished record — the
         // same moment of success as a manual save. Starting never asks.
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.feeding)
     }
 
     private func delete(_ entry: FeedingEntry) {
@@ -547,7 +548,7 @@ struct AddFeedingSheet: View {
         )
         // A running timer is a feed that has only begun, not a finished
         // record — no moment of success to ask on. Timer starts never ask.
-        if !startTimer { reviewPrompt.entrySaved() }
+        if !startTimer { reviewPrompt.entrySaved(.feeding) }
         dismiss()
     }
 }

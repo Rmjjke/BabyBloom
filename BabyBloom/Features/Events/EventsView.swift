@@ -8,7 +8,8 @@ struct EventsView: View {
     @Environment(\.reviewPrompt) private var reviewPrompt
     @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
-    @State private var showPaywall = false
+    /// The create gate and the history footer both sell; the source says which.
+    @State private var paywallSource: AnalyticsEvent.PaywallSource?
 
     var body: some View {
         NavigationStack {
@@ -52,8 +53,8 @@ struct EventsView: View {
         .entrySheet(isPresented: $showAddSheet) {
             AddEventSheet()
         }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
+        .sheet(item: $paywallSource) { source in
+            PaywallView(source: source)
         }
     }
 
@@ -62,7 +63,7 @@ struct EventsView: View {
     /// the padlock cannot promise a gate that a tile below it walks around.
     private func addEvent(_ type: CustomEvent.EventType? = nil) {
         guard store.isPremium else {
-            showPaywall = true
+            paywallSource = .events
             return
         }
         if let type {
@@ -145,7 +146,7 @@ struct EventsView: View {
                     }
                 }
                 if model.showsLockedFooter {
-                    BBLockedHistoryFooter { showPaywall = true }
+                    BBLockedHistoryFooter(surface: .events) { paywallSource = .historyLock }
                 }
                 // This screen is the one windowed surface with no swipe reach
                 // to its unrendered rows: an event older than the free window
@@ -171,7 +172,7 @@ struct EventsView: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.event)
     }
 
     private func delete(_ event: CustomEvent) {
@@ -318,7 +319,7 @@ struct AddEventSheet: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
-        reviewPrompt.entrySaved()
+        reviewPrompt.entrySaved(.event)
         dismiss()
     }
 }

@@ -283,11 +283,21 @@ final class SubscriptionManager {
         purchasePending = false
         restoreState = nil
         defer { isLoading = false }
+        // Each branch reports exactly once, and BEFORE `refreshEntitlements()`:
+        // publishing `isEntitled` can end onboarding — and send
+        // `onboarding_completed` — while that call is still awaiting the
+        // intro-offer lookup, and the funnel has to read the purchase first.
+        let plan = AnalyticsEvent.Plan(productID: product.id)
+        func report(_ outcome: AnalyticsEvent.PurchaseOutcome) {
+            if let plan { Analytics.shared.track(.purchaseResult(plan, outcome)) }
+        }
+        Analytics.shared.clearPendingPurchases()
         do {
             let result = try await product.purchase()
             switch result {
             case .success(let verification):
                 let transaction = try checked(verification)
+                report(.success)
                 // Safe against the cancellation guard in refreshEntitlements()
                 // only because PlanPickerSection calls purchase() from an
                 // UNSTRUCTURED Task. Move this into a view's .task and a
@@ -298,17 +308,24 @@ final class SubscriptionManager {
                 // Where "You are currently subscribed" lands when the product
                 // is already owned: nothing was bought, yet this Apple ID may
                 // well be entitled. Re-read StoreKit so the host acts on the
-                // truth instead of on whatever `isEntitled` happened to hold.
+                // truth instead of on whatever `isEntitled` happened to hold —
+                // scanned once before publishing, so the report can tell an
+                // owner from a parent who backed out.
+                report(await Self.scanEntitlement() == true ? .alreadySubscribed : .cancelled)
                 await refreshEntitlements()
             case .pending:
                 // Ask to Buy / Strong Customer Authentication: the purchase is
-                // awaiting external approval. Surface this so the user gets feedback.
+                // awaiting external approval. Surface this so the user gets
+                // feedback. An approval arrives only via `Transaction.updates`.
+                report(.pending)
+                if let plan { Analytics.shared.notePendingPurchase(plan) }
                 purchasePending = true
             @unknown default:
-                break
+                report(.failed)
             }
         } catch {
             recordTransactionError(error)
+            report(Self.isUserCancellation(error) ? .cancelled : .failed)
             // Same reasoning as `.userCancelled` above — a failed purchase says
             // nothing about what this Apple ID already owns.
             await refreshEntitlements()
@@ -323,6 +340,9 @@ final class SubscriptionManager {
         // Cleared only on the way out — after `restoreState` has been assigned,
         // which is the whole point of the flag.
         defer { isLoading = false; isRestoring = false }
+        // Whatever a restore finds, an old Ask to Buy marker no longer speaks
+        // for anything still to come.
+        Analytics.shared.clearPendingPurchases()
         do {
             try await AppStore.sync()
             await refreshEntitlements()
@@ -331,8 +351,10 @@ final class SubscriptionManager {
             // simulator it keeps the e2e override from faking a restore.
             restoreState = isEntitled ? .success : .nothingFound
             if !isEntitled { transactionFailedThisSession = true }
+            Analytics.shared.track(.restoreResult(isEntitled ? .found : .notFound))
         } catch {
             recordTransactionError(error)
+            Analytics.shared.track(.restoreResult(Self.isUserCancellation(error) ? .cancelled : .failed))
         }
     }
 
@@ -360,6 +382,19 @@ final class SubscriptionManager {
     }
 
     func refreshEntitlements() async {
+        guard let active = await Self.scanEntitlement() else { return }
+        isEntitled = active
+        hasResolvedEntitlements = true
+        await refreshIntroOfferEligibility()
+    }
+
+    /// The StoreKit read behind `refreshEntitlements()`, without publishing.
+    /// nil for a cancelled scan: the caller's .task dying with its view
+    /// terminates the sequence EARLY and would fall through with `false` —
+    /// publishing that asserts "resolved: not subscribed" about a user nobody
+    /// finished checking, and `hasResolvedEntitlements` is exactly the flag the
+    /// paywalls trust not to lie.
+    private static func scanEntitlement() async -> Bool? {
         var active = false
         for await result in Transaction.currentEntitlements {
             if case .verified(let tx) = result,
@@ -369,15 +404,7 @@ final class SubscriptionManager {
                 break
             }
         }
-        // A cancelled scan (the caller's .task dying with its view) terminates
-        // the sequence EARLY and would fall through with `active == false` —
-        // publishing that asserts "resolved: not subscribed" about a user
-        // nobody finished checking, and `hasResolvedEntitlements` is exactly
-        // the flag the paywalls trust not to lie.
-        guard !Task.isCancelled else { return }
-        isEntitled = active
-        hasResolvedEntitlements = true
-        await refreshIntroOfferEligibility()
+        return Task.isCancelled ? nil : active
     }
 
     /// Asks the App Store whether the group's introductory offer is still
@@ -396,6 +423,14 @@ final class SubscriptionManager {
         Task { [weak self] in
             for await result in Transaction.updates {
                 guard case .verified(let tx) = result else { continue }
+                // The only place an approved Ask to Buy ever surfaces. Reported
+                // before the entitlement is published, like `purchase(_:)`;
+                // the facade answers only for a plan it saw go `.pending`.
+                if tx.reason == .purchase, tx.revocationDate == nil {
+                    Analytics.shared.resolvePendingPurchase(productID: tx.productID,
+                                                            purchaseDate: tx.purchaseDate,
+                                                            isOwnPurchase: tx.ownershipType == .purchased)
+                }
                 await self?.refreshEntitlements()
                 await tx.finish()
             }

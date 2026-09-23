@@ -24,6 +24,7 @@
 		1A344BC33279ABD22C6B9E90 /* DashboardGrowthSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FFE47A731EC428AFBF9100 /* DashboardGrowthSummaryTests.swift */; };
 		1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		1ACEFD1B6DE6102E4A01518F /* OnboardingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = E98DDE429F22E93F5C9E988E /* OnboardingHelpers.swift */; };
+		1E34D33370F1AD7BFCB9693F /* AnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63179AF1B5A54A645E0AB24 /* AnalyticsBackend.swift */; };
 		1FDA16DD06B456A4004E1F2F /* SeedScenario.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD1F7B873B4834EAD84A07F /* SeedScenario.swift */; };
 		22635DE9DA65A975AC422C08 /* OnboardingFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739CB2CBC67A7786E2057C92 /* OnboardingFacts.swift */; };
 		22F76FA1DEAE7C2CC33FC1FD /* FeedingBreakdownCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */; };
@@ -39,19 +40,23 @@
 		375952A1780A34B8ABB25E8C /* DashboardGrowthSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8F5697AB65FB87CF2F480A /* DashboardGrowthSummary.swift */; };
 		3A5B8BAADCF489A986E8E9E1 /* FeedingRhythm.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */; };
 		3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
+		3CC1B9C7FF35104046EDA613 /* DailyActivityCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47139363776A0047D8C4653 /* DailyActivityCounter.swift */; };
 		3D576494896C8DCF89E129E3 /* NutritionSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02E985CD184447B03AA6F246 /* NutritionSection.swift */; };
 		3FE874AF7EB96FB4DB3B9E5F /* FactPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD2BF1765038B638504BD85 /* FactPage.swift */; };
 		4038A39F0C8358CFC87AFFF6 /* FeedingEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */; };
 		40A90B0B08A9F9703C5855C1 /* SleepEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C0EFD2047D20E87AB0DBB6A /* SleepEntry.swift */; };
 		40F099D6E749944BC8D2C8A8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4ACFA220FE675C3DDDAC7265 /* PrivacyInfo.xcprivacy */; };
+		41A2DEFF077FC95B36ADBFF3 /* AmplitudeSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 297E6301E1DDACC7ACFB3A4B /* AmplitudeSwift */; };
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
 		48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD4BA37056F98A21BACCC4E /* StatusWord.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
 		4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */; };
 		4C6BF8041B42FEC6F9C999A8 /* OnboardingBabyBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AD9D11B7E3FE2B34D03AA /* OnboardingBabyBuilderTests.swift */; };
+		4CC9780C33A8075D35D01736 /* AnalyticsEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */; };
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
+		5421C084298E61D44570976B /* AnalyticsFacadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
 		55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */; };
 		5772245E6796465274126611 /* BirthDateChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */; };
@@ -72,6 +77,7 @@
 		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
 		739F26F2A9FDE2385C250D1B /* GrowthPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7540A190C88F7AD53BB3E3E6 /* GrowthPage.swift */; };
 		75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */; };
+		7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */; };
 		7B2737EB596E0135A560C902 /* NamePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A856FE301431E425A94C4CA /* NamePage.swift */; };
 		7B6FC7DF616E116021B47307 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */; };
@@ -84,6 +90,7 @@
 		8C110040856B0097A2D80EE6 /* ReviewPromptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA09374D8C6395A118085BF /* ReviewPromptService.swift */; };
 		900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */; };
 		92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */; };
+		949FFE0B196C5DD898EC866D /* AmplitudeAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43AD69E5FE44643CF24BD913 /* AmplitudeAnalyticsBackend.swift */; };
 		954B71C8BA4964C0C08D9FBF /* WeightChartRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B93053C148D1C6ED53A55A /* WeightChartRenderDump.swift */; };
 		95648819E3BE5FFB3251FA33 /* AdvanceOnEntitlementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E350D7D19C609665E914DE63 /* AdvanceOnEntitlementTests.swift */; };
 		95E5748D0F9E4A55D45F2E20 /* NotificationsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 017D853B6CDFE505EBBE64D8 /* NotificationsPage.swift */; };
@@ -139,13 +146,16 @@
 		E78FAF366FEABEACBBABFD84 /* RecentActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A07049E9D30F01EB4916982 /* RecentActivityView.swift */; };
 		EA29B988F46E8BF5C8F6DA9F /* PlanPickerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A692D649B380A3DDE7CB5D21 /* PlanPickerSection.swift */; };
 		EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */; };
+		EAB93DDC960BEACCE29B13B3 /* LoggingAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */; };
 		EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */; };
 		ED958D4B266F8232386E459D /* PercentileCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D7CBB786BB36751F59299E /* PercentileCardRenderDump.swift */; };
 		F147E3FF308F14D84E3E98B9 /* GrowthShowcasePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BA2D1C6628C94C4AD48E95 /* GrowthShowcasePage.swift */; };
+		F251C878780E8A4C77140E27 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16311BC78AF28F08F304583D /* AnalyticsEvent.swift */; };
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
 		F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */; };
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
+		F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C49E15D8A3D66502ADD8D /* Analytics.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
 		FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90B47FB42839937376FB6C1 /* PremiumHero.swift */; };
@@ -206,6 +216,7 @@
 		13BD5E27F89A1E4CF8052A0C /* PercentileCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentileCard.swift; sourceTree = "<group>"; };
 		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
+		16311BC78AF28F08F304583D /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectedAgeTests.swift; sourceTree = "<group>"; };
 		1B3FEF1C694F286BCCE9C786 /* WHOCorridor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOCorridor.swift; sourceTree = "<group>"; };
@@ -230,6 +241,7 @@
 		3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		3F6AD9D11B7E3FE2B34D03AA /* OnboardingBabyBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBabyBuilderTests.swift; sourceTree = "<group>"; };
 		3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocity.swift; sourceTree = "<group>"; };
+		43AD69E5FE44643CF24BD913 /* AmplitudeAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmplitudeAnalyticsBackend.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
 		46CFF5A9567092348158A1F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChangeTests.swift; sourceTree = "<group>"; };
@@ -245,6 +257,7 @@
 		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
 		5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindow.swift; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
+		63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpyAnalyticsBackend.swift; sourceTree = "<group>"; };
 		64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChange.swift; sourceTree = "<group>"; };
 		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
@@ -252,13 +265,16 @@
 		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		739CB2CBC67A7786E2057C92 /* OnboardingFacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFacts.swift; sourceTree = "<group>"; };
 		73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportGeneratorTests.swift; sourceTree = "<group>"; };
+		74E547A2AA203B20102A9E71 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
 		7540A190C88F7AD53BB3E3E6 /* GrowthPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthPage.swift; sourceTree = "<group>"; };
 		756CA42B2B02154C7E93929D /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		788C49E15D8A3D66502ADD8D /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
 		78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BabyBloomWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7960B4FDF7627E5762EDD95C /* ReviewPromptTestClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTestClock.swift; sourceTree = "<group>"; };
 		7F16E118F33FF497A01BC913 /* BrandMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandMark.swift; sourceTree = "<group>"; };
 		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		80CD9E9FC340B4479EAAF3F4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsFacadeTests.swift; sourceTree = "<group>"; };
 		81EBDB06F0A203F086BCC22F /* BabyBloomWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloomWidget.entitlements; sourceTree = "<group>"; };
 		82422A5254915B1796A78F89 /* BBCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBCard.swift; sourceTree = "<group>"; };
 		8A07049E9D30F01EB4916982 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
@@ -290,16 +306,20 @@
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
 		C3BE4ACD90BCC77776DCB996 /* OnboardingGrowthPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGrowthPreview.swift; sourceTree = "<group>"; };
 		C420362165FF7D4EDBECE42E /* ReviewPromptTriggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTriggerTests.swift; sourceTree = "<group>"; };
+		C47139363776A0047D8C4653 /* DailyActivityCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyActivityCounter.swift; sourceTree = "<group>"; };
 		C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoptionTests.swift; sourceTree = "<group>"; };
 		C8C7A14DC237AE71B9E56C45 /* FeedingEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingEntry.swift; sourceTree = "<group>"; };
 		C90B47FB42839937376FB6C1 /* PremiumHero.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumHero.swift; sourceTree = "<group>"; };
 		C9B93053C148D1C6ED53A55A /* WeightChartRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChartRenderDump.swift; sourceTree = "<group>"; };
+		C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingAnalyticsBackend.swift; sourceTree = "<group>"; };
 		C9D97024281147567091924D /* GrowthCardRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthCardRenderDump.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
+		CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEventTests.swift; sourceTree = "<group>"; };
 		D180AE05B613883F4456A0EB /* Double+AppRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+AppRate.swift"; sourceTree = "<group>"; };
 		D3754F958AF4AA93F2A1D575 /* OnboardingBabyBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBabyBuilder.swift; sourceTree = "<group>"; };
 		D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOGrowthStandardTests.swift; sourceTree = "<group>"; };
 		D4EAC3A72A4E3588441CFAEB /* NewbornWindowGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWindowGateTests.swift; sourceTree = "<group>"; };
+		D63179AF1B5A54A645E0AB24 /* AnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsBackend.swift; sourceTree = "<group>"; };
 		D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthInsightCards.swift; sourceTree = "<group>"; };
 		D8768F1C61CA49F9DE3FFC1F /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythm.swift; sourceTree = "<group>"; };
@@ -335,6 +355,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41881B49089C9AFAF5290A9B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41A2DEFF077FC95B36ADBFF3 /* AmplitudeSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -473,6 +501,8 @@
 			isa = PBXGroup;
 			children = (
 				E350D7D19C609665E914DE63 /* AdvanceOnEntitlementTests.swift */,
+				CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */,
+				810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */,
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
 				47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */,
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
@@ -500,6 +530,7 @@
 				7960B4FDF7627E5762EDD95C /* ReviewPromptTestClock.swift */,
 				C420362165FF7D4EDBECE42E /* ReviewPromptTriggerTests.swift */,
 				07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */,
+				63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */,
 				FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */,
 				68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */,
 				F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */,
@@ -544,6 +575,7 @@
 				5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */,
 				DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */,
 				2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */,
+				EA19436CD8332634156929CF /* Analytics */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -707,6 +739,7 @@
 				2D2C9BFC44AE66EF909BCBA7 /* BabyBloom */,
 				41995158B343DA1FF9CAB2F3 /* BabyBloomTests */,
 				149B6A330624519CAFEC5B20 /* BabyBloomWidget */,
+				F5B13AE34723B83AA2746C91 /* Config */,
 				B51C575F6C456BF566E4CA90 /* Localization */,
 				A0464FB18D8953C9CC8CB994 /* WidgetResources */,
 				DADC5025EB4F3BB7A070EC2F /* Frameworks */,
@@ -736,6 +769,19 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		EA19436CD8332634156929CF /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				43AD69E5FE44643CF24BD913 /* AmplitudeAnalyticsBackend.swift */,
+				788C49E15D8A3D66502ADD8D /* Analytics.swift */,
+				D63179AF1B5A54A645E0AB24 /* AnalyticsBackend.swift */,
+				16311BC78AF28F08F304583D /* AnalyticsEvent.swift */,
+				C47139363776A0047D8C4653 /* DailyActivityCounter.swift */,
+				C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
 		EF21AD435913022A2133F46A /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -743,6 +789,14 @@
 				8A07049E9D30F01EB4916982 /* RecentActivityView.swift */,
 			);
 			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		F5B13AE34723B83AA2746C91 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				74E547A2AA203B20102A9E71 /* App.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		F6FA1ADAA53F1B6620BF953B /* Core */ = {
@@ -804,8 +858,10 @@
 			buildConfigurationList = 7D9A3D25B5AC4B427F8FE10B /* Build configuration list for PBXNativeTarget "BabyBloom" */;
 			buildPhases = (
 				CE82291564246A0E6F194100 /* Verify widget resource copies in sync */,
+				84499E2C8335531DD6AC4E45 /* Refuse a Release archive without the Amplitude key */,
 				4B3558915ABF2353ADB81A8C /* Sources */,
 				4C004AB52023ABDC332BEE8B /* Resources */,
+				41881B49089C9AFAF5290A9B /* Frameworks */,
 				83CE97F8D83911DAF538D5BF /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -815,6 +871,7 @@
 			);
 			name = BabyBloom;
 			packageProductDependencies = (
+				297E6301E1DDACC7ACFB3A4B /* AmplitudeSwift */,
 			);
 			productName = BabyBloom;
 			productReference = 71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */;
@@ -853,6 +910,11 @@
 			);
 			mainGroup = CE505E1442B8AAE18EE0FAD3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				ECE1CF5A8DFB4CF597C32FAF /* XCRemoteSwiftPackageReference "AmplitudeCore-Swift" */,
+				239A276ED19746A773CA926C /* XCRemoteSwiftPackageReference "Amplitude-Swift" */,
+				E619AFD015ECF109E18B9908 /* XCRemoteSwiftPackageReference "analytics-connector-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8CFD0A01BB430C53661F3F10 /* Products */;
 			projectDirPath = "";
@@ -902,6 +964,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		84499E2C8335531DD6AC4E45 /* Refuse a Release archive without the Amplitude key */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Refuse a Release archive without the Amplitude key";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$CONFIGURATION\" = \"Release\" ]; then\n  problem=\"\"\n  if [ -z \"$AMPLITUDE_API_KEY\" ]; then\n    problem=\"AMPLITUDE_API_KEY is empty — Config/Secrets.xcconfig missing\"\n  elif [ \"$AMPLITUDE_API_KEY\" = \"your-amplitude-api-key\" ]; then\n    problem=\"AMPLITUDE_API_KEY is still the Secrets.example.xcconfig placeholder\"\n  elif [ \"${#AMPLITUDE_API_KEY}\" -ne 32 ]; then\n    problem=\"AMPLITUDE_API_KEY is not 32 characters long\"\n  fi\n  if [ -n \"$problem\" ]; then\n    if [ \"$ACTION\" = \"install\" ]; then\n      echo \"error: $problem; this archive would ship analytics OFF\"\n      exit 1\n    fi\n    echo \"warning: $problem; this Release build has analytics OFF\"\n  fi\nfi\n";
+		};
 		CE82291564246A0E6F194100 /* Verify widget resource copies in sync */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -950,6 +1031,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				949FFE0B196C5DD898EC866D /* AmplitudeAnalyticsBackend.swift in Sources */,
+				F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */,
+				1E34D33370F1AD7BFCB9693F /* AnalyticsBackend.swift in Sources */,
+				F251C878780E8A4C77140E27 /* AnalyticsEvent.swift in Sources */,
 				B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */,
 				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
 				03C7164075FA330097A87835 /* BBCard.swift in Sources */,
@@ -967,6 +1052,7 @@
 				728453337AF25648757458E8 /* BirthPage.swift in Sources */,
 				CAC9134A190451FE2B84F443 /* BrandMark.swift in Sources */,
 				3B2DEE198657ED893C78016C /* CustomEvent.swift in Sources */,
+				3CC1B9C7FF35104046EDA613 /* DailyActivityCounter.swift in Sources */,
 				375952A1780A34B8ABB25E8C /* DashboardGrowthSummary.swift in Sources */,
 				E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */,
 				A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */,
@@ -993,6 +1079,7 @@
 				F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */,
 				37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */,
 				4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */,
+				EAB93DDC960BEACCE29B13B3 /* LoggingAnalyticsBackend.swift in Sources */,
 				27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */,
 				7B2737EB596E0135A560C902 /* NamePage.swift in Sources */,
 				E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */,
@@ -1038,6 +1125,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				95648819E3BE5FFB3251FA33 /* AdvanceOnEntitlementTests.swift in Sources */,
+				4CC9780C33A8075D35D01736 /* AnalyticsEventTests.swift in Sources */,
+				5421C084298E61D44570976B /* AnalyticsFacadeTests.swift in Sources */,
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
 				5772245E6796465274126611 /* BirthDateChangeTests.swift in Sources */,
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
@@ -1065,6 +1154,7 @@
 				5F7696FD2D1F3CA322202E2A /* ReviewPromptTestClock.swift in Sources */,
 				66D97C834AA47AF8DE9ED98F /* ReviewPromptTriggerTests.swift in Sources */,
 				DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */,
+				7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */,
 				FF2F56DAC09076EE1E8990B0 /* SubscriptionPurchaseTests.swift in Sources */,
 				7D977904A7F13DDAA7245203 /* SubscriptionSavingsTests.swift in Sources */,
 				08AEB44948A20EB4B9983859 /* TransactionFailureFlagTests.swift in Sources */,
@@ -1193,6 +1283,7 @@
 		};
 		57F6F498D257C877549545A0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 74E547A2AA203B20102A9E71 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1296,6 +1387,7 @@
 		};
 		B47C9DCE5735BB3A41A33803 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 74E547A2AA203B20102A9E71 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1397,6 +1489,41 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		239A276ED19746A773CA926C /* XCRemoteSwiftPackageReference "Amplitude-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amplitude/Amplitude-Swift";
+			requirement = {
+				kind = exactVersion;
+				version = 1.19.0;
+			};
+		};
+		E619AFD015ECF109E18B9908 /* XCRemoteSwiftPackageReference "analytics-connector-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amplitude/analytics-connector-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.3.3;
+			};
+		};
+		ECE1CF5A8DFB4CF597C32FAF /* XCRemoteSwiftPackageReference "AmplitudeCore-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amplitude/AmplitudeCore-Swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		297E6301E1DDACC7ACFB3A4B /* AmplitudeSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 239A276ED19746A773CA926C /* XCRemoteSwiftPackageReference "Amplitude-Swift" */;
+			productName = AmplitudeSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 922BA19260D5394951FA96E0 /* Project object */;
 }

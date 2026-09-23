@@ -569,7 +569,8 @@ after an entry is saved. `ReviewPromptPolicy` (`Core/Review/`, pure) decides;
 `ReviewPromptService` (`Services/`) remembers the first launch, the last
 requested version and date in `UserDefaults`, and holds a per-process
 "a save is waiting" flag; `ReviewPromptTrigger` is the SwiftUI side. Save
-paths call `@Environment(\.reviewPrompt).entrySaved()` and nothing more.
+paths call `@Environment(\.reviewPrompt).entrySaved(<kind>)` and nothing more
+— the same call reports a kind's `first_entry` (see Analytics).
 `MainTabView` installs the live trigger (`.reviewPromptHost()`), which on a
 tab asks the policy at once; every sheet that can save an entry is presented
 with `.entrySheet` instead of `.sheet`, which hands its content a DEFERRED
@@ -593,6 +594,144 @@ store for the blockers, through the growth engine's own predicates —
 set it; a restore that finds nothing does. The system
 never says whether it showed anything: TestFlight builds never show it, so
 "no prompt on TestFlight" is not a bug (DECISIONS 2026-09-22).
+
+## Analytics
+
+Product analytics go to Amplitude (US region) through one facade,
+`Services/Analytics/`. It measures the onboarding and paywall funnel and
+activation — never a name, a weight, a date or anything a parent typed, and
+never a per-entry or intraday timeline.
+
+**Views and services see only `Analytics.shared` and `AnalyticsEvent`.**
+`AnalyticsBackend` is the protocol behind the facade, one file per backend:
+`AmplitudeAnalyticsBackend` (the only file that imports `AmplitudeSwift`),
+`NoopAnalyticsBackend`, and the simulator-only `LoggingAnalyticsBackend` behind
+`-BBAnalyticsSpy`. Moving to another vendor is one new backend file and one line
+in `Analytics.makeShared()`; no call site changes. `ReviewPromptTrigger` and
+`ReviewPromptService` take their analytics injected (`live(…analytics:)`,
+`init(…track:)`), so tests hand in an isolated facade.
+
+**What keeps the payload safe, and what does not.** `AnalyticsEvent` is a
+closed enum. A property value is an `AnalyticsValue`, whose only constructors
+take a Bool, an Int, or a case of an `AnalyticsToken` — meant to be the app's
+own String enums, whose raw values are compile-time literals, though the
+protocol cannot enforce "enum". There is no initializer from a free `String`,
+and `AnalyticsPayload` can only be built by `AnalyticsEvent.payload`. That keeps
+typed text out by construction. It does NOT bound numbers: `.int` takes any
+Int. What fixes which numbers and tokens go out is the rest of the guarantee —
+the closed enum, an exhaustiveness guard in the test that stops compiling when
+a case is added, and `AnalyticsEventTests`' hand-edited allow-list of names,
+keys and value sets (today the only Int is `seconds_visible`).
+
+**When it is a no-op.** `Analytics.decide` (pure, unit-tested): no API key → no-op;
+simulator → no-op (or a simulator hook, below); Debug build → no-op; otherwise
+Amplitude. So a fresh clone, every simulator run and every test run construct
+no SDK, send nothing and write no analytics state (the test host runs the real
+app, and a no-op facade leaves `UserDefaults` alone). Only Release device
+builds send. Every event carries `build_channel`, detected in AmplitudeCore's
+own order: simulator → `simulator`; an embedded `embedded.mobileprovision`
+(development, ad-hoc, a Release build run from Xcode or handed to QA) →
+`development`; a `sandboxReceipt` → `testflight`; otherwise `appstore`.
+
+**No sessions.** `autocapture` is empty. Session start/end events would be the
+one intraday timeline left — in a newborn tracker, app opens track night feeds
+— and `daily_activity` already marks active days, so DAU and retention run on
+it. The SDK still numbers sessions internally, so the funnel events carry a
+`session_id` (the start time of the session they fell in) and their own client
+time; `daily_activity` carries neither (below).
+
+**The opt-out.** Profile › Data › «Статистика использования» / "Usage
+Statistics" (`settings.analytics`; not called anonymous — a persistent
+per-install id is pseudonymous), default on, stored in `UserDefaults` under
+`analytics.enabled`. The facade drops every event while it is off. The
+Amplitude backend is built lazily and never for an opted-out launch —
+constructing the SDK's `Configuration` alone fires a remote-config request.
+Turned off mid-session it sets the SDK's `optOut`, resets both storage
+providers (`configuration.storageProvider` / `identifyStorageProvider`: the
+unsent queue and every stored id and counter), calls `reset()` (a new random
+device id), and is retired for the rest of the process — `canSend` is false
+even if the setting comes back on, and the next launch builds a fresh SDK.
+**The wipe is done twice.** The retired instance's session bookkeeping runs on
+every foregrounding, with session events off too, and writes the old event
+counter, session id and last-event time back into the storage just cleared
+(verified on the simulator: `last_event_id` reappeared after a foreground). So
+the opt-out also persists `analytics.amplitudeWipePending`, and `make()` resets
+both storages again BEFORE `Amplitude(configuration:)` reads them, then clears
+the flag: after opt-out → relaunch → opt-in the SDK starts with a new device id
+and `event_id` from 1, and the two periods cannot be joined. Residuals: an
+upload already in flight cannot be recalled; an event handed to the SDK in the
+instant before the switch can still be written, and the retired instance's
+30-second flush timer then UPLOADS it; and the retired instance can re-fetch
+remote config (no event data) until the process exits.
+
+**Once-only markers are spent on delivery.** `track` answers whether the event
+reached a backend that `canSend`. `first_entry` kinds, the `daily_activity` day,
+the `history_lock_shown` surface-day, the `widget_installed` flag and an Ask to
+Buy marker are recorded only on a yes, so a retired backend burns none of them.
+The one deliberate exception is the parent's own opt-out: a kind logged while
+opted out is still marked seen (no false "first" after opting back in), and an
+opted-out day is marked handled (never back-filled with data from a period the
+parent declined). A day or probe marker found in the FUTURE — the clock moved
+back, or the `-BBAnalyticsDayOffset` hook — is pulled back to today without
+sending.
+
+**SDK configuration** (`AmplitudeAnalyticsBackend.make`, Amplitude-Swift
+1.19.0 read from source): no `setUserId`, ever; `serverZone: .US`;
+`TrackingOptions` with IP address off (so the SDK no longer asks the server to
+geolocate the request with `"$remote"`), city, DMA, region, **country** (with no
+`"$remote"` the SDK would otherwise fill it from the locale's region code) and
+carrier off, and IDFV off, so the device id is a random per-install UUID rather
+than the vendor id shared with the owner's other apps; `enableCoppaControl` on
+(the only public switch for the SDK's internal IDFA field — the SDK never reads
+the IDFA or an ADID itself); `autocapture: []` — no sessions, screen views,
+element interactions (which read on-screen text), app lifecycles or network
+tracking, and this SDK has no deep-link autocapture;
+`enableAutoCaptureRemoteConfig: false`, so the Amplitude dashboard cannot switch
+any of those on remotely; `enableDiagnostics: false`. Still sent with every
+event: app version, OS and version, device model and manufacturer, platform,
+preferred language. That is what the client can prove. Whether the server still
+derives a location from the connection is Amplitude's side: **owner step** —
+after the first TestFlight build with the key, open one event in Amplitude's
+User Look-Up and confirm Country, City and Region are empty.
+
+**Residual, not closable from app code:** AmplitudeCore fetches remote config
+from `sr-client-cfg.amplitude.com` when the SDK is constructed (and again on
+new internal sessions, throttled), and it subscribes to a server-side
+`diagnostics` key that can turn Amplitude's own SDK telemetry — crash capture
+included — back on regardless of `enableDiagnostics`. That is why the privacy
+manifest declares Crash Data and Other Diagnostic Data (below).
+
+**The pin.** Amplitude-Swift, AmplitudeCore-Swift and analytics-connector-ios
+are all `exactVersion` in `project.yml` (the latter two only to pin them;
+Amplitude-Swift's own manifest asks for open `from:` ranges), and the committed
+`Package.resolved` is part of the pin. Any diff to either is a privacy change:
+re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
+`AutocaptureManager`, `PersistentStorage` and AmplitudeCore's
+`RemoteConfigClient` / `DiagnosticsClient` before merging it.
+
+**Events and where each is emitted** — one line at an existing choke point:
+
+| Event | Properties | Emitted from |
+|---|---|---|
+| `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
+| `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
+| `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
+| `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
+| `paywall_closed_x` | `seconds_visible` | the X of either paywall (not a swipe-down), once per paywall shown |
+| `first_entry` | `kind`: `feeding` \| `sleep` \| `diaper` \| `growth` \| `event` | `ReviewPromptTrigger.entrySaved(_:)` → `Analytics.noteEntrySaved`, once per kind per install (`analytics.firstEntryKinds`); an install already past onboarding when analytics arrives is seeded with every kind, so it reports no firsts |
+| `daily_activity` | `feeding`, `sleep`, `diaper`, `growth`, `event`: Bool (logged at all); `total`: `0` \| `1-5` \| `6-15` \| `16+` | `Analytics.appBecameActive` (and `start`) at the first foregrounding of a new local day, for the PREVIOUS day only, once (`analytics.dailyActivityDay`). `DailyActivityCounter` counts that day with one `fetchCount` per kind; the facade reduces the counts to presence plus one total bucket — no per-kind count, and edges clear of the clinical 8–12 feeds a day. Sent with the event time set to NOON of the reported day (local) and `sessionId -1`, so neither the time nor a session id gives away the first open after midnight. Nothing for a store with no baby; the first launch only sets the marker. The store is CloudKit-synced, so this is the baby's logged day across the family's devices, not this install's own usage. A time-zone change can make two consecutive reports cover overlapping hours — acceptable noise for a bucketed aggregate. There is deliberately no per-entry event (DECISIONS 2026-09-23) |
+| `notification_permission` | `granted` | `NotificationsPage`, the system dialog's answer only |
+| `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
+| `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll |
+| `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
+
+Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
+declares Product Interaction, Device ID and Purchase History (Analytics) and
+Crash Data plus Other Diagnostic Data (App Functionality, for the remote
+diagnostics residual), none linked, none tracking. Keep it, this section and
+the App Store Connect answers in step.
 
 ## Navigation
 
@@ -631,17 +770,47 @@ Build phases are driven purely by the `sources` scan; there is no target-level
 `resources` key. That is why `WidgetResources/Localization` is declared under
 `sources` with `buildPhase: resources`.
 
+**Swift packages** are declared in `project.yml`'s top-level `packages:` and
+linked per target: Amplitude-Swift reaches the APP target only (the widget
+links nothing from it); its two dependencies are listed too, only to pin them.
+All three are `exactVersion`, and `Package.resolved` — committed under
+`BabyBloom.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/`, surviving
+`xcodegen generate` — is part of that pin: a diff to it needs the privacy
+review in Analytics above.
+
+**Secrets never live in the repo — it is public.** The app target's Debug and
+Release configurations are based on `Config/App.xcconfig` (XcodeGen
+`configFiles`), which sets `AMPLITUDE_API_KEY =` empty and then
+`#include? "Secrets.xcconfig"` — the optional include, so a missing file is
+not an error. `Config/Secrets.xcconfig` is gitignored; to add the key locally,
+copy `Config/Secrets.example.xcconfig` to it and fill in the value. Info.plist
+reads it as `AmplitudeAPIKey = $(AMPLITUDE_API_KEY)`. Do not put the key under
+the target's `settings:` in `project.yml`: a target build setting outranks the
+xcconfig and would silently pin it empty. A fresh clone therefore builds and
+runs with an empty key, which makes analytics a no-op (below). `Config/` sits
+outside every target's source path, so no xcconfig is ever bundled.
+
+A second pre-build script, "Refuse a Release archive without the Amplitude
+key", checks — without echoing it — that the key is not empty, not the
+`Secrets.example.xcconfig` placeholder, and exactly 32 characters: in a Release
+**archive** (`ACTION == install`) a failure is an error — the build would ship
+with analytics off or rejected — and in any other Release build a warning;
+Debug builds and a fresh clone are untouched. **Build logs are not shareable from a checkout that
+has `Secrets.xcconfig`:** xcodebuild prints every build setting as an
+`export` line for each script phase, the key included. Redact it (or build
+without the file) before pasting a log anywhere.
+
 ## Test hooks — how the app is driven
 
 iOS folds `-key value` launch arguments into `UserDefaults`' argument domain,
 so every `@AppStorage` key is drivable from the command line with no product
 code: `-hasCompletedOnboarding`, `-appLanguage`, `-appAppearance`.
 
-Four hooks *are* product code, and three of them are gated on
+Seven hooks *are* product code, and six of them are gated on
 `#if targetEnvironment(simulator)` — not on `DEBUG`, because a
 release-optimized QA build is still a real build on a real device and no
 shipped binary may carry a path that wipes data, hands out a paid
-entitlement or spends a rating prompt:
+entitlement, spends a rating prompt or swaps the analytics backend:
 
 | Argument | What it does |
 |---|---|
@@ -649,6 +818,9 @@ entitlement or spends a rating prompt:
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |
+| `-BBAnalyticsSpy true` | **Simulator only.** Swaps the no-op analytics backend for `LoggingAnalyticsBackend`, which writes every payload to the unified log (subsystem `com.nenita.app`, category `Analytics`) instead of sending it. It still requires a non-empty API key, so a spy run also proves the key reaches Info.plist; use a dummy one on the command line (`AMPLITUDE_API_KEY=dummy`). |
+| `-BBAnalyticsDayOffset N` | **Simulator only.** Moves the analytics facade's clock N days ahead (nothing else sees it), so a relaunch with `1` crosses midnight on demand and sends `daily_activity` for the real today. It leaves the day markers in the future; the next launch without it pulls them back to today without sending. |
+| `-BBAnalyticsLocalSDK true` | **Simulator only.** Runs the REAL `AmplitudeAnalyticsBackend` with uploads pointed at a dead local port (`http://127.0.0.1:9`), so the SDK's own queue under `Library/Application Support/amplitude` and its identity suite show exactly what it would send — device id, event id, session id, time — while no event leaves the simulator. Constructing the SDK still fetches Amplitude's remote config with the build's key: build with a dummy one. |
 
 Widget views live in the **app's** source tree
 (`Features/Widget/WidgetViews.swift`) and the widget target compiles them from

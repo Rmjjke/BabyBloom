@@ -129,6 +129,9 @@ struct MoreView: View {
 struct ProfileView: View {
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
     @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
+    /// Read-only here: the toggle writes through `Analytics.setEnabled`, which
+    /// also tells the SDK. Same key, same default ON.
+    @AppStorage(Analytics.enabledKey) private var analyticsEnabled = true
     @Environment(SubscriptionManager.self) private var store
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var showPaywall = false
@@ -225,6 +228,12 @@ struct ProfileView: View {
                 }
                 Label("settings.icloud".l, systemImage: "icloud.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
+                Toggle(isOn: Binding(get: { analyticsEnabled },
+                                     set: { Analytics.shared.setEnabled($0) })) {
+                    Label("settings.analytics".l, systemImage: "chart.bar.xaxis")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .tint(BBTheme.Colors.primary)
             }
 
             Section("settings.app_section".l) {
@@ -260,7 +269,7 @@ struct ProfileView: View {
         .navigationTitle("nav.profile".l)
         .task { await store.refreshEntitlements() }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(source: .settings)
         }
         .sheet(isPresented: $showProfileEdit) {
             if let baby {

@@ -19,7 +19,9 @@ struct DashboardView: View {
     @State private var showQuickEventSheet = false
     @State private var showQuickGrowthSheet = false
     @State private var showProfileEdit = false
-    @State private var showPaywall = false
+    /// Which gate opened the paywall — the events quick action or the locked
+    /// Growth teaser — so the sheet can report its source.
+    @State private var paywallSource: AnalyticsEvent.PaywallSource?
     /// Drives the Growth push. A `@State` + `navigationDestination` rather than
     /// a `NavigationLink`, because the link is a Button — see `growthSection`.
     @State private var showGrowth = false
@@ -82,7 +84,7 @@ struct DashboardView: View {
         .entrySheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
         .entrySheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
         .entrySheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
-        .sheet(isPresented: $showPaywall) { PaywallView() }
+        .sheet(item: $paywallSource) { PaywallView(source: $0) }
         .sheet(isPresented: $showProfileEdit) {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
@@ -168,7 +170,7 @@ struct DashboardView: View {
                 // stays free — recorded data is never held hostage.
                 BBQuickActionButton(icon: "plus.circle.fill", title: "nav.events".l, color: BBTheme.Colors.events,
                                     locked: !store.isPremium) {
-                    if store.isPremium { showQuickEventSheet = true } else { showPaywall = true }
+                    if store.isPremium { showQuickEventSheet = true } else { paywallSource = .events }
                 }
             }
             .padding(BBTheme.Spacing.md)
@@ -294,7 +296,7 @@ struct DashboardView: View {
                 LockedInsightCard(
                     title: "dashboard.growth.locked_title".l,
                     teaser: "dashboard.growth.locked_teaser".l
-                ) { showPaywall = true }
+                ) { paywallSource = .lockedCard }
             }
         }
     }
