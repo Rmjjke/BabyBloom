@@ -42,11 +42,14 @@ no product code at all. The ones that matter:
 | `-BBSkipSplash true` | skip the branded splash |
 | `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
 | `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
+| `-BBForceReviewPrompt true` | **simulator only** — skip the review prompt's thresholds, quiet hours (22:00–07:00 local) included, but not its blockers, so one save at any hour on a fresh seed brings up the system rating sheet: at once for a quick add or timer stop on a tab, and only once the OUTERMOST entry sheet has dismissed for a save inside a sheet. The system sheet reads `Not Now` (en); a refused request logs `Review prompt not requested: …` at info level under category `ReviewPrompt` (see the log command below) |
 
-`BBSkipSplash`, `BBSeedScenario` and `BBForcePremium` are the only three backed
-by product code (`BabyBloomApp.showingSplash`, `SeedScenario.seedIfRequested`
-and `SubscriptionManager.isPremium`) — the splash is `@State`, not
-`@AppStorage`, and neither the seeder nor the entitlement is a stored default.
+`BBSkipSplash`, `BBSeedScenario`, `BBForcePremium` and `BBForceReviewPrompt`
+are the only four backed by product code (`BabyBloomApp.showingSplash`,
+`SeedScenario.seedIfRequested`, `SubscriptionManager.isPremium` and
+`ReviewPromptService.forceOverride`) — the splash is `@State`, not
+`@AppStorage`, and none of the seeder, the entitlement or the review-prompt
+override is a stored default: each is read from the launch argument alone.
 Without `-BBSkipSplash` every cold launch costs ~5s (SplashView.play: 4.6s +
 a 0.4s fade). With it the Dashboard is up in under 3s.
 
@@ -98,13 +101,16 @@ launch in every build configuration (`assertionFailure` would vanish under
 Release), so a typo fails the flow instead of quietly running it against the
 previous flow's leftover data. A successful seed logs `Seeded scenario <name>.`
 under subsystem `com.nenita.app`, category `SeedScenario`, the cheapest way to confirm
-which fixture a run's assertions actually saw:
+which fixture a run's assertions actually saw. `--level info` is needed for the
+review prompt's `not requested` lines, which log at info (`requested` is at
+notice and shows either way):
 
-    xcrun simctl spawn booted log stream --predicate 'subsystem == "com.nenita.app"'
+    xcrun simctl spawn booted log stream --level info --predicate 'subsystem == "com.nenita.app"'
 
 ## Premium without a purchase
 
-`-BBForcePremium true` is the other piece of product-code scaffolding, in
+`-BBForcePremium true` is one of the three simulator-gated hooks (with
+`-BBSeedScenario` and `-BBForceReviewPrompt`), in
 `SubscriptionManager`, gated on `#if targetEnvironment(simulator)` for the same
 reason `SeedScenario` is: `DEBUG` is false in a release-optimized QA build,
 which is still a real build on a real device, and no shipped binary may carry a

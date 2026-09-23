@@ -205,6 +205,19 @@ final class SubscriptionManager {
     private(set) var purchasePending = false
     private(set) var restoreState: RestoreState?
 
+    /// Whether a purchase or restore went wrong at any point in this process.
+    /// Read by the review prompt's calm rule: a parent whose purchase just
+    /// failed is not asked for a rating in the same session.
+    ///
+    /// Sticky, unlike `purchaseError` and `restoreState`, which the next
+    /// paywall visit clears — reading those would make the rule a no-op.
+    ///
+    /// - A user CANCEL is not a failure (`isUserCancellation`): backing out of
+    ///   the confirmation sheet is a choice, not an annoyance.
+    /// - A restore that finds NOTHING is: a parent who expected a purchase and
+    ///   was told there is none is exactly the annoyed parent the rule is for.
+    private(set) var transactionFailedThisSession = false
+
     /// True from the instant a restore starts until its outcome is published in
     /// `restoreState`.
     ///
@@ -295,7 +308,7 @@ final class SubscriptionManager {
                 break
             }
         } catch {
-            purchaseError = error.localizedDescription
+            recordTransactionError(error)
             // Same reasoning as `.userCancelled` above — a failed purchase says
             // nothing about what this Apple ID already owns.
             await refreshEntitlements()
@@ -317,9 +330,29 @@ final class SubscriptionManager {
             // actually returned. Identical in every shipped build; on the
             // simulator it keeps the e2e override from faking a restore.
             restoreState = isEntitled ? .success : .nothingFound
+            if !isEntitled { transactionFailedThisSession = true }
         } catch {
-            purchaseError = error.localizedDescription
+            recordTransactionError(error)
         }
+    }
+
+    /// Both catches route through here, so the cancellation rule lives once.
+    /// Internal, not private: it is the unit-test seam — the StoreKit session
+    /// tests that could throw these for real skip on a simulator with no local
+    /// store binding.
+    func recordTransactionError(_ error: Error) {
+        purchaseError = error.localizedDescription
+        if !Self.isUserCancellation(error) { transactionFailedThisSession = true }
+    }
+
+    /// The two shapes a user's back-out arrives in: `SKError.paymentCancelled`
+    /// is what `Product.purchase()` throws when the confirmation sheet is
+    /// dismissed (see `SubscriptionPurchaseTests`), `StoreKitError.userCancelled`
+    /// what `AppStore.sync()` throws when the sign-in sheet is.
+    nonisolated static func isUserCancellation(_ error: Error) -> Bool {
+        if let error = error as? SKError, error.code == .paymentCancelled { return true }
+        if let error = error as? StoreKitError, case .userCancelled = error { return true }
+        return false
     }
 
     func clearRestoreState() {

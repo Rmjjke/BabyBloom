@@ -14,6 +14,72 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-22 — The rating prompt is asked for at a moment of success, never over a worry, and never seen on TestFlight
+
+`requestReview` is a request, not a dialog we own: iOS decides whether to show
+anything, allows three prompts per app per 365 days, and reports nothing back.
+So the only thing we control is WHEN we spend one, and that is what was decided.
+
+**The moment is right after an entry is saved and its sheet has gone.** A
+parent who has just logged a feed has just had the app do its job — the one
+moment in this product that is reliably a small success. Every alternative was
+a moment of friction or of nothing: on launch the parent came to do something
+and we would be standing in the way; on a tab switch they are mid-task; inside
+the sheet the prompt lands on a form animating away; in onboarding they have
+not used the app at all. **Timer stops ask; timer starts do not.** A feed or a
+nap that has only begun is not a finished record, and a parent who just laid a
+baby down wants the phone gone; stopping the timer is what turns the entry into
+a record, the same moment as a manual save — and without it a parent who logs
+by timer would almost never reach the prompt. A paywall seen inside the same
+quick sheet cancels the pending save: a declined upsell is friction, and the
+rating prompt must not follow it. The thresholds keep it from being early: 20
+logged entries, 3 days since the first launch, once per version and 90 days
+apart. The 90 days spaces requests across versions so a quick follow-up release
+does not earn a second ask; it does NOT keep us under Apple's cap — once per
+version plus 90 days still allows up to five requests in a rolling year, and
+Apple's three per 365 days is what actually binds.
+
+**The calm rule blocks it.** Not while the latest gain verdict reads below the
+reference, not while a first-weeks flag (>10% loss, not regained by day 14) is
+up, and not in a session where a purchase or restore failed. An anxious or
+annoyed parent is not the moment, and a one-star review written for the wrong
+reason costs more than a missed prompt. The newborn DEFERRAL itself does not
+block: the ordinary first fortnight is, by this app's own words, not a
+finding, and treating it as one here would contradict what every card says.
+The gain blocker reads the gain card's source (`gainDeferral` +
+`WeightVelocity.latest`), not `FeedingAdequacy`, because the card speaks for
+the whole first year and `assess` stops at six months; it applies to free and
+paid alike, since blocking more is the safe side. The failed-transaction
+signal is a new sticky flag, because `purchaseError` and `restoreState` are
+cleared the next time the paywall opens and would have made the rule a no-op.
+A user CANCEL does not set it (`SKError.paymentCancelled` from a purchase,
+`StoreKitError.userCancelled` from `AppStore.sync()`): backing out is a choice,
+not an annoyance. A restore that finds NOTHING does set it: a parent who
+expected a purchase and was told there is none is exactly the annoyed parent
+the rule is for.
+
+**No prompt on TestFlight is by design, not a bug.** Development builds show
+the sheet on every request, TestFlight builds never show it, and only App Store
+builds throttle. Verification therefore happens on the simulator through
+`-BBForceReviewPrompt`, gated on `targetEnvironment(simulator)` like the other
+hooks (2026-08-26); it bypasses the thresholds and deliberately NOT the
+blockers, which are the part worth watching hold.
+
+**Quiet hours, 22:00–07:00 local time (owner, 2026-09-23).** A night timer
+stop or save is when a parent wants the phone gone, so a prompt then earns one
+star or a blind dismissal and burns this version's attempt. It applies to every
+trigger, and a night refusal records nothing: the attempt is not consumed, and
+the next daytime save that meets the rules asks. It is a timing threshold, not
+a calm-rule blocker, so `-BBForceReviewPrompt` bypasses it — a developer
+checking at 23:00 still sees the sheet — while the blockers still hold.
+
+Considered and dropped: "not the first session of the day". It has no reason
+we could state that the 3-day and 20-entry rules do not already cover, and it
+would need a session-start clock of its own. The analytics event
+`review_prompt_requested` waits for the TelemetryDeck analytics task (a TODO
+marks the spot) — until then, how often we ask is visible only in the
+`ReviewPrompt` log category.
+
 ## 2026-09-22 — The paywall's history promise becomes true: 15 free days, and the multi-profile line goes
 
 Two halves of one problem — the paywall was selling things that did not exist.

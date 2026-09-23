@@ -74,6 +74,9 @@ struct PaywallView: View {
         .task {
             await store.refreshEntitlements()
         }
+        // A save earlier in the same quick sheet is no longer a moment of
+        // success once an upsell has been put in front of the parent.
+        .onAppear { ReviewPromptService.shared.discardPendingSave() }
     }
 
     // MARK: - Close Button (modal dismissal)

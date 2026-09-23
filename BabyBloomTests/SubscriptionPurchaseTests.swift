@@ -190,6 +190,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertFalse(manager.isPremium)
         XCTAssertNotNil(manager.purchaseError, "and the failure must be shown, not swallowed")
         XCTAssertFalse(manager.isLoading, "the CTA must never be left spinning")
+        XCTAssertTrue(manager.transactionFailedThisSession, "a real failure blocks the review prompt")
     }
 
     /// `.paymentCancelled` is what the system raises when the user backs out of
@@ -213,6 +214,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertFalse(manager.purchasePending)
         XCTAssertTrue(manager.hasResolvedEntitlements,
                       "a purchase that did not happen still leaves StoreKit's answer read")
+        XCTAssertFalse(manager.transactionFailedThisSession, "backing out is a choice, not a failure")
     }
 
     // MARK: - Buying something already owned
@@ -309,6 +311,8 @@ final class SubscriptionPurchaseTests: XCTestCase {
 
         XCTAssertEqual(manager.restoreState, .nothingFound)
         XCTAssertFalse(manager.isEntitled)
+        XCTAssertTrue(manager.transactionFailedThisSession,
+                      "a restore that finds nothing is the annoyed parent the calm rule is for")
     }
 
     // MARK: - Introductory offer

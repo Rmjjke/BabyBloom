@@ -76,6 +76,8 @@ struct BabyBloomApp: App {
             .task { await subscriptionManager.refreshEntitlements() }
             .onAppear {
                 LocalizationManager.shared.setLanguage(appLanguage)
+                // Starts the review prompt's three-day clock; written once.
+                ReviewPromptService.shared.recordFirstLaunchIfNeeded()
                 // Simulator-only, and only when launched with
                 // `-BBSeedScenario <name>`. Runs before the adoption pass so
                 // the pass sees the seeded data — which is already linked to

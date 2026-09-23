@@ -5,6 +5,7 @@ struct DiaperView: View {
     @Query(sort: \DiaperEntry.time, order: .reverse) private var entries: [DiaperEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @State private var showAddSheet = false
     @State private var showNormEditor = false
     @State private var historyFilter: HistoryFilter = .day
@@ -61,7 +62,7 @@ struct DiaperView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
+        .entrySheet(isPresented: $showAddSheet) {
             AddDiaperSheet()
         }
         .sheet(isPresented: $showPaywall) {
@@ -208,6 +209,7 @@ struct DiaperView: View {
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l
         )
+        reviewPrompt.entrySaved()
     }
 
     private func delete(_ entry: DiaperEntry) {
@@ -336,6 +338,7 @@ struct AddDiaperSheet: View {
     @State private var sheetDetent: PresentationDetent = .large
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: DiaperEntry.DiaperType = .wet
     @State private var selectedColor: DiaperEntry.StoolColor? = nil
@@ -461,6 +464,7 @@ struct AddDiaperSheet: View {
             ageMonths: baby?.ageInMonths ?? 0,
             babyName: baby?.name ?? "baby.default_name".l
         )
+        reviewPrompt.entrySaved()
         dismiss()
     }
 }

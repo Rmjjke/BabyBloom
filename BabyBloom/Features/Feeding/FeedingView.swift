@@ -5,7 +5,8 @@ struct FeedingView: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var entries: [FeedingEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
-    // Identifiable request drives `.sheet(item:)` so the sheet is rebuilt with the
+    @Environment(\.reviewPrompt) private var reviewPrompt
+    // Identifiable request drives `.entrySheet(item:)` so the sheet is rebuilt with the
     // tapped type on every present. The previous `.sheet(isPresented:)` read a
     // separate @State (`quickAddType`) whose value was captured stale — the sheet
     // opened showing the default (breast) instead of the just-tapped type.
@@ -86,7 +87,7 @@ struct FeedingView: View {
                 }
             }
         }
-        .sheet(item: $addSheetRequest) { request in
+        .entrySheet(item: $addSheetRequest) { request in
             AddFeedingSheet(initialType: request.type)
         }
         .sheet(isPresented: $showPaywall) {
@@ -220,6 +221,9 @@ struct FeedingView: View {
         try? modelContext.save()
         WidgetRefresh.entriesChanged()
         NotificationManager.shared.onFeedingTimerStopped(ageMonths: baby?.ageInMonths ?? 0)
+        // Stopping is what turns a running feed into a finished record — the
+        // same moment of success as a manual save. Starting never asks.
+        reviewPrompt.entrySaved()
     }
 
     private func delete(_ entry: FeedingEntry) {
@@ -323,7 +327,7 @@ struct FeedingEntryRow: View {
 
 // MARK: - Add Feeding Sheet
 
-/// Identifiable payload for `.sheet(item:)`. A fresh `id` per tap gives the sheet a
+/// Identifiable payload for `.entrySheet(item:)`. A fresh `id` per tap gives the sheet a
 /// new identity, so `AddFeedingSheet`'s `@State selectedType` is re-seeded from
 /// `type` every present — the tapped type is always the one shown.
 private struct FeedingSheetRequest: Identifiable {
@@ -334,6 +338,7 @@ private struct FeedingSheetRequest: Identifiable {
 struct AddFeedingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @State private var selectedType: FeedingEntry.FeedingType
@@ -540,6 +545,9 @@ struct AddFeedingSheet: View {
             isActiveBF: selectedType == .breast && startTimer,
             recentFeedingTimes: Array(feedings.prefix(7).map(\.startTime))
         )
+        // A running timer is a feed that has only begun, not a finished
+        // record — no moment of success to ask on. Timer starts never ask.
+        if !startTimer { reviewPrompt.entrySaved() }
         dismiss()
     }
 }
