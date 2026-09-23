@@ -14,6 +14,30 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-09-23 — Usage statistics are on by default everywhere, EU included (opt-out, not opt-in)
+
+The «Статистика использования» toggle defaults to ON for every region; a parent
+turns it off in More → Profile → Data. The privacy policy states the legal
+basis as legitimate interest with a right to object via that toggle.
+
+**Why, and what it costs.** The owner chose this knowingly (2026-09-23) over
+two alternatives: a one-time consent card on the Dashboard for EU/EEA/UK/CH
+devices, and defaulting the toggle OFF for those regions. Read strictly,
+ePrivacy/GDPR want PRIOR consent for a persistent per-install identifier used
+for analytics, so for EU users this is not the conservative reading. It was
+accepted because the practical risk for a small app is low (enforcement
+follows complaints and scale), App Review checks label-vs-behaviour
+consistency — which holds — rather than EU consent, and an opt-in default
+would leave the EU audience almost entirely uncounted.
+
+**Revisit when** a complaint arrives, or the EU becomes a meaningful share of
+the audience. The fallback is small and already worked out: at first launch,
+read the device region and default the toggle OFF for EU/EEA/UK/CH (switching
+the policy sentence to the consent variant). Do not add a consent card without
+re-reading this entry: the owner preferred no extra UI on the main screen.
+
+---
+
 ## 2026-09-23 — Product analytics on Amplitude, made privacy-safe by configuration, a typed payload and a daily aggregate — with no timeline in it
 
 **Amplitude, not TelemetryDeck.** Backlog #8 approved TelemetryDeck on
