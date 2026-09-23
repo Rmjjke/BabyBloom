@@ -80,6 +80,27 @@ would need a session-start clock of its own. The analytics event
 marks the spot) — until then, how often we ask is visible only in the
 `ReviewPrompt` log category.
 
+---
+
+## 2026-09-22 — The onboarding paywall says whether the loader handed off to it
+
+`OnboardingView` tags the paywall `onboarding.premium.afterGenerating` when it
+was reached through `GeneratingPage`'s own completion, and plain
+`onboarding.premium` otherwise. It is test-shaped state in product code, kept
+on purpose so the e2e walks can prove the loader ran without racing it.
+Maestro's tap does not return for ~4.5–5.7 s (a fixed 3 s static-screen wait
+that never succeeds over the drifting backdrop, plus hierarchy reads) and the
+loader lives ~5.5 s, so any assertion aimed inside the loader's life is a coin
+flip. Both such assertions were measured: the old `assertNotVisible` on the
+paywall failed three batch runs in four, and a positive wait for an identifier
+on the loader failed two runs in three. Do not "simplify" it back into either.
+The other race-free option was rejected: a simulator-only flag that stretches
+the loader would avoid the race, but it would test a timing that never ships.
+The marker is invisible to users: it adds no label or trait changes — one
+`@State` bool, and identifiers on two `.contain` wrappers (paywall and loader).
+
+---
+
 ## 2026-09-22 — The paywall's history promise becomes true: 15 free days, and the multi-profile line goes
 
 Two halves of one problem — the paywall was selling things that did not exist.

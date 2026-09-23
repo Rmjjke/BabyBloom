@@ -87,14 +87,16 @@ appId: com.nenita.app
 - takeScreenshot: 03-widget-en-light
 - tapOn: "Build My Tracker"
 
-# Generating runs here — self-advancing, ~5s — and lands DIRECTLY on the
-# paywall. Do not assert the loader itself: it is on screen for about as long
-# as a single hierarchy query takes on a loaded machine, so any assertion on it
-# is a coin flip. Instead, the assertNotVisible below is the discriminator: the
-# loader's ≥4s presence means a build that skipped straight from the widget
-# page to the paywall (Generating never ran) would still be caught here, right
-# after the tap, before the paywall has had time to arrive on its own.
-- assertNotVisible: "Bitty Premium"
+# Generating runs here — self-advancing, ~5 s — and lands DIRECTLY on the
+# paywall. The loader itself is NOT asserted, positively or negatively: the
+# tap's own settle (a fixed ~3 s static-screen wait plus hierarchy reads) is as
+# long as the loader, so any assertion aimed inside it is a race (measured
+# 2026-09-22: tap returned 4.5–5.7 s after the touch, loader gone at ~5.5 s).
+# Instead the paywall carries `onboarding.premium.afterGenerating` only when
+# Generating's own completion handed off to it — present for as long as the
+# paywall is up, so the wait cannot miss it, and a build that skips the loader
+# shows plain `onboarding.premium` and fails here.
+- extendedWaitUntil: { visible: { id: "onboarding.premium.afterGenerating" }, timeout: 40000 }
 - extendedWaitUntil: { visible: "Bitty Premium", timeout: 40000 }
 - takeScreenshot: 04-premium-en-light
 - extendedWaitUntil: { visible: "Close", timeout: 20000 }
