@@ -448,9 +448,16 @@ that BRANCHES on entitlement — sell or do not sell — must wait for it; anyth
 that merely gates a feature reads `isPremium` and lets the gate close itself
 when the answer arrives.
 
-**Two paywalls, one selling half.** `PlanPickerSection` is the plans, prices,
-trial promise, CTA, restore and legal footer; `PaywallView` (settings, modal)
-and `PremiumPage` (onboarding, page 11) compose it. The section has no
+**Two paywalls, one selling half.** The selling half is two views in
+`PlanPickerSection.swift` over one `PlanPickerState` (the selected plan and
+whether the first product load returned), which the host owns:
+`PlanPickerSection` holds the plans, prices, restore and legal footer and goes
+inside the host's ScrollView; `PlanPickerCTA` holds the trial promise and the
+buy button and goes *below* the ScrollView, so the button is on screen at
+every text size up to AX2 (DECISIONS 2026-10-28). `PaywallView` (settings,
+modal) and `PremiumPage` (onboarding, page 11) compose both. Each host shows
+the CTA only while it is selling and the load did not fail; the section's
+retry card stands alone then. The section has no
 "purchased" callback: reacting to entitlement is the host's job, because
 entitlement arrives from a purchase, from `restorePurchases()`, from
 `Transaction.updates`, or from the user having subscribed before the screen
