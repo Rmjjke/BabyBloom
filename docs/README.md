@@ -15,7 +15,7 @@ palette of record), [CLAUDE.md](../CLAUDE.md) (working rules for agents).
 ## Live
 
 ### Release
-- [release/apple-developer-setup.md](release/apple-developer-setup.md) — guide · Dev Lead · live (397 lines: split candidate)
+- [release/apple-developer-setup.md](release/apple-developer-setup.md) — guide · Dev Lead · live (split candidate: over 300 lines)
 - [release/app-store-connect-testflight.md](release/app-store-connect-testflight.md) — guide · Dev Lead · live
 
 ### Naming
@@ -37,5 +37,5 @@ palette of record), [CLAUDE.md](../CLAUDE.md) (working rules for agents).
 - [archive/subscriptions-2026-08-25.md](archive/subscriptions-2026-08-25.md) — log · closed (three plans shipped, #17 / #27)
 - [archive/TASK-fix-legal-urls.md](archive/TASK-fix-legal-urls.md) — log · closed (paywall legal links fixed, 7c11701)
 - [archive/TASK-review-fixes-1.4.1.md](archive/TASK-review-fixes-1.4.1.md) — log · closed (guideline 1.4.1 citations, #52 / #53)
-- [archive/TASK-app-captures.md](archive/TASK-app-captures.md) — log · closed (store screen captures run)
+- [archive/TASK-app-captures.md](archive/TASK-app-captures.md) — log · closed (its two blockers are gone: the store screenshot set and the subscriptions shipped with the 1.0 release)
 - [archive/superpowers/](archive/superpowers/) — log · closed: superpowers specs and plans of shipped work (MVP readiness, weight gain, feeding↔weight link, onboarding + paywall, visual identity streams, widget redesign)
