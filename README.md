@@ -100,7 +100,7 @@ Config/                     # App.xcconfig (committed); Secrets.xcconfig (gitign
 тестовые хуки — описано в [ARCHITECTURE.md](ARCHITECTURE.md). Почему она такая
 и что было решено сознательно — в [DECISIONS.md](DECISIONS.md).
 
-Документация уведомлений: [NOTIFICATIONS.md](NOTIFICATIONS.md). План MVP-работ: [docs/superpowers/plans/](docs/superpowers/plans/).
+Документация уведомлений: [NOTIFICATIONS.md](NOTIFICATIONS.md). План MVP-работ: [docs/archive/superpowers/plans/](docs/archive/superpowers/plans/) (архив).
 
 ## Запуск
 

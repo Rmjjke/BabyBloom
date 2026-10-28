@@ -840,5 +840,7 @@ Moving the file into the widget target breaks this: it has no
 - [DECISIONS.md](DECISIONS.md) — what was decided and why.
 - [NOTIFICATIONS.md](NOTIFICATIONS.md) — the notification catalogue.
 - [CLAUDE.md](CLAUDE.md) — working rules for agents in this repo.
+- [docs/README.md](docs/README.md) — the docs map: every doc with its kind,
+  owner and status; closed subjects sit in `docs/archive/`.
 - `docs/release/` — Apple Developer and App Store Connect setup.
 - `docs/naming/` — how the three brand names were chosen.
