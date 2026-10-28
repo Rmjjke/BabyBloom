@@ -32,12 +32,16 @@ and the Live Activity read the byte-identical copies in
 ## Surface rules
 
 - **Live Activity.** Dynamic Island compact and minimal carry no words:
-  glyph + timer, the side as one letter (`live_activity.side_short.*`).
-  The kind label in the expanded island fits 14 characters; the Lock Screen
-  title (kind · side) 26. Elapsed time is system-rendered, no string. The
-  stop action is the same key as the in-app button for that timer.
-- **Widget.** The control starts a feeding timer (owner D16); no "logged"
+  glyph + timer only. The title (kind · side) fits 26 characters on the
+  Lock Screen and in the expanded island; the started / saved line 30; the
+  stale and "goes on in the app" lines 32. Elapsed time is system-rendered,
+  no string. The stop action is the same key as the in-app button for that
+  timer (≤ 12). Limits: `teamdocs/design/m1-live-activity.md` § 7.
+- **Widget.** The control starts a feeding timer (owner D16): `tab.feeding`
+  on the small family, `button.start_feeding` on the medium. No "logged"
   confirmation — the widget's own state shows the running feed.
+- **Time past a reminder** is told as elapsed time, never as a fault:
+  «Прошло ещё 20 мин», not «Просрочено на 20 мин».
 - **Lengths** are the Designer's (milestone reviews, then the design note);
   every new string is checked against them in all three locales before
   hand-in.
