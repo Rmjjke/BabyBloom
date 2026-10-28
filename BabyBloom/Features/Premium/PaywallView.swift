@@ -16,6 +16,13 @@ struct PaywallView: View {
     /// the active badge, not an offer.
     @State private var shownAt: Date?
     @State private var closeReported = false
+    @State private var planPicker = PlanPickerState()
+
+    /// Selling, and with something to sell: the pinned buy button shows only
+    /// then. Subscribers get the active badge; a failed load gets the retry card.
+    private var isSelling: Bool {
+        store.hasResolvedEntitlements && !store.isPremium && !planPicker.loadFailed(in: store)
+    }
 
     /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
     /// absent: the app has one baby and no way to add a second, so the line
@@ -30,40 +37,12 @@ struct PaywallView: View {
     ]
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-
-                // ── Hero ────────────────────────────────────────────────
-                // Shared with onboarding's paywall.
-                PremiumHero()
-
-                VStack(spacing: BBTheme.Spacing.lg) {
-
-                    // Sell, or say it is already bought — but only once
-                    // StoreKit has actually answered. Before that, `isPremium`
-                    // is false because nothing has asked, and an entitled user
-                    // opening Settings would be shown the selling half and
-                    // could tap the CTA straight into "You are currently
-                    // subscribed". Unlike the onboarding host this screen
-                    // advances nowhere; it just waits.
-                    if store.hasResolvedEntitlements {
-                        if store.isPremium {
-                            activeBadge
-                        } else {
-                            PlanPickerSection()
-                        }
-                    } else {
-                        ProgressView()
-                            .padding(.vertical, BBTheme.Spacing.xl)
-                    }
-
-                    // Features
-                    featuresCard
-
-                    Spacer(minLength: BBTheme.Spacing.xl)
-                }
-                .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.top, BBTheme.Spacing.lg)
+        // The offer scrolls, the buy button does not (NotificationsPage's
+        // arrangement): at AX2 the plans alone reach the fold.
+        VStack(spacing: 0) {
+            scrollContent
+            if isSelling {
+                PlanPickerCTA(state: planPicker)
             }
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
@@ -90,6 +69,47 @@ struct PaywallView: View {
             reportShownIfSelling()
         }
         .onChange(of: store.hasResolvedEntitlements) { _, _ in reportShownIfSelling() }
+    }
+
+    // MARK: - Scroll Content
+
+    private var scrollContent: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+
+                // ── Hero ────────────────────────────────────────────────
+                // Shared with onboarding's paywall.
+                PremiumHero()
+
+                VStack(spacing: BBTheme.Spacing.lg) {
+
+                    // Sell, or say it is already bought — but only once
+                    // StoreKit has actually answered. Before that, `isPremium`
+                    // is false because nothing has asked, and an entitled user
+                    // opening Settings would be shown the selling half and
+                    // could tap the CTA straight into "You are currently
+                    // subscribed". Unlike the onboarding host this screen
+                    // advances nowhere; it just waits.
+                    if store.hasResolvedEntitlements {
+                        if store.isPremium {
+                            activeBadge
+                        } else {
+                            PlanPickerSection(state: planPicker)
+                        }
+                    } else {
+                        ProgressView()
+                            .padding(.vertical, BBTheme.Spacing.xl)
+                    }
+
+                    // Features
+                    featuresCard
+
+                    Spacer(minLength: BBTheme.Spacing.xl)
+                }
+                .padding(.horizontal, BBTheme.Spacing.lg)
+                .padding(.top, BBTheme.Spacing.lg)
+            }
+        }
     }
 
     // MARK: - Close Button (modal dismissal)

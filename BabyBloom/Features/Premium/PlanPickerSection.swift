@@ -1,20 +1,49 @@
 import SwiftUI
 import StoreKit
 
-// MARK: - Plan Picker Section
+// MARK: - Plan Picker State
 
-/// The half of a paywall the two paywalls must never disagree on: plans,
-/// prices, the trial promise, the purchase button, restore, and the legal
-/// footer. The onboarding paywall rotted precisely because it was a separate
-/// implementation; composing this section is what prevents a recurrence.
-struct PlanPickerSection: View {
-    @Environment(SubscriptionManager.self) private var store
-    @State private var selectedID = SubscriptionManager.yearlyID
+/// What the two halves of the picker share: the selected plan and whether the
+/// first product load has returned. The host owns it, because the halves live
+/// in different places — the plans scroll, the buy button is pinned below the
+/// scroll so it is on screen at every Dynamic Type size up to AX2.
+@MainActor
+@Observable
+final class PlanPickerState {
+    var selectedID = SubscriptionManager.yearlyID
     // Load state, not purchase state: set once the initial reloadProducts()
     // await returns, regardless of outcome. Gating retry on this (rather than
     // on purchaseError) keeps a later purchase failure from unmounting the
     // picker, and still catches an empty-but-error-free product list.
-    @State private var loadAttempted = false
+    var loadAttempted = false
+
+    /// True when the load came back with no plan at all: the section shows its
+    /// retry card and the pinned button stays away — it would have nothing to sell.
+    func loadFailed(in store: SubscriptionManager) -> Bool {
+        loadAttempted && store.yearlyProduct == nil && store.monthlyProduct == nil
+            && store.weeklyProduct == nil
+    }
+
+    func selectedProduct(in store: SubscriptionManager) -> Product? {
+        switch selectedID {
+        case SubscriptionManager.yearlyID:  return store.yearlyProduct
+        case SubscriptionManager.monthlyID: return store.monthlyProduct
+        case SubscriptionManager.weeklyID:  return store.weeklyProduct
+        default:                            return nil
+        }
+    }
+}
+
+// MARK: - Plan Picker Section
+
+/// The half of a paywall the two paywalls must never disagree on: plans,
+/// prices, restore, and the legal footer; `PlanPickerCTA` below is the other
+/// half (the trial promise and the purchase button). The onboarding paywall
+/// rotted precisely because it was a separate implementation; composing these
+/// two is what prevents a recurrence.
+struct PlanPickerSection: View {
+    @Environment(SubscriptionManager.self) private var store
+    let state: PlanPickerState
 
     // This section deliberately has NO "purchased" callback. Advancing on
     // entitlement is the HOST's job, because the purchase button is not the
@@ -26,12 +55,11 @@ struct PlanPickerSection: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.lg) {
-            if loadAttempted && store.yearlyProduct == nil && store.monthlyProduct == nil
-                && store.weeklyProduct == nil {
+            if state.loadFailed(in: store) {
                 loadErrorView
             } else {
                 planSelector
-                ctaSection
+                restoreButton
             }
             footerLinks
         }
@@ -112,7 +140,7 @@ struct PlanPickerSection: View {
         periodKey: String,
         badge: String?
     ) -> some View {
-        let isSelected = selectedID == id
+        let isSelected = state.selectedID == id
 
         return Button {
             // A change only: the yearly preselection is not the parent's pick,
@@ -120,7 +148,7 @@ struct PlanPickerSection: View {
             if !isSelected, let plan = AnalyticsEvent.Plan(productID: id) {
                 Analytics.shared.track(.planSelected(plan))
             }
-            withAnimation(.spring(response: 0.3)) { selectedID = id }
+            withAnimation(.spring(response: 0.3)) { state.selectedID = id }
         } label: {
             HStack(alignment: .center, spacing: BBTheme.Spacing.sm) {
                 Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
@@ -178,67 +206,18 @@ struct PlanPickerSection: View {
         .buttonStyle(BBScaleButtonStyle())
     }
 
-    // MARK: - CTA
+    // MARK: - Restore
 
-    private var ctaSection: some View {
-        VStack(spacing: BBTheme.Spacing.md) {
-            // Trial note — per plan, from StoreKit, not one hardcoded sentence
-            Text(trialLine ?? "premium.loading".l)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-
-            // Subscribe button
-            BBPrimaryButton(ctaTitle, icon: "arrow.right") {
-                Task {
-                    if let product = selectedProduct {
-                        await store.purchase(product)
-                    }
-                }
-            }
-            .disabled(store.isLoading || selectedProduct == nil)
-            .opacity(selectedProduct == nil ? 0.5 : 1)
-
-            // Pending approval (Ask to Buy / SCA)
-            if store.purchasePending {
-                Text("premium.pending_message".l)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            // Purchase error (load errors are handled by loadErrorView above)
-            if let err = store.purchaseError, selectedProduct != nil {
-                Text(err)
-                    .font(.system(size: 12, design: .rounded))
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-            }
-
-            // Restore button
-            Button {
-                Task { await store.restorePurchases() }
-            } label: {
-                Text("premium.restore".l)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.primary)
-                    .underline()
-            }
-            .disabled(store.isLoading)
+    private var restoreButton: some View {
+        Button {
+            Task { await store.restorePurchases() }
+        } label: {
+            Text("premium.restore".l)
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.primary)
+                .underline()
         }
-    }
-
-    /// "Try 7 days free" only when this plan HAS a trial this Apple ID can
-    /// still take; otherwise plain "Subscribe". The old label promised a free
-    /// trial on every plan, which trial-only-on-yearly turned into a lie on
-    /// two of the three.
-    private var ctaTitle: String {
-        guard !store.isLoading else { return "premium.loading".l }
-        guard let product = selectedProduct,
-              store.isEligibleForIntroOffer,
-              let offer = product.subscription?.introductoryOffer,
-              offer.paymentMode == .freeTrial else { return "premium.cta_subscribe".l }
-        return String(format: "premium.cta_trial_fmt".l, Self.days(in: offer.period))
+        .disabled(store.isLoading)
     }
 
     // MARK: - Footer
@@ -261,15 +240,6 @@ struct PlanPickerSection: View {
 
     // MARK: - Helpers
 
-    private var selectedProduct: Product? {
-        switch selectedID {
-        case SubscriptionManager.yearlyID:  return store.yearlyProduct
-        case SubscriptionManager.monthlyID: return store.monthlyProduct
-        case SubscriptionManager.weeklyID:  return store.weeklyProduct
-        default:                            return nil
-        }
-    }
-
     /// The saving the yearly plan gives against the monthly one, as a whole
     /// percent, computed from the prices the App Store returned. A price
     /// changed in App Store Connect moves this badge with it; a constant
@@ -284,6 +254,85 @@ struct PlanPickerSection: View {
             of: yearly.price, per: yearUnit, count: yearPeriod.value,
             comparedTo: monthly.price, per: monthUnit, count: monthPeriod.value
         )
+    }
+
+    /// Loads products and, if the yearly plan is unavailable while monthly
+    /// loaded, falls back the selection so the CTA stays enabled.
+    private func reloadProducts() async {
+        await store.loadProducts()
+        state.loadAttempted = true
+        if store.yearlyProduct == nil && store.monthlyProduct != nil {
+            state.selectedID = SubscriptionManager.monthlyID
+        }
+    }
+}
+
+// MARK: - Plan Picker CTA
+
+/// The pinned half: the trial promise for the selected plan and the purchase
+/// button, with the pending and error lines that answer a tap on it. Hosts put
+/// it BELOW their ScrollView, never inside — at AX2 the plans alone reach the
+/// fold on an iPhone 17, and a buy button that needs a scroll is one most
+/// parents never see. The price is in the trial line, so what is charged
+/// stays next to the button.
+struct PlanPickerCTA: View {
+    @Environment(SubscriptionManager.self) private var store
+    let state: PlanPickerState
+
+    private var selectedProduct: Product? { state.selectedProduct(in: store) }
+
+    var body: some View {
+        VStack(spacing: BBTheme.Spacing.sm) {
+            // Trial note — per plan, from StoreKit, not one hardcoded sentence
+            Text(trialLine ?? "premium.loading".l)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Subscribe button
+            BBPrimaryButton(ctaTitle, icon: "arrow.right") {
+                Task {
+                    if let product = selectedProduct {
+                        await store.purchase(product)
+                    }
+                }
+            }
+            .disabled(store.isLoading || selectedProduct == nil)
+            .opacity(selectedProduct == nil ? 0.5 : 1)
+
+            // Pending approval (Ask to Buy / SCA)
+            if store.purchasePending {
+                Text("premium.pending_message".l)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            // Purchase error (load errors are handled by the section's retry card)
+            if let err = store.purchaseError, selectedProduct != nil {
+                Text(err)
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(.horizontal, BBTheme.Spacing.lg)
+        .padding(.top, BBTheme.Spacing.sm)
+        .padding(.bottom, BBTheme.Spacing.md)
+    }
+
+    /// "Try 7 days free" only when this plan HAS a trial this Apple ID can
+    /// still take; otherwise plain "Subscribe". The old label promised a free
+    /// trial on every plan, which trial-only-on-yearly turned into a lie on
+    /// two of the three.
+    private var ctaTitle: String {
+        guard !store.isLoading else { return "premium.loading".l }
+        guard let product = selectedProduct,
+              store.isEligibleForIntroOffer,
+              let offer = product.subscription?.introductoryOffer,
+              offer.paymentMode == .freeTrial else { return "premium.cta_subscribe".l }
+        return String(format: "premium.cta_trial_fmt".l, Self.days(in: offer.period))
     }
 
     /// The line above the button. Reads the trial from the SELECTED product
@@ -312,16 +361,6 @@ struct PlanPickerSection: View {
         case .month: return period.value * 30
         case .year:  return period.value * 365
         @unknown default: return period.value
-        }
-    }
-
-    /// Loads products and, if the yearly plan is unavailable while monthly
-    /// loaded, falls back the selection so the CTA stays enabled.
-    private func reloadProducts() async {
-        await store.loadProducts()
-        loadAttempted = true
-        if store.yearlyProduct == nil && store.monthlyProduct != nil {
-            selectedID = SubscriptionManager.monthlyID
         }
     }
 }

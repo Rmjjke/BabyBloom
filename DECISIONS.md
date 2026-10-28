@@ -14,6 +14,26 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-10-28 — A screen's primary action is pinned below its scroll, never inside it
+
+The paywall's buy button lived at the end of a ScrollView. With the compact
+hero, iPhone 17 + Russian already ended at the fold at default text size, and
+at AX2, the app's declared ceiling, the button sat well below it. A buy button
+that needs a scroll is one most parents never see. NotificationsPage hit the
+same wall earlier, and worse: an overflowing VStack pushed both of its buttons
+off a page with no back button.
+
+**Rule.** When a screen's content can outgrow the display at AX2, its primary
+action goes in a footer *under* the ScrollView (`VStack { ScrollView; footer }`),
+not inside it and not as an overlay. Secondary actions (restore, legal links,
+"later") may stay in the scroll if they remain reachable by it.
+
+**On the paywall** the footer holds the trial line and the buy button. The
+trial line carries the price, so what is charged stays next to the button.
+Plans, restore, the auto-renew text and the legal links scroll. Pinning the
+whole plan picker was rejected: at AX2 three plan rows plus the button fill
+most of the screen and leave a sliver to scroll.
+
 ## 2026-09-23 — The weight chart has labelled axes and a readout; its time axis is labelled in dates
 
 The owner's report (build 21): the chart showed a line and a band and said

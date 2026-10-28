@@ -24,6 +24,13 @@ struct PremiumPage: View {
     /// The X is live until the page is gone; a double tap must not report or
     /// skip twice.
     @State private var didSkip = false
+    @State private var planPicker = PlanPickerState()
+
+    /// Selling, and with something to sell: the pinned buy button shows only
+    /// then. A failed load gets the section's retry card instead.
+    private var isSelling: Bool {
+        store.hasResolvedEntitlements && !store.isPremium && !planPicker.loadFailed(in: store)
+    }
 
     // Must stay identical to `PaywallView.features` — the two paywalls are the
     // same offer seen at two moments, and a line present in one and missing
@@ -37,73 +44,13 @@ struct PremiumPage: View {
     ]
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-
-                // Hero gradient header — shared with the settings paywall
-                PremiumHero(badgeScale: appear ? 1 : 0.7)
-                    .offset(y: appear ? 0 : 20)
+        // The offer scrolls, the buy button does not (NotificationsPage's
+        // arrangement): at AX2 the plans alone reach the fold.
+        VStack(spacing: 0) {
+            scrollContent
+            if isSelling {
+                PlanPickerCTA(state: planPicker)
                     .opacity(appear ? 1 : 0)
-
-                // Features list
-                VStack(spacing: 0) {
-                    ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                        HStack(spacing: BBTheme.Spacing.md) {
-                            Image(systemName: feat.icon)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(BBTheme.Colors.primary)
-                                .frame(width: 36, height: 36)
-                                .background(BBTheme.Colors.primary.opacity(0.1))
-                                .cornerRadius(10)
-                            Text(feat.text.l)
-                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(BBTheme.Colors.success)
-                        }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, BBTheme.Spacing.md)
-
-                        if i < features.count - 1 {
-                            Divider().padding(.horizontal, BBTheme.Spacing.md)
-                        }
-                    }
-                }
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.lg)
-                .bbShadow(BBTheme.Shadow.card)
-                .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.top, BBTheme.Spacing.lg)
-                .offset(y: appear ? 0 : 30)
-                .opacity(appear ? 1 : 0)
-
-                // Sell only once StoreKit has actually answered, and only to
-                // someone it says is not subscribed. The app root's launch
-                // refresh has usually answered long before page 10, but this
-                // page must not depend on that ordering — selling on an
-                // unresolved `false` is what sold a full "Try 7 days free" to
-                // a paying user on build 9. The resolved check costs at most
-                // one frame: the entitlement scan
-                // is a local read, and it flips `hasResolvedEntitlements`
-                // before the networked intro-offer lookup it precedes.
-                if store.hasResolvedEntitlements {
-                    if !store.isPremium {
-                        PlanPickerSection()
-                            .padding(.horizontal, BBTheme.Spacing.lg)
-                            .padding(.vertical, BBTheme.Spacing.lg)
-                            .offset(y: appear ? 0 : 30)
-                            .opacity(appear ? 1 : 0)
-                    }
-                } else {
-                    // Normally a single frame. But if StoreKit never answers,
-                    // this is the whole screen for the five seconds before the
-                    // X fades in — and hero-plus-features-plus-nothing reads as
-                    // breakage rather than as waiting.
-                    ProgressView()
-                        .padding(.vertical, BBTheme.Spacing.xl * 2)
-                        .opacity(appear ? 1 : 0)
-                }
             }
         }
         .overlay(alignment: .topLeading) {
@@ -182,6 +129,80 @@ struct PremiumPage: View {
         // strands the user on the paywall until they tap the X.
         .onChange(of: store.isRestoring) { _, restoring in
             if !restoring { advanceIfEntitled() }
+        }
+    }
+
+    // MARK: - Scroll Content
+
+    private var scrollContent: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+
+                // Hero gradient header — shared with the settings paywall
+                PremiumHero(badgeScale: appear ? 1 : 0.7)
+                    .offset(y: appear ? 0 : 20)
+                    .opacity(appear ? 1 : 0)
+
+                // Features list
+                VStack(spacing: 0) {
+                    ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
+                        HStack(spacing: BBTheme.Spacing.md) {
+                            Image(systemName: feat.icon)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(BBTheme.Colors.primary)
+                                .frame(width: 36, height: 36)
+                                .background(BBTheme.Colors.primary.opacity(0.1))
+                                .cornerRadius(10)
+                            Text(feat.text.l)
+                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textPrimary)
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(BBTheme.Colors.success)
+                        }
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, BBTheme.Spacing.md)
+
+                        if i < features.count - 1 {
+                            Divider().padding(.horizontal, BBTheme.Spacing.md)
+                        }
+                    }
+                }
+                .background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.lg)
+                .bbShadow(BBTheme.Shadow.card)
+                .padding(.horizontal, BBTheme.Spacing.lg)
+                .padding(.top, BBTheme.Spacing.lg)
+                .offset(y: appear ? 0 : 30)
+                .opacity(appear ? 1 : 0)
+
+                // Sell only once StoreKit has actually answered, and only to
+                // someone it says is not subscribed. The app root's launch
+                // refresh has usually answered long before page 10, but this
+                // page must not depend on that ordering — selling on an
+                // unresolved `false` is what sold a full "Try 7 days free" to
+                // a paying user on build 9. The resolved check costs at most
+                // one frame: the entitlement scan
+                // is a local read, and it flips `hasResolvedEntitlements`
+                // before the networked intro-offer lookup it precedes.
+                if store.hasResolvedEntitlements {
+                    if !store.isPremium {
+                        PlanPickerSection(state: planPicker)
+                            .padding(.horizontal, BBTheme.Spacing.lg)
+                            .padding(.vertical, BBTheme.Spacing.lg)
+                            .offset(y: appear ? 0 : 30)
+                            .opacity(appear ? 1 : 0)
+                    }
+                } else {
+                    // Normally a single frame. But if StoreKit never answers,
+                    // this is the whole screen for the five seconds before the
+                    // X fades in — and hero-plus-features-plus-nothing reads as
+                    // breakage rather than as waiting.
+                    ProgressView()
+                        .padding(.vertical, BBTheme.Spacing.xl * 2)
+                        .opacity(appear ? 1 : 0)
+                }
+            }
         }
     }
 
