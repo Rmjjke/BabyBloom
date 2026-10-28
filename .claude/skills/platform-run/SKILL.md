@@ -40,7 +40,7 @@ no product code at all. The ones that matter:
 | `-appLanguage en` \| `ru` \| `es` | pin the UI language, so selectors do not depend on the device locale |
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
-| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.desk/app-map.md` for what each produces) |
+| `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.team/app-map.md` for what each produces) |
 | `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
 | `-BBForceReviewPrompt true` | **simulator only** — skip the review prompt's thresholds, quiet hours (22:00–07:00 local) included, but not its blockers, so one save at any hour on a fresh seed brings up the system rating sheet: at once for a quick add or timer stop on a tab, and only once the OUTERMOST entry sheet has dismissed for a save inside a sheet. The system sheet reads `Not Now` (en); a refused request logs `Review prompt not requested: …` at info level under category `ReviewPrompt` (see the log command below) |
 | `-BBAnalyticsSpy true` | **simulator only** — analytics payloads go to the unified log instead of the no-op backend: `Analytics spy event: <name> <key=value…>` at notice level under category `Analytics` (and `Analytics spy: optedOut=…` when the Settings toggle flips). Needs a non-empty key in the build — pass a dummy one, never the real key: `xcodebuild … AMPLITUDE_API_KEY=dummy-local-key build`. Stream with `--predicate 'subsystem == "com.nenita.app" AND category == "Analytics"'` |
@@ -181,13 +181,13 @@ swipe — any interaction goes through Maestro (see the tool-maestro skill).
 
 Maestro is NOT on the PATH by default on this machine (Homebrew is blocked by
 outdated Command Line Tools — the full story and the manual install are in
-`.desk/knowledge.md`). Every run needs:
+`.team/knowledge.md`). Every run needs:
 
     export JAVA_HOME="$HOME/.local/opt/jdk-21.0.12.1+1-jre/Contents/Home"
     export PATH="$HOME/.maestro/bin:$JAVA_HOME/bin:$PATH"
     export MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true
 
-    maestro test .desk/tests/SMOKE-main-tabs.yaml
+    maestro test maestro/SMOKE-main-tabs.yaml
 
 Inside a flow the same launch arguments apply, but Maestro needs the dash
 spelled out in the key and `stopApp: true` alongside `clearState: true`:
@@ -201,13 +201,13 @@ spelled out in the key and `stopApp: true` alongside `clearState: true`:
           "-appLanguage": "en"
 
 Tabs are tapped through `childOf: {text: "Tab Bar"}`; which tab is open is
-asserted via the `tab_*` ids. See `.desk/app-map.md`.
+asserted via the `tab_*` ids. See `.team/app-map.md`.
 
 **Name the device, and make sure nothing else is on it.** `maestro test` with
 no `--device` picks a booted simulator for you, and more than one is usually
 booted here:
 
-    maestro --device <udid> test .desk/tests/
+    maestro --device <udid> test maestro/
 
 On 2026-08-26 four separate red runs — a missed tap, a rotated screenshot, two
 `Device became unreachable` drops — turned out to be a second party driving the

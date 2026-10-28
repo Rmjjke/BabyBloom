@@ -13,11 +13,11 @@
 # Config/Secrets.example.xcconfig
 Config/Secrets.xcconfig
 
-# Desk workflow (solo mode — cards and logs stay local).
-# The e2e suite is the exception: tests are a regression asset and must
-# survive a clone, so .desk/tests/ is tracked.
-.desk/*
-!.desk/tests/
+# teamdesk — one .team instance in the main folder; every role worktree has a
+# .team symlink to it. No trailing slash: ".team/" matches only a directory
+# and would leave the symlinks untracked-visible. The e2e suite is tracked
+# separately in maestro/ so it survives a clone.
+.team
 
 # Xcode
 #
