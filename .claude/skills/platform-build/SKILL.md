@@ -47,7 +47,7 @@ the split-tunnel VPN on this machine. **Pre-check before archiving:**
 Anything but `000` is fine; `000` means the VPN is excluding Apple and the
 build will fail ~20 minutes later with a *misleading* "No signing certificate
 iOS Distribution found". Details and the working upload command are in
-`.desk/knowledge.md`. Bash needs `dangerouslyDisableSandbox` for any network
+`.team/knowledge.md`. Bash needs `dangerouslyDisableSandbox` for any network
 step — the sandbox has none.
 
 **The Amplitude key must be present for an archive.** It lives only in the

@@ -14,7 +14,7 @@
 # 16-21 days back and NOTHING since, so every row is outside the 15-day window:
 # the lock is the first thing on the screen and no flow has to scroll a
 # 150-row list to reach it (`showcase`'s Month range takes ~45 paged scrolls —
-# see .desk/app-map.md). It also exercises the branch where the visible list is
+# see .team/app-map.md). It also exercises the branch where the visible list is
 # empty but the footer still stands, which is the case a naive "no records"
 # empty state would have got wrong.
 #
