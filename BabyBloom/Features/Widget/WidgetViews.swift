@@ -188,14 +188,24 @@ struct WidgetFeedControl: View {
 
     /// VoiceOver hears what the tap does, not "play, Feeding": the small
     /// widget's visible label is only the tab name.
+    /// The medium's "Начать кормление" does not fit the SE and 10.2" iPad
+    /// widgets; there it falls back to the small widget's `tab.feeding`
+    /// rather than an ellipsis (ViewThatFits measures the unscaled text).
     private var idle: some View {
-        capsule {
-            Image(systemName: "play.fill")
-            Text(label)
+        ViewThatFits(in: .horizontal) {
+            idleCapsule(label)
+            idleCapsule("tab.feeding".l)
         }
         .foregroundStyle(Color("BBPrimary"))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("button.start_feeding".l)
+    }
+
+    private func idleCapsule(_ text: String) -> some View {
+        capsule {
+            Image(systemName: "play.fill")
+            Text(text)
+        }
     }
 
     /// No words, only the glyph and the minutes (note § 5, owner #25: whole
