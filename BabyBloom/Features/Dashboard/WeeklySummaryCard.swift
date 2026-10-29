@@ -13,7 +13,15 @@ struct WeeklySummaryCard: View {
     /// The week `weekly_summary_viewed` was last sent for: once a week, not
     /// once per Dashboard visit.
     @AppStorage("weekly.viewedWeekStart") private var viewedWeekStart: Double = 0
-    @State private var expanded = false
+    @State private var expanded: Bool
+
+    /// `startExpanded` is for the render dump; the Dashboard opens it collapsed
+    /// (DECISION 2026-10-29: a notification tap lands collapsed too).
+    init(summary: WeeklySummary, startExpanded: Bool = false, onAddWeighing: @escaping () -> Void) {
+        self.summary = summary
+        self.onAddWeighing = onAddWeighing
+        _expanded = State(initialValue: startExpanded)
+    }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
 
