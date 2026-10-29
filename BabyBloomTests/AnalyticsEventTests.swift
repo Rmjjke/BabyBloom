@@ -50,6 +50,8 @@ final class AnalyticsEventTests: XCTestCase {
         // about the timer itself.
         "live_activity_started":                  [:],
         "live_activity_stopped_from_lock_screen": [:],
+        // D11/D16: that the widget's button started a feed, nothing about the feed.
+        "widget_feeding_logged":                  [:],
     ]
 
     /// Every event carries this, added by the facade rather than by a case.
@@ -79,7 +81,7 @@ final class AnalyticsEventTests: XCTestCase {
         events.append(.widgetInstalled)
         events += AnalyticsEvent.HistorySurface.allCases.map { .historyLockShown($0) }
         events.append(.reviewPromptRequested)
-        events += [.liveActivityStarted, .liveActivityStoppedFromLockScreen]
+        events += [.liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged]
         return events
     }
 
@@ -90,7 +92,7 @@ final class AnalyticsEventTests: XCTestCase {
         case .onboardingPageViewed, .onboardingCompleted, .paywallShown, .planSelected,
              .purchaseResult, .restoreResult, .paywallClosedX, .firstEntry, .dailyActivity,
              .notificationPermission, .widgetInstalled, .historyLockShown, .reviewPromptRequested,
-             .liveActivityStarted, .liveActivityStoppedFromLockScreen:
+             .liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged:
             break
         }
     }

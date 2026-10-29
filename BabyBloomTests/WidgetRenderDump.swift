@@ -55,6 +55,21 @@ final class WidgetRenderDump: XCTestCase {
                                      lastSleepDuration: nil,
                                      todayFeedingCount: 0, isAsleep: false,
                                      nextFeedingTime: nil)),
+            // A feed running for 12 min: the capsule shows the minutes, not the button.
+            ("feeding", BabyBloomEntry(date: now, babyName: "Vlad",
+                                       lastFeedingTime: now.addingTimeInterval(-720),
+                                       sleepStartTime: sleepStart, lastSleepDuration: napLength,
+                                       todayFeedingCount: 7, isAsleep: false,
+                                       nextFeedingTime: now.addingTimeInterval(9_000),
+                                       runningFeedStart: now.addingTimeInterval(-720),
+                                       runningFeedTitle: .breastLeft)),
+            ("bottle", BabyBloomEntry(date: now, babyName: "Vlad",
+                                      lastFeedingTime: now.addingTimeInterval(-300),
+                                      sleepStartTime: sleepStart, lastSleepDuration: napLength,
+                                      todayFeedingCount: 7, isAsleep: false,
+                                      nextFeedingTime: now.addingTimeInterval(9_500),
+                                      runningFeedStart: now.addingTimeInterval(-300),
+                                      runningFeedTitle: .bottle)),
             ("toddler", BabyBloomEntry(date: now, babyName: "Vlad",
                                        lastFeedingTime: hourAgo, sleepStartTime: sleepStart,
                                        lastSleepDuration: napLength,
@@ -65,6 +80,13 @@ final class WidgetRenderDump: XCTestCase {
 
     private static let smallSize = CGSize(width: 158, height: 158)
     private static let mediumSize = CGSize(width: 338, height: 158)
+    /// The smallest widgets iOS 17 still has, at the full 16 pt system margin:
+    /// iPhone SE (2nd/3rd gen) and a 10.2" iPad. The medium's right column
+    /// overflowed exactly there, where the 338 pt dump could not show it.
+    private static let compactSizes: [(name: String, small: CGSize, medium: CGSize)] = [
+        ("se", CGSize(width: 148, height: 148), CGSize(width: 321, height: 148)),
+        ("ipad", CGSize(width: 141, height: 141), CGSize(width: 305, height: 141)),
+    ]
 
     func testDumpWidgets() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("bb-widgets")
@@ -82,10 +104,24 @@ final class WidgetRenderDump: XCTestCase {
                     try dump("\(name)-medium-\(locale)-\(theme)", BabyBloomMediumWidgetView(entry: entry),
                               size: Self.mediumSize, dark: dark)
                 }
+                // Light only: the question at these sizes is fit, not colour.
+                // The faint frame is the margin; content past it is overflow.
+                for compact in Self.compactSizes {
+                    try dump("\(name)-small-\(compact.name)-\(locale)",
+                             framed(BabyBloomSmallWidgetView(entry: entry)),
+                             size: compact.small, dark: false, inset: 16)
+                    try dump("\(name)-medium-\(compact.name)-\(locale)",
+                             framed(BabyBloomMediumWidgetView(entry: entry)),
+                             size: compact.medium, dark: false, inset: 16)
+                }
             }
         }
 
         print("WIDGET_DIR=\(dir.path)")
+    }
+
+    private func framed<V: View>(_ view: V) -> some View {
+        view.overlay(Rectangle().stroke(.white.opacity(0.25), lineWidth: 0.5))
     }
 
     /// The regression this task fixes: every widget-rendered key must resolve
@@ -104,6 +140,8 @@ final class WidgetRenderDump: XCTestCase {
             "widget.feeding_in", "widget.time_to_feed", "widget.last_feed",
             "widget.overdue_by",
             "widget.log_first_feeding", "widget.sleeping", "widget.today_short",
+            // The start-feeding capsule's label and its VoiceOver label (D16).
+            "button.start_feeding",
         ]
         for locale in ["en", "ru", "es"] {
             LocalizationManager.shared.setLanguage(locale)
@@ -195,7 +233,8 @@ final class WidgetRenderDump: XCTestCase {
     /// dump would just be white text on nothing. The 11 pt inset stands in for
     /// the container's content margins, which the system applies and this
     /// process does not; it is an approximation of a system metric, so treat
-    /// truncation seen at exactly the edge as a hint, not a verdict.
+    /// truncation seen at exactly the edge as a hint, not a verdict. The
+    /// compact sizes use the full 16 pt, the worst case for fit.
     ///
     /// This is a stand-in, not the real thing: it proves the CONTENT lays out
     /// and translates correctly, nothing more. It cannot catch a
@@ -205,10 +244,11 @@ final class WidgetRenderDump: XCTestCase {
     /// correct while the real widget, framed by the system container, did
     /// not. A green run here is not evidence the widget looks right on a home
     /// screen — only Step 4's simulator screenshot is.
-    private func dump<V: View>(_ name: String, _ view: V, size: CGSize, dark: Bool) throws {
+    private func dump<V: View>(_ name: String, _ view: V, size: CGSize, dark: Bool,
+                               inset: CGFloat = 11) throws {
         let framed = ZStack {
             WidgetBackground()
-            view.padding(11)
+            view.padding(inset)
         }
         .frame(width: size.width, height: size.height)
         .environment(\.colorScheme, dark ? .dark : .light)
