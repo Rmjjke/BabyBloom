@@ -75,19 +75,24 @@ struct TimerLockScreenView: View {
         String(format: "live_activity.started_fmt".l, attributes.startTime.appTimeOfDay)
     }
 
+    /// "Saved" must read as done at a glance (note § 2, CHECK 2): a neutral
+    /// disc, grey text, no big number, no button — weight, not a detail.
+    private var isSaved: Bool { state.endedAt != nil }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 ZStack {
-                    Circle().fill(attributes.kind.tint.opacity(0.22))
-                    Image(systemName: state.endedAt == nil ? state.title.glyph : "checkmark.circle.fill")
+                    Circle().fill(isSaved ? Color("BBTextSecondary").opacity(0.12)
+                                          : attributes.kind.tint.opacity(0.22))
+                    Image(systemName: isSaved ? "checkmark.circle.fill" : state.title.glyph)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(Color("BBPrimary"))
                 }
                 .frame(width: 32, height: 32)
                 Text(state.title.key.l)
                     .font(.system(.headline, design: .rounded).weight(.semibold))
-                    .foregroundStyle(Color("BBTextPrimary"))
+                    .foregroundStyle(Color(isSaved ? "BBTextSecondary" : "BBTextPrimary"))
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
@@ -119,8 +124,8 @@ struct TimerLockScreenView: View {
         if let endedAt = state.endedAt {
             Text(String(format: "live_activity.saved_fmt".l,
                         WidgetCopy.minutesText(endedAt.timeIntervalSince(attributes.startTime))))
-                .font(.system(.title3, design: .rounded).weight(.semibold))
-                .foregroundStyle(Color("BBTextPrimary"))
+                .font(.system(.subheadline, design: .rounded).weight(.medium))
+                .foregroundStyle(Color("BBTextSecondary"))
                 .lineLimit(1)
         } else if isStale {
             Text("live_activity.continues_in_app".l)
