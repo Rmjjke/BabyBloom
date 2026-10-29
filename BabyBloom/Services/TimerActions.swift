@@ -2,9 +2,8 @@ import Foundation
 import SwiftData
 
 /// The one place a feeding or sleep timer starts, stops, changes side or is
-/// deleted. The screens and the Live Activity's Stop intent come through here,
-/// and so will the widget's start button (planned: widget-interactive, D16), so
-/// each change gets the same side effects wherever it is made: save, widget
+/// deleted. The screens, the Live Activity's Stop intent and the widget's Start
+/// feeding button (D16) all come through here, so each change gets the same side effects wherever it is made: save, widget
 /// reload, the reminder hook (a side change has none), and a Live Activity
 /// reconcile.
 ///

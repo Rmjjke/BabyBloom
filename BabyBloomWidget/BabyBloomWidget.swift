@@ -146,6 +146,9 @@ struct BabyBloomProvider: TimelineProvider {
         )
         sleepDescriptor.fetchLimit = 1
         let lastSleep = (try? ctx.fetch(sleepDescriptor))?.first
+        // The newest running one, as the Feeding tab shows it. A timer older
+        // than the 50 newest feeds cannot exist in practice.
+        let runningFeed = feedings.first { $0.endTime == nil }
 
         return BabyBloomEntry(
             date: Date(),
@@ -156,9 +159,8 @@ struct BabyBloomProvider: TimelineProvider {
             todayFeedingCount: todayCount,
             isAsleep: lastSleep?.isActive ?? false,
             nextFeedingTime: nextFeed,
-            // The newest running one, as the Feeding tab shows it. A timer older
-            // than the 50 newest feeds cannot exist in practice.
-            runningFeedStart: feedings.first { $0.endTime == nil }?.startTime
+            runningFeedStart: runningFeed?.startTime,
+            runningFeedTitle: runningFeed.map(TimerTitle.of)
         )
     }
 }

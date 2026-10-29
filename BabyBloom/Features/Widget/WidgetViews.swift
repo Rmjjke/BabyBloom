@@ -22,6 +22,9 @@ struct BabyBloomEntry: TimelineEntry {
     /// Start of a feeding timer that is running now (any kind). It turns the
     /// start button into a link with the elapsed minutes.
     var runningFeedStart: Date? = nil
+    /// Its Live Activity title, for the same glyph there and here (a bottle
+    /// shows a drop, a breastfeed a heart).
+    var runningFeedTitle: TimerTitle? = nil
 
     var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
 
@@ -38,7 +41,8 @@ struct BabyBloomEntry: TimelineEntry {
                        todayFeedingCount: todayFeedingCount,
                        isAsleep: isAsleep,
                        nextFeedingTime: nextFeedingTime,
-                       runningFeedStart: runningFeedStart)
+                       runningFeedStart: runningFeedStart,
+                       runningFeedTitle: runningFeedTitle)
     }
 }
 
@@ -176,7 +180,7 @@ struct WidgetFeedControl: View {
     /// minutes, never seconds).
     private func running(_ since: Date) -> some View {
         capsule {
-            Image(systemName: "heart.fill")
+            Image(systemName: (entry.runningFeedTitle ?? .breast).glyph)
             Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(since)))
                 .monospacedDigit()
         }
