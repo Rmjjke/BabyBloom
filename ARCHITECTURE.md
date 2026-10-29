@@ -597,6 +597,8 @@ rules:
 - one activity per kind, for the newest running entry;
 - update the title when the side changes;
 - a stopped entry ends with "Saved · N min" (the store's title), dismissed after 15 min;
+  its content carries `relevanceScore` 0 against a running one's 100, so iOS
+  keeps a running timer above a newer Saved card (design note § 2);
 - a deleted entry, the switch off, iOS off or an iPad end it at once;
 - no start for a timer aged ≥ 8 h; an activity iOS ended at ~8 h (still on the
   Lock Screen) gets the same final content once its timer stops;
