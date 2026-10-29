@@ -33,10 +33,18 @@ and the Live Activity read the byte-identical copies in
 
 - **Live Activity.** Dynamic Island compact and minimal carry no words:
   glyph + timer only. The title (kind · side) fits 26 characters on the
-  Lock Screen and in the expanded island; the started / saved line 30; the
-  stale and "goes on in the app" lines 32. Elapsed time is system-rendered,
-  no string. The stop action is the same key as the in-app button for that
-  timer (≤ 12). Limits: `teamdocs/design/m1-live-activity.md` § 7.
+  Lock Screen and in the expanded island; a formula or pumped feed has one
+  title, `live_activity.title.bottle` (D28), with no side. The started /
+  saved line fits 30; "goes on in the app" 32. There is no frozen or stale
+  timer: after ~8 h the activity shows `started_fmt` + `continues_in_app`
+  instead of digits. Elapsed time is system-rendered, no string. The stop
+  action is the same key as the in-app button for that timer (≤ 12).
+  Limits: `teamdocs/design/m1-live-activity.md` § 7.
+- **Settings switch.** Hidden on iPad. When iOS has Live Activities off for
+  the app, the switch is off and disabled, and
+  `settings.live_activity_off_in_ios` says where to turn them on
+  (Settings → app name). Russian says «это» instead of naming the iOS
+  toggle, because its Russian label is not one we control.
 - **Widget.** The control starts a feeding timer (owner D16): `tab.feeding`
   on the small family, `button.start_feeding` on the medium. No "logged"
   confirmation — the widget's own state shows the running feed.
@@ -50,3 +58,6 @@ and the Live Activity read the byte-identical copies in
 
 - 2026-10-28 — M1 Live Activity, Settings switch, widget descriptions
   (`live_activity.*`, `settings.live_activity*`, `widget.description_*`).
+- 2026-10-29 — `live_activity.title.bottle` added, `live_activity.stale`
+  removed (no stale state in the build), `settings.live_activity_off_in_ios`
+  added.
