@@ -19,6 +19,12 @@ layout and states are `teamdocs/design/m1-weekly-summary.md`.
 - Newborn window: no gain number at all, `weekly.gain_newborn` instead (D17;
   DECISIONS 2026-09-05 — a −180 g in week one is normal and reads as a
   verdict).
+- Gain is a rate (D27): the WeightVelocity pair whose later weighing falls
+  in the week, so it is the same number Growth shows. `weekly.gain_fmt`
+  carries the unit ("Weight gain: %@ g/week", the units of
+  `velocity.per_week_fmt`); `%@` is the signed number, "+210". The "Week
+  before" line under it passes `velocity.per_week_fmt` into
+  `weekly.previous_fmt`, so both lines read in g/week.
 - No weighing pair: `weekly.gain_needs_weighing` + the existing
   `growth.add_weighing` action (DECISIONS 2026-09-05, empty states name the
   missing thing and offer the action).
@@ -31,6 +37,10 @@ layout and states are `teamdocs/design/m1-weekly-summary.md`.
 sleep, Monday to Sunday, beside the week before. The text is fixed when the
 notification is scheduled, so it names what is waiting and never hints at how
 the week went. No "tap to…" — the notification is tappable anyway.
+
+It has its own switch, `settings.notify_weekly` "Weekly summary", in
+Settings → Notifications (D26). Off stops the notification only; the card
+stays.
 
 ## Notification copy rules (from the M1 sweep)
 
@@ -46,3 +56,5 @@ the week went. No "tap to…" — the notification is tappable anyway.
   (`profile.photo_hint`, `notification.diaper_title/_body`,
   `notification.measurements_title/_body`, `notification.weigh_in_body`,
   `notification.idle_body`, `onboarding.gen.title_named`).
+- 2026-10-29 — `weekly.gain_fmt` reads as a rate (D27);
+  `settings.notify_weekly` added (D26).
