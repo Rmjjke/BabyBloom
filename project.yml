@@ -65,7 +65,7 @@ targets:
           done
           # Same rule for the widget's copy of the brand colorsets. Keep this
           # list in sync with the colorsets WidgetResources/Colors.xcassets holds.
-          for c in BBGradientStart BBGradientEnd BBAccent; do
+          for c in BBGradientStart BBGradientEnd BBAccent BBSurface BBPrimary BBOnPrimary BBTextPrimary BBTextSecondary BBFeeding BBSleep; do
             app="BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json"
             widget="WidgetResources/Colors.xcassets/$c.colorset/Contents.json"
             if ! cmp -s "$app" "$widget"; then

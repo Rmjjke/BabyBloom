@@ -11,6 +11,9 @@ enum BBTheme {
     enum Colors {
         /// Deep violet — brand primary
         static let primary = Color("BBPrimary")
+        /// Text and glyphs ON a BBPrimary fill: white in light, near-black in
+        /// dark, where white on the lighter dark-mode primary fails contrast (G1).
+        static let onPrimary = Color("BBOnPrimary")
         /// Soft peach — warm accent
         static let accent = Color("BBAccent")
         /// Lavender-white app background
