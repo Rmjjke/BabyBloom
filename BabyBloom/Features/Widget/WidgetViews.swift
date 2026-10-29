@@ -19,6 +19,9 @@ struct BabyBloomEntry: TimelineEntry {
     /// invitation), and 12+ months, where the app deliberately does not
     /// predict (elapsed time instead).
     let nextFeedingTime: Date?
+    /// Start of a feeding timer that is running now (any kind). It turns the
+    /// start button into a link with the elapsed minutes.
+    var runningFeedStart: Date? = nil
 
     var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
 
@@ -34,7 +37,8 @@ struct BabyBloomEntry: TimelineEntry {
                        lastSleepDuration: lastSleepDuration,
                        todayFeedingCount: todayFeedingCount,
                        isAsleep: isAsleep,
-                       nextFeedingTime: nextFeedingTime)
+                       nextFeedingTime: nextFeedingTime,
+                       runningFeedStart: runningFeedStart)
     }
 }
 
@@ -118,9 +122,84 @@ enum WidgetCopy {
     }
 }
 
+// MARK: - Start-feeding control (D16, design note § 5)
+
+/// What the capsule does. Idle, it starts a feed through `StartFeedingIntent`.
+/// While a feed runs, it is a link to the Feeding tab, so a second tap can
+/// never start a second feed.
+enum WidgetControl: Equatable {
+    case start
+    case running(since: Date)
+
+    static func state(for entry: BabyBloomEntry) -> WidgetControl {
+        entry.runningFeedStart.map { .running(since: $0) } ?? .start
+    }
+}
+
+/// A BBSurface capsule: white on the gradient's light end measures 2.64:1,
+/// BBPrimary on BBSurface 5.6 / 6.2 (note § 5). Visually 36 pt high, with a
+/// 44 pt hit area.
+struct WidgetFeedControl: View {
+    let entry: BabyBloomEntry
+    /// `tab.feeding` on the small widget, `button.start_feeding` on the medium.
+    let label: String
+    /// False on the onboarding showcase: the same look, nothing to tap.
+    let isInteractive: Bool
+
+    var body: some View {
+        switch WidgetControl.state(for: entry) {
+        case .start:
+            if isInteractive {
+                Button(intent: StartFeedingIntent()) { idle }
+                    .buttonStyle(.plain)
+            } else {
+                idle
+            }
+        case .running(let since):
+            if isInteractive {
+                Link(destination: DeepLink.url(.feeding)) { running(since) }
+            } else {
+                running(since)
+            }
+        }
+    }
+
+    private var idle: some View {
+        capsule {
+            Image(systemName: "play.fill")
+            Text(label)
+        }
+        .foregroundStyle(Color("BBPrimary"))
+    }
+
+    /// No words, only the glyph and the minutes (note § 5, owner #25: whole
+    /// minutes, never seconds).
+    private func running(_ since: Date) -> some View {
+        capsule {
+            Image(systemName: "heart.fill")
+            Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(since)))
+                .monospacedDigit()
+        }
+        .foregroundStyle(Color("BBTextPrimary"))
+    }
+
+    private func capsule<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        HStack(spacing: 6) { content() }
+            .font(.system(size: 14, weight: .semibold, design: .rounded))
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 36)
+            .background(Capsule().fill(Color("BBSurface")))
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+    }
+}
+
 // MARK: - Small Widget View
 struct BabyBloomSmallWidgetView: View {
     let entry: BabyBloomEntry
+    var isInteractive = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -143,32 +222,27 @@ struct BabyBloomSmallWidgetView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
-
-                Spacer(minLength: 0)
-
-                HStack(spacing: 6) {
-                    Label(String(format: "widget.today_short".l, entry.todayFeedingCount),
-                          systemImage: "heart.fill")
-                    if entry.isAsleep {
-                        Image(systemName: "moon.fill")
-                    }
-                }
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(.white.opacity(0.85))
             } else {
                 // The first day is not an error state. The name is what tells
                 // the parent this widget is theirs and working.
                 Text(entry.babyName)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)
-                Spacer(minLength: 0)
                 Text("widget.log_first_feeding".l)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.9))
                     .minimumScaleFactor(0.7)
             }
+
+            Spacer(minLength: 0)
+
+            // Today's count left this size to make room for the control; it
+            // stays on the medium widget (note § 5).
+            WidgetFeedControl(entry: entry, label: "tab.feeding".l, isInteractive: isInteractive)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        // The small family takes one tap target; the control above is its own.
+        .widgetURL(isInteractive ? DeepLink.url(.feeding) : nil)
         .environment(\.locale, WidgetCopy.formattingLocale)
     }
 }
@@ -176,48 +250,57 @@ struct BabyBloomSmallWidgetView: View {
 // MARK: - Medium Widget View
 struct BabyBloomMediumWidgetView: View {
     let entry: BabyBloomEntry
+    var isInteractive = true
 
     var body: some View {
         Group {
             if entry.hasLoggedAFeeding {
                 HStack(alignment: .top, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let headline = WidgetCopy.headline(for: entry) {
-                            Text(headline)
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.75))
+                    link(.feeding) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let headline = WidgetCopy.headline(for: entry) {
+                                Text(headline)
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.white.opacity(0.75))
+                            }
+                            // See the small widget: the due state is carried by
+                            // the wording, not by a tint that fails contrast.
+                            WidgetCopy.hero(for: entry)
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
+                            if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
+                                overdueLine(due)
+                            }
+                            Spacer(minLength: 0)
+                            Text(entry.babyName)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.9))
+                                .lineLimit(1)
                         }
-                        // See the small widget: the due state is carried by
-                        // the wording, not by a tint that fails contrast.
-                        WidgetCopy.hero(for: entry)
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                        if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
-                            overdueLine(due)
-                        }
-                        Spacer(minLength: 0)
-                        Text(entry.babyName)
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .lineLimit(1)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 0) {
                         // At 12+ months the hero IS the elapsed feed time, so
                         // this row would print the same fact twice in two
                         // different formats. Sleep is the column's content there.
                         if entry.nextFeedingTime != nil, let last = entry.lastFeedingTime {
-                            statRow(icon: "heart.fill", title: "widget.last_feed".l) {
-                                Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
+                            link(.feeding) {
+                                statRow(icon: "heart.fill", title: "widget.last_feed".l) {
+                                    Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
+                                }
                             }
                         }
-                        statRow(icon: "moon.fill",
-                                title: entry.isAsleep ? "widget.sleeping".l : "tab.sleep".l) {
-                            sleepValue
+                        link(.sleep) {
+                            statRow(icon: "moon.fill",
+                                    title: entry.isAsleep ? "widget.sleeping".l : "tab.sleep".l) {
+                                sleepValue
+                            }
                         }
+                        Spacer(minLength: 0)
+                        control
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -230,6 +313,9 @@ struct BabyBloomMediumWidgetView: View {
                     Text("widget.log_first_feeding".l)
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundStyle(.white.opacity(0.85))
+                    Spacer(minLength: 0)
+                    control
+                        .frame(maxWidth: 190)
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -237,7 +323,25 @@ struct BabyBloomMediumWidgetView: View {
         }
         .padding(2)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        // Anything outside the links and the control opens Feeding too.
+        .widgetURL(isInteractive ? DeepLink.url(.feeding) : nil)
         .environment(\.locale, WidgetCopy.formattingLocale)
+    }
+
+    private var control: some View {
+        WidgetFeedControl(entry: entry, label: "button.start_feeding".l, isInteractive: isInteractive)
+    }
+
+    /// A tap area per section (note § 5). Off on the onboarding showcase,
+    /// where a link would leave onboarding for a tab that is not there yet.
+    @ViewBuilder
+    private func link<Content: View>(_ destination: DeepLink.Destination,
+                                     @ViewBuilder _ content: () -> Content) -> some View {
+        if isInteractive {
+            Link(destination: DeepLink.url(destination)) { content() }
+        } else {
+            content()
+        }
     }
 
     /// The spec's "same, plus how long overdue", in whole minutes. Hidden for
@@ -269,6 +373,8 @@ struct BabyBloomMediumWidgetView: View {
         }
     }
 
+    /// 40 pt high: two rows and the control's 44 pt fit the medium widget's
+    /// ~126 pt of content height only this way.
     private func statRow<Value: View>(icon: String, title: String,
                                       @ViewBuilder value: () -> Value) -> some View {
         HStack(spacing: 8) {
@@ -284,6 +390,7 @@ struct BabyBloomMediumWidgetView: View {
                     .foregroundStyle(.white)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+        .contentShape(Rectangle())
     }
 }

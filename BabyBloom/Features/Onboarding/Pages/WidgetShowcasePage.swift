@@ -91,7 +91,8 @@ struct WidgetShowcasePage: View {
     private var widgetSpecimen: some View {
         ZStack {
             WidgetBackground()
-            BabyBloomMediumWidgetView(entry: sampleEntry)
+            // Not interactive: the button would start a real feed mid-onboarding.
+            BabyBloomMediumWidgetView(entry: sampleEntry, isInteractive: false)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
         }

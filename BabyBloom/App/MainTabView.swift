@@ -51,6 +51,13 @@ struct MainTabView: View {
         // Here and not at the app root: onboarding must never see a live
         // trigger, and everything that saves an entry lives under this view.
         .reviewPromptHost()
+        // Here too, not at the root: a widget tap before onboarding is done
+        // just opens onboarding.
+        .onOpenURL { url in
+            if let destination = DeepLink.destination(from: url) {
+                selectedTab = Tab(destination)
+            }
+        }
         // Tab bar appearance is left to the system (D6): the default translucent
         // bar reads correctly in light/dark and is ready for Liquid Glass. No
         // UITabBarAppearance opaque override.
@@ -58,6 +65,15 @@ struct MainTabView: View {
 
     enum Tab: String, CaseIterable {
         case dashboard, feeding, sleep, diapers, more
+
+        init(_ destination: DeepLink.Destination) {
+            switch destination {
+            case .home: self = .dashboard
+            case .feeding: self = .feeding
+            case .sleep: self = .sleep
+            case .diapers: self = .diapers
+            }
+        }
     }
 }
 

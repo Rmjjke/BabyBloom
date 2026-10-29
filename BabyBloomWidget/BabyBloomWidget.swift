@@ -155,7 +155,10 @@ struct BabyBloomProvider: TimelineProvider {
             lastSleepDuration: lastSleep?.durationFormatted,
             todayFeedingCount: todayCount,
             isAsleep: lastSleep?.isActive ?? false,
-            nextFeedingTime: nextFeed
+            nextFeedingTime: nextFeed,
+            // The newest running one, as the Feeding tab shows it. A timer older
+            // than the 50 newest feeds cannot exist in practice.
+            runningFeedStart: feedings.first { $0.endTime == nil }?.startTime
         )
     }
 }

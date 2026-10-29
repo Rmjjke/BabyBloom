@@ -805,6 +805,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
+| `widget_feeding_logged` | — | `StartFeedingIntent.perform`, only when the widget's button actually started a feed (not when one was already running); background launch, as above |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and

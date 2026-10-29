@@ -55,6 +55,13 @@ final class WidgetRenderDump: XCTestCase {
                                      lastSleepDuration: nil,
                                      todayFeedingCount: 0, isAsleep: false,
                                      nextFeedingTime: nil)),
+            // A feed running for 12 min: the capsule shows the minutes, not the button.
+            ("feeding", BabyBloomEntry(date: now, babyName: "Vlad",
+                                       lastFeedingTime: now.addingTimeInterval(-720),
+                                       sleepStartTime: sleepStart, lastSleepDuration: napLength,
+                                       todayFeedingCount: 7, isAsleep: false,
+                                       nextFeedingTime: now.addingTimeInterval(9_000),
+                                       runningFeedStart: now.addingTimeInterval(-720))),
             ("toddler", BabyBloomEntry(date: now, babyName: "Vlad",
                                        lastFeedingTime: hourAgo, sleepStartTime: sleepStart,
                                        lastSleepDuration: napLength,

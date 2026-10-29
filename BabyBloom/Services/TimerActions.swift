@@ -42,6 +42,20 @@ enum TimerActions {
         return entry
     }
 
+    /// The widget's button (D16): a breastfeed on the left, as the in-app quick
+    /// start, unless a feeding of any kind already runs. The widget swaps the
+    /// button for a link once one runs, but its timeline can be a minute
+    /// behind, and a second tap must never start a second feed.
+    /// Returns whether it started one.
+    @discardableResult
+    static func startFeedingFromWidget(in context: ModelContext) -> Bool {
+        var running = FetchDescriptor<FeedingEntry>(predicate: #Predicate { $0.endTime == nil })
+        running.fetchLimit = 1
+        guard ((try? context.fetchCount(running)) ?? 0) == 0 else { return false }
+        startBreastfeed(in: context)
+        return true
+    }
+
     @discardableResult
     static func startSleep(_ type: SleepEntry.SleepType, in context: ModelContext) -> SleepEntry {
         let baby = firstBaby(in: context)
