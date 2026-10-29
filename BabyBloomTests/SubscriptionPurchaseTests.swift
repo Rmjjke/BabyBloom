@@ -47,6 +47,15 @@ final class SubscriptionPurchaseTests: XCTestCase {
     /// Skips, rather than hangs, when the simulator is not actually serving the
     /// local store.
     ///
+    /// On this machine (Xcode 26.3, 2026-10-29) the probe ALWAYS skips: storekitd
+    /// logs "com.nenita.app is not installed for development" for every
+    /// `buyProduct` / `deleteAllTransactions`, while the session's other calls
+    /// (`saveConfigurationData`, `clearOverrides`) succeed. The test bundle does
+    /// carry Nenita.storekit, and adding `get-task-allow` to the signature
+    /// changes nothing. The development-install flag is set by an installer this
+    /// test run does not use. The binding story below is real for the paywall,
+    /// but it is not why these tests skip.
+    ///
     /// `Nenita.storekit` is bound to the app **on the device**, by the scheme's
     /// run action. `simctl erase` drops that binding and nothing on the command
     /// line can restore it: `simctl` has no StoreKit subcommand, and XcodeGen
@@ -72,9 +81,11 @@ final class SubscriptionPurchaseTests: XCTestCase {
             try await session.buyProduct(identifier: SubscriptionManager.monthlyID)
         } catch {
             throw XCTSkip("""
-                This simulator is not serving Nenita.storekit (\(error)). Restore \
-                the binding by launching the app once from Xcode on the BabyBloom \
-                scheme — its run action carries the configuration — then re-run.
+                StoreKit testing refused the session's purchase (\(error)). On this \
+                machine storekitd answers "com.nenita.app is not installed for \
+                development" to every buy, whether the run comes from xcodebuild \
+                or Xcode. Launching from Xcode does NOT repair it. See DECISIONS.md \
+                2026-10-29; the money path is covered by the guard tests and live walks.
                 """)
         }
         session.clearTransactions()
