@@ -123,6 +123,7 @@
 		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
 		BBBE79719E0B6777CC9BD0FE /* ReviewPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2BF69F0069D31809BAD28 /* ReviewPromptPolicy.swift */; };
+		BC4783BBA3A0571C324F94BA /* StopTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */; };
 		BFC8E4683F745F07EC41A436 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4832FE37F4C6031CD491FC1 /* EventsView.swift */; };
 		C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */; };
 		C3010A7944778E878197CD5B /* WHOCorridorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2BF1EDC4FAA44E63CEBAFE0 /* WHOCorridorTests.swift */; };
@@ -132,6 +133,7 @@
 		CAFBAD395A557E5CA4089556 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		CB289C9BDBB350ADDE3202F2 /* FeedingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010391C632EC1AAB7BD0D0CB /* FeedingView.swift */; };
 		CCB25B662F1FE5078547727C /* PercentileCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BD5E27F89A1E4CF8052A0C /* PercentileCard.swift */; };
+		CCFDCF15EB2BDBDAE9A6EC28 /* StopTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
 		CFD7D6C092C5A2D19A61BFA0 /* BirthDateChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */; };
 		D19291B34CC0E26AEED2E14A /* ReviewPromptServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B665791B4466A24EBFF32033 /* ReviewPromptServiceTests.swift */; };
@@ -233,6 +235,7 @@
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectedAgeTests.swift; sourceTree = "<group>"; };
 		1B3FEF1C694F286BCCE9C786 /* WHOCorridor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOCorridor.swift; sourceTree = "<group>"; };
+		1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTimerIntent.swift; sourceTree = "<group>"; };
 		1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
 		1F001C66CECABAE9266B9BF2 /* LiveActivityPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPlanner.swift; sourceTree = "<group>"; };
 		1F8F5697AB65FB87CF2F480A /* DashboardGrowthSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardGrowthSummary.swift; sourceTree = "<group>"; };
@@ -747,6 +750,7 @@
 			isa = PBXGroup;
 			children = (
 				1F001C66CECABAE9266B9BF2 /* LiveActivityPlanner.swift */,
+				1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */,
 				B031E86EAB8FA6A5DB4ABEC5 /* TimerActivityAttributes.swift */,
 			);
 			path = LiveActivity;
@@ -1068,6 +1072,7 @@
 				F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */,
 				1FDA16DD06B456A4004E1F2F /* SeedScenario.swift in Sources */,
 				1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */,
+				BC4783BBA3A0571C324F94BA /* StopTimerIntent.swift in Sources */,
 				13A4E140AE76EBB0801132CE /* TimerActivityAttributes.swift in Sources */,
 				E3D5F0838609C2C904796744 /* WidgetRefresh.swift in Sources */,
 				D60724F29DD2FC8D921A4F45 /* WidgetViews.swift in Sources */,
@@ -1159,6 +1164,7 @@
 				9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */,
 				73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */,
 				48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */,
+				CCFDCF15EB2BDBDAE9A6EC28 /* StopTimerIntent.swift in Sources */,
 				C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */,
 				FE39A2B8148ED8EF411EC42B /* TimerActions.swift in Sources */,
 				70E305F5B70BEDB5289D8A22 /* TimerActivityAttributes.swift in Sources */,
@@ -1357,6 +1363,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app;
 				SDKROOT = iphoneos;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LIVE_ACTIVITY_APP";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1461,6 +1468,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nenita.app;
 				SDKROOT = iphoneos;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LIVE_ACTIVITY_APP";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
