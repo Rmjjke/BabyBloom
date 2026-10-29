@@ -63,6 +63,16 @@ final class TimerActionsTests: XCTestCase {
         XCTAssertEqual(afterChangeCalls, 0)
     }
 
+    /// The widget can sit on the Home Screen before onboarding: no Baby, no feed.
+    func testWidgetStartsNothingBeforeOnboarding() throws {
+        let context = try makeContext()
+        try context.delete(model: Baby.self)
+        try context.save()
+        XCTAssertFalse(TimerActions.startFeedingFromWidget(in: context))
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 0)
+        XCTAssertEqual(afterChangeCalls, 0)
+    }
+
     func testStopSetsEndTimeAndReturnsTrue() throws {
         let context = try makeContext()
         let entry = TimerActions.startSleep(.nap, in: context)

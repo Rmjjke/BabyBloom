@@ -3,9 +3,9 @@ import SwiftData
 
 /// The one place a feeding or sleep timer starts, stops, changes side or is
 /// deleted. The screens, the Live Activity's Stop intent and the widget's Start
-/// feeding button (D16) all come through here, so each change gets the same side effects wherever it is made: save, widget
-/// reload, the reminder hook (a side change has none), and a Live Activity
-/// reconcile.
+/// feeding button (D16) all come through here, so each change gets the same
+/// side effects wherever it is made: save, widget reload, the reminder hook (a
+/// side change has none), and a Live Activity reconcile.
 ///
 /// The review prompt is NOT here: it is a view concern, and a stop made from the
 /// Lock Screen must never ask for a review (R2.2). Views call it themselves
@@ -44,10 +44,13 @@ enum TimerActions {
     /// The widget's button (D16): a breastfeed on the left, as the in-app quick
     /// start, unless a feeding of any kind already runs. The widget swaps the
     /// button for a link once one runs, but its timeline can be a minute
-    /// behind, and a second tap must never start a second feed.
+    /// behind, and a second tap must never start a second feed. Nor before
+    /// onboarding has created a Baby: the widget can sit on the Home Screen
+    /// before then, and the feed would wait there as a timer nobody started.
     /// Returns whether it started one.
     @discardableResult
     static func startFeedingFromWidget(in context: ModelContext) -> Bool {
+        guard firstBaby(in: context) != nil else { return false }
         var running = FetchDescriptor<FeedingEntry>(predicate: #Predicate { $0.endTime == nil })
         running.fetchLimit = 1
         guard ((try? context.fetchCount(running)) ?? 0) == 0 else { return false }

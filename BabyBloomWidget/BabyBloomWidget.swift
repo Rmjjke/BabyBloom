@@ -102,7 +102,8 @@ struct BabyBloomProvider: TimelineProvider {
             lastSleepDuration: nil,
             todayFeedingCount: 0,
             isAsleep: false,
-            nextFeedingTime: nil
+            nextFeedingTime: nil,
+            hasBaby: false
         )
     }
 

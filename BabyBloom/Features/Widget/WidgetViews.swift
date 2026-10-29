@@ -25,6 +25,10 @@ struct BabyBloomEntry: TimelineEntry {
     /// Its Live Activity title, for the same glyph there and here (a bottle
     /// shows a drop, a breastfeed a heart).
     var runningFeedTitle: TimerTitle? = nil
+    /// False until onboarding has created a Baby. The capsule then only opens
+    /// the app: a feed started before onboarding would be found hours later
+    /// as a timer nobody started.
+    var hasBaby = true
 
     var hasLoggedAFeeding: Bool { lastFeedingTime != nil }
 
@@ -42,7 +46,8 @@ struct BabyBloomEntry: TimelineEntry {
                        isAsleep: isAsleep,
                        nextFeedingTime: nextFeedingTime,
                        runningFeedStart: runningFeedStart,
-                       runningFeedTitle: runningFeedTitle)
+                       runningFeedTitle: runningFeedTitle,
+                       hasBaby: hasBaby)
     }
 }
 
@@ -130,13 +135,16 @@ enum WidgetCopy {
 
 /// What the capsule does. Idle, it starts a feed through `StartFeedingIntent`.
 /// While a feed runs, it is a link to the Feeding tab, so a second tap can
-/// never start a second feed.
+/// never start a second feed. Before onboarding it looks idle but only opens
+/// the app.
 enum WidgetControl: Equatable {
     case start
+    case openApp
     case running(since: Date)
 
     static func state(for entry: BabyBloomEntry) -> WidgetControl {
-        entry.runningFeedStart.map { .running(since: $0) } ?? .start
+        if let since = entry.runningFeedStart { return .running(since: since) }
+        return entry.hasBaby ? .start : .openApp
     }
 }
 
@@ -149,6 +157,9 @@ struct WidgetFeedControl: View {
     let label: String
     /// False on the onboarding showcase: the same look, nothing to tap.
     let isInteractive: Bool
+    /// False on the small family: WidgetKit ignores a `Link` there, and the
+    /// widget's own `widgetURL` already opens Feeding.
+    var linksToFeeding = true
 
     var body: some View {
         switch WidgetControl.state(for: entry) {
@@ -159,32 +170,48 @@ struct WidgetFeedControl: View {
             } else {
                 idle
             }
+        case .openApp:
+            linked { idle }
         case .running(let since):
-            if isInteractive {
-                Link(destination: DeepLink.url(.feeding)) { running(since) }
-            } else {
-                running(since)
-            }
+            linked { running(since) }
         }
     }
 
+    @ViewBuilder
+    private func linked<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        if isInteractive && linksToFeeding {
+            Link(destination: DeepLink.url(.feeding)) { content() }
+        } else {
+            content()
+        }
+    }
+
+    /// VoiceOver hears what the tap does, not "play, Feeding": the small
+    /// widget's visible label is only the tab name.
     private var idle: some View {
         capsule {
             Image(systemName: "play.fill")
             Text(label)
         }
         .foregroundStyle(Color("BBPrimary"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("button.start_feeding".l)
     }
 
     /// No words, only the glyph and the minutes (note § 5, owner #25: whole
-    /// minutes, never seconds).
+    /// minutes, never seconds). VoiceOver gets the words the glyph stands for,
+    /// as on the Live Activity.
     private func running(_ since: Date) -> some View {
-        capsule {
-            Image(systemName: (entry.runningFeedTitle ?? .breast).glyph)
-            Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(since)))
+        let title = entry.runningFeedTitle ?? .breast
+        let minutes = WidgetCopy.minutesText(entry.date.timeIntervalSince(since))
+        return capsule {
+            Image(systemName: title.glyph)
+            Text(minutes)
                 .monospacedDigit()
         }
         .foregroundStyle(Color("BBTextPrimary"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title.key.l), \(minutes)")
     }
 
     private func capsule<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
@@ -242,7 +269,8 @@ struct BabyBloomSmallWidgetView: View {
 
             // Today's count left this size to make room for the control; it
             // stays on the medium widget (note § 5).
-            WidgetFeedControl(entry: entry, label: "tab.feeding".l, isInteractive: isInteractive)
+            WidgetFeedControl(entry: entry, label: "tab.feeding".l,
+                              isInteractive: isInteractive, linksToFeeding: false)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         // The small family takes one tap target; the control above is its own.
@@ -296,6 +324,7 @@ struct BabyBloomMediumWidgetView: View {
                                     Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
                                 }
                             }
+                            .layoutPriority(1)
                         }
                         link(.sleep) {
                             statRow(icon: "moon.fill",
@@ -303,6 +332,7 @@ struct BabyBloomMediumWidgetView: View {
                                 sleepValue
                             }
                         }
+                        .layoutPriority(1)
                         Spacer(minLength: 0)
                         control
                     }
@@ -377,8 +407,10 @@ struct BabyBloomMediumWidgetView: View {
         }
     }
 
-    /// 40 pt high: two rows and the control's 44 pt fit the medium widget's
-    /// ~126 pt of content height only this way.
+    /// Up to 40 pt high, down to 30 on the smallest medium widgets (SE: 148 pt,
+    /// a 10.2" iPad: 141). The rows have layout priority, so the stack sets the
+    /// control's 44 pt aside first and splits the rest between them; a fixed
+    /// 40 pushed the column 5–19 pt past those widgets' margins.
     private func statRow<Value: View>(icon: String, title: String,
                                       @ViewBuilder value: () -> Value) -> some View {
         HStack(spacing: 8) {
@@ -394,7 +426,7 @@ struct BabyBloomMediumWidgetView: View {
                     .foregroundStyle(.white)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 40, alignment: .leading)
         .contentShape(Rectangle())
     }
 }

@@ -118,8 +118,9 @@ targets:
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_PREVIEW_CONTENT: YES
       CODE_SIGN_STYLE: Automatic
-      # The Stop intent is compiled into the widget too (its Button needs the
-      # type), but its body runs in the app: only the app compiles it in.
+      # The Stop and Start feeding intents are compiled into the widget too
+      # (their Buttons need the types), but their bodies run in the app: only
+      # the app compiles them in.
       # $(inherited) keeps the project-level DEBUG.
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) LIVE_ACTIVITY_APP"
     entitlements:

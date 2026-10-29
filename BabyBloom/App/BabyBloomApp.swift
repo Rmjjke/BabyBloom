@@ -10,6 +10,9 @@ struct BabyBloomApp: App {
     // flows drive `hasCompletedOnboarding`, `appLanguage` and `appAppearance`
     // — those need no hook because @AppStorage already reads that domain.
     @State private var showingSplash = !UserDefaults.standard.bool(forKey: "BBSkipSplash")
+    /// A widget tap that arrived before `MainTabView` was on screen (the
+    /// splash of a cold launch). Held here and handed over when the tabs appear.
+    @State private var pendingDeepLink: DeepLink.Destination?
     @AppStorage("appLanguage") private var appLanguage = LocalizationManager.deviceDefault
     @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
 
@@ -29,7 +32,7 @@ struct BabyBloomApp: App {
                         }
                     }
                 } else if hasCompletedOnboarding {
-                    MainTabView()
+                    MainTabView(pendingDestination: $pendingDeepLink)
                 } else {
                     // No permission request here any more: onboarding asks on
                     // its own notifications page, where the ask is motivated.
@@ -39,6 +42,15 @@ struct BabyBloomApp: App {
                 }
             }
             .id(appLanguage)
+            // At the root, not on MainTabView: a cold launch shows the splash
+            // for ~5 s, and a URL delivered while no view listens is dropped.
+            // Before onboarding is done a link just opens onboarding, so it is
+            // not kept for later either.
+            .onOpenURL { url in
+                guard hasCompletedOnboarding,
+                      let destination = DeepLink.destination(from: url) else { return }
+                pendingDeepLink = destination
+            }
             // Applied at the root so the splash, onboarding and main UI all
             // follow the same choice. Must not be re-declared further down the
             // tree: an inner `.preferredColorScheme(nil)` would win and cancel

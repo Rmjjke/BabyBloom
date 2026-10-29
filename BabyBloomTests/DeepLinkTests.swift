@@ -22,8 +22,8 @@ final class DeepLinkTests: XCTestCase {
         }
     }
 
-    /// D16: the widget's capsule starts a feed only when none runs, and the
-    /// per-minute copies of the entry keep that state.
+    /// D16: the widget's capsule starts a feed only when none runs and a Baby
+    /// exists, and the per-minute copies of the entry keep that state.
     func testWidgetControlFollowsTheRunningFeed() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let idle = BabyBloomEntry(date: now, babyName: "Mia", lastFeedingTime: nil,
@@ -34,9 +34,16 @@ final class DeepLinkTests: XCTestCase {
         let running = BabyBloomEntry(date: now, babyName: "Mia", lastFeedingTime: start,
                                      sleepStartTime: nil, lastSleepDuration: nil,
                                      todayFeedingCount: 1, isAsleep: false, nextFeedingTime: nil,
-                                     runningFeedStart: start)
-        XCTAssertEqual(WidgetControl.state(for: running.at(now.addingTimeInterval(60))),
-                       .running(since: start))
+                                     runningFeedStart: start, runningFeedTitle: .bottle)
+        let nextMinute = running.at(now.addingTimeInterval(60))
+        XCTAssertEqual(WidgetControl.state(for: nextMinute), .running(since: start))
+        XCTAssertEqual(nextMinute.runningFeedTitle, .bottle, "at() must copy the title")
+
+        let beforeOnboarding = BabyBloomEntry(date: now, babyName: "Baby", lastFeedingTime: nil,
+                                              sleepStartTime: nil, lastSleepDuration: nil,
+                                              todayFeedingCount: 0, isAsleep: false,
+                                              nextFeedingTime: nil, hasBaby: false)
+        XCTAssertEqual(WidgetControl.state(for: beforeOnboarding.at(now)), .openApp)
     }
 
     func testEveryDestinationHasATab() {
