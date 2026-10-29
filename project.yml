@@ -151,6 +151,8 @@ targets:
       - path: BabyBloom/Core/Models
         excludes:
           - "**/.DS_Store"
+          # The extension never seeds; the weekly fixtures need app-only code.
+          - "SeedScenario*.swift"
       - path: BabyBloom/Core/Localization
         excludes:
           - "**/.DS_Store"
