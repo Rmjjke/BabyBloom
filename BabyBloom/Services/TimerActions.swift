@@ -2,10 +2,11 @@ import Foundation
 import SwiftData
 
 /// The one place a feeding or sleep timer starts, stops, changes side or is
-/// deleted. The screens, the Live Activity's Stop intent and (widget-interactive,
-/// D16) the widget's start button all come through here, so each change gets the
-/// same side effects wherever it is made: save, widget reload, the reminder
-/// hook, and a Live Activity reconcile.
+/// deleted. The screens and the Live Activity's Stop intent come through here,
+/// and so will the widget's start button (planned: widget-interactive, D16), so
+/// each change gets the same side effects wherever it is made: save, widget
+/// reload, the reminder hook (a side change has none), and a Live Activity
+/// reconcile.
 ///
 /// The review prompt is NOT here: it is a view concern, and a stop made from the
 /// Lock Screen must never ask for a review (R2.2). Views call it themselves

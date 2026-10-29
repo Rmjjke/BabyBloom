@@ -583,9 +583,10 @@ the Lock Screen and in the Dynamic Island as a Live Activity with a Stop button
 
 **One mutation path.** Every timer start, stop, side change and delete goes
 through `Services/TimerActions.swift`: the Feeding and Sleep screens, Recent
-activity, the Stop intent and (from widget-interactive) the widget's start
+activity, the Stop intent and (planned, widget-interactive) the widget's start
 button. Each call saves, reloads the widget, fires the matching
-`NotificationManager` hook and then `TimerActions.afterChange`, which
+`NotificationManager` hook (a side change has none) and then
+`TimerActions.afterChange`, which
 reconciles the Live Activity. The add-feeding sheet keeps its own insert but
 calls `afterChange` too. The review prompt stays in the views: a Lock Screen
 stop never asks.
@@ -596,10 +597,20 @@ the pure `LiveActivityPlanner.plan` returns. `LiveActivityPlannerTests` pin the
 rules:
 - one activity per kind, for the newest running entry;
 - update the title when the side changes;
-- a stopped entry ends with "Saved · N min", dismissed after 15 min;
+- a stopped entry ends with "Saved · N min" (the store's title), dismissed after 15 min;
 - a deleted entry, the switch off, iOS off or an iPad end it at once;
-- no start for a timer aged ≥ 8 h;
-- one start per entry (`liveActivity.startedEntryIDs`), so an activity the user swiped away does not come back. Only the switch turning on, or iOS re-enabling, re-arms it.
+- no start for a timer aged ≥ 8 h; an activity iOS ended at ~8 h (still on the
+  Lock Screen) gets the same final content once its timer stops;
+- one start per entry (`liveActivity.startedEntryIDs`), so an activity the user
+  swiped away does not come back. A closed gate forgets them all
+  (`LiveActivityPlanner.remembered`), so the switch or iOS turning back on shows
+  the running timer again. iOS toggled off and on while the app was not running
+  cannot be told from a swipe: that timer stays without an activity.
+
+ActivityKit calls run one at a time in a queue (`LiveActivitySync.enqueue`), so
+quick side changes and a stop land in order; `settle()` waits for it. The Stop
+intent awaits `settle()` before returning, since iOS may suspend a background
+launch right after.
 
 It runs after every mutation, on launch, on every foregrounding, on
 `NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission

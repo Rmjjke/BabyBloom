@@ -44,9 +44,11 @@ struct StopTimerIntent: LiveActivityIntent {
             } else {
                 // Already stopped or deleted (a second tap, or the app won the
                 // race): nothing to write, but the activity must still go (R2.3).
-                LiveActivitySync.shared.reconcile()
+                TimerActions.afterChange()
             }
         }
+        // The end must reach the Lock Screen before iOS suspends a background launch.
+        await LiveActivitySync.shared.settle()
         #endif
         return .result()
     }

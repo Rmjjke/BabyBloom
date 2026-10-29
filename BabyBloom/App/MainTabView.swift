@@ -220,7 +220,7 @@ struct ProfileView: View {
                         get: { liveActivityEnabled && liveActivity.systemEnabled },
                         set: { isOn in
                             liveActivityEnabled = isOn
-                            liveActivity.switchChanged(isOn: isOn)
+                            liveActivity.switchChanged()
                         })) {
                         VStack(alignment: .leading, spacing: 2) {
                             Label("settings.live_activity".l, systemImage: "lock.rectangle.stack.fill")
