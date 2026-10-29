@@ -27,7 +27,7 @@ token is localized like any other string.
 | Target | What it is |
 |---|---|
 | `BabyBloom` | The app. iOS 17+, universal (iPhone + iPad). |
-| `BabyBloomWidget` | WidgetKit extension. Reads the same store, writes nothing. |
+| `BabyBloomWidget` | WidgetKit extension: the home-screen widgets and the timers' Live Activity views. Reads the same store, writes nothing — the Live Activity's Stop button runs in the app's process. |
 | `BabyBloomTests` | XCTest bundle. Also compiles parts of the app source directly. |
 
 The three meet at the App Group `group.com.nenita.app`, which is where the
@@ -574,6 +574,59 @@ Permission is requested from onboarding's own notifications page (page 8 of
 at launch and never over the Dashboard. That page is the single call site of
 `requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.
+
+## Timers and the Live Activity
+
+A running feeding or sleep timer is an entry with `endTime == nil`. It shows on
+the Lock Screen and in the Dynamic Island as a Live Activity with a Stop button
+(free, on by default, Settings › Notifications › "Timer on Lock Screen").
+
+**One mutation path.** Every timer start, stop, side change and delete goes
+through `Services/TimerActions.swift`: the Feeding and Sleep screens, Recent
+activity, the Stop intent and (from widget-interactive) the widget's start
+button. Each call saves, reloads the widget, fires the matching
+`NotificationManager` hook and then `TimerActions.afterChange`, which
+reconciles the Live Activity. The add-feeding sheet keeps its own insert but
+calls `afterChange` too. The review prompt stays in the views: a Lock Screen
+stop never asks.
+
+**Reconciled, never pushed.** `LiveActivitySync.reconcile()` reads the running
+entries and `Activity<TimerActivityAttributes>.activities`, then executes what
+the pure `LiveActivityPlanner.plan` returns. `LiveActivityPlannerTests` pin the
+rules:
+- one activity per kind, for the newest running entry;
+- update the title when the side changes;
+- a stopped entry ends with "Saved · N min", dismissed after 15 min;
+- a deleted entry, the switch off, iOS off or an iPad end it at once;
+- no start for a timer aged ≥ 8 h;
+- one start per entry (`liveActivity.startedEntryIDs`), so an activity the user swiped away does not come back. Only the switch turning on, or iOS re-enabling, re-arms it.
+
+It runs after every mutation, on launch, on every foregrounding, on
+`NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
+changes. With no push (no aps-environment, no server), a stop made on another
+device reaches this Lock Screen when the app next runs here. The owner accepted
+that limit for M1.
+
+**Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
+into both targets because the extension's `Button(intent:)` needs the type.
+Its body is compiled only into the app (`LIVE_ACTIVITY_APP`, set on the app
+target in project.yml); the system runs it in the app's process, sometimes in a
+background launch with no scene. That is why the store is one
+`SharedStore.container` per process, and why `reconcile()` reads the iOS
+permission fresh instead of trusting `start()` to have run. A stop on an entry
+that is already stopped or gone writes nothing (`TimerActions.stop` returns
+false) and just ends the activity.
+
+**States.** `staleDate = start + 8 h`. When stale, or after the system's ~8 h
+cut-off, the views show no digits, only the start time and "The timer goes on
+in Bitty". The elapsed time is `Text(timerInterval:)`, drawn by the system, so
+it never freezes. Views live in `Features/LiveActivity/` (both targets; they use
+only `Color("BB…")` and system text styles, since `BBTheme` is not in the
+widget). `LiveActivityRenderDump` renders every state, but only the simulator
+shows the real Island (see knowledge: expanded regions and `fixedSize`). Levers:
+`-BBSeedScenario runningLongFeed` / `runningBottle`, ids `settings.live_activity`,
+`timer.card.feeding`, `timer.card.sleep`. Logs: subsystem `com.nenita.app`,
+category `LiveActivity`.
 
 ## The review prompt
 
