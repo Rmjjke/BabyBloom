@@ -129,11 +129,17 @@ struct TimerLockScreenView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
         } else {
-            // The timer never truncates; the title above gives way first.
+            // Never `.fixedSize()` here (Q-009): a timer-interval text has no
+            // finite ideal width, and the Lock Screen host then laid out
+            // nothing in the row, Stop included. It takes the row's width
+            // instead, as the Island's expanded trailing text does, and
+            // scales rather than truncates.
             TimerElapsedText(startTime: attributes.startTime)
                 .font(.system(.largeTitle, design: .rounded).weight(.semibold))
                 .foregroundStyle(Color("BBTextPrimary"))
-                .fixedSize()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
