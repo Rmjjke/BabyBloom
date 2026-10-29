@@ -39,6 +39,8 @@ struct FeedingView: View {
                         }) {
                             stopFeeding(active)
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("timer.card.feeding")
                         .padding(.horizontal, BBTheme.Spacing.md)
                     }
 

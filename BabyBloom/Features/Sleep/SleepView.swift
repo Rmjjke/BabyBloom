@@ -37,6 +37,8 @@ struct SleepView: View {
                         SleepTimerCard(entry: active) {
                             stopSleep(active)
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("timer.card.sleep")
                         .padding(.horizontal, BBTheme.Spacing.md)
                     }
 
