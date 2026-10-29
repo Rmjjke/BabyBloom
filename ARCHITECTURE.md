@@ -845,7 +845,7 @@ nenita://tab/sleep` works for QA; a widget link would reach its app without it.
 
 **The widget's tap areas and button** (design note § 5, D16):
 - **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
-- **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
+- **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
 - **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
 - **The onboarding showcase** renders the same view with `isInteractive: false`, so a tap there starts nothing.
 
