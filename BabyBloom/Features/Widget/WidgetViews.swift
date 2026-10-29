@@ -330,7 +330,10 @@ struct BabyBloomMediumWidgetView: View {
                         // At 12+ months the hero IS the elapsed feed time, so
                         // this row would print the same fact twice in two
                         // different formats. Sleep is the column's content there.
-                        if entry.nextFeedingTime != nil, let last = entry.lastFeedingTime {
+                        // Hidden too while a feed runs: the capsule already
+                        // shows its minutes (note § 5, "one fact once").
+                        if entry.nextFeedingTime != nil, entry.runningFeedStart == nil,
+                           let last = entry.lastFeedingTime {
                             link(.feeding) {
                                 statRow(icon: "heart.fill", title: "widget.last_feed".l) {
                                     Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
