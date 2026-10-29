@@ -164,6 +164,12 @@ targets:
       - path: BabyBloom/Features/Widget
         excludes:
           - "**/.DS_Store"
+      # The Live Activity's shared half (attributes, planner, views, the Stop
+      # intent) lives in the app tree for the same reason: the app requests and
+      # ends the activity, the extension renders it, the tests render it too.
+      - path: BabyBloom/Features/LiveActivity
+        excludes:
+          - "**/.DS_Store"
       # Separate physical copy of the localization JSONs (kept in sync with
       # BabyBloom/Resources/Localization). This MUST live in `sources` with
       # buildPhase: resources — XcodeGen has no target-level `resources` key,
