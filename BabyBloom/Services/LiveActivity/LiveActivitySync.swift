@@ -110,6 +110,9 @@ final class LiveActivitySync {
                                                activities: snapshots, alreadyStarted: started,
                                                gate: gate, now: Date())
         for action in actions {
+            if case .start = action {} else {
+                Self.log.info("Live Activity action: \(String(describing: action), privacy: .public)")
+            }
             switch action {
             case .start(let timer):
                 if request(timer) { started.insert(timer.entryID) }
@@ -135,6 +138,7 @@ final class LiveActivitySync {
         do {
             _ = try Activity.request(attributes: attributes, content: content, pushType: nil)
             _ = Analytics.shared.track(.liveActivityStarted)
+            Self.log.info("Live Activity started: \(timer.kind.rawValue, privacy: .public)")
             return true
         } catch {
             Self.log.error("Live Activity request failed: \(error.localizedDescription, privacy: .public)")

@@ -52,7 +52,9 @@ struct TimerStopButton: View {
                 .padding(.horizontal, 16)
                 .frame(minWidth: 96, minHeight: 44)
                 .background(Capsule().fill(Color("BBPrimary")))
-                .fixedSize()
+                // Horizontal only: the label never truncates, but a vertical
+                // fixedSize asks the Island's region for more height than it has.
+                .fixedSize(horizontal: true, vertical: false)
         }
         .buttonStyle(.plain)
     }
@@ -209,7 +211,7 @@ struct TimerIslandExpandedTrailing: View {
                     .font(.system(.title2, design: .rounded).weight(.semibold))
                     .foregroundStyle(Color("BBTextPrimary"))
                     .multilineTextAlignment(.trailing)
-                    .fixedSize()
+                    .lineLimit(1)
             }
         }
         .environment(\.colorScheme, .dark).dynamicTypeSize(...DynamicTypeSize.xLarge)
