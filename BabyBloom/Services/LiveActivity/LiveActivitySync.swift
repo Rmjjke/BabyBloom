@@ -169,7 +169,8 @@ final class LiveActivitySync {
                                                  startTime: timer.startTime)
         let content = ActivityContent(
             state: TimerActivityAttributes.ContentState(title: timer.title, endedAt: nil),
-            staleDate: timer.startTime.addingTimeInterval(LiveActivityPlanner.maxAge))
+            staleDate: timer.startTime.addingTimeInterval(LiveActivityPlanner.maxAge),
+            relevanceScore: Self.runningRelevance)
         do {
             _ = try Activity.request(attributes: attributes, content: content, pushType: nil)
             _ = Analytics.shared.track(.liveActivityStarted)
@@ -206,18 +207,26 @@ final class LiveActivitySync {
         Activity<TimerActivityAttributes>.activities.first { $0.id == id }
     }
 
+    /// Stack order (design note § 2): iOS puts the higher score first, so a
+    /// running timer stays above a newer "Saved" card on the Lock Screen and
+    /// in the Island.
+    nonisolated static let runningRelevance: Double = 100
+    nonisolated static let savedRelevance: Double = 0
+
     nonisolated private static func update(_ id: String, title: TimerTitle) async {
         guard let activity = activity(id) else { return }
         let staleDate = activity.attributes.startTime.addingTimeInterval(LiveActivityPlanner.maxAge)
         await activity.update(ActivityContent(state: .init(title: title, endedAt: nil),
-                                              staleDate: staleDate))
+                                              staleDate: staleDate,
+                                              relevanceScore: runningRelevance))
     }
 
     /// The final "Saved · N min" state stays 15 minutes: long enough to see it
     /// after settling the baby, gone by morning (design note § 2). The title
     /// comes from the store, not the activity, so a last side change shows.
     nonisolated private static func endSaved(_ id: String, endedAt: Date, title: TimerTitle) async {
-        await activity(id)?.end(ActivityContent(state: .init(title: title, endedAt: endedAt), staleDate: nil),
+        await activity(id)?.end(ActivityContent(state: .init(title: title, endedAt: endedAt),
+                                                staleDate: nil, relevanceScore: savedRelevance),
                                 dismissalPolicy: .after(endedAt.addingTimeInterval(15 * 60)))
     }
 
