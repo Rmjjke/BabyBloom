@@ -153,6 +153,7 @@
 		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
 		E71A50FD691737FE791A71C7 /* BBMeasureSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */; };
 		E78FAF366FEABEACBBABFD84 /* RecentActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A07049E9D30F01EB4916982 /* RecentActivityView.swift */; };
+		E9066E1E27203F0ED58A60C1 /* TimerActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */; };
 		EA29B988F46E8BF5C8F6DA9F /* PlanPickerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A692D649B380A3DDE7CB5D21 /* PlanPickerSection.swift */; };
 		EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */; };
 		EAB93DDC960BEACCE29B13B3 /* LoggingAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */; };
@@ -166,6 +167,7 @@
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C49E15D8A3D66502ADD8D /* Analytics.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
+		FE39A2B8148ED8EF411EC42B /* TimerActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5CE0967C70CD8D11D34837 /* TimerActions.swift */; };
 		FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */; };
 		FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C90B47FB42839937376FB6C1 /* PremiumHero.swift */; };
 		FEB857F7EC799FE2797339E9 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */; };
@@ -220,6 +222,7 @@
 		08481481275F9B15129634B6 /* OnboardingBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackground.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
+		0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActionsTests.swift; sourceTree = "<group>"; };
 		0F91A302286246B091A55923 /* GeneratingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPage.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
 		10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKitTest.framework; path = System/Library/Frameworks/StoreKitTest.framework; sourceTree = SDKROOT; };
@@ -312,6 +315,7 @@
 		AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythmTests.swift; sourceTree = "<group>"; };
 		AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedCorner.swift; sourceTree = "<group>"; };
 		AF132187ABB4B5BC1E7D47B2 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		AF5CE0967C70CD8D11D34837 /* TimerActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActions.swift; sourceTree = "<group>"; };
 		B031E86EAB8FA6A5DB4ABEC5 /* TimerActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActivityAttributes.swift; sourceTree = "<group>"; };
 		B2D64BF8EAF39E2FC0EF92F8 /* BirthPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthPage.swift; sourceTree = "<group>"; };
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
@@ -552,6 +556,7 @@
 				63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */,
 				FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */,
 				68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */,
+				0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */,
 				F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */,
 				FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */,
 				C9B93053C148D1C6ED53A55A /* WeightChartRenderDump.swift */,
@@ -594,6 +599,7 @@
 				5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */,
 				2C48DEAA09C03B8BDE9814C2 /* SharedStore.swift */,
 				DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */,
+				AF5CE0967C70CD8D11D34837 /* TimerActions.swift */,
 				2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */,
 				EA19436CD8332634156929CF /* Analytics */,
 				D4E194C315E0763688463204 /* LiveActivity */,
@@ -1154,6 +1160,7 @@
 				73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */,
 				48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */,
 				C704E8D300CBD48863662E96 /* SubscriptionManager.swift in Sources */,
+				FE39A2B8148ED8EF411EC42B /* TimerActions.swift in Sources */,
 				70E305F5B70BEDB5289D8A22 /* TimerActivityAttributes.swift in Sources */,
 				69050EB6B6FF04483EC62AD9 /* WHOCorridor.swift in Sources */,
 				2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */,
@@ -1205,6 +1212,7 @@
 				7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */,
 				FF2F56DAC09076EE1E8990B0 /* SubscriptionPurchaseTests.swift in Sources */,
 				7D977904A7F13DDAA7245203 /* SubscriptionSavingsTests.swift in Sources */,
+				E9066E1E27203F0ED58A60C1 /* TimerActionsTests.swift in Sources */,
 				08AEB44948A20EB4B9983859 /* TransactionFailureFlagTests.swift in Sources */,
 				A8108817BD3A875D98334F0A /* TypographyCapTests.swift in Sources */,
 				C3010A7944778E878197CD5B /* WHOCorridorTests.swift in Sources */,

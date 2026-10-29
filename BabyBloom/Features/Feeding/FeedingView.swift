@@ -27,11 +27,6 @@ struct FeedingView: View {
         entries.first(where: { $0.isActive })
     }
 
-    /// Start times of the most recent ≤7 feedings, for smart-interval reminders.
-    private var recentFeedingTimes: [Date] {
-        Array(entries.prefix(7).map(\.startTime))
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -39,7 +34,9 @@ struct FeedingView: View {
 
                     // Active timer card
                     if let active = activeTimer {
-                        FeedingTimerCard(entry: active) {
+                        FeedingTimerCard(entry: active, onSideChange: { side in
+                            TimerActions.setSide(side, of: active, in: modelContext)
+                        }) {
                             stopFeeding(active)
                         }
                         .padding(.horizontal, BBTheme.Spacing.md)
@@ -201,61 +198,35 @@ struct FeedingView: View {
 
     private func quickStart(_ type: FeedingEntry.FeedingType) {
         if type == .breast {
-            let entry = FeedingEntry(startTime: Date(), type: .breast, side: .left, volumeML: nil)
-            entry.baby = baby
-            modelContext.insert(entry)
-            try? modelContext.save()
-            WidgetRefresh.entriesChanged()
-            NotificationManager.shared.onFeedingSaved(
-                ageMonths: baby?.ageInMonths ?? 0,
-                babyName: baby?.name ?? "baby.default_name".l,
-                isActiveBF: true,
-                recentFeedingTimes: recentFeedingTimes
-            )
+            TimerActions.startBreastfeed(in: modelContext)
         } else {
             addSheetRequest = FeedingSheetRequest(type: type)
         }
     }
 
     private func stopFeeding(_ entry: FeedingEntry) {
-        entry.endTime = Date()
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        NotificationManager.shared.onFeedingTimerStopped(ageMonths: baby?.ageInMonths ?? 0)
         // Stopping is what turns a running feed into a finished record — the
-        // same moment of success as a manual save. Starting never asks.
-        reviewPrompt.entrySaved(.feeding)
+        // same moment of success as a manual save. Starting never asks. Only a
+        // stop that actually happened asks (the Lock Screen may have won).
+        if TimerActions.stop(entryID: entry.id, kind: .feeding, in: modelContext) {
+            reviewPrompt.entrySaved(.feeding)
+        }
     }
 
     private func delete(_ entry: FeedingEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        // @Query may not update synchronously; compute from the pre-delete array.
-        let remaining = entries.filter { $0 !== entry }
-        NotificationManager.shared.onFeedingDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
-        )
+        TimerActions.delete(feedings: [entry], in: modelContext)
     }
 
     private func deleteAll(_ items: [FeedingEntry]) {
-        items.forEach { modelContext.delete($0) }
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
-        NotificationManager.shared.onFeedingDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
-        )
+        TimerActions.delete(feedings: items, in: modelContext)
     }
 }
 
 // MARK: - Timer Card
 struct FeedingTimerCard: View {
     let entry: FeedingEntry
+    /// Through TimerActions, so the side is saved and the Lock Screen title follows.
+    let onSideChange: (FeedingEntry.BreastSide) -> Void
     let onStop: () -> Void
 
     var body: some View {
@@ -277,7 +248,7 @@ struct FeedingTimerCard: View {
                 HStack(spacing: BBTheme.Spacing.sm) {
                     ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
                         Button {
-                            entry.side = side
+                            onSideChange(side)
                         } label: {
                             Text(side.displayName.l)
                                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
@@ -546,6 +517,9 @@ struct AddFeedingSheet: View {
             isActiveBF: selectedType == .breast && startTimer,
             recentFeedingTimes: Array(feedings.prefix(7).map(\.startTime))
         )
+        // This sheet can start a timer of any type (D28), so the Lock Screen
+        // must hear about it like any other mutation.
+        TimerActions.afterChange()
         // A running timer is a feed that has only begun, not a finished
         // record — no moment of success to ask on. Timer starts never ask.
         if !startTimer { reviewPrompt.entrySaved(.feeding) }
