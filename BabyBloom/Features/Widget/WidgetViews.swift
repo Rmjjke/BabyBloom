@@ -186,23 +186,24 @@ struct WidgetFeedControl: View {
         }
     }
 
-    /// VoiceOver hears what the tap does, not "play, Feeding": the small
-    /// widget's visible label is only the tab name.
-    /// The medium's "Начать кормление" does not fit the SE and 10.2" iPad
-    /// widgets; there it falls back to the small widget's `tab.feeding`
-    /// rather than an ellipsis (ViewThatFits measures the unscaled text).
+    /// The medium's "Начать кормление" fits the 338 pt widget only a little
+    /// smaller, and the SE and 10.2" iPad widgets not at all. ViewThatFits
+    /// measures unscaled text, so the steps are explicit: the full label, the
+    /// full label at 12 pt, then the small widget's `tab.feeding` — never an
+    /// ellipsis. VoiceOver hears what the tap does in every case.
     private var idle: some View {
         ViewThatFits(in: .horizontal) {
-            idleCapsule(label)
-            idleCapsule("tab.feeding".l)
+            idleCapsule(label, size: 14)
+            idleCapsule(label, size: 12)
+            idleCapsule("tab.feeding".l, size: 14)
         }
         .foregroundStyle(Color("BBPrimary"))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("button.start_feeding".l)
     }
 
-    private func idleCapsule(_ text: String) -> some View {
-        capsule {
+    private func idleCapsule(_ text: String, size: CGFloat) -> some View {
+        capsule(fontSize: size) {
             Image(systemName: "play.fill")
             Text(text)
         }
@@ -224,9 +225,10 @@ struct WidgetFeedControl: View {
         .accessibilityLabel("\(title.key.l), \(minutes)")
     }
 
-    private func capsule<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+    private func capsule<Content: View>(fontSize: CGFloat = 14,
+                                        @ViewBuilder _ content: () -> Content) -> some View {
         HStack(spacing: 6) { content() }
-            .font(.system(size: 14, weight: .semibold, design: .rounded))
+            .font(.system(size: fontSize, weight: .semibold, design: .rounded))
             .lineLimit(1)
             .minimumScaleFactor(0.75)
             .padding(.horizontal, 12)
