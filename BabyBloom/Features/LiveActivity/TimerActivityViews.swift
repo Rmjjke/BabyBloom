@@ -20,6 +20,8 @@ extension TimerTitle {
         switch self {
         case .nap:   return "sun.max.fill"
         case .night: return "moon.fill"
+        // The app's formula glyph (`FeedingEntry.FeedingType.icon`).
+        case .bottle: return "drop.fill"
         default:     return "heart.fill"
         }
     }
@@ -93,10 +95,12 @@ struct TimerLockScreenView: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     primaryLine
+                    // A time is content: it scales rather than lose "p.m." (es at the cap).
                     Text(startedLine)
                         .font(.system(.footnote, design: .rounded))
                         .foregroundStyle(Color("BBTextSecondary"))
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
                 .layoutPriority(1)
                 Spacer(minLength: 0)
@@ -123,6 +127,7 @@ struct TimerLockScreenView: View {
                 .font(.system(.body, design: .rounded).weight(.medium))
                 .foregroundStyle(Color("BBTextSecondary"))
                 .lineLimit(2)
+                .minimumScaleFactor(0.8)
         } else {
             // The timer never truncates; the title above gives way first.
             TimerElapsedText(startTime: attributes.startTime)
@@ -156,7 +161,9 @@ struct TimerIslandCompactTrailing: View {
     var body: some View {
         Group {
             if isStale {
+                // VoiceOver would read the bare glyph as "More".
                 Image(systemName: "ellipsis")
+                    .accessibilityLabel("live_activity.continues_in_app".l)
             } else {
                 // Fixed width holds "1:23:45": Text(timerInterval:) is greedy in
                 // the Island and would otherwise push the camera gap.
@@ -228,7 +235,9 @@ struct TimerIslandExpandedBottom: View {
             Text(isStale ? "live_activity.continues_in_app".l : state.title.key.l)
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundStyle(Color("BBTextSecondary"))
-                .lineLimit(1)
+                // Two lines fit the 44 pt Stop row; one cut the ru side at the
+                // default size («Кормление грудью · л…»). Design review M1.
+                .lineLimit(2)
                 .truncationMode(.tail)
             Spacer(minLength: 0)
             TimerStopButton(attributes: attributes)
