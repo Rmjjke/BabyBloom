@@ -156,6 +156,8 @@ struct ProfileView: View {
     /// The user's choice only. iOS can veto it (`systemEnabled`), and that veto
     /// is shown, never written into this key.
     @AppStorage(LiveActivitySettings.enabledKey) private var liveActivityEnabled = true
+    /// D26: mutes the Monday notification only; the Dashboard card stays.
+    @AppStorage(WeeklyNotificationPlan.enabledKey) private var weeklyNotificationEnabled = true
     @State private var liveActivity = LiveActivitySync.shared
     @Environment(SubscriptionManager.self) private var store
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
@@ -235,6 +237,17 @@ struct ProfileView: View {
             Section("settings.notifications".l) {
                 Label("settings.reminders".l, systemImage: "bell.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
+                Toggle(isOn: Binding(
+                    get: { weeklyNotificationEnabled },
+                    set: { isOn in
+                        weeklyNotificationEnabled = isOn
+                        NotificationManager.shared.rescheduleWeeklySummary()
+                    })) {
+                    Label("settings.notify_weekly".l, systemImage: "calendar")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .tint(BBTheme.Colors.primary)
+                .accessibilityIdentifier("settings.notify_weekly")
                 // No Live Activities on iPad: no switch rather than a dead one.
                 if UIDevice.current.userInterfaceIdiom != .pad {
                     Toggle(isOn: Binding(
