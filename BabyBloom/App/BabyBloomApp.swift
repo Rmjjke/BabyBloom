@@ -16,24 +16,8 @@ struct BabyBloomApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var subscriptionManager = SubscriptionManager.shared
 
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Baby.self,
-            FeedingEntry.self,
-            SleepEntry.self,
-            DiaperEntry.self,
-            GrowthEntry.self,
-            CustomEvent.self
-        ])
-        let config = ModelConfiguration(schema: schema,
-                                        groupContainer: .identifier("group.com.nenita.app"),
-                                        cloudKitDatabase: .automatic)
-        do {
-            return try ModelContainer(for: schema, configurations: [config])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    // One container per process, shared with the Live Activity's Stop intent.
+    var sharedModelContainer: ModelContainer { SharedStore.container }
 
     var body: some Scene {
         WindowGroup {
@@ -94,6 +78,8 @@ struct BabyBloomApp: App {
                 // have a nil owner, which makes Baby's cascade rules inert.
                 // Runs at most once per install and is a no-op afterwards.
                 OrphanedEntryAdoption.runIfNeeded(in: sharedModelContainer.mainContext)
+                // After the seed, so a seeded running timer gets its activity.
+                LiveActivitySync.shared.start()
             }
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)
@@ -103,6 +89,9 @@ struct BabyBloomApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NotificationManager.shared.onAppForegrounded()
+                // Catches whatever changed while the app was away: a stop on
+                // another device, a timer that crossed the 8 h line.
+                LiveActivitySync.shared.reconcile()
                 // Expiry produces NO transaction — a lapsed subscription just
                 // drops out of currentEntitlements — so Transaction.updates
                 // cannot report it, and an app suspended for days would keep

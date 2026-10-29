@@ -27,7 +27,7 @@ token is localized like any other string.
 | Target | What it is |
 |---|---|
 | `BabyBloom` | The app. iOS 17+, universal (iPhone + iPad). |
-| `BabyBloomWidget` | WidgetKit extension. Reads the same store, writes nothing. |
+| `BabyBloomWidget` | WidgetKit extension: the home-screen widgets and the timers' Live Activity views. Reads the same store, writes nothing — the Live Activity's Stop button runs in the app's process. |
 | `BabyBloomTests` | XCTest bundle. Also compiles parts of the app source directly. |
 
 The three meet at the App Group `group.com.nenita.app`, which is where the
@@ -575,6 +575,70 @@ at launch and never over the Dashboard. That page is the single call site of
 `requestPermission`.
 `onAppForegrounded()` runs on every `scenePhase == .active`.
 
+## Timers and the Live Activity
+
+A running feeding or sleep timer is an entry with `endTime == nil`. It shows on
+the Lock Screen and in the Dynamic Island as a Live Activity with a Stop button
+(free, on by default, Settings › Notifications › "Timer on Lock Screen").
+
+**One mutation path.** Every timer start, stop, side change and delete goes
+through `Services/TimerActions.swift`: the Feeding and Sleep screens, Recent
+activity, the Stop intent and (planned, widget-interactive) the widget's start
+button. Each call saves, reloads the widget, fires the matching
+`NotificationManager` hook (a side change has none) and then
+`TimerActions.afterChange`, which
+reconciles the Live Activity. The add-feeding sheet keeps its own insert but
+calls `afterChange` too. The review prompt stays in the views: a Lock Screen
+stop never asks.
+
+**Reconciled, never pushed.** `LiveActivitySync.reconcile()` reads the running
+entries and `Activity<TimerActivityAttributes>.activities`, then executes what
+the pure `LiveActivityPlanner.plan` returns. `LiveActivityPlannerTests` pin the
+rules:
+- one activity per kind, for the newest running entry;
+- update the title when the side changes;
+- a stopped entry ends with "Saved · N min" (the store's title), dismissed after 15 min;
+- a deleted entry, the switch off, iOS off or an iPad end it at once;
+- no start for a timer aged ≥ 8 h; an activity iOS ended at ~8 h (still on the
+  Lock Screen) gets the same final content once its timer stops;
+- one start per entry (`liveActivity.startedEntryIDs`), so an activity the user
+  swiped away does not come back. A closed gate forgets them all
+  (`LiveActivityPlanner.remembered`), so the switch or iOS turning back on shows
+  the running timer again. iOS toggled off and on while the app was not running
+  cannot be told from a swipe: that timer stays without an activity.
+
+ActivityKit calls run one at a time in a queue (`LiveActivitySync.enqueue`), so
+quick side changes and a stop land in order; `settle()` waits for it. The Stop
+intent awaits `settle()` before returning, since iOS may suspend a background
+launch right after.
+
+It runs after every mutation, on launch, on every foregrounding, on
+`NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
+changes. With no push (no aps-environment, no server), a stop made on another
+device reaches this Lock Screen when the app next runs here. The owner accepted
+that limit for M1.
+
+**Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
+into both targets because the extension's `Button(intent:)` needs the type.
+Its body is compiled only into the app (`LIVE_ACTIVITY_APP`, set on the app
+target in project.yml); the system runs it in the app's process, sometimes in a
+background launch with no scene. That is why the store is one
+`SharedStore.container` per process, and why `reconcile()` reads the iOS
+permission fresh instead of trusting `start()` to have run. A stop on an entry
+that is already stopped or gone writes nothing (`TimerActions.stop` returns
+false) and just ends the activity.
+
+**States.** `staleDate = start + 8 h`. When stale, or after the system's ~8 h
+cut-off, the views show no digits, only the start time and "The timer goes on
+in Bitty". The elapsed time is `Text(timerInterval:)`, drawn by the system, so
+it never freezes. Views live in `Features/LiveActivity/` (both targets; they use
+only `Color("BB…")` and system text styles, since `BBTheme` is not in the
+widget). `LiveActivityRenderDump` renders every state, but only the simulator
+shows the real Island (see knowledge: expanded regions and `fixedSize`). Levers:
+`-BBSeedScenario runningLongFeed` / `runningBottle`, ids `settings.live_activity`,
+`timer.card.feeding`, `timer.card.sleep`. Logs: subsystem `com.nenita.app`,
+category `LiveActivity`.
+
 ## The review prompt
 
 The App Store rating prompt is requested from exactly one place, and only
@@ -739,6 +803,8 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
 | `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll |
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
+| `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
+| `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and
@@ -828,7 +894,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |
 | `-BBAnalyticsSpy true` | **Simulator only.** Swaps the no-op analytics backend for `LoggingAnalyticsBackend`, which writes every payload to the unified log (subsystem `com.nenita.app`, category `Analytics`) instead of sending it. It still requires a non-empty API key, so a spy run also proves the key reaches Info.plist; use a dummy one on the command line (`AMPLITUDE_API_KEY=dummy`). |

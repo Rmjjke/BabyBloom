@@ -65,7 +65,7 @@ targets:
           done
           # Same rule for the widget's copy of the brand colorsets. Keep this
           # list in sync with the colorsets WidgetResources/Colors.xcassets holds.
-          for c in BBGradientStart BBGradientEnd BBAccent; do
+          for c in BBGradientStart BBGradientEnd BBAccent BBSurface BBPrimary BBOnPrimary BBTextPrimary BBTextSecondary BBFeeding BBSleep; do
             app="BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json"
             widget="WidgetResources/Colors.xcassets/$c.colorset/Contents.json"
             if ! cmp -s "$app" "$widget"; then
@@ -118,6 +118,10 @@ targets:
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_PREVIEW_CONTENT: YES
       CODE_SIGN_STYLE: Automatic
+      # The Stop intent is compiled into the widget too (its Button needs the
+      # type), but its body runs in the app: only the app compiles it in.
+      # $(inherited) keeps the project-level DEBUG.
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) LIVE_ACTIVITY_APP"
     entitlements:
       path: BabyBloom/Resources/BabyBloom.entitlements
       properties:
@@ -162,6 +166,12 @@ targets:
       # compiles them too — that is what lets BabyBloomTests render them per
       # locale via @testable import. Same arrangement as Core/Models above.
       - path: BabyBloom/Features/Widget
+        excludes:
+          - "**/.DS_Store"
+      # The Live Activity's shared half (attributes, planner, views, the Stop
+      # intent) lives in the app tree for the same reason: the app requests and
+      # ends the activity, the extension renders it, the tests render it too.
+      - path: BabyBloom/Features/LiveActivity
         excludes:
           - "**/.DS_Store"
       # Separate physical copy of the localization JSONs (kept in sync with

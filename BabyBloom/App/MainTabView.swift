@@ -132,6 +132,10 @@ struct ProfileView: View {
     /// Read-only here: the toggle writes through `Analytics.setEnabled`, which
     /// also tells the SDK. Same key, same default ON.
     @AppStorage(Analytics.enabledKey) private var analyticsEnabled = true
+    /// The user's choice only. iOS can veto it (`systemEnabled`), and that veto
+    /// is shown, never written into this key.
+    @AppStorage(LiveActivitySettings.enabledKey) private var liveActivityEnabled = true
+    @State private var liveActivity = LiveActivitySync.shared
     @Environment(SubscriptionManager.self) private var store
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var showPaywall = false
@@ -210,6 +214,34 @@ struct ProfileView: View {
             Section("settings.notifications".l) {
                 Label("settings.reminders".l, systemImage: "bell.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
+                // No Live Activities on iPad: no switch rather than a dead one.
+                if UIDevice.current.userInterfaceIdiom != .pad {
+                    Toggle(isOn: Binding(
+                        get: { liveActivityEnabled && liveActivity.systemEnabled },
+                        set: { isOn in
+                            liveActivityEnabled = isOn
+                            liveActivity.switchChanged()
+                        })) {
+                        // One Label around both lines: a Label nested in a
+                        // VStack put its icon on a row of its own (live, iOS 26).
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("settings.live_activity".l)
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text(liveActivity.systemEnabled
+                                     ? "settings.live_activity_hint".l
+                                     : "settings.live_activity_off_in_ios".l)
+                                    .font(.footnote)
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                        } icon: {
+                            Image(systemName: "lock.rectangle.stack.fill")
+                                .foregroundStyle(BBTheme.Colors.textPrimary)
+                        }
+                    }
+                    .disabled(!liveActivity.systemEnabled)
+                    .accessibilityIdentifier("settings.live_activity")
+                }
             }
 
             Section("settings.data".l) {

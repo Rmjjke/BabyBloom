@@ -73,6 +73,14 @@ enum SeedScenario: String, CaseIterable {
     /// storefront screenshot reads as a diagnosis rather than as tracking.
     /// `ShowcaseGrowthTests` is what keeps that true.
     case showcase
+    /// `healthy`, plus a left breastfeed started 7 h 58 min ago and a nap
+    /// started 40 min ago, both still RUNNING. Two minutes after launch the
+    /// feed crosses the 8 h line: the Live Activity's stale look (no digits)
+    /// without waiting a night, next to a fresh sleep activity (QA Q1, Q5).
+    case runningLongFeed
+    /// `healthy`, plus a formula feed started 12 min ago and still running: the
+    /// bottle title on the Lock Screen (D28).
+    case runningBottle
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -195,7 +203,9 @@ enum SeedScenario: String, CaseIterable {
         // Compared at the midpoint of the interval — a corrected age of ~35 days
         // — where the WHO velocity band for a girl is 22.3–39.6 g/day. 17 sits
         // below it; 32 sits inside it.
-        let gramsPerDay: Double = (self == .healthy) ? 32 : 17
+        // The running-timer fixtures borrow the calm baby: they are about the
+        // Lock Screen, and a low-gain card would only add noise to a capture.
+        let gramsPerDay: Double = [.healthy, .runningLongFeed, .runningBottle].contains(self) ? 32 : 17
         let startKg = 4.0
         for (offset, kg) in [(Self.windowDays, startKg),
                              (0, startKg + gramsPerDay * Double(Self.windowDays) / 1000)] {
@@ -249,6 +259,25 @@ enum SeedScenario: String, CaseIterable {
                 nappy.baby = baby
                 context.insert(nappy)
             }
+        }
+
+        // RUNNING timers (endTime nil) for the Live Activity, QA lever L1.
+        switch self {
+        case .runningLongFeed:
+            let feed = FeedingEntry(startTime: now.addingTimeInterval(-(7 * 3600 + 58 * 60)),
+                                    type: .breast, side: .left, volumeML: nil)
+            let nap = SleepEntry(startTime: now.addingTimeInterval(-40 * 60), type: .nap)
+            feed.baby = baby
+            nap.baby = baby
+            context.insert(feed)
+            context.insert(nap)
+        case .runningBottle:
+            let bottle = FeedingEntry(startTime: now.addingTimeInterval(-12 * 60),
+                                      type: .formula, side: nil, volumeML: 120)
+            bottle.baby = baby
+            context.insert(bottle)
+        default:
+            break
         }
     }
 

@@ -118,27 +118,14 @@ struct RecentActivityView: View {
         }
     }
 
+    // Through TimerActions like every other screen: this list used to skip the
+    // widget reload, and a deleted running timer must end its Live Activity.
     private func deleteEntry(_ entry: FeedingEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        // @Query may not update synchronously; compute from the pre-delete array.
-        let remaining = feedings.filter { $0 !== entry }
-        NotificationManager.shared.onFeedingDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            remainingFeedingTimes: Array(remaining.prefix(7).map(\.startTime))
-        )
+        TimerActions.delete(feedings: [entry], in: modelContext)
     }
 
     private func deleteEntry(_ entry: SleepEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        let remaining = sleeps.filter { $0 !== entry }
-        NotificationManager.shared.onSleepDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
-        )
+        TimerActions.delete(sleeps: [entry], in: modelContext)
     }
 
     private func deleteEntry(_ entry: DiaperEntry) {

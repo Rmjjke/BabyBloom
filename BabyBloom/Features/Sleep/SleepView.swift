@@ -37,6 +37,8 @@ struct SleepView: View {
                         SleepTimerCard(entry: active) {
                             stopSleep(active)
                         }
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("timer.card.sleep")
                         .padding(.horizontal, BBTheme.Spacing.md)
                     }
 
@@ -196,54 +198,23 @@ struct SleepView: View {
     }
 
     private func startSleep(type: SleepEntry.SleepType) {
-        let entry = SleepEntry(startTime: Date(), type: type)
-        entry.baby = baby
-        modelContext.insert(entry)
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        NotificationManager.shared.onSleepStarted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            babyName: baby?.name ?? "baby.default_name".l,
-            isNight: type == .night
-        )
+        TimerActions.startSleep(type, in: modelContext)
     }
 
     private func stopSleep(_ entry: SleepEntry) {
-        let endedAt = Date()
-        entry.endTime = endedAt
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        NotificationManager.shared.onSleepEnded(
-            ageMonths: baby?.ageInMonths ?? 0,
-            endedAt: endedAt
-        )
         // A finished record, like a manual save; starting a sleep never asks.
-        reviewPrompt.entrySaved(.sleep)
+        // Only a stop that actually happened asks (the Lock Screen may have won).
+        if TimerActions.stop(entryID: entry.id, kind: .sleep, in: modelContext) {
+            reviewPrompt.entrySaved(.sleep)
+        }
     }
 
     private func delete(_ entry: SleepEntry) {
-        modelContext.delete(entry)
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        // @Query may not update synchronously; compute from the pre-delete array.
-        let remaining = entries.filter { $0 !== entry }
-        NotificationManager.shared.onSleepDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
-        )
+        TimerActions.delete(sleeps: [entry], in: modelContext)
     }
 
     private func deleteAll(_ items: [SleepEntry]) {
-        items.forEach { modelContext.delete($0) }
-        try? modelContext.save()
-        WidgetRefresh.entriesChanged()
-        let remaining = entries.filter { entry in !items.contains { $0 === entry } }
-        NotificationManager.shared.onSleepDeleted(
-            ageMonths: baby?.ageInMonths ?? 0,
-            remainingActive: remaining.contains { $0.isActive },
-            lastRemainingSleepEnd: remaining.compactMap(\.endTime).max()
-        )
+        TimerActions.delete(sleeps: items, in: modelContext)
     }
 }
 

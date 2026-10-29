@@ -14,6 +14,35 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-10-29 — Timers change only through TimerActions; the Live Activity is reconciled, never pushed
+
+Every timer start, stop, side change and delete goes through `TimerActions`, and
+the Live Activity follows the store through one idempotent `reconcile()`.
+Nothing tells the activity directly what happened.
+
+Why one mutation layer: the timer now has more writers than one screen. The
+Feeding and Sleep screens, Recent activity, the Lock Screen's Stop intent and
+the coming widget start button all write it. Before this, each view carried its
+own copy of the side effects, and one of them (Recent activity) had already
+dropped the widget reload. A rule applied in five places drifts; in one place
+it holds.
+
+Why reconcile instead of event-by-event updates: the activity must never
+disagree with the app (R3), and the events that can make it wrong are many and
+partly invisible: an app kill, a CloudKit change from another phone, iOS
+revoking the permission, a timer crossing 8 h while nobody looks. A pure
+planner that compares "what is running" with "what is shown" fixes all of them
+the same way, any missed call is repaired by the next one, and the rules are
+unit-tested without ActivityKit.
+
+Why no push: updating an activity from another device needs aps-environment, a
+server and push tokens. For M1 the owner accepted that a stop made elsewhere
+reaches this Lock Screen when the app next runs (spec R3.4, verdict
+2026-10-29).
+
+Rejected: calling `Activity.update` / `end` from each screen's button. It is
+simpler on day one, but leaves exactly the drift above.
+
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
 The 10 `SubscriptionPurchaseTests` cases skip on this machine with

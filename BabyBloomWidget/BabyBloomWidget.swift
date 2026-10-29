@@ -195,5 +195,6 @@ struct BabyBloomWidgetBundle: WidgetBundle {
     var body: some Widget {
         BabyBloomWidget()
         BabyBloomMediumWidget()
+        TimerActivityWidget()
     }
 }

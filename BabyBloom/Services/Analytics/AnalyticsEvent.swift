@@ -88,6 +88,8 @@ enum AnalyticsEvent: Equatable, Sendable {
     case widgetInstalled
     case historyLockShown(HistorySurface)
     case reviewPromptRequested
+    case liveActivityStarted
+    case liveActivityStoppedFromLockScreen
 
     /// Seconds since `shownAt`, never negative (a clock change must not send
     /// nonsense).
@@ -109,6 +111,8 @@ enum AnalyticsEvent: Equatable, Sendable {
         case widgetInstalled        = "widget_installed"
         case historyLockShown       = "history_lock_shown"
         case reviewPromptRequested  = "review_prompt_requested"
+        case liveActivityStarted    = "live_activity_started"
+        case liveActivityStoppedFromLockScreen = "live_activity_stopped_from_lock_screen"
     }
 
     enum Key: String, CaseIterable, Sendable {
@@ -143,6 +147,8 @@ enum AnalyticsEvent: Equatable, Sendable {
         case .widgetInstalled:        return .widgetInstalled
         case .historyLockShown:       return .historyLockShown
         case .reviewPromptRequested:  return .reviewPromptRequested
+        case .liveActivityStarted:    return .liveActivityStarted
+        case .liveActivityStoppedFromLockScreen: return .liveActivityStoppedFromLockScreen
         }
     }
 
@@ -172,7 +178,8 @@ enum AnalyticsEvent: Equatable, Sendable {
             return [.granted: .bool(granted)]
         case .historyLockShown(let surface):
             return [.surface: .token(surface)]
-        case .widgetInstalled, .reviewPromptRequested:
+        case .widgetInstalled, .reviewPromptRequested,
+             .liveActivityStarted, .liveActivityStoppedFromLockScreen:
             return [:]
         }
     }
