@@ -238,14 +238,21 @@ struct ProfileView: View {
                             liveActivityEnabled = isOn
                             liveActivity.switchChanged()
                         })) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Label("settings.live_activity".l, systemImage: "lock.rectangle.stack.fill")
+                        // One Label around both lines: a Label nested in a
+                        // VStack put its icon on a row of its own (live, iOS 26).
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("settings.live_activity".l)
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                                Text(liveActivity.systemEnabled
+                                     ? "settings.live_activity_hint".l
+                                     : "settings.live_activity_off_in_ios".l)
+                                    .font(.footnote)
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                        } icon: {
+                            Image(systemName: "lock.rectangle.stack.fill")
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Text(liveActivity.systemEnabled
-                                 ? "settings.live_activity_hint".l
-                                 : "settings.live_activity_off_in_ios".l)
-                                .font(.footnote)
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                     }
                     .disabled(!liveActivity.systemEnabled)
