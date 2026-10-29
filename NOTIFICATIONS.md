@@ -200,6 +200,14 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 | `bb.engage.weekly_summary` | воскресенье (`weekday = 1`), 20:00, повтор | при выдаче разрешения и при `onAppForegrounded()` | повтор, идемпотентно |
 | `bb.engage.idle` | через 48 ч | при `onAppForegrounded()`, если стоит `hasLoggedFirstFeeding` **или** `hasLoggedFirstSleep` | разовое |
 
+> **M1 (#15, решение владельца D9): итоги недели переезжают на понедельник.**
+> Тексты уже про «прошлую неделю, с понедельника по воскресенье» (§10).
+> Расписание меняет карточка `weekly-summary`: понедельник утром вне тихих
+> часов 22:00–07:00 (предложение — 10:00, как `monthly_growth`), и только
+> когда за прошлую неделю есть записи — без них нет и карточки на Дашборде.
+> До её мержа код всё ещё ставит воскресенье 20:00; после — эта строка
+> таблицы переписывается под фактическое расписание.
+
 Детали:
 - **`scheduleWeeklySummary()` идемпотентно**: фиксированный ID + cancel-before-add, поэтому
   безопасно вызывать многократно. Планируется в `onAppForegrounded()` — чтобы пользователи,
@@ -238,16 +246,20 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 | `notification.sleep_body` | Малыш уже долго бодрствует… | Baby's been awake for a while… |
 | `notification.sleep_active_title` | Малыш ещё спит? | Still sleeping? |
 | `notification.sleep_active_body` | Не забудьте нажать «Проснулся»… | Don't forget to tap 'Woke Up'… |
-| `notification.diaper_title` | Проверь подгузник 🩲 | Diaper check 🩲 |
-| `notification.diaper_body` | Давно не было записей о подгузнике. Пора проверить %@? | No diaper logged in a while. Time to check on %@? |
-| `notification.measurements_title` | Отслеживай рост %@ 📏 | Track %@'s growth 📏 |
-| `notification.measurements_body` | Уже 3 дня ведёшь записи… | You've been logging for 3 days… |
+| `notification.diaper_title` | Проверьте подгузник 🩲 | Diaper check 🩲 |
+| `notification.diaper_body` | Давно не было записей о подгузнике. Пора проверить, как там %@? | No diaper logged in a while. Time to check on %@? |
+| `notification.measurements_title` | %@ растёт 📏 | Track %@'s growth 📏 |
+| `notification.measurements_body` | Уже 3 дня вы ведёте записи… | You've been logging for 3 days… |
 | `notification.monthly_growth_title` | Ежемесячный контроль 📊 | Monthly check-up 📊 |
 | `notification.monthly_growth_body` | Пора записать новые измерения… | Time to record new measurements… |
-| `notification.weekly_title` | Итоги недели 📋 | Weekly recap 📋 |
-| `notification.weekly_body` | Как прошла неделя… | See how feedings, sleep and diapers looked this week… |
+| `notification.weekly_title` | Прошлая неделя в цифрах 📋 | Last week in numbers 📋 |
+| `notification.weekly_body` | Кормления и сон с понедельника по воскресенье — рядом с неделей до этого. | Feeds and sleep from Monday to Sunday, beside the week before. |
 | `notification.idle_title` | Всё в порядке? 👀 | Everything ok? 👀 |
-| `notification.idle_body` | Уже 2 дня нет новых записей… %@ | You haven't logged anything in 2 days… %@ |
+| `notification.idle_body` | %@ — уже 2 дня без новых записей… | You haven't logged anything in 2 days… %@ |
+
+Русские тексты обращаются к родителю на «вы». Имя малыша (`%@`) в русском
+стоит только в именительном падеже («как там %@», «%@ растёт»): подстановка
+не склоняет имя, и «о %@» дало бы «о Маша».
 
 ---
 
