@@ -16,7 +16,7 @@ live with the workflow in `.desk/`.
 
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
-The 9 `SubscriptionPurchaseTests` cases skip on this machine with
+The 10 `SubscriptionPurchaseTests` cases skip on this machine with
 `notEntitled`. The spike (card storekit-notentitled-spike, timeboxed) found
 where the refusal comes from: storekitd logs **"com.nenita.app is not installed
 for development"** for every purchase-side `SKTestSession` call
@@ -26,7 +26,9 @@ for development"** for every purchase-side `SKTestSession` call
 Ruled out, with evidence: the config missing from the test bundle (it is in
 `BabyBloomTests.xctest`); the session lacking the testing service (its other
 calls pass); `get-task-allow` (re-signing the app with it changes nothing);
-device state and the scheme's TestAction reference (2026-09-02). The
+device state and the scheme's TestAction reference (both ruled out on
+2026-09-02, when the skip probe was added). The likely cause, not yet proven, is a
+development-install flag that only Xcode's own installer sets. The
 xctestrun from `build-for-testing` carries no StoreKit key, even with the test
 plan's `storeKitConfigurationFileReference`.
 
