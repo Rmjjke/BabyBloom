@@ -47,8 +47,13 @@ extension Array where Element == GrowthEntry {
     /// arrives, at which point it starts counting at the next re-render —
     /// nothing schedules one, because this is recomputed per body evaluation
     /// rather than cached behind a timer.
-    var weightMeasurements: [WeightMeasurement] {
-        let horizon = Date().addingTimeInterval(Self.futureDateTolerance)
+    var weightMeasurements: [WeightMeasurement] { weightMeasurements(asOf: Date()) }
+
+    /// The same rule against a given "now": the weekly path passes
+    /// `AppClock.now`, so a `-BBNow` ahead of the Mac's date keeps the seeded
+    /// weighings that are in its past.
+    func weightMeasurements(asOf now: Date) -> [WeightMeasurement] {
+        let horizon = now.addingTimeInterval(Self.futureDateTolerance)
         return compactMap { entry in
             guard let kg = entry.weightKg, kg > 0, entry.date <= horizon else { return nil }
             return WeightMeasurement(date: entry.date, weightKg: kg)

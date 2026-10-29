@@ -5,8 +5,9 @@ import Foundation
 ///
 /// A ONE-SHOT trigger, re-planned on every foreground and background, rather
 /// than the old repeating Sunday 20:00 one: a repeating trigger cannot skip a
-/// week with nothing in it. Entries are only created while the app runs, so
-/// the pass at backgrounding sees every new one.
+/// week with nothing in it. Entries are created in the app's process: on
+/// screen (the pass at backgrounding sees them) or by the Lock Screen and
+/// widget intents, which re-plan after their own write.
 enum WeeklyNotificationPlan {
     /// Settings → Notifications → "Weekly summary" (D26). Default ON. It mutes
     /// the notification only; the card stays.
@@ -23,9 +24,14 @@ enum WeeklyNotificationPlan {
         guard enabled else { return nil }
         let calendar = WeeklySummary.calendar
         let thisMonday = WeeklySummary.week(containing: now).start
-        var fire = calendar.date(byAdding: .hour, value: hour, to: thisMonday)!
+        // Wall-clock 10:00, not "midnight + 10 h": a clock change in between
+        // would otherwise move it to 09:00 or 11:00.
+        let at10 = { (monday: Date) in
+            calendar.date(bySettingHour: hour, minute: 0, second: 0, of: monday)!
+        }
+        var fire = at10(thisMonday)
         if fire <= now {
-            fire = calendar.date(byAdding: .day, value: 7, to: fire)!
+            fire = at10(calendar.date(byAdding: .day, value: 7, to: thisMonday)!)
         }
         let reported = WeeklySummary.week(containing: fire).shifted(byWeeks: -1)
         return hasEntries(reported) ? fire : nil

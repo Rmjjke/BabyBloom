@@ -41,6 +41,8 @@ struct StopTimerIntent: LiveActivityIntent {
                 // the app is in the background and the parent is at the Lock Screen.
                 Analytics.shared.noteEntrySaved(timerKind == .feeding ? .feeding : .sleep)
                 _ = Analytics.shared.track(.liveActivityStoppedFromLockScreen)
+                // A Lock-Screen-only week plans its Monday notification here.
+                NotificationManager.shared.rescheduleWeeklySummary()
             } else {
                 // Already stopped or deleted (a second tap, or the app won the
                 // race): nothing to write, but the activity must still go (R2.3).

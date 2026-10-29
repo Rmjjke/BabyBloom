@@ -10,7 +10,7 @@ extension WeeklySummary.Input {
             feeds: feeds.map(\.startTime),
             sleeps: sleeps.compactMap { entry in entry.endTime.map { (start: entry.startTime, end: $0) } },
             otherEntries: diapers.map(\.time) + growth.map(\.date) + events.map(\.time),
-            measurements: growth.weightMeasurements,
+            measurements: growth.weightMeasurements(asOf: AppClock.now),
             birthDate: baby.birthDate,
             correctedBirthDate: baby.correctedBirthDate,
             birthWeightKg: baby.birthWeightKg,

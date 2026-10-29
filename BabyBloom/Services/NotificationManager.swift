@@ -54,18 +54,18 @@ final class NotificationManager: @unchecked Sendable {
 
     /// Backgrounding is the other half of the weekly plan: entries are only
     /// made while the app runs, so this pass sees every one of them.
+    /// Synchronous: at `.background` the app may be suspended right after the
+    /// call, so the request goes out before this returns.
+    @MainActor
     func onAppBackgrounded() {
-        Task { @MainActor in self.rescheduleWeeklySummary() }
+        rescheduleWeeklySummary()
     }
 
     func onAppForegrounded() {
         // Weekly summary: re-planned from the store on every foreground, so a
         // permission granted after launch, a week that got its first entry or
         // the switch turned back on all take effect.
-        Task { @MainActor in
-            self.rescheduleWeeklySummary()
-            self.logPendingIfAsked()
-        }
+        Task { @MainActor in self.rescheduleWeeklySummary() }
         guard UserDefaults.standard.bool(forKey: kFirstFeeding) ||
               UserDefaults.standard.bool(forKey: kFirstSleep) else { return }
         let name = storedBabyName
@@ -507,6 +507,7 @@ final class NotificationManager: @unchecked Sendable {
               })
         else {
             Self.log.info("weekly summary: none pending (switch \(enabled, privacy: .public), or an empty week)")
+            logPendingIfAsked()
             return
         }
         let parts = WeeklySummary.calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
@@ -514,9 +515,15 @@ final class NotificationManager: @unchecked Sendable {
         Self.log.info("weekly summary: pending for \(fire.ISO8601Format(), privacy: .public)")
     }
 
+    /// The pending list is logged only once the add has landed: read straight
+    /// after it, the first launch could list nothing for the weekly id.
+    @MainActor
     private func add(_ content: UNNotificationContent, _ trigger: UNNotificationTrigger) {
-        UNUserNotificationCenter.current().add(
-            UNNotificationRequest(identifier: NID.engageWeekly.rawValue, content: content, trigger: trigger))
+        let request = UNNotificationRequest(identifier: NID.engageWeekly.rawValue, content: content, trigger: trigger)
+        Task { @MainActor in
+            try? await UNUserNotificationCenter.current().add(request)
+            self.logPendingIfAsked()
+        }
     }
 
     /// L3's clock lever for QA's reminder rows: `-BBLogPendingNotifications

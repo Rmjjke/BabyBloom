@@ -21,6 +21,9 @@ struct StartFeedingIntent: LiveActivityIntent {
         await MainActor.run {
             if TimerActions.startFeedingFromWidget(in: SharedStore.container.mainContext) {
                 _ = Analytics.shared.track(.widgetFeedingLogged)
+                // No scenePhase change here: a week logged only from the
+                // widget would otherwise never plan its Monday notification.
+                NotificationManager.shared.rescheduleWeeklySummary()
             }
         }
         // The request itself ran inside the reconcile; this waits for any

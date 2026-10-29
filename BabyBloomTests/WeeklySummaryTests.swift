@@ -125,4 +125,42 @@ final class WeeklySummaryTests: XCTestCase {
                                    birth: birth, birthWeight: 3.4)))
         XCTAssertEqual(summary.gain, .newborn)
     }
+
+    /// D17 on the week-before line too (review, 2026-10-29). Born 25 Sep: last
+    /// week's pair ends on day 28 and shows a number, but the week before's
+    /// ends on day 21, inside the dip, and must not.
+    func testTheWeekBeforeLineHasTheNewbornGateToo() throws {
+        let weights = [(date(2026, 10, 12), 3.3), (date(2026, 10, 16), 3.35), (date(2026, 10, 23), 3.6)]
+        let gated = try XCTUnwrap(WeeklySummary.make(
+            now: now, input: input(feeds: [date(2026, 10, 22)], weights: weights,
+                                   birth: date(2026, 9, 25), birthWeight: 3.4)))
+        guard case .perWeek = gated.gain else { return XCTFail("last week's pair is past the window") }
+        XCTAssertNil(gated.previousGain)
+
+        // Without a birth weight there is no newborn instrument, so no gate.
+        let ungated = try XCTUnwrap(WeeklySummary.make(
+            now: now, input: input(feeds: [date(2026, 10, 22)], weights: weights, birth: date(2026, 9, 25))))
+        XCTAssertNotNil(ungated.previousGain)
+    }
+
+    /// A day with only a sleep on it is a day with entries.
+    func testASleepOnlyDayCounts() throws {
+        let summary = try XCTUnwrap(WeeklySummary.make(now: now, input: input(
+            feeds: [date(2026, 10, 19)], sleeps: [(date(2026, 10, 21, 13), date(2026, 10, 21, 14))])))
+        XCTAssertEqual(summary.current.daysWithEntries, 2)
+        XCTAssertEqual(summary.current.feedsPerDay, 0.5)
+    }
+
+    /// 10 g rounding, and a loss keeps its sign. Not at an exact .5: the
+    /// grams come out of kg arithmetic, and 0.205 kg is not 205 g in binary.
+    func testGainRoundingAndSign() throws {
+        // 4.000 → 4.214 kg over 7 days: 214 g → 210; 4.000 → 3.970: −30.
+        let up = try XCTUnwrap(WeeklySummary.make(now: now, input: input(
+            feeds: [date(2026, 10, 22)], weights: [(date(2026, 10, 15), 4.0), (date(2026, 10, 22), 4.214)])))
+        XCTAssertEqual(up.gain, .perWeek(210))
+        let down = try XCTUnwrap(WeeklySummary.make(now: now, input: input(
+            feeds: [date(2026, 10, 22)], weights: [(date(2026, 10, 15), 4.0), (date(2026, 10, 22), 3.97)])))
+        XCTAssertEqual(down.gain, .perWeek(-30))
+        XCTAssertEqual(WeeklySummary.signed(0), "0")
+    }
 }

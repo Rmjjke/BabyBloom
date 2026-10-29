@@ -7,12 +7,12 @@ struct WeeklySummaryCard: View {
     let summary: WeeklySummary
     let onAddWeighing: () -> Void
 
-    /// The Monday of the week the parent hid, as seconds since 1970; local to
-    /// this device on purpose (note § 6), so it needs no sync.
-    @AppStorage("weekly.hiddenWeekStart") private var hiddenWeekStart: Double = 0
+    /// The Monday of the week the parent hid, "2026-10-19"; local to this
+    /// device on purpose (note § 6), so it needs no sync.
+    @AppStorage("weekly.hiddenWeek") private var hiddenWeek = ""
     /// The week `weekly_summary_viewed` was last sent for: once a week, not
     /// once per Dashboard visit.
-    @AppStorage("weekly.viewedWeekStart") private var viewedWeekStart: Double = 0
+    @AppStorage("weekly.viewedWeek") private var viewedWeek = ""
     @State private var expanded: Bool
 
     /// `startExpanded` is for the render dump; the Dashboard opens it collapsed
@@ -25,16 +25,22 @@ struct WeeklySummaryCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    private var weekKey: Double { summary.week.start.timeIntervalSince1970 }
+    /// The Monday as a calendar date, not an instant: an instant shifts with
+    /// the time zone, and a hidden card would come back after a flight.
+    private var weekKey: String {
+        let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: summary.week.start)
+        return String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
+    }
 
     var body: some View {
-        if hiddenWeekStart != weekKey {
+        if hiddenWeek != weekKey {
             card
                 .transition(.opacity)
                 .onAppear {
-                    guard viewedWeekStart != weekKey else { return }
-                    viewedWeekStart = weekKey
-                    _ = Analytics.shared.track(.weeklySummaryViewed)
+                    // Marked only when the event went out: opting in mid-week
+                    // still counts this week's view.
+                    guard viewedWeek != weekKey, Analytics.shared.track(.weeklySummaryViewed) else { return }
+                    viewedWeek = weekKey
                 }
         }
     }
@@ -70,8 +76,9 @@ struct WeeklySummaryCard: View {
     private var header: some View {
         HStack(alignment: .top, spacing: BBTheme.Spacing.sm) {
             Button {
+                // Reduce Motion: the rows appear in place, no height animation.
                 if reduceMotion {
-                    withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() }
+                    expanded.toggle()
                 } else {
                     withAnimation(.easeInOut(duration: 0.25)) { expanded.toggle() }
                 }
@@ -99,7 +106,7 @@ struct WeeklySummaryCard: View {
             .accessibilityIdentifier("weekly.expand")
 
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) { hiddenWeekStart = weekKey }
+                withAnimation(.easeInOut(duration: 0.2)) { hiddenWeek = weekKey }
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
@@ -198,6 +205,9 @@ struct WeeklySummaryCard: View {
                         }
                     }
                 }
+                // One VoiceOver stop per row, so the delta is read with the
+                // value it belongs to.
+                .accessibilityElement(children: .combine)
                 if expanded {
                     VStack(alignment: .leading, spacing: 4) {
                         if let previous, summary.previous != nil || bars == nil {
@@ -238,7 +248,6 @@ struct WeeklySummaryCard: View {
                 .monospacedDigit()
         }
         .foregroundStyle(BBTheme.Colors.textSecondary)
-        .accessibilityElement(children: .combine)
     }
 
     /// Seven bars, Monday first; a day without entries is a faint stub.

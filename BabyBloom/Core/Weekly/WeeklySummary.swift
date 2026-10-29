@@ -94,7 +94,9 @@ struct WeeklySummary: Equatable, Sendable {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2
         calendar.minimumDaysInFirstWeek = 4
-        calendar.timeZone = .current
+        // Autoupdating, not `.current`: this lives for the whole run, and a
+        // family that travels must get its midnights from the zone it is in.
+        calendar.timeZone = .autoupdatingCurrent
         return calendar
     }()
 
@@ -125,8 +127,16 @@ struct WeeklySummary: Equatable, Sendable {
             current: current,
             previous: previous.daysWithEntries > 0 ? previous : nil,
             gain: gain(for: week, input: input, now: now),
-            previousGain: gramsPerWeek(for: before, input: input)
+            previousGain: previousGain(for: before, input: input)
         )
+    }
+
+    /// The week before's line passes the same D17 gate, judged as of that
+    /// week's end: a pair that ended in the newborn dip stays without a number
+    /// even once this week's pair has left the window.
+    static func previousGain(for week: Week, input: Input) -> Int? {
+        if case .perWeek(let grams) = gain(for: week, input: input, now: week.end) { return grams }
+        return nil
     }
 
     /// Whether the week has any entry; the notification's whole question.

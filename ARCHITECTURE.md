@@ -583,10 +583,11 @@ notification). Averages divide by the days that have any entry (D19). The gain
 is the `WeightVelocity` pair whose later weighing falls in the week, and the
 newborn gate (`NewbornWeightLoss.gainDeferral`) withholds the number (D17,
 D27). The Dashboard shows `WeeklySummaryCard` under the running timers. It is
-hidden per week by × (`weekly.hiddenWeekStart`, local) and sends
-`weekly_summary_viewed` once a week. The Monday notification is a ONE-SHOT for
-the next Monday 10:00 under the old id, re-planned on every foreground and
-background by `WeeklyNotificationPlan`, and only when the reported week has
+hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
+and sends `weekly_summary_viewed` once a week. The Monday notification is a
+ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
+foreground and background, and after the Lock Screen and widget intents' own
+writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has
 entries and the Settings switch (`notify.weeklySummary`, D26) is on. A
 repeating trigger cannot skip an empty week. `AppClock.now` is the clock for
 this path only, so `-BBNow` can move it.
@@ -823,7 +824,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
 | `widget_feeding_logged` | — | `StartFeedingIntent.perform`, only when the widget's button actually started a feed (not when one was already running); background launch, as above |
-| `weekly_summary_viewed` | — | `WeeklySummaryCard.onAppear`, once per calendar week per device (`weekly.viewedWeekStart`) |
+| `weekly_summary_viewed` | — | `WeeklySummaryCard.onAppear`, once per calendar week per device (`weekly.viewedWeek`, set only when the event was sent) |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and
