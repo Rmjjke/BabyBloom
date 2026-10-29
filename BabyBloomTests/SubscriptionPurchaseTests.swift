@@ -44,10 +44,19 @@ final class SubscriptionPurchaseTests: XCTestCase {
         return manager
     }
 
-    /// Skips, rather than hangs, when the simulator is not actually serving the
-    /// local store.
+    /// Skips, rather than hangs, when StoreKit testing will not let the session
+    /// buy — for either of the two causes below.
     ///
-    /// `Nenita.storekit` is bound to the app **on the device**, by the scheme's
+    /// **The cause seen on every run so far** (Xcode 26.3, spike 2026-10-29):
+    /// storekitd logs "com.nenita.app is not installed for development" for
+    /// `buyProduct` and `deleteAllTransactions`, while the session's other calls
+    /// (`saveConfigurationData`, `clearOverrides`) succeed. The test bundle does
+    /// carry Nenita.storekit, and adding `get-task-allow` to the signature
+    /// changes nothing. The likely cause, not yet proven, is a development-install
+    /// flag that only Xcode's own installer sets, an installer this test run does
+    /// not use.
+    ///
+    /// **The other cause, the dropped binding**: `Nenita.storekit` is bound to the app **on the device**, by the scheme's
     /// run action. `simctl erase` drops that binding and nothing on the command
     /// line can restore it: `simctl` has no StoreKit subcommand, and XcodeGen
     /// emits `storeKitConfiguration` into LaunchAction only. On a device in that
@@ -55,9 +64,9 @@ final class SubscriptionPurchaseTests: XCTestCase {
     /// — `Product.purchase()`, `AppStore.sync()` — blocks forever on a "Sign in
     /// to Apple Account" sheet no test can tap, wedging the whole suite.
     ///
-    /// An out-of-band buy is the cheap probe for it: it comes back
-    /// `StoreKitError.notEntitled` in a fraction of a second on a device with no
-    /// local store, and succeeds instantly on a healthy one. The transaction it
+    /// An out-of-band buy is the cheap probe for both: it comes back
+    /// `StoreKitError.notEntitled` in a fraction of a second in either state,
+    /// and succeeds instantly when StoreKit testing works. The transaction it
     /// leaves behind is cleared immediately, so the probe is invisible to the
     /// test that follows.
     ///
@@ -72,9 +81,12 @@ final class SubscriptionPurchaseTests: XCTestCase {
             try await session.buyProduct(identifier: SubscriptionManager.monthlyID)
         } catch {
             throw XCTSkip("""
-                This simulator is not serving Nenita.storekit (\(error)). Restore \
-                the binding by launching the app once from Xcode on the BabyBloom \
-                scheme — its run action carries the configuration — then re-run.
+                StoreKit testing refused the session's purchase (\(error)). So far \
+                storekitd has answered "com.nenita.app is not installed for \
+                development" here, and launching from Xcode did not repair it. Read \
+                storekitd's log for this run's reason; see DECISIONS.md 2026-10-29. \
+                Meanwhile the money path is covered by AdvanceOnEntitlementTests, \
+                TransactionFailureFlagTests, SubscriptionSavingsTests and live walks.
                 """)
         }
         session.clearTransactions()
