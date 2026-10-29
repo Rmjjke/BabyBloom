@@ -739,6 +739,8 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
 | `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll |
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
+| `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
+| `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and

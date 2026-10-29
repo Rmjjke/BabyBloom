@@ -46,6 +46,10 @@ final class AnalyticsEventTests: XCTestCase {
         "widget_installed":        [:],
         "history_lock_shown":      ["surface": .token(["feeding", "sleep", "diaper", "events", "recent_activity"])],
         "review_prompt_requested": [:],
+        // Names only (D11): how often the Lock Screen timer is used, nothing
+        // about the timer itself.
+        "live_activity_started":                  [:],
+        "live_activity_stopped_from_lock_screen": [:],
     ]
 
     /// Every event carries this, added by the facade rather than by a case.
@@ -75,6 +79,7 @@ final class AnalyticsEventTests: XCTestCase {
         events.append(.widgetInstalled)
         events += AnalyticsEvent.HistorySurface.allCases.map { .historyLockShown($0) }
         events.append(.reviewPromptRequested)
+        events += [.liveActivityStarted, .liveActivityStoppedFromLockScreen]
         return events
     }
 
@@ -84,7 +89,8 @@ final class AnalyticsEventTests: XCTestCase {
         switch event {
         case .onboardingPageViewed, .onboardingCompleted, .paywallShown, .planSelected,
              .purchaseResult, .restoreResult, .paywallClosedX, .firstEntry, .dailyActivity,
-             .notificationPermission, .widgetInstalled, .historyLockShown, .reviewPromptRequested:
+             .notificationPermission, .widgetInstalled, .historyLockShown, .reviewPromptRequested,
+             .liveActivityStarted, .liveActivityStoppedFromLockScreen:
             break
         }
     }
