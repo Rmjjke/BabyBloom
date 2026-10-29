@@ -58,10 +58,12 @@
 		48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD4BA37056F98A21BACCC4E /* StatusWord.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
 		4B45B0E6CF5B3905BE60A520 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 140757E978AEAF89BAD65699 /* en.json */; };
+		4B86F85353F0FBAE92EA879B /* WeeklySummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */; };
 		4B8F44C3905DCD30F5871C3D /* LockBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F0268AFEEC7BDBBE73C8C0 /* LockBadge.swift */; };
 		4C6BF8041B42FEC6F9C999A8 /* OnboardingBabyBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F6AD9D11B7E3FE2B34D03AA /* OnboardingBabyBuilderTests.swift */; };
 		4CC9780C33A8075D35D01736 /* AnalyticsEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */; };
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
+		4FA1FC6EF847EBB826070C7C /* WeeklySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E1732FD1958FCFE2747431 /* WeeklySummary.swift */; };
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		5421C084298E61D44570976B /* AnalyticsFacadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
@@ -229,6 +231,7 @@
 		03DCB1384549675BD1DE563D /* BabyBloomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomTests.swift; sourceTree = "<group>"; };
 		05024C51D306FE0E87B08E38 /* LiveActivitySync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivitySync.swift; sourceTree = "<group>"; };
 		05A787D90FE23982EC1A46C2 /* FeedingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingPage.swift; sourceTree = "<group>"; };
+		05E1732FD1958FCFE2747431 /* WeeklySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummary.swift; sourceTree = "<group>"; };
 		07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowcaseGrowthTests.swift; sourceTree = "<group>"; };
 		07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocityTests.swift; sourceTree = "<group>"; };
 		08481481275F9B15129634B6 /* OnboardingBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackground.swift; sourceTree = "<group>"; };
@@ -311,6 +314,7 @@
 		8A07049E9D30F01EB4916982 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
 		8B6AD2785BEA18792EBB7624 /* BBLockedHistoryFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBLockedHistoryFooter.swift; sourceTree = "<group>"; };
 		8CF2BF69F0069D31809BAD28 /* ReviewPromptPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptPolicy.swift; sourceTree = "<group>"; };
+		9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryTests.swift; sourceTree = "<group>"; };
 		914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrendTests.swift; sourceTree = "<group>"; };
 		92018595E27242A50820D2B8 /* WidgetRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRenderDump.swift; sourceTree = "<group>"; };
 		929F2F04A221C78A10186554 /* TimerActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActivityViews.swift; sourceTree = "<group>"; };
@@ -581,6 +585,7 @@
 				0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */,
 				F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */,
 				FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */,
+				9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */,
 				C9B93053C148D1C6ED53A55A /* WeightChartRenderDump.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
 				E2BF1EDC4FAA44E63CEBAFE0 /* WHOCorridorTests.swift */,
@@ -839,6 +844,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		E469264AFED02F063232C044 /* Weekly */ = {
+			isa = PBXGroup;
+			children = (
+				05E1732FD1958FCFE2747431 /* WeeklySummary.swift */,
+			);
+			path = Weekly;
+			sourceTree = "<group>";
+		};
 		EA19436CD8332634156929CF /* Analytics */ = {
 			isa = PBXGroup;
 			children = (
@@ -878,6 +891,7 @@
 				77F93CE06E083049FB882844 /* Localization */,
 				28C9C1E0E311C9496C19DE5B /* Models */,
 				772B70D304DE164C1051AE1B /* Review */,
+				E469264AFED02F063232C044 /* Weekly */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1198,6 +1212,7 @@
 				C37CB8A93AD1C58DA1C8477D /* TimerActivityViews.swift in Sources */,
 				69050EB6B6FF04483EC62AD9 /* WHOCorridor.swift in Sources */,
 				2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */,
+				4FA1FC6EF847EBB826070C7C /* WeeklySummary.swift in Sources */,
 				75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */,
 				FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */,
 				11094C9AC10A2830CF27EF8D /* WelcomePage.swift in Sources */,
@@ -1253,6 +1268,7 @@
 				A8108817BD3A875D98334F0A /* TypographyCapTests.swift in Sources */,
 				C3010A7944778E878197CD5B /* WHOCorridorTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
+				4B86F85353F0FBAE92EA879B /* WeeklySummaryTests.swift in Sources */,
 				954B71C8BA4964C0C08D9FBF /* WeightChartRenderDump.swift in Sources */,
 				D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */,
 				FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */,
