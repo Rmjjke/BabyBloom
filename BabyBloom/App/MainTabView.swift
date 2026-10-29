@@ -3,6 +3,8 @@ import SwiftData
 
 struct MainTabView: View {
     @State private var selectedTab: Tab = .dashboard
+    /// Set by the app root's `onOpenURL`; taken and cleared here.
+    @Binding var pendingDestination: DeepLink.Destination?
     @Query private var babies: [Baby]
 
     var body: some View {
@@ -51,13 +53,32 @@ struct MainTabView: View {
         // Here and not at the app root: onboarding must never see a live
         // trigger, and everything that saves an entry lives under this view.
         .reviewPromptHost()
+        // onAppear takes a link that came during the splash, onChange one
+        // that comes while the tabs are already up.
+        .onAppear(perform: openPendingDestination)
+        .onChange(of: pendingDestination) { openPendingDestination() }
         // Tab bar appearance is left to the system (D6): the default translucent
         // bar reads correctly in light/dark and is ready for Liquid Glass. No
         // UITabBarAppearance opaque override.
     }
 
+    private func openPendingDestination() {
+        guard let destination = pendingDestination else { return }
+        selectedTab = Tab(destination)
+        pendingDestination = nil
+    }
+
     enum Tab: String, CaseIterable {
         case dashboard, feeding, sleep, diapers, more
+
+        init(_ destination: DeepLink.Destination) {
+            switch destination {
+            case .home: self = .dashboard
+            case .feeding: self = .feeding
+            case .sleep: self = .sleep
+            case .diapers: self = .diapers
+            }
+        }
     }
 }
 

@@ -27,7 +27,7 @@ token is localized like any other string.
 | Target | What it is |
 |---|---|
 | `BabyBloom` | The app. iOS 17+, universal (iPhone + iPad). |
-| `BabyBloomWidget` | WidgetKit extension: the home-screen widgets and the timers' Live Activity views. Reads the same store, writes nothing — the Live Activity's Stop button runs in the app's process. |
+| `BabyBloomWidget` | WidgetKit extension: the home-screen widgets and the timers' Live Activity views. Reads the same store, writes nothing — the Live Activity's Stop button and the widget's Start feeding button run in the app's process. |
 | `BabyBloomTests` | XCTest bundle. Also compiles parts of the app source directly. |
 
 The three meet at the App Group `group.com.nenita.app`, which is where the
@@ -583,11 +583,10 @@ the Lock Screen and in the Dynamic Island as a Live Activity with a Stop button
 
 **One mutation path.** Every timer start, stop, side change and delete goes
 through `Services/TimerActions.swift`: the Feeding and Sleep screens, Recent
-activity, the Stop intent and (planned, widget-interactive) the widget's start
-button. Each call saves, reloads the widget, fires the matching
-`NotificationManager` hook (a side change has none) and then
-`TimerActions.afterChange`, which
-reconciles the Live Activity. The add-feeding sheet keeps its own insert but
+activity, the Stop intent and the widget's Start feeding button
+(`StartFeedingIntent`, see Navigation). Each call saves, reloads the widget,
+fires the matching `NotificationManager` hook (a side change has none) and then
+`TimerActions.afterChange`, which reconciles the Live Activity. The add-feeding sheet keeps its own insert but
 calls `afterChange` too. The review prompt stays in the views: a Lock Screen
 stop never asks.
 
@@ -807,6 +806,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
+| `widget_feeding_logged` | — | `StartFeedingIntent.perform`, only when the widget's button actually started a feed (not when one was already running); background launch, as above |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and
@@ -832,6 +832,22 @@ on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
+
+**Deep links.** `nenita://tab/<home|feeding|sleep|diapers>`
+(`Features/Widget/DeepLink.swift`, shared with the widget) selects a tab. The
+`onOpenURL` sits on the app root, not on `MainTabView`: a cold launch shows the
+~5 s splash first, and a URL that arrives while no view listens is dropped. The
+root keeps the destination, and `MainTabView` takes it when it appears (or at
+once, when it is already up). Before onboarding is done a link just opens
+onboarding and is not kept. The widget's tap areas build these URLs. The
+scheme is registered in Info.plist only so that `xcrun simctl openurl booted
+nenita://tab/sleep` works for QA; a widget link would reach its app without it.
+
+**The widget's tap areas and button** (design note § 5, D16):
+- **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
+- **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
+- **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
+- **The onboarding showcase** renders the same view with `isInteractive: false`, so a tap there starts nothing.
 
 The splash plays on **every** cold launch (~5s) — it is `@State`, not
 persisted, and there is no `hasShownSplash` flag.

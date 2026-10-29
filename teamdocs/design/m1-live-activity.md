@@ -1,6 +1,6 @@
 # M1 — Live Activity and widget controls (design note)
 
-status: final — card `m1-lockscreen-design`, 2026-10-28; § 2 "Saved looks done" + stack order from `m1-saved-state-distinct` (CHECK 2) 2026-10-29; § 0 confirmed by the Dev Lead's § A5 answers 2026-10-29 (one correction: the bottle timer, D28); corrected after the design review of `live-activity-timers` 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); `widget-interactive` still to review
+status: final — card `m1-lockscreen-design`, 2026-10-28; § 2 "Saved looks done" + stack order from `m1-saved-state-distinct` (CHECK 2) 2026-10-29; § 0 confirmed by the Dev Lead's § A5 answers 2026-10-29 (one correction: the bottle timer, D28); corrected after the design review of `live-activity-timers` 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the design review of `widget-interactive` 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area)
 decisions: D5 (auto start, Settings switch), D6/D10 (free), D14 (WCAG 2.2 AA), D16 (widget control starts a feeding timer), D28 (formula/pumped feeds run as a timer → bottle state); plan v2 review round: BBOnPrimary, Lock Screen on BBSurface, design review before MERGE
 reference: `teamdocs/design/design-system.md` (P = principle, G = gap); review: `.team/desk/tasks/m1-design-review-live-activity/docs/review.md`
 triggers: a timer kind added; a Live Activity presentation or widget family added; a token in § 6 renamed; the stale/dismissal policy changed; a Dynamic Type cap changed
@@ -159,13 +159,19 @@ The "today N feeds" line leaves the small widget to make room for a 44 pt contro
 ```
 ┌────────────────────────────────────────────────┐
 │ Last feed               ♥ Last feed    1 h 20  │  left column → Feeding tab (Link)
-│ 1 h 20 min              ☾ Sleeping     0:40    │  right rows: feed row → Feeding, sleep row → Sleep (each Link, min 44 high)
+│ 1 h 20 min              ☾ Sleeping     0:40    │  right rows: feed row → Feeding, sleep row → Sleep (each Link, 30–40 high)
 │                                                │
 │ Mia                     ┌────────────────────┐ │
-│                         │ ▶  Start feeding   │ │  capsule → StartFeedingIntent, label `button.start_feeding` (≤ 18)
+│                         │ ▶  Start feeding   │ │  capsule → StartFeedingIntent, label `button.start_feeding` (≤ 18); 36 visual, 44 hit
 │                         └────────────────────┘ │
 └────────────────────────────────────────────────┘
 ```
+
+Rules for the medium, settled in the widget design review:
+- **Row height 30–40, not 44.** Two 44 pt rows plus a 44 pt control need 132 pt, and the medium has 126 inside its margins (116 on an SE, 109 on a 10.2" iPad). The D14 bar is WCAG 2.2 AA 2.5.8, target ≥ 24 × 24, and 30 clears it. The rows only navigate: a mis-tap opens a tab and is undone by one more tap. The capsule is the one control that creates data, and it keeps its 44 pt hit area.
+- **The label never ends in an ellipsis.** It steps from 14 pt to 12 pt, then falls back to the small widget's `tab.feeding`. ru therefore reads «▶ Кормление» on every medium with data, the same name as on the small widget, and VoiceOver still says «Начать кормление». A widget that has room (first run) shows the full label. There is no 11 pt step: that size is too small to read at arm's length at 3 a.m.
+- **One fact once.** While a feed runs, the capsule carries its minutes, so the "Last feed" row is hidden; otherwise "Last feed 12 min" sits above "♥ 12 min" and reads as a feed that has ended. This is the same rule as the 12+ months layout, which drops that row because the hero already says it.
+- **No Diapers area.** The widget answers the 3 a.m. questions: when she last ate, and whether she is asleep. A third row does not fit (see row height), and adding Diapers would be a product decision, not a layout one.
 
 Control states (both families):
 
@@ -173,7 +179,7 @@ Control states (both families):
 |---|---|---|
 | idle (no feeding running) | `play.fill` + label, BBPrimary | starts a breastfeed timer (side left, as in-app quick start); the Live Activity takes over |
 | pressed | system highlight | — |
-| started / a feeding is running (any kind, bottle included) | the running kind's glyph + live timer `0:12`, BBTextPrimary, no words | opens the Feeding tab (a Link, not the intent) so a second tap never starts a second feed |
+| started / a feeding is running (any kind, bottle included) | the running kind's glyph + elapsed whole minutes («12 мин», «1 ч 5 мин»), BBTextPrimary, no words. The owner's #25 rule: the widget speaks in minutes, never seconds. A per-minute timeline keeps it current to the minute. | opens the Feeding tab (a Link, not the intent) so a second tap never starts a second feed |
 | sleep running | unchanged (feeding and sleep coexist) | — |
 | intent failed | unchanged; the next timeline reload shows the truth; no error UI (P1) | — |
 | first run (nothing logged) | idle capsule under the existing "log your first feeding" line | starts the first feed |

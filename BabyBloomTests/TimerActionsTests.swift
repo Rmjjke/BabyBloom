@@ -45,6 +45,34 @@ final class TimerActionsTests: XCTestCase {
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 1)
     }
 
+    /// D16: the widget starts a left breastfeed, and never a second feed while
+    /// one of any kind (a bottle included) runs.
+    func testWidgetStartsOneFeedOnly() throws {
+        let context = try makeContext()
+        XCTAssertTrue(TimerActions.startFeedingFromWidget(in: context))
+        XCTAssertFalse(TimerActions.startFeedingFromWidget(in: context))
+        let feeds = try context.fetch(FetchDescriptor<FeedingEntry>())
+        XCTAssertEqual(feeds.count, 1)
+        XCTAssertEqual(feeds.first?.side, .left)
+
+        let other = try makeContext()
+        other.insert(FeedingEntry(startTime: Date(), type: .formula, side: nil, volumeML: 90))
+        try other.save()
+        afterChangeCalls = 0
+        XCTAssertFalse(TimerActions.startFeedingFromWidget(in: other), "a running bottle counts")
+        XCTAssertEqual(afterChangeCalls, 0)
+    }
+
+    /// The widget can sit on the Home Screen before onboarding: no Baby, no feed.
+    func testWidgetStartsNothingBeforeOnboarding() throws {
+        let context = try makeContext()
+        try context.delete(model: Baby.self)
+        try context.save()
+        XCTAssertFalse(TimerActions.startFeedingFromWidget(in: context))
+        XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 0)
+        XCTAssertEqual(afterChangeCalls, 0)
+    }
+
     func testStopSetsEndTimeAndReturnsTrue() throws {
         let context = try makeContext()
         let entry = TimerActions.startSleep(.nap, in: context)
