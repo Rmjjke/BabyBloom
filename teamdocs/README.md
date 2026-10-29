@@ -8,7 +8,7 @@ their owner roles; this file is the map and the status.
 | Section | Owner role | Path | Last check | Status |
 |---|---|---|---|---|
 | Design system (baseline, gaps § 10) | design | design/design-system.md | 2026-10-28 | fresh |
-| M1 Live Activity + widget controls | design | design/m1-live-activity.md | 2026-10-28 | draft (branch feature/m1-lockscreen-design) |
+| M1 Live Activity + widget controls | design | design/m1-live-activity.md | 2026-10-29 | fresh |
 | M1 weekly summary card | design | design/m1-weekly-summary.md | 2026-10-28 | fresh |
 | Voice, terms, surface rules | content | content/voice.md | 2026-10-28 | fresh |
 | Paywall + Settings copy rules | content | content/paywall-and-settings.md | 2026-10-28 | fresh |
