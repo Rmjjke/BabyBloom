@@ -1,6 +1,6 @@
 # M1 — Live Activity and widget controls (design note)
 
-status: final — card `m1-lockscreen-design`, 2026-10-28; § 0 confirmed by the Dev Lead's § A5 answers 2026-10-29 (one correction: the bottle timer, D28); corrected after the design review of `live-activity-timers` 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); `widget-interactive` still to review
+status: final — card `m1-lockscreen-design`, 2026-10-28; § 2 "Saved looks done" + stack order from `m1-saved-state-distinct` (CHECK 2) 2026-10-29; § 0 confirmed by the Dev Lead's § A5 answers 2026-10-29 (one correction: the bottle timer, D28); corrected after the design review of `live-activity-timers` 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); `widget-interactive` still to review
 decisions: D5 (auto start, Settings switch), D6/D10 (free), D14 (WCAG 2.2 AA), D16 (widget control starts a feeding timer), D28 (formula/pumped feeds run as a timer → bottle state); plan v2 review round: BBOnPrimary, Lock Screen on BBSurface, design review before MERGE
 reference: `teamdocs/design/design-system.md` (P = principle, G = gap); review: `.team/desk/tasks/m1-design-review-live-activity/docs/review.md`
 triggers: a timer kind added; a Live Activity presentation or widget family added; a token in § 6 renamed; the stale/dismissal policy changed; a Dynamic Type cap changed
@@ -65,11 +65,31 @@ States:
 |---|---|---|---|---|
 | running | as above | live timer | Stop | `live_activity.started_fmt` |
 | stopping (intent in flight) | — | — | system pressed dim; label stays, no spinner | — |
-| ended (Stop tapped, in app or here) | glyph → `checkmark.circle.fill` BBPrimary | replaced by `live_activity.saved_fmt` "Saved · 14 min", `.title3` BBTextPrimary | none | started line stays |
+| ended (Stop tapped, in app or here) — **a quiet card, see "Saved looks done" below** | glyph → `checkmark.circle.fill` BBPrimary on a **neutral disc** `BBTextSecondary@0.12`; title in **BBTextSecondary** | replaced by `live_activity.saved_fmt` "Saved · 14 min", `.subheadline` rounded medium, BBTextSecondary — **no large text** | none | started line stays |
 | long (`context.isStale`, start + 8 h; covers the system cut-off) | as running | **no digits** (the activity may soon be ended by the system, and a number left behind would lie) | Stop stays: the intent still ends the timer and writes the store | `live_activity.continues_in_app` "The timer goes on in Bitty", up to 2 lines, `minimumScaleFactor(0.8)`, BBTextSecondary; started line under it |
 | two activities | the system stacks two banners, each as above | | | |
 
-Dismissal after Stop: `.after(now + 15 min)` (built). Long enough to see "Saved" at a glance after settling the baby, short enough not to clutter the morning.
+**Saved looks done** (CHECK 2 blind pass, 2026-10-29: "at 3 a.m. I can't tell at a glance whether it is still counting"). A running card and a saved card must differ in *weight*, not in a detail:
+
+```
+running                                              saved
+┌──────────────────────────────────────────┐        ┌──────────────────────────────────────────┐
+│ (♥)  Breastfeeding · left                │        │ (✓)  Breastfeeding · left                │  tinted disc, dark title   |  grey disc, grey title
+│ 14:32                     ┌───────────┐  │        │ Saved · 14 min                           │  34–40 pt ticking number   |  one quiet line, no number
+│ Started 03:12             │ ■  Stop   │  │        │ Started 03:12                            │  filled violet Stop        |  no button
+└──────────────────────────────────────────┘        └──────────────────────────────────────────┘
+```
+
+- Three cues, each enough on its own: **no big number**, **no filled button**, **no colour** (neutral disc, all text BBTextSecondary). The saved card is also about a third shorter.
+- Calm (P1): nothing red, no BBSuccess green, no opacity tricks. "Saved" stays readable: BBTextSecondary on BBSurface is 4.9 light / 6.1 dark (D14 text ≥ 4.5). The check glyph BBPrimary on the neutral disc is 4.8 / 5.1 (non-text ≥ 3).
+- The Island is unchanged: an ended activity already leaves it (§ 3).
+
+Dismissal after Stop: `.after(now + 15 min)` (built; owner-approved spec R2.4). Long enough to see "Saved" at a glance after settling the baby, short enough not to clutter the morning.
+
+**Order in the stack.** iOS stacks a Saved card above a running one when the Saved card is newer (CHECK 2 By design? 3). The fix is order, not a shorter life:
+- Set `relevanceScore` on every `ActivityContent`: running 100, ended 0. iOS shows the higher-relevance activity first on the Lock Screen and in the Island.
+- The 15 minutes stay.
+- Only if a hardware check still shows a Saved card above a running timer, the owner gets a proposal: end with `.immediate` when another Bitty timer is still running (15 min otherwise).
 
 ## 3. Dynamic Island (always on black — dark token values)
 
