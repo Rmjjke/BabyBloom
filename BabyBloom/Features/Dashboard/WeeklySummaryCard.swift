@@ -68,6 +68,9 @@ struct WeeklySummaryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .bbCard()
+        // A container, or the card's id would replace its buttons' own
+        // (`weekly.expand`, `weekly.hide`) in the accessibility tree.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("weekly.card")
     }
 
@@ -281,10 +284,16 @@ enum WeeklyFormat {
         let calendar = WeeklySummary.calendar
         let last = calendar.date(byAdding: .day, value: -1, to: week.end)!
         let sameMonth = calendar.component(.month, from: week.start) == calendar.component(.month, from: last)
-        let first = sameMonth
-            ? week.start.formatted(.dateTime.day().locale(locale))
-            : week.start.appDayMonth
-        return String(format: "weekly.range_fmt".l, first, last.appDayMonth)
+        guard sameMonth else {
+            return String(format: "weekly.range_fmt".l, week.start.appDayMonth, last.appDayMonth)
+        }
+        // The month is written once, on the side the language puts it:
+        // "Oct 19 – 25" in English, "19 – 25 окт." in Russian.
+        let dayOnly = { (date: Date) in date.formatted(.dateTime.day().locale(locale)) }
+        let monthFirst = !(last.appDayMonth.first?.isNumber ?? true)
+        return monthFirst
+            ? String(format: "weekly.range_fmt".l, week.start.appDayMonth, dayOnly(last))
+            : String(format: "weekly.range_fmt".l, dayOnly(week.start), last.appDayMonth)
     }
 
     static func perDay(_ value: Double) -> String {
