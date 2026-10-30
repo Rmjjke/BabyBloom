@@ -143,6 +143,15 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertNotNil(ungated.previousGain)
     }
 
+    /// Born on Thursday 22 Oct: Mon–Wed of last week were not lived (review m3).
+    func testDaysBeforeBirth() throws {
+        let born = try XCTUnwrap(WeeklySummary.make(now: now, input: input(
+            feeds: [date(2026, 10, 23)], birth: date(2026, 10, 22, 3))))
+        XCTAssertEqual(born.daysBeforeBirth, 3)
+        let older = try XCTUnwrap(WeeklySummary.make(now: now, input: input(feeds: [date(2026, 10, 23)])))
+        XCTAssertEqual(older.daysBeforeBirth, 0)
+    }
+
     /// A day with only a sleep on it is a day with entries.
     func testASleepOnlyDayCounts() throws {
         let summary = try XCTUnwrap(WeeklySummary.make(now: now, input: input(

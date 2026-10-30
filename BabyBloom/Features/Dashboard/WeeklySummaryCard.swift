@@ -24,6 +24,11 @@ struct WeeklySummaryCard: View {
     }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// The row glyphs and the chevron grow with the text (design review m1);
+    /// the indent under a row follows its glyph. The × stays fixed.
+    @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
+    @ScaledMetric(relativeTo: .footnote) private var chevron: CGFloat = 13
+    private var indent: CGFloat { glyph + 8 }
 
     /// The Monday as a calendar date, not an instant: an instant shifts with
     /// the time zone, and a hidden card would come back after a flight.
@@ -95,7 +100,7 @@ struct WeeklySummaryCard: View {
                     }
                     Spacer(minLength: 0)
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: chevron, weight: .semibold))
                         .foregroundStyle(BBTheme.Colors.primary)
                         .rotationEffect(.degrees(expanded ? 180 : 0))
                         .frame(width: 28, height: 28)
@@ -105,11 +110,17 @@ struct WeeklySummaryCard: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("weekly.title".l + ", " + WeeklyFormat.range(summary.week))
+            .accessibilityValue(expanded ? "weekly.a11y_expanded".l : "weekly.a11y_collapsed".l)
             .accessibilityHint(expanded ? "weekly.a11y_collapse".l : "weekly.a11y_expand".l)
             .accessibilityIdentifier("weekly.expand")
 
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) { hiddenWeek = weekKey }
+                // Reduce Motion: the card goes without a fade (review m2).
+                if reduceMotion {
+                    hiddenWeek = weekKey
+                } else {
+                    withAnimation(.easeInOut(duration: 0.2)) { hiddenWeek = weekKey }
+                }
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
@@ -175,7 +186,7 @@ struct WeeklySummaryCard: View {
                         .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)
-                .padding(.leading, 23)
+                .padding(.leading, indent)
                 .accessibilityIdentifier("weekly.add_weighing")
             }
         }
@@ -194,7 +205,7 @@ struct WeeklySummaryCard: View {
                                      : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: icon)
-                        .font(.system(size: 15))
+                        .font(.system(size: glyph))
                         .foregroundStyle(tint)
                         .accessibilityHidden(true)
                     layout {
@@ -223,7 +234,7 @@ struct WeeklySummaryCard: View {
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                     }
-                    .padding(.leading, 23)
+                    .padding(.leading, indent)
                     .transition(.opacity)
                 }
             }
@@ -233,7 +244,7 @@ struct WeeklySummaryCard: View {
     private func note(icon: String, text: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Image(systemName: icon)
-                .font(.system(size: 15))
+                .font(.system(size: glyph))
                 .foregroundStyle(BBTheme.Colors.growth)
                 .accessibilityHidden(true)
             BBTheme.Typography.callout(text)
@@ -251,6 +262,10 @@ struct WeeklySummaryCard: View {
                 .monospacedDigit()
         }
         .foregroundStyle(BBTheme.Colors.textSecondary)
+        // The arrow alone is not spoken; the direction has to be words (M1, AA).
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(format: (delta.up ? "weekly.a11y_delta_up_fmt" : "weekly.a11y_delta_down_fmt").l,
+                                   delta.text))
     }
 
     /// Seven bars, Monday first; a day without entries is a faint stub.
@@ -261,8 +276,11 @@ struct WeeklySummaryCard: View {
             ForEach(0..<7, id: \.self) { day in
                 VStack(spacing: 2) {
                     let has = summary.current.dayHasEntries[day] && values[day] > 0
+                    // A day before the birth is not a day "without entries":
+                    // no stub at all (review m3).
+                    let born = day >= summary.daysBeforeBirth
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(has ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(0.15))
+                        .fill(has ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(born ? 0.15 : 0))
                         .frame(width: 6, height: has ? max(4, 28 * values[day] / top) : 2)
                         .frame(height: 28, alignment: .bottom)
                     BBTheme.Typography.caption(letters[day])
@@ -302,9 +320,11 @@ enum WeeklyFormat {
 
     static func duration(_ seconds: TimeInterval) -> String {
         let minutes = Int((seconds / 60).rounded())
-        return minutes >= 60
-            ? String(format: "duration.h_min".l, minutes / 60, minutes % 60)
-            : String(format: "duration.min_only".l, minutes)
+        if minutes < 60 { return String(format: "duration.min_only".l, minutes) }
+        // "1h", not "1h 0min".
+        return minutes % 60 == 0
+            ? String(format: "duration.h_only".l, minutes / 60)
+            : String(format: "duration.h_min".l, minutes / 60, minutes % 60)
     }
 
     /// nil when there is nothing to compare or the shown values are equal.

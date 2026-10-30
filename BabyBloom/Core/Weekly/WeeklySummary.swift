@@ -85,6 +85,9 @@ struct WeeklySummary: Equatable, Sendable {
     let gain: Gain
     /// The week before's gain, for its "Week before" line; nil when it had none.
     let previousGain: Int?
+    /// Days of the week (from Monday) before the birth date: 0 for a whole
+    /// week, so the bars draw no "no entries" stub for days not lived.
+    let daysBeforeBirth: Int
 
     // MARK: Calendar
 
@@ -127,7 +130,10 @@ struct WeeklySummary: Equatable, Sendable {
             current: current,
             previous: previous.daysWithEntries > 0 ? previous : nil,
             gain: gain(for: week, input: input, now: now),
-            previousGain: previousGain(for: before, input: input)
+            previousGain: previousGain(for: before, input: input),
+            daysBeforeBirth: week.contains(input.birthDate)
+                ? week.dayIndex(of: input.birthDate) ?? 0
+                : (input.birthDate >= week.end ? 7 : 0)
         )
     }
 
