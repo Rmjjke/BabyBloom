@@ -36,4 +36,18 @@ extension Double {
         formatter.roundingMode = .down
         return formatter.string(from: self as NSNumber) ?? String(format: "%.0f", self)
     }
+
+    /// A measurement with a fixed number of fraction digits ("4,29" in ru),
+    /// using the app language's separator rather than the device's — plain
+    /// `String(format:)` always emits a period.
+    func appDecimal(_ digits: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = LocalizationManager.shared.language.locale
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = digits
+        formatter.maximumFractionDigits = digits
+        // Grouping would turn a (pathological) 1234.5 into "1 234,5" inside a tile.
+        formatter.usesGroupingSeparator = false
+        return formatter.string(from: self as NSNumber) ?? String(format: "%.\(digits)f", self)
+    }
 }

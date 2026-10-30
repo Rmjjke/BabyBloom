@@ -90,6 +90,9 @@ struct TimerLockScreenView: View {
                         .foregroundStyle(Color("BBPrimary"))
                 }
                 .frame(width: 32, height: 32)
+                // The title beside it already names the kind; the bare symbol
+                // would be read by its SF name ("Love").
+                .accessibilityHidden(true)
                 Text(state.title.key.l)
                     .font(.system(.headline, design: .rounded).weight(.semibold))
                     .foregroundStyle(Color(isSaved ? "BBTextSecondary" : "BBTextPrimary"))
@@ -161,6 +164,8 @@ struct TimerIslandCompactLeading: View {
         Image(systemName: title.glyph)
             .font(.body)
             .foregroundStyle(kind.tint)
+            // No text sits beside the glyph here, so it carries the kind's name.
+            .accessibilityLabel(title.key.l)
             .environment(\.colorScheme, .dark).dynamicTypeSize(...DynamicTypeSize.xLarge)
     }
 }
@@ -210,6 +215,10 @@ struct TimerIslandExpandedLeading: View {
                 .foregroundStyle(kind.tint)
         }
         .frame(width: 36, height: 36)
+        // Labelled even though the bottom region names the kind: it shows
+        // "continues in the app" instead once the activity is stale.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title.key.l)
         .environment(\.colorScheme, .dark).dynamicTypeSize(...DynamicTypeSize.xLarge)
     }
 }

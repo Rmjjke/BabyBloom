@@ -141,7 +141,7 @@ struct GrowthView: View {
                 // them, and their "—" already covers a missing figure.
                 BBStatCard(
                     title: "stat.weight",
-                    value: measurements.last.map { String(format: "%.2f", $0.weightKg) } ?? "—",
+                    value: measurements.last.map { $0.weightKg.appDecimal(2) } ?? "—",
                     unit: "unit.kg",
                     icon: "scalemass.fill",
                     color: BBTheme.Colors.growth,
@@ -149,7 +149,7 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.height",
-                    value: latest.flatMap { $0.heightCm.map { String(format: "%.1f", $0) } } ?? "—",
+                    value: latest.flatMap { $0.heightCm.map { $0.appDecimal(1) } } ?? "—",
                     unit: "unit.cm",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary,
@@ -157,7 +157,7 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.head",
-                    value: latest.flatMap { $0.headCircumferenceCm.map { String(format: "%.1f", $0) } } ?? "—",
+                    value: latest.flatMap { $0.headCircumferenceCm.map { $0.appDecimal(1) } } ?? "—",
                     unit: "unit.cm",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent,
@@ -599,7 +599,7 @@ struct WeightChartView: View {
 
     private func readout(_ weighing: WeightMeasurement) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(String(format: "%.2f \("unit.kg".l)", weighing.weightKg))
+            Text("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
                 .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .bold))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(caption(weighing))
@@ -654,7 +654,7 @@ struct WeightChartView: View {
                             .frame(width: isSelected ? 14 : 9, height: isSelected ? 14 : 9)
                     }
                     .accessibilityLabel(caption(weighing))
-                    .accessibilityValue(String(format: "%.2f \("unit.kg".l)", weighing.weightKg))
+                    .accessibilityValue("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
             }
         }
         .chartLegend(.hidden)
@@ -730,7 +730,7 @@ struct WeightChartView: View {
     }
 
     private static func axisWeight(_ kg: Double) -> String {
-        kg.rounded() == kg ? String(Int(kg)) : String(format: "%.1f", kg)
+        kg.rounded() == kg ? String(Int(kg)) : kg.appDecimal(1)
     }
 
     /// Day and month while the window is a few months wide; month alone past
@@ -786,7 +786,7 @@ struct GrowthEntryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: BBTheme.Spacing.md) {
                     if let w = entry.weightKg {
-                        Label(String(format: "%.2f \("unit.kg".l)", w), systemImage: "scalemass")
+                        Label("\(w.appDecimal(2)) \("unit.kg".l)", systemImage: "scalemass")
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     }
                     if let h = entry.heightCm {
@@ -842,7 +842,7 @@ struct AddGrowthSheet: View {
                         title: "form.weight_kg".l,
                         value: $weightKg,
                         range: 1.0...20.0, step: 0.1,
-                        display: String(format: "%.1f \("unit.kg".l)", weightKg),
+                        display: "\(weightKg.appDecimal(1)) \("unit.kg".l)",
                         color: BBTheme.Colors.growth,
                         minLabel: "1 \("unit.kg".l)",
                         maxLabel: "20 \("unit.kg".l)"
@@ -864,7 +864,7 @@ struct AddGrowthSheet: View {
                         isOn: $includeHead,
                         value: $headCm,
                         range: 25.0...55.0, step: 0.5,
-                        display: String(format: "%.1f \("unit.cm".l)", headCm),
+                        display: "\(headCm.appDecimal(1)) \("unit.cm".l)",
                         minLabel: "25 \("unit.cm".l)",
                         maxLabel: "55 \("unit.cm".l)",
                         color: BBTheme.Colors.accent

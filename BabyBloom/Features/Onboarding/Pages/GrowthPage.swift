@@ -44,6 +44,8 @@ struct GrowthPage: View {
                     VStack(spacing: BBTheme.Spacing.sm) {
                         BBTheme.Typography.title1("onboarding.growth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text("onboarding.growth_hint".l)
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)

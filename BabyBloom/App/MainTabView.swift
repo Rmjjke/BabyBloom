@@ -233,8 +233,15 @@ struct ProfileView: View {
             }
 
             Section("settings.notifications".l) {
-                Label("settings.reminders".l, systemImage: "bell.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Button {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Label("settings.reminders".l, systemImage: "bell.fill")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .accessibilityIdentifier("settings.reminders")
                 // No Live Activities on iPad: no switch rather than a dead one.
                 if UIDevice.current.userInterfaceIdiom != .pad {
                     Toggle(isOn: Binding(
@@ -279,8 +286,25 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
                 }
-                Label("settings.icloud".l, systemImage: "icloud.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                // Read-only status: the token is nil without an iCloud
+                // account, which is when sync silently does nothing.
+                let iCloudOn = FileManager.default.ubiquityIdentityToken != nil
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Label("settings.icloud".l, systemImage: "icloud.fill")
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                        Spacer()
+                        Text((iCloudOn ? "settings.icloud_on" : "settings.icloud_off").l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                    if !iCloudOn {
+                        Text("settings.icloud_off_hint".l)
+                            .font(.footnote)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("settings.icloud")
                 Toggle(isOn: Binding(get: { analyticsEnabled },
                                      set: { Analytics.shared.setEnabled($0) })) {
                     Label("settings.analytics".l, systemImage: "chart.bar.xaxis")
@@ -290,8 +314,11 @@ struct ProfileView: View {
             }
 
             Section("settings.app_section".l) {
-                Label("settings.about".l, systemImage: "info.circle.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                NavigationLink(destination: AboutView()) {
+                    Label("settings.about".l, systemImage: "info.circle.fill")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .accessibilityIdentifier("settings.about")
 
                 Button {
                     showPaywall = true

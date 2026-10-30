@@ -126,7 +126,7 @@ struct BabyProfileEditSheet: View {
                             isOn: $recordsBirthWeight,
                             value: $birthWeightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: String(format: "%.2f \("unit.kg".l)", birthWeightKg),
+                            display: "\(birthWeightKg.appDecimal(2)) \("unit.kg".l)",
                             minLabel: "0.5 \("unit.kg".l)",
                             maxLabel: "6 \("unit.kg".l)",
                             color: BBTheme.Colors.growth

@@ -143,7 +143,7 @@ struct SleepView: View {
                 )
                 BBStatCard(
                     title: "stat.total",
-                    value: String(format: "%.1f", totalSleepToday / 3600),
+                    value: (totalSleepToday / 3600).appDecimal(1),
                     unit: "unit.hours",
                     icon: "clock.fill",
                     color: BBTheme.Colors.primary
@@ -164,7 +164,7 @@ struct SleepView: View {
                     return dayEntries.reduce(0) { $0 + $1.duration } / 3600
                 },
                 color: BBTheme.Colors.sleep,
-                formatValue: { v in v == 0 ? "0" : String(format: "%.1f", v) }
+                formatValue: { v in v == 0 ? "0" : v.appDecimal(1) }
             )
         }
     }

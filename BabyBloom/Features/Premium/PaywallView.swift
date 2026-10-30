@@ -31,7 +31,7 @@ struct PaywallView: View {
     /// every translation of those two keys says.
     private let features: [(icon: String, key: String)] = [
         ("infinity",                  "onboarding.premium.f1"),
-        ("bell.badge.fill",           "onboarding.premium.f2"),
+        ("star.fill",                 "onboarding.premium.f2"),
         ("square.and.arrow.up.fill",  "onboarding.premium.f3"),
         ("chart.bar.fill",            "onboarding.premium.f5"),
     ]
@@ -132,6 +132,7 @@ struct PaywallView: View {
                 .frame(width: 44, height: 44)          // ≥44pt tap zone
                 .contentShape(Rectangle())
         }
+        .accessibilityLabel("button.close".l)
         .padding(.trailing, BBTheme.Spacing.sm)
         .padding(.top, BBTheme.Spacing.sm)
     }
@@ -173,22 +174,7 @@ struct PaywallView: View {
     private var featuresCard: some View {
         VStack(spacing: 0) {
             ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                HStack(spacing: BBTheme.Spacing.md) {
-                    Image(systemName: feat.icon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .frame(width: 34, height: 34)
-                        .background(BBTheme.Colors.primary.opacity(0.1))
-                        .cornerRadius(9)
-                    Text(feat.key.l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                    Spacer()
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(BBTheme.Colors.success)
-                }
-                .padding(.vertical, 10)
-                .padding(.horizontal, BBTheme.Spacing.md)
+                PremiumFeatureRow(icon: feat.icon, text: feat.key.l)
 
                 if i < features.count - 1 {
                     Divider().padding(.horizontal, BBTheme.Spacing.md)
@@ -198,5 +184,68 @@ struct PaywallView: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
+    }
+}
+
+// MARK: - Feature Row
+
+/// One row for both paywalls and the subscribed screen. At accessibility sizes
+/// the icon column leaves the line: a Text only breaks inside a word when the
+/// word alone is wider than its space, and beside a 34pt icon, a checkmark and
+/// the padding, a long Russian word («Неограниченная») was exactly that.
+struct PremiumFeatureRow: View {
+    let icon: String
+    let text: String
+
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var iconBadge: some View {
+        Image(systemName: icon)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(BBTheme.Colors.primary)
+            .frame(width: 34, height: 34)
+            .background(BBTheme.Colors.primary.opacity(0.1))
+            .cornerRadius(9)
+    }
+
+    private var check: some View {
+        Image(systemName: "checkmark.circle.fill")
+            .foregroundStyle(BBTheme.Colors.success)
+    }
+
+    private var label: some View {
+        Text(text)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    var body: some View {
+        Group {
+            if typeSize >= .accessibility1 {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    HStack {
+                        iconBadge
+                        Spacer()
+                        check
+                    }
+                    label
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    iconBadge
+                    label
+                    Spacer()
+                    check
+                }
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, BBTheme.Spacing.md)
+        // One VoiceOver stop with the feature's words only: the bare symbols
+        // would be read by their SF names (the Q-011 rule).
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
     }
 }
