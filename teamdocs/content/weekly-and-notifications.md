@@ -32,6 +32,11 @@ layout and states are `teamdocs/design/m1-weekly-summary.md`.
   come, not that something is missing.
 - Durations: `duration.h_min` ("1h 20min"), `duration.h_only` ("1h") when the
   minutes are 0, `duration.min_only` under an hour.
+- A number never wraps away from its unit: a no-break space (` ` in the
+  JSON) between them in `weekly.gain_fmt`, `velocity.per_week_fmt` and the
+  three `duration.*` forms above. The range keeps a no-break space before its
+  dash (`weekly.range_fmt`), so a wrapped range never starts a line with
+  "–". Found at AX2 by the Designer: «+210 / г/нед».
 
 ## VoiceOver
 
