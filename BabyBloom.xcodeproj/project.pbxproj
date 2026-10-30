@@ -87,6 +87,7 @@
 		728453337AF25648757458E8 /* BirthPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D64BF8EAF39E2FC0EF92F8 /* BirthPage.swift */; };
 		73818BC2EEFFB62EE552AA3E /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32ED719AD860A85B4498F539 /* SplashView.swift */; };
 		739F26F2A9FDE2385C250D1B /* GrowthPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7540A190C88F7AD53BB3E3E6 /* GrowthPage.swift */; };
+		756E50D0B3BC99E5ACEC621F /* DecimalFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */; };
 		75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */; };
 		7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */; };
 		7B2737EB596E0135A560C902 /* NamePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A856FE301431E425A94C4CA /* NamePage.swift */; };
@@ -142,6 +143,7 @@
 		CCFDCF15EB2BDBDAE9A6EC28 /* StopTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
 		CFD7D6C092C5A2D19A61BFA0 /* BirthDateChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */; };
+		D16F6BE2F8CBDBCEFDF62BF6 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7C0DAE06AAB2889EE57628B /* AboutView.swift */; };
 		D19291B34CC0E26AEED2E14A /* ReviewPromptServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B665791B4466A24EBFF32033 /* ReviewPromptServiceTests.swift */; };
 		D26E3D4EABFB774D391B8FAD /* DeepLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EEE5837A7AF30D30E54357 /* DeepLinkTests.swift */; };
 		D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */; };
@@ -235,6 +237,7 @@
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
 		0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActionsTests.swift; sourceTree = "<group>"; };
+		0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalFormatTests.swift; sourceTree = "<group>"; };
 		0F91A302286246B091A55923 /* GeneratingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingPage.swift; sourceTree = "<group>"; };
 		0F9E2C3CD98653088A5DBB9D /* GrowthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthView.swift; sourceTree = "<group>"; };
 		10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKitTest.framework; path = System/Library/Frameworks/StoreKitTest.framework; sourceTree = SDKROOT; };
@@ -336,6 +339,7 @@
 		B4832FE37F4C6031CD491FC1 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		B665791B4466A24EBFF32033 /* ReviewPromptServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptServiceTests.swift; sourceTree = "<group>"; };
 		B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingAdequacyTests.swift; sourceTree = "<group>"; };
+		B7C0DAE06AAB2889EE57628B /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		B86B2CFD78D4B411B68808C9 /* NutritionRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionRenderDump.swift; sourceTree = "<group>"; };
 		C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyBloomWidget.swift; sourceTree = "<group>"; };
 		C3BE4ACD90BCC77776DCB996 /* OnboardingGrowthPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGrowthPreview.swift; sourceTree = "<group>"; };
@@ -550,6 +554,7 @@
 				19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */,
 				32FFE47A731EC428AFBF9100 /* DashboardGrowthSummaryTests.swift */,
 				E20695F09E09928450CDCEC8 /* DateAppLocaleTests.swift */,
+				0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */,
 				00EEE5837A7AF30D30E54357 /* DeepLinkTests.swift */,
 				20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
@@ -644,6 +649,7 @@
 		6F154CC04CC1DF02F69C20FC /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				B7C0DAE06AAB2889EE57628B /* AboutView.swift */,
 				347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */,
 			);
 			path = Profile;
@@ -1108,6 +1114,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D16F6BE2F8CBDBCEFDF62BF6 /* AboutView.swift in Sources */,
 				949FFE0B196C5DD898EC866D /* AmplitudeAnalyticsBackend.swift in Sources */,
 				F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */,
 				1E34D33370F1AD7BFCB9693F /* AnalyticsBackend.swift in Sources */,
@@ -1220,6 +1227,7 @@
 				30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */,
 				1A344BC33279ABD22C6B9E90 /* DashboardGrowthSummaryTests.swift in Sources */,
 				19712AA4FA93D6A64A2671FA /* DateAppLocaleTests.swift in Sources */,
+				756E50D0B3BC99E5ACEC621F /* DecimalFormatTests.swift in Sources */,
 				D26E3D4EABFB774D391B8FAD /* DeepLinkTests.swift in Sources */,
 				7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
