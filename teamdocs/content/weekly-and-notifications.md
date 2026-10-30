@@ -16,27 +16,48 @@ layout and states are `teamdocs/design/m1-weekly-summary.md`.
 - Comparison is two plain numbers: the delta is an arrow and a number in a
   neutral colour, and `weekly.previous_fmt` gives the week before. No word
   grades the change.
-- Newborn window: no gain number at all, `weekly.gain_newborn` instead (D17;
-  DECISIONS 2026-09-05 — a −180 g in week one is normal and reads as a
-  verdict).
 - Gain is a rate (D27): the WeightVelocity pair whose later weighing falls
   in the week, so it is the same number Growth shows. `weekly.gain_fmt`
   carries the unit ("Weight gain: %@ g/week", the units of
   `velocity.per_week_fmt`); `%@` is the signed number, "+210". The "Week
   before" line under it passes `velocity.per_week_fmt` into
   `weekly.previous_fmt`, so both lines read in g/week.
+- Newborn window: no gain number at all, `weekly.gain_newborn` instead (D17;
+  DECISIONS 2026-09-05 — a −180 g in week one is normal and reads as a
+  verdict).
 - No weighing pair: `weekly.gain_needs_weighing` + the existing
   `growth.add_weighing` action (DECISIONS 2026-09-05, empty states name the
   missing thing and offer the action).
 - First week in the log: `weekly.first_week` — says when a comparison will
   come, not that something is missing.
+- Durations: `duration.h_min` ("1h 20min"), `duration.h_only` ("1h") when the
+  minutes are 0, `duration.min_only` under an hour.
+- A number never wraps away from its unit: a no-break space (` ` in the
+  JSON) between them in `weekly.gain_fmt`, `velocity.per_week_fmt` and the
+  three `duration.*` forms above. The range keeps a no-break space before its
+  dash (`weekly.range_fmt`), so a wrapped range never starts a line with
+  "–". Found at AX2 by the Designer: «+210 / г/нед».
+
+## VoiceOver
+
+- Each value row is one stop. The arrow is silent, so the direction is
+  spoken in words after the value: `weekly.a11y_delta_up_fmt` /
+  `weekly.a11y_delta_down_fmt` ("Feeds a day: 6.4, 0.6 more than the week
+  before"). `%@` is the unsigned delta as shown. "More / less" states the
+  fact; it never says better or worse. No delta, no phrase (equal values
+  show no arrow).
+- Header button: label = title + range; hint `weekly.a11y_expand` /
+  `weekly.a11y_collapse` (the action); value `weekly.a11y_expanded` /
+  `weekly.a11y_collapsed` (the state).
 
 ## The Monday notification
 
 `notification.weekly_title` / `_body`: "Last week in numbers" — feeds and
-sleep, Monday to Sunday, beside the week before. The text is fixed when the
-notification is scheduled, so it names what is waiting and never hints at how
-the week went. No "tap to…" — the notification is tappable anyway.
+sleep, Monday to Sunday, day by day. One body for every week: it says what
+the card holds and does not promise a comparison, so it stays true in the
+first week, when there is no week before (S2). The text is fixed when the
+notification is scheduled, so it names what is waiting and never hints at
+how the week went. No "tap to…" — the notification is tappable anyway.
 
 It has its own switch, `settings.notify_weekly` "Weekly summary", in
 Settings → Notifications (D26). Off stops the notification only; the card
@@ -58,3 +79,6 @@ stays.
   `notification.idle_body`, `onboarding.gen.title_named`).
 - 2026-10-29 — `weekly.gain_fmt` reads as a rate (D27);
   `settings.notify_weekly` added (D26).
+- 2026-10-30 — VoiceOver delta and header-state strings; the notification
+  body drops "beside the week before" (false in a first week);
+  `duration.h_only`.

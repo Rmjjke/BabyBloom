@@ -277,7 +277,7 @@ notification-tap-handling).
 | `notification.monthly_growth_title` | Ежемесячный контроль 📊 | Monthly check-up 📊 |
 | `notification.monthly_growth_body` | Пора записать новые измерения… | Time to record new measurements… |
 | `notification.weekly_title` | Прошлая неделя в цифрах 📋 | Last week in numbers 📋 |
-| `notification.weekly_body` | Кормления и сон с понедельника по воскресенье — рядом с неделей до этого. | Feeds and sleep from Monday to Sunday, beside the week before. |
+| `notification.weekly_body` | Кормления и сон с понедельника по воскресенье, по дням. | Feeds and sleep from Monday to Sunday, day by day. |
 | `notification.idle_title` | Всё в порядке? 👀 | Everything ok? 👀 |
 | `notification.idle_body` | %@ — уже 2 дня без новых записей… | You haven't logged anything in 2 days… %@ |
 
