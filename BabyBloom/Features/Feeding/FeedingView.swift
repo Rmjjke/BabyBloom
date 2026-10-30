@@ -479,19 +479,8 @@ struct AddFeedingSheet: View {
                 .padding(.bottom, BBTheme.Spacing.xs)
                 .background(BBTheme.Colors.background)
             }
-            .navigationTitle("sheet.new_feeding".l)
-            .navigationBarTitleDisplayMode(.inline)
+            .bbSheetTitle("sheet.new_feeding".l)
             .toolbar {
-                // The system inline title truncates «Новое кормление» between the
-                // two text buttons; a principal item may shrink or wrap instead.
-                ToolbarItem(placement: .principal) {
-                    Text("sheet.new_feeding".l)
-                        .font(.headline)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-                        .multilineTextAlignment(.center)
-                        .accessibilityAddTraits(.isHeader)
-                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }
                         .foregroundStyle(BBTheme.Colors.textSecondary)

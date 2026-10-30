@@ -327,7 +327,7 @@
   "baby.feeding.formula": "Fórmula",
   "baby.feeding.mixed": "Mixta",
   "baby.default_name": "Bebé",
-  "growth.head_fmt": "Cabeza: %.1f cm",
+  "growth.head_fmt": "Cabeza: %@ cm",
   "premium.plan.monthly": "Mensual",
   "premium.plan.yearly": "Anual",
   "premium.plan.best_value": "Mejor precio",

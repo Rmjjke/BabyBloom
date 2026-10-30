@@ -286,25 +286,7 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
                 }
-                // Read-only status: the token is nil without an iCloud
-                // account, which is when sync silently does nothing.
-                let iCloudOn = FileManager.default.ubiquityIdentityToken != nil
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Label("settings.icloud".l, systemImage: "icloud.fill")
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                        Spacer()
-                        Text((iCloudOn ? "settings.icloud_on" : "settings.icloud_off").l)
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                    }
-                    if !iCloudOn {
-                        Text("settings.icloud_off_hint".l)
-                            .font(.footnote)
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                    }
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("settings.icloud")
+                ICloudStatusRow()
                 Toggle(isOn: Binding(get: { analyticsEnabled },
                                      set: { Analytics.shared.setEnabled($0) })) {
                     Label("settings.analytics".l, systemImage: "chart.bar.xaxis")

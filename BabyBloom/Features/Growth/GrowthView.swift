@@ -797,7 +797,7 @@ struct GrowthEntryRow: View {
                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
                 if let head = entry.headCircumferenceCm {
-                    Label(String(format: "growth.head_fmt".l, head), systemImage: "circle.dotted")
+                    Label(String(format: "growth.head_fmt".l, head.appDecimal(1)), systemImage: "circle.dotted")
                         .font(.system(size: 12, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
@@ -884,8 +884,7 @@ struct AddGrowthSheet: View {
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("sheet.new_measurement".l)
-            .navigationBarTitleDisplayMode(.inline)
+            .bbSheetTitle("sheet.new_measurement".l)
             // A selection outside the picker's range renders as an empty field
             // and cannot be corrected by tapping it, so the seed is clamped
             // before it is ever shown rather than trusted to be in range.

@@ -1,4 +1,45 @@
 import SwiftUI
+import CloudKit
+
+/// Settings' read-only iCloud Sync line (Q-003, D21). Asks CloudKit itself:
+/// the store syncs through CloudKit only, and the ubiquity token can be nil
+/// for a signed-in account with iCloud Drive off, which would read as "Off"
+/// while sync works.
+struct ICloudStatusRow: View {
+    /// nil until CloudKit answers: no value rather than a guessed one.
+    @State private var isOn: Bool?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Label("settings.icloud".l, systemImage: "icloud.fill")
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Spacer()
+                if let isOn {
+                    Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+            }
+            if isOn == false {
+                Text("settings.icloud_off_hint".l)
+                    .font(.footnote)
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("settings.icloud")
+        .task { await refresh() }
+        // Signing in from the Settings app and coming back updates the line.
+        .onReceive(NotificationCenter.default.publisher(for: .CKAccountChanged)) { _ in
+            Task { await refresh() }
+        }
+    }
+
+    private func refresh() async {
+        let status = try? await CKContainer(identifier: "iCloud.com.nenita.app").accountStatus()
+        isOn = status == .available
+    }
+}
 
 /// The legal pages, shared by the paywall footer and the About screen: the
 /// store listing, the paywall and this screen must point at the same documents.

@@ -527,7 +527,7 @@ struct NewbornProgressCard: View {
 
                 // A day-0 weighing is by design never a regain, so "not reached
                 // yet" would sit next to a tautological 100%.
-                if status.hasRegained || status.dayOfLife != 0 {
+                if status.showsRegainLine {
                     Text(status.hasRegained ? "newborn.regained".l : "newborn.not_regained".l)
                         .font(.system(size: 13, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)

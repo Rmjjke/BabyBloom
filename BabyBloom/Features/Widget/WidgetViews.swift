@@ -311,6 +311,9 @@ struct BabyBloomMediumWidgetView: View {
                 HStack(alignment: .top, spacing: 20) {
                     link(.feeding) {
                         VStack(alignment: .leading, spacing: 4) {
+                            // No prediction while a feed runs, as on the small
+                            // widget: the capsule carries the running minutes.
+                            if entry.runningFeedStart == nil {
                             if let headline = WidgetCopy.headline(for: entry) {
                                 Text(headline)
                                     .font(.system(size: 12, weight: .medium, design: .rounded))
@@ -325,6 +328,7 @@ struct BabyBloomMediumWidgetView: View {
                                 .minimumScaleFactor(0.5)
                             if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
                                 overdueLine(due)
+                            }
                             }
                             Spacer(minLength: 0)
                             Text(entry.babyName)

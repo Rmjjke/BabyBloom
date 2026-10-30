@@ -30,4 +30,11 @@ final class DecimalFormatTests: XCTestCase {
         XCTAssertEqual(4.29.appDecimal(2), "4.29")
         XCTAssertEqual(52.0.appDecimal(1), "52.0")
     }
+
+    /// es is pinned to es_419, whose separator is a period — decided
+    /// (m1-bugfix-batch-1), not an oversight: one rule with `appRate`.
+    func testSpanishFollowsEs419Period() {
+        LocalizationManager.shared.setLanguage("es")
+        XCTAssertEqual(4.29.appDecimal(2), "4.29")
+    }
 }

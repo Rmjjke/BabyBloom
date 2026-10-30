@@ -133,4 +133,19 @@ final class NewbornWeightLossTests: XCTestCase {
         XCTAssertEqual(status.dayOfLife, 3, "day of life, not corrected age")
         XCTAssertEqual(status.flags, [.lossExceeds10Percent])
     }
+
+    // MARK: - The regain line (Q-002)
+
+    /// "Not reached yet" never sits beside a share that reads 100%: the birth
+    /// weighing still being the latest on day 5, or 99.7% rounding up.
+    func testNoNotReachedLineBesideOneHundredPercent() throws {
+        let birthOnly = try XCTUnwrap(analyse([at(0, 3.5)], onDay: 5))
+        XCTAssertFalse(birthOnly.showsRegainLine)
+        let roundsUp = try XCTUnwrap(analyse([at(0, 3.5), at(3, 3.49)], onDay: 3))
+        XCTAssertFalse(roundsUp.showsRegainLine)
+        let dip = try XCTUnwrap(analyse([at(0, 3.5), at(3, 3.3)], onDay: 3))
+        XCTAssertTrue(dip.showsRegainLine, "a real dip keeps \"not reached yet\"")
+        let back = try XCTUnwrap(analyse([at(0, 3.5), at(3, 3.3), at(9, 3.55)], onDay: 9))
+        XCTAssertTrue(back.showsRegainLine, "\"regained\" stays")
+    }
 }
