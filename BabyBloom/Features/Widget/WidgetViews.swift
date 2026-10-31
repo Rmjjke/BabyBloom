@@ -90,7 +90,7 @@ enum WidgetCopy {
     static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
         let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
         if total < 60 { return String(format: "duration.min_only".l, total) }
-        // "1 ч", not "1 ч 0 мин" — the weekly card's rule.
+        // Whole hours drop the minutes: "1 ч", never "1 ч 0 мин".
         return total % 60 == 0
             ? String(format: "duration.h_only".l, total / 60)
             : String(format: "duration.h_min".l, total / 60, total % 60)
@@ -322,21 +322,21 @@ struct BabyBloomMediumWidgetView: View {
                             // No prediction while a feed runs, as on the small
                             // widget: the capsule carries the running minutes.
                             if entry.runningFeedStart == nil {
-                            if let headline = WidgetCopy.headline(for: entry) {
-                                Text(headline)
-                                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.75))
-                            }
-                            // See the small widget: the due state is carried by
-                            // the wording, not by a tint that fails contrast.
-                            WidgetCopy.hero(for: entry)
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.5)
-                            if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
-                                overdueLine(due)
-                            }
+                                if let headline = WidgetCopy.headline(for: entry) {
+                                    Text(headline)
+                                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                                        .foregroundStyle(.white.opacity(0.75))
+                                }
+                                // See the small widget: the due state is carried by
+                                // the wording, not by a tint that fails contrast.
+                                WidgetCopy.hero(for: entry)
+                                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
+                                if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
+                                    overdueLine(due)
+                                }
                             } else {
                                 // The hero's place holds the state, never a
                                 // number: the capsule carries the minutes (§ 5).
@@ -344,7 +344,7 @@ struct BabyBloomMediumWidgetView: View {
                                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                                     .foregroundStyle(.white)
                                     .lineLimit(2)
-                                    .minimumScaleFactor(0.8)
+                                    .minimumScaleFactor(0.7)
                             }
                             Spacer(minLength: 0)
                             Text(entry.babyName)

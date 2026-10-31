@@ -131,7 +131,8 @@ final class WidgetRenderDump: XCTestCase {
         let keys = [
             "brand.name", "baby.default_name", "tab.feeding", "tab.sleep",
             "status.sleeping_now", "stats.min_ago", "stats.h_ago",
-            "duration.min_only", "duration.h_min",
+            "duration.min_only", "duration.h_min", "duration.h_only",
+            "status.feeding_going",
             "widget.today_count", "widget.feedings_count",
             "widget.description_small", "widget.name_medium",
             "widget.description_medium",
