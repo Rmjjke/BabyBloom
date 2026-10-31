@@ -127,9 +127,11 @@ final class WeightVelocityTests: XCTestCase {
     func testPastTwelveMonthsTheRateHasNoBand() throws {
         XCTAssertNil(WeightVelocity.expectedPerDay(correctedAgeDays: 366, isMale: true))
 
-        let old = Calendar.current.date(byAdding: .day, value: -400, to: Date())!
-        let a = WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: 380, to: old)!, weightKg: 10.0)
-        let b = WeightMeasurement(date: Calendar.current.date(byAdding: .day, value: 394, to: old)!, weightKg: 10.2)
+        // UTC days: with the local calendar this 14-day pair spans a DST change
+        // on some run dates (31 Oct 2026: 14 days + 1 h) and the rate drifts.
+        let old = Self.utc.date(byAdding: .day, value: -400, to: Date())!
+        let a = WeightMeasurement(date: Self.utc.date(byAdding: .day, value: 380, to: old)!, weightKg: 10.0)
+        let b = WeightMeasurement(date: Self.utc.date(byAdding: .day, value: 394, to: old)!, weightKg: 10.2)
         let r = try XCTUnwrap(WeightVelocity.measure(from: a, to: b, correctedBirthDate: old, isMale: true))
         XCTAssertNil(r.band)
         XCTAssertNil(r.expectedPerWeek)
