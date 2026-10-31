@@ -17,8 +17,7 @@ struct FeedingPage: View {
         VStack(spacing: 0) {
             backButton(action: onBack)
 
-            Spacer()
-
+            onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
                 onboardingHeroIcon("heart.fill", color: BBTheme.Colors.feeding)
 
@@ -26,9 +25,12 @@ struct FeedingPage: View {
                     BBTheme.Typography.title1("onboarding.feeding_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text("onboarding.feeding_hint".l)
                         .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 VStack(spacing: BBTheme.Spacing.md) {
@@ -68,9 +70,8 @@ struct FeedingPage: View {
                 }
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
-
-            Spacer()
-            Spacer()
+            .padding(.vertical, BBTheme.Spacing.md)
+            }
         }
     }
 }

@@ -233,8 +233,15 @@ struct ProfileView: View {
             }
 
             Section("settings.notifications".l) {
-                Label("settings.reminders".l, systemImage: "bell.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Button {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Label("settings.reminders".l, systemImage: "bell.fill")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .accessibilityIdentifier("settings.reminders")
                 // No Live Activities on iPad: no switch rather than a dead one.
                 if UIDevice.current.userInterfaceIdiom != .pad {
                     Toggle(isOn: Binding(
@@ -279,8 +286,7 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
                 }
-                Label("settings.icloud".l, systemImage: "icloud.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                ICloudStatusRow()
                 Toggle(isOn: Binding(get: { analyticsEnabled },
                                      set: { Analytics.shared.setEnabled($0) })) {
                     Label("settings.analytics".l, systemImage: "chart.bar.xaxis")
@@ -290,8 +296,11 @@ struct ProfileView: View {
             }
 
             Section("settings.app_section".l) {
-                Label("settings.about".l, systemImage: "info.circle.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                NavigationLink(destination: AboutView()) {
+                    Label("settings.about".l, systemImage: "info.circle.fill")
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .accessibilityIdentifier("settings.about")
 
                 Button {
                     showPaywall = true

@@ -38,7 +38,7 @@ struct PremiumPage: View {
     // is gone from both: the app has no second baby to give.
     private let features: [(icon: String, text: String)] = [
         ("infinity", "onboarding.premium.f1"),
-        ("bell.badge.fill", "onboarding.premium.f2"),
+        ("star.fill", "onboarding.premium.f2"),
         ("square.and.arrow.up.fill", "onboarding.premium.f3"),
         ("chart.bar.fill", "onboarding.premium.f5"),
     ]
@@ -146,22 +146,7 @@ struct PremiumPage: View {
                 // Features list
                 VStack(spacing: 0) {
                     ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                        HStack(spacing: BBTheme.Spacing.md) {
-                            Image(systemName: feat.icon)
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(BBTheme.Colors.primary)
-                                .frame(width: 36, height: 36)
-                                .background(BBTheme.Colors.primary.opacity(0.1))
-                                .cornerRadius(10)
-                            Text(feat.text.l)
-                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Spacer()
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(BBTheme.Colors.success)
-                        }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, BBTheme.Spacing.md)
+                        PremiumFeatureRow(icon: feat.icon, text: feat.text.l)
 
                         if i < features.count - 1 {
                             Divider().padding(.horizontal, BBTheme.Spacing.md)

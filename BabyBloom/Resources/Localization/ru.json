@@ -327,7 +327,7 @@
   "baby.feeding.formula": "Смесь",
   "baby.feeding.mixed": "Смешанное",
   "baby.default_name": "Малыш",
-  "growth.head_fmt": "Голова: %.1f см",
+  "growth.head_fmt": "Голова: %@ см",
   "premium.plan.monthly": "Месяц",
   "premium.plan.yearly": "Год",
   "premium.plan.best_value": "Лучший выбор",

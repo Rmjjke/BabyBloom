@@ -44,6 +44,8 @@ struct GrowthPage: View {
                     VStack(spacing: BBTheme.Spacing.sm) {
                         BBTheme.Typography.title1("onboarding.growth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text("onboarding.growth_hint".l)
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -57,9 +59,9 @@ struct GrowthPage: View {
                             title: "form.birth_weight_kg".l,
                             value: $weightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: String(format: "%.2f \("unit.kg".l)", weightKg),
+                            display: "\(weightKg.appDecimal(2)) \("unit.kg".l)",
                             color: BBTheme.Colors.growth,
-                            minLabel: "0.5 \("unit.kg".l)",
+                            minLabel: "\(0.5.appDecimal(1)) \("unit.kg".l)",
                             maxLabel: "6 \("unit.kg".l)"
                         )
 
@@ -67,7 +69,7 @@ struct GrowthPage: View {
                             title: "form.birth_height_cm".l,
                             value: $heightCm,
                             range: 30.0...60.0, step: 0.5,
-                            display: String(format: "%.1f \("unit.cm".l)", heightCm),
+                            display: "\(heightCm.appDecimal(1)) \("unit.cm".l)",
                             color: BBTheme.Colors.primary,
                             minLabel: "30 \("unit.cm".l)",
                             maxLabel: "60 \("unit.cm".l)"
@@ -79,7 +81,7 @@ struct GrowthPage: View {
                             isOn: $includeHead,
                             value: $headCm,
                             range: 25.0...55.0, step: 0.5,
-                            display: String(format: "%.1f \("unit.cm".l)", headCm),
+                            display: "\(headCm.appDecimal(1)) \("unit.cm".l)",
                             minLabel: "25 \("unit.cm".l)",
                             maxLabel: "55 \("unit.cm".l)",
                             color: BBTheme.Colors.accent

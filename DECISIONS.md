@@ -14,6 +14,23 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-10-30 — On-screen numbers go through the app language's locale; es keeps the es_419 period
+
+Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /
+`appRate` with `LocalizationManager.language.locale`, never `String(format:
+"%.Nf")`, which always prints a period. Format keys that carry a number take
+`%@` (e.g. `growth.head_fmt`). Russian shows "4,29"; Spanish shows "4.29",
+because es is pinned to es_419.
+
+**Why.** The owner called the ru dot a defect (QA Q-001). One rule for every
+number, following the region the app already pins: a comma only in
+measurements would put two separators on one screen, and moving es to Spain is
+a product change, not a bug fix (Manager decision, m1-bugfix-batch-1). Export
+columns stay `en_US_POSIX` (machine-readable); whether the PDF report follows
+the app language is open.
+
+---
+
 ## 2026-10-29 — Timers change only through TimerActions; the Live Activity is reconciled, never pushed
 
 Every timer start, stop, side change and delete goes through `TimerActions`, and

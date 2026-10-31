@@ -55,6 +55,19 @@ func onboardingHeroIcon(_ systemName: String, color: Color) -> some View {
         .background(color.opacity(0.22), in: Circle())
 }
 
+/// Vertically centred content that falls back to scrolling. Pages built on
+/// bare Spacers squeeze their texts at large type sizes and truncate the
+/// question; a scroll view lets the title take the height it needs.
+func onboardingCenteredScroll<Content: View>(@ViewBuilder _ content: @escaping () -> Content) -> some View {
+    GeometryReader { geo in
+        ScrollView(showsIndicators: false) {
+            content()
+                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+    }
+}
+
 func backButton(action: @escaping () -> Void) -> some View {
     HStack {
         Button(action: action) {

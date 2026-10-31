@@ -49,6 +49,14 @@ enum NewbornWeightLoss {
         let flags: [Flag]
 
         var hasRegained: Bool { regainedOn != nil }
+
+        /// Whether "regained / not reached yet" belongs beside the shown share
+        /// (Q-002). Not when that share READS 100% without a regain: the birth
+        /// weighing itself (day 0, or still the latest on day 5) and a 99.7%
+        /// that rounds up would put "not reached yet" beside "100%".
+        var showsRegainLine: Bool {
+            hasRegained || Int((percentOfBirthWeight ?? 0).rounded()) < 100
+        }
     }
 
     /// Whether this module — rather than a growth reference — is the instrument

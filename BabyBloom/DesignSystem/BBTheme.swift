@@ -311,4 +311,24 @@ extension View {
     func bbShadow(_ config: BBTheme.ShadowConfig) -> some View {
         shadow(color: config.color, radius: config.radius, x: config.x, y: config.y)
     }
+
+    /// An entry sheet's inline title between Cancel and Save. The system title
+    /// truncates («Новое кормл…», Q-010); this one may shrink or wrap instead.
+    /// Capped at `.large`: the bar does not grow, so a scaled two-line title
+    /// would be clipped at accessibility sizes.
+    func bbSheetTitle(_ title: String) -> some View {
+        navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.headline)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                        .multilineTextAlignment(.center)
+                        .dynamicTypeSize(...DynamicTypeSize.large)
+                        .accessibilityAddTraits(.isHeader)
+                }
+            }
+    }
 }
