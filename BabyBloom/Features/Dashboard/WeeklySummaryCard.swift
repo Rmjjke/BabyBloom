@@ -28,6 +28,8 @@ struct WeeklySummaryCard: View {
     /// the indent under a row follows its glyph. The × stays fixed.
     @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
     @ScaledMetric(relativeTo: .footnote) private var chevron: CGFloat = 13
+    /// The delta arrow grows with its caption (Designer's AX2 look after #85).
+    @ScaledMetric(relativeTo: .caption) private var arrow: CGFloat = 10
     private var indent: CGFloat { glyph + 8 }
 
     /// The Monday as a calendar date, not an instant: an instant shifts with
@@ -257,7 +259,7 @@ struct WeeklySummaryCard: View {
     private func deltaView(_ delta: (up: Bool, text: String)) -> some View {
         HStack(spacing: 2) {
             Image(systemName: delta.up ? "arrow.up" : "arrow.down")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: arrow, weight: .semibold))
             BBTheme.Typography.caption(delta.text)
                 .monospacedDigit()
         }
