@@ -313,9 +313,10 @@ extension View {
     }
 
     /// An entry sheet's inline title between Cancel and Save. The system title
-    /// truncates («Новое кормл…», Q-010); this one may shrink or wrap instead.
-    /// Capped at `.large`: the bar does not grow, so a scaled two-line title
-    /// would be clipped at accessibility sizes.
+    /// truncates («Новое кормл…», Q-010); this one shrinks instead.
+    /// Capped at `.large`, and one line: the bar never grows, and the principal
+    /// slot gave a second line no room — at AX2 the wider Cancel / Save left it
+    /// «Новое кормл…» again. Shrinking to 0.6 keeps the whole title.
     func bbSheetTitle(_ title: String) -> some View {
         navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
@@ -323,8 +324,8 @@ extension View {
                 ToolbarItem(placement: .principal) {
                     Text(title)
                         .font(.headline)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                         .multilineTextAlignment(.center)
                         .dynamicTypeSize(...DynamicTypeSize.large)
                         .accessibilityAddTraits(.isHeader)

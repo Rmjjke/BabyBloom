@@ -43,10 +43,13 @@ struct TimerElapsedText: View {
 struct TimerStopButton: View {
     let attributes: TimerActivityAttributes
 
+    private var word: String {
+        attributes.kind == .feeding ? "button.finish".l : "button.woke_up".l
+    }
+
     var body: some View {
         Button(intent: StopTimerIntent(entryID: attributes.entryID, kind: attributes.kind)) {
-            Label(attributes.kind == .feeding ? "button.finish".l : "button.woke_up".l,
-                  systemImage: attributes.kind == .feeding ? "stop.fill" : "sun.max.fill")
+            Label(word, systemImage: attributes.kind == .feeding ? "stop.fill" : "sun.max.fill")
                 .font(.system(.subheadline, design: .rounded).weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -57,6 +60,10 @@ struct TimerStopButton: View {
                 // Horizontal only: the label never truncates, but a vertical
                 // fixedSize asks the Island's region for more height than it has.
                 .fixedSize(horizontal: true, vertical: false)
+                // The word only: the host listed the stop / sun icon as a child
+                // too. Grouped on the label, so the Button keeps action and trait.
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(word)
         }
         .buttonStyle(.plain)
     }
@@ -90,15 +97,17 @@ struct TimerLockScreenView: View {
                         .foregroundStyle(Color("BBPrimary"))
                 }
                 .frame(width: 32, height: 32)
-                // The title beside it already names the kind; the bare symbol
-                // would be read by its SF name ("Love").
-                .accessibilityHidden(true)
                 Text(state.title.key.l)
                     .font(.system(.headline, design: .rounded).weight(.semibold))
                     .foregroundStyle(Color(isSaved ? "BBTextSecondary" : "BBTextPrimary"))
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
+            // Glyph and title as ONE element read as the title. The Lock Screen
+            // host ignores `.accessibilityHidden` on the glyph and read it by its
+            // SF name ("Love", "Selected"); the Island's group + label holds (Q-011).
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(state.title.key.l)
 
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {

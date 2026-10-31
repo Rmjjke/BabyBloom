@@ -771,6 +771,7 @@ struct WHOCorridorLegend: View {
 // MARK: - Growth Entry Row
 struct GrowthEntryRow: View {
     let entry: GrowthEntry
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         HStack(spacing: BBTheme.Spacing.md) {
@@ -784,14 +785,24 @@ struct GrowthEntryRow: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: BBTheme.Spacing.md) {
+                // Weight above height at accessibility sizes, and each value
+                // one unbreakable line: side by side, ru AX2 broke «4,0 / 0 кг»
+                // (Q-014; a number never splits from its unit).
+                let values = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.md))
+                values {
                     if let w = entry.weightKg {
-                        Label("\(w.appDecimal(2)) \("unit.kg".l)", systemImage: "scalemass")
+                        Label("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", systemImage: "scalemass")
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                     if let h = entry.heightCm {
-                        Label(String(format: "%.0f \("unit.cm".l)", h), systemImage: "ruler")
+                        Label(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), systemImage: "ruler")
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                 }
                 .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -818,6 +829,7 @@ struct GrowthEntryRow: View {
 
 // MARK: - Add Growth Sheet
 struct AddGrowthSheet: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
@@ -829,6 +841,25 @@ struct AddGrowthSheet: View {
     @State private var headCm: Double = 34.0
     @State private var includeHead: Bool = false
     @State private var date = Date()
+
+    /// The label above the picker at accessibility sizes: beside it, the
+    /// label broke "Mea- / sure- / ment Date" (Q-013).
+    @ViewBuilder private var measurementDatePicker: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                // The picker keeps its own label for VoiceOver.
+                Text("form.measurement_date".l)
+                    .accessibilityHidden(true)
+                DatePicker("form.measurement_date".l, selection: $date,
+                           in: dateRange, displayedComponents: .date)
+                    .labelsHidden()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            DatePicker("form.measurement_date".l, selection: $date,
+                       in: dateRange, displayedComponents: .date)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -842,7 +873,7 @@ struct AddGrowthSheet: View {
                         title: "form.weight_kg".l,
                         value: $weightKg,
                         range: 1.0...20.0, step: 0.1,
-                        display: "\(weightKg.appDecimal(1)) \("unit.kg".l)",
+                        display: "\(weightKg.appDecimal(1))\u{00A0}\("unit.kg".l)",
                         color: BBTheme.Colors.growth,
                         minLabel: "1 \("unit.kg".l)",
                         maxLabel: "20 \("unit.kg".l)"
@@ -852,7 +883,7 @@ struct AddGrowthSheet: View {
                         title: "form.height_cm".l,
                         value: $heightCm,
                         range: 30.0...130.0, step: 0.5,
-                        display: String(format: "%.0f \("unit.cm".l)", heightCm),
+                        display: String(format: "%.0f\u{00A0}\("unit.cm".l)", heightCm),
                         color: BBTheme.Colors.primary,
                         minLabel: "30 \("unit.cm".l)",
                         maxLabel: "130 \("unit.cm".l)"
@@ -864,14 +895,13 @@ struct AddGrowthSheet: View {
                         isOn: $includeHead,
                         value: $headCm,
                         range: 25.0...55.0, step: 0.5,
-                        display: "\(headCm.appDecimal(1)) \("unit.cm".l)",
+                        display: "\(headCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
                         minLabel: "25 \("unit.cm".l)",
                         maxLabel: "55 \("unit.cm".l)",
                         color: BBTheme.Colors.accent
                     )
 
-                    DatePicker("form.measurement_date".l, selection: $date,
-                               in: dateRange, displayedComponents: .date)
+                    measurementDatePicker
                         .datePickerStyle(.compact)
                         .tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md)
