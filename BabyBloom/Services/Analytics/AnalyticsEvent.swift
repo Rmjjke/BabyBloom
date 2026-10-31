@@ -91,6 +91,8 @@ enum AnalyticsEvent: Equatable, Sendable {
     case liveActivityStarted
     case liveActivityStoppedFromLockScreen
     case widgetFeedingLogged
+    /// The weekly card came on screen, once per calendar week per device (D11).
+    case weeklySummaryViewed
 
     /// Seconds since `shownAt`, never negative (a clock change must not send
     /// nonsense).
@@ -115,6 +117,7 @@ enum AnalyticsEvent: Equatable, Sendable {
         case liveActivityStarted    = "live_activity_started"
         case liveActivityStoppedFromLockScreen = "live_activity_stopped_from_lock_screen"
         case widgetFeedingLogged    = "widget_feeding_logged"
+        case weeklySummaryViewed    = "weekly_summary_viewed"
     }
 
     enum Key: String, CaseIterable, Sendable {
@@ -152,6 +155,7 @@ enum AnalyticsEvent: Equatable, Sendable {
         case .liveActivityStarted:    return .liveActivityStarted
         case .liveActivityStoppedFromLockScreen: return .liveActivityStoppedFromLockScreen
         case .widgetFeedingLogged:    return .widgetFeedingLogged
+        case .weeklySummaryViewed:    return .weeklySummaryViewed
         }
     }
 
@@ -182,7 +186,8 @@ enum AnalyticsEvent: Equatable, Sendable {
         case .historyLockShown(let surface):
             return [.surface: .token(surface)]
         case .widgetInstalled, .reviewPromptRequested,
-             .liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged:
+             .liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged,
+             .weeklySummaryViewed:
             return [:]
         }
     }

@@ -1,4 +1,5 @@
 import Foundation
+import os
 import UserNotifications
 
 // MARK: - Notification Manager
@@ -29,9 +30,10 @@ final class NotificationManager: @unchecked Sendable {
     private let kFirstFeeding    = "hasLoggedFirstFeeding"
     private let kFirstSleep      = "hasLoggedFirstSleep"
     private let kFirstGrowth     = "hasFirstGrowthEntry"
-    private let kWeeklyScheduled = "hasScheduledWeeklySummary"
     private let kBabyName        = "bb.storedBabyName"
     private let kLastGainSignal  = "bb.growth.lastGainSignalAt"
+
+    private static let log = Logger(subsystem: "com.nenita.app", category: "Notifications")
 
     // MARK: - Permission
 
@@ -42,7 +44,7 @@ final class NotificationManager: @unchecked Sendable {
     func requestPermission(completion: (@MainActor @Sendable (Bool) -> Void)? = nil) {
         UNUserNotificationCenter.current()
             .requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, _ in
-                if granted { self?.scheduleWeeklySummary() }
+                if granted { Task { @MainActor in self?.rescheduleWeeklySummary() } }
                 guard let completion else { return }
                 Task { @MainActor in completion(granted) }
             }
@@ -50,10 +52,20 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - App lifecycle
 
+    /// Backgrounding is the other half of the weekly plan: entries are only
+    /// made while the app runs, so this pass sees every one of them.
+    /// Synchronous: at `.background` the app may be suspended right after the
+    /// call, so the request goes out before this returns.
+    @MainActor
+    func onAppBackgrounded() {
+        rescheduleWeeklySummary()
+    }
+
     func onAppForegrounded() {
-        // Weekly summary is idempotent (fixed ID, cancel-before-add); (re)schedule it
-        // here so users who granted permission after launch still get it.
-        scheduleWeeklySummary()
+        // Weekly summary: re-planned from the store on every foreground, so a
+        // permission granted after launch, a week that got its first entry or
+        // the switch turned back on all take effect.
+        Task { @MainActor in self.rescheduleWeeklySummary() }
         guard UserDefaults.standard.bool(forKey: kFirstFeeding) ||
               UserDefaults.standard.bool(forKey: kFirstSleep) else { return }
         let name = storedBabyName
@@ -465,23 +477,73 @@ final class NotificationManager: @unchecked Sendable {
              in:    3 * 24 * 3600)
     }
 
-    private func scheduleWeeklySummary() {
-        // Idempotent: fixed ID, cancel-before-add. Safe to call repeatedly
-        // (e.g. from onAppForegrounded) so a late-granted permission still gets it.
-        UserDefaults.standard.set(true, forKey: kWeeklyScheduled)
+    /// The Monday notification (D9, D26, content Q7): ONE pending request under
+    /// the old id, so the Sunday 20:00 repeating request of earlier builds is
+    /// replaced on the first pass, never doubled. See `WeeklyNotificationPlan`.
+    @MainActor
+    func rescheduleWeeklySummary() {
         cancel(.engageWeekly)
+        let now = AppClock.now
+        let enabled = UserDefaults.standard.object(forKey: WeeklyNotificationPlan.enabledKey) as? Bool ?? true
         let content      = UNMutableNotificationContent()
         content.title    = "notification.weekly_title".l
         content.body     = "notification.weekly_body".l
         content.sound    = .default
-        var comps        = DateComponents()
-        comps.weekday    = 1   // Sunday
-        comps.hour       = 20
-        comps.minute     = 0
-        let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
-        let req = UNNotificationRequest(identifier: NID.engageWeekly.rawValue,
-                                        content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(req)
+
+        #if targetEnvironment(simulator)
+        // L3: `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
+        // the week holds, so its text can be looked at without waiting a week.
+        let fireIn = UserDefaults.standard.integer(forKey: "BBWeeklyNotifyIn")
+        if fireIn > 0 {
+            add(content, UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(fireIn), repeats: false))
+            Self.log.info("weekly summary: lever, fires in \(fireIn, privacy: .public) s")
+            return
+        }
+        #endif
+
+        guard let input = WeeklySummary.Input.load(in: SharedStore.container.mainContext, now: now),
+              let fire = WeeklyNotificationPlan.fireDate(now: now, enabled: enabled, hasEntries: {
+                  WeeklySummary.hasEntries(in: $0, input: input)
+              })
+        else {
+            Self.log.info("weekly summary: none pending (switch \(enabled, privacy: .public), or an empty week)")
+            logPendingIfAsked()
+            return
+        }
+        let parts = WeeklySummary.calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fire)
+        add(content, UNCalendarNotificationTrigger(dateMatching: parts, repeats: false))
+        Self.log.info("weekly summary: pending for \(fire.ISO8601Format(), privacy: .public)")
+    }
+
+    /// The pending list is logged only once the add has landed: read straight
+    /// after it, the first launch could list nothing for the weekly id.
+    @MainActor
+    private func add(_ content: UNNotificationContent, _ trigger: UNNotificationTrigger) {
+        let request = UNNotificationRequest(identifier: NID.engageWeekly.rawValue, content: content, trigger: trigger)
+        Task { @MainActor in
+            try? await UNUserNotificationCenter.current().add(request)
+            self.logPendingIfAsked()
+        }
+    }
+
+    /// L3's clock lever for QA's reminder rows: `-BBLogPendingNotifications
+    /// true` logs every pending request and when it will fire, so a delivery
+    /// time is read rather than waited for.
+    @MainActor
+    private func logPendingIfAsked() {
+        #if targetEnvironment(simulator)
+        guard UserDefaults.standard.bool(forKey: "BBLogPendingNotifications") else { return }
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            for request in requests {
+                let next: Date? = switch request.trigger {
+                case let calendar as UNCalendarNotificationTrigger: calendar.nextTriggerDate()
+                case let interval as UNTimeIntervalNotificationTrigger: interval.nextTriggerDate()
+                default: nil
+                }
+                Self.log.info("pending \(request.identifier, privacy: .public) at \(next?.ISO8601Format() ?? "-", privacy: .public)")
+            }
+        }
+        #endif
     }
 
     // MARK: - Private: Baby name storage

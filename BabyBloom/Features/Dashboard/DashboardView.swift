@@ -12,6 +12,8 @@ struct DashboardView: View {
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var sleeps: [SleepEntry]
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
+    /// Only for the weekly card's "days with entries": an event day counts.
+    @Query private var events: [CustomEvent]
 
     @State private var showQuickFeedingSheet = false
     @State private var showQuickSleepSheet = false
@@ -50,6 +52,15 @@ struct DashboardView: View {
         todaySleeps.filter { !$0.isActive }.reduce(0) { $0 + $1.duration / 3600 }
     }
 
+    /// Free for everyone (D10). `AppClock` so the L3 lever can stand on any week.
+    private var weeklySummary: WeeklySummary? {
+        guard let baby else { return nil }
+        return WeeklySummary.make(
+            now: AppClock.now,
+            input: WeeklySummary.Input(baby: baby, feeds: feedings, sleeps: sleeps, diapers: diapers,
+                                       growth: growthEntries, events: events))
+    }
+
     private var activeFeeding: FeedingEntry? {
         feedings.first(where: { $0.isActive })
     }
@@ -65,6 +76,12 @@ struct DashboardView: View {
                     headerSection
                     if activeFeeding != nil || activeSleep != nil {
                         activeTimersSection
+                    }
+                    // Under the timers: a running timer outranks last week at
+                    // 3 a.m. (design note § 1). nil = nothing logged last week.
+                    if let weeklySummary {
+                        WeeklySummaryCard(summary: weeklySummary,
+                                          onAddWeighing: { showQuickGrowthSheet = true })
                     }
                     quickActionsSection
                     statsSection

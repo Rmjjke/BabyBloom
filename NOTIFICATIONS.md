@@ -21,9 +21,15 @@
 | `bb.sleep.active` | Активный таймер сна ещё идёт | interval, one-shot | **да** |
 | `bb.diaper.reminder` | Напоминание о подгузнике | interval, one-shot | нет |
 | `bb.engage.measurements` | Разовый промпт «добавь измерения» | interval (3 дня), one-shot | нет |
-| `bb.engage.monthly_growth` | Ежемесячное измерение роста | calendar, повтор | нет |
-| `bb.engage.weekly_summary` | Итоги недели | calendar, повтор | нет |
+| `bb.engage.weekly_summary` | Итоги прошлой недели (понедельник 10:00) | calendar, one-shot, перепланируется (§8) | нет |
 | `bb.engage.idle` | Нет записей 2 дня | interval (48 ч), one-shot | нет |
+| `bb.growth.weigh_in` | Пора взвесить (интервал по возрасту, от последнего взвешивания) | interval, one-shot | нет |
+| `bb.growth.newborn_flag` | Сигнал первых недель (потеря веса / не вернулся к весу при рождении) | interval, one-shot | нет |
+| `bb.growth.gain_low` | Прибавка ниже нормы (Premium, не чаще раза в неделю) | interval, one-shot | нет |
+
+`bb.engage.monthly_growth` больше не планируется: его заменил `bb.growth.weigh_in`, а
+`scheduleWeighInReminder` отменяет старый ID, чтобы он перестал приходить у тех, у кого
+он ещё стоит в очереди. ID остаётся в `enum NID` только ради этой отмены.
 
 Каждый ID планируется через `cancel(_:)` перед `post(...)` (или `add`), поэтому в очереди
 всегда не более одного экземпляра каждого ID — повторное планирование заменяет предыдущее.
@@ -135,8 +141,15 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 Сохраняет имя и перепланирует `bb.diaper.reminder` через `diaperInterval` (§2.3).
 
 ### Первое измерение роста — `onFirstGrowthEntrySaved()`
-Отменяет `bb.engage.measurements`, ставит `hasFirstGrowthEntry`, планирует
-повторяющееся `bb.engage.monthly_growth`.
+Отменяет `bb.engage.measurements` и ставит `hasFirstGrowthEntry`. Напоминание о
+взвешивании планирует `onGrowthDataChanged(...)`: оно знает возраст и дату последнего
+взвешивания.
+
+### Данные роста изменились — `onGrowthDataChanged(...)`
+Пересчитывает все уведомления роста по текущим данным: `bb.growth.weigh_in` (интервал по
+возрасту от последнего взвешивания; заодно отменяет старый `bb.engage.monthly_growth`),
+`bb.growth.newborn_flag` (бесплатный сигнал первых недель) и `bb.growth.gain_low`
+(только Premium, не чаще раза в неделю).
 
 ---
 
@@ -155,39 +168,34 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 
 ## 6. Отмена при удалении записей (delete-cancellation)
 
-Публичный API для вызова из view при удалении записи:
+Публичный API, который вызывают пути удаления (`TimerActions.delete` для кормлений и снов,
+`DiaperView` и `RecentActivityView` для подгузников):
 
 | Метод | Поведение |
 |---|---|
-| `onFeedingDeleted(remainingActive:)` | Всегда отменяет `bb.feeding.reminder`; `bb.feeding.active.bf` отменяется только если активной сессии ГВ не осталось (`remainingActive == false`). |
-| `onSleepDeleted(remainingActive:)` | При `remainingActive == false` отменяет `bb.sleep.active` и `bb.sleep.wake_window`. |
-| `onDiaperDeleted()` | Отменяет `bb.diaper.reminder`. |
-
-Точки вызова: пути удаления во `FeedingView` / `SleepView` / `DiaperView`.
-
-> **Статус интеграции.** Сам вызов delete-cancellation API из view и передача
-> `recentFeedingTimes` в `onFeedingSaved(...)` выполняются в параллельном workstream (задача C3).
-> Провязка на стороне view появится с мержем C-линии; в NotificationManager API уже готов.
+| `onFeedingDeleted(ageMonths:remainingActive:remainingFeedingTimes:)` | Всегда отменяет `bb.feeding.reminder`; `bb.feeding.active.bf` — только если активной сессии ГВ не осталось. Затем перепривязывает `bb.feeding.reminder` к последнему оставшемуся кормлению. |
+| `onSleepDeleted(ageMonths:remainingActive:lastRemainingSleepEnd:)` | Пока идёт активный сон — ничего. Иначе отменяет `bb.sleep.active` и `bb.sleep.wake_window` и перепривязывает окно бодрствования к концу последнего оставшегося сна. |
+| `onDiaperDeleted(ageMonths:babyName:lastRemainingDiaperTime:)` | Отменяет `bb.diaper.reminder` и перепривязывает его к последнему оставшемуся подгузнику. |
 
 ---
 
 ## 7. Запрос разрешения
 
 `requestPermission(completion:)` запрашивает `[.alert, .sound, .badge]`. При выдаче
-разрешения сразу планирует `bb.engage.weekly_summary`. Необязательный `completion`
-получает ответ пользователя **на главном акторе** — он нужен странице онбординга,
+разрешения сразу планирует итоги недели (`rescheduleWeeklySummary()`, §8). Необязательный
+`completion` получает ответ пользователя **на главном акторе** — он нужен странице онбординга,
 которая идёт дальше при любом ответе.
 
 | Когда | Место в коде |
 |---|---|
-| На странице «Уведомления» в онбординге (стр. 7 из 10, перед Generating) — по тапу на CTA | `NotificationsPage.swift` → `NotificationManager.shared.requestPermission { _ in onContinue() }` |
+| На странице «Уведомления» в онбординге (8-я из 11, перед «Виджеты» и Generating) — по тапу на CTA | `NotificationsPage.swift` → `NotificationManager.shared.requestPermission { _ in onContinue() }` |
 
 Это единственная точка вызова во всём приложении. Раньше запрос уходил из
 `BabyBloomApp.swift` по завершении онбординга, и системный диалог появлялся
 поверх дашборда; этот вызов удалён.
 
-`onAppForegrounded()` вызывается при переходе сцены в active (`scenePhase`, `BabyBloomApp.swift`)
-и делает две вещи (см. §8).
+`onAppForegrounded()` вызывается при переходе сцены в active, `onAppBackgrounded()` — при
+переходе в background (`scenePhase`, `BabyBloomApp.swift`); см. §8.
 
 ---
 
@@ -196,14 +204,35 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 | ID | Расписание | Когда планируется | Разовое/повтор |
 |---|---|---|---|
 | `bb.engage.measurements` | через 3 дня | при первом кормлении, если `hasFirstGrowthEntry == false` | разовое |
-| `bb.engage.monthly_growth` | 1-е число, 10:00, повтор (`UNCalendarNotificationTrigger`) | при `onFirstGrowthEntrySaved()` | повтор |
-| `bb.engage.weekly_summary` | воскресенье (`weekday = 1`), 20:00, повтор | при выдаче разрешения и при `onAppForegrounded()` | повтор, идемпотентно |
+| `bb.engage.weekly_summary` | ближайший понедельник, 10:00 (`UNCalendarNotificationTrigger`, `repeats: false`) | при выдаче разрешения, при каждом `onAppForegrounded()` и `onAppBackgrounded()`, при переключении «Недельная сводка» в Настройках | разовое, перепланируется |
 | `bb.engage.idle` | через 48 ч | при `onAppForegrounded()`, если стоит `hasLoggedFirstFeeding` **или** `hasLoggedFirstSleep` | разовое |
 
+**Итоги недели (M1 #15, решения D9, D26, Content Q7).** `rescheduleWeeklySummary()`:
+1. отменяет `bb.engage.weekly_summary` — так при первом запуске новой версии заменяется
+   старый повторяющийся запрос «воскресенье 20:00», а не дублируется;
+2. берёт время из `AppClock.now`, решение — из `WeeklyNotificationPlan.fireDate`:
+   ближайший понедельник 10:00 (днём, вне тихих часов 22:00–07:00, D9) — но только если в
+   неделе, которая заканчивается к этому понедельнику, есть записи, и только если включён
+   переключатель «Недельная сводка» (`notify.weeklySummary`, по умолчанию вкл., D26);
+3. иначе ничего не ставит.
+
+Почему разовый, а не повторяющийся: повторяющийся триггер не умеет пропустить пустую неделю.
+Записи создаются в процессе приложения: на экране (их видит проход при уходе в фон) или
+интентами Live Activity и виджета (`StartFeedingIntent`, `StopTimerIntent`), которые сами
+перепланируют уведомление после записи — смены scenePhase там нет. Запись, синхронизированная
+из CloudKit с другого устройства, планирует уведомление на том устройстве; на этом —
+при следующем открытии или уходе в фон. Нажатие открывает приложение на Дашборде, карточка недели
+свёрнута (делегата `UNUserNotificationCenter` в приложении нет; бэклог
+notification-tap-handling).
+
+Рычаги L3 (только симулятор):
+- `-BBNow <ISO 8601>` фиксирует `AppClock.now` для карточки, уведомления и недельных сидов;
+- `-BBWeeklyNotifyIn <сек>` ставит уведомление через N секунд, независимо от недели;
+- `-BBLogPendingNotifications true` при каждом возврате в приложение пишет в лог
+  (category `Notifications`) все ожидающие запросы с временем срабатывания; каждое
+  перепланирование итогов недели тоже пишет строку в лог.
+
 Детали:
-- **`scheduleWeeklySummary()` идемпотентно**: фиксированный ID + cancel-before-add, поэтому
-  безопасно вызывать многократно. Планируется в `onAppForegrounded()` — чтобы пользователи,
-  выдавшие разрешение уже после запуска, всё равно получали дайджест.
 - **`bb.engage.idle`** использует сохранённое имя ребёнка (`storedBabyName`, дефолт `"Baby"`)
   в теле уведомления (`String(format:...)`).
 - **`bb.engage.measurements`** и **`bb.engage.idle`** — форматируемые строки с именем ребёнка.
@@ -219,8 +248,11 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 | `hasLoggedFirstFeeding` | было ли хоть одно кормление (гейт первой активации) |
 | `hasLoggedFirstSleep` | был ли хоть один сон (гейт первой активации) |
 | `hasFirstGrowthEntry` | внесено ли первое измерение роста (гейт промпта измерений) |
-| `hasScheduledWeeklySummary` | флаг «weekly summary запланирован» (ставится в `scheduleWeeklySummary()`) |
 | `bb.storedBabyName` | сохранённое имя ребёнка для форматируемых текстов |
+| `bb.growth.lastGainSignalAt` | когда последний раз приходил `bb.growth.gain_low` (не чаще раза в неделю) |
+| `notify.weeklySummary` | переключатель «Недельная сводка» (D26), по умолчанию вкл. |
+
+Флаг `hasScheduledWeeklySummary` удалён: его никто не читал.
 
 ---
 
@@ -238,16 +270,20 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
 | `notification.sleep_body` | Малыш уже долго бодрствует… | Baby's been awake for a while… |
 | `notification.sleep_active_title` | Малыш ещё спит? | Still sleeping? |
 | `notification.sleep_active_body` | Не забудьте нажать «Проснулся»… | Don't forget to tap 'Woke Up'… |
-| `notification.diaper_title` | Проверь подгузник 🩲 | Diaper check 🩲 |
-| `notification.diaper_body` | Давно не было записей о подгузнике. Пора проверить %@? | No diaper logged in a while. Time to check on %@? |
-| `notification.measurements_title` | Отслеживай рост %@ 📏 | Track %@'s growth 📏 |
-| `notification.measurements_body` | Уже 3 дня ведёшь записи… | You've been logging for 3 days… |
+| `notification.diaper_title` | Проверьте подгузник 🩲 | Diaper check 🩲 |
+| `notification.diaper_body` | Давно не было записей о подгузнике. Пора проверить, как там %@? | No diaper logged in a while. Time to check on %@? |
+| `notification.measurements_title` | %@ растёт 📏 | Track %@'s growth 📏 |
+| `notification.measurements_body` | Уже 3 дня вы ведёте записи… | You've been logging for 3 days… |
 | `notification.monthly_growth_title` | Ежемесячный контроль 📊 | Monthly check-up 📊 |
 | `notification.monthly_growth_body` | Пора записать новые измерения… | Time to record new measurements… |
-| `notification.weekly_title` | Итоги недели 📋 | Weekly recap 📋 |
-| `notification.weekly_body` | Как прошла неделя… | See how feedings, sleep and diapers looked this week… |
+| `notification.weekly_title` | Прошлая неделя в цифрах 📋 | Last week in numbers 📋 |
+| `notification.weekly_body` | Кормления и сон с понедельника по воскресенье, по дням. | Feeds and sleep from Monday to Sunday, day by day. |
 | `notification.idle_title` | Всё в порядке? 👀 | Everything ok? 👀 |
-| `notification.idle_body` | Уже 2 дня нет новых записей… %@ | You haven't logged anything in 2 days… %@ |
+| `notification.idle_body` | %@ — уже 2 дня без новых записей… | You haven't logged anything in 2 days… %@ |
+
+Русские тексты обращаются к родителю на «вы». Имя малыша (`%@`) в русском
+стоит только в именительном падеже («как там %@», «%@ растёт»): подстановка
+не склоняет имя, и «о %@» дало бы «о Маша».
 
 ---
 
@@ -258,5 +294,5 @@ Time-sensitive уведомления (`bb.feeding.active.bf`, `bb.sleep.active`
   (минимум 1 с, чтобы триггер был валиден), `interruptionLevel = .timeSensitive`
   при `timeSensitive == true`.
 - `cancel(_:)` — `removePendingNotificationRequests(withIdentifiers:)` по одному ID.
-- Повторяющиеся (`bb.engage.monthly_growth`, `bb.engage.weekly_summary`) собираются
-  вручную через `UNCalendarNotificationTrigger(repeats: true)`.
+- Повторяющихся уведомлений больше нет. Итоги недели собираются отдельно (`add(_:_:)`) —
+  `UNCalendarNotificationTrigger(dateMatching:, repeats: false)` на конкретную дату.

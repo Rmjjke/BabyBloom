@@ -573,7 +573,24 @@ Permission is requested from onboarding's own notifications page (page 8 of
 11, before the Generating loader whose last step promises reminders) — never
 at launch and never over the Dashboard. That page is the single call site of
 `requestPermission`.
-`onAppForegrounded()` runs on every `scenePhase == .active`.
+`onAppForegrounded()` runs on every `scenePhase == .active`, and
+`onAppBackgrounded()` on every `.background`.
+
+**Weekly summary (#15).** Last calendar week, Monday to Sunday whatever the
+locale, is `Core/Weekly/WeeklySummary` — pure, fed by
+`WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
+notification). Averages divide by the days that have any entry (D19). The gain
+is the `WeightVelocity` pair whose later weighing falls in the week, and the
+newborn gate (`NewbornWeightLoss.gainDeferral`) withholds the number (D17,
+D27). The Dashboard shows `WeeklySummaryCard` under the running timers. It is
+hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
+and sends `weekly_summary_viewed` once a week. The Monday notification is a
+ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
+foreground and background, and after the Lock Screen and widget intents' own
+writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has
+entries and the Settings switch (`notify.weeklySummary`, D26) is on. A
+repeating trigger cannot skip an empty week. `AppClock.now` is the clock for
+this path only, so `-BBNow` can move it.
 
 ## Timers and the Live Activity
 
@@ -807,6 +824,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
 | `widget_feeding_logged` | — | `StartFeedingIntent.perform`, only when the widget's button actually started a feed (not when one was already running); background launch, as above |
+| `weekly_summary_viewed` | — | `WeeklySummaryCard.onAppear`, once per calendar week per device (`weekly.viewedWeek`, set only when the event was sent) |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and
@@ -912,7 +930,10 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; and four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification and the weekly seeds read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
+| `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |

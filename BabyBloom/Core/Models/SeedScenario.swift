@@ -81,6 +81,16 @@ enum SeedScenario: String, CaseIterable {
     /// `healthy`, plus a formula feed started 12 min ago and still running: the
     /// bottle title on the Lock Screen (D28).
     case runningBottle
+    /// L3, weekly summary (relative to `AppClock.now`, so `-BBNow` picks the
+    /// week): last week and the one before fully logged, with a weighing pair
+    /// ending last week (S1).
+    case weeklyNormal
+    /// Last week logged, nothing before it, no weighings (S2 + S6).
+    case weeklyFirstWeek
+    /// Last week with entries on four days only (S3/S4: "4 of 7", stubs).
+    case weeklyGaps
+    /// A baby born ten days before last week ended: no gain number (S5, D17).
+    case weeklyNewborn
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -186,6 +196,9 @@ enum SeedScenario: String, CaseIterable {
 
     private func seed(into context: ModelContext) {
         guard self != .showcase else { return Self.seedShowcase(into: context) }
+        if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn].contains(self) {
+            return seedWeekly(into: context)
+        }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)
         }

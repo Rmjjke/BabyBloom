@@ -114,6 +114,10 @@ struct BabyBloomApp: App {
                 // a new day; a widget is added on the Home Screen, outside the
                 // app, so coming back is also the only moment to notice one.
                 Task { await Analytics.shared.appBecameActive() }
+            } else if phase == .background {
+                // The Monday notification is planned from what is logged; this
+                // pass sees the entries made during the visit.
+                NotificationManager.shared.onAppBackgrounded()
             }
         }
         .modelContainer(sharedModelContainer)
