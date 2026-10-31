@@ -229,9 +229,9 @@ struct PlanPickerSection: View {
 
             HStack(spacing: BBTheme.Spacing.lg) {
                 Link("premium.terms".l,
-                     destination: URL(string: "https://bitty.okapps.org/bitty/terms")!)
+                     destination: LegalLinks.terms)
                 Link("premium.privacy".l,
-                     destination: URL(string: "https://bitty.okapps.org/bitty/privacy")!)
+                     destination: LegalLinks.privacy)
             }
         }
         .font(.system(size: 11, design: .rounded))

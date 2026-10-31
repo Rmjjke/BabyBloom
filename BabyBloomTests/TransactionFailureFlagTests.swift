@@ -27,13 +27,14 @@ final class TransactionFailureFlagTests: XCTestCase {
         manager.recordTransactionError(StoreKitError.userCancelled)
 
         XCTAssertFalse(manager.transactionFailedThisSession)
-        XCTAssertNotNil(manager.purchaseError, "the paywall's own handling is unchanged")
+        XCTAssertNil(manager.purchaseError, "a cancel is not an error: no red line")
     }
 
     func testAGenuineFailureSetsTheFlagAndItStays() {
         let manager = SubscriptionManager()
         manager.recordTransactionError(SubscriptionError.verificationFailed)
         XCTAssertTrue(manager.transactionFailedThisSession)
+        XCTAssertNotNil(manager.purchaseError)
 
         // A later cancel does not wash it out: sticky for the session.
         manager.recordTransactionError(SKError(.paymentCancelled))

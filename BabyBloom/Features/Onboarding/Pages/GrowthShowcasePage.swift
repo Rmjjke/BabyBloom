@@ -104,7 +104,7 @@ struct GrowthShowcasePage: View {
                 badge: reading.badge,
                 captionLines: [
                     String(format: "onboarding.showcase.caption_fmt".l, name,
-                           String(format: "%.2f %@", birthWeightKg, "unit.kg".l)),
+                           "\(birthWeightKg.appDecimal(2)) \("unit.kg".l)"),
                 ],
                 tone: .neutralOnly
             )

@@ -53,7 +53,7 @@
           "introductoryOffer": null,
           "localizations": [
             {
-              "description": "Unlimited history, smart reminders, export and advanced charts.",
+              "description": "Unlimited history, events, export and advanced charts.",
               "displayName": "Premium Monthly",
               "locale": "en_US"
             }

@@ -213,7 +213,7 @@ struct DashboardView: View {
                 )
                 BBStatCard(
                     title: "stat.sleep",
-                    value: String(format: "%.1f", totalSleepToday),
+                    value: totalSleepToday.appDecimal(1),
                     unit: "unit.hours",
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep,
@@ -232,7 +232,7 @@ struct DashboardView: View {
                 if let weightKg = latestWeighing?.weightKg {
                     BBStatCard(
                         title: "stat.weight",
-                        value: String(format: "%.2f", weightKg),
+                        value: weightKg.appDecimal(2),
                         unit: "unit.kg",
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth,
@@ -327,7 +327,7 @@ struct DashboardView: View {
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
                 growthRow(label: "stat.weight".l,
-                          value: String(format: "%.2f", weightKg) + " " + "unit.kg".l,
+                          value: weightKg.appDecimal(2) + " " + "unit.kg".l,
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
                 if store.isPremium, let reading = latestPercentile {

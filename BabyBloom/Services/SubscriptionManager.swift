@@ -198,6 +198,18 @@ final class SubscriptionManager {
     /// not. All simulator-only and intended, but do not be surprised by a
     /// notification arriving mid-flow.
     private static let forcePremiumOverride = UserDefaults.standard.bool(forKey: "BBForcePremium")
+
+    /// Simulator-only test lever (`-BBFailProductsOnce true`): the FIRST
+    /// `loadProducts` of the process fails like a real load failure, the retry
+    /// succeeds. Launch argument for the same reason as `BBForcePremium`.
+    private static let failProductsOnce = UserDefaults.standard.bool(forKey: "BBFailProductsOnce")
+    private static var failProductsSpent = false
+
+    private static func consumeFailProductsOnce() -> Bool {
+        guard failProductsOnce, !failProductsSpent else { return false }
+        failProductsSpent = true
+        return true
+    }
     #endif
 
     private(set) var isLoading    = false
@@ -263,6 +275,10 @@ final class SubscriptionManager {
         purchaseError = nil
         defer { isLoading = false }
         do {
+            #if targetEnvironment(simulator)
+            // Same catch as a real failure, so the retry card renders for real.
+            if Self.consumeFailProductsOnce() { throw StoreKitError.networkError(URLError(.notConnectedToInternet)) }
+            #endif
             let products = try await Product.products(for: [
                 SubscriptionManager.weeklyID,
                 SubscriptionManager.monthlyID,
@@ -363,8 +379,11 @@ final class SubscriptionManager {
     /// tests that could throw these for real skip on a simulator with no local
     /// store binding.
     func recordTransactionError(_ error: Error) {
+        // A back-out is the user's choice, not a failure: a red error line
+        // under a cancelled sheet reads as the app having broken.
+        guard !Self.isUserCancellation(error) else { return }
         purchaseError = error.localizedDescription
-        if !Self.isUserCancellation(error) { transactionFailedThisSession = true }
+        transactionFailedThisSession = true
     }
 
     /// The two shapes a user's back-out arrives in: `SKError.paymentCancelled`

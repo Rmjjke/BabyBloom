@@ -224,6 +224,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertFalse(manager.isEntitled)
         XCTAssertFalse(manager.isLoading)
         XCTAssertFalse(manager.purchasePending)
+        XCTAssertNil(manager.purchaseError, "a cancel is not an error (Q-005)")
         XCTAssertTrue(manager.hasResolvedEntitlements,
                       "a purchase that did not happen still leaves StoreKit's answer read")
         XCTAssertFalse(manager.transactionFailedThisSession, "backing out is a choice, not a failure")

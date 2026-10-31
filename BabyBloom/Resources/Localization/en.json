@@ -329,7 +329,7 @@
   "baby.feeding.formula": "Formula",
   "baby.feeding.mixed": "Mixed",
   "baby.default_name": "Baby",
-  "growth.head_fmt": "Head: %.1f cm",
+  "growth.head_fmt": "Head: %@ cm",
   "premium.plan.monthly": "Monthly",
   "premium.plan.yearly": "Yearly",
   "premium.plan.best_value": "Best Value",

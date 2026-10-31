@@ -11,8 +11,7 @@ struct NamePage: View {
         VStack(spacing: 0) {
             backButton(action: onBack)
 
-            Spacer()
-
+            onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
                 onboardingHeroIcon("person.text.rectangle", color: BBTheme.Colors.primary)
 
@@ -20,10 +19,12 @@ struct NamePage: View {
                     BBTheme.Typography.title1("onboarding.name_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text("onboarding.name_hint".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 TextField("onboarding.name_placeholder".l, text: $name)
@@ -38,9 +39,8 @@ struct NamePage: View {
                     .onAppear { focused = true }
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
-
-            Spacer()
-            Spacer()
+            .padding(.vertical, BBTheme.Spacing.md)
+            }
         }
     }
 }

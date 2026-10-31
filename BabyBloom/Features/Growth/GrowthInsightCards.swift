@@ -525,9 +525,13 @@ struct NewbornProgressCard: View {
                     }
                 }
 
-                Text(status.hasRegained ? "newborn.regained".l : "newborn.not_regained".l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                // A day-0 weighing is by design never a regain, so "not reached
+                // yet" would sit next to a tautological 100%.
+                if status.showsRegainLine {
+                    Text(status.hasRegained ? "newborn.regained".l : "newborn.not_regained".l)
+                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
             } else {
                 // The FIRST empty state a fresh install meets, and free — so it
                 // gets the same treatment as the three below it rather than
@@ -703,7 +707,7 @@ struct CentileTrendCard: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
             case let .sustainedDrop(spaces):
-                FlagRow(text: String(format: "trend.drop_fmt".l, String(format: "%.1f", spaces)))
+                FlagRow(text: String(format: "trend.drop_fmt".l, spaces.appDecimal(1)))
             case .crossingUp:
                 // Neutral by design: an upward crossing is a fact, not a
                 // finding. No tick — that belongs to `.stable` — and none of

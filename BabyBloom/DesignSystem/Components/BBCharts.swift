@@ -88,7 +88,7 @@ struct BBWeeklyBarChart: View {
     let valueFor: (Date) -> Double
     let color: Color
     var formatValue: (Double) -> String = { v in
-        v == floor(v) ? "\(Int(v))" : String(format: "%.1f", v)
+        v == floor(v) ? "\(Int(v))" : v.appDecimal(1)
     }
 
     @State private var weekOffset = 0   // 0 = current week, -1 = last week, …
