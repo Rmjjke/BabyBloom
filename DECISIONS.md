@@ -14,6 +14,33 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-01 — Length-for-age is WHO's table, generated and cross-checked, on its own denser grid
+
+`WHOGrowthStandard+Length.swift` holds WHO length-for-age LMS rows for
+0–730 days, generated from WHO's expanded tables
+(`lhfa-{boys,girls}-percentiles-expanded-tables.xlsx`,
+who.int/tools/child-growth-standards/standards/length-height-for-age), never
+typed. The generator checked every row against WHO's anthro package
+(`data-raw/growthstandards/lenanthro.txt`): identical for both sexes, `l` = 1
+throughout, all rows recumbent length. `GrowthEntry.heightCm` is scored as
+length, with no lying/standing adjustment, because WHO switches to height only
+after 24 months.
+
+**Why.** The pediatrician report shows a length percentile next to weight's
+(M2 plan v2, decision 7), and a transcription slip in a reference table is
+invisible in review. Generating from WHO's file and cross-checking against a
+second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
+lengths to ±0.1 percentile.
+
+**Rejected: reusing the weight table's day grid.** Length's S is about a
+quarter of weight's, so the same interpolation error in centimetres is four
+times the error in z. At the median, where one z moves the percentile most,
+that reached 0.31 of a percentile and failed the ±0.1 test at day 45. The
+length grid is daily to 30 days, every third day to 182, then weekly (161 nodes
+per sex): under 0.022 of a percentile anywhere in −3…+3 z.
+
+---
+
 ## 2026-10-30 — On-screen numbers go through the app language's locale; es keeps the es_419 period
 
 Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /

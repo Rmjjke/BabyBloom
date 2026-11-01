@@ -32,7 +32,9 @@ enum WHOGrowthStandard {
         let s: Double
     }
 
-    private struct Node {
+    /// One stored row of a WHO table. Internal rather than private so the
+    /// length-for-age table can live in its own file.
+    struct Node {
         let day: Int
         let l: Double
         let m: Double
@@ -48,8 +50,13 @@ enum WHOGrowthStandard {
 
     /// Interpolated coefficients for an age, or `nil` outside the covered range.
     static func lms(ageDays: Int, isMale: Bool) -> LMS? {
+        lms(in: isMale ? boys : girls, ageDays: ageDays)
+    }
+
+    /// The lookup both tables share: weight-for-age here, length-for-age in
+    /// `WHOGrowthStandard+Length.swift`. Both are stored on the same day grid.
+    static func lms(in table: [Node], ageDays: Int) -> LMS? {
         guard ageDays >= 0, ageDays <= maxAgeDays else { return nil }
-        let table = isMale ? boys : girls
 
         // Exact node, or the pair straddling this age.
         var lower = table[0]
@@ -75,13 +82,16 @@ enum WHOGrowthStandard {
     /// Standard deviations from the median for this weight, or `nil` if the age
     /// is outside the tables or the weight is not a positive number.
     static func zScore(weightKg: Double, ageDays: Int, isMale: Bool) -> Double? {
-        guard weightKg > 0, let c = lms(ageDays: ageDays, isMale: isMale), c.m > 0, c.s > 0 else {
-            return nil
-        }
+        zScore(of: weightKg, lms: lms(ageDays: ageDays, isMale: isMale))
+    }
+
+    /// The LMS z score of a measurement, shared by weight and length.
+    static func zScore(of value: Double, lms c: LMS?) -> Double? {
+        guard value > 0, let c, c.m > 0, c.s > 0 else { return nil }
         if abs(c.l) < 1e-9 {
-            return log(weightKg / c.m) / c.s
+            return log(value / c.m) / c.s
         }
-        return (pow(weightKg / c.m, c.l) - 1) / (c.l * c.s)
+        return (pow(value / c.m, c.l) - 1) / (c.l * c.s)
     }
 
     /// The weight sitting `z` standard deviations from the median at this age —
@@ -94,7 +104,12 @@ enum WHOGrowthStandard {
     /// third minute in the app is therefore the same reference every number in
     /// the app is scored against.
     static func weight(atZ z: Double, ageDays: Int, isMale: Bool) -> Double? {
-        guard let c = lms(ageDays: ageDays, isMale: isMale), c.m > 0, c.s > 0 else { return nil }
+        value(atZ: z, lms: lms(ageDays: ageDays, isMale: isMale))
+    }
+
+    /// The inverse of `zScore(of:lms:)`, shared by weight and length.
+    static func value(atZ z: Double, lms c: LMS?) -> Double? {
+        guard let c, c.m > 0, c.s > 0 else { return nil }
         if abs(c.l) < 1e-9 {
             return c.m * exp(z * c.s)
         }
