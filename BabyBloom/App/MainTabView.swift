@@ -119,6 +119,18 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.growth)
                     }
                 }
+                // Right after Growth: the report reads growth first (design § 1).
+                NavigationLink(destination: DoctorReportView()) {
+                    Label {
+                        Text("report.title".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    } icon: {
+                        Image(systemName: "stethoscope")
+                            .foregroundStyle(BBTheme.Colors.primary)
+                    }
+                }
+                .accessibilityHint("report.a11y_hint".l)
+                .accessibilityIdentifier("more.doctor_report")
                 NavigationLink(destination: RecentActivityView()) {
                     Label {
                         Text("nav.recent_activity".l)
