@@ -89,9 +89,11 @@ enum WidgetCopy {
     /// remains; elapsed values round down, as clocks do.
     static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
         let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
-        return total >= 60
-            ? String(format: "duration.h_min".l, total / 60, total % 60)
-            : String(format: "duration.min_only".l, total)
+        if total < 60 { return String(format: "duration.min_only".l, total) }
+        // Whole hours drop the minutes: "1 ч", never "1 ч 0 мин".
+        return total % 60 == 0
+            ? String(format: "duration.h_only".l, total / 60)
+            : String(format: "duration.h_min".l, total / 60, total % 60)
     }
 
     /// `nil` in the due state on purpose: the hero there is already a whole
@@ -255,6 +257,12 @@ struct BabyBloomSmallWidgetView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
+                // A state, not a number: an empty middle read as a widget that
+                // failed to load (design note § 5). The minutes stay in the capsule.
+                Text("status.feeding_going".l)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .minimumScaleFactor(0.7)
             } else if entry.hasLoggedAFeeding {
                 if let headline = WidgetCopy.headline(for: entry) {
                     Text(headline)
@@ -314,21 +322,29 @@ struct BabyBloomMediumWidgetView: View {
                             // No prediction while a feed runs, as on the small
                             // widget: the capsule carries the running minutes.
                             if entry.runningFeedStart == nil {
-                            if let headline = WidgetCopy.headline(for: entry) {
-                                Text(headline)
-                                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.75))
-                            }
-                            // See the small widget: the due state is carried by
-                            // the wording, not by a tint that fails contrast.
-                            WidgetCopy.hero(for: entry)
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.5)
-                            if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
-                                overdueLine(due)
-                            }
+                                if let headline = WidgetCopy.headline(for: entry) {
+                                    Text(headline)
+                                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                                        .foregroundStyle(.white.opacity(0.75))
+                                }
+                                // See the small widget: the due state is carried by
+                                // the wording, not by a tint that fails contrast.
+                                WidgetCopy.hero(for: entry)
+                                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
+                                if WidgetCopy.isDue(entry), let due = entry.nextFeedingTime {
+                                    overdueLine(due)
+                                }
+                            } else {
+                                // The hero's place holds the state, never a
+                                // number: the capsule carries the minutes (§ 5).
+                                Text("status.feeding_going".l)
+                                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.7)
                             }
                             Spacer(minLength: 0)
                             Text(entry.babyName)

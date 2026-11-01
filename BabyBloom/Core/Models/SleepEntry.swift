@@ -31,8 +31,11 @@ final class SleepEntry {
         let totalMins = Int(duration) / 60
         let hours = totalMins / 60
         let mins = totalMins % 60
+        // Whole hours drop the minutes, as in the widget and the weekly card.
         if hours > 0 {
-            return String(format: "duration.h_min".l, hours, mins)
+            return mins == 0
+                ? String(format: "duration.h_only".l, hours)
+                : String(format: "duration.h_min".l, hours, mins)
         }
         return String(format: "duration.min_only".l, mins)
     }
