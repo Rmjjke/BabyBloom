@@ -75,6 +75,7 @@
 		54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9D97024281147567091924D /* GrowthCardRenderDump.swift */; };
 		5421C084298E61D44570976B /* AnalyticsFacadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */; };
 		54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */; };
+		5591FC3454EA3A7FC7F5669C /* PeriodSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA3D32F0D2D5261DD037F00 /* PeriodSummary.swift */; };
 		55A8C84BC5D5C0E2DB6E3939 /* StoreKitTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 10CC795E88A0CEBFE05A8A95 /* StoreKitTest.framework */; };
 		5772245E6796465274126611 /* BirthDateChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */; };
 		58024613E5101F9A4FAD5FEF /* SharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C48DEAA09C03B8BDE9814C2 /* SharedStore.swift */; };
@@ -93,6 +94,7 @@
 		6CBBD0047C4A00234C3FC8D9 /* LiveActivityPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F001C66CECABAE9266B9BF2 /* LiveActivityPlanner.swift */; };
 		6CD5EF68A67156F2AF754E7C /* VisitSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD32EDF9471DEC7DFF47F84 /* VisitSheet.swift */; };
 		6E51A035496EBA48CE4024C1 /* LiveActivityPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F001C66CECABAE9266B9BF2 /* LiveActivityPlanner.swift */; };
+		6FA7380311C26ACE16E9D287 /* PeriodSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167683C6FB84AABD9FFC660F /* PeriodSummaryTests.swift */; };
 		6FED04C4E2EC35E409F7E079 /* FeedingAdequacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */; };
 		6FEF92A079394ADACD9CFC0F /* BabyProfileEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347EB1B764F7B7B553D74705 /* BabyProfileEditSheet.swift */; };
 		70E305F5B70BEDB5289D8A22 /* TimerActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B031E86EAB8FA6A5DB4ABEC5 /* TimerActivityAttributes.swift */; };
@@ -278,6 +280,7 @@
 		140757E978AEAF89BAD65699 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
 		141E9D25B87B2C358EFCE05E /* BBTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBTheme.swift; sourceTree = "<group>"; };
 		16311BC78AF28F08F304583D /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
+		167683C6FB84AABD9FFC660F /* PeriodSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodSummaryTests.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectedAgeTests.swift; sourceTree = "<group>"; };
 		1B3FEF1C694F286BCCE9C786 /* WHOCorridor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOCorridor.swift; sourceTree = "<group>"; };
@@ -360,6 +363,7 @@
 		8A07049E9D30F01EB4916982 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
 		8B6AD2785BEA18792EBB7624 /* BBLockedHistoryFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBLockedHistoryFooter.swift; sourceTree = "<group>"; };
 		8CF2BF69F0069D31809BAD28 /* ReviewPromptPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptPolicy.swift; sourceTree = "<group>"; };
+		8DA3D32F0D2D5261DD037F00 /* PeriodSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodSummary.swift; sourceTree = "<group>"; };
 		8DC61B36B29C0F41B11EE8C7 /* QuestionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionsCard.swift; sourceTree = "<group>"; };
 		9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryTests.swift; sourceTree = "<group>"; };
 		914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrendTests.swift; sourceTree = "<group>"; };
@@ -593,6 +597,14 @@
 			path = BabyBloom;
 			sourceTree = "<group>";
 		};
+		31AA0C6916EB9A44A4298AC4 /* Summary */ = {
+			isa = PBXGroup;
+			children = (
+				8DA3D32F0D2D5261DD037F00 /* PeriodSummary.swift */,
+			);
+			path = Summary;
+			sourceTree = "<group>";
+		};
 		389AD0CB35706DC0F776B43A /* Events */ = {
 			isa = PBXGroup;
 			children = (
@@ -657,6 +669,7 @@
 				F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */,
 				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
 				A9D7CBB786BB36751F59299E /* PercentileCardRenderDump.swift */,
+				167683C6FB84AABD9FFC660F /* PeriodSummaryTests.swift */,
 				96FEC8E9C21E1552873021F0 /* ReviewPromptClinicalBlockerTests.swift */,
 				A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */,
 				B665791B4466A24EBFF32033 /* ReviewPromptServiceTests.swift */,
@@ -995,6 +1008,7 @@
 				77F93CE06E083049FB882844 /* Localization */,
 				28C9C1E0E311C9496C19DE5B /* Models */,
 				772B70D304DE164C1051AE1B /* Review */,
+				31AA0C6916EB9A44A4298AC4 /* Summary */,
 				E469264AFED02F063232C044 /* Weekly */,
 			);
 			path = Core;
@@ -1305,6 +1319,7 @@
 				A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */,
 				A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */,
 				CCB25B662F1FE5078547727C /* PercentileCard.swift in Sources */,
+				5591FC3454EA3A7FC7F5669C /* PeriodSummary.swift in Sources */,
 				EA29B988F46E8BF5C8F6DA9F /* PlanPickerSection.swift in Sources */,
 				FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */,
 				D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */,
@@ -1385,6 +1400,7 @@
 				900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */,
 				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
 				ED958D4B266F8232386E459D /* PercentileCardRenderDump.swift in Sources */,
+				6FA7380311C26ACE16E9D287 /* PeriodSummaryTests.swift in Sources */,
 				10FD5305B5AAEFD55DEA86C5 /* ReviewPromptClinicalBlockerTests.swift in Sources */,
 				9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */,
 				D19291B34CC0E26AEED2E14A /* ReviewPromptServiceTests.swift in Sources */,

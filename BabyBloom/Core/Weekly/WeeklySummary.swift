@@ -150,35 +150,20 @@ struct WeeklySummary: Equatable, Sendable {
         totals(for: week, input: input).daysWithEntries > 0
     }
 
+    /// A 7-day `PeriodSummary`. The weekly rules live in what goes IN: a running
+    /// feed counts (it happened that day) and a sleep is filed whole on its
+    /// start day, as the Sleep tab does — the report decides differently.
     static func totals(for week: Week, input: Input) -> Totals {
-        var feeds = Array(repeating: 0, count: 7)
-        var sleep = Array(repeating: TimeInterval(0), count: 7)
-        var hasEntries = Array(repeating: false, count: 7)
-        var longest: TimeInterval?
-
-        for date in input.feeds {
-            guard let day = week.dayIndex(of: date) else { continue }
-            feeds[day] += 1
-            hasEntries[day] = true
-        }
-        // A sleep belongs to the day it started, whole: a night that begins
-        // on Sunday is Sunday's, as the Sleep tab files it.
-        for sleepEntry in input.sleeps {
-            guard let day = week.dayIndex(of: sleepEntry.start) else { continue }
-            let length = max(0, sleepEntry.end.timeIntervalSince(sleepEntry.start))
-            sleep[day] += length
-            hasEntries[day] = true
-            longest = max(longest ?? 0, length)
-        }
-        for date in input.otherEntries {
-            guard let day = week.dayIndex(of: date) else { continue }
-            hasEntries[day] = true
-        }
-        return Totals(daysWithEntries: hasEntries.filter { $0 }.count,
-                      feedsByDay: feeds,
-                      sleepByDay: sleep,
-                      dayHasEntries: hasEntries,
-                      longestSleep: longest)
+        let period = PeriodSummary.make(
+            start: week.start, end: week.end,
+            input: PeriodSummary.Input(feeds: input.feeds, sleeps: input.sleeps,
+                                       otherEntries: input.otherEntries),
+            calendar: calendar)
+        return Totals(daysWithEntries: period.daysWithEntries,
+                      feedsByDay: period.feedsByDay,
+                      sleepByDay: period.sleepByDay,
+                      dayHasEntries: period.dayHasEntries,
+                      longestSleep: period.longestSleep)
     }
 
     /// D27 with the D17 gate in front: the newborn window never shows a number,
