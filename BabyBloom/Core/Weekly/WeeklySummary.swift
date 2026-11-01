@@ -159,6 +159,8 @@ struct WeeklySummary: Equatable, Sendable {
             input: PeriodSummary.Input(feeds: input.feeds, sleeps: input.sleeps,
                                        otherEntries: input.otherEntries),
             calendar: calendar)
+        // Weeks are midnight to midnight, so this is always 7; the bars index on it.
+        assert(period.dayCount == 7, "a week must bucket into 7 days")
         return Totals(daysWithEntries: period.daysWithEntries,
                       feedsByDay: period.feedsByDay,
                       sleepByDay: period.sleepByDay,

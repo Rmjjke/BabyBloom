@@ -10,7 +10,7 @@ struct ReportRow: View {
     let value: String
     /// A secondary tail on the same line, «· 28 Oct» (caption, textSecondary).
     let suffix: String?
-    /// What a translator put after the `%@`; empty in every current language.
+    /// What follows the `%@` in the format — « cm» in `growth.head_fmt`.
     private let tail: String
 
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -28,7 +28,7 @@ struct ReportRow: View {
     var body: some View {
         Group {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
                     BBTheme.Typography.callout(label.trimmingCharacters(in: .whitespaces))
                     valueText
                 }
@@ -123,6 +123,19 @@ enum ReportFormat {
     /// never inside «Breast 120 · Formula».
     static let listSeparator = "\u{00A0}· "
     static var joiner: String { listSeparator }
+
+    /// A date for the report: the year only when it is not this year's — the
+    /// latest weighing of a 15-month-old may be last year's, and «28 Oct» would
+    /// read as last week. Spaces made unbreakable, so «24 / Oct» never splits.
+    static func date(_ date: Date, now: Date = AppClock.now) -> String {
+        let calendar = Calendar.current
+        let text = calendar.component(.year, from: date) == calendar.component(.year, from: now)
+            ? date.appDayMonth : date.appDayMonthYear
+        return text.replacingOccurrences(of: " ", with: nbsp)
+    }
+
+    /// «> 97» held together.
+    static func glued(_ text: String) -> String { text.replacingOccurrences(of: " ", with: nbsp) }
 
     static func kg(_ value: Double) -> String { "\(value.appDecimal(2))\(nbsp)\("unit.kg".l)" }
     static func cm(_ value: Double) -> String { "\(value.appDecimal(1))\(nbsp)\("unit.cm".l)" }

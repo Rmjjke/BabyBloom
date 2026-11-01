@@ -15,11 +15,6 @@ struct DoctorReportView: View {
                   SortDescriptor(\DoctorVisit.createdAt, order: .reverse)])
     private var visits: [DoctorVisit]
     @Query(sort: \DoctorQuestion.createdAt) private var questions: [DoctorQuestion]
-    // The four entry kinds the data cards summarise; the summary filters by period.
-    @Query private var feeds: [FeedingEntry]
-    @Query private var sleeps: [SleepEntry]
-    @Query private var diapers: [DiaperEntry]
-    @Query private var growthEntries: [GrowthEntry]
 
     @Environment(\.modelContext) private var modelContext
     @State private var sheet: DoctorReportSheet?
@@ -57,8 +52,9 @@ struct DoctorReportView: View {
                     onLogVisit: { sheet = .logVisit }
                 )
 
-                if let summary = summary(periodStart: periodStart, hasVisit: latest != nil) {
-                    dataCards(summary, periodStart: periodStart)
+                if let baby {
+                    ReportDataSection(periodStart: periodStart, startsAtVisit: latest != nil,
+                                      baby: baby, onAddWeighing: { showAddGrowth = true })
                 }
             }
             .padding(BBTheme.Spacing.md)
@@ -84,37 +80,6 @@ struct DoctorReportView: View {
         // Plain .sheet, not .entrySheet: no rating prompt on this screen
         // (DECISIONS 2026-11-01), a weighing added here included.
         .sheet(isPresented: $showAddGrowth) { AddGrowthSheet() }
-    }
-
-    // MARK: ⑦ Data cards, ⑧ footnote
-
-    /// nil until a baby exists: the cards need the birth facts.
-    private func summary(periodStart: Date, hasVisit: Bool) -> DoctorReportSummary? {
-        guard let baby else { return nil }
-        return DoctorReportSummary.make(
-            input: DoctorReportSummary.Input(baby: baby, feeds: feeds, sleeps: sleeps,
-                                             diapers: diapers, growth: growthEntries),
-            periodStart: periodStart,
-            now: AppClock.now,
-            startsAtVisit: hasVisit,
-            calendar: .current)
-    }
-
-    @ViewBuilder
-    private func dataCards(_ summary: DoctorReportSummary, periodStart: Date) -> some View {
-        GrowthReportCard(growth: summary.growth, periodStart: periodStart,
-                         hidesPeriodRows: summary.showsNewPeriodCard,
-                         onAddWeighing: { showAddGrowth = true })
-        if summary.showsNewPeriodCard {
-            ReportNewPeriodCard(periodStart: periodStart)
-        } else {
-            FeedingReportCard(feeding: summary.feeding, periodStart: periodStart, isShort: summary.isShort)
-            SleepReportCard(sleep: summary.sleep, periodStart: periodStart, isShort: summary.isShort)
-            DiapersReportCard(diapers: summary.diapers, periodStart: periodStart, isShort: summary.isShort)
-        }
-        BBTheme.Typography.caption("report.footnote".l)
-            .foregroundStyle(BBTheme.Colors.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: ② Period line

@@ -29,8 +29,8 @@ extension DoctorReportSummary {
             feeding: feeding,
             sleep: sleep,
             diapers: diaperSection,
-            showsNewPeriodCard: startsAtVisit && feeding == nil && sleep == nil
-                && diaperSection == nil && growth.weighings.isEmpty)
+            showsNewPeriodCard: startsAtVisit && frame.periodDays == 0 && feeding == nil
+                && sleep == nil && diaperSection == nil && growth.weighings.isEmpty)
     }
 
     // MARK: The period
@@ -47,17 +47,29 @@ extension DoctorReportSummary {
 
         func contains(_ date: Date) -> Bool { date >= start && date < now }
 
-        func bucket(_ input: PeriodSummary.Input) -> PeriodSummary {
-            PeriodSummary.make(start: start, end: now, input: input, calendar: calendar)
+        /// Midnight today: the end of the finished days.
+        var todayStart: Date { calendar.startOfDay(for: now) }
+
+        func isFinishedDay(_ date: Date) -> Bool { date < todayStart }
+
+        /// The FINISHED days only, `[start, todayStart)`. Every per-day figure
+        /// and the days line come from here: the report is opened at the
+        /// visit, mid-morning, and a half-lived today divided like a whole day
+        /// pulled «feeds a day» from 8 to 6.5 — and «wet a day» down with it,
+        /// the one number a doctor reads for hydration (final review, M2).
+        /// Today stays in every count; it just does not average.
+        func bucketFinished(_ input: PeriodSummary.Input) -> PeriodSummary {
+            PeriodSummary.make(start: start, end: todayStart, input: input, calendar: calendar)
         }
 
-        /// R3.2: today joins the count only once it has an entry of this kind,
-        /// so an untouched morning does not read «20 of 21».
-        func days(_ summary: PeriodSummary) -> Days {
-            let todayHasEntry = summary.dayHasEntries.indices.contains(periodDays)
-                && summary.dayHasEntries[periodDays]
-            return Days(withEntries: summary.daysWithEntries,
-                        counted: periodDays + (todayHasEntry ? 1 : 0))
+        /// «N of M» over the finished days: M is `periodDays`, whatever today holds.
+        func days(_ finished: PeriodSummary) -> Days {
+            Days(withEntries: finished.daysWithEntries, counted: periodDays)
+        }
+
+        /// The whole period, today included: totals and the longest sleep.
+        func bucket(_ input: PeriodSummary.Input) -> PeriodSummary {
+            PeriodSummary.make(start: start, end: now, input: input, calendar: calendar)
         }
 
         /// R2.2: a finished sleep counted by its part inside the period. The
@@ -77,55 +89,63 @@ extension DoctorReportSummary {
     private static func feedingSection(_ feeds: [Input.Feed], frame: Frame) -> Feeding? {
         guard !feeds.isEmpty else { return nil }
         let summary = frame.bucket(.init(feeds: feeds.map(\.start)))
+        let finished = frame.bucketFinished(.init(feeds: feeds.map(\.start)))
 
         let types = mostFrequentFirst(feeds.map(\.type))
         // A volume of 0 is an unfilled field, not a bottle the baby refused.
-        let bottles = feeds.filter { $0.type != .breast && ($0.volumeML ?? 0) > 0 }
-        let bottleDays = frame.bucket(.init(otherEntries: bottles.map(\.start))).daysWithEntries
+        let bottles = feeds.filter { $0.type != .breast && ($0.volumeML ?? 0) > 0 && frame.isFinishedDay($0.start) }
+        let bottleDays = frame.bucketFinished(.init(otherEntries: bottles.map(\.start))).daysWithEntries
         let bottleML = bottles.reduce(0) { $0 + ($1.volumeML ?? 0) }
         let breastLengths = feeds.filter { $0.type == .breast }
             .compactMap { feed in feed.end.map { max(0, $0.timeIntervalSince(feed.start)) } }
 
         return Feeding(
             totalFeeds: summary.totalFeeds,
-            feedsPerDay: frame.isShort
-                ? nil : Double(summary.totalFeeds) / Double(summary.daysWithEntries),
+            feedsPerDay: frame.isShort || finished.daysWithEntries == 0
+                ? nil : Double(finished.totalFeeds) / Double(finished.daysWithEntries),
             byType: types.count > 1 ? types.map { Feeding.TypeCount(type: $0.value, count: $0.count) } : [],
             bottleMLPerDay: frame.isShort || bottleDays == 0 ? nil : bottleML / Double(bottleDays),
             breastfeedAverage: breastLengths.isEmpty
                 ? nil : breastLengths.reduce(0, +) / Double(breastLengths.count),
-            days: frame.days(summary))
+            days: frame.days(finished))
     }
 
     private static func sleepSection(_ sleeps: [(start: Date, end: Date)], frame: Frame) -> Sleep? {
         guard !sleeps.isEmpty else { return nil }
         let summary = frame.bucket(.init(sleeps: sleeps))
+        // A night that began yesterday is yesterday's, whole, as the Sleep tab files it.
+        let finished = frame.bucketFinished(.init(sleeps: sleeps))
         return Sleep(
             total: summary.totalSleep,
-            perDay: frame.isShort ? nil : summary.totalSleep / Double(summary.daysWithEntries),
+            perDay: frame.isShort || finished.daysWithEntries == 0
+                ? nil : finished.totalSleep / Double(finished.daysWithEntries),
             longest: summary.longestSleep,
             longestStart: summary.longestSleepStart,
-            days: frame.days(summary))
+            days: frame.days(finished))
     }
 
     private static func diapersSection(_ diapers: [Input.Diaper], frame: Frame) -> Diapers? {
         guard !diapers.isEmpty else { return nil }
-        let summary = frame.bucket(.init(otherEntries: diapers.map(\.time)))
+        let finishedDiapers = diapers.filter { frame.isFinishedDay($0.time) }
+        let finished = frame.bucketFinished(.init(otherEntries: finishedDiapers.map(\.time)))
         // R5.3: `both` is one diaper that is wet AND dirty, so it counts in each.
         let wet = diapers.filter { $0.type != .dirty }.count
         let dirty = diapers.filter { $0.type != .wet }.count
+        let finishedWet = finishedDiapers.filter { $0.type != .dirty }.count
+        let finishedDirty = finishedDiapers.filter { $0.type != .wet }.count
         // Only a diaper with stool has a stool colour; one left on a diaper
         // switched to wet afterwards is a stale field.
         let colors = mostFrequentFirst(diapers.filter { $0.type != .wet }.compactMap(\.color))
-        let days = Double(summary.daysWithEntries)
+        let days = Double(finished.daysWithEntries)
+        let averages = !frame.isShort && days > 0
 
         return Diapers(
             wetCount: wet,
             dirtyCount: dirty,
-            wetPerDay: frame.isShort ? nil : Double(wet) / days,
-            dirtyPerDay: frame.isShort ? nil : Double(dirty) / days,
+            wetPerDay: averages ? Double(finishedWet) / days : nil,
+            dirtyPerDay: averages ? Double(finishedDirty) / days : nil,
             colors: colors.map { Diapers.ColorCount(color: $0.value, count: $0.count) },
-            days: frame.days(summary))
+            days: frame.days(finished))
     }
 
     /// Ties keep the declaration order of the enum: two renders, or the screen
@@ -217,7 +237,12 @@ extension DoctorReportSummary {
         guard weighings.count >= 2,
               NewbornWeightLoss.gainDeferral(birthWeightKg: input.birthWeightKg, birthDate: input.birthDate,
                                              measurements: weighings, now: frame.now) == nil,
-              let baseIndex = weighings.lastIndex(where: { $0.date <= frame.start })
+              // The base may be the visit's OWN weighing: it is stamped with
+              // the time of day, after the period's 00:00 start, so "on or
+              // before the start" means before the start DAY ends.
+              let startDayEnd = frame.calendar.date(byAdding: .day, value: 1,
+                                                    to: frame.calendar.startOfDay(for: frame.start)),
+              let baseIndex = weighings.lastIndex(where: { $0.date < startDayEnd })
                 ?? weighings.firstIndex(where: { $0.date >= frame.start }),
               baseIndex < weighings.count - 1
         else { return nil }

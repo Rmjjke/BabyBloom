@@ -124,24 +124,40 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertEqual(summary.sleep?.days, Days(withEntries: 20, counted: 20))
     }
 
-    /// An untouched morning must not print «20 of 21»: today joins the count
-    /// only once it has an entry of that section.
-    func testTheDaysLineCountsTodayOnlyOnceItHasAnEntry() {
+    /// Averages and the days line cover the FINISHED days: an untouched
+    /// morning does not print «20 of 21», and a fed morning does not count as
+    /// a whole day either.
+    func testTheDaysLineCoversFinishedDaysOnly() {
         let everyPastDay = dailyFeeds(Array(12...31))
         let emptyToday = make(input(feeds: everyPastDay)).feeding?.days
         XCTAssertEqual(emptyToday, Days(withEntries: 20, counted: 20))
         XCTAssertEqual(emptyToday?.showsLine, false)
 
-        let fedToday = make(input(feeds: everyPastDay + [feed(at(1, 8, month: 11))])).feeding?.days
-        XCTAssertEqual(fedToday, Days(withEntries: 21, counted: 21))
-        XCTAssertEqual(fedToday?.showsLine, false)
+        let fedToday = make(input(feeds: everyPastDay + [feed(at(1, 8, month: 11))])).feeding
+        XCTAssertEqual(fedToday?.days, Days(withEntries: 20, counted: 20))
+        XCTAssertEqual(fedToday?.totalFeeds, 21, "today stays in the count")
 
         let gaps = dailyFeeds(Array(12...31).filter { ![15, 20, 25].contains($0) })
         let withGaps = make(input(feeds: gaps)).feeding?.days
         XCTAssertEqual(withGaps, Days(withEntries: 17, counted: 20))
         XCTAssertEqual(withGaps?.showsLine, true)
         XCTAssertEqual(make(input(feeds: gaps + [feed(at(1, 8, month: 11))])).feeding?.days,
-                       Days(withEntries: 18, counted: 21))
+                       Days(withEntries: 17, counted: 20))
+    }
+
+    /// The reviewer's case: three full days of 8 feeds, then 2 this morning.
+    /// Dividing by four days read 6.5; the finished days say 8.
+    func testAPartialTodayDoesNotPullTheAveragesDown() {
+        let full = (29...31).flatMap { day in (0..<8).map { feed(at(day, 1 + $0 * 3)) } }
+        let morning = [feed(at(1, 6, month: 11)), feed(at(1, 8, month: 11))]
+        let wet = (29...31).flatMap { day in (0..<6).map { Diaper(time: at(day, 2 + $0 * 3), type: .wet) } }
+        let summary = make(input(feeds: full + morning,
+                                 diapers: wet + [Diaper(time: at(1, 7, month: 11), type: .wet)]),
+                           start: at(29, 0))
+        XCTAssertEqual(summary.feeding?.feedsPerDay, 8)
+        XCTAssertEqual(summary.feeding?.totalFeeds, 26)
+        XCTAssertEqual(summary.diapers?.wetPerDay, 6)
+        XCTAssertEqual(summary.diapers?.wetCount, 19)
     }
 
     func testAShortPeriodHasCountsAndNoPerDayFigures() {
@@ -164,6 +180,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertNil(summary.diapers?.dirtyPerDay)
 
         XCTAssertTrue(make(input(), start: at(1, 0, month: 11)).isShort, "a visit today is day 0")
+        XCTAssertTrue(make(input(), start: at(30, 0)).isShort, "two full days is still short")
         XCTAssertFalse(make(input(), start: at(29, 0)).isShort, "three full days is not short")
     }
 
@@ -222,6 +239,17 @@ final class DoctorReportSummaryTests: XCTestCase {
         let loss = make(input(growth: [Growth(date: at(14, 12), weightKg: 5.5),
                                        Growth(date: at(30, 12), weightKg: 5.3)])).growth.change
         XCTAssertEqual(loss?.grams, -200, "a sign, never hidden for being a loss")
+    }
+
+    /// The visit's own weighing, stamped at 11:00 on the visit day, is the
+    /// base — not the one a month before (design § 2.1).
+    func testTheVisitDaysWeighingIsTheBase() {
+        let change = make(input(growth: [Growth(date: at(12, 11, month: 9), weightKg: 4.2),
+                                         Growth(date: at(12, 11), weightKg: 5.0),
+                                         Growth(date: at(30, 12), weightKg: 5.42)],
+                                birthWeight: 3.4)).growth.change
+        XCTAssertEqual(change?.baseDate, at(12, 11))
+        XCTAssertEqual(change?.grams, 420)
     }
 
     func testTheChangeIsHiddenWhenTheBaseIsTheLatestWeighing() {
@@ -412,5 +440,22 @@ final class DoctorReportSummaryTests: XCTestCase {
         var weighed = old
         weighed.growth.append(Growth(date: at(1, 8, month: 11), weightKg: 5.9))
         XCTAssertFalse(make(weighed, start: today).showsNewPeriodCard)
+
+        XCTAssertFalse(make(input(), start: at(12, 0)).showsNewPeriodCard,
+                       "a visit weeks ago with nothing since shows the «No … since» lines")
+    }
+
+    // MARK: Boundaries
+
+    func testAnEntryExactlyAtTheStartCountsAndOneJustBeforeDoesNot() {
+        let summary = make(input(feeds: [feed(visitStart), feed(visitStart.addingTimeInterval(-60))]))
+        XCTAssertEqual(summary.feeding?.totalFeeds, 1)
+    }
+
+    /// A sleep is held at `now` too: with -BBNow behind the real clock it
+    /// cannot count sleep that has not happened in that world.
+    func testASleepIsClippedAtNow() {
+        let summary = make(input(sleeps: [sleep(at(1, 7, month: 11), at(1, 11, month: 11))]))
+        XCTAssertEqual(summary.sleep?.total, 2 * 3600, "07:00 → now 09:00")
     }
 }

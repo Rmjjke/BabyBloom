@@ -19,13 +19,13 @@ struct GrowthReportCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             ReportCardHeader(icon: "scalemass.fill", tint: BBTheme.Colors.growth, title: "nav.growth".l)
-            if growth.isEmpty {
-                empty
-            } else {
+            // R4.8 is about weighings: a height-only history still offers one.
+            if growth.latestWeight == nil { empty }
+            if !growth.isEmpty {
                 facts
                 if !hidesPeriodRows { periodRows }
-                if let birth = atBirth { ReportCaption(birth) }
             }
+            if let birth = atBirth { ReportCaption(birth) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .bbCard()
@@ -57,17 +57,17 @@ struct GrowthReportCard: View {
     private var facts: some View {
         if let weight = growth.latestWeight {
             ReportRow(format: "report.weight_fmt".l, value: ReportFormat.kg(weight.value))
-            ReportCaption(String(format: "percentile.as_of_fmt".l, weight.date.appDayMonth))
+            ReportCaption(String(format: "percentile.as_of_fmt".l, ReportFormat.date(weight.date)))
             percentile(growth.weightPercentile, format: "report.percentile_weight_fmt")
         }
         if let height = growth.latestHeight {
             ReportRow(format: "report.height_fmt".l, value: ReportFormat.cm(height.value),
-                      suffix: height.date.appDayMonth)
+                      suffix: ReportFormat.date(height.date))
             percentile(growth.heightPercentile, format: "report.percentile_height_fmt")
         }
         if let head = growth.latestHead {
             ReportRow(format: "growth.head_fmt".l, value: head.value.appDecimal(1),
-                      suffix: head.date.appDayMonth)
+                      suffix: ReportFormat.date(head.date))
         }
     }
 
@@ -76,7 +76,7 @@ struct GrowthReportCard: View {
         switch row {
         case .reading(let reading):
             // The badge, not the clamped number: past the chart it reads «> 97».
-            ReportRow(format: format.l, value: reading.badge)
+            ReportRow(format: format.l, value: ReportFormat.glued(reading.badge))
         case .beforeDueDate:
             ReportCaption("percentile.before_due_date".l)
         case .outOfRange:
@@ -91,7 +91,7 @@ struct GrowthReportCard: View {
     @ViewBuilder
     private var periodRows: some View {
         if let change = growth.change {
-            let since = String(format: "report.change_since_fmt".l, change.baseDate.appDayMonth, "%@")
+            let since = String(format: "report.change_since_fmt".l, ReportFormat.date(change.baseDate), "%@")
             ReportRow(format: since, value: ReportFormat.grams(change.grams))
         }
         if !growth.weighings.isEmpty { weighings }
@@ -129,12 +129,12 @@ struct GrowthReportCard: View {
             .joined(separator: ReportFormat.joiner)
         Group {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 2) {
-                    ReportCaption(weighing.date.appDayMonth)
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                    ReportCaption(ReportFormat.date(weighing.date))
                     BBTheme.Typography.metricSmall(value)
                 }
             } else {
-                BBTheme.Typography.callout(weighing.date.appDayMonth + ReportFormat.joiner)
+                BBTheme.Typography.callout(ReportFormat.date(weighing.date) + ReportFormat.joiner)
                     + BBTheme.Typography.metricSmall(value)
             }
         }

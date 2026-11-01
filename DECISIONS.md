@@ -20,9 +20,9 @@ live with the workflow in `.desk/`.
 - **Running timers are left out.** The weekly card counts a running feed.
 - **A sleep that began before the period counts only its part inside.** The weekly card files a sleep whole on its start day.
 - **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
-- **«Days with entries: N of M» counts today only once today has an entry of that kind.** Under 3 days, raw counts replace the averages.
+- **Averages and «Days with entries: N of M» use the FINISHED days only.** Today stays in every count, but it does not average: the report is opened at the visit, mid-morning. Under 3 finished days, raw counts replace the averages. This amends the first rule, which let today join the count once it had an entry. The final review showed that 2 morning feeds after three days of 8 read as «6.5 a day», and «wet a day», the hydration number, dropped with it.
 
-**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (D19's reason, applied per section). A days line that counted an untouched today would print «20 of 21» every morning before the first feed. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (D19's reason, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
 
 **Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
 

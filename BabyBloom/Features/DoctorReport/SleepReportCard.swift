@@ -31,7 +31,7 @@ struct SleepReportCard: View {
         }
         if let longest = sleep.longest {
             ReportRow(format: "weekly.longest_sleep_fmt".l, value: ReportFormat.duration(longest),
-                      suffix: sleep.longestStart?.appDayMonth)
+                      suffix: sleep.longestStart.map { ReportFormat.date($0) })
         }
         ReportDaysLine(days: sleep.days, isShort: isShort)
     }
