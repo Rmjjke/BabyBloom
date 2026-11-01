@@ -254,6 +254,8 @@
   "confirm.delete_message": "This action cannot be undone.",
   "confirm.delete_message_hidden": "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone.",
   "confirm.delete_message_all": "All records will be deleted, including entries that are not shown. This action cannot be undone.",
+  "confirm.delete_message_events": "All events will be deleted. Pediatrician visits will be kept. This action cannot be undone.",
+  "confirm.delete_message_events_hidden": "All events will be deleted, including entries that are not shown. Pediatrician visits will be kept. This action cannot be undone.",
   "form.start_time": "Start",
   "form.end_time": "End",
   "settings.language": "Language",

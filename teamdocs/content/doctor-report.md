@@ -174,3 +174,11 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 ## Changes
 - 2026-11-01 — the report, the visit sheet and detail, questions, the PDF, the
   closed word list; `growth.head_fmt` gets its no-break space.
+- 2026-11-01 — `report.period_today`. Events' «Delete History» gets its own
+  confirm, `confirm.delete_message_events` / `_events_hidden`, because it
+  deletes events but keeps pediatrician visits, which also show as rows on
+  Events. The shared `confirm.delete_message_all` ("All records will be
+  deleted") would over-warn there. Like the shared pair, the `_hidden`
+  variant is for when the free window hides rows; the plain one is for the
+  rest. Both name the kept visits, because a parent sees them in the same
+  list.
