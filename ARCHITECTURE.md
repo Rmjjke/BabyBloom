@@ -892,10 +892,18 @@ because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
 
 **«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, M2)
-comes right after Growth in More. Today it holds the period line (②, tap →
-the visit detail) and the questions card (④ open questions, add, log the
-visit; ⑥ the questions asked at the latest visit, «Back to the list»). The
-report's data cards slot in under them and read the same `periodStart`. A
+comes right after Growth in More. Top to bottom: the name ①, the period line
+(②, tap → the visit detail), the age ③, the questions card (④ open
+questions, add, log the visit; ⑥ the questions asked at the latest visit,
+«Back to the list»), the four data cards ⑦ and the footnote ⑧. The numbers
+come from `DoctorReportSummary` (`Core/DoctorReport/`), pure and built from
+plain values through its store bridge, over `[periodStart, AppClock.now)`.
+It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
+card also runs on, with the REPORT's input: running timers out and a sleep
+that began before the period clipped to it — the weekly card counts a running
+feed and files a sleep whole on its start day, so those rules live in what
+each caller passes in, never in the core. The share button ⑩ comes with the
+PDF (m2-report-pdf). A
 visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
 through `.visitDetailSheet(item:)` — from the period line, Events and Recent
 activity. That modifier deletes in the sheet's `onDismiss`, after the sheet

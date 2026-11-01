@@ -14,6 +14,20 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-01 — The pediatrician report counts its period its own way, on the weekly card's day core
+
+`PeriodSummary` buckets any `[start, end)` into calendar days. The weekly card is a 7-day instance of it, and the report is "since the last visit". Each caller decides what goes in. The report differs from the weekly card in four places:
+- **Running timers are left out.** The weekly card counts a running feed.
+- **A sleep that began before the period counts only its part inside.** The weekly card files a sleep whole on its start day.
+- **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
+- **«Days with entries: N of M» counts today only once today has an entry of that kind.** Under 3 days, raw counts replace the averages.
+
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (D19's reason, applied per section). A days line that counted an untouched today would print «20 of 21» every morning before the first feed. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+
+**Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
+
+---
+
 ## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
 
 **No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
