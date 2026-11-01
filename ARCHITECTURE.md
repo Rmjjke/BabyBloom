@@ -213,7 +213,7 @@ question, and each carries its source in its header:
 
 | File | Question |
 |---|---|
-| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo). |
+| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo); length-for-age in `WHOGrowthStandard+Length` (same LMS code path, its own denser grid), for the M2 pediatrician report — no caller yet. |
 | `WeightVelocity` | Is enough going on? Gain against WHO 1-month weight-velocity increments. |
 | `GrowthTrend` | Is the baby holding its centile channel? Centile-space movement in EITHER direction — NICE faltering-growth thresholds for a fall, a flat two spaces for a rise. |
 | `NewbornWeightLoss` | The first two weeks, measured against birth weight — where a percentile is the wrong and actively frightening instrument. |
