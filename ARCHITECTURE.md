@@ -64,7 +64,12 @@ its history.
 asked at it (`askedAt` + `visit`) in the same save that writes it, and
 deleting a visit returns those questions to open before it goes; the
 visit→questions relationship is `.nullify`, which alone would leave them
-"asked" at nothing. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
+"asked" at nothing. A question is open when it has no `askedAt` OR no
+`visit` — the link is the truth, so a cross-device merge that leaves a stray
+stamp brings the question back instead of losing it. A visit's `date` is held
+at NOON of its day (`DoctorVisitActions.visitDay`), so it reads as the same
+day in any time zone a synced device sits in; readers take `startOfDay`. Every
+action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
 report's period starts: 00:00 of the latest visit's date (same date → the one
 logged last), else the birth day.
 

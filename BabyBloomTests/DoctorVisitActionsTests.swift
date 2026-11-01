@@ -43,7 +43,7 @@ final class DoctorVisitActionsTests: XCTestCase {
                                                     asking: [a, c], for: baby, calendar: calendar, in: context)
 
         XCTAssertFalse(context.hasChanges, "visit and stamps go out in the same save")
-        XCTAssertEqual(visit.date, date("2026-10-12T00:00:00Z"), "a visit is a day")
+        XCTAssertEqual(visit.date, date("2026-10-12T12:00:00Z"), "a visit is a day, held at its noon")
         XCTAssertEqual(visit.note, "All fine")
         XCTAssertIdentical(visit.baby, baby)
         XCTAssertEqual(a.askedAt, visit.date)
@@ -63,7 +63,7 @@ final class DoctorVisitActionsTests: XCTestCase {
         _ = try DoctorVisitActions.logVisit(date: date("2026-10-20T09:00:00Z"), note: nil,
                                             asking: [q], for: baby, calendar: calendar, in: context)
         XCTAssertIdentical(q.visit, first)
-        XCTAssertEqual(q.askedAt, date("2026-10-01T00:00:00Z"))
+        XCTAssertEqual(q.askedAt, date("2026-10-01T12:00:00Z"))
     }
 
     func testAnEmptyNoteIsNoNote() throws {
@@ -89,10 +89,10 @@ final class DoctorVisitActionsTests: XCTestCase {
                                                     asking: [q], for: baby, calendar: calendar, in: context)
         try DoctorVisitActions.update(visit, date: date("2026-10-11T18:00:00Z"), note: "y",
                                       calendar: calendar, in: context)
-        XCTAssertEqual(visit.date, date("2026-10-11T00:00:00Z"))
+        XCTAssertEqual(visit.date, date("2026-10-11T12:00:00Z"))
         XCTAssertEqual(visit.note, "y")
         XCTAssertIdentical(q.visit, visit, "R2.6: the asked questions stay asked at this visit")
-        XCTAssertEqual(q.askedAt, visit.date, "and their date follows the corrected visit date")
+        XCTAssertEqual(q.askedAt, date("2026-10-12T12:00:00Z"), "and are not touched by the edit")
     }
 
     /// Plan v2 decision 5: deleting a visit returns its questions, never deletes them.
@@ -154,6 +154,26 @@ final class DoctorVisitActionsTests: XCTestCase {
         XCTAssertTrue(q.isOpen)
         XCTAssertNil(q.visit)
         XCTAssertEqual(visit.questions?.count ?? 0, 0)
+    }
+
+    /// A merge of "delete visit" on one device with "edit visit" on another
+    /// can leave a stamp with no visit; the question must read as open.
+    func testAQuestionStampedAtNoVisitIsOpen() {
+        let q = DoctorQuestion(text: "Tummy sleep?")
+        q.askedAt = date("2026-10-12T12:00:00Z")
+        XCTAssertTrue(q.isOpen)
+        XCTAssertEqual(DoctorPeriod.openQuestions([q]).count, 1)
+    }
+
+    /// A visit logged at 23:30 in Moscow is still that day for a device in New York.
+    func testAVisitDayReadsTheSameDayAcrossTimeZones() throws {
+        var moscow = Calendar(identifier: .gregorian)
+        moscow.timeZone = TimeZone(identifier: "Europe/Moscow")!
+        var newYork = Calendar(identifier: .gregorian)
+        newYork.timeZone = TimeZone(identifier: "America/New_York")!
+        let stored = DoctorVisitActions.visitDay(date("2026-11-01T20:30:00Z"), calendar: moscow)
+        XCTAssertEqual(moscow.component(.day, from: stored), 1)
+        XCTAssertEqual(newYork.component(.day, from: stored), 1)
     }
 
     func testDeletingAnAskedQuestionLeavesTheVisit() throws {

@@ -54,7 +54,8 @@ final class DoctorPeriodTests: XCTestCase {
         let older = DoctorQuestion(text: "older"); older.createdAt = date("2026-10-02T10:00:00Z")
         let newer = DoctorQuestion(text: "newer"); newer.createdAt = date("2026-10-05T10:00:00Z")
         let asked = DoctorQuestion(text: "asked"); asked.createdAt = date("2026-10-01T10:00:00Z")
-        asked.askedAt = date("2026-10-20T00:00:00Z")
+        asked.askedAt = date("2026-10-20T12:00:00Z")
+        asked.visit = DoctorVisit(date: date("2026-10-20T12:00:00Z"))
         XCTAssertEqual(DoctorPeriod.openQuestions([newer, asked, older]).map(\.text), ["older", "newer"])
     }
 }

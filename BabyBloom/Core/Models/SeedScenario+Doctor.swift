@@ -100,7 +100,8 @@ extension SeedScenario {
         }
 
         func visit(day date: Date, created: Date, note: String? = nil) -> DoctorVisit {
-            let visit = DoctorVisit(date: date, note: note)
+            // Noon of the day, as `DoctorVisitActions.visitDay` stores a visit.
+            let visit = DoctorVisit(date: DoctorVisitActions.visitDay(date, calendar: cal), note: note)
             visit.createdAt = created
             visit.baby = baby
             context.insert(visit)

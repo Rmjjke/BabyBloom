@@ -40,6 +40,8 @@ No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingTy
 - The Events tab, the weekly summary and the export all read every event, so a parent with an iPad still on the old version would have a crashing iPad.
 - Unknown record types and unknown attributes are what an older build CAN handle: `NSPersistentCloudKitContainer` imports only the record types its model knows.
 
+**A visit's date is stored at noon of its day.** It is not stored at midnight. The format is fixed once 1.2 ships, so the reason is recorded here: a visit stored at 00:00 Moscow time reads as the previous day on a device in New York (the second parent's iPad, a trip). That would move the report's period start. Noon survives any offset up to ±11 h.
+
 **Rejected:** a tolerant decoder (a String attribute plus a computed enum with a fallback case). It would protect only the builds that ship it. Every 1.1 device already installed keeps the trapping decoder.
 
 ---

@@ -17,7 +17,8 @@ import SwiftData
 @Model
 final class DoctorVisit {
     var id: UUID = UUID()
-    /// The day of the visit; stored at its start of day, the time means nothing.
+    /// The day of the visit, stored at NOON of it so it reads as the same day
+    /// in any time zone a synced device is in (`DoctorVisitActions.visitDay`).
     var date: Date = Date()
     var note: String?
     var createdAt: Date = Date()
@@ -56,5 +57,8 @@ final class DoctorQuestion {
         self.createdAt = Date()
     }
 
-    var isOpen: Bool { askedAt == nil }
+    /// The link is the truth: two devices merging a visit's delete with an
+    /// edit of it can leave `askedAt` set on a question with no visit, and
+    /// such a question must come back to the open list, not vanish.
+    var isOpen: Bool { askedAt == nil || visit == nil }
 }

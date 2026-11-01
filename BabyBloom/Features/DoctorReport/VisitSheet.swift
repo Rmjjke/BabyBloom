@@ -14,6 +14,9 @@ struct VisitSheet: View {
     @State private var note = ""
     @State private var checked: Set<PersistentIdentifier>
     @State private var detent: PresentationDetent = .large
+    // The check glyphs grow with the question text at AX sizes.
+    @ScaledMetric(relativeTo: .body) private var checkGlyph: CGFloat = 17
+    @ScaledMetric(relativeTo: .body) private var circleGlyph: CGFloat = 22
     // Read once: the range's upper bound and the default date must agree.
     private let now: Date
 
@@ -90,15 +93,15 @@ struct VisitSheet: View {
                 Group {
                     if isChecked {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.system(size: checkGlyph, weight: .semibold))
                             .foregroundStyle(BBTheme.Colors.primary)
                     } else {
                         Image(systemName: "circle")
-                            .font(.system(size: 22))
+                            .font(.system(size: circleGlyph))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                     }
                 }
-                .frame(width: 24)
+                .frame(width: circleGlyph + 2)
                 .accessibilityHidden(true)
 
                 BBTheme.Typography.body(question.text)

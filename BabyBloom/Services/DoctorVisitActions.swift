@@ -38,6 +38,28 @@ enum DoctorVisitActions {
         String(text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(limit))
     }
 
+    /// A visit is a DAY, stored at noon of it. Midnight would move it to the
+    /// day before on a device a few time zones west — the second parent's
+    /// iPad abroad — and with it the report's period start. Noon survives any
+    /// offset up to ±11 h; readers take `startOfDay` of it.
+    nonisolated static func visitDay(_ date: Date, calendar: Calendar) -> Date {
+        let day = calendar.startOfDay(for: date)
+        return calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+    }
+
+    /// Saves, or throws with the context put back as it was: a failed
+    /// `logVisit` would otherwise leave the visit inserted and the questions
+    /// stamped, so a retry writes a second, empty visit and autosave later
+    /// persists the first one anyway.
+    private static func commit(_ context: ModelContext) throws {
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
     // MARK: Visits
 
     /// Writes the visit and stamps every question in `asking` as asked at it,
@@ -52,7 +74,7 @@ enum DoctorVisitActions {
                          for baby: Baby?,
                          calendar: Calendar = .current,
                          in context: ModelContext) throws -> DoctorVisit {
-        let day = calendar.startOfDay(for: date)
+        let day = visitDay(date, calendar: calendar)
         let visit = DoctorVisit(date: day, note: clampedNote(note))
         visit.baby = baby
         context.insert(visit)
@@ -60,24 +82,22 @@ enum DoctorVisitActions {
             question.askedAt = day
             question.visit = visit
         }
-        try context.save()
+        try commit(context)
         return visit
     }
 
-    /// Date and note only (R2.6). The questions keep their stamps; their
-    /// `askedAt` follows the new date so "asked at the visit on …" stays true.
+    /// Date and note only (R2.6). The questions are not touched: "asked at
+    /// the visit on …" reads the visit's date, and rewriting their `askedAt`
+    /// here could race a delete of the same visit on another device into a
+    /// question stamped "asked" at no visit.
     static func update(_ visit: DoctorVisit,
                        date: Date,
                        note: String?,
                        calendar: Calendar = .current,
                        in context: ModelContext) throws {
-        let day = calendar.startOfDay(for: date)
-        visit.date = day
+        visit.date = visitDay(date, calendar: calendar)
         visit.note = clampedNote(note)
-        for question in visit.questions ?? [] {
-            question.askedAt = day
-        }
-        try context.save()
+        try commit(context)
     }
 
     /// Returns the visit's questions to open, then deletes it (R2.7). Returns
@@ -90,7 +110,7 @@ enum DoctorVisitActions {
             question.visit = nil
         }
         context.delete(visit)
-        try context.save()
+        try commit(context)
         return returned.count
     }
 
@@ -107,7 +127,7 @@ enum DoctorVisitActions {
         let question = DoctorQuestion(text: clamped)
         question.baby = baby
         context.insert(question)
-        try context.save()
+        try commit(context)
         return question
     }
 
@@ -116,18 +136,18 @@ enum DoctorVisitActions {
         let clamped = clampedQuestion(text)
         guard !clamped.isEmpty else { return }
         question.text = clamped
-        try context.save()
+        try commit(context)
     }
 
     static func delete(_ question: DoctorQuestion, in context: ModelContext) throws {
         context.delete(question)
-        try context.save()
+        try commit(context)
     }
 
     /// "Back to open" (R3.4).
     static func reopen(_ question: DoctorQuestion, in context: ModelContext) throws {
         question.askedAt = nil
         question.visit = nil
-        try context.save()
+        try commit(context)
     }
 }

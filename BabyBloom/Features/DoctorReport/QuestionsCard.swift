@@ -69,6 +69,7 @@ struct QuestionsCard: View {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: chevron, weight: .semibold))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
+                                .accessibilityHidden(true)
                         }
                         .padding(.vertical, BBTheme.Spacing.sm)
                         .frame(minHeight: 44)
@@ -90,6 +91,7 @@ struct QuestionsCard: View {
             HStack(spacing: BBTheme.Spacing.sm) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: addGlyph))
+                    .accessibilityHidden(true)
                 BBTheme.Typography.callout("question.add".l)
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.leading)
@@ -127,11 +129,13 @@ struct QuestionsCard: View {
                         // Under Reduce Motion the glyph flips with the fade,
                         // not as a separate spin.
                         .rotationEffect(.degrees(askedExpanded ? 180 : 0))
+                        .accessibilityHidden(true)
                 }
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityValue(askedExpanded ? "weekly.a11y_expanded".l : "weekly.a11y_collapsed".l)
             .accessibilityIdentifier("doctor.asked.toggle")
 
             if askedExpanded {

@@ -74,7 +74,7 @@ final class SeedScenarioDoctorTests: XCTestCase {
         let c = try seeded(.doctorVisitToday)
         let visits = try all(DoctorVisit.self, c)
         XCTAssertEqual(visits.count, 2)
-        XCTAssertEqual(DoctorPeriod.latestVisit(visits)?.date, today)
+        XCTAssertEqual(DoctorPeriod.latestVisit(visits).map { Calendar.current.startOfDay(for: $0.date) }, today)
         XCTAssertTrue(try all(FeedingEntry.self, c).allSatisfy { $0.startTime < today })
         XCTAssertTrue(try all(SleepEntry.self, c).allSatisfy { $0.startTime < today })
         XCTAssertTrue(try all(DiaperEntry.self, c).allSatisfy { $0.time < today })

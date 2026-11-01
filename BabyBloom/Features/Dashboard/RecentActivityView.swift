@@ -47,7 +47,7 @@ struct RecentActivityView: View {
 
     /// `model` plus the visits, which bypass the window and the cap: the report
     /// starts from a visit, so one behind the lock would hide that record.
-    private var rows: [RecentEvent] {
+    private func rows(of model: HistoryWindow.List<RecentEvent>) -> [RecentEvent] {
         HistoryMerge.merge(model.visible,
                            exempt: DoctorPeriod.newestFirst(visits).map(RecentEvent.visit),
                            date: \.eventTime)
@@ -57,7 +57,7 @@ struct RecentActivityView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
                 let model = self.model
-                let rows = self.rows
+                let rows = self.rows(of: model)
                 if model.deletable.isEmpty && visits.isEmpty {
                     Text("empty.today_no_records".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))

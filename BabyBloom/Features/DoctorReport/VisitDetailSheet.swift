@@ -14,6 +14,7 @@ struct VisitDetailSheet: View {
     @State private var editDate = Date()
     @State private var editNote = ""
     @State private var showDeleteAlert = false
+    @ScaledMetric(relativeTo: .callout) private var checkGlyph: CGFloat = 13
 
     private let visitID: PersistentIdentifier
 
@@ -118,7 +119,7 @@ struct VisitDetailSheet: View {
                 ForEach(Array(asked.enumerated()), id: \.element.persistentModelID) { index, question in
                     HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 13))
+                            .font(.system(size: checkGlyph))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                             .accessibilityHidden(true)
                         BBTheme.Typography.callout(question.text)
