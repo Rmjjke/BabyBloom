@@ -3,6 +3,9 @@ import SwiftData
 
 struct EventsView: View {
     @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
+    @Query(sort: [SortDescriptor(\DoctorVisit.date, order: .reverse),
+                  SortDescriptor(\DoctorVisit.createdAt, order: .reverse)])
+    private var visits: [DoctorVisit]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
@@ -10,6 +13,7 @@ struct EventsView: View {
     @State private var showAddSheet = false
     /// The create gate and the history footer both sell; the source says which.
     @State private var paywallSource: AnalyticsEvent.PaywallSource?
+    @State private var detailVisit: DoctorVisit?
 
     var body: some View {
         NavigationStack {
@@ -56,6 +60,7 @@ struct EventsView: View {
         .sheet(item: $paywallSource) { source in
             PaywallView(source: source)
         }
+        .visitDetailSheet(item: $detailVisit)
     }
 
     /// The single gate for creating an event on this screen. Both creation
@@ -112,18 +117,18 @@ struct EventsView: View {
     /// would promise a subscription unlocks rows a subscriber does not get
     /// either. `HistoryWindow` then suppresses the footer entirely whenever
     /// the CAP, not the window, is what is costing rows.
-    private var model: HistoryWindow.List<CustomEvent> {
-        HistoryWindow.list(events,
-                           date: { $0.time },
-                           cutoff: store.historyCutoff,
-                           cap: 20)
+    ///
+    /// Visits are merged in after both, so they bypass the window and the cap
+    /// (see `EventsHistory`).
+    private var model: EventsHistory {
+        EventsHistory(events: events, visits: visits, cutoff: store.historyCutoff)
     }
 
     private var historySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.history")
             let model = self.model
-            if model.deletable.isEmpty {
+            if model.showsEmptyState {
                 EmptyStateView(
                     icon: "star.fill",
                     color: BBTheme.Colors.events,
@@ -132,20 +137,38 @@ struct EventsView: View {
                 )
             } else {
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    ForEach(model.visible) { event in
-                        SwipeToDeleteRow(onDelete: { delete(event) }) {
-                            BBEventRow(
-                                icon: event.type.icon,
-                                iconColor: Color(hex: event.type.colorHex),
-                                title: event.type.displayName.l,
-                                subtitle: event.notes ?? (event.mood?.displayName.l ?? ""),
-                                time: event.time.appTimeOfDay,
-                                trailing: event.time.appDayMonth
-                            )
+                    ForEach(model.rows) { row in
+                        switch row {
+                        case .event(let event):
+                            SwipeToDeleteRow(onDelete: { delete(event) }) {
+                                BBEventRow(
+                                    icon: event.type.icon,
+                                    iconColor: Color(hex: event.type.colorHex),
+                                    title: event.type.displayName.l,
+                                    subtitle: event.notes ?? (event.mood?.displayName.l ?? ""),
+                                    time: event.time.appTimeOfDay,
+                                    trailing: event.time.appDayMonth
+                                )
+                            }
+                        case .visit(let visit):
+                            // No swipe: a visit changes only in its detail
+                            // (R5.4), never from a list.
+                            Button { detailVisit = visit } label: {
+                                BBEventRow(
+                                    icon: "stethoscope",
+                                    iconColor: BBTheme.Colors.events,
+                                    title: "visit.title".l,
+                                    subtitle: DoctorPeriod.noteFirstLine(visit.note) ?? "",
+                                    time: visit.date.appDayMonth
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("report.a11y_period_hint".l)
+                            .accessibilityIdentifier("events.visit_row.\(visitNumber(of: visit, in: model.rows))")
                         }
                     }
                 }
-                if model.showsLockedFooter {
+                if model.events.showsLockedFooter {
                     BBLockedHistoryFooter(surface: .events) { paywallSource = .historyLock }
                 }
                 // This screen is the one windowed surface with no swipe reach
@@ -159,12 +182,29 @@ struct EventsView: View {
                 // confirmation must not borrow the other screens' "in the
                 // selected period" — there is no period, and the phrase would
                 // understate an irreversible wipe of the whole event history.
-                BBDeleteHistoryButton(scope: .everything,
-                                      deletesHiddenRows: model.deletesRowsNotShown) {
-                    deleteAll(model.deletable)
+                //
+                // Events only: the visits listed above are kept, so the
+                // confirm uses the events-only texts, and the button is
+                // absent when no event exists.
+                if model.showsDeleteAll {
+                    BBDeleteHistoryButton(scope: .everything,
+                                          deletesHiddenRows: model.events.deletesRowsNotShown,
+                                          messageKey: "confirm.delete_message_events",
+                                          hiddenMessageKey: "confirm.delete_message_events_hidden") {
+                        deleteAll(model.events.deletable)
+                    }
                 }
             }
         }
+    }
+
+    /// 1-based position among the visit rows, for the UI-test identifier.
+    private func visitNumber(of visit: DoctorVisit, in rows: [EventsHistoryRow]) -> Int {
+        let visitIDs = rows.compactMap { row -> PersistentIdentifier? in
+            if case .visit(let v) = row { return v.persistentModelID }
+            return nil
+        }
+        return (visitIDs.firstIndex(of: visit.persistentModelID) ?? 0) + 1
     }
 
     private func quickAdd(_ type: CustomEvent.EventType) {

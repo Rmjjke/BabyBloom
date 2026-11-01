@@ -14,6 +14,20 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
+
+**No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
+
+**Why.** It follows from 2026-09-23 (no care timeline). Each event carries its own client time under a persistent id, so a `doctor_visit_logged` event would tell the backend the day this baby saw a pediatrician. In the Flo Health sense, that is health information revealed by an event. A presence flag in the daily aggregate would leak the same day. An event shaped for privacy, such as a once-per-install marker, buys nothing a product question needs today. If report usage ever matters, that is its own reviewed decision, not an extension of this one. The question and note texts could never reach a payload anyway, because the payload is typed.
+
+**Visit rows in Events and Recent activity are free.** They sit outside the 15-day window and the 20-row cap, and they are read-only: a visit changes only in its detail. The locked footer and «Delete History» keep counting events only. The Events confirm text says the visits are kept.
+
+**Why.** Logging a visit is free (plan v2, decision 4), and the visit is where the report's period starts. A visit hidden behind the lock would hide the record the free report is measured from. Deleting visits from a list would split the "questions go back to open" rule across three screens.
+
+**The doctor sheets never ask for a rating.** They use plain `.sheet`, never `.entrySheet` (2026-09-22). A question for the pediatrician is often a worry.
+
+---
+
 ## 2026-11-01 — A persisted enum is closed while older versions sync; visits and questions are new models
 
 No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingType`/`BreastSide`, `DiaperEntry.DiaperType`/`StoolColor`, `CustomEvent.EventType`/`MoodLevel`, `Baby.Gender`/`FeedingType`, `SleepEntry.SleepType`/`SleepLocation`.
