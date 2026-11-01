@@ -8,13 +8,19 @@ import CloudKit
 struct ICloudStatusRow: View {
     /// nil until CloudKit answers: no value rather than a guessed one.
     @State private var isOn: Bool?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack {
+            // Value under the label at accessibility sizes: side by side, ru
+            // AX2 broke «Синхро / низация» and «Выключен / а» (Q-013).
+            let row = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                : AnyLayout(HStackLayout())
+            row {
                 Label("settings.icloud".l, systemImage: "icloud.fill")
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
+                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                 if let isOn {
                     Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
                         .foregroundStyle(BBTheme.Colors.textSecondary)

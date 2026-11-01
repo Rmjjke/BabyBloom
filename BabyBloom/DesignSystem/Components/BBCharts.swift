@@ -239,8 +239,11 @@ struct BBWeeklyBarChart: View {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
                     AxisGridLine()
                         .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.06))
+                    // Whole values only: on a 0…1 domain the marks fall at 0,
+                    // 0.5 and 1, and an Int label printed the middle one as a
+                    // second "0" (Q-012). Its grid line stays, unlabelled.
                     AxisValueLabel {
-                        if let v = value.as(Double.self) {
+                        if let v = value.as(Double.self), v == v.rounded() {
                             Text("\(Int(v))")
                                 .font(.system(size: 11, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)

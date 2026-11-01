@@ -92,6 +92,18 @@ struct DashboardView: View {
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
+            // No navigation bar here, so nothing backs the status bar: scrolled
+            // text drew under the clock (CHECK 4). A strip as tall as the top
+            // inset, shifted up by it, covers exactly that band (a zero-height
+            // strip with ignoresSafeArea did not, live).
+            .overlay(alignment: .top) {
+                GeometryReader { proxy in
+                    BBTheme.Colors.background
+                        .frame(height: proxy.safeAreaInsets.top)
+                        .offset(y: -proxy.safeAreaInsets.top)
+                }
+                .allowsHitTesting(false)
+            }
             .navigationBarHidden(true)
         }
         // `entrySheet`: a save inside any of these asks for the review prompt

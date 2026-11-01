@@ -226,6 +226,7 @@ struct FeedingView: View {
 
 // MARK: - Timer Card
 struct FeedingTimerCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let entry: FeedingEntry
     /// Through TimerActions, so the side is saved and the Lock Screen title follows.
     let onSideChange: (FeedingEntry.BreastSide) -> Void
@@ -233,7 +234,12 @@ struct FeedingTimerCard: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            HStack {
+            // The timer under the title at accessibility sizes: beside the wide
+            // AX2 digits the title's column broke «Сцеженное» mid-word (Q-013).
+            let header = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
+                : AnyLayout(HStackLayout())
+            header {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("tab.feeding".l)
                         .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -241,13 +247,19 @@ struct FeedingTimerCard: View {
                     BBTheme.Typography.title3(entry.displayTitle)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
-                Spacer()
+                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
                 BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.feeding)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             // Breast side switcher (for breast feeding)
             if entry.type == .breast {
-                HStack(spacing: BBTheme.Spacing.sm) {
+                // One pill per row at accessibility sizes: three in a row broke
+                // «Правая» inside the word (Q-013).
+                let pills = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
+                    : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
+                pills {
                     ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
                         Button {
                             onSideChange(side)
@@ -267,6 +279,10 @@ struct FeedingTimerCard: View {
                         .buttonStyle(BBScaleButtonStyle())
                     }
                 }
+                // Under the stacked header, flush left with it; centred as before
+                // in a row.
+                .frame(maxWidth: .infinity,
+                       alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
             }
 
             BBPrimaryButton("button.finish".l, icon: "stop.fill") {
@@ -310,6 +326,7 @@ private struct FeedingSheetRequest: Identifiable {
 }
 
 struct AddFeedingSheet: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
@@ -390,7 +407,12 @@ struct AddFeedingSheet: View {
                                 .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                            HStack(spacing: BBTheme.Spacing.sm) {
+                            // Stacked at accessibility sizes, as the timer
+                            // card's pills: «Прав / ая», «Izquie / rdo» (Q-013).
+                            let chips = dynamicTypeSize.isAccessibilitySize
+                                ? AnyLayout(VStackLayout(spacing: BBTheme.Spacing.sm))
+                                : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
+                            chips {
                                 ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
                                     Button {
                                         selectedSide = side
