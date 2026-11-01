@@ -54,7 +54,9 @@ enum WHOGrowthStandard {
     }
 
     /// The lookup both tables share: weight-for-age here, length-for-age in
-    /// `WHOGrowthStandard+Length.swift`. Both are stored on the same day grid.
+    /// `WHOGrowthStandard+Length.swift`. Each table has its OWN day grid (see
+    /// that file for why length's is denser); this only needs rows sorted by
+    /// ascending `day`, starting at day 0.
     static func lms(in table: [Node], ageDays: Int) -> LMS? {
         guard ageDays >= 0, ageDays <= maxAgeDays else { return nil }
 

@@ -32,9 +32,9 @@ invisible in review. Generating from WHO's file and cross-checking against a
 second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
 lengths to ±0.1 percentile.
 
-**Rejected: reusing the weight table's day grid.** Length's S is about a
-quarter of weight's, so the same interpolation error in centimetres is four
-times the error in z. At the median, where one z moves the percentile most,
+**Rejected: reusing the weight table's day grid.** The z error of an
+interpolated median is about δM / (M·S), and length's S is about a quarter of
+weight's, so the same relative error in M costs four times as much z. At the median, where one z moves the percentile most,
 that reached 0.31 of a percentile and failed the ±0.1 test at day 45. The
 length grid is daily to 30 days, every third day to 182, then weekly (161 nodes
 per sex): under 0.022 of a percentile anywhere in −3…+3 z.

@@ -61,24 +61,25 @@ final class WHOLengthStandardTests: XCTestCase {
         }
     }
 
-    /// The same budget the weight tests use: 0.02 z covers the 3-decimal
-    /// rounding plus the grid's interpolation error with room to spare.
+    /// Tighter than the weight tests' 0.02 z: measured worst here is 0.0004 z
+    /// (3-decimal rounding plus interpolation), and 0.02 would pass a slipped
+    /// −3 SD row unnoticed.
     func testZScoresMatchPublishedSDLines() throws {
         for point in Self.sdLines {
             let z = try XCTUnwrap(WHOGrowthStandard.lengthZScore(
                 lengthCm: point.cm, ageDays: point.day, isMale: point.male))
-            XCTAssertEqual(z, point.z, accuracy: 0.02, "day \(point.day), male=\(point.male)")
+            XCTAssertEqual(z, point.z, accuracy: 0.002, "day \(point.day), male=\(point.male)")
         }
     }
 
-    /// The inverse against the same table. 0.02 z is at most 0.07 cm here
-    /// (M × S peaks at 730 days: 87.8 × 0.0348 ≈ 3.06 cm per z), so 0.07 is
-    /// the z budget converted at the worst rate, not a looser test.
+    /// The inverse against the same table: 0.002 z at the worst rate (girls,
+    /// 730 days: 86.4 × 0.0373 ≈ 3.23 cm per z) is 0.0065 cm, so 0.01 cm is
+    /// the z budget converted, not a looser test.
     func testLengthAtZMatchesPublishedSDLines() throws {
         for point in Self.sdLines {
             let cm = try XCTUnwrap(WHOGrowthStandard.length(
                 atZ: point.z, ageDays: point.day, isMale: point.male))
-            XCTAssertEqual(cm, point.cm, accuracy: 0.07, "day \(point.day), male=\(point.male), z=\(point.z)")
+            XCTAssertEqual(cm, point.cm, accuracy: 0.01, "day \(point.day), male=\(point.male), z=\(point.z)")
         }
     }
 
@@ -100,11 +101,18 @@ final class WHOLengthStandardTests: XCTestCase {
         XCTAssertEqual(girl.m, 49.1477, accuracy: 1e-9)
     }
 
-    /// Weight scoring did not move when the lookup was shared with length.
-    func testWeightLookupIsUnchanged() throws {
-        let c = try XCTUnwrap(WHOGrowthStandard.lms(ageDays: 0, isMale: true))
-        XCTAssertEqual(c.l, 0.3487, accuracy: 1e-9)
-        XCTAssertEqual(c.m, 3.3464, accuracy: 1e-9)
-        XCTAssertEqual(c.s, 0.14602, accuracy: 1e-9)
+    /// A cheap guard on the generated table against a hand edit: every day
+    /// resolves, `l` is 1, and the median length rises day by day.
+    func testTheTableIsWellFormedOnEveryDay() throws {
+        for isMale in [true, false] {
+            var previous = 0.0
+            for day in 0...WHOGrowthStandard.maxAgeDays {
+                let c = try XCTUnwrap(WHOGrowthStandard.lengthLMS(ageDays: day, isMale: isMale))
+                XCTAssertEqual(c.l, 1, "day \(day), male=\(isMale)")
+                XCTAssertGreaterThan(c.m, previous, "day \(day), male=\(isMale)")
+                XCTAssertTrue((0.03...0.04).contains(c.s), "day \(day), male=\(isMale), s=\(c.s)")
+                previous = c.m
+            }
+        }
     }
 }

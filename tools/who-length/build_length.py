@@ -7,7 +7,7 @@ Usage (from the repo root; DL = a fresh, empty download folder):
     curl -sSL -o $DL/boys-z.xlsx  "$B/lhfa-boys-zscore-expanded-tables.xlsx"
     curl -sSL -o $DL/girls-z.xlsx "$B/lhfa-girls-zscore-expanded-tables.xlsx"
     curl -sSL -o $DL/lenanthro.txt https://raw.githubusercontent.com/WorldHealthOrganization/anthro/master/data-raw/growthstandards/lenanthro.txt
-    python3 -I tools/who-length/build_length.py tools/who-length $DL /dev/null > nodes.swift 2> reference.txt
+    python3 -I -B tools/who-length/build_length.py tools/who-length $DL > nodes.swift 2> reference.txt
     cat tools/who-length/length-head.swift nodes.swift > BabyBloom/Core/Growth/WHOGrowthStandard+Length.swift
     echo "}" >> BabyBloom/Core/Growth/WHOGrowthStandard+Length.swift
 reference.txt carries the cross-check result, the grid's measured error and
@@ -20,7 +20,6 @@ the P3/P50/P97 and SD reference points used by WHOLengthStandardTests.
 - prints the Swift node arrays and the test reference points.
 """
 import math
-import re
 import sys
 
 sys.path.insert(0, sys.argv[1])
@@ -43,6 +42,12 @@ def daily(path):
 
 tables = {True: daily(f"{DL}/boys-p.xlsx"), False: daily(f"{DL}/girls-p.xlsx")}
 ztables = {True: daily(f"{DL}/boys-z.xlsx"), False: daily(f"{DL}/girls-z.xlsx")}
+assert all(len(t) == 731 for t in ztables.values())
+# The z-score file must carry the same LMS rows as the percentile file.
+for male in (True, False):
+    for d in range(731):
+        p, z = tables[male][d], ztables[male][d]
+        assert (p["L"], p["M"], p["S"]) == (z["L"], z["M"], z["S"]), (male, d)
 assert all(len(t) == 731 for t in tables.values())
 
 # Cross-check against anthro.
@@ -59,8 +64,9 @@ for male, t in tables.items():
 print("// LMS: WHO xlsx == anthro lenanthro.txt for days 0...730, both sexes; L == 1 everywhere; all rows recumbent length", file=sys.stderr)
 
 # Length grid: daily to 30 days, every 3 days to 182, weekly to 730, plus 730.
-# Measured (grid_pct.py): the weight grid reaches 0.31 percentile at the median,
-# where one z moves the percentile most; this one stays under 0.03.
+# Measured with the error loop below: the weight table's grid reaches 0.31
+# percentile at the median, where one z moves the percentile most; this one
+# stays under 0.022.
 days = sorted(set(list(range(0, 31)) + list(range(30, 183, 3)) + list(range(182, 731, 7)) + [730]))
 print("// test days that are nodes:", [d for d in (0, 45, 183, 365, 730) if d in days], file=sys.stderr)
 
@@ -107,7 +113,8 @@ for male, name in ((True, "lengthBoys"), (False, "lengthGirls")):
         print()
 
 # Test reference: P3 / P50 / P97 at birth, 6, 12, 24 months (days 0, 183, 365, 730)
-# plus day 45 between grid nodes; and SD lines -2/0/+2 at the same days.
+# plus day 45; and the SD lines -3/-2/0/+2 at the same days. Which of them
+# are grid nodes is printed above.
 print("// percentile reference", file=sys.stderr)
 for male in (True, False):
     for d in (0, 45, 183, 365, 730):

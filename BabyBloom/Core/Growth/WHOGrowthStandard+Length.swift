@@ -28,6 +28,11 @@ import Foundation
 /// percentile anywhere in −3…+3 z.
 ///
 /// Ages are in days and, as for weight, the CORRECTED age for a preterm baby.
+/// A caller scoring a measurement by its date takes the age from
+/// `correctedAgeDaysIfBorn` (nil before term — never the clamped age, which
+/// scores a preterm birth length against the term newborn curve), and a
+/// surface that shows the number takes `PercentileReading`'s beyond-chart
+/// honesty rather than a bare clamped "1" or "99".
 extension WHOGrowthStandard {
 
     /// Interpolated length-for-age coefficients, or `nil` outside 0…730 days.
