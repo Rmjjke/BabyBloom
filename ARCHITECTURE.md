@@ -36,16 +36,37 @@ structure below.
 
 ## Domain model
 
-Six `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`.
+Eight `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the M2 pair
+`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`). They are listed ONCE,
+in `AppSchema.models`, and every container — app, widget, tests — opens the
+store through `AppSchema.schema`; `AppSchemaTests` pins the list.
+
+**A persisted enum is closed.** Enum properties (`CustomEvent.type`,
+`FeedingEntry.side`, …) are stored as their raw value. A build that reads a
+value it does not know — one written by a newer version and delivered by
+CloudKit — crashes in SwiftData's decoder, on every launch. A new kind of
+record is therefore a new model or a new optional attribute, never a new
+case; `FrozenPersistedEnumTests` fails on a new case with that explanation
+(DECISIONS 2026-11-01).
 
 **Every stored property has a default value and every relationship is
 optional.** That is not style — it is what CloudKit requires of a mirrored
 SwiftData schema. A new non-optional property without a default will compile
 and then fail at container creation, at launch, in `fatalError`.
 
-`Baby` owns the five entry types with `deleteRule: .cascade` and an explicit
-`inverse:`. Deleting the baby deletes its history.
+`Baby` owns the five entry types, the visits and the questions with
+`deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
+its history.
+
+**Visits and questions change only through `DoctorVisitActions`**
+(`Services/`), the same idea as `TimerActions`. A visit stamps the questions
+asked at it (`askedAt` + `visit`) in the same save that writes it, and
+deleting a visit returns those questions to open before it goes; the
+visit→questions relationship is `.nullify`, which alone would leave them
+"asked" at nothing. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
+report's period starts: 00:00 of the latest visit's date (same date → the one
+logged last), else the birth day.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -96,8 +117,16 @@ in this repo, CloudKit mirrors the store.
 
 The widget opens **the same store with `cloudKitDatabase: .none`**. A widget
 extension must not drive sync — the app target owns it. Because the models
-are CloudKit-compatible, `.none` reads the identical store with no schema
-mismatch.
+are CloudKit-compatible and the widget uses the app's own `AppSchema`, `.none`
+reads the identical store with no schema mismatch. A widget list that lacked
+a model would open the store as another model version, and a lightweight
+migration may drop the tables it does not know.
+
+**A new model needs the CloudKit schema deployed to Production** (CloudKit
+Console → Deploy Schema Changes) before the build that adds it ships.
+TestFlight and App Store builds sync against Production, where the new record
+types do not exist until deployed; without that the new records never sync,
+and nothing reports it. It is an owner step on the release card.
 
 Two consequences worth knowing before you debug something:
 

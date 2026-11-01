@@ -12,10 +12,8 @@ import SwiftData
 enum WidgetDataStore {
     static let appGroupIdentifier = "group.com.nenita.app"
 
-    private static let schema = Schema([
-        Baby.self, FeedingEntry.self, SleepEntry.self,
-        DiaperEntry.self, GrowthEntry.self, CustomEvent.self
-    ])
+    // The app's own list, never a copy of it (see AppSchema).
+    private static let schema = AppSchema.schema
 
     // ModelContainer is Sendable, so this can be a plain (non-isolated) static.
     static let shared: ModelContainer? = {

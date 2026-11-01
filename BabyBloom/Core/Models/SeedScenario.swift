@@ -181,6 +181,8 @@ enum SeedScenario: String, CaseIterable {
         for entry in (try? context.fetch(FetchDescriptor<DiaperEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<GrowthEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<CustomEvent>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorQuestion>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorVisit>())) ?? [] { context.delete(entry) }
         for baby in (try? context.fetch(FetchDescriptor<Baby>())) ?? [] { context.delete(baby) }
     }
 

@@ -28,6 +28,8 @@ final class Baby {
     @Relationship(deleteRule: .cascade, inverse: \DiaperEntry.baby) var diaperEntries: [DiaperEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \GrowthEntry.baby) var growthEntries: [GrowthEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \CustomEvent.baby) var customEvents: [CustomEvent]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorVisit.baby) var doctorVisits: [DoctorVisit]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorQuestion.baby) var doctorQuestions: [DoctorQuestion]? = []
 
     init(name: String, birthDate: Date, gender: Gender, feedingType: FeedingType) {
         self.id = UUID()

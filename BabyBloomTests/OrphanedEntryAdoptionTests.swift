@@ -8,8 +8,7 @@ import SwiftData
 final class OrphanedEntryAdoptionTests: XCTestCase {
 
     private func makeContext() throws -> ModelContext {
-        let schema = Schema([Baby.self, FeedingEntry.self, SleepEntry.self,
-                             DiaperEntry.self, GrowthEntry.self, CustomEvent.self])
+        let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
             configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]

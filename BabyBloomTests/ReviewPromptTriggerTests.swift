@@ -32,8 +32,7 @@ final class ReviewPromptTriggerTests: XCTestCase {
         // Every threshold met, so any refusal below is the routing's doing.
         service.recordFirstLaunchIfNeeded(
             now: ReviewPromptTestClock.noon.addingTimeInterval(-10 * 86_400))
-        let schema = Schema([Baby.self, FeedingEntry.self, SleepEntry.self,
-                             DiaperEntry.self, GrowthEntry.self, CustomEvent.self])
+        let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
             configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]
