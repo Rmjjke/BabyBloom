@@ -115,4 +115,39 @@ final class WHOLengthStandardTests: XCTestCase {
             }
         }
     }
+
+    // MARK: Reading (the report's row)
+
+    private let birth = ISO8601DateFormatter().date(from: "2026-01-01T12:00:00Z")!
+
+    private func day(_ n: Int) -> Date { birth.addingTimeInterval(Double(n) * 86_400) }
+
+    /// A length far below the chart reads as «< 3», never as a measured "1".
+    func testALengthBeyondTheChartSaysSo() throws {
+        let low = try XCTUnwrap(WHOGrowthStandard.lengthPercentileReading(
+            lengthCm: 40, measuredOn: day(30), correctedBirthDate: birth, isMale: true))
+        XCTAssertTrue(low.isBeyondChart)
+        XCTAssertEqual(low.percentile, 1)
+        let median = try XCTUnwrap(WHOGrowthStandard.lengthPercentileReading(
+            lengthCm: 49.8842, measuredOn: birth, correctedBirthDate: birth, isMale: true))
+        XCTAssertFalse(median.isBeyondChart)
+        XCTAssertEqual(median.percentile, 50)
+    }
+
+    /// Before the corrected birth date there is no honest number (preterm).
+    func testNoReadingBeforeTheDueDate() {
+        XCTAssertNil(WHOGrowthStandard.lengthPercentileReading(
+            lengthCm: 42, measuredOn: day(-20), correctedBirthDate: birth, isMale: false))
+    }
+
+    /// Scored at the measurement's own date: the same 56.6 cm is the median at
+    /// 45 days and well below it at 120.
+    func testTheReadingUsesTheMeasurementsOwnAge() throws {
+        let at45 = try XCTUnwrap(WHOGrowthStandard.lengthPercentileReading(
+            lengthCm: 56.606, measuredOn: day(45), correctedBirthDate: birth, isMale: true))
+        let at120 = try XCTUnwrap(WHOGrowthStandard.lengthPercentileReading(
+            lengthCm: 56.606, measuredOn: day(120), correctedBirthDate: birth, isMale: true))
+        XCTAssertEqual(at45.percentile, 50)
+        XCTAssertLessThan(at120.percentile, 10)
+    }
 }

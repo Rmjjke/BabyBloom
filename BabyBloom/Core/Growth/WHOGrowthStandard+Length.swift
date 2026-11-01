@@ -59,6 +59,23 @@ extension WHOGrowthStandard {
         return percentile(fromZ: z)
     }
 
+    /// The length twin of `percentileReading(of:correctedBirthDate:isMale:)`:
+    /// one length scored at the age the baby was ON THE DAY it was measured,
+    /// with the same beyond-the-chart honesty («> 97» rather than a clamped 99).
+    /// nil before the corrected birth date and past 24 months — the caller
+    /// tells those apart through `correctedAgeDaysIfBorn` and `maxAgeDays`.
+    static func lengthPercentileReading(lengthCm: Double,
+                                        measuredOn date: Date,
+                                        correctedBirthDate: Date,
+                                        isMale: Bool) -> PercentileReading? {
+        guard let ageDays = correctedAgeDaysIfBorn(on: date, correctedBirthDate: correctedBirthDate),
+              let z = lengthZScore(lengthCm: lengthCm, ageDays: ageDays, isMale: isMale)
+        else { return nil }
+        let raw = rawPercentile(fromZ: z)
+        return PercentileReading(percentile: percentile(fromZ: z),
+                                 isBeyondChart: raw > 99.5 || raw < 0.5)
+    }
+
     // MARK: - WHO tables (generated, do not hand-edit)
 
     private static let lengthBoys: [Node] = [
