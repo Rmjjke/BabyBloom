@@ -1,6 +1,6 @@
 # M1 — Weekly summary card on the Dashboard (design note)
 
-status: final — card `m1-weekly-design`, 2026-10-28; corrected after the design review of `weekly-summary` 2026-10-30 (notification tap lands collapsed, range per locale, gain as a rate, glyphs scale with the text, × and Reduce Motion, days before birth)
+status: final — card `m1-weekly-design`, 2026-10-28; corrected after the design review of `weekly-summary` 2026-10-30 (notification tap lands collapsed, range per locale, gain as a rate, glyphs scale with the text, × and Reduce Motion, days before birth); § 2 ⑥ the delta arrow scales with caption, after the live AX2 look of #85, 2026-11-01 (main 1fc4848 via #86)
 decisions: D8 (Dashboard card, expands on tap), D9 (Mon–Sun + Monday notification), D10 (free), D14 (WCAG 2.2 AA), D17 (no gain number in the newborn window), D18 (stays Mon–Sun, × hides until next week), D19 (averages over days with entries + "N of 7"); plan v2 review: neutral deltas; Manager 2026-10-29: a notification tap lands collapsed
 reference: `teamdocs/design/design-system.md` (P = principle, G = gap); strings: Content's review `m1-weekly-copy`; review: `.team/desk/tasks/m1-design-review-weekly/docs/review.md`
 triggers: a figure added to or removed from the card; a state added; D17–D19 changed
@@ -39,7 +39,7 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 | ④ | × hide | `xmark` 11 pt semibold, BBTextSecondary, in a 28 pt circle `textSecondary@0.10`; hit area 44 × 44; stays fixed at AX sizes (a secondary action whose hit area is already 44). VoiceOver label `weekly.a11y_hide` ("Hide until next week") | 4.9 | 6.1 |
 | ⑤ | glyph | 15 pt at default, **scaled with the label** (`@ScaledMetric(relativeTo: .callout)`); the expanded lines' indent is the glyph width + 8, so it scales too. Category tint (BBFeeding / BBSleep / BBGrowth). **Decorative**: the label names the figure, so the tint's 2.1:1 on white is not a P8 failure | — | — |
 | ⑤ | label: value | label `Typography.callout` BBTextPrimary + value `Typography.metricSmall` BBTextPrimary, in one Text (`weekly.feeds_fmt` …), 1 line at default size. Gain is a rate: "+210 g/week", the same unit as Growth's velocity | 14.3 | 14.1 |
-| ⑥ | delta | `arrow.up` / `arrow.down` 10 pt + number, `Typography.caption` mono digits, **BBTextSecondary — never green or red** (P1, plan v2 review). Equal values: no delta. The gain row has no delta; its week before is in the expanded view. VoiceOver speaks the direction in words (`weekly.a11y_delta_up_fmt` / `_down_fmt`, Content 6b19f47): the arrow is the only carrier of direction, so without words it fails WCAG 1.1.1 | 4.9 | 6.1 |
+| ⑥ | delta | `arrow.up` / `arrow.down` 10 pt, **scales with caption** (`@ScaledMetric(relativeTo: .caption)`, so at AX2 it keeps pace with its number) + number, `Typography.caption` mono digits, **BBTextSecondary — never green or red** (P1, plan v2 review). Equal values: no delta. The gain row has no delta; its week before is in the expanded view. VoiceOver speaks the direction in words (`weekly.a11y_delta_up_fmt` / `_down_fmt`, Content 6b19f47): the arrow is the only carrier of direction, so without words it fails WCAG 1.1.1 | 4.9 | 6.1 |
 | ⑦ | days line `weekly.days_logged_fmt` | `Typography.caption`, BBTextSecondary | 4.9 | 6.1 |
 
 ## 3. Expanded (tap on the header row)
