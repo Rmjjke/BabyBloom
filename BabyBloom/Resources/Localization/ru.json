@@ -541,6 +541,7 @@
   "report.a11y_hint": "Цифры с последнего приёма и ваши вопросы",
   "report.since_visit_fmt": "С приёма %@ · %@",
   "report.since_birth_fmt": "С рождения · %@",
+  "report.period_today": "сегодня",
   "report.age_corrected_fmt": "%@ (корректированный возраст: %@)",
   "report.no_visit_hint": "После приёма нажмите «Отметить приём», и следующий отчёт начнётся с него.",
   "report.new_period_fmt": "Новый период начался %@. Новые записи появятся здесь.",

@@ -541,6 +541,7 @@
   "report.a11y_hint": "Los datos desde la última visita y tus preguntas",
   "report.since_visit_fmt": "Desde la visita del %@ · %@",
   "report.since_birth_fmt": "Desde el nacimiento · %@",
+  "report.period_today": "hoy",
   "report.age_corrected_fmt": "%@ (edad corregida: %@)",
   "report.no_visit_hint": "Después de la visita, toca «Registrar la visita» y el próximo informe empezará desde ella.",
   "report.new_period_fmt": "El nuevo periodo empezó el %@. Los nuevos registros aparecerán aquí.",

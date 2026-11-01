@@ -59,7 +59,9 @@ Nothing on it grades the baby.
 - **Composed by Dev, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
-  - the period length ("20 days") from `age.*`;
+  - the period length ("20 days") from `age.*`; a period that starts today
+    reads `report.period_today` ("today", lowercase: it follows a mid-dot or
+    stands in brackets);
   - the footer "brand · name · period".
 - A number never wraps away from its unit: a no-break space (` `),
   `growth.head_fmt` included.
@@ -128,6 +130,7 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 ## Keys
 - **Header:** `report.title`, `report.a11y_hint` (More row),
   `report.since_visit_fmt` / `report.since_birth_fmt` (period + length),
+  `report.period_today` (the length on a same-day period),
   `report.age_corrected_fmt`, `report.no_visit_hint`,
   `report.new_period_fmt`, `report.a11y_period_hint`.
 - **Growth:**
