@@ -36,10 +36,9 @@ enum WeeklyFormat {
                 ? String(format: "duration.h_only".l, minutes / 60)
                 : String(format: "duration.h_min".l, minutes / 60, minutes % 60)
         }
-        // Each number keeps its unit («7 ч 42 мин» never ends a line on «7»);
-        // the space between the parts stays, so the value may still wrap
-        // there at AX sizes (design m1-weekly-summary § AX2).
-        return text.replacingOccurrences(of: #"(\d) "#, with: "$1\u{00A0}", options: .regularExpression)
+        // The break between the parts stays: the value may still wrap there at
+        // AX sizes (design m1-weekly-summary § AX2).
+        return text.gluingNumbersToUnits
     }
 
     /// nil when there is nothing to compare or the shown values are equal.

@@ -44,6 +44,22 @@ final class DoctorReportPDFRenderDump: XCTestCase {
                                             periodStart: periodStart, now: now)
             try data.write(to: dir.appendingPathComponent("report-\(language.rawValue).pdf"))
         }
+        // The general export, a week of the same store, in Russian: its own
+        // layout, numbers in the app language.
+        LocalizationManager.shared.setLanguage(.ru)
+        let week = ExportDateRange.week.startDate(now: now) ?? now
+        let export = ExportGenerator.pdfData(
+            baby: baby,
+            feedings: try context.fetch(FetchDescriptor<FeedingEntry>()).filter { $0.startTime >= week }
+                .sorted { $0.startTime > $1.startTime },
+            sleeps: try context.fetch(FetchDescriptor<SleepEntry>()).filter { $0.startTime >= week }
+                .sorted { $0.startTime > $1.startTime },
+            diapers: try context.fetch(FetchDescriptor<DiaperEntry>()).filter { $0.time >= week }
+                .sorted { $0.time > $1.time },
+            growths: try context.fetch(FetchDescriptor<GrowthEntry>()).sorted { $0.date > $1.date },
+            events: try context.fetch(FetchDescriptor<CustomEvent>()).filter { $0.time >= week },
+            categories: Set(ExportCategory.allCases), range: .week)
+        try export.write(to: dir.appendingPathComponent("export-ru.pdf"))
         print("REPORT_PDF_DIR=\(dir.path)")
         withExtendedLifetime(container) {}
     }

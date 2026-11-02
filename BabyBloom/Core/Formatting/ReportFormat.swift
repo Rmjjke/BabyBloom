@@ -50,9 +50,9 @@ enum ReportFormat {
     /// days»), the word from the age plurals, glued to its number.
     static func ago(from date: Date, to now: Date) -> String {
         let minutes = max(0, Int(now.timeIntervalSince(date) / 60))
-        if minutes < 60 { return String(format: "stats.min_ago".l, minutes) }
+        if minutes < 60 { return String(format: "stats.min_ago".l, minutes).gluingNumbersToUnits }
         let hours = minutes / 60
-        if hours < 48 { return String(format: "stats.h_ago".l, hours) }
+        if hours < 48 { return String(format: "stats.h_ago".l, hours).gluingNumbersToUnits }
         let days = hours / 24
         return String(format: "stats.days_ago_fmt".l, "\(days)\(nbsp)\(days.dayWord)")
     }

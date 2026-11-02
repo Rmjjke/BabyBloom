@@ -317,19 +317,54 @@ extension View {
     /// Capped at `.large`, and one line: the bar never grows, and the principal
     /// slot gave a second line no room — at AX2 the wider Cancel / Save left it
     /// «Новое кормл…» again. Shrinking to 0.6 keeps the whole title.
-    func bbSheetTitle(_ title: String) -> some View {
-        navigationTitle(title)
+    ///
+    /// `movesIntoContentAtAX`: a long title between two capsule buttons still
+    /// shrank to ~11 pt at AX2 («Приём у педиатра», design review m2). Such a
+    /// sheet puts `BBSheetHeading` first in its content, and at AX sizes the
+    /// bar keeps the navigation title (for VoiceOver) but draws nothing.
+    func bbSheetTitle(_ title: String, movesIntoContentAtAX: Bool = false) -> some View {
+        modifier(BBSheetTitle(title: title, movesIntoContentAtAX: movesIntoContentAtAX))
+    }
+}
+
+private struct BBSheetTitle: ViewModifier {
+    let title: String
+    let movesIntoContentAtAX: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        let inBar = !(movesIntoContentAtAX && dynamicTypeSize.isAccessibilitySize)
+        content
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text(title)
-                        .font(.headline)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                        .multilineTextAlignment(.center)
-                        .dynamicTypeSize(...DynamicTypeSize.large)
-                        .accessibilityAddTraits(.isHeader)
+                    if inBar {
+                        Text(title)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .multilineTextAlignment(.center)
+                            .dynamicTypeSize(...DynamicTypeSize.large)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                 }
             }
+    }
+}
+
+/// The sheet's title as the content's first line, at AX sizes only; pairs with
+/// `bbSheetTitle(_:movesIntoContentAtAX: true)`.
+struct BBSheetHeading: View {
+    let title: String
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            BBTheme.Typography.title3(title)
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+        }
     }
 }

@@ -361,7 +361,7 @@ struct ExportGenerator {
           .header h1 { margin: 0 0 4px; font-size: 22px; }
           .header p  { margin: 0; font-size: 13px; }
           .meta { display: flex; gap: 16px; margin-top: 8px; }
-          .meta span { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px; font-size: 11px; }
+          .meta span { font-size: 11px; }
           .card { background: #F2F2F7; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
           .card h2 { margin: 0 0 12px; font-size: 15px; color: #6F5BA8; }
           .stats-grid { display: flex; flex-wrap: wrap; gap: 10px; }

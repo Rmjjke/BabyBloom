@@ -34,6 +34,7 @@ struct VisitDetailSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    BBSheetHeading(title: "visit.title".l)
                     if isEditing {
                         VisitFields(date: $editDate, note: $editNote,
                                     range: VisitFields.dateRange(birthDate: visit.baby?.birthDate,
@@ -47,7 +48,7 @@ struct VisitDetailSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l)
+            .bbSheetTitle("visit.title".l, movesIntoContentAtAX: true)
             .toolbar { toolbar }
             .alert("visit.delete_title".l, isPresented: $showDeleteAlert) {
                 Button("button.delete".l, role: .destructive) {

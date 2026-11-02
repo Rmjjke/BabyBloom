@@ -19,7 +19,8 @@ live with the workflow in `.desk/`.
 - **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
 - **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). Content's label says «typical», not «average».
 - **«N days ago» from 48 h**, floored, with the age plurals. «131 h ago» was a number to work out, not an answer. Under 48 h, hours stay: «30 h ago» still reads at a glance.
-- **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made.
+- **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made. The Height and Head cards therefore read the newest entry that HAS the figure, and the first weighing starts from the birth weight.
+- **The environment locale keeps the user's hour cycle.** Only the language is the app's; a fixed `ru_RU` / `en_US` would have turned a 24-hour phone's time pickers to AM/PM.
 
 ## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
 

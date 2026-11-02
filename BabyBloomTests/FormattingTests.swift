@@ -23,8 +23,8 @@ final class FormattingTests: XCTestCase {
 
     func testAgoCountsMinutesThenHoursThenWholeDaysFrom48Hours() {
         LocalizationManager.shared.setLanguage(.en)
-        XCTAssertEqual(ReportFormat.ago(from: hoursAgo(0.5), to: now), String(format: "stats.min_ago".l, 30))
-        XCTAssertEqual(ReportFormat.ago(from: hoursAgo(47.9), to: now), String(format: "stats.h_ago".l, 47))
+        XCTAssertEqual(ReportFormat.ago(from: hoursAgo(0.5), to: now), String(format: "stats.min_ago".l, 30).gluingNumbersToUnits)
+        XCTAssertEqual(ReportFormat.ago(from: hoursAgo(47.9), to: now), String(format: "stats.h_ago".l, 47).gluingNumbersToUnits)
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(48), to: now),
                        String(format: "stats.days_ago_fmt".l, "2\(nbsp)\(2.dayWord)"))
         // Floored: 2 days 23 hours is still «2 days», never rounded up to 3.
@@ -43,7 +43,17 @@ final class FormattingTests: XCTestCase {
     func testAFutureStartReadsAsZeroMinutesNotNegative() {
         LocalizationManager.shared.setLanguage(.en)
         XCTAssertEqual(ReportFormat.ago(from: now.addingTimeInterval(120), to: now),
-                       String(format: "stats.min_ago".l, 0))
+                       String(format: "stats.min_ago".l, 0).gluingNumbersToUnits)
+    }
+
+    func testEveryAgoKeepsItsNumberOnItsUnit() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            for hours in [0.5, 5.0, 100.0] {
+                let text = ReportFormat.ago(from: hoursAgo(hours), to: now)
+                XCTAssertNil(text.range(of: #"\d "#, options: .regularExpression), "\(language): «\(text)»")
+            }
+        }
     }
 
     func testDurationGluesEachNumberToItsUnitButKeepsTheBreakBetweenParts() {

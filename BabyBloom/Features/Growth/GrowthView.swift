@@ -137,8 +137,9 @@ struct GrowthView: View {
                 // accessor drops future-dated rows, and this card sits two
                 // cards above the percentile — which already reads them — so a
                 // raw newest entry printed 4.50 kg over a percentile scored on
-                // 4.30. Height and head stay on `latest`: no filter applies to
-                // them, and their "—" already covers a missing figure.
+                // 4.30. Height and head read the newest entry that HAS them:
+                // most weighings carry no height now (the form's toggle is off
+                // by default), so the newest entry would print «—».
                 BBStatCard(
                     title: "stat.weight",
                     value: measurements.last.map { $0.weightKg.appDecimal(2) } ?? "—",
@@ -149,7 +150,7 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.height",
-                    value: latest.flatMap { $0.heightCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.heightCm != nil })?.heightCm.map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary,
@@ -157,7 +158,8 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.head",
-                    value: latest.flatMap { $0.headCircumferenceCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm
+                        .map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent,
@@ -889,7 +891,8 @@ struct AddGrowthSheet: View {
                         isOn: $includeHeight,
                         value: $heightCm,
                         range: 30.0...130.0, step: 0.5,
-                        display: String(format: "%.0f\u{00A0}\("unit.cm".l)", heightCm),
+                        // One decimal: the step is 0.5, and «50 cm» hid a saved 50.5.
+                        display: "\(heightCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
                         minLabel: "30\u{00A0}\("unit.cm".l)",
                         maxLabel: "130\u{00A0}\("unit.cm".l)",
                         color: BBTheme.Colors.primary
@@ -937,13 +940,14 @@ struct AddGrowthSheet: View {
                 // With no weighing yet, the first one starts from the birth weight.
                 if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg
                     ?? babies.first?.birthWeightKg {
-                    weightKg = min(max(w, 1.0), 20.0)
+                    // Snapped to the slider's 0.1 step: «5,3» shown must be 5.3 saved.
+                    weightKg = min(max((w * 10).rounded() / 10, 1.0), 20.0)
                 }
                 if let h = growthEntries.first(where: { $0.heightCm != nil })?.heightCm {
-                    heightCm = min(max(h, 30.0), 130.0)
+                    heightCm = min(max((h * 2).rounded() / 2, 30.0), 130.0)
                 }
                 if let hc = growthEntries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm {
-                    headCm = min(max(hc, 25.0), 55.0)
+                    headCm = min(max((hc * 2).rounded() / 2, 25.0), 55.0)
                 }
             }
             .toolbar {
