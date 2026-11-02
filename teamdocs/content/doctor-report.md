@@ -53,9 +53,17 @@ Nothing on it grades the baby.
   `report.change_since_fmt` "Since 12 Oct: +640 g". It is hidden in the
   newborn window (D17).
 - **Counts by type**: `report.type_count_fmt` "%@ %d" joined by " · ", inside
-  `report.feeds_by_type_fmt` ("By type: Breast 120 · Formula 30") and
-  `report.stool_colors_fmt` ("Stool colors: Yellow 18 · Green 2"). There is no
-  warning line, swatch or colour (decision 9).
+  `report.feeds_by_type_fmt` ("Feeds by type, in total: Breast 120 · Formula
+  30") and `report.stool_colors_fmt` ("Dirty by color, in total: Yellow 18 ·
+  Green 2"). These are totals for the period, and they sit beside "a day"
+  lines. So the label names what is counted (feeds, dirty diapers) and says
+  "in total". In CHECK 7 a tester without that cue read the numbers as ml or
+  per day. There is no warning line, swatch or colour (decision 9).
+- **A count of questions is a word, not a bare number**:
+  `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
+  `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
+  one/few/many rule. The older `question.asked_at_fmt` (`· %d`) stays until
+  Dev's code switches; then it goes.
 - **Composed by Dev, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
