@@ -562,7 +562,7 @@
   "report.type_count_fmt": "%@ %d",
   "report.type_breast": "Грудь",
   "report.bottle_a_day_fmt": "Из бутылочки в день: %@",
-  "report.breastfeed_avg_fmt": "Кормление грудью в среднем: %@",
+  "report.breastfeed_avg_fmt": "Кормление грудью обычно: %@",
   "report.days_logged_fmt": "Дней с записями: %d из %d",
   "report.wet_a_day_fmt": "Мокрых в день: %@",
   "report.dirty_a_day_fmt": "Грязных в день: %@",

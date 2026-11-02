@@ -562,7 +562,7 @@
   "report.type_count_fmt": "%@ %d",
   "report.type_breast": "Pecho",
   "report.bottle_a_day_fmt": "Biberón al día: %@",
-  "report.breastfeed_avg_fmt": "Toma de pecho de media: %@",
+  "report.breastfeed_avg_fmt": "Toma de pecho habitual: %@",
   "report.days_logged_fmt": "Días con registros: %d de %d",
   "report.wet_a_day_fmt": "Mojados al día: %@",
   "report.dirty_a_day_fmt": "Sucios al día: %@",
