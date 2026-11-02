@@ -321,7 +321,9 @@ extension View {
     /// `movesIntoContentAtAX`: a long title between two capsule buttons still
     /// shrank to ~11 pt at AX2 («Приём у педиатра», design review m2). Such a
     /// sheet puts `BBSheetHeading` first in its content, and at AX sizes the
-    /// bar keeps the navigation title (for VoiceOver) but draws nothing.
+    /// bar shows no title at all: an empty principal item alone let the system
+    /// draw the navigation title, cut («Приём…»). The heading in the content
+    /// carries the header trait for VoiceOver.
     func bbSheetTitle(_ title: String, movesIntoContentAtAX: Bool = false) -> some View {
         modifier(BBSheetTitle(title: title, movesIntoContentAtAX: movesIntoContentAtAX))
     }
@@ -335,7 +337,7 @@ private struct BBSheetTitle: ViewModifier {
     func body(content: Content) -> some View {
         let inBar = !(movesIntoContentAtAX && dynamicTypeSize.isAccessibilitySize)
         content
-            .navigationTitle(title)
+            .navigationTitle(inBar ? title : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
