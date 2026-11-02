@@ -63,7 +63,9 @@ Nothing on it grades the baby.
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
   `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
   one/few/many rule (`Int.plural`). The older `question.asked_at_fmt`
-  (`· %d`) was deleted on 2026-11-02, after QuestionsCard switched.
+  (`· %d`) is unused since the polish batch, but it stays until the whole M2
+  batch is in main, so that no PR can reach main without the key it reads.
+  Its deletion is a cleanup card for after the batch.
 - **Composed by Dev, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
@@ -169,7 +171,7 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 - **Questions:** `question.add`, `question.new_title` / `question.title` (sheet,
   new / edit), `question.placeholder`, `question.empty`, `question.asked`,
   `question.not_asked` (VoiceOver value and hint of the toggle),
-  `question.asked_at_count_fmt` (date · `question.count.*`), `question.back_to_list`,
+  `question.asked_at_fmt` (date · count), `question.back_to_list`,
   `question.delete`; `button.edit` (new, generic).
 - **Visit:** `visit.title` (sheet title, Events row), `visit.log`, `visit.date`,
   `visit.questions_header`, `visit.carry_over`, `visit.asked_here`,
