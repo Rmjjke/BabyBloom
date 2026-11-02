@@ -260,6 +260,9 @@ struct ExportView: View {
 
         isExporting = true
         Task { @MainActor in
+            // The render holds the main thread for seconds on a long export, and a
+            // main-queue task can run before the button's new state reaches the screen.
+            try? await Task.sleep(for: .milliseconds(100))
             var items: [Any] = []
 
             if fmt == .pdf {
