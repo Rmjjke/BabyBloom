@@ -24,13 +24,18 @@ extension DoctorReportSummary.Input {
             isMale: baby.gender == .male)
     }
 
-    /// For the share button, which has no view of its own to hold @Query: the
-    /// same period window `ReportDataSection` queries (feeds and diapers from
-    /// the start, sleeps from 36 h before it), growth whole.
+    /// The rows a period reads, for `ReportDataSection`'s queries and `load`
+    /// alike: feeds and diapers from the start, sleeps from 36 h before it (a
+    /// night that crosses the start counts by its part inside, R2.2, and no
+    /// sleep is longer than a day and a half). Growth is read whole.
+    static func window(periodStart: Date) -> (from: Date, sleepsFrom: Date) {
+        (periodStart, periodStart.addingTimeInterval(-36 * 3600))
+    }
+
+    /// For the share button, which has no view of its own to hold @Query.
     @MainActor
     static func load(baby: Baby, periodStart: Date, in context: ModelContext) -> DoctorReportSummary.Input {
-        let start = periodStart
-        let sleepsFrom = periodStart.addingTimeInterval(-36 * 3600)
+        let (start, sleepsFrom) = window(periodStart: periodStart)
         let feeds = (try? context.fetch(FetchDescriptor<FeedingEntry>(
             predicate: #Predicate { $0.startTime >= start }))) ?? []
         let sleeps = (try? context.fetch(FetchDescriptor<SleepEntry>(

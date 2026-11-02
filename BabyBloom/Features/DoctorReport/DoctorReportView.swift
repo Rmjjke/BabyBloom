@@ -165,6 +165,8 @@ struct DoctorReportView: View {
         let data = DoctorReportPDF.data(summary: summary, baby: baby,
                                         openQuestions: openQuestions.map(\.text),
                                         periodStart: periodStart, now: now)
+        // As the export screen does: never leave a health record lying in tmp.
+        ExportGenerator.cleanupExports()
         guard let url = ExportGenerator.writeTempFile(
             name: DoctorReportPDF.fileName(babyName: baby.name, date: now), data: data)
         else { showWriteError = true; return }

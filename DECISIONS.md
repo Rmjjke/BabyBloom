@@ -26,7 +26,7 @@ live with the workflow in `.desk/`.
 
 **Why.** A PDF is read by a person, possibly a doctor in Russia or Spain. A CSV is read by spreadsheets and scripts, where a comma decimal inside a comma-separated file breaks every column after it.
 
-The export's «a day» figures use the report's rule: `PeriodSummary` over finished days, divided by days with entries. So the export and the report never print two different averages for the same days.
+The export's «a day» figures use the report's rule: `PeriodSummary` over finished days, divided by days with entries. A week or month range starts mid-day («now minus 7 days»), so its cut first day is left out too and the span starts at the next midnight. So the export and the report never print two different averages for the same days.
 
 ---
 

@@ -117,7 +117,9 @@ enum DoctorReportPDF {
     private static func fullDate(_ date: Date) -> String { ReportFormat.glued(date.appDayMonthYear) }
 
     private static func periodRange(_ start: Date, now: Date) -> String {
-        String(format: "weekly.range_fmt".l, ReportFormat.date(start, now: now), fullDate(now))
+        // A visit today: «2 Nov 2026», not «2 Nov – 2 Nov 2026».
+        guard !Calendar.current.isDate(start, inSameDayAs: now) else { return fullDate(now) }
+        return String(format: "weekly.range_fmt".l, ReportFormat.date(start, now: now), fullDate(now))
     }
 
     private static func periodLength(_ summary: DoctorReportSummary) -> String {
@@ -130,7 +132,7 @@ enum DoctorReportPDF {
 
     private static func growth(summary: DoctorReportSummary, periodStart: Date, now: Date) -> String {
         let growth = summary.growth
-        var html = "<h2>\(esc("nav.growth".l))</h2><div class=\"sec\">"
+        var html = "<div class=\"sec\"><h2>\(esc("nav.growth".l))</h2>"
         if growth.latestWeight == nil {
             html += "<p class=\"muted\">\(esc("report.empty_growth".l))</p>"
         }
@@ -195,7 +197,7 @@ enum DoctorReportPDF {
                          weighing.heightCm.map(ReportFormat.cm) ?? "", weighing.headCm.map(ReportFormat.cm) ?? ""]
             return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
         }.joined()
-        return "<table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>\(rows)</tbody></table>"
+        return "<p class=\"sub\">\(esc("report.weighings".l))</p><table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>\(rows)</tbody></table>"
     }
 
     // MARK: Feeding, sleep, diapers
@@ -268,7 +270,7 @@ enum DoctorReportPDF {
 
     private static func emptySection(_ titleKey: String, _ emptyKey: String, _ periodStart: Date) -> String {
         "<div class=\"sec\"><h2>\(esc(titleKey.l))</h2><p class=\"muted\">"
-            + "\(esc(String(format: emptyKey.l, periodStart.appDayMonth)))</p></div>"
+            + "\(esc(String(format: emptyKey.l, fullDate(periodStart))))</p></div>"
     }
 
     // MARK: Questions
@@ -322,17 +324,16 @@ enum DoctorReportPDF {
         return render(html: html, footerLeft: footer)
     }
 
-    /// «<report.pdf.file_fmt>.pdf» with the characters a file system or share
-    /// sheet chokes on removed from the whole name, the baby's included.
+    /// «<report.pdf.file_fmt>.pdf», the name cleaned as every export's is.
     static func fileName(babyName: String, date: Date) -> String {
         let formatter = DateFormatter()
         // Digits only, whatever the app language or the phone's calendar.
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.dateFormat = "yyyy-MM-dd"
-        let name = babyName.isEmpty ? "baby.default_name".l : babyName
-        let base = String(format: "report.pdf.file_fmt".l, name, formatter.string(from: date))
-        return base.replacingOccurrences(of: "/", with: "").replacingOccurrences(of: ":", with: "") + ".pdf"
+        let base = String(format: "report.pdf.file_fmt".l, ExportGenerator.fileNamePart(babyName),
+                          formatter.string(from: date))
+        return ExportGenerator.fileNamePart(base) + ".pdf"
     }
 
     /// Same page setup as `ExportGenerator.renderPDF` (A4, margins 36); its own

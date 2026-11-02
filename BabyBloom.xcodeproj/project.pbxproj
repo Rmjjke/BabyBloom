@@ -223,6 +223,7 @@
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
 		F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */; };
+		F77E5D05ABD2A38C2129AABC /* DoctorReportLoadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */; };
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		F81F235ECFC91D7AF223294D /* StartFeedingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624B29F59802C271608F6A4E /* StartFeedingIntent.swift */; };
 		F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C49E15D8A3D66502ADD8D /* Analytics.swift */; };
@@ -474,6 +475,7 @@
 		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
 		F248C810B3E83498B057C76D /* AppSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchema.swift; sourceTree = "<group>"; };
 		F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindowTests.swift; sourceTree = "<group>"; };
+		F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportLoadTests.swift; sourceTree = "<group>"; };
 		F3D63328CD7ED001909F7DCD /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionFailureFlagTests.swift; sourceTree = "<group>"; };
 		F691DCEBF4864F06700FFE43 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
@@ -687,6 +689,7 @@
 				00EEE5837A7AF30D30E54357 /* DeepLinkTests.swift */,
 				B8FE2F53DE809CBCB728254C /* DoctorPeriodRowsTests.swift */,
 				E5D6F220B7D7E071A13261B6 /* DoctorPeriodTests.swift */,
+				F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */,
 				850950E53910EDD07BD7A452 /* DoctorReportPDFTests.swift */,
 				8848A60B812E23969302C7BF /* DoctorReportSummaryTests.swift */,
 				713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */,
@@ -1437,6 +1440,7 @@
 				D26E3D4EABFB774D391B8FAD /* DeepLinkTests.swift in Sources */,
 				AAA5E67BFD4E2335658E72B6 /* DoctorPeriodRowsTests.swift in Sources */,
 				8DD4252D59E2B32BAFA41D92 /* DoctorPeriodTests.swift in Sources */,
+				F77E5D05ABD2A38C2129AABC /* DoctorReportLoadTests.swift in Sources */,
 				88C7E3EA50B8EC23CCF7F377 /* DoctorReportPDFTests.swift in Sources */,
 				953AA3E254884BB7A7811BDC /* DoctorReportSummaryTests.swift in Sources */,
 				C2F842304599D97C08199F50 /* DoctorVisitActionsTests.swift in Sources */,

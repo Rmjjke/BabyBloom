@@ -185,8 +185,10 @@ to 15 minutes.
 The palette is **entirely** in the Asset Catalog
 (`Resources/Assets.xcassets/Colors/`), reached through `BBTheme.Colors`.
 Never hardcode a colour in a view. Re-theming the app is: colorset edits, the
-two splash PNGs, and the hex constants in `ExportGenerator` — the PDF renderer
-cannot read the Asset Catalog, so it is the one place a colour is duplicated.
+two splash PNGs, and the hex constants in `ExportGenerator` and
+`DoctorReportPDF` — the PDF renderer cannot read the Asset Catalog, so those
+two are the only places a colour is duplicated (both mirror the LIGHT
+colorsets: a PDF page is always white).
 
 `BBTheme.Typography` is the D1 type scale. **Every Dynamic Type scale in the
 app goes through `Typography.scaledPointSize`**, including layout metrics that
@@ -525,7 +527,10 @@ Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
 And **how far back the five activity lists read** — the free history window
-below, the only gate that bounds something already recorded.
+below, the only gate that bounds something already recorded. The
+pediatrician report's PDF is an export like any other: its share button wears
+the badge and opens `PaywallView(source: .doctorReport)` for a free parent,
+while the screen itself and visits stay free.
 
 That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
@@ -849,7 +854,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` \| `doctor_report` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
@@ -902,8 +907,18 @@ It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
 card also runs on, with the REPORT's input: running timers out and a sleep
 that began before the period clipped to it — the weekly card counts a running
 feed and files a sleep whole on its start day, so those rules live in what
-each caller passes in, never in the core. The share button ⑩ comes with the
-PDF (m2-report-pdf). A
+each caller passes in, never in the core. The share button ⑩ (Premium) makes
+`DoctorReportPDF`: an HTML page over the SAME `DoctorReportSummary` and the
+same `ReportFormat` / `WeeklyFormat` helpers, so the PDF cannot print a number
+the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
+the page for Content's closed verdict list. It renders through
+`UIMarkupTextPrintFormatter` with its own `UIPrintPageRenderer` subclass,
+which draws the footer (brand · name · period, «Page N of M») on every page.
+The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
+fetches with `Input.window(periodStart:)`, the same window
+`ReportDataSection`'s queries use. Every PDF prints numbers in the app
+language; every CSV stays dot-decimal with units in its headers (DECISIONS
+2026-11-02), and file names go through `ExportGenerator.fileNamePart`. A
 visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
 through `.visitDetailSheet(item:)` — from the period line, Events and Recent
 activity. That modifier deletes in the sheet's `onDismiss`, after the sheet

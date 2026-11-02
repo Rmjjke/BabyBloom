@@ -107,6 +107,29 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertEqual(avg!, 2.0, accuracy: 0.0001)
     }
 
+    func testAvgPerDayBoundedRangeSkipsItsCutFirstDay() {
+        // `.week` starts at «now − 7 days» mid-day: that day holds only the
+        // feeds after the cut, so it would drag the rate down. 8 a day on the
+        // six whole days after it, 2 late on the cut day.
+        let now = fixedNow
+        let cal = calendar
+        let cutDay = cal.date(byAdding: .day, value: -7, to: now)!
+        let late = cal.date(bySettingHour: 23, minute: 0, second: 0, of: cutDay)!
+        XCTAssertGreaterThan(late, cutDay, "the late feeds sit after the cut")
+        let whole = (1...6).flatMap { n in (0..<8).map { _ in noon(n, from: now) } }
+
+        let avg = ExportGenerator.averagePerDay(dates: whole + [late, late], range: .week, now: now)
+
+        XCTAssertEqual(avg!, 8.0, accuracy: 0.0001)
+    }
+
+    func testFileNamePartIsSafeAndNeverBlank() {
+        XCTAssertEqual(ExportGenerator.fileNamePart("Mia/Ann: Jr"), "MiaAnn Jr")
+        XCTAssertEqual(ExportGenerator.fileNamePart("  Mia \n"), "Mia")
+        XCTAssertEqual(ExportGenerator.fileNamePart("   "), "baby.default_name".l)
+        XCTAssertEqual(ExportGenerator.fileNamePart(String(repeating: "Я", count: 200)).count, 60)
+    }
+
     // MARK: - Number format: PDF in the app language, CSV invariant
 
     private func html(growth: GrowthEntry? = nil, feeding: FeedingEntry? = nil,

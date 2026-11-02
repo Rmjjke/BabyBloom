@@ -397,6 +397,16 @@ struct ExportGenerator {
            .replacingOccurrences(of: ">", with: "&gt;")
     }
 
+    /// A name as part of a file name: no path separators or control characters,
+    /// trimmed, at most 60 characters (a long Cyrillic name in UTF-8 would
+    /// otherwise near the 255-byte limit), and the default name when blank.
+    static func fileNamePart(_ raw: String) -> String {
+        let banned = CharacterSet(charactersIn: "/\\:").union(.controlCharacters)
+        let cleaned = String(String.UnicodeScalarView(raw.unicodeScalars.filter { !banned.contains($0) }))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? "baby.default_name".l : String(cleaned.prefix(60))
+    }
+
     /// Whole minutes with the localized unit, glued so a cell never wraps «5 / min».
     private static func minutesText(_ minutes: Int) -> String {
         "\(minutes)\(ReportFormat.nbsp)\("unit.min".l)"
@@ -406,11 +416,21 @@ struct ExportGenerator {
     /// by the days that have an entry of this kind: the pediatrician report's
     /// rule, so the export and the report never disagree. A half-lived today
     /// stays out, or opening the export mid-morning would drag the figure down.
-    /// For `.all` the span starts at the earliest entry. Nil without a finished
-    /// day holding an entry.
+    /// For `.all` the span starts on the earliest entry's day. A bounded range
+    /// starts at «now minus a week» mid-day, so its first day is cut and
+    /// starts at the next midnight instead. Nil without a finished day holding
+    /// an entry.
     static func averagePerDay(dates: [Date], range: ExportDateRange, now: Date = Date(),
                               calendar: Calendar = .current) -> Double? {
-        guard let start = range.startDate(now: now) ?? dates.min() else { return nil }
+        let start: Date
+        if let bounded = range.startDate(now: now) {
+            let day = calendar.startOfDay(for: bounded)
+            start = day == bounded ? day : calendar.date(byAdding: .day, value: 1, to: day)!
+        } else if let earliest = dates.min() {
+            start = calendar.startOfDay(for: earliest)
+        } else {
+            return nil
+        }
         let todayStart = calendar.startOfDay(for: now)
         guard start < todayStart else { return nil }
         let period = PeriodSummary.make(start: start, end: todayStart,

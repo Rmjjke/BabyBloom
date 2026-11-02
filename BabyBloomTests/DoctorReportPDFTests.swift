@@ -33,7 +33,11 @@ final class DoctorReportPDFTests: XCTestCase {
 
     /// A 20-day period with every card filled; 18 of its days hold entries, so
     /// the days lines show. Growth dates sit at noon, clear of an age boundary.
-    private func makeSummary(latestWeight: Double = 5.42) -> DoctorReportSummary {
+    /// `birthDate` / `correctedBirthDate` move the baby the summary is made for:
+    /// a due date after the weighings gives «before the due date», a birth three
+    /// years back gives «past the WHO table».
+    private func makeSummary(latestWeight: Double = 5.42, birthDate: Date? = nil,
+                             correctedBirthDate: Date? = nil) -> DoctorReportSummary {
         let days = Array(12...29)
         let feeds = days.flatMap { day -> [Feed] in
             [Feed(start: at(day, 8), end: at(day, 8).addingTimeInterval(20 * 60), type: .breast, volumeML: nil),
@@ -50,19 +54,71 @@ final class DoctorReportPDFTests: XCTestCase {
         ]
         let input = DoctorReportSummary.Input(
             feeds: feeds, sleeps: sleeps, diapers: diapers, growth: growth,
-            birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
+            birthDate: birthDate ?? at(2, 12, month: 9),
+            correctedBirthDate: correctedBirthDate ?? birthDate ?? at(2, 12, month: 9),
             birthWeightKg: 3.4, isMale: false)
         return DoctorReportSummary.make(input: input, periodStart: periodStart, now: now,
                                         startsAtVisit: true, calendar: calendar)
     }
 
-    private func makeBaby() -> Baby {
-        Baby(name: "Mia", birthDate: at(2, 12, month: 9), gender: .female, feedingType: .breast)
+    /// A 3-day period (30 Oct to 1 Nov, `periodDays == 2`) with entries on the
+    /// 31st and today only, so the days lines WOULD show were the period long.
+    private func makeShortSummary() -> DoctorReportSummary {
+        let days = [31, 1]
+        func stamp(_ index: Int, _ hour: Int) -> Date { index == 31 ? at(31, hour) : at(1, hour, month: 11) }
+        let input = DoctorReportSummary.Input(
+            feeds: days.map { Feed(start: stamp($0, 7), end: stamp($0, 7).addingTimeInterval(600), type: .breast, volumeML: nil) },
+            sleeps: days.map { Sleep(start: stamp($0, 1), end: stamp($0, 3)) },
+            diapers: days.flatMap { [Diaper(time: stamp($0, 6), type: .wet, color: nil),
+                                     Diaper(time: stamp($0, 8), type: .dirty, color: .yellow)] },
+            birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
+            birthWeightKg: nil, isMale: false)
+        return DoctorReportSummary.make(input: input, periodStart: at(30, 0), now: now,
+                                        startsAtVisit: true, calendar: calendar)
     }
 
-    private func html(_ summary: DoctorReportSummary, questions: [String] = ["Rash on the cheeks?"]) -> String {
-        DoctorReportPDF.html(summary: summary, baby: makeBaby(), openQuestions: questions,
-                             periodStart: periodStart, now: now)
+    private func makeEmptySummary(periodStart: Date? = nil, startsAtVisit: Bool = true) -> DoctorReportSummary {
+        DoctorReportSummary.make(
+            input: DoctorReportSummary.Input(birthDate: at(2, 12, month: 9),
+                                             correctedBirthDate: at(2, 12, month: 9),
+                                             birthWeightKg: nil, isMale: false),
+            periodStart: periodStart ?? self.periodStart, now: now, startsAtVisit: startsAtVisit, calendar: calendar)
+    }
+
+    /// A visit today with nothing logged since: the one «no entries» line.
+    private func makeNewPeriodSummary() -> DoctorReportSummary {
+        let input = DoctorReportSummary.Input(
+            // Weighed before the visit: a weighing today would be the period's
+            // first entry, and the new-period card would not show (R5).
+            growth: [Growth(date: at(28, 12), weightKg: 5.5, heightCm: nil, headCm: nil)],
+            birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
+            birthWeightKg: nil, isMale: false)
+        return DoctorReportSummary.make(input: input, periodStart: at(1, 0, month: 11), now: now,
+                                        startsAtVisit: true, calendar: calendar)
+    }
+
+    /// 32 weeks: preterm, so the due date and the corrected age exist.
+    private func makeBaby(gestationalWeeks: Int? = nil) -> Baby {
+        let baby = Baby(name: "Mia", birthDate: at(2, 12, month: 9), gender: .female, feedingType: .breast)
+        baby.gestationalWeeks = gestationalWeeks
+        return baby
+    }
+
+    private func html(_ summary: DoctorReportSummary, baby: Baby? = nil, periodStart: Date? = nil,
+                      questions: [String] = ["Rash on the cheeks?"]) -> String {
+        DoctorReportPDF.html(summary: summary, baby: baby ?? makeBaby(), openQuestions: questions,
+                             periodStart: periodStart ?? self.periodStart, now: now)
+    }
+
+    /// The text of a key before its first placeholder, for «this line is absent» checks.
+    private func fixedPrefix(_ key: String) -> String {
+        (key.l.components(separatedBy: "%").first ?? "").trimmingCharacters(in: .whitespaces)
+    }
+
+    /// «label <b>value</b> tail», as the PDF's row builder splits the key at `%@`.
+    private func rowHTML(_ key: String, _ value: String) -> String {
+        let parts = key.l.replacingOccurrences(of: "%d", with: "%@").components(separatedBy: "%@")
+        return "\(esc(parts.first ?? ""))<b>\(esc(value))</b>\(esc(parts.dropFirst().joined()))"
     }
 
     private func esc(_ text: String) -> String { ExportGenerator.htmlEscape(text) }
@@ -130,14 +186,7 @@ final class DoctorReportPDFTests: XCTestCase {
     }
 
     func testVisitTodayPrintsNoEntriesInPlaceOfTheThreeSections() {
-        let input = DoctorReportSummary.Input(
-            // Weighed before the visit: a weighing today would be the period's
-            // first entry, and the new-period card would not show (R5).
-            growth: [Growth(date: at(28, 12), weightKg: 5.5, heightCm: nil, headCm: nil)],
-            birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
-            birthWeightKg: nil, isMale: false)
-        let summary = DoctorReportSummary.make(input: input, periodStart: at(1, 0, month: 11), now: now,
-                                               startsAtVisit: true, calendar: calendar)
+        let summary = makeNewPeriodSummary()
         XCTAssertTrue(summary.showsNewPeriodCard)
         let page = html(summary, questions: [])
         XCTAssertTrue(page.contains(esc("report.pdf.no_entries".l)))
@@ -178,38 +227,57 @@ final class DoctorReportPDFTests: XCTestCase {
         return text
     }
 
+    /// Every card state the PDF has, each with the baby it is printed for.
+    private func everyState() -> [(name: String, summary: DoctorReportSummary, baby: Baby, periodStart: Date)] {
+        let preterm = makeBaby(gestationalWeeks: 32)
+        return [
+            ("filled", makeSummary(), makeBaby(), periodStart),
+            ("empty", makeEmptySummary(), makeBaby(), periodStart),
+            ("short", makeShortSummary(), makeBaby(), at(30, 0)),
+            ("new period", makeNewPeriodSummary(), makeBaby(), at(1, 0, month: 11)),
+            ("preterm", makeSummary(correctedBirthDate: preterm.correctedBirthDate), preterm, periodStart),
+            ("before the due date", makeSummary(correctedBirthDate: at(5, 12, month: 11)), makeBaby(), periodStart),
+            ("past the WHO table", makeSummary(birthDate: at(2, 12, month: 9)
+                .addingTimeInterval(-3 * 366 * 86_400)), makeBaby(), periodStart),
+        ]
+    }
+
+    private func assertNoVerdict(in page: String, language: SupportedLanguage, state: String) throws {
+        let lowered = page.lowercased()
+        for key in Self.closedKeys {
+            let value = key.l
+            // A missing key reads as itself: nothing to scan.
+            guard value != key else { continue }
+            // The longest fixed stretch between the placeholders: a leading
+            // label («Кормлений:») is shared with neutral rows, the verdict
+            // part («в сутки, ориентир») is not.
+            let specifier = try NSRegularExpression(pattern: "%(\\d+\\$)?[-+ 0#]*\\d*(\\.\\d+)?l{0,2}[@dfsu]")
+            let fixed = specifier
+                .stringByReplacingMatches(in: value, range: NSRange(value.startIndex..., in: value), withTemplate: "\u{1}")
+                .components(separatedBy: "\u{1}")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+                .max { $0.count < $1.count } ?? ""
+            guard !fixed.isEmpty else { continue }
+            XCTAssertFalse(lowered.contains(fixed), "\(language), \(state): «\(fixed)» from \(key) is in the PDF")
+        }
+
+        let words = try XCTUnwrap(Self.wordLists[language])
+        // `\b` is ASCII-only for Cyrillic in some engines: lookarounds on letters instead.
+        let regex = try NSRegularExpression(
+            pattern: "(?<![\\p{L}\\p{N}_])(?:\(words))(?![\\p{L}\\p{N}_])", options: [.caseInsensitive])
+        let text = visibleText(page)
+        let hit = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text))
+        XCTAssertNil(hit.flatMap { Range($0.range, in: text).map { String(text[$0]) } },
+                     "\(language), \(state): a verdict word is in the PDF")
+        XCTAssertFalse(page.contains("⚠"), "\(language), \(state): ⚠ is in the PDF")
+    }
+
     func testNoVerdictInAnyLanguage() throws {
         for language in [SupportedLanguage.en, .ru, .es] {
             LocalizationManager.shared.setLanguage(language)
-            // Every card state: filled, and the empty one (the «No … logged» lines).
-            let empty = DoctorReportSummary.make(
-                input: DoctorReportSummary.Input(birthDate: at(2, 12, month: 9),
-                                                 correctedBirthDate: at(2, 12, month: 9),
-                                                 birthWeightKg: nil, isMale: false),
-                periodStart: periodStart, now: now, startsAtVisit: true, calendar: calendar)
-            for summary in [makeSummary(), empty] {
-                let page = html(summary)
-                let lowered = page.lowercased()
-
-                for key in Self.closedKeys {
-                    let value = key.l
-                    // A missing key reads as itself: nothing to scan.
-                    guard value != key else { continue }
-                    let fixed = (value.components(separatedBy: "%").first ?? "")
-                        .trimmingCharacters(in: .whitespaces).lowercased()
-                    guard !fixed.isEmpty else { continue }
-                    XCTAssertFalse(lowered.contains(fixed), "\(language): «\(fixed)» from \(key) is in the PDF")
-                }
-
-                let words = try XCTUnwrap(Self.wordLists[language])
-                // `\b` is ASCII-only for Cyrillic in some engines: lookarounds on letters instead.
-                let regex = try NSRegularExpression(
-                    pattern: "(?<![\\p{L}\\p{N}_])(?:\(words))(?![\\p{L}\\p{N}_])", options: [.caseInsensitive])
-                let text = visibleText(page)
-                let hit = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text))
-                XCTAssertNil(hit.flatMap { Range($0.range, in: text).map { String(text[$0]) } },
-                             "\(language): a verdict word is in the PDF")
-                XCTAssertFalse(page.contains("⚠"), "\(language): ⚠ is in the PDF")
+            for state in everyState() {
+                let page = html(state.summary, baby: state.baby, periodStart: state.periodStart)
+                try assertNoVerdict(in: page, language: language, state: state.name)
             }
         }
     }
@@ -231,6 +299,123 @@ final class DoctorReportPDFTests: XCTestCase {
                        "Pediatrician report – Mia – 2026-11-01.pdf")
         XCTAssertEqual(DoctorReportPDF.fileName(babyName: "Mia/Ann: Jr", date: now),
                        "Pediatrician report – MiaAnn Jr – 2026-11-01.pdf")
+    }
+
+    func testFileNameInRussianAndSpanish() {
+        LocalizationManager.shared.setLanguage(.ru)
+        XCTAssertEqual(DoctorReportPDF.fileName(babyName: "Mia", date: now),
+                       "Отчёт для педиатра – Mia – 2026-11-01.pdf")
+        LocalizationManager.shared.setLanguage(.es)
+        XCTAssertEqual(DoctorReportPDF.fileName(babyName: "Mia", date: now),
+                       "Informe pediátrico – Mia – 2026-11-01.pdf")
+    }
+
+    func testABlankNameFallsBackToTheDefaultBabyName() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let fallback = "baby.default_name".l
+            XCTAssertNotEqual(fallback, "baby.default_name")
+            let expected = String(format: "report.pdf.file_fmt".l, fallback, "2026-11-01") + ".pdf"
+            XCTAssertEqual(DoctorReportPDF.fileName(babyName: "   ", date: now), expected, "\(language)")
+        }
+    }
+
+    // MARK: f) Preterm header
+
+    func testAPretermHeaderPrintsTheDueDateAndCorrectedAge() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let baby = makeBaby(gestationalWeeks: 32)
+            XCTAssertTrue(baby.isPreterm)
+            let page = html(makeSummary(), baby: baby)
+
+            let due = String(format: "report.pdf.due_fmt".l, ReportFormat.glued(baby.correctedBirthDate.appDayMonthYear))
+            XCTAssertTrue(page.contains(esc(due)), "\(language): due date «\(due)»")
+            let age = String(format: "report.age_corrected_fmt".l,
+                             Baby.describeAge(from: baby.birthDate, to: now),
+                             Baby.describeAge(from: baby.correctedBirthDate, to: now))
+            XCTAssertTrue(page.contains(esc(String(format: "report.pdf.age_fmt".l, age))), "\(language): age «\(age)»")
+        }
+    }
+
+    func testATermHeaderHasNoDueDateAndNoCorrectedAge() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(makeSummary(), baby: makeBaby())
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.pdf.due_fmt"))), "\(language)")
+            // The text between the two placeholders: «(corrected age: ».
+            let corrected = "report.age_corrected_fmt".l.components(separatedBy: "%@")[1]
+                .trimmingCharacters(in: .whitespaces)
+            XCTAssertFalse(corrected.isEmpty)
+            XCTAssertFalse(page.contains(esc(corrected)), "\(language)")
+        }
+    }
+
+    // MARK: g) Percentile rows without a number
+
+    func testAWeighingBeforeTheDueDatePrintsTheExplanationInsteadOfANumber() {
+        let summary = makeSummary(correctedBirthDate: at(5, 12, month: 11))
+        XCTAssertEqual(summary.growth.weightPercentile, .beforeDueDate)
+        XCTAssertEqual(summary.growth.heightPercentile, .beforeDueDate)
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary)
+            XCTAssertTrue(page.contains(esc("percentile.before_due_date".l)), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_weight_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_height_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc("percentile.out_of_range".l)), "\(language)")
+        }
+    }
+
+    func testAWeighingPastTheWHOTablePrintsTheRangeNoteInsteadOfANumber() {
+        // Born three years before the weighings: older than the 24 months the table covers.
+        let summary = makeSummary(birthDate: at(2, 12, month: 9).addingTimeInterval(-3 * 366 * 86_400))
+        XCTAssertEqual(summary.growth.weightPercentile, .outOfRange)
+        XCTAssertEqual(summary.growth.heightPercentile, .outOfRange)
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary)
+            XCTAssertTrue(page.contains(esc("percentile.out_of_range".l)), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_weight_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_height_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc("percentile.before_due_date".l)), "\(language)")
+        }
+    }
+
+    // MARK: h) Short period
+
+    func testAShortPeriodPrintsRawCountsAndNoDaysLine() throws {
+        let summary = makeShortSummary()
+        XCTAssertTrue(summary.isShort)
+        let feeding = try XCTUnwrap(summary.feeding)
+        let sleep = try XCTUnwrap(summary.sleep)
+        let diapers = try XCTUnwrap(summary.diapers)
+        // A long period would print these lines: one of two finished days has entries.
+        XCTAssertTrue(feeding.days.showsLine && sleep.days.showsLine && diapers.days.showsLine)
+
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary, periodStart: at(30, 0))
+            XCTAssertTrue(page.contains(rowHTML("report.feeds_count_fmt", "\(feeding.totalFeeds)")), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.wet_count_fmt", "\(diapers.wetCount)")), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.dirty_count_fmt", "\(diapers.dirtyCount)")), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.sleep_total_fmt", ReportFormat.duration(sleep.total))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.days_logged_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("weekly.feeds_fmt"))), "no average in a short period")
+        }
+    }
+
+    // MARK: i) No visit
+
+    func testAPeriodFromBirthRendersTheSectionsAndNoEntriesLine() {
+        let birth = at(2, 12, month: 9)
+        let summary = makeEmptySummary(periodStart: birth, startsAtVisit: false)
+        XCTAssertFalse(summary.showsNewPeriodCard)
+        let page = html(summary, periodStart: birth)
+        for key in ["nav.growth", "tab.feeding", "tab.sleep", "tab.diapers"] {
+            XCTAssertTrue(page.contains("<h2>\(esc(key.l))</h2>"), key)
+        }
+        XCTAssertFalse(page.contains(esc("report.pdf.no_entries".l)))
     }
 
     // MARK: e) Rendering

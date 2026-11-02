@@ -8,6 +8,9 @@
 # Superpowers scratch
 .superpowers/
 
+# Local derived data for the gate's xcodebuild runs (-derivedDataPath)
+.build-dd*/
+
 # Local secrets (the Amplitude API key). The repo is public; the committed
 # Config/App.xcconfig includes this file optionally. Template:
 # Config/Secrets.example.xcconfig

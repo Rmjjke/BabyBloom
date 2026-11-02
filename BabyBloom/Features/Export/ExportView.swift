@@ -296,7 +296,7 @@ struct ExportView: View {
     }
 
     private func babySlug() -> String {
-        (baby?.name ?? "baby").lowercased().replacingOccurrences(of: " ", with: "_")
+        ExportGenerator.fileNamePart(baby?.name ?? "").lowercased().replacingOccurrences(of: " ", with: "_")
     }
 
     private func rangeSlug() -> String {
