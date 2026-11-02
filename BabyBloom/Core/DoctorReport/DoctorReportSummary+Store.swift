@@ -23,4 +23,22 @@ extension DoctorReportSummary.Input {
             birthWeightKg: baby.birthWeightKg,
             isMale: baby.gender == .male)
     }
+
+    /// For the share button, which has no view of its own to hold @Query: the
+    /// same period window `ReportDataSection` queries (feeds and diapers from
+    /// the start, sleeps from 36 h before it), growth whole.
+    @MainActor
+    static func load(baby: Baby, periodStart: Date, in context: ModelContext) -> DoctorReportSummary.Input {
+        let start = periodStart
+        let sleepsFrom = periodStart.addingTimeInterval(-36 * 3600)
+        let feeds = (try? context.fetch(FetchDescriptor<FeedingEntry>(
+            predicate: #Predicate { $0.startTime >= start }))) ?? []
+        let sleeps = (try? context.fetch(FetchDescriptor<SleepEntry>(
+            predicate: #Predicate { $0.startTime >= sleepsFrom }))) ?? []
+        let diapers = (try? context.fetch(FetchDescriptor<DiaperEntry>(
+            predicate: #Predicate { $0.time >= start }))) ?? []
+        let growth = (try? context.fetch(FetchDescriptor<GrowthEntry>())) ?? []
+        return DoctorReportSummary.Input(baby: baby, feeds: feeds, sleeps: sleeps,
+                                         diapers: diapers, growth: growth)
+    }
 }

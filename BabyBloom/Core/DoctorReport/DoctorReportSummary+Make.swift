@@ -252,17 +252,22 @@ extension DoctorReportSummary {
         return (baseDate: base.date, grams: Int((kg * 1000 / 10).rounded()) * 10)
     }
 
-    /// R4.6: newest first, each with a height logged the same day — on the
-    /// weighing's own row, else on another row of that day (the parent may
-    /// enter them one at a time).
+    /// R4.6: newest first, each with a height and a head logged the same day —
+    /// on the weighing's own row, else on another row of that day (the parent
+    /// may enter them one at a time).
     private static func periodWeighings(_ known: [Input.Growth], frame: Frame) -> [Weighing] {
-        let heights = known.filter { ($0.heightCm ?? 0) > 0 }.sorted { $0.date > $1.date }
+        let newestFirst = known.sorted { $0.date > $1.date }
+        func sameDay(_ entry: Input.Growth, _ value: KeyPath<Input.Growth, Double?>) -> Double? {
+            if let own = entry[keyPath: value], own > 0 { return own }
+            return newestFirst.first {
+                ($0[keyPath: value] ?? 0) > 0 && frame.calendar.isDate($0.date, inSameDayAs: entry.date)
+            }?[keyPath: value]
+        }
         return known
             .compactMap { entry -> Weighing? in
                 guard let kg = entry.weightKg, kg > 0, entry.date >= frame.start else { return nil }
-                let ownHeight = entry.heightCm.flatMap { $0 > 0 ? $0 : nil }
-                let sameDay = heights.first { frame.calendar.isDate($0.date, inSameDayAs: entry.date) }?.heightCm
-                return Weighing(date: entry.date, weightKg: kg, heightCm: ownHeight ?? sameDay)
+                return Weighing(date: entry.date, weightKg: kg, heightCm: sameDay(entry, \.heightCm),
+                                headCm: sameDay(entry, \.headCm))
             }
             .sorted { $0.date != $1.date ? $0.date > $1.date : $0.weightKg < $1.weightKg }
     }

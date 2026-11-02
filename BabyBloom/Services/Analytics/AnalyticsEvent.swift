@@ -244,6 +244,8 @@ extension AnalyticsEvent {
         case historyLock = "history_lock"
         case lockedCard  = "locked_card"
         case events
+        /// The report's «Share PDF» (m2-report-pdf): the PDF is Premium like every export.
+        case doctorReport = "doctor_report"
 
         var id: String { rawValue }
     }

@@ -314,7 +314,7 @@ struct ExportView: View {
 
 /// Identifiable payload for `.sheet(item:)` — a fresh `id` per export guarantees the
 /// share sheet is rebuilt with the newly-generated files.
-private struct ShareRequest: Identifiable {
+struct ShareRequest: Identifiable {
     let id = UUID()
     let items: [Any]
 }
