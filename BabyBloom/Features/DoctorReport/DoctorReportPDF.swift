@@ -333,8 +333,10 @@ enum DoctorReportPDF {
                      periodStart: Date, now: Date) -> Data {
         let document = document(summary: summary, baby: baby, openQuestions: openQuestions,
                                 periodStart: periodStart, now: now)
-        let footer = [ "brand.name".l, baby.name, periodRange(periodStart, now: now) ]
-            .filter { !$0.isEmpty }.joined(separator: " · ")
+        // UIKit draws this line, and in a PDF context it prints an emoji as a box too.
+        let name = PagedPDF.withoutEmoji(baby.name).trimmingCharacters(in: .whitespaces)
+        let footer = [ "brand.name".l, name, periodRange(periodStart, now: now) ]
+            .filter { !PagedPDF.isBlank($0) }.joined(separator: " · ")
         return PagedPDF.data(document, renderer: ReportPageRenderer(footerLeft: footer))
     }
 

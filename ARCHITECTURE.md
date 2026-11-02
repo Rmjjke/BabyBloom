@@ -923,7 +923,7 @@ would size its own columns, so their widths are fixed in advance: the export's
 from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
 `UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
 N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
-list and no colour emoji in the body (DECISIONS 2026-11-02).
+list and no colour emoji, the footer included (DECISIONS 2026-11-02).
 `PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
 The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
 fetches with `Input.window(periodStart:)`, the same window

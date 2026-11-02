@@ -448,9 +448,23 @@ final class PDFPagesTests: XCTestCase {
         }
     }
 
-    /// The removal is the PDF body's alone: the file name, the CSV and the store
-    /// keep what the parent typed.
-    func testEmojiStayEverywhereButThePDFBody() throws {
+    /// UIKit draws the report's footer, and in a PDF it prints an emoji as a box too.
+    func testAnEmojiInTheNameLeavesTheFooterToo() throws {
+        try inLanguage(.en) {
+            let some = try XCTUnwrap(report(extraWeighings: 0, name: "美玲 🌸").document.string)
+            XCTAssertFalse(some.contains("🌸"))
+            XCTAssertTrue(some.contains("\("brand.name".l) · 美玲 · "), "no space stays before the separator")
+
+            let none = try XCTUnwrap(report(extraWeighings: 0, name: "🌸").document.string)
+            XCTAssertFalse(none.contains("🌸"))
+            XCTAssertTrue(none.contains("\("brand.name".l) · "))
+            XCTAssertNil(none.range(of: "·\\s*·", options: .regularExpression), "a name of emoji alone leaves no gap")
+        }
+    }
+
+    /// The removal is the PDF's alone: the file name, the CSV and the store keep
+    /// what the parent typed.
+    func testEmojiStayEverywhereButThePDF() throws {
         try inLanguage(.en) {
             XCTAssertTrue(DoctorReportPDF.fileName(babyName: "🌸", date: Date()).contains("🌸"))
             let note = DiaperEntry(time: Date(), type: .wet, notes: "🌸 ok")
