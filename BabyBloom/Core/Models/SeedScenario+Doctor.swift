@@ -98,6 +98,17 @@ extension SeedScenario {
             event.baby = baby
             context.insert(event)
         }
+        if self == .doctorEventsCap {
+            // Two a day on days 1–12: with the seven baths above, 31 events
+            // sit inside the 15-day window, past the free 20-row cap.
+            for n in 1...12 {
+                for (hour, type) in [(9, CustomEvent.EventType.walk), (12, .medication)] {
+                    let event = CustomEvent(time: at(n, hour), type: type)
+                    event.baby = baby
+                    context.insert(event)
+                }
+            }
+        }
 
         func visit(day date: Date, created: Date, note: String? = nil) -> DoctorVisit {
             // Noon of the day, as `DoctorVisitActions.visitDay` stores a visit.
@@ -144,6 +155,14 @@ extension SeedScenario {
             question(q2.0, created: q2.1, askedAt: v20)
             question(q3.0, created: q3.1, askedAt: v0)
             question(q4.0, created: q4.1, askedAt: v0)
+            question(q5.0, created: q5.1)
+        case .doctorEventsCap:
+            let v20 = visit(day: day(20), created: at(20, 18), note: v20Note)
+            let v4 = visit(day: day(4), created: at(4, 17))
+            question(q1.0, created: q1.1, askedAt: v20)
+            question(q2.0, created: q2.1, askedAt: v20)
+            question(q3.0, created: q3.1, askedAt: v4)
+            question(q4.0, created: q4.1)
             question(q5.0, created: q5.1)
         case .doctorTwoVisits:
             let va = visit(day: day(10), created: at(10, 12), note: "First entry.")
