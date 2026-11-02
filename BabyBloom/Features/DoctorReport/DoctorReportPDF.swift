@@ -382,7 +382,11 @@ enum DoctorReportPDF {
 
             let pageText = String(format: "report.pdf.page_fmt".l, pageIndex + 1, numberOfPages)
             let pageWidth: CGFloat = 80
-            let line = CGRect(x: footerRect.minX, y: footerRect.midY - 6, width: footerRect.width, height: 12)
+            // `footerRect` is cut from the paper, not the printable rect set by
+            // KVC, so it runs to the page edges (seen on the first render): lay
+            // the line out inside the margins, at the bottom of the reserved band.
+            let area = printableRect
+            let line = CGRect(x: area.minX, y: area.maxY - footerHeight / 2 - 6, width: area.width, height: 12)
             (footerLeft as NSString).draw(
                 in: CGRect(x: line.minX, y: line.minY, width: line.width - pageWidth - 8, height: line.height),
                 withAttributes: [.font: font, .foregroundColor: color, .paragraphStyle: left])

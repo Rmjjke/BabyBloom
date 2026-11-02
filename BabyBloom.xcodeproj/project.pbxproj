@@ -145,6 +145,7 @@
 		9A61693302918A39ADEC898F /* ReportHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1489A46611F6D21D351828EB /* ReportHeader.swift */; };
 		9B75394229C6628B754F3AF2 /* BabyBloomWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 78C3D4A9B9DC424424E94277 /* BabyBloomWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9B776C6375474505456EB859 /* DoctorPeriod+Rows.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6E0F6C41E789D8A821DE9C /* DoctorPeriod+Rows.swift */; };
+		9C4BC27587427A45954E3EA3 /* DoctorReportPDFRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27857A9415CEC9EDB68275DF /* DoctorReportPDFRenderDump.swift */; };
 		9CDA15BED18E889514443A6D /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5E0516E7308094CC3973C77A /* Colors.xcassets */; };
 		9DB33713F4331904EFEEECEA /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */; };
 		9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */; };
@@ -314,6 +315,7 @@
 		219FABEEE0FC69A8D52D9809 /* DiapersReportCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiapersReportCard.swift; sourceTree = "<group>"; };
 		24305DDA00F1158E50872FA2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRefresh.swift; sourceTree = "<group>"; };
+		27857A9415CEC9EDB68275DF /* DoctorReportPDFRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDFRenderDump.swift; sourceTree = "<group>"; };
 		2BB92DC704136729F7426DA9 /* WidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetViews.swift; sourceTree = "<group>"; };
 		2C48DEAA09C03B8BDE9814C2 /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 		2FA09374D8C6395A118085BF /* ReviewPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptService.swift; sourceTree = "<group>"; };
@@ -690,6 +692,7 @@
 				B8FE2F53DE809CBCB728254C /* DoctorPeriodRowsTests.swift */,
 				E5D6F220B7D7E071A13261B6 /* DoctorPeriodTests.swift */,
 				F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */,
+				27857A9415CEC9EDB68275DF /* DoctorReportPDFRenderDump.swift */,
 				850950E53910EDD07BD7A452 /* DoctorReportPDFTests.swift */,
 				8848A60B812E23969302C7BF /* DoctorReportSummaryTests.swift */,
 				713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */,
@@ -1441,6 +1444,7 @@
 				AAA5E67BFD4E2335658E72B6 /* DoctorPeriodRowsTests.swift in Sources */,
 				8DD4252D59E2B32BAFA41D92 /* DoctorPeriodTests.swift in Sources */,
 				F77E5D05ABD2A38C2129AABC /* DoctorReportLoadTests.swift in Sources */,
+				9C4BC27587427A45954E3EA3 /* DoctorReportPDFRenderDump.swift in Sources */,
 				88C7E3EA50B8EC23CCF7F377 /* DoctorReportPDFTests.swift in Sources */,
 				953AA3E254884BB7A7811BDC /* DoctorReportSummaryTests.swift in Sources */,
 				C2F842304599D97C08199F50 /* DoctorVisitActionsTests.swift in Sources */,
