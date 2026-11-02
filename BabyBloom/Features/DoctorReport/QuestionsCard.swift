@@ -57,25 +57,29 @@ struct QuestionsCard: View {
             ForEach(Array(open.enumerated()), id: \.element.persistentModelID) { index, q in
                 if index > 0 { Divider() }
                 SwipeToDeleteRow(onDelete: { onDelete(q) }) {
-                    Button { onEdit(q) } label: {
-                        HStack(alignment: .center, spacing: BBTheme.Spacing.sm) {
+                    HStack(alignment: .center, spacing: BBTheme.Spacing.sm) {
                             // No line limit: the question is the content, and
                             // a truncated worry is worse than a tall row.
-                            BBTheme.Typography.body(q.text)
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: chevron, weight: .semibold))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                                .accessibilityHidden(true)
-                        }
-                        .padding(.vertical, BBTheme.Spacing.sm)
-                        .frame(minHeight: 44)
-                        .contentShape(Rectangle())
+                        BBTheme.Typography.body(q.text)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: chevron, weight: .semibold))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .accessibilityHidden(true)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.vertical, BBTheme.Spacing.sm)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                    // A tap gesture, not a Button: a Button still fires on
+                    // release after a drag, so the row's swipe never won (Q-016).
+                    // A tap fails once the finger moves; the parent's drag wins.
+                    .onTapGesture { onEdit(q) }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { onEdit(q) }
                     .accessibilityHint("button.edit".l)
                     .accessibilityAction(named: Text("button.delete".l)) { onDelete(q) }
                     .accessibilityIdentifier("doctor.question.open.\(index + 1)")
