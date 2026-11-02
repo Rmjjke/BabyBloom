@@ -14,6 +14,13 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
+
+- **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
+- **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). Content's label says «typical», not «average».
+- **«N days ago» from 48 h**, floored, with the age plurals. «131 h ago» was a number to work out, not an answer. Under 48 h, hours stay: «30 h ago» still reads at a glance.
+- **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made.
+
 ## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
 
 **The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; Content's closed no-verdict list is a test (`DoctorReportPDFTests`).
