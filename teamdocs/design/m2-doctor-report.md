@@ -4,7 +4,7 @@ status: final — card `m2-report-design`, 2026-11-01; DRAFT 7f4f161 read by the
 decisions: D14 (WCAG 2.2 AA), D17 (no gain number in the newborn window), D19 (averages over days with entries), D35 (Manager decides); plan v2 decisions 1–11 (`.team/desk/milestones/m2-doctor-visit-report/plan.md`); DECISIONS.md 2026-09-05 (doctor-facing = measurements; empty state names the thing + offers the action; a count above reference is never an alarm), 2026-09-01 (a gated control shows its padlock), 2026-10-28 (primary action never inside the scroll), 2026-10-30 (numbers in the app language)
 reference: `teamdocs/design/design-system.md` (P = principle); the weekly card note `m1-weekly-summary.md` (row style, AX2 stacking); Content's inventory `reviews/content.md`
 triggers: a section or row added to or removed from the report; a state added; the visit or question model changed; the PDF page layout changed; a plan v2 decision (1–11) changed
-check: `grep -c '"report\.' BabyBloom/Resources/Localization/en.json` vs the key roles in § 8 once `m2-report-copy` lands; `grep -n 'stethoscope' BabyBloom/App/MainTabView.swift` (the More row, § 1)
+check: `grep -c '"report\.' BabyBloom/Resources/Localization/en.json` vs the key roles in § 8 once `m2-report-copy` lands; `grep -n 'stethoscope' BabyBloom/App/MainTabView.swift` (the More row, § 1); `grep -n "Helvetica Neue" BabyBloom/Features/Export/PagedPDF.swift` (§ 5 type)
 
 Drawn by hand (`ios: none`). Sizes are targets, to be checked on the first render.
 Copy in the wireframes is **working text**: Content owns every final string (`m2-report-copy`).
@@ -216,17 +216,20 @@ A new template in the same renderer (`ExportGenerator.renderPDF`). It does **not
   - the table header fill `#F6F3FB` (BBBackground), text on it 13.0:1;
   - row rules `#E5E5EA` (decorative);
   - **no gradient, no white-on-colour, no emoji, no category tints.**
-- **Type:** the system font (`-apple-system`). Body and table 11 pt; headings 13; title 18; provenance 10; the page footer 9 (page furniture, not body). Dev checks on the first render that CSS sizes come out as these points in `UIMarkupTextPrintFormatter`. If they don't, he scales the CSS, not the targets.
+- **Type:** Helvetica Neue in both PDFs and every language, footer included; the app's screens keep the system font. Why: the text layer. The system font draws Cyrillic «к» and Latin «ĸ» with one glyph, so its text layer spells every «к» U+0138 and a search for «кг» finds nothing. Ligatures are off for the same reason: «ﬁ» is one character there, and a search for «fine» misses it. The look stays nearly the same. CSS weight 600 prints as Helvetica Neue Bold, so «semibold» in the wireframe above reads so. Other scripts draw through the named font list in `PagedPDF.cssType`, because this engine has no system fallback (DECISIONS 2026-11-02). Body and table 11 pt; headings 13; title 18; provenance 10; the page footer 9 (page furniture, not body). Dev checks on the first render that CSS sizes come out as these points in `UIMarkupTextPrintFormatter`. If they don't, he scales the CSS, not the targets.
 - **Order:** header → Growth → Feeding → Sleep → Diapers → Questions → provenance. Data before questions, because the PDF is the doctor's record; the screen differs on purpose (§ 2 ④).
 - **Rows are the screen's rows and keys,** in two columns where they fit. The same `PeriodSummary` feeds both (Dev's test compares the strings). The short-period and empty-section states print as on screen. The «visit today, nothing since» state prints the header + Growth facts + «No entries in this period».
-- **Weighings table:** all weighings in the period, newest first; columns Date · Weight · Length · Head, with an empty cell when not measured that day. `thead { display: table-header-group }` so the header repeats on a new page.
-- **Questions:** the **open** questions at the moment of making the PDF, numbered, verbatim. Absent when none. Asked questions and visit notes are not printed: they belong to the visit that already happened.
-- **Breaks:** each section `page-break-inside: avoid` except the weighings table.
-- **Footer** on every page (`UIPrintPageRenderer` footer): left «<brand> · <name> · <period>», right «Page N of M».
+- **Weighings table:** all weighings in the period, newest first; columns Date · Weight · Length · Head, with an empty cell when not measured that day. The head repeats by hand, because this engine ignores a repeated `thead` and slices at the page height: `PagedPDF` makes every page its own small document and writes the table's head again at the top of each continuation page. A row moves whole to the next page. The export's tables work the same way. Limit: one row taller than a whole page still slices.
+- **Questions:** the **open** questions at the moment of making the PDF, numbered, verbatim except emoji, which the PDF engine cannot draw (it prints a boxed «?», in any form). They leave at render only: the stored text, the screens and the CSV keep them. Absent when none. Asked questions and visit notes are not printed: they belong to the visit that already happened.
+  - A character with a text form stays as text and only loses the emoji form: digits, «#», «*», «©», «®», «™», «❤». A lost digit in a question about a dose is worse than any box.
+  - Marks that carry a yes or no print as text, a closed list that does not grow without a new decision: ✅→✓, ❌ ❎→✗, ➕→+, ➖→−, ➗→÷, ❓ ❔→?, ❗ ❕→!. Any other emoji leaves. Why: «Iron ❌, Vit D ✅» must not print «Iron , Vit D ».
+  - A question left with nothing is out of the list and the list renumbers; no question left means no heading.
+- **Breaks:** each section stays whole on one page, by the page composition above, because this engine ignores the CSS break rules. Only the weighings table breaks, between rows. The questions move whole; a list longer than a page breaks between two questions and the numbers carry on.
+- **Footer** on every page (`UIPrintPageRenderer` footer): left «<brand> · <name> · <period>», right «Page N of M». The name prints without emoji; a name of emoji alone leaves no gap: «<brand> · <period>».
 - **Excluded:** band words, tints, ⚠, the trend / adequacy / norm verdicts, `diaper.color.warning`, `growth.who_footnote`, marketing.
 - **File name:** «<screen title> – <name> – <yyyy-MM-dd>.pdf» in the app language (Content may shorten).
 
-The existing export PDF keeps its own layout in M2. Only its numbers move to the app language (plan v2 decision 10). Its gradient header (white on `#A795D9` ≈ 2.6:1) and its emoji headings are an AA debt, logged as finding m1 for the backlog (§ 9). They are not M2 scope.
+The existing export PDF keeps its own layout in M2, and its numbers follow the app language (plan v2 decision 10). Its header is one solid `#6F5BA8` with white text (5.6:1) and its headings are words in `#6F5BA8`, 5.0:1 on the card. It shares Helvetica Neue, whole rows, repeated table heads and the emoji rule with the report.
 
 ## 6. Motion
 
@@ -293,12 +296,10 @@ None new. BBPrimary, BBTextPrimary, BBTextSecondary, BBBackground, BBSurface, th
 
 ## 9. Findings outside M2 scope (for the backlog)
 
-- **m1 (minor, AA, existing export PDF):**
-  - the header is a `#6F5BA8 → #A795D9` gradient with white text, ≈ 2.6:1 at the light end (P8);
-  - the headings are emoji (`ExportGenerator.swift:264–324`);
-  - "Generated by" is in English (`:374`).
-  - Fix when the export PDF is next touched: reuse § 5's header and colours.
-  - Manager, 2026-11-01: into the backlog; Dev may fold it into `m2-report-pdf`.
+- **m1 (minor, AA, existing export PDF): fixed in M2.**
+  - The `#6F5BA8 → #A795D9` gradient header (white text, ≈ 2.6:1 at the light end, P8) is one solid `#6F5BA8`, 5.6:1.
+  - The headings are words, no longer emoji.
+  - "Generated by" follows the app language.
 
 ## 10. Decisions (Manager under D35, 2026-11-01: all five accepted)
 
