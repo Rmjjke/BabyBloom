@@ -18,7 +18,7 @@ struct GrowthReportCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            ReportCardHeader(icon: "scalemass.fill", tint: BBTheme.Colors.growth, title: "nav.growth".l)
+            ReportCardHeader(icon: "scalemass.fill", tint: BBTheme.Colors.growth, title: "export.cat.growth".l)
             // R4.8 is about weighings: a height-only history still offers one.
             if growth.latestWeight == nil { empty }
             if !growth.isEmpty {
@@ -63,7 +63,11 @@ struct GrowthReportCard: View {
         if let height = growth.latestHeight {
             ReportRow(format: "report.height_fmt".l, value: ReportFormat.cm(height.value),
                       suffix: ReportFormat.date(height.date))
-            percentile(growth.heightPercentile, format: "report.percentile_height_fmt")
+            // One sentence per card: before the due date (or past the table)
+            // weight and height share it, and printing it twice read as two facts.
+            if !growth.repeatsWeightNote {
+                percentile(growth.heightPercentile, format: "report.percentile_height_fmt")
+            }
         }
         if let head = growth.latestHead {
             ReportRow(format: "growth.head_fmt".l, value: head.value.appDecimal(1),

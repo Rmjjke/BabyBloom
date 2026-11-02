@@ -100,6 +100,16 @@ struct DoctorReportSummary: Equatable {
 
         /// No weighing ever: the card shows `report.empty_growth` + «Add a weighing».
         var isEmpty: Bool { latestWeight == nil && latestHeight == nil && latestHead == nil }
+
+        /// The height row would print the same note the weight row already
+        /// prints (before the due date, past the table): say it once.
+        var repeatsWeightNote: Bool {
+            guard latestWeight != nil, heightPercentile == weightPercentile else { return false }
+            switch heightPercentile {
+            case .beforeDueDate, .outOfRange: return true
+            default: return false
+            }
+        }
     }
 
     /// «Days with entries: N of M» — shown only when `withEntries < counted` (R3.2).

@@ -9,7 +9,7 @@ struct DiapersReportCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            ReportCardHeader(icon: "drop.fill", tint: BBTheme.Colors.diaper, title: "tab.diapers".l)
+            ReportCardHeader(icon: "drop.fill", tint: BBTheme.Colors.diaper, title: "export.cat.diapers".l)
             if let diapers {
                 rows(diapers)
             } else {
