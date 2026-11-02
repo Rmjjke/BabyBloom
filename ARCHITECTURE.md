@@ -912,9 +912,19 @@ each caller passes in, never in the core. The share button ⑩ (Premium) makes
 same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
 the export and the weekly card), so the PDF cannot print a number
 the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
-the page for Content's closed verdict list. It renders through
-`UIMarkupTextPrintFormatter` with its own `UIPrintPageRenderer` subclass,
-which draws the footer (brand · name · period, «Page N of M») on every page.
+the page for Content's closed verdict list. It renders through `PagedPDF`
+(`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
+slices its layout at the page height and ignores the CSS break rules, so a
+document hands over its blocks and rows, every page is composed as its own
+small HTML document with its own formatter, and the engine's page count says
+what fits: rows move whole, a table prints its head on every page it reaches,
+and a document that fits one page is laid out once, as it is. Each page's table
+would size its own columns, so their widths are fixed in advance: the export's
+from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
+`UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
+N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
+list and no colour emoji in the body (DECISIONS 2026-11-02).
+`PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
 The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
 fetches with `Input.window(periodStart:)`, the same window
 `ReportDataSection`'s queries use. Every PDF prints numbers in the app
