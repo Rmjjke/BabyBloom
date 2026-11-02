@@ -62,8 +62,10 @@ Nothing on it grades the baby.
 - **A count of questions is a word, not a bare number**:
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
   `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
-  one/few/many rule. The older `question.asked_at_fmt` (`· %d`) stays until
-  Dev's code switches; then it goes.
+  one/few/many rule (`Int.plural`). The older `question.asked_at_fmt`
+  (`· %d`) is unused since the polish batch, but it stays until the whole M2
+  batch is in main, so that no PR can reach main without the key it reads.
+  Its deletion is a cleanup card for after the batch.
 - **Composed by Dev, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
