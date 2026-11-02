@@ -86,9 +86,9 @@ The rows are **label: value in one Text**: label `Typography.callout` + value `T
 | | Weighings | the period's weighings, newest first, one per line: date · weight (· length when logged that day). The last 6 show; «Show all N» expands **in place** (plan v2 said "All weighings →"; in place keeps the context and does not depend on Growth's layout). The PDF prints all |
 | | At birth: 3.40 kg · 51 cm | a `caption` line at the end, from the birth measurement (DECISIONS 2026-09-05 birth-day measurement); absent when unknown |
 | Feeding | Feeds a day: 7.4 | `weekly.feeds_fmt`, averaged over days with feeding entries (D19) |
-| | Breast 120 · Formula 30 · Expressed 12 | counts over the period, only the types logged, and **only when more than one type** was logged (one fact once: with breast only, the line adds nothing) |
+| | Breast 120 · Formula 30 · Pumped 12 | counts over the period, only the types logged, and **only when more than one type** was logged (one fact once: with breast only, the line adds nothing). The type words are the app's `feeding.type.*` (en Pumped, ru Сцеженное, es Extraída), with no report-only key: one word for one thing, the word the parent logs with (Manager, design review 2026-11-02) |
 | | Bottle a day: 480 ml | formula + expressed volume, averaged over days with bottle entries; only when volumes exist |
-| | Breastfeed: 18 min on average | the mean duration of finished breastfeeds; only when breastfeeds exist |
+| | Breastfeed: 18 min (Content's word for a median, e.g. «usually») | the **median** duration of finished breastfeeds (with an even count, the mean of the two middle values); only when breastfeeds exist. Not the mean: one forgotten timer moves a mean, never the median (Manager, design review 2026-11-02; supersedes "on average" in § 8 and § 10 item 5) |
 | | Days with entries: 18 of 20 | only when N < M (D19) |
 | Sleep | Sleep a day: 14 h 20 min | `weekly.sleep_fmt`, finished sleeps; a sleep that crosses the period start counts by its part inside (plan v2 decision 6) |
 | | Longest sleep: 5 h 10 min · 24 Oct | `weekly.longest_sleep_fmt` + the date in `caption` |
