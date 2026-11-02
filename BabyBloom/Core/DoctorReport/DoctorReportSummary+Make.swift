@@ -105,9 +105,15 @@ extension DoctorReportSummary {
                 ? nil : Double(finished.totalFeeds) / Double(finished.daysWithEntries),
             byType: types.count > 1 ? types.map { Feeding.TypeCount(type: $0.value, count: $0.count) } : [],
             bottleMLPerDay: frame.isShort || bottleDays == 0 ? nil : bottleML / Double(bottleDays),
-            breastfeedAverage: breastLengths.isEmpty
-                ? nil : breastLengths.reduce(0, +) / Double(breastLengths.count),
+            breastfeedMedian: median(breastLengths),
             days: frame.days(finished))
+    }
+
+    static func median(_ values: [TimeInterval]) -> TimeInterval? {
+        guard !values.isEmpty else { return nil }
+        let sorted = values.sorted()
+        let middle = sorted.count / 2
+        return sorted.count.isMultiple(of: 2) ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]
     }
 
     private static func sleepSection(_ sleeps: [(start: Date, end: Date)], frame: Frame) -> Sleep? {

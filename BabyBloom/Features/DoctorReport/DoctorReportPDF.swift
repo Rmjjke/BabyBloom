@@ -218,8 +218,8 @@ enum DoctorReportPDF {
             })))
         }
         if let ml = feeding.bottleMLPerDay { cells.append(row("report.bottle_a_day_fmt", ReportFormat.ml(ml))) }
-        if let average = feeding.breastfeedAverage {
-            cells.append(row("report.breastfeed_avg_fmt", ReportFormat.duration(average)))
+        if let typical = feeding.breastfeedMedian {
+            cells.append(row("report.breastfeed_avg_fmt", ReportFormat.duration(typical)))
         }
         return section("tab.feeding", cells, days: feeding.days, isShort: isShort)
     }
@@ -355,6 +355,10 @@ enum DoctorReportPDF {
         renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
         for page in 0..<renderer.numberOfPages {
             UIGraphicsBeginPDFPage()
+            // A white page, margins and footer included: a PDF page is
+            // transparent, and dark viewers drew the frame black (design review m5).
+            UIColor.white.setFill()
+            UIRectFill(UIGraphicsGetPDFContextBounds())
             renderer.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())
         }
         UIGraphicsEndPDFContext()

@@ -118,8 +118,11 @@ struct DoctorReportSummary: Equatable {
         let byType: [TypeCount]
         /// Formula + expressed ml a day, over days with a bottle that has a volume.
         let bottleMLPerDay: Double?
-        /// Mean length of finished breastfeeds.
-        let breastfeedAverage: TimeInterval?
+        /// Median length of finished breastfeeds (design review, 2026-11-02): one
+        /// forgotten 3-hour timer moved a mean by minutes; the typical feed is
+        /// what the doctor asks about. An even count takes the mean of the two
+        /// middle lengths.
+        let breastfeedMedian: TimeInterval?
         let days: Days
 
         struct TypeCount: Equatable {

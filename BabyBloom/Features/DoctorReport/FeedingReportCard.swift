@@ -38,8 +38,8 @@ struct FeedingReportCard: View {
         if let ml = feeding.bottleMLPerDay {
             ReportRow(format: "report.bottle_a_day_fmt".l, value: ReportFormat.ml(ml))
         }
-        if let average = feeding.breastfeedAverage {
-            ReportRow(format: "report.breastfeed_avg_fmt".l, value: ReportFormat.duration(average))
+        if let typical = feeding.breastfeedMedian {
+            ReportRow(format: "report.breastfeed_avg_fmt".l, value: ReportFormat.duration(typical))
         }
         ReportDaysLine(days: feeding.days, isShort: isShort)
     }

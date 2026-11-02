@@ -154,7 +154,7 @@ final class DoctorReportPDFTests: XCTestCase {
             let feeding = try XCTUnwrap(summary.feeding)
             assertShown(WeeklyFormat.perDay(try XCTUnwrap(feeding.feedsPerDay)), "feeds a day")
             assertShown(ReportFormat.ml(try XCTUnwrap(feeding.bottleMLPerDay)), "bottle a day")
-            assertShown(ReportFormat.duration(try XCTUnwrap(feeding.breastfeedAverage)), "breastfeed average")
+            assertShown(ReportFormat.duration(try XCTUnwrap(feeding.breastfeedMedian)), "breastfeed average")
             let sleep = try XCTUnwrap(summary.sleep)
             assertShown(ReportFormat.duration(try XCTUnwrap(sleep.perDay)), "sleep a day")
             assertShown(ReportFormat.duration(try XCTUnwrap(sleep.longest)), "longest sleep")
