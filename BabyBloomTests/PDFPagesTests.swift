@@ -180,10 +180,11 @@ final class PDFPagesTests: XCTestCase {
     }
 
     /// Each page is its own table: a long note on a later page must not move the
-    /// columns of the earlier ones.
+    /// columns of the earlier ones, not even one with no place to wrap.
     func testExportColumnsStayPutFromPageToPage() throws {
         try inLanguage(.en) {
             let long = String(repeating: "A long note that takes a good part of the line. ", count: 2)
+                + String(repeating: "x", count: 90)
             let diapers = (0..<120).map { index in
                 DiaperEntry(time: Date().addingTimeInterval(-Double(index) * 3600), type: .wet,
                             notes: index > 90 ? long : nil)
@@ -202,12 +203,42 @@ final class PDFPagesTests: XCTestCase {
         }
     }
 
+    /// Without them the columns come out equal: a short time takes as much as a long note.
+    func testExportColumnWidthsFollowTheLongestText() {
+        let note = String(repeating: "x", count: 60)
+        XCTAssertEqual(ExportGenerator.columnWidths(headers: ["Time", "Notes"], rows: [["08:00", note]]),
+                       "<colgroup><col style=\"width: 18.6%\"><col style=\"width: 81.4%\"></colgroup>")
+        let page = ExportGenerator.buildHTML(baby: nil, feedings: [], sleeps: [],
+                                             diapers: [DiaperEntry(time: Date(), type: .wet, notes: note)],
+                                             growths: [], events: [], categories: [.diapers], range: .all)
+        XCTAssertTrue(page.contains("<colgroup>"), "the table uses them")
+    }
+
+    /// The report's pages are separate tables too: the weights stay in one column.
+    func testReportColumnsStayPutFromPageToPage() throws {
+        try inLanguage(.en) {
+            let long = try report(extraWeighings: 40)
+            XCTAssertGreaterThan(long.document.pageCount, 1)
+            let places = plain(long.weights).compactMap { weight -> CGFloat? in
+                let number = String(weight.prefix { $0 != " " })
+                guard let found = long.document.findString(number, withOptions: []).first,
+                      let page = found.pages.first else { return nil }
+                return found.bounds(for: page).minX.rounded()
+            }
+            XCTAssertEqual(places.count, long.weights.count)
+            XCTAssertEqual(Set(places).count, 1, "the weight column moves between pages: \(Set(places))")
+        }
+    }
+
     /// Two tables on one page keep their own heads: the second opens where the first closes.
     func testAdjacentExportTablesEachPrintTheirOwnHead() throws {
         try inLanguage(.en) {
             let start = Date().addingTimeInterval(-86_400)
             let sleeps = (0..<60).map { SleepEntry(startTime: start.addingTimeInterval(Double($0) * 60), type: .nap) }
-            let growths = (0..<60).map { GrowthEntry(date: start.addingTimeInterval(Double($0) * 60), weightKg: 3) }
+            let weights = (0..<60).map { 6 + Double($0) * 0.01 }
+            let growths = weights.enumerated().map { offset, value in
+                GrowthEntry(date: start.addingTimeInterval(Double(offset) * 60), weightKg: value)
+            }
             let data = ExportGenerator.pdfData(baby: nil, feedings: [], sleeps: sleeps, diapers: [], growths: growths,
                                                events: [], categories: [.sleep, .growth], range: .all)
             let pages = texts(try XCTUnwrap(PDFDocument(data: data)))
@@ -215,7 +246,8 @@ final class PDFPagesTests: XCTestCase {
             let growthHead = "export.col.weight".l
             let turn = try XCTUnwrap(pages.firstIndex { $0.contains(growthHead) })
             XCTAssertTrue(pages[..<turn].allSatisfy { $0.contains(sleepHead) }, "a sleep page lost its head")
-            XCTAssertTrue(pages[(turn + 1)...].allSatisfy { $0.contains(growthHead) }, "a growth page lost its head")
+            // Every growth row, also those on the page where the sleep table ends.
+            assertHeadOnEveryPageWithRows(growthHead, weights.map(ReportFormat.kg), in: pages)
             XCTAssertFalse(pages[(turn + 1)...].contains { $0.contains(sleepHead) }, "growth rows under the sleep head")
         }
     }
