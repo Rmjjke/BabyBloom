@@ -126,9 +126,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $recordsBirthWeight,
                             value: $birthWeightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: "\(birthWeightKg.appDecimal(2)) \("unit.kg".l)",
-                            minLabel: "\(0.5.appDecimal(1)) \("unit.kg".l)",
-                            maxLabel: "6 \("unit.kg".l)",
+                            display: "\(birthWeightKg.appDecimal(2))\u{00A0}\("unit.kg".l)",
+                            minLabel: "\(0.5.appDecimal(1))\u{00A0}\("unit.kg".l)",
+                            maxLabel: "6\u{00A0}\("unit.kg".l)",
                             color: BBTheme.Colors.growth
                         )
                     }
@@ -141,9 +141,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $wasBornEarly,
                             value: $gestationalWeeks,
                             range: 22...36, step: 1,
-                            display: "\(Int(gestationalWeeks)) \("unit.weeks_short".l)",
-                            minLabel: "22 \("unit.weeks_short".l)",
-                            maxLabel: "36 \("unit.weeks_short".l)",
+                            display: "\(Int(gestationalWeeks))\u{00A0}\("unit.weeks_short".l)",
+                            minLabel: "22\u{00A0}\("unit.weeks_short".l)",
+                            maxLabel: "36\u{00A0}\("unit.weeks_short".l)",
                             color: BBTheme.Colors.accent
                         )
                     }
