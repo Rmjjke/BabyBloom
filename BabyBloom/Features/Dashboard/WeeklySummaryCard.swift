@@ -295,55 +295,8 @@ struct WeeklySummaryCard: View {
     }
 }
 
-/// The card's number formats, all in the app's language.
-enum WeeklyFormat {
-    private static var locale: Locale { LocalizationManager.shared.language.locale }
-
-    /// "20 – 26 Oct": the month once when both ends share it.
-    static func range(_ week: WeeklySummary.Week) -> String {
-        let calendar = WeeklySummary.calendar
-        let last = calendar.date(byAdding: .day, value: -1, to: week.end)!
-        let sameMonth = calendar.component(.month, from: week.start) == calendar.component(.month, from: last)
-        guard sameMonth else {
-            return String(format: "weekly.range_fmt".l, week.start.appDayMonth, last.appDayMonth)
-        }
-        // The month is written once, on the side the language puts it:
-        // "Oct 19 – 25" in English, "19 – 25 окт." in Russian.
-        let dayOnly = { (date: Date) in date.formatted(.dateTime.day().locale(locale)) }
-        let monthFirst = !(last.appDayMonth.first?.isNumber ?? true)
-        return monthFirst
-            ? String(format: "weekly.range_fmt".l, week.start.appDayMonth, dayOnly(last))
-            : String(format: "weekly.range_fmt".l, dayOnly(week.start), last.appDayMonth)
-    }
-
-    static func perDay(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...1)).locale(locale))
-    }
-
-    static func duration(_ seconds: TimeInterval) -> String {
-        let minutes = Int((seconds / 60).rounded())
-        if minutes < 60 { return String(format: "duration.min_only".l, minutes) }
-        // "1h", not "1h 0min".
-        return minutes % 60 == 0
-            ? String(format: "duration.h_only".l, minutes / 60)
-            : String(format: "duration.h_min".l, minutes / 60, minutes % 60)
-    }
-
-    /// nil when there is nothing to compare or the shown values are equal.
-    static func feedsDelta(_ current: Double?, _ previous: Double?) -> (up: Bool, text: String)? {
-        guard let current, let previous else { return nil }
-        let difference = (current * 10).rounded() / 10 - (previous * 10).rounded() / 10
-        guard abs(difference) >= 0.05 else { return nil }
-        return (difference > 0, perDay(abs(difference)))
-    }
-
-    static func sleepDelta(_ current: TimeInterval?, _ previous: TimeInterval?) -> (up: Bool, text: String)? {
-        guard let current, let previous else { return nil }
-        let difference = (current / 60).rounded() - (previous / 60).rounded()
-        guard difference != 0 else { return nil }
-        return (difference > 0, duration(abs(difference) * 60))
-    }
-
+/// The SwiftUI half of `WeeklyFormat` (Core/Formatting): it builds a `Text`.
+extension WeeklyFormat {
     /// "Feeds a day: 7.4" as one Text, the value in the metric style: the
     /// format is split at its `%@`, so word order stays the translator's.
     static func labelled(_ format: String, value: String) -> Text {
@@ -357,13 +310,5 @@ enum WeeklyFormat {
             text = text + Text(" ") + BBTheme.Typography.metricSmall(value)
         }
         return text
-    }
-
-    /// M T W T F S S in the app's language, Monday first.
-    static var weekdayLetters: [String] {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = locale
-        let symbols = calendar.veryShortStandaloneWeekdaySymbols   // Sunday first
-        return Array(symbols[1...]) + [symbols[0]]
     }
 }

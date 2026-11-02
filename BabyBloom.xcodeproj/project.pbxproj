@@ -40,8 +40,10 @@
 		22F76FA1DEAE7C2CC33FC1FD /* FeedingBreakdownCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */; };
 		23A3132E48192240EE790994 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F691DCEBF4864F06700FFE43 /* DeepLink.swift */; };
 		24577B13AFD3466DDB0C5BB8 /* FeedingRhythm.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */; };
+		248320E6127C58340944BBA2 /* WeeklyFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A56AE937474B66A62426B5B /* WeeklyFormat.swift */; };
 		2545546E391C7F033313B63D /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		26568783E2D6605496745637 /* WHOGrowthStandard+Length.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1C953E6C9361CC62C31C5A /* WHOGrowthStandard+Length.swift */; };
+		26C2AF0C818E19D8A69B484F /* FormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A99868F52DF430ACD72633A /* FormattingTests.swift */; };
 		279D31B1C59F68A21CD7E0C5 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 35F49DA9A952161FFF0F24A0 /* en.json */; };
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
 		282B1AA5BDE0C4DCBD9848B8 /* OnboardingBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08481481275F9B15129634B6 /* OnboardingBackground.swift */; };
@@ -121,6 +123,7 @@
 		7D977904A7F13DDAA7245203 /* SubscriptionSavingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */; };
 		7E62D06C8AA07E74F4692D98 /* RoundedCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */; };
 		809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */; };
+		80C0EA3E80E18500CC8C17EE /* ReportFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EA9809404B9EBD73B4555E /* ReportFormat.swift */; };
 		836B5234B81D61CED074A8DB /* WeeklySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48898F260E6DF44F56AB2061 /* WeeklySummaryCard.swift */; };
 		86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
@@ -316,6 +319,8 @@
 		24305DDA00F1158E50872FA2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRefresh.swift; sourceTree = "<group>"; };
 		27857A9415CEC9EDB68275DF /* DoctorReportPDFRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDFRenderDump.swift; sourceTree = "<group>"; };
+		2A56AE937474B66A62426B5B /* WeeklyFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyFormat.swift; sourceTree = "<group>"; };
+		2A99868F52DF430ACD72633A /* FormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormattingTests.swift; sourceTree = "<group>"; };
 		2BB92DC704136729F7426DA9 /* WidgetViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetViews.swift; sourceTree = "<group>"; };
 		2C48DEAA09C03B8BDE9814C2 /* SharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStore.swift; sourceTree = "<group>"; };
 		2FA09374D8C6395A118085BF /* ReviewPromptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptService.swift; sourceTree = "<group>"; };
@@ -453,6 +458,7 @@
 		D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthInsightCards.swift; sourceTree = "<group>"; };
 		D8768F1C61CA49F9DE3FFC1F /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythm.swift; sourceTree = "<group>"; };
+		D9EA9809404B9EBD73B4555E /* ReportFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportFormat.swift; sourceTree = "<group>"; };
 		DAE7C80A290A93593D96A530 /* WeeklySummaryRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryRenderDump.swift; sourceTree = "<group>"; };
 		DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBHistorySection.swift; sourceTree = "<group>"; };
 		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -700,6 +706,7 @@
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */,
 				AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */,
+				2A99868F52DF430ACD72633A /* FormattingTests.swift */,
 				C9D97024281147567091924D /* GrowthCardRenderDump.swift */,
 				914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */,
 				1B83837F382661630F8C1467 /* HistoryMergeTests.swift */,
@@ -846,6 +853,15 @@
 				1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */,
 			);
 			path = Localization;
+			sourceTree = "<group>";
+		};
+		80BFC25F617F457D51B2E474 /* Formatting */ = {
+			isa = PBXGroup;
+			children = (
+				D9EA9809404B9EBD73B4555E /* ReportFormat.swift */,
+				2A56AE937474B66A62426B5B /* WeeklyFormat.swift */,
+			);
+			path = Formatting;
 			sourceTree = "<group>";
 		};
 		893024288CF2BB8807270934 /* Diaper */ = {
@@ -1054,6 +1070,7 @@
 				C84C99B05F1B89D90089D72A /* AppClock.swift */,
 				C0927F5D9B931194DFA68E26 /* DoctorReport */,
 				C5A7E4DC3E62B062807E07CA /* Feeding */,
+				80BFC25F617F457D51B2E474 /* Formatting */,
 				92872E639174190CE7FD2042 /* Growth */,
 				C7E56D64BDBFE7742EE75251 /* History */,
 				77F93CE06E083049FB882844 /* Localization */,
@@ -1385,6 +1402,7 @@
 				2F251A53C6AA48D1BBC30803 /* QuestionsCard.swift in Sources */,
 				E78FAF366FEABEACBBABFD84 /* RecentActivityView.swift in Sources */,
 				B7AE8456B2459E9DDBDCEB66 /* ReportDataSection.swift in Sources */,
+				80C0EA3E80E18500CC8C17EE /* ReportFormat.swift in Sources */,
 				9A61693302918A39ADEC898F /* ReportHeader.swift in Sources */,
 				3A026181ECCBB265E8738A48 /* ReportRow.swift in Sources */,
 				BBBE79719E0B6777CC9BD0FE /* ReviewPromptPolicy.swift in Sources */,
@@ -1412,6 +1430,7 @@
 				69050EB6B6FF04483EC62AD9 /* WHOCorridor.swift in Sources */,
 				26568783E2D6605496745637 /* WHOGrowthStandard+Length.swift in Sources */,
 				2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */,
+				248320E6127C58340944BBA2 /* WeeklyFormat.swift in Sources */,
 				120EC41C073929C314CF4317 /* WeeklyNotificationPlan.swift in Sources */,
 				526C04993CAD4A155C0E67E1 /* WeeklySummary+Store.swift in Sources */,
 				4FA1FC6EF847EBB826070C7C /* WeeklySummary.swift in Sources */,
@@ -1452,6 +1471,7 @@
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
 				D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */,
 				A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */,
+				26C2AF0C818E19D8A69B484F /* FormattingTests.swift in Sources */,
 				54109B19D52D3B3329A3330D /* GrowthCardRenderDump.swift in Sources */,
 				EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */,
 				89E85DAD7C0F3F5A41AA8CA5 /* HistoryMergeTests.swift in Sources */,
