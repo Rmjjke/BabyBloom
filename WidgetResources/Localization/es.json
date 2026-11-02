@@ -606,7 +606,6 @@
   "question.empty": "Aún no hay preguntas. Cuando se te ocurra una, apúntala y la tendrás aquí en la visita.",
   "question.asked": "Hecha",
   "question.not_asked": "Sin hacer",
-  "question.asked_at_fmt": "Hechas en la visita del %@ · %d",
   "question.asked_at_count_fmt": "Hechas en la visita del %@ · %@",
   "question.count.one": "%d pregunta",
   "question.count.few": "%d preguntas",

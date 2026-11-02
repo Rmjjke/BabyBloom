@@ -62,8 +62,8 @@ Nothing on it grades the baby.
 - **A count of questions is a word, not a bare number**:
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
   `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
-  one/few/many rule. The older `question.asked_at_fmt` (`· %d`) stays until
-  Dev's code switches; then it goes.
+  one/few/many rule (`Int.plural`). The older `question.asked_at_fmt`
+  (`· %d`) was deleted on 2026-11-02, after QuestionsCard switched.
 - **Composed by Dev, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
@@ -169,7 +169,7 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 - **Questions:** `question.add`, `question.new_title` / `question.title` (sheet,
   new / edit), `question.placeholder`, `question.empty`, `question.asked`,
   `question.not_asked` (VoiceOver value and hint of the toggle),
-  `question.asked_at_fmt` (date · count), `question.back_to_list`,
+  `question.asked_at_count_fmt` (date · `question.count.*`), `question.back_to_list`,
   `question.delete`; `button.edit` (new, generic).
 - **Visit:** `visit.title` (sheet title, Events row), `visit.log`, `visit.date`,
   `visit.questions_header`, `visit.carry_over`, `visit.asked_here`,

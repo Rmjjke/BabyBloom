@@ -606,7 +606,6 @@
   "question.empty": "Вопросов пока нет. Запишите вопрос, как только он появится: к приёму он будет здесь.",
   "question.asked": "Задан",
   "question.not_asked": "Не задан",
-  "question.asked_at_fmt": "Заданы на приёме %@ · %d",
   "question.asked_at_count_fmt": "Заданы на приёме %@ · %@",
   "question.count.one": "%d вопрос",
   "question.count.few": "%d вопроса",

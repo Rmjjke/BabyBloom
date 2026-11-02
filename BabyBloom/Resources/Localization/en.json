@@ -606,7 +606,6 @@
   "question.empty": "No questions yet. Write one down when it comes to mind, and it will be here at the visit.",
   "question.asked": "Asked",
   "question.not_asked": "Not asked",
-  "question.asked_at_fmt": "Asked at the visit on %@ · %d",
   "question.asked_at_count_fmt": "Asked at the visit on %@ · %@",
   "question.count.one": "%d question",
   "question.count.few": "%d questions",
