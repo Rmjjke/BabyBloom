@@ -52,7 +52,11 @@ struct PeriodSummary: Equatable, Sendable {
             let length = max(0, entry.end.timeIntervalSince(entry.start))
             sleep[day] += length
             hasEntries[day] = true
-            if length > (longest?.length ?? -1) { longest = (length, entry.start) }
+            // A tie goes to the latest sleep, whatever order the store
+            // fetched them in: the date printed beside it must not wander.
+            if let current = longest, length < current.length
+                || (length == current.length && entry.start <= current.start) { continue }
+            longest = (length, entry.start)
         }
         for date in input.otherEntries {
             guard let day = index(date) else { continue }

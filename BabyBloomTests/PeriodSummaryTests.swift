@@ -73,4 +73,14 @@ final class PeriodSummaryTests: XCTestCase {
         XCTAssertEqual(p.longestSleep, 8 * 3600)
         XCTAssertEqual(p.longestSleepStart, at(13, 21))
     }
+
+    func testATieForTheLongestGoesToTheLatestInAnyInputOrder() {
+        let early = (start: at(12, 1), end: at(12, 7))    // 6 h
+        let late = (start: at(14, 1), end: at(14, 7))     // 6 h
+        for sleeps in [[early, late], [late, early]] {
+            let p = PeriodSummary.make(start: at(12, 0), end: at(15, 0),
+                                       input: .init(sleeps: sleeps), calendar: calendar)
+            XCTAssertEqual(p.longestSleepStart, at(14, 1))
+        }
+    }
 }
