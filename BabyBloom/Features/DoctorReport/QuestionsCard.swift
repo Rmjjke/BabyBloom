@@ -121,7 +121,11 @@ struct QuestionsCard: View {
             } label: {
                 HStack(alignment: .center, spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.caption(
-                        String(format: "question.asked_at_fmt".l, visit.date.appDayMonth, askedAtLatest.count)
+                        String(format: "question.asked_at_count_fmt".l, visit.date.appDayMonth,
+                               String(format: askedAtLatest.count.plural(one: "question.count.one",
+                                                                         few: "question.count.few",
+                                                                         many: "question.count.many"),
+                                      askedAtLatest.count))
                     )
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.leading)

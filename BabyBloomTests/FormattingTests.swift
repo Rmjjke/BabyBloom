@@ -56,6 +56,19 @@ final class FormattingTests: XCTestCase {
         }
     }
 
+    func testTheQuestionCountTakesTheRussianPlurals() {
+        LocalizationManager.shared.setLanguage(.ru)
+        func count(_ n: Int) -> String {
+            String(format: n.plural(one: "question.count.one", few: "question.count.few", many: "question.count.many"), n)
+                .replacingOccurrences(of: nbsp, with: " ")
+        }
+        XCTAssertEqual(count(1), "1 вопрос")
+        XCTAssertEqual(count(2), "2 вопроса")
+        XCTAssertEqual(count(5), "5 вопросов")
+        XCTAssertEqual(count(11), "11 вопросов")
+        XCTAssertEqual(count(21), "21 вопрос")
+    }
+
     func testDurationGluesEachNumberToItsUnitButKeepsTheBreakBetweenParts() {
         for language in [SupportedLanguage.en, .ru, .es] {
             LocalizationManager.shared.setLanguage(language)
