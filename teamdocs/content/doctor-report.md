@@ -188,3 +188,10 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
   variant is for when the free window hides rows; the plain one is for the
   rest. Both name the kept visits, because a parent sees them in the same
   list.
+- 2026-11-02 — `export.generated_by_fmt`, `report.pdf.before_due_date`. The
+  breastfeed line is a median, so its label says "typical", not "average":
+  "Typical breastfeed" / «Кормление грудью обычно» / "Toma de pecho habitual".
+  The key keeps its old name `report.breastfeed_avg_fmt`, because keys are
+  never renamed. "Normal" stays out: it is on the closed list. en
+  `duration.h_min` / `h_only` get spaces, "7 h 42 min", the same form as
+  ru, es and "15 min".
