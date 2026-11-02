@@ -25,6 +25,9 @@ struct VisitFields: View {
 
             TextField("form.notes_optional".l, text: $note, axis: .vertical)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular))
+                // Room to wrap: at AX2 a one-line field cut the placeholder
+                // («Заметки (необязатель…», design review m3).
+                .lineLimit(2...6)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .padding(BBTheme.Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)

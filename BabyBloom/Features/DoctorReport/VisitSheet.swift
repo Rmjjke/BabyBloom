@@ -10,6 +10,7 @@ struct VisitSheet: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var date: Date
     @State private var note = ""
     @State private var checked: Set<PersistentIdentifier>
@@ -35,6 +36,14 @@ struct VisitSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    // At AX sizes the inline title shrank to ~11 pt between the
+                    // two capsule buttons (design review m2): it moves here.
+                    if dynamicTypeSize.isAccessibilitySize {
+                        BBTheme.Typography.title3("visit.title".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                     VisitFields(date: $date, note: $note,
                                 range: VisitFields.dateRange(birthDate: baby?.birthDate, now: now))
 
@@ -46,7 +55,7 @@ struct VisitSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l)
+            .bbSheetTitle(dynamicTypeSize.isAccessibilitySize ? "" : "visit.title".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
