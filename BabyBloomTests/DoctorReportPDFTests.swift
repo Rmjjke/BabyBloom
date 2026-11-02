@@ -208,6 +208,8 @@ final class DoctorReportPDFTests: XCTestCase {
         "newborn.regained", "newborn.not_regained", "newborn.flag_loss", "newborn.flag_not_regained",
         "diaper.color.warning", "diaper.norm.fmt", "diaper.norm.label", "diaper.norm.hint",
         "stat.daily_norm", "growth.who_footnote",
+        // PDF-only: the screen says it to the parent, the PDF says report.pdf.before_due_date.
+        "percentile.before_due_date",
     ]
 
     private static let wordLists: [SupportedLanguage: String] = [
@@ -360,7 +362,7 @@ final class DoctorReportPDFTests: XCTestCase {
         for language in [SupportedLanguage.en, .ru, .es] {
             LocalizationManager.shared.setLanguage(language)
             let page = html(summary)
-            XCTAssertTrue(page.contains(esc("percentile.before_due_date".l)), "\(language)")
+            XCTAssertTrue(page.contains(esc("report.pdf.before_due_date".l)), "\(language)")
             XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_weight_fmt"))), "\(language)")
             XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_height_fmt"))), "\(language)")
             XCTAssertFalse(page.contains(esc("percentile.out_of_range".l)), "\(language)")

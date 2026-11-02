@@ -173,7 +173,8 @@ enum DoctorReportPDF {
             // The badge, never the clamped number: past the chart it reads «> 97».
             return [row(format, ReportFormat.glued(reading.badge))]
         case .beforeDueDate:
-            return ["<span class=\"sub\">\(esc("percentile.before_due_date".l))</span>"]
+            // The doctor's wording; the screen keeps the parent's sentence.
+            return ["<span class=\"sub\">\(esc("report.pdf.before_due_date".l))</span>"]
         case .outOfRange:
             return ["<span class=\"sub\">\(esc("percentile.out_of_range".l))</span>"]
         case .none:
