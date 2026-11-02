@@ -113,6 +113,10 @@ placeholder.
   `diaper.norm.hint`, `stat.daily_norm`. The goal is the parent's setting, not
   a measurement.
 - Wrong reader: `growth.who_footnote`.
+- PDF only: `percentile.before_due_date`. The screen keeps that sentence for
+  the parent ("…shown on the chart"). The PDF prints
+  `report.pdf.before_due_date` instead, so the test scans the PDF HTML alone
+  for it.
 
 **Words.** Whole words, case-insensitive, regex per language:
 - en: `normal|abnormal|low|high|too|enough|only|good|poor|worry|concern|warning|should|risk|healthy|behind|ahead`
@@ -165,7 +169,9 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
   ↺ `form.notes_optional`, `button.save` / `button.cancel` / `button.delete`.
 - **PDF:** `report.pdf.title`, `.birth_fmt`, `.age_fmt`, `.sex_fmt` (value ↺
   `baby.gender.*`), `.due_fmt`, `.period_fmt` (range ↺ `weekly.range_fmt` +
-  length), `.date_fmt`, `.questions`, `.no_entries`, `.page_fmt`, `.file_fmt`;
+  length), `.date_fmt`, `.questions`, `.no_entries`, `.page_fmt`, `.file_fmt`,
+  `.before_due_date` (in place of the parent's `percentile.before_due_date`);
+  the footer of every export PDF, `export.generated_by_fmt` (brand, date);
   table heads ↺ `export.col.date` / `.weight` / `.height` / `.head`;
   `report.footnote`.
 - **VoiceOver:** `report.a11y_share`, `report.a11y_period_hint`; the question
