@@ -167,6 +167,7 @@
   "duration.min_only": "%d min",
   "stats.min_ago": "%d min ago",
   "stats.h_ago": "%dh ago",
+  "stats.days_ago_fmt": "%@ ago",
   "age.day.one": "day",
   "age.day.few": "days",
   "age.day.many": "days",

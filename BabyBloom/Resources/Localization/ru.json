@@ -167,6 +167,7 @@
   "duration.min_only": "%d мин",
   "stats.min_ago": "%d мин назад",
   "stats.h_ago": "%d ч назад",
+  "stats.days_ago_fmt": "%@ назад",
   "age.day.one": "день",
   "age.day.few": "дня",
   "age.day.many": "дней",
