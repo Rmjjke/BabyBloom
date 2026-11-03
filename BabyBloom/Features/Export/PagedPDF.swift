@@ -17,24 +17,32 @@ enum PagedPDF {
     // The list is long because this engine has no system fallback: a glyph no named
     // family holds prints as a boxed «?». It follows the system's cascade list, but
     // never name Apple Color Emoji: with it in the list the whole text prints boxed.
+    private static let fallbackFamilies = [
+        "Helvetica", "Arial", "PingFang SC", "PingFang TC", "Hiragino Sans",
+        "Apple SD Gothic Neo", "Geeza Pro", "Noto Nastaliq Urdu", "Noto Sans Myanmar", "Thonburi", "Arial Hebrew",
+        "Kohinoor Devanagari", "Kailasa", "Kohinoor Bangla", "Kohinoor Gujarati", "Mukta Mahee", "Noto Sans Kannada",
+        "Khmer Sangam MN", "Lao Sangam MN", "Malayalam Sangam MN", "Noto Sans Oriya", "Sinhala Sangam MN",
+        "Tamil Sangam MN", "Kohinoor Telugu", "Noto Sans Armenian", "Euphemia UCAS", "Apple Symbols",
+        "STIX Two Math", "Zapf Dingbats", "Kefa III", "Galvji"
+    ]
+
     static let cssType = """
-        font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'PingFang TC', 'Hiragino Sans', \
-        'Apple SD Gothic Neo', 'Geeza Pro', 'Noto Nastaliq Urdu', 'Noto Sans Myanmar', Thonburi, 'Arial Hebrew', \
-        'Kohinoor Devanagari', Kailasa, 'Kohinoor Bangla', 'Kohinoor Gujarati', 'Mukta Mahee', 'Noto Sans Kannada', \
-        'Khmer Sangam MN', 'Lao Sangam MN', 'Malayalam Sangam MN', 'Noto Sans Oriya', 'Sinhala Sangam MN', \
-        'Tamil Sangam MN', 'Kohinoor Telugu', 'Noto Sans Armenian', 'Euphemia UCAS', 'Apple Symbols', \
-        'STIX Two Math', 'Zapf Dingbats', 'Kefa III', Galvji, sans-serif; \
+        font-family: 'Helvetica Neue', \(fallbackFamilies.map { "'\($0)'" }.joined(separator: ", ")), sans-serif; \
         font-variant-ligatures: none; -webkit-font-variant-ligatures: none;
         """
 
-    /// The same face for what is drawn around the HTML, like the report's footer.
+    /// The same face and list for what is drawn around the HTML, like the report's
+    /// footer. UIKit's own fallback sends a sign like ❤ to the colour emoji font,
+    /// which a PDF context prints as a box and a gap.
     static func font(ofSize size: CGFloat) -> UIFont {
-        UIFont(name: "HelveticaNeue", size: size) ?? .systemFont(ofSize: size)
+        let list = fallbackFamilies.map { UIFontDescriptor(fontAttributes: [.family: $0]) }
+        let descriptor = UIFontDescriptor(name: "HelveticaNeue", size: size).addingAttributes([.cascadeList: list])
+        return UIFont(descriptor: descriptor, size: size)
     }
 
-    /// A user's text as the HTML may print it, for the render only: this engine can
+    /// A user's text as the PDF may print it, for the render only: this engine can
     /// print a colour emoji only as a box, in any form it is offered (a font, an
-    /// image). What is drawn around the HTML, like the report's footer, keeps them.
+    /// image), and UIKit drawing the report's footer into the PDF prints one too.
     ///
     /// Unicode also tags digits, «#», «©» and the like as emoji-capable, so that tag
     /// alone must never filter: a lost digit in a question about a dose is worse

@@ -494,6 +494,81 @@ final class PDFPagesTests: XCTestCase {
         }
     }
 
+    /// A sign with a text form stays in the name, so the footer needs a face for it:
+    /// UIKit's own fallback picks the colour font, printed as a box and a gap.
+    func testASignInTheNameDrawsInTheFooter() throws {
+        try inLanguage(.en) {
+            let names = [
+                ("Mia ❤️", "Mia ❤"),
+                ("Mia ☀️ ✅", "Mia ☀ ✓"),
+                ("Mia ❤ ♥ ☀ ☺ ✈ ☎ ⚠ ✉ ✔ ☑", "Mia ❤ ♥ ☀ ☺ ✈ ☎ ⚠ ✉ ✔ ☑")
+            ]
+            for (typed, printed) in names {
+                let document = try report(extraWeighings: 0, name: typed).document
+                XCTAssertFalse(fontNames(document).contains { $0.contains("LastResort") }, typed)
+                let text = try XCTUnwrap(document.string)
+                XCTAssertTrue(text.contains("\("brand.name".l) · \(printed) · "), "no gap in the footer for \(typed)")
+            }
+
+            let scripts = try report(extraWeighings: 0, name: "美玲 سارة สมชาย").document
+            XCTAssertFalse(fontNames(scripts).contains { $0.contains("LastResort") })
+        }
+    }
+
+    /// The left of the footer stays one line and is cut short of the page number.
+    /// UIKit draws its «…» with no character behind it, so the text layer simply
+    /// ends at the cut: the period after the name is gone, the page number whole.
+    func testALongNameIsCutOnOneFooterLineBeforeThePageNumber() throws {
+        try inLanguage(.en) {
+            let document = try report(extraWeighings: 0, name: String(repeating: "Mia ❤ ", count: 40)).document
+            let page = try XCTUnwrap(document.page(at: 0))
+            let band = CGRect(x: 0, y: 0, width: page.bounds(for: .mediaBox).width, height: 60)
+            let lines = try XCTUnwrap(page.selection(for: band)).selectionsByLine()
+            XCTAssertEqual(lines.count, 2, "the left text and the page number, one line each")
+
+            let number = String(format: "report.pdf.page_fmt".l, 1, document.pageCount)
+            let left = try XCTUnwrap(lines.first { $0.string?.hasPrefix("brand.name".l) == true })
+            let right = try XCTUnwrap(lines.first { $0.string == number })
+            XCTAssertEqual(left.bounds(for: page).midY, right.bounds(for: page).midY, accuracy: 3, "one baseline")
+            XCTAssertLessThan(left.bounds(for: page).maxX, right.bounds(for: page).minX)
+            XCTAssertEqual(left.string?.components(separatedBy: " · ").count, 2, "cut inside the name")
+        }
+    }
+
+    func testEveryCharacterANameKeepsHasAFaceInTheFooter() {
+        let font = PagedPDF.font(ofSize: 9) as CTFont
+        for value in UInt32(0)...0x1FAFF {
+            guard let scalar = Unicode.Scalar(value), scalar.properties.isEmoji else { continue }
+            let kept = PagedPDF.withoutEmoji(String(scalar))
+            guard !kept.isEmpty else { continue }
+            let range = CFRange(location: 0, length: kept.utf16.count)
+            let face = CTFontCopyPostScriptName(CTFontCreateForString(font, kept as CFString, range)) as String
+            XCTAssertFalse(["AppleColorEmoji", "LastResort"].contains(face), "U+\(String(value, radix: 16)) in \(face)")
+        }
+    }
+
+    /// The faces a file embeds, read from each page's resources.
+    private func fontNames(_ document: PDFDocument) -> Set<String> {
+        var names = Set<String>()
+        for index in 0..<document.pageCount {
+            var resources: CGPDFDictionaryRef?
+            var fonts: CGPDFDictionaryRef?
+            guard let page = document.page(at: index)?.pageRef?.dictionary,
+                  CGPDFDictionaryGetDictionary(page, "Resources", &resources), let resources,
+                  CGPDFDictionaryGetDictionary(resources, "Font", &fonts), let fonts else { continue }
+            CGPDFDictionaryApplyBlock(fonts, { _, object, _ in
+                var font: CGPDFDictionaryRef?
+                var name: UnsafePointer<CChar>?
+                if CGPDFObjectGetValue(object, .dictionary, &font), let font,
+                   CGPDFDictionaryGetName(font, "BaseFont", &name), let name {
+                    names.insert(String(cString: name))
+                }
+                return true
+            }, nil)
+        }
+        return names
+    }
+
     /// The removal is the PDF's alone: the file name, the CSV and the store keep
     /// what the parent typed.
     func testEmojiStayEverywhereButThePDF() throws {
