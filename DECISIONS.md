@@ -14,6 +14,30 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — The medication screens are free, state facts, and preset nothing
+
+**Free, with no padlock anywhere in the feature.** Adding, ending and deleting a medication, and logging, editing and deleting a dose, never meet a gate. The night dose of a feverish baby is the moment the app is for, and a paywall in front of it would charge for safety. The dose list still keeps the app's 15-day history window with its usual footer: that window is the rule for every history list, and the status reads every dose whatever the list shows.
+
+**The footer under the dose list sends no lock event.** Medicines send no analytics; a `history_lock_shown` from that list would say the baby had a medicine.
+
+**Nothing is preset.** No interval chip is selected, no placeholder holds a number or a drug name, and Save stays off until a name and an interval are set. At night a preset reads as a prescription and a sample value as a suggestion.
+
+**The interval is above zero and at most 48 hours** (15-minute steps on the Other wheels). Zero is not an interval: every dose would be on time and the status line would mean nothing. 48 hours is the wheels' last value; the model had allowed half an hour to a week before any screen used it.
+
+**The look never changes with the state.** "Next dose not before" and "the interval has passed" share one style; only the words change, with no tick, colour or animation. A visual that completes reads as an instruction to give.
+
+**An age counts days from 48 hours** ("3 days ago"), because "73 h ago" leaves the arithmetic to the parent.
+
+**No rating prompt after a dose**, from any path: the dose sheet is a plain sheet and never calls `entrySaved`. A dose is given to a sick baby (2026-11-01).
+
+**A dose is the first event that can be edited**, and only its time, dose text and note. The copied name stays as logged, so the record keeps what was given. Other event types stay without an edit path.
+
+**An ended course takes no new dose but keeps its doses editable**, and can be resumed as the same medication: one name, one dose list, one report row instead of duplicates.
+
+**No count line before the first dose.** "Last 24 hours: 0 doses of the 4 you set" says nothing that "No doses logged yet" does not, and a figure next to the maximum before any dose reads as a target.
+
+**The dose list reads a query of events, not `medicine.doses`.** A dose linked or deleted on the event's side does not reliably reach SwiftUI observers of the relationship. A swiped-away row then stays on screen, and tapping it opens a deleted dose, which traps. A `@Query` refreshes on every change to the store, synced ones included. For the same reason a model is deleted only after the screen or sheet that holds it has gone.
+
 ## 2026-11-03 — A medicine is its own model; a dose stays a medication event that copies the name and links to it
 
 `Medicine` holds the name, the minimum interval, an optional dose text, note and 24-hour maximum, and the course end. A dose is a `.medication` `CustomEvent` linked to its medicine, carrying the name and dose text as they were when it was logged. Deleting a medicine nullifies the link and keeps every dose.

@@ -83,8 +83,8 @@ dose text onto it. The copy is the record of what was given: a rename leaves
 past doses as logged, a deleted medicine (`.nullify`) leaves them as
 medication events that keep the name, and an older version, which imports no
 `Medicine` and ignores the link, still lists each dose as the medication
-event it is. No screen or export shows those two fields yet; the Events rows
-and the CSV read them from the medicines screens on. Events from before
+event it is. The medication screens show the copied dose text on each dose
+row; the Events rows and the CSV do not read the two fields yet. Events from before
 medicines, and free-text ones, have no link and count for no medicine.
 
 The rules every medicine surface reads are `MedicineSchedule`
@@ -101,10 +101,42 @@ when that is over the maximum. `showsDaily` says which of the two the one
 confirmation states: the maximum only when it holds the next dose back past
 the interval's end. `dosesInLast24Hours` is the count shown against the
 maximum. It is all elapsed time, never calendar arithmetic.
-`Medicine.status(now:)` reads `.ended`, `.noDose`, `.waiting` or `.allowed`;
-`Medicine.check(_:now:editing:)` leaves the dose being edited out. Nothing
+`Medicine.status(now:excluding:)` reads `.ended`, `.noDose`, `.waiting` or
+`.allowed`; `excluding` and `Medicine.check(_:now:editing:)` leave the dose
+being edited out. A dose deleted from the context counts for nothing even
+before the save removes it from the relationship. Nothing
 about a medicine is sent to analytics; a dose sits in the daily activity
 count's `event` figure like every event.
+
+**The medication screens** (`Features/Medications/`, More › Medications).
+The list shows running courses sorted by name and ended ones under a collapsed
+`DisclosureGroup`; the detail shows the status card, what was set, the doses
+newest first, End/Resume Course, and Log Dose pinned under the scroll (an
+ended course has no footer). Every word comes from `MedicationFormat`, which
+builds lines A, B and C from `MedicineStatus` and the copy keys: each time
+slot takes a when-string (today's clock, or yesterday / tomorrow / a date),
+ages count hours and minutes up to 48 h and then days. The screens read
+`AppClock.now` and redraw once a minute (`TimelineView(.everyMinute)`).
+`MedicationFormInput` holds the form and its Save rule: a name, and an
+interval in `Medicine.intervalMinutesRange` (15 min … 48 h) from a chip or
+the Other wheels (at 48 h the minutes wheel offers only 0); the maximum field
+keeps two digits and may be empty, but 0 or over 24 keeps Save off. `DoseSheet`
+logs a dose (`CustomEvent.dose(of:at:)`, the dose text as edited) or edits
+one (time, dose text, note; never the copied name); its picker ends at now
+and save clamps to now as well, since the picker clamps only its display. It
+is a plain `.sheet` and never calls `entrySaved`. The dose list applies
+`HistoryWindow` like every history list, with `BBLockedHistoryFooter(surface:
+nil)`, which draws the footer without its lock event. The detail lists the
+doses from a `@Query` of events, and the list reads one too: a dose linked or
+deleted on the event's side does not always reach observers of
+`medicine.doses`, and a stale row would open a deleted dose. Deleting is
+ordered so no view reads a deleted model: the form only asks, and the detail
+pops itself and deletes the medicine once it has disappeared; Delete Dose
+hands the dose back and the detail deletes it in the dose sheet's
+`onDismiss`. The detail and the dose sheet draw nothing for a model with no
+context or `isDeleted` (one deleted on another device). Nothing in the feature is
+gated. The Medication tile, the Events rows and form, the confirmation, the
+reminder and the Home card come later.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -902,7 +934,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `daily_activity` | `feeding`, `sleep`, `diaper`, `growth`, `event`: Bool (logged at all); `total`: `0` \| `1-5` \| `6-15` \| `16+` | `Analytics.appBecameActive` (and `start`) at the first foregrounding of a new local day, for the PREVIOUS day only, once (`analytics.dailyActivityDay`). `DailyActivityCounter` counts that day with one `fetchCount` per kind; the facade reduces the counts to presence plus one total bucket — no per-kind count, and edges clear of the clinical 8–12 feeds a day. Sent with the event time set to NOON of the reported day (local) and `sessionId -1`, so neither the time nor a session id gives away the first open after midnight. Nothing for a store with no baby; the first launch only sets the marker. The store is CloudKit-synced, so this is the baby's logged day across the family's devices, not this install's own usage. A time-zone change can make two consecutive reports cover overlapping hours — acceptable noise for a bucketed aggregate. There is deliberately no per-entry event (DECISIONS 2026-09-23) |
 | `notification_permission` | `granted` | `NotificationsPage`, the system dialog's answer only |
 | `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
-| `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll |
+| `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll; a footer built with no `surface` (a medicine's doses) sends none |
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
@@ -1059,7 +1091,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, and the Today tile's «last feed … ago» read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date) read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
