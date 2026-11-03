@@ -81,7 +81,8 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
     «menos de 6 h»), so the duration never starts a line alone.
   - A range keeps its words together: "1 to 24", «от 1 до 24», «del 1 al 24».
   - A middle dot that joins two pieces ends a line, never opens one (see
-    "Joined lines" below).
+    "Joined lines" below). `ended_on_fmt` holds its dot in the key, with the
+    no-break space before it.
 - **The confirmation** is the system alert. The title is a fact. The message
   has the name and the times, one per line. Buttons: `button.cancel`,
   `button.save`, no "anyway". There are three variants:
@@ -89,7 +90,24 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   - after: a dose logged less than the interval later, for a dose put in the past;
   - the 24 h maximum, which names its own "next dose not before" time.
   When a dose breaks both limits, the alert shows the variant of the limit
-  that ends later, so its time is the one the medication's screen shows.
+  that ends later.
+- **The alert's time is the one after Save.** The before and 24 h variants
+  end on the next time the medication's screen shows once this dose is
+  saved, and the line says so: "If you save, next dose not before 4:00 PM" /
+  «Если сохранить, следующая доза — 16:00 или позже» / «Si guardas, próxima
+  dosis: 16:00 o más tarde». After the comma come the words of the status
+  line the screen then shows.
+  - Why: the alert opens before the dose is saved, and the time as it stood
+    before this dose is earlier than the one that holds after it. Last dose
+    8:00 AM, this one at 10:00 AM, interval 6 h: before Save the next time is
+    2:00 PM, after Save the screen says 4:00 PM. With the 24 h maximum (doses
+    at midnight and 8:00 AM, maximum 2, this one at 10:00 AM) it is midnight
+    before and 8:00 AM tomorrow after. A parent who saves and follows the
+    alert must get the later time.
+  - The condition names the button the parent is about to press; Cancel
+    keeps the time the screen showed before.
+  - The time stays the message's last line in every language: a time that is
+    not ahead of now is left out with its line.
 - **The reminder.** Title = the name. Body = the time since the last logged
   dose, with that dose's time in parentheses, so it stays true on a phone
   that has not synced yet. No emoji. The day word in the body is computed
@@ -185,10 +203,11 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   - `notification.medication_body_fmt`(interval, dose time).
 - **Events form:** `picker_label`, `picker_choose`, `picker_not_listed`.
 - **The alert:** one variant per save.
-  - before: `alert_before_title_fmt`(interval) and `alert_before_message_fmt`(name, the earlier dose's time, the next time);
+  - before: `alert_before_title_fmt`(interval) and `alert_before_message_fmt`(name, the earlier dose's time, the next time once this dose is saved);
   - after: `alert_after_title_fmt`(interval) and `alert_after_message_fmt`(name, the later dose's time, interval);
-  - 24 h: `alert_max_title_fmt`(dose count phrase with the new dose) and `alert_max_message_fmt`(name, maximum, the next time by the maximum).
-  - When both limits apply, the variant of the limit that ends later shows. Its time is the one the medication's screen shows. A tie shows the interval variant.
+  - 24 h: `alert_max_title_fmt`(dose count phrase with the new dose) and `alert_max_message_fmt`(name, maximum, the next time once this dose is saved).
+  - The next time is the schedule's "not before" with this dose counted, never earlier than the time before it. It is the message's last line, left out when it is not ahead of now.
+  - When both limits apply, the variant of the limit that ends later shows. Its time is the one the medication's screen shows after Save. A tie shows the interval variant.
 - **VoiceOver:**
   - a label reads the visible lines joined by ". ", plus `a11y_reminder_on`; the Home card's label starts with `title`;
   - hints: `a11y_open_one` (a row, an Events line, the Home card with one medication), `a11y_open_list` (the Home card with two or more), `a11y_dose_hint` (a dose row).
@@ -232,3 +251,8 @@ space.
   `alert_before_title_fmt`, `alert_before_message_fmt`,
   `alert_after_title_fmt`, `alert_max_message_fmt`). Ages from 48 h are told
   in days.
+- 2026-11-03 — The confirmation's time is the one after Save. The last line
+  of `alert_before_message_fmt` and `alert_max_message_fmt` opens with "If
+  you save," / «Если сохранить,» / «Si guardas,», and ru names «следующая
+  доза» in full (alone, «Следующая» read as the dose being logged).
+  Arguments unchanged. `ended_on_fmt` has a no-break space before its dot.
