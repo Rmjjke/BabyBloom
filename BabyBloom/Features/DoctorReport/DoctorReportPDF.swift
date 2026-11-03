@@ -355,6 +355,8 @@ enum DoctorReportPDF {
     /// Draws «<brand> · <name> · <period>» left and «Page N of M» right on every page.
     private final class ReportPageRenderer: UIPrintPageRenderer {
         private let footerLeft: String
+        /// Once per render, not per page: it carries the whole fallback list.
+        private let font = PagedPDF.font(ofSize: 9)
 
         init(footerLeft: String) {
             self.footerLeft = footerLeft
@@ -365,7 +367,6 @@ enum DoctorReportPDF {
 
         override func drawFooterForPage(at pageIndex: Int, in footerRect: CGRect) {
             // 9 pt page furniture in the secondary colour (design § 5).
-            let font = PagedPDF.font(ofSize: 9)
             let color = UIColor(hex: DoctorReportPDF.secondary)
             let left = NSMutableParagraphStyle()
             left.lineBreakMode = .byTruncatingTail
