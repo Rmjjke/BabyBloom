@@ -44,7 +44,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | colorset | Swift | light | dark | role |
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
-| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is also the label of `BBPrimaryButton`, the `BBFab` "+" and the selected `BBHistoryFilterPicker` chip (G1), and other white-on-primary fills stay G1 |
+| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is the ink on every BBPrimary fill: `BBPrimaryButton`, the `BBFab` "+", the selected `BBHistoryFilterPicker` chip and the other places G1 lists |
 | BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
@@ -276,24 +276,48 @@ check: none — each gap carries its own grep; re-run it when the gap is worked
 
 Seen from code at 10cf1a9; no live look on device yet. G1, G4 and G9 were
 re-read at 1b01297 (1.2.0) on 2026-11-03, and G1's button numbers were also
-measured on the medication screens' renders. Each line: what,
-where, which rule. Under P8, existing contrast violations are backlog items, not
-blockers; G1 and G2 are in the backlog (2026-10-28).
+measured on the medication screens' renders. G1 was read again at c1354c4,
+with its renders in light and dark, and G18 and G19 were found there
+(2026-11-03). Each line: what, where, which rule. Under P8, existing contrast
+violations are backlog items, not blockers; G2 is in the backlog (2026-10-28),
+and G1 is fixed for 1.3.0.
 
 **Major**
-- **G1 · White on BBPrimary in dark mode is 2.64:1.** Dark primary #A795D9 is
-  a light lavender; `BBFab` "+", `BBPrimaryButton`, the selected chip of
-  `BBHistoryFilterPicker` and other `foregroundStyle(.white)` on primary fills
-  sit under 3:1. Breaks P8. `BBPrimaryButton`'s worse end differs by mode: in
-  dark it is the start (2.64, against 3.76 at the primary@0.8 end, which the
-  dark background darkens); in light it is the end (3.80, against 5.6 at the
-  start), where long ru and es labels measure 4.26–4.40 as their text ends.
-  Fix, decided 2026-11-03 for 1.3.0: `BBPrimaryButton`, `BBFab` and the
-  selected chip take BBOnPrimary (§ 2), and the button's gradient ends at
-  primary@0.9; the button's worse end is then 4.60 in light and 5.78 in dark.
-  Why before 1.3.0: the medication screens carry the button and are opened at
-  night, in dark. The Live Activity has used BBOnPrimary since 1.1.0; other
-  white-on-primary fills stay in this gap.
+- **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
+  primary #A795D9 is a light lavender, so white labels and glyphs on primary
+  fills sat under 3:1. Broke P8. `BBPrimaryButton`'s worse end differed by
+  mode: in dark the start (2.64, against 3.76 at the primary@0.8 end, which
+  the dark background darkens); in light the end (3.80, against 5.6 at the
+  start), where long ru and es labels measured 4.26–4.40 as their text ends.
+  Fix, decided 2026-11-03 for 1.3.0, in code at c1354c4: every ink on a
+  BBPrimary fill is BBOnPrimary (§ 2), and `BBPrimaryButton`'s gradient ends
+  at primary@0.9. The places:
+  - `BBPrimaryButton`: label, icon and loading spinner (`BBButton.swift:22`, `:37`);
+  - the `BBFab` "+" (`BBFab.swift:20`);
+  - the selected `BBHistoryFilterPicker` chip (`BBCharts.swift:40`);
+  - the Premium Active badge in Profile (`MainTabView.swift:362`);
+  - the camera glyph on the profile photo (`BabyProfileEditSheet.swift:274`);
+  - the step checkmark of the onboarding generating page (`GeneratingPage.swift:79`);
+  - the selected interval chip of the medication form (`MedicationFormSheet.swift:218`);
+  - the Live Activity's button capsule (`TimerActivityViews.swift:56`), since
+    1.1.0, from the widget catalog's copy of both colours.
+  Every fill but the button's is opaque primary: 5.62 in light, 6.86 in dark.
+  The button's primary@0.9 end is 4.60 / 5.78 over the background and
+  4.53 / 5.86 over the surface (sheets). On the renders the label's trailing
+  end reads 5.05–5.11 in light and 6.29–6.35 in dark.
+  Not ink, so not on the list: the toolbar `plus.circle.fill` buttons, whose
+  plus is the bar or card behind showing through (5.50 light, 5.84 dark on
+  Diapers), and the primary@0.08–0.22 tints, which carry primary ink.
+  A new control on a BBPrimary fill takes BBOnPrimary.
+  grep: `grep -rn --include=*.swift 'onPrimary\|BBOnPrimary' BabyBloom` → 12
+  lines at c1354c4: the nine uses above (two in the button), the token, two
+  comments. Why before 1.3.0: the medication screens carry the button and are
+  opened at night, in dark.
+- **G18 · White on BBAccent in the plan picker's badge is 1.84:1 in light and
+  1.66:1 in dark** (`PlanPickerSection.swift:181`, 11 pt bold). Breaks P8.
+  BBOnPrimary is not its ink: its light value is white. Proposed (2026-11-03,
+  not decided): a dark ink on the accent fill in both modes, #171420
+  (BBOnPrimary's dark value), 9.89 / 10.96, as a token of its own.
 - **G2 · 148 raw `.system(size:)` fonts in the app** (widget excluded) never
   scale with Dynamic Type, against P6 / DECISIONS 2026-08-28. Heaviest:
   GrowthInsightCards 20, BBCard 15, DiaperView 12, FeedingView 10,
@@ -302,6 +326,13 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   label 12 pt, `BBMeasureSlider` min/max 11 pt. grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
 
 **Minor**
+- **G19 · The stool swatch's check is white on every swatch**
+  (`DiaperView.swift:395`): 1.14 on white, 1.44 on yellow, 2.03 on orange,
+  2.26 on green, 3.63 on red, 5.58 on brown, 13.97 on black. The 2.5 pt
+  BBPrimary ring carries the choice, so the state is not lost, but the check
+  vanishes on four swatches, the white one G3 warns about among them.
+  Proposed (2026-11-03, not decided): the check takes #171420 on the five
+  light swatches (5.00–15.94) and stays white on brown and black (5.58, 13.97).
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
