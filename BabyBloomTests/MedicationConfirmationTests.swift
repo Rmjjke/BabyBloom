@@ -141,15 +141,32 @@ final class MedicationConfirmationTests: XCTestCase {
 
     // MARK: Back-dated doses and the next line
 
-    /// The later dose still sets the screen's time after the save, so that is
-    /// the time named, though the earlier dose's interval has passed.
-    func testABackDatedDoseBetweenTwoNamesTheEarlierDoseAndTheScreensTime() {
+    /// Put between two logged doses, the earlier one is "a logged dose", not
+    /// the last; the later one sets the screen's time after the save, so that
+    /// is the time named, though the earlier dose's interval has passed.
+    func testADoseBetweenTwoNamesTheEarlierAsALoggedDoseInEveryLanguage() {
         let now = d(10, 17)
-        let result = confirm(interval: 360, max: nil, doses: [d(10, 8), d(10, 16)], now: now, at: d(10, 10))
+        for code in ["en", "ru", "es"] {
+            LocalizationManager.shared.setLanguage(code)
+            let result = confirm(interval: 360, max: nil, doses: [d(10, 8), d(10, 16)], now: now, at: d(10, 10))
+            XCTAssertEqual(result?.title,
+                           String(format: "medication.alert_between_title_fmt".l, F.duration(minutes: 360)), code)
+            XCTAssertEqual(result?.message,
+                           String(format: "medication.alert_between_message_fmt".l, "Paracetamol",
+                                  when(d(10, 8), now: now), when(d(10, 22), now: now)), code)
+        }
+        LocalizationManager.shared.setLanguage("en")
+        let en = confirm(interval: 360, max: nil, doses: [d(10, 8), d(10, 16)], now: now, at: d(10, 10))
+        XCTAssertEqual(en?.title, "Less than 6\u{00A0}h after a logged dose")
+        XCTAssertEqual(en?.message,
+                       "Paracetamol\nLogged dose at \(when(d(10, 8), now: now))\nIf you save, next dose not before \(when(d(10, 22), now: now))")
+    }
+
+    /// The newest dose once saved keeps "Last dose".
+    func testTheNewestDoseKeepsTheLastDoseWords() {
+        let result = confirm(interval: 360, max: nil, doses: [d(10, 8)], now: d(10, 10), at: d(10, 10))
         XCTAssertEqual(result?.title,
                        String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 360)))
-        XCTAssertEqual(result?.message,
-                       "Paracetamol\nLast dose at \(when(d(10, 8), now: now))\nIf you save, next dose not before \(when(d(10, 22), now: now))")
     }
 
     func testADoseLoggedAfterTheFactDropsAPassedNextTime() {
@@ -236,7 +253,8 @@ final class MedicationConfirmationTests: XCTestCase {
     func testTheNextTimeIsTheLastLineInEveryLanguage() {
         for code in ["en", "ru", "es"] {
             LocalizationManager.shared.setLanguage(code)
-            for key in ["medication.alert_before_message_fmt", "medication.alert_max_message_fmt"] {
+            for key in ["medication.alert_before_message_fmt", "medication.alert_between_message_fmt",
+                        "medication.alert_max_message_fmt"] {
                 let parts = key.l.components(separatedBy: "\n")
                 XCTAssertTrue(parts.last?.contains("%3$@") == true, "\(code) \(key): \(key.l)")
                 XCTAssertFalse(parts.dropLast().contains { $0.contains("%3$@") }, "\(code) \(key): \(key.l)")

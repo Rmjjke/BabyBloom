@@ -91,6 +91,7 @@ struct MedicineSchedule: Equatable {
     func check(_ time: Date) -> DoseCheck {
         var result = DoseCheck()
         let close = doses.filter { abs($0.timeIntervalSince(time)) < interval }
+        result.laterDoseLogged = doses.contains { $0 > time }
         if let later = close.first(where: { $0 > time }) {
             result.neighbour = .later(dose: later)
         } else if let earlier = close.last {
@@ -152,6 +153,9 @@ struct DoseCheck: Equatable {
 
     var neighbour: Neighbour?
     var daily: Daily?
+    /// Whether a dose later than this one is logged, close or not: this dose
+    /// would not be the newest once saved, so it is not the "last" dose.
+    var laterDoseLogged = false
     /// Which fact the one confirmation states when both hold: true for the
     /// 24-hour count, false for the interval.
     var showsDaily = false

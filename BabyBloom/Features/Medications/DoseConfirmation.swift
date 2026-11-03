@@ -56,11 +56,14 @@ extension MedicationFormat {
         switch check.neighbour {
         case .earlier(let dose, let intervalEnds):
             let next = nextAfterSave ?? intervalEnds
+            // "Last dose" only when this dose would be the newest once saved;
+            // put between two logged doses, the earlier one is "a logged dose".
+            let keys = check.laterDoseLogged
+                ? ("medication.alert_between_title_fmt", "medication.alert_between_message_fmt")
+                : ("medication.alert_before_title_fmt", "medication.alert_before_message_fmt")
             return DoseConfirmation(
-                title: String(format: "medication.alert_before_title_fmt".l, interval),
-                message: message(String(format: "medication.alert_before_message_fmt".l,
-                                        name, at(dose), at(next)),
-                                 next: next))
+                title: String(format: keys.0.l, interval),
+                message: message(String(format: keys.1.l, name, at(dose), at(next)), next: next))
         case .later(let dose):
             return DoseConfirmation(
                 title: String(format: "medication.alert_after_title_fmt".l, interval),
@@ -93,9 +96,10 @@ extension Medicine {
 
 extension View {
     /// The confirmation as a system alert, which scales at large text, is read
-    /// by VoiceOver and colours nothing. Cancel, drawn bold as the side that
-    /// keeps things as they were, returns to the sheet with every field kept.
-    /// Save has no role: keeping the dose is neither destructive nor wrong.
+    /// by VoiceOver and colours nothing. Cancel has the cancel role, the side
+    /// that keeps things as they were (iOS 26 draws both buttons alike; the
+    /// role carries the meaning), and returns to the sheet with every field
+    /// kept. Save has no role: keeping the dose is neither destructive nor wrong.
     func doseConfirmation(_ confirmation: DoseConfirmation?, isPresented: Binding<Bool>,
                           onSave: @escaping () -> Void) -> some View {
         alert(confirmation?.title ?? "", isPresented: isPresented) {
