@@ -143,6 +143,7 @@
   "medication.a11y_dose_hint": "Abre la dosis para editarla",
   "medication.report_title": "Medicamentos",
   "medication.report_without_name": "Sin nombre",
+  "medication.report_dose_not_written": "Dosis no anotada",
   "medication.report_col_name": "Medicamento",
   "medication.report_col_dose": "Dosis (como se anotó)",
   "medication.report_col_count": "Número de dosis",

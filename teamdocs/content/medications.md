@@ -155,6 +155,25 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   the number of doses and the first and last date. There is no interval, no
   maximum and no mark on an early dose, because in a document for the doctor
   that mark would be a verdict on the parent.
+  - A line whose doses carry more than one dose text shows each text with
+    its own count and first–last, in order of first use: a caption per text
+    on the screen («2.5 ml · 10 doses · Oct 31 – Nov 2»), a PDF row per text
+    with the name repeated. The doctor reads the dose beside a count as the
+    dose of every dose counted, so one text for all would misstate the
+    others.
+  - Doses with no dose text, beside doses that have one, are their own
+    group: "Dose not written" / «Доза не записана» / «Dosis no anotada». The
+    words take the verb of the PDF's Dose head ("Dose (as written)",
+    «Доза (как записано)», «Dosis (como se anotó)»), so the cell reads as
+    that field left empty.
+    - Not "no dose", «без дозы» or «sin dosis»: they read as a dose not given.
+    - Not ru «не отмечена» or es «no registrada»: those are the app's words
+      for logging, and these doses are logged.
+    - Not es «no indicada», which in a medical text reads as "not indicated".
+  - A line where no dose has a text shows none, as before.
+  - Fit at the default size: the words take about 78 pt of the Dose column's
+    142 pt in the PDF, and the ru caption «Доза не записана · 3 дозы ·
+    2 нояб. – 3 нояб.» about 264 pt of the card's 338 pt.
 - **The paywall** never sells the confirmation or the reminder, which are
   safety facts and free. Medications are free, so `onboarding.premium.f2`
   lists baths, walks and mood only.
@@ -256,6 +275,8 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
 - **Report:**
   - `report_title` (the card header and the PDF h2);
   - a block per medication: the name as the label, the dose count phrase as the value, the dose text as written as the caption, and the report's own date range;
+  - more than one dose text on a line: a caption per text, the text · the dose count phrase · the date range, joined as in "Joined lines" (a no-break space before each dot); in the PDF a row per text, with the name repeated;
+  - `report_dose_not_written` in place of the text, for the doses with none, only when other doses of the same line have a text (the screen caption and the PDF's Dose cell);
   - `report_without_name` for events with no name;
   - PDF heads `report_col_name`, `report_col_dose`, `report_col_count`, `report_col_dates`.
 - **CSV:** `export.csv.medication` and `export.csv.dose` for the two new event columns.
@@ -278,7 +299,8 @@ the same list: a word added here is added there.
 
 The same test checks that every language has every medication key with the
 same arguments, and that no number in these strings is followed by a plain
-space.
+space. The report's words also pass the pediatrician report's verdict list
+(`doctor-report.md`).
 
 ## Changes
 
@@ -304,3 +326,5 @@ space.
 - 2026-11-03 — `alert_between_title_fmt` and `alert_between_message_fmt`
   added, for a dose put between two logged doses. "Last dose" names only
   the medication's newest dose.
+- 2026-11-03 — `report_dose_not_written` added: on a report line, the doses
+  with no dose text beside doses that have one.

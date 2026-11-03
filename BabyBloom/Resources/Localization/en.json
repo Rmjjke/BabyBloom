@@ -143,6 +143,7 @@
   "medication.a11y_dose_hint": "Opens the dose to edit",
   "medication.report_title": "Medications",
   "medication.report_without_name": "Without a name",
+  "medication.report_dose_not_written": "Dose not written",
   "medication.report_col_name": "Medication",
   "medication.report_col_dose": "Dose (as written)",
   "medication.report_col_count": "Doses",
