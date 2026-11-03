@@ -132,6 +132,8 @@
   "medication.picker_not_listed": "No está en la lista",
   "medication.alert_before_title_fmt": "Han pasado menos de %@ desde la última dosis",
   "medication.alert_before_message_fmt": "%1$@\nÚltima dosis: %2$@\nSi guardas, próxima dosis: %3$@ o más tarde",
+  "medication.alert_between_title_fmt": "Menos de %@ después de una dosis registrada",
+  "medication.alert_between_message_fmt": "%1$@\nDosis registrada: %2$@\nSi guardas, próxima dosis: %3$@ o más tarde",
   "medication.alert_after_title_fmt": "Menos de %@ antes de una dosis registrada",
   "medication.alert_after_message_fmt": "%1$@\nDosis registrada: %2$@\nIntervalo: %3$@",
   "medication.alert_max_title_fmt": "Con esta, %@ en 24 horas",

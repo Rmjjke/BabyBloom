@@ -132,6 +132,8 @@
   "medication.picker_not_listed": "Нет в списке",
   "medication.alert_before_title_fmt": "С последней дозы прошло меньше %@",
   "medication.alert_before_message_fmt": "%1$@\nПоследняя доза: %2$@\nЕсли сохранить, следующая доза — %3$@ или позже",
+  "medication.alert_between_title_fmt": "Меньше %@ после отмеченной дозы",
+  "medication.alert_between_message_fmt": "%1$@\nОтмеченная доза: %2$@\nЕсли сохранить, следующая доза — %3$@ или позже",
   "medication.alert_after_title_fmt": "Меньше %@ до отмеченной дозы",
   "medication.alert_after_message_fmt": "%1$@\nОтмеченная доза: %2$@\nИнтервал: %3$@",
   "medication.alert_max_title_fmt": "С этой дозой — %@ за 24 часа",

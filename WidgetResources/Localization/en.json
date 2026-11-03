@@ -132,6 +132,8 @@
   "medication.picker_not_listed": "Not in the list",
   "medication.alert_before_title_fmt": "Less than %@ since the last dose",
   "medication.alert_before_message_fmt": "%1$@\nLast dose at %2$@\nIf you save, next dose not before %3$@",
+  "medication.alert_between_title_fmt": "Less than %@ after a logged dose",
+  "medication.alert_between_message_fmt": "%1$@\nLogged dose at %2$@\nIf you save, next dose not before %3$@",
   "medication.alert_after_title_fmt": "Less than %@ before a logged dose",
   "medication.alert_after_message_fmt": "%1$@\nLogged dose at %2$@\nInterval: %3$@",
   "medication.alert_max_title_fmt": "With this dose, %@ in 24 hours",
