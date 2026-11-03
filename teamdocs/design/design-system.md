@@ -14,10 +14,13 @@ heading (§ 7), and the fixed-size words of the entry sheets and the stat card
 growing with fewer columns, `BBStatGrid` among them (§ 3, § 7, G2). The
 column rule is checked at 320 pt and at every text size; the counts it sets,
 with two measured exceptions to its spare, and the profile sheet's rows and
-title follow the code of the same day (§ 3, § 7, `BBTileColumns`). Sheet
-titles in the content from xLarge, the pickers' labels above at every size,
-the wrapped alignment at Large and the quick rows' one column at accessibility
-sizes are proposed (§ 3, § 7); sheet titles at Large on 320 pt are a gap (G21).
+title follow the code of the same day (§ 3, § 7, `BBTileColumns`). The quick
+rows' one column at accessibility sizes is in force; sheet titles in the
+content from xLarge, the pickers' labels above at every size and the wrapped
+alignment at Large are planned (decided 2026-11-04; § 3, § 7). For sheet
+titles at Large (G21), glyph buttons in the sheet bars, a 166 pt title budget
+with a 13 pt floor and the dose sheet's name in its content are proposed
+(§ 3, § 7, § 10).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -298,14 +301,16 @@ xLarge (`.firstTextBaseline` at `DiaperView.swift:474`, in force, in code at
 stays centred, because on one line the first baseline sets the warning and
 the fields below a pixel lower.
 
-Proposed (2026-11-03, not decided):
-- **One column for the quick rows at accessibility sizes is a shape, not the
-  rule's count.** With sm padding two Diaper quick-add columns hold at AX2
-  (102.3 in 120.0, +17.7; +7.9 with Bold Text), so the rule as it stands gives
-  two: the three tiles would set 2 + 1, «Оба» alone at half width, beside the
-  Events quick and Sleep start rows in one column. Proposed: the column rule
-  sets the most columns a row may take, and the three quick and start rows
-  take one at accessibility sizes, full-width tiles in one shape.
+**One column for the quick rows at accessibility sizes is a shape, not the
+rule's count** (in force, decided 2026-11-04, in code at 6f66d45). With sm
+padding two Diaper quick-add columns hold at AX2 (102.3 in 120.0, +17.7; +7.9
+with Bold Text), so the rule alone would give two: the three tiles would set
+2 + 1, «Оба» alone at half width, beside the Events quick and Sleep start rows
+in one column. The column rule sets the most columns a row may take, and the
+three quick and start rows take one at accessibility sizes, full-width tiles
+in one shape.
+
+Planned (decided 2026-11-04, not in code yet):
 - **A sheet's title moves into its content from xLarge**, not only at
   accessibility sizes (`BBSheetHeading`, § 7). The bar title never grows past
   Large while Cancel and Save do, so its slot shrinks: in ru 131, 116 and 92 pt
@@ -318,7 +323,9 @@ Proposed (2026-11-03, not decided):
   heading, «Норма в день» (`DiaperView.swift:283`), takes the header trait; a
   second heading would repeat it. Its system title, shifted right of Cancel,
   has no spare at xxxLarge and AX2 on 320 pt (from 134 to 304 against a
-  304 pt edge).
+  304 pt edge). This holds with glyph buttons too (proposed below): the bar
+  title stays at 17 pt while the sheet's text grows to 19–23 pt from xLarge to
+  xxxLarge, so in the bar the title would be smaller than what it names.
 - **A date picker's label sits above its pills at every size**
   (`BBLabeledPicker`, § 7), as the sheets' other captions do. At Large on
   320 pt the label misses beside the widest date and time pills before its
@@ -332,6 +339,57 @@ Proposed (2026-11-03, not decided):
   247.0; es 259.0) and so does the ru hint (309.9 in 288.0). The cost: with a
   warning colour picked, the warning and the fields below sit a pixel lower at
   Large, and the hint moves by a fraction of a pixel.
+
+Proposed (2026-11-04, not decided), for sheet titles at Large (G21). Measured
+at 4259dd0 with the words of 78471f8: bar frames from the 26.3 hierarchy on
+402 and 375 pt (edge 20, gap to the title 16, buttons 36 pt high), CoreText
+widths for the words.
+- **A sheet's bar carries glyphs, not words**, on every iOS version: Cancel
+  and Close as × (`xmark`), Save as ✓ (`checkmark`), the visit sheet's Edit
+  as a pencil (`pencil`). On iOS 26 each is the platform's glass circle,
+  37 pt wide (the toolbar plus on 26.3: 37 × 36 pt), where the words take 54
+  to 114 pt. Save is the prominent one, a BBPrimary fill with a BBOnPrimary
+  check (5.62 / 6.86), like the sheet's Save button. Cancel and Close draw in
+  BBTextSecondary (4.48 / 6.82 on the background), Edit in BBPrimary
+  (5.12 / 6.86). A disabled Save (the dose sheet before a medication is
+  chosen) takes the platform's disabled look. VoiceOver reads each by its
+  word in the app's language (`button.cancel`, `button.save`, `button.close`,
+  `button.edit`), because the platform's own names follow the device's
+  language. Hit areas stay 44 pt.
+  - The title's room at Large is then 256, 229 and 174 pt on 402, 375 and
+    320 pt in every language, against 131, 104 and 49 in ru with the words
+    (es 149.5, 122.5, 67.5; en 190.1, 163.1, 108.1). All 48 titles, 16 in
+    three languages, are whole at 17 pt on all three widths; the least spare
+    is es «Nuevo medicamento», +10.6 on 320. With the words, ten ru and five
+    es titles shrink at Large on 375 pt, and on 320 every ru title is cut.
+  - Sheets with one button (the Growth sheet, the diaper norm editor) keep
+    the title centred in the same room. The bars that hold Close alone (the
+    Feeding, Sleep and Diaper screens opened as sheets, the growth
+    explainer) take the × too; the paywall draws its own × already.
+  - The word Save stays on the nine sheets with a Save button at the bottom.
+    The question sheet, the visit sheet and the visit detail in edit mode
+    have none, so there the ✓ is the only Save, as in the platform's own
+    sheets on iOS 26.
+  - iOS 17 and 18 draw the glyphs without the glass, so the room there is at
+    least as wide. Not rendered: no iOS 17–18 runtime on this machine.
+- **A sheet title is at most 166 pt at 17 pt semibold, and its floor is the
+  sheets' caption size, 13 pt** (`minimumScaleFactor` 13 / 17, against 0.6,
+  which reaches 10.2 pt). 166 pt is whole at Large on 320 pt with 8 to spare.
+  The budget keeps the floor from acting; the floor keeps a word over it from
+  drawing smaller than the captions under it.
+- **The dose sheet's title, the medication's own name, sits in its content at
+  every size** (`BBSheetHeading`), and that sheet's bar shows no title. No
+  budget holds a name the parent typed: «Нурофен для детей 100 мг/5 мл»
+  (262.6 pt) would be 11.3 pt in the 174 pt room on 320 and 14.8 pt on 375,
+  and past the floor its end is cut, where two medications' names often
+  differ. In the content it wraps; one line of title3 holds 288 pt on 320.
+  The sheet's fixed titles, «Отметить дозу» and «Изменить дозу», move with
+  it.
+- Not taken: shorter words alone, and the title in the content on every
+  sheet. Words cannot reach 320 pt, where the ru room is 49 pt and the
+  shortest ru title, «Вопрос», is 61.6. The heading costs each sheet 45.2 pt
+  at Large (a 21.2 pt line of title3 and lg 24 to the next block), and the
+  bar would lose the title the platform keeps there.
 
 ## 4. Spacing
 
@@ -416,9 +474,9 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBElapsedTimer | BBElapsedTimer | per-second elapsed label, 36 pt mono, MM:SS or HH:MM:SS | Dashboard, Feeding, Sleep |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | toggle that reveals a slider (head circumference) | Growth, BabyProfileEditSheet, Onboarding (Birth, Growth) |
-| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label beside it below AX1 (the picker alone, as before). At accessibility sizes: the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver. Proposed (§ 3): the stacked form at every size, because at Large on 320 pt the label misses beside its pills | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the stacked form's two halves at every size without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
+| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label beside it below AX1 (the picker alone, as before). At accessibility sizes: the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver. Planned (§ 3, decided 2026-11-04): the stacked form at every size, because at Large on 320 pt the label misses beside its pills | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the stacked form's two halves at every size without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
-| BBSheetHeading + `bbSheetTitle(_:movesIntoContentAtAX:)` | BBTheme | **from 1.3.0** — a sheet's title. Below AX1 it sits in the bar between Cancel and Save (capped at Large, one line, shrinks to 0.6). At accessibility sizes the bar shows no title and `BBSheetHeading` is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. The flag and the heading go together: the flag alone leaves no title, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading, so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes, where the heading is the sheet's top, and is hidden from VoiceOver at every size. Proposed (§ 3): the title in the content from xLarge. The ru profile title, «Редактировать профиль» (202.4 pt at 17 pt semibold), shrinks to 11.0 pt at Large on 402 pt and is cut on 375; a shorter ru title of at most 96 pt, whole at Large on 375 pt with 8 to spare, is proposed («Профиль» is 75.5) | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet (from 427d55e). The diaper norm editor keeps the system inline title: whole at AX2 on 402 and 375 pt, without spare on 320 pt (§ 3) |
+| BBSheetHeading + `bbSheetTitle(_:movesIntoContentAtAX:)` | BBTheme | **from 1.3.0** — a sheet's title. Below AX1 it sits in the bar between Cancel and Save (capped at Large, one line, shrinks to 0.6). At accessibility sizes the bar shows no title and `BBSheetHeading` is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. The flag and the heading go together: the flag alone leaves no title, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading, so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes, where the heading is the sheet's top, and is hidden from VoiceOver at every size. Planned (§ 3, decided 2026-11-04): the title in the content from xLarge, and the ru profile title «Профиль» (75.5 pt; «Редактировать профиль», 202.4, shrank to 11.0 pt at Large on 402 pt and was cut on 375). Proposed (§ 3): glyph buttons in every sheet bar, which leave the title 174 pt at Large on 320 pt; titles of at most 166 pt with a 13 pt floor; the dose sheet's name in its content at every size | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet (from 427d55e). The diaper norm editor keeps the system inline title: whole at AX2 on 402 and 375 pt, without spare on 320 pt (§ 3) |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -468,7 +526,9 @@ dark, and G20 was found there; G20 was read at 890c80b with its renders in
 light and dark, and G2 at 337fff5 for the entry sheets and the stat card, at
 c813d99 with its renders at AX2 and at Large, and at 427d55e and 6f66d45 for
 the profile sheet and the tile rows, with their renders at AX2, xxxLarge and
-Large, where G21 was found (2026-11-03). Each line: what, where, which rule.
+Large, where G21 was found (2026-11-03). G21's ways were measured at 4259dd0
+on 2026-11-04, from the bars' frames and CoreText widths. Each line: what,
+where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet and the tile rows, and G1, G18, G19 and G20 are fixed
@@ -578,9 +638,11 @@ for 1.3.0.
   entry-sheet title is cut, «Подгузник» (89.2) among them, and es titles from
   116 pt on («Agregar sueño»); en holds. Breaks the helper's own promise of a
   whole title. Measured at 6f66d45 from the bar's frames on 402 pt and CoreText
-  widths, not rendered. Ways out for a later decision: the platform's glyph
-  Cancel and Save on iOS 26, which leave the title about 160 pt, or the title
-  in the content at every size.
+  widths, not rendered. Direction proposed (§ 3, 2026-11-04), measured at
+  4259dd0 with the words of 78471f8: glyph buttons in every sheet bar leave
+  the title 174 pt on 320 (229 on 375, 256 on 402) in every language, and all
+  48 titles are whole at 17 pt; titles of at most 166 pt, with a 13 pt floor;
+  the dose sheet's name, which no budget holds, in its content at every size.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
