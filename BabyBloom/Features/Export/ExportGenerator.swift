@@ -174,13 +174,16 @@ struct ExportGenerator {
     }
 
     private static func eventsCSV(_ entries: [CustomEvent]) -> String {
-        var rows = [csvRow(["export.csv.date".l, "export.csv.time".l,
-                            "export.csv.type".l, "export.csv.notes".l])]
+        var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
+                            "export.csv.medication".l, "export.csv.dose".l, "export.csv.notes".l])]
         let fmt = csvFormatter("yyyy-MM-dd")
         let tfmt = csvFormatter("HH:mm")
         for e in entries {
             let notes = e.notes ?? ""
-            rows.append(csvRow([fmt.string(from: e.time), tfmt.string(from: e.time), e.type.displayName.l, notes]))
+            // The name and dose as logged on the event, so a renamed or
+            // deleted medicine leaves the record as it was.
+            rows.append(csvRow([fmt.string(from: e.time), tfmt.string(from: e.time), e.type.displayName.l,
+                                e.medicationName ?? "", e.medicationDose ?? "", notes]))
         }
         return rows.joined(separator: "\n")
     }
@@ -360,7 +363,7 @@ struct ExportGenerator {
                     [dateFmt.string(from: e.time),
                      timeFmt.string(from: e.time),
                      e.type.displayName.l,
-                     noteCell(e.notes)]
+                     noteCell(eventNote(e))]
                 }
             ))
         }
@@ -463,6 +466,15 @@ struct ExportGenerator {
                                         input: PeriodSummary.Input(feeds: dates), calendar: calendar)
         guard period.daysWithEntries > 0 else { return nil }
         return Double(period.totalFeeds) / Double(period.daysWithEntries)
+    }
+
+    /// A medication's name and dose as logged, ahead of its note, in the one
+    /// notes cell: the table keeps its columns.
+    static func eventNote(_ event: CustomEvent) -> String? {
+        guard event.type == .medication else { return event.notes }
+        let text = MedicationFormat.eventRow(typeWord: "", isDose: false, name: event.medicationName,
+                                             dose: event.medicationDose, note: event.notes).subtitle
+        return text.isEmpty ? nil : text
     }
 
     /// A note the page can print, or the dash an absent one gets.
