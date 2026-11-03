@@ -120,6 +120,7 @@
   "medication.field_dose_placeholder": "Dose, as on the prescription or package",
   "medication.field_max": "Most doses in 24 hours (optional)",
   "medication.field_max_placeholder": "As in the instructions",
+  "medication.field_max_range_hint": "Enter the number of doses, from 1 to 24, or leave the field empty.",
   "medication.reminder_switch": "Notify when the interval has passed",
   "medication.reminder_footer": "One notification after each dose, on this device only, including at night.",
   "medication.reminder_at_fmt": "Notification: %@",

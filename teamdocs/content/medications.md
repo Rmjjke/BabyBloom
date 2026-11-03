@@ -39,7 +39,9 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
 - **The same look in both states**: only the words change.
 - **The last dose carries its age** ("Last dose at 2:10 AM · 1 h 20 min
   ago"); the next one is a clock time with its day word when it is not
-  today. A dose row shows its time with "Today", "Yesterday" or the date.
+  today. From 48 hours the age is told in days ("3 days ago", «3 дня назад»,
+  «hace 3 días»): "73 h ago" would leave the arithmetic to the parent. A dose
+  row shows its time with "Today", "Yesterday" or the date.
 - **When-strings.** A time that is not today is built with
   `medication.when_yesterday_fmt`, `_tomorrow_fmt` or `_date_fmt`: en puts
   the day after the time ("1:30 AM tomorrow"), ru and es before it
@@ -63,11 +65,23 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   ("Name, as on the package"). None holds a number or a drug name: at night
   a sample value reads as a suggestion. No field has a default interval or
   maximum.
+- **The maximum** is a whole number from 1 to 24, or empty. Outside that
+  range Save stays off, and `field_max_range_hint` under the field says what
+  the field takes and that it may stay empty. The hint does not name Save: it
+  shows the moment the value leaves the range and goes when it is fixed, so
+  the cause and the button change together on screen.
 - **Counts** use the one/few/many keys (`medication.dose_count.*`), never a
   bare number.
 - **Line breaks.** A number is glued to its unit with a no-break space
   ("24 hours"), as everywhere. Russian one-letter prepositions and «не» are
   glued to the next word in these strings («с последней», «не проверяет»).
+  - «или позже» and «o más tarde» are glued whole, so a line never ends in
+    «или» or «o» and «más tarde» never splits.
+  - Spanish «de» is glued to the duration after it («intervalo de 6 h»,
+    «menos de 6 h»), so the duration never starts a line alone.
+  - A range keeps its words together: "1 to 24", «от 1 до 24», «del 1 al 24».
+  - A middle dot that joins two pieces ends a line, never opens one (see
+    "Joined lines" below).
 - **The confirmation** is the system alert. The title is a fact. The message
   has the name and the times, one per line. Buttons: `button.cancel`,
   `button.save`, no "anyway". There are three variants:
@@ -105,18 +119,22 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   notification is scheduled. A dose at 22:00 with a 6 h interval fires at
   04:00, so its body reads "(10:00 PM yesterday)".
 - **Durations** ("6 h", "1 h 20 min") come from `duration.*`, which carry
-  their no-break spaces. The interval chips use `duration.h_only`.
+  their no-break spaces. The interval chips use `duration.h_only`. An age of
+  48 h or more is days: the number, a no-break space and `age.day.*` by
+  plural.
 - **Counts:** `n.plural(one: "medication.dose_count.one", few: "….few",
   many: "….many")`, then `String(format:)` with `n`, as `question.count.*`.
   The result is the "dose count phrase" below.
-- **Joined lines** use " · " and the lower-case short forms
-  (`status_passed_short_fmt`, `interval_short_fmt`, `ago_fmt`).
+- **Joined lines** use the lower-case short forms (`status_passed_short_fmt`,
+  `interval_short_fmt`, `ago_fmt`) after a middle dot. The space before the
+  dot is a no-break space (`"\u{00A0}· "`), so at large text sizes the dot
+  stays at the end of the first line instead of opening the next one.
 - **Existing keys reused:**
   - `button.save`, `button.cancel`, `button.delete` (alerts and sheets);
   - `button.edit` (the detail's toolbar);
   - `form.time`, `form.dose` (the dose sheet; the detail's "Dose" label);
   - `form.notes_optional` (the form's note field);
-  - `duration.*`;
+  - `duration.*`, `age.day.*`;
   - `event.type.medication` (older history rows).
 - **Typed text is not a key.** The medication's name and dose text are
   shown as typed (sheet titles, the detail's first line, row titles), and
@@ -157,6 +175,7 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   - `field_name` and `field_dose` (VoiceOver labels), with `field_name_placeholder` and `field_dose_placeholder`;
   - `field_interval`, `chip_other`, `other_hours`, `other_minutes`;
   - `field_max` (and `field_max_placeholder` if the field shows one apart from its label);
+  - `field_max_range_hint` under the maximum field, in secondary text, while the field holds 0 or 25–99 (Save stays off); not shown while the field is empty or holds 1–24;
   - `delete` (the button and the alert's title), `delete_message` with `button.delete` (destructive) and `button.cancel`.
 - **Reminder:**
   - `reminder_switch`, `reminder_at_fmt`(time), `reminder_footer`;
@@ -206,3 +225,10 @@ space.
   `notification.medication_*`, `export.csv.medication`, `export.csv.dose`).
   `form.dose` en "Dosage" → "Dose". `onboarding.premium.f2` no longer lists
   medications (they are free).
+- 2026-11-03 — `medication.field_max_range_hint` added (the maximum outside
+  1 to 24). No-break spaces, text unchanged: ru «или позже» and es «o más
+  tarde» glued whole; es «de» glued to the duration after it
+  (`status_next_fmt`, `status_passed_short_fmt`, `interval_short_fmt`,
+  `alert_before_title_fmt`, `alert_before_message_fmt`,
+  `alert_after_title_fmt`, `alert_max_message_fmt`). Ages from 48 h are told
+  in days.
