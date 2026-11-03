@@ -334,7 +334,10 @@ Two layouts recur at accessibility sizes, and each has one helper in
 `DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
 or time picker's label above it there (beside the buttons it broke mid-word)
 and hides that visible label from VoiceOver, so the picker's own label is read
-once; the entry sheets' date and time rows use it. `bbPlaceholderLabel` is
+once; the entry sheets' date and time rows use it. The profile edit sheet's
+birth date keeps its caption above the picker at every size, like the rest of
+that form, so it takes the same two halves without the helper: the caption is
+hidden from VoiceOver and the picker carries the name. `bbPlaceholderLabel` is
 for a vertical `TextField` whose placeholder is its only visible label (the
 medication name, dose and note, the Diaper note, the doctor question; also
 the medication maximum, whose example placeholder needs two lines in es): it
@@ -352,7 +355,10 @@ hints use it, and so do the stat card's title, unit and trend chip. Some
 screens outside the entry sheets still set fixed sizes. A grid whose widest
 en, ru or es word at AX2 no longer fits its column at a 375-pt width, with
 8 pt to spare, takes fewer columns at accessibility sizes. The stool colours
-and the Feeding types drop to two. The stat grids drop to one, through
+and the Feeding sheet's types drop to two. The profile edit sheet's gender and
+feeding rows, measured at a 320-pt width, drop to one; its feeding row already
+takes two from xLarge, where «Смешанное» no longer fits a third of that width.
+The stat grids drop to one, through
 `BBStatGrid` beside `BBStatCard`. Colour samples, icon plates and decorative
 figures keep their size, and the Growth sheet leaves its ruler out at those
 sizes.
@@ -361,12 +367,13 @@ Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on
 one line, capped at `.large` and shrinking to fit between Cancel and Save.
 With `movesIntoContentAtAX`, which every add, dose, visit and medication sheet
-passes, the bar shows no title at accessibility sizes. There the sheet's first
-content line, `BBSheetHeading`, shows it and carries the header trait, so
-VoiceOver reads it once. The flag and the heading go together: the flag alone
-leaves the sheet with no title at those sizes, the heading alone shows it
-twice. The diaper norm editor and the profile edit sheet still use the system
-inline title, which is cut at those sizes.
+and the profile edit sheet pass, the bar shows no title at accessibility
+sizes. There the sheet's first content line, `BBSheetHeading`, shows it and
+carries the header trait, so VoiceOver reads it once. The flag and the heading
+go together: the flag alone leaves the sheet with no title at those sizes, the
+heading alone shows it twice. The diaper norm editor keeps the system inline title: with only
+Cancel in its bar the title has room at those sizes, and its content opens
+with a heading of its own.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
