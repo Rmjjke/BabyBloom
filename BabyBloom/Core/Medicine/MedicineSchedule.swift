@@ -156,7 +156,7 @@ extension Medicine {
     /// another type is not a dose.
     func doseTimes(excluding: CustomEvent? = nil) -> [Date] {
         (doses ?? [])
-            .filter { $0.type == .medication && $0 !== excluding }
+            .filter { $0.type == .medication && $0 !== excluding && !$0.isDeleted }
             .map(\.time)
     }
 
@@ -166,9 +166,11 @@ extension Medicine {
     }
 
     /// An ended course has no next time; its doses stay where they were.
-    func status(now: Date) -> MedicineStatus {
+    /// `excluding`: the dose being edited, so the dose sheet shows the state
+    /// before that entry.
+    func status(now: Date, excluding: CustomEvent? = nil) -> MedicineStatus {
         if let endedAt { return .ended(endedAt) }
-        let schedule = schedule(now: now)
+        let schedule = schedule(now: now, excluding: excluding)
         guard let last = schedule.lastDose, let next = schedule.nextAllowed else { return .noDose }
         return now < next ? .waiting(lastDose: last, until: next) : .allowed(lastDose: last)
     }

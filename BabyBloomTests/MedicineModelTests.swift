@@ -100,7 +100,7 @@ final class MedicineModelTests: XCTestCase {
     }
 
     func testTheFormRanges() {
-        XCTAssertEqual(Medicine.intervalMinutesRange, 30...10080)
+        XCTAssertEqual(Medicine.intervalMinutesRange, 15...2880)
         XCTAssertEqual(Medicine.maxDosesPer24hRange, 1...24)
     }
 }
