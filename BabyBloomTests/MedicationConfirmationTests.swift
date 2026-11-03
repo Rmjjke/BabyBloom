@@ -204,8 +204,10 @@ final class MedicationConfirmationTests: XCTestCase {
             XCTAssertEqual(lines(interval?.message).last,
                            lines(String(format: "medication.alert_before_message_fmt".l, "Paracetamol",
                                         when(d(10, 8), now: now), when(d(10, 16), now: now))).last, code)
-            // The clock follows the app's language: 12-hour in en and es.
-            XCTAssertTrue(lines(interval?.message).last?.contains(code == "ru" ? "16:00" : "4:00") == true,
+            // The clock is the device's in every language: 16:00 on a 24-hour
+            // phone, 4:00 PM on a 12-hour one.
+            let twelveHour = [.oneToTwelve, .zeroToEleven].contains(Locale.current.hourCycle)
+            XCTAssertTrue(lines(interval?.message).last?.contains(twelveHour ? "4:00" : "16:00") == true,
                           "\(code): \(interval?.message ?? "nil")")
 
             let daily = confirm(interval: 360, max: 2, doses: [d(10, 0), d(10, 8)], now: now, at: now)

@@ -5,8 +5,14 @@
 # chosen asks the same way.
 #
 # Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
-# 6 h, at most 4 in 24 h, its latest dose at 8:00 AM and 4 doses in the last
+# 6 h, at most 4 in 24 h, its latest dose at 08:00 and 4 doses in the last
 # 24 hours; Vitamin D every 24 h, its latest 26 h ago.
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch arguments -AppleICUForce24HourTime YES and
+# -AppleICUForce12HourTime NO pin it to 24 hours for this app (the second
+# overrides a device set to 12 hours), so the times below read the same on
+# any simulator.
 #
 # Launch-argument mechanics are explained in SMOKE-main-tabs.yaml.
 appId: com.nenita.app
@@ -19,6 +25,8 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "YES"
+      "-AppleICUForce12HourTime": "NO"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
 - extendedWaitUntil:
@@ -33,13 +41,13 @@ tags: [regression]
     id: "more.medications"
 - tapOn: "Paracetamol"
 - extendedWaitUntil:
-    visible: "Last dose at 8:00.AM.· 2.h ago"
+    visible: "Last dose at 08:00.· 2.h ago"
     timeout: 10000
 - assertVisible: "Last 24.hours: 4.doses of the 4 you set"
 
 # Paracetamol at 10:00 is inside the interval and the fifth dose in 24 hours.
-# Once saved, the maximum ends later (8:00 PM) than the interval (4:00 PM),
-# so the alert names the 24 hours and 8:00 PM, the time the screen then shows.
+# Once saved, the maximum ends later (20:00) than the interval (16:00), so
+# the alert names the 24 hours and 20:00, the time the screen then shows.
 - tapOn:
     id: "medication.log_dose"
 - extendedWaitUntil:
@@ -54,7 +62,7 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
 - takeScreenshot: ${OUT}-guard-before
 
 # Cancel: back on the sheet with the note as typed, nothing saved.
@@ -70,11 +78,11 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
 # While the alert is up it is all the tree holds, so its Save is the only one.
 - tapOn: "Save"
 - extendedWaitUntil:
-    visible: "Last dose at 10:00.AM.· just now"
+    visible: "Last dose at 10:00.· just now"
     timeout: 10000
 - assertNotVisible:
     id: "dose.save"
@@ -94,7 +102,7 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Last dose at 10:00.AM.· just now"
+    visible: "Last dose at 10:00.· just now"
     timeout: 10000
 - assertNotVisible: "Less than .*"
 - assertNotVisible: "With this dose.*"
@@ -112,7 +120,7 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "Less than 24.h since the last dose"
     timeout: 10000
-- assertVisible: "(?s)Vitamin D.Last dose at 10:00.AM.If you save, next dose not before .*10:00.AM.*"
+- assertVisible: "(?s)Vitamin D.Last dose at 10:00.If you save, next dose not before .*10:00.*"
 - takeScreenshot: ${OUT}-guard-interval
 - tapOn: "Cancel"
 - assertVisible:
@@ -126,6 +134,8 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "YES"
+      "-AppleICUForce12HourTime": "NO"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
       "-BBForcePremium": "true"
@@ -156,14 +166,14 @@ tags: [regression]
     id: "medication.picker"
 - tapOn: "Paracetamol"
 - extendedWaitUntil:
-    visible: "Next dose not before 2:00.PM"
+    visible: "Next dose not before 14:00"
     timeout: 5000
 - tapOn:
     id: "event.save"
 - extendedWaitUntil:
     visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
 - tapOn: "Cancel"
 - assertVisible:
     id: "event.save"
@@ -175,7 +185,7 @@ tags: [regression]
 - tapOn: "Save"
 # Back on Events, Paracetamol's line counts from the new dose.
 - extendedWaitUntil:
-    visible: "Next dose not before 8:00.PM"
+    visible: "Next dose not before 20:00"
     timeout: 10000
 - assertNotVisible:
     id: "event.save"

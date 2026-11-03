@@ -75,8 +75,9 @@ enum WidgetCopy {
     /// renders no live text: a Russian widget once read "1 hr, 11 min"
     /// because nothing set this, and the pin is what stops a reintroduced
     /// `Text(style:)` from regressing silently (the render-dump guard test
-    /// leans on it too).
-    static var formattingLocale: Locale { LocalizationManager.shared.language.locale }
+    /// leans on it too). The environment locale, so a future clock time
+    /// keeps the device's 12/24-hour cycle like the app's own.
+    static var formattingLocale: Locale { LocalizationManager.shared.language.environmentLocale }
 
     /// A duration as the widget speaks it: whole minutes through the app's
     /// JSON strings, never seconds: "2 мин 0 с"

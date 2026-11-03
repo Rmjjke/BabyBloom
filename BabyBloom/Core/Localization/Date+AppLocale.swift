@@ -12,9 +12,16 @@ import Foundation
 /// files deliberately do NOT use them: machine-readable columns there are
 /// pinned to `en_US_POSIX` instead (see `ExportGenerator`).
 extension Date {
-    /// Time of day — "2:30 PM" in English, "14:30" in Russian and Spanish.
-    var appTimeOfDay: String {
-        formatted(.dateTime.hour().minute().locale(LocalizationManager.shared.language.locale))
+    /// Time of day in the app's language on the device's 12/24-hour clock:
+    /// "14:30" or "2:30 PM" in English alike, as the phone is set. The same
+    /// locale the date pickers get from the environment, so the two agree.
+    var appTimeOfDay: String { appTimeOfDay(in: Date.appTimeLocale) }
+
+    /// The locale clock times are formatted in; the app's environment locale.
+    static var appTimeLocale: Locale { LocalizationManager.shared.language.environmentLocale }
+
+    func appTimeOfDay(in locale: Locale) -> String {
+        formatted(.dateTime.hour().minute().locale(locale))
     }
 
     /// Day and month — "Aug 25", "25 авг.", "25 ago.".
