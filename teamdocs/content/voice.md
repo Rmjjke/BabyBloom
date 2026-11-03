@@ -96,6 +96,16 @@ and the Live Activity read the byte-identical copies in
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
+  - A number range stays on one line. The line may break after an en dash
+    («6–» / «10»), so a word joiner (U+2060, invisible, no width) follows
+    the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
+    words glues its words with no-break spaces: "1 to 24", «от 1 до 24»,
+    «del 1 al 24», «de 6 a 10», «del percentil 15 al 85».
+  - The percentile band labels (`percentile.3_15` … `percentile.85_97`)
+    keep the plain dash. Each stands alone, so its line breaks only when the
+    whole label is wider than its box, and there a break after the dash
+    reads better than one inside a number. A unit test also matches «15–50»
+    as written.
   - In the JSON the no-break space is written as the escape ` `, which
     reads as the same character.
   - Not glued:
@@ -132,3 +142,10 @@ and the Live Activity read the byte-identical copies in
   The old title was 202.4 pt: it shrank to 11 pt on a 402 pt phone, smaller
   than the sheet's captions, and was cut on a 375 pt one. en "Edit Profile"
   (86.4 pt) and es «Editar perfil» (92.7) stay.
+- 2026-11-04 — number ranges never split across lines. A word joiner after
+  the dash in en/ru/es `diaper.norm.hint` (es: no-break spaces in «de 6 a
+  10»), `newborn.info_body` (three ranges), `velocity.expected_fmt`,
+  `breakdown.gain_fmt`, `breakdown.feeds_fmt`, `percentile.info_body` (es:
+  no-break spaces in «15 al 85»), `onboarding.fact.infant2`,
+  `onboarding.fact.breast1`, `onboarding.fact.formula1`, `chart.who_corridor`.
+  Text unchanged.
