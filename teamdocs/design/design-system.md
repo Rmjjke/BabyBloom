@@ -6,9 +6,11 @@ M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02; on
 2026-11-03 BBOnPrimary and the Live Activity are in force as shipped in 1.1.0,
 and the colorset counts and the re-theme list follow the code. Also on
 2026-11-03: the primary button's ink for 1.3.0 (G1), the platform red as the
-destructive red (§ 2, G4) and G9 follow the 1.2.0 code. Every value
-marked `in force` is in code, in `DECISIONS.md` or in a product decision stated
-here with its reason; `planned` means decided, not shipped yet. Gaps are notes
+destructive red (§ 2, G4) and G9 follow the 1.2.0 code; the accent ink
+BBOnAccent and the stool check for 1.3.0 (G18, G19) follow the code of the same
+day, and an edge for the White and Black stool swatches is proposed (G20).
+Every value marked `in force` is in code, in `DECISIONS.md` or in a product
+decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
 sources: `BabyBloom/Resources/Assets.xcassets/Colors/`, `BabyBloom/DesignSystem/`,
 `DECISIONS.md`, `docs/design/`, `README.md#дизайн-система`.
@@ -37,7 +39,7 @@ semibold for headers.
 ## 2. Colour tokens
 
 triggers: a colorset added, removed or re-valued; a `BBTheme.Colors` member added
-check: `ls BabyBloom/Resources/Assets.xcassets/Colors | sed 's/.colorset//'` → the 18 names below; `grep -o 'Color("BB' BabyBloom/DesignSystem/BBTheme.swift | wc -l` → 16 (BBLaunchBackground and BBSplashText are read by `SplashView` directly)
+check: `ls BabyBloom/Resources/Assets.xcassets/Colors | sed 's/.colorset//'` → the 19 names below; `grep -o 'Color("BB' BabyBloom/DesignSystem/BBTheme.swift | wc -l` → 17 (BBLaunchBackground and BBSplashText are read by `SplashView` directly)
 
 All sRGB, light (`any`) / dark (`luminosity: dark`).
 
@@ -46,6 +48,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
 | BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is the ink on every BBPrimary fill: `BBPrimaryButton`, the `BBFab` "+", the selected `BBHistoryFilterPicker` chip and the other places G1 lists |
 | BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
+| BBOnAccent | `Colors.onAccent` | #171420 | #171420 | **from 1.3.0** (decided 2026-11-03) — text on a BBAccent fill: the plan picker's savings badge (`PlanPickerSection.swift:181`), on the paywall and on the onboarding Premium page. One value in both modes, because the peach is light in both: white on it was 1.84 / 1.66 (G18). App catalog only: the widget draws no text on the accent |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
 | BBTextPrimary | `Colors.textPrimary` | #2D2837 | #F0EDF6 | body and titles |
@@ -101,7 +104,7 @@ a wash.
 Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 - `FeedingEntry.type` — breast #E8A0BF, formula #B0C4F5, pumped #D4A8D5
 - `CustomEvent.type` — bath #B0C4F5, walk #A8D5C2, medication #F5D6A0, mood #E8A0BF, custom #D4A8D5
-- `DiaperEntry` stool swatches — yellow #F5D55F, green #6BBF6B, black #2C2C2C, brown #8B5E3C, orange #F5A45F, red #E05A5A, white #F0F0F0 (these depict a real colour, so a literal is defensible here)
+- `DiaperEntry` stool swatches — yellow #F5D55F, green #6BBF6B, black #2C2C2C, brown #8B5E3C, orange #F5A45F, red #E05A5A, white #F0F0F0 (these depict a real colour, so a literal is defensible here). The selected swatch's check is a literal beside them, `StoolColor.checkHex` (from 1.3.0, G19): #171420 on yellow, green, orange, red and white; white on brown and black. Proposed: White and Black carry a 1 pt BBTextSecondary edge (G20).
 
 ### Measured contrast
 
@@ -116,6 +119,8 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | BBOnPrimary on primary | 5.6 | 6.9 |
 | white on `BBPrimaryButton`'s primary@0.8 end, over the background | **3.80** | **3.76** |
 | BBOnPrimary on `BBPrimaryButton`'s primary@0.9 end (from 1.3.0) | 4.60 | 5.78 |
+| white on accent (the plan badge before 1.3.0) | **1.84** | **1.66** |
+| BBOnAccent on accent (the plan badge from 1.3.0) | 9.88 | 10.95 |
 | white on gradient end | **2.64** | 3.05 |
 | white on gradient start | 5.6 | 4.48 |
 | alert on surface | 3.6 | — |
@@ -278,9 +283,10 @@ Seen from code at 10cf1a9; no live look on device yet. G1, G4 and G9 were
 re-read at 1b01297 (1.2.0) on 2026-11-03, and G1's button numbers were also
 measured on the medication screens' renders. G1 was read again at c1354c4,
 with its renders in light and dark, and G18 and G19 were found there
-(2026-11-03). Each line: what, where, which rule. Under P8, existing contrast
-violations are backlog items, not blockers; G2 is in the backlog (2026-10-28),
-and G1 is fixed for 1.3.0.
+(2026-11-03). G18 and G19 were read at b503825 with their renders in light and
+dark, and G20 was found there. Each line: what, where, which rule. Under P8,
+existing contrast violations are backlog items, not blockers; G2 is in the
+backlog (2026-10-28), and G1, G18 and G19 are fixed for 1.3.0.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -313,11 +319,19 @@ and G1 is fixed for 1.3.0.
   lines at c1354c4: the nine uses above (two in the button), the token, two
   comments. Why before 1.3.0: the medication screens carry the button and are
   opened at night, in dark.
-- **G18 · White on BBAccent in the plan picker's badge is 1.84:1 in light and
-  1.66:1 in dark** (`PlanPickerSection.swift:181`, 11 pt bold). Breaks P8.
-  BBOnPrimary is not its ink: its light value is white. Proposed (2026-11-03,
-  not decided): a dark ink on the accent fill in both modes, #171420
-  (BBOnPrimary's dark value), 9.89 / 10.96, as a token of its own.
+- **G18 · White on BBAccent in the plan picker's badge was 1.84:1 in light and
+  1.66:1 in dark; fixed for 1.3.0** (`PlanPickerSection.swift:181`, 11 pt
+  bold). Broke P8. BBOnPrimary is not its ink: its light value is white. Fix,
+  decided 2026-11-03 for 1.3.0, in code at b503825: a token of its own,
+  BBOnAccent (§ 2), #171420 in both modes (BBOnPrimary's dark value): 9.88 in
+  light and 10.95 in dark, the same on the renders, where the badge's ink is
+  #171420 on the peach. The badge is the one text on an opaque BBAccent fill,
+  and the paywall and the onboarding Premium page both draw it from
+  `PlanPickerSection`. The other accent uses are tints, glyphs in the accent,
+  gradients and a progress bar, none with text on the accent. A new text on a
+  BBAccent fill takes BBOnAccent.
+  grep: `grep -rn --include=*.swift 'onAccent\|BBOnAccent' BabyBloom` → 2 lines
+  at b503825: the token and the badge.
 - **G2 · 148 raw `.system(size:)` fonts in the app** (widget excluded) never
   scale with Dynamic Type, against P6 / DECISIONS 2026-08-28. Heaviest:
   GrowthInsightCards 20, BBCard 15, DiaperView 12, FeedingView 10,
@@ -326,13 +340,36 @@ and G1 is fixed for 1.3.0.
   label 12 pt, `BBMeasureSlider` min/max 11 pt. grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
 
 **Minor**
-- **G19 · The stool swatch's check is white on every swatch**
-  (`DiaperView.swift:395`): 1.14 on white, 1.44 on yellow, 2.03 on orange,
-  2.26 on green, 3.63 on red, 5.58 on brown, 13.97 on black. The 2.5 pt
-  BBPrimary ring carries the choice, so the state is not lost, but the check
-  vanishes on four swatches, the white one G3 warns about among them.
-  Proposed (2026-11-03, not decided): the check takes #171420 on the five
-  light swatches (5.00–15.94) and stays white on brown and black (5.58, 13.97).
+- **G19 · The stool swatch's check was white on every swatch; fixed for
+  1.3.0** (`DiaperView.swift:395`). It read 1.14 on white, 1.44 on yellow,
+  2.03 on orange, 2.26 on green and 3.63 on red, so it vanished on four
+  swatches, the white one G3 warns about among them. The 2.5 pt BBPrimary
+  ring carried the choice, so the state was not lost. Fix, decided 2026-11-03
+  for 1.3.0, in code at b503825: `StoolColor.checkHex`, a literal beside the
+  swatch literals (`DiaperEntry.swift:92`). The check is #171420 on the five
+  light swatches (yellow 12.59, green 8.03, orange 8.95, red 4.99, white 15.92)
+  and stays white on brown and black (5.58, 13.97). On the renders the check on
+  White is #171420 in both modes; the ring is 5.12 in light and 6.86 in dark
+  against the sheet.
+- **G20 · The White swatch on the light sheet and the Black swatch on the
+  dark sheet have no edge** (`DiaperView.swift:389–392`). Against the sheet
+  (BBBackground) their fills are 1.04 and 1.30, so the unselected disc nearly
+  vanishes and its label stands alone. The other five swatches read by their
+  hue. The fill cannot change, because it depicts a real colour (§ 2 Data
+  colours). Proposed (2026-11-03, not decided):
+  - White and Black carry a 1 pt BBTextSecondary edge, drawn inside the 36 pt
+    disc (`strokeBorder`), in both modes: 4.48 in light and 6.82 in dark
+    against the sheet, over P8's 3:1 for a border.
+  - The disc stays 36 pt. The 2.5 pt selected ring is drawn on the same
+    circle, so it covers the edge when the swatch is chosen, and the selected
+    look does not change.
+  - In the other mode, the edge rims a disc that already stands at 15.92
+    (White on dark) and 12.72 (Black on light), so one rule per swatch needs
+    no appearance branch.
+  - Not on all seven: on the hued swatches a grey edge dulls the depicted
+    colour at its rim, and it adds weight where the hue already separates the
+    disc. Not a faint edge (textSecondary@0.30, the export radio circle's):
+    1.50 and 2.19, under 3:1.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -376,7 +413,7 @@ and G1 is fixed for 1.3.0.
   (press, progress, swipe) ignore it. Small movements, low risk.
 - **G14 · No named motion tokens:** 8 spring variants for 4 intents.
 - **G15 · Palette of record is incomplete:** `README.md#дизайн-система` lists 4
-  light-only colours of 18 colorsets; `AccentColor.colorset` duplicates
+  light-only colours of 19 colorsets; `AccentColor.colorset` duplicates
   BBPrimary and is missing from the re-theme list in CLAUDE.md. README should
   point here.
 - **G16 · The export PDF's neutrals are mostly iOS system greys,** not the brand
