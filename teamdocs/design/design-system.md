@@ -200,7 +200,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
 | BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
-| BBEventRow | BBCard | elevated list row: 44 pt tint disc, title/subtitle, trailing time | Feeding, Sleep, Diaper, Events, RecentActivity |
+| BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
@@ -270,7 +270,7 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   scale with Dynamic Type, against P6 / DECISIONS 2026-08-28. Heaviest:
   GrowthInsightCards 20, BBCard 15, DiaperView 12, FeedingView 10,
   BabyProfileEditSheet 9. Includes shared components: `BBStatCard`
-  unit/title 13 pt, `BBEventRow` subtitle/time 13 pt, `BBQuickActionButton`
+  unit/title 13 pt, `BBEventRow` subtitle/time 13 pt (scaled from 1.3.0, § 7), `BBQuickActionButton`
   label 12 pt, `BBMeasureSlider` min/max 11 pt. grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
 
 **Minor**

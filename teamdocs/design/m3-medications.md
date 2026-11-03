@@ -1,6 +1,6 @@
 # M3 — Medications with a dosing interval: list, detail, dose sheet, form, Events, Home, confirmation (design note)
 
-status: draft, 2026-11-03
+status: final, 2026-11-03
 decisions: the app counts time between doses and never prescribes, so no surface reads as advice, permission or a verdict; the calm rule (no red, no alarm shape, nothing that completes when the interval ends); WCAG 2.2 AA; the product rules and design decisions in § 13; DECISIONS.md 2026-09-05 (an empty state names the missing thing and offers the action; doctor-facing output carries measurements, not verdicts; a future-dated entry is refused at the picker and ignored at the read), 2026-09-22 and 2026-11-01 (no rating prompt over a worry; no analytics for health records), 2026-10-28 (a screen's primary action is pinned under its scroll)
 reference: `teamdocs/design/design-system.md` (P = principle); the report note `m2-doctor-report.md` (report cards, PDF tables); the copy note `teamdocs/content/medications.md`
 triggers: a medication surface, state or row added or removed; the status rule or the 24 h maximum changed; the confirmation's variants changed; the Home card's condition changed; a shared row (`BBEventRow`) restyled
@@ -214,13 +214,15 @@ Cancel          New Medication              Save
   - Chip box: capsule (radius pill), min height 44 (P7), padding horizontal 16, text scaled(15, .body, medium, rounded) line 17.7, number and unit glued.
   - Unselected: primary@0.10 fill, primary@0.30 1.5 pt stroke, BBPrimary text (4.93:1 light, 5.23:1 dark on the fill).
   - Selected: BBPrimary fill, BBOnPrimary text (5.62:1 light, 6.86:1 dark), no stroke. The fill change carries the state, and VoiceOver says "selected".
-  - **Other** reveals two wheel pickers below the chips, hours 0–48 and minutes 0/15/30/45, `easeInOut(0.25)` (the optional-measure reveal; no animation under Reduce Motion). They start at 0 h 0 min, and Save stays off while the value is 0. Editing a medication whose interval is one of the chips selects that chip; any other value opens Other with its value.
+  - **Other** reveals two wheel pickers below the chips, hours 0–48 and minutes 0/15/30/45, `easeInOut(0.25)` (the optional-measure reveal; no animation under Reduce Motion). They start at 0 h 0 min.
+  - **The interval's range is above 0 and up to 48 h.** 0 h 0 min is not an interval, so Save stays off on it; 48 h is the wheels' last value and the upper bound. The form's rule takes both bounds.
+  - Editing a medication whose interval is one of the chips selects that chip; any other value opens Other with its value.
 - **Dose:** a text field; the placeholder holds no number.
 - **Most doses in 24 hours:** a text field with the number pad, empty by default, never prefilled; a whole number from 1; empty means not set. The label carries "(optional)"; the placeholder holds no number.
 - **Note:** a text field, vertical, up to 3 lines.
 - **Reminder group:** § 9.
 - **Delete Medication** (edit mode only): a text button in the scroll, `.destructive` role, min height 44. It confirms with a system alert saying the doses stay in Events («Удалить» with the destructive role, as the delete-history confirmation does).
-- **Footer:** as § 4. Save is off (opacity 0.4) until the name has a non-space character and an interval is chosen.
+- **Footer:** as § 4. Save is off (opacity 0.4) until the name has a non-space character and the interval is in range.
 
 ## 6. Events: status lines, the Medication tile, the form, the history rows
 
@@ -329,7 +331,7 @@ One-line placements (list row, Events line, Home card) show line A only.
   - **before:** a dose under the interval after the last one, as drawn;
   - **after:** a dose put before a dose already logged, less than the interval earlier: «Less than 6 h from a logged dose» / «Paracetamol: a dose is logged at 16:00. Your interval is 6 h.»;
   - **24 h:** the dose would take the count over the maximum: «With this one, 5 doses in 24 hours» / «Paracetamol: the most you set is 4 in 24 hours.»
-  - One alert per save. When both the interval and the maximum apply, the interval variant shows, because it names the times.
+- **One alert per save.** When a dose breaks both limits, the alert shows the variant of the limit that ends later, the one that sets "next dose not before" on the detail; when both end at the same time, the interval variant. Why: the alert's time is the detail's time, and the interval variant cannot explain a time the maximum set (last dose 14:00, interval 6 h, yet not before 22:30).
 - **Shown** on Save from the dose sheet (new and edited doses) and from the Events form with a medication chosen. **Not shown** for a dose on time (exactly the interval counts as on time), for another medication, or for a free-text event.
 - Times inside follow § 8 (day word, glued, the app's clock). The name comes first, before a colon, so the ru sentence needs no case ending on typed text.
 
@@ -371,10 +373,11 @@ Copy roles (keys under `medication.*` and `notification.medication_*`):
 
 Build facts:
 - A medication's name and dose are stored on the event and, before this feature, read by no screen and no file: the Events row showed the note (`EventsView.swift`, history rows), and the events CSV wrote type and note only (`ExportGenerator.eventsCSV`). § 6 rows and the CSV's two new columns fix both. Stored data is not rewritten.
-- The Medication tile used to insert a nameless dose in one tap (`EventsView.quickAdd`); § 6 changes it while a medication is active.
+- The Medication tile used to insert a nameless dose in one tap (`EventsView.quickAdd`); § 6 changes it while a medication is active. The tile still enters through the screen's one creation path (`EventsView.addEvent(_:)`) and branches there: dose sheet, free, no padlock while a medication is active.
 - No screen edited an event before this feature. The dose edit of § 4 is the first edit path and stays limited to doses.
 - `AddEventSheet` is presented with `.entrySheet` from Events and from the Dashboard, and both of its saves call `entrySaved`. A medication save takes neither path (§ 4).
 - `BBEventRow`'s subtitle and time were fixed sizes (13 and 12 pt, not scaled); § 6 scales them.
+- `BBPrimaryButton` has no disabled look: a disabled Save draws at opacity 0.4, with the toolbar Save in BBTextSecondary (§ 4).
 - The app asks for notification permission in onboarding only. A parent who declined there reaches the reminder switch with permission not yet asked or denied: § 9 covers both. There is no app-wide notifications switch in Settings; each medication's own switch is its off.
 
 ## 13. Decisions (2026-11-03)
@@ -404,9 +407,10 @@ Build facts:
 5. **One active medication is preselected in the Events form and the tile's sheet; with two or more the parent chooses, and Save waits.** Why: a wrong preselection files the dose under the wrong interval.
 6. **The empty state sits in a card.** Why: its subtitle is secondary text, which is under 4.5:1 on the background.
 7. **Delete Dose is also a button in the dose sheet.** Why: the custom swipe is hard to reach with VoiceOver and Switch Control.
-8. **When both the interval and the maximum apply, the alert shows the interval variant.** Why: it names the times, which is what the parent checks.
+8. **When a dose breaks both limits, the alert shows the limit that ends later; a tie shows the interval variant.** Why: the alert's time is the detail's "next dose not before".
 9. **`BBEventRow` scales its subtitle and time.** Why: the subtitle now carries the name and dose, and every list using the row gains the same AX2 behaviour.
 10. **The dose list keeps the app's history window with its usual footer.** Why: the window is the app's rule for every history list; the rules read every dose, so nothing about the next time depends on it.
+11. **The interval is above 0 and at most 48 h.** Why: 0 is not an interval, and 48 h is the end of the Other wheels.
 
 ## 14. Report section (the pediatrician report)
 
