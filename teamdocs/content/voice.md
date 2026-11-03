@@ -58,6 +58,27 @@ and the Live Activity read the byte-identical copies in
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
+- **Line breaks around numbers.** A number never wraps away from its unit,
+  and a short word that belongs to the number stays on its line.
+  - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
+    short word gets a no-break space on both sides. The code glues every
+    digit to the word after it (`gluingNumbersToUnits`), so with a plain
+    space after the short word the line breaks right there («4 в» / «сутки»).
+  - A short Russian preposition before a number or a date: «за 7 дн.»,
+    «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
+    the preposition at the end of a line.
+  - In the JSON the no-break space is written as the escape ` `, which
+    reads as the same character.
+  - Not glued:
+    - counts «5 из 7» / "5 of 7", which have no unit;
+    - a date or a name after an English or Spanish preposition, where
+      wrapping is normal;
+    - strings that VoiceOver speaks and the screen never shows.
+  - Still open: English "a day" and "or more" on the Nutrition card have the
+    same break. The e2e flows for that card match these lines with a plain
+    space, so the English change goes in together with the flows. Literal
+    numbers inside longer texts (onboarding facts, hints, notifications, the
+    export ranges) still use plain spaces.
 
 ## Changes
 
@@ -66,3 +87,9 @@ and the Live Activity read the byte-identical copies in
 - 2026-10-29 — `live_activity.title.bottle` added, `live_activity.stale`
   removed (no stale state in the build), `settings.live_activity_off_in_ios`
   added.
+- 2026-11-03 — 1.2.0 no-break spaces around short words next to numbers.
+  ru: `nutrition.per_day_fmt`, `nutrition.window_fmt`, `breakdown.gain_fmt`,
+  `breakdown.feeds_fmt`, `breakdown.nappies_fmt`, `velocity.interval_fmt`,
+  `trend.drop_fmt`, `report.change_since_fmt`, `report.empty_*_fmt`. es:
+  `nutrition.per_day_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`.
+  Text unchanged.
