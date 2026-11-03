@@ -17,7 +17,8 @@ enum AppSchema {
         GrowthEntry.self,
         CustomEvent.self,
         DoctorVisit.self,
-        DoctorQuestion.self
+        DoctorQuestion.self,
+        Medicine.self
     ]
 
     static var schema: Schema { Schema(models) }

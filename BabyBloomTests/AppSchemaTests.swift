@@ -13,7 +13,7 @@ final class AppSchemaTests: XCTestCase {
         let names = AppSchema.schema.entities.map(\.name).sorted()
         XCTAssertEqual(names, [
             "Baby", "CustomEvent", "DiaperEntry", "DoctorQuestion",
-            "DoctorVisit", "FeedingEntry", "GrowthEntry", "SleepEntry"
+            "DoctorVisit", "FeedingEntry", "GrowthEntry", "Medicine", "SleepEntry"
         ])
     }
 
@@ -31,6 +31,8 @@ final class AppSchemaTests: XCTestCase {
             for relationship in entity.relationships {
                 XCTAssertTrue(relationship.isOptional,
                               "\(entity.name).\(relationship.name) must be optional for CloudKit")
+                XCTAssertNotNil(relationship.inverseName,
+                                "\(entity.name).\(relationship.name) needs an inverse for CloudKit")
             }
         }
     }
@@ -60,6 +62,27 @@ final class AppSchemaTests: XCTestCase {
         try context.save()
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<DoctorVisit>()), 0)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<DoctorQuestion>()), 0)
+    }
+
+    @MainActor
+    func testAMedicineOwnsItsDosesAndBelongsToTheBaby() throws {
+        let container = try ModelContainer(
+            for: AppSchema.schema,
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+        )
+        let context = ModelContext(container)
+        let baby = Baby(name: "Mia", birthDate: Date(), gender: .female, feedingType: .breast)
+        context.insert(baby)
+        let medicine = Medicine(name: "Paracetamol", intervalMinutes: 360, doseText: "2.5 ml")
+        medicine.baby = baby
+        context.insert(medicine)
+        for hours in [4.0, 1.0] {
+            context.insert(CustomEvent.dose(of: medicine, at: Date().addingTimeInterval(-hours * 3600)))
+        }
+        try context.save()
+        XCTAssertEqual(baby.medicines?.count, 1)
+        XCTAssertEqual(medicine.doses?.count, 2)
+        XCTAssertEqual(baby.customEvents?.count, 2)
     }
 }
 

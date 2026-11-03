@@ -106,8 +106,14 @@ enum SeedScenario: String, CaseIterable {
     case doctorTwoVisits
     /// `doctorMonth` plus 24 events inside the free window and a second visit
     /// on day 4: more than the free list's 20-row cap, so the visits are seen
-    /// bypassing the cap as well as the window (EVENTS-021).
+    /// bypassing the cap as well as the window.
     case doctorEventsCap
+    /// Two medicines across several days (relative to `AppClock.now`):
+    /// paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two
+    /// hours ago (waiting); vitamin D once a day, its latest 26 hours ago
+    /// (allowed now). Plus two medication events from before medicines, one
+    /// named and one bare.
+    case medsTwoCourses
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -200,6 +206,7 @@ enum SeedScenario: String, CaseIterable {
         for entry in (try? context.fetch(FetchDescriptor<CustomEvent>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<DoctorQuestion>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<DoctorVisit>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<Medicine>())) ?? [] { context.delete(entry) }
         for baby in (try? context.fetch(FetchDescriptor<Baby>())) ?? [] { context.delete(baby) }
     }
 
@@ -220,6 +227,9 @@ enum SeedScenario: String, CaseIterable {
         }
         if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits, .doctorEventsCap].contains(self) {
             return seedDoctor(into: context)
+        }
+        if self == .medsTwoCourses {
+            return seedMedicines(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)

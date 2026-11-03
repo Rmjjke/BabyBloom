@@ -15,6 +15,11 @@ final class CustomEvent {
     var notes: String?
     var createdAt: Date = Date()
     var baby: Baby?
+    /// Set on a `.medication` event logged as a dose of a medicine. Events
+    /// from before medicines existed, and free-text ones, have none and read
+    /// as before; the name and dose fields above stay the record of what was
+    /// given.
+    var medicine: Medicine?
 
     init(time: Date = Date(), type: EventType) {
         self.id = UUID()

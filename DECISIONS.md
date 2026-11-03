@@ -14,6 +14,30 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — A medicine is its own model; a dose stays a medication event that copies the name and links to it
+
+`Medicine` holds the name, the minimum interval, an optional dose text, note and 24-hour maximum, and the course end. A dose is a `.medication` `CustomEvent` linked to its medicine, carrying the name and dose text as they were when it was logged. Deleting a medicine nullifies the link and keeps every dose.
+
+**Why a model and not fields on each event.** The interval, the course end and, later, the reminder switch belong to the medicine, not to a dose. A list of medicines built from typed names would split «Paracetamol» from «paracetamol » on the first typo, and it would have no place to say a course is over.
+
+**Why doses stay medication events, and not a dose model.** One record kind for every reader: Events, the export and a device on an older version list a dose as the medication event it already is. A dose model would be missing from all of them, and the Events form and the medicine screen would write two different records for the same act. The persisted-enum trap of 2026-11-01 does not apply: `.medication` is an existing case, and the link is a new optional attribute, which an older build ignores.
+
+**Why the name and dose are copied.** A dose is a record of what was given. A later rename, or a deleted medicine, must not rewrite it. These are the fields the Events form has always written, so an older version stores them too. Until 1.3.0, though, no screen and no export shows them: the Events rows and the CSV start reading them with the medicines screens.
+
+**The rules** (`MedicineSchedule`):
+- **Elapsed time, never calendar arithmetic.** «Every 6 h» after 01:00 on the night the clocks go back is 06:00 of real time, which is what the leaflet means.
+- **A dose later than now is ignored at the read**, as a future weighing is (2026-09-05): a skewed clock on another phone would otherwise hold every later dose back from a time that never came.
+- **Too close counts in both directions.** A dose back-dated to 14:00 when 16:00 is logged sits inside the 16:00 dose's interval just as much. Exactly the interval apart is on time.
+- **Only linked `.medication` events count.** A free-text event that happens to carry the same name is not matched: guessing would make the confirmation fire, or stay silent, on a coincidence of spelling.
+- **The confirmation names a true time.** A close later dose is named first. Only without one is the latest earlier dose named, with the end of its interval. A dose put between two logged ones has no free time between them, so the earlier dose's end would name a time inside the later dose's interval.
+- **One confirmation per save names the limit that sets the screen's «not before».** That is the maximum only when it holds the next dose back past the interval's end. A tie, and a dose put before a logged one, name the interval.
+- **24 hours means any window `[s, s + 24 h)` that holds the dose**, not only the 24 hours before it, because a back-dated dose can overfill a window that ends after it.
+- **The next allowed time includes the maximum.** Once the last `max` doses fall within 24 hours, the next waits until the oldest of them is a day old. Otherwise «allowed now» could show while logging a dose raised the confirmation.
+
+**Rejected:** matching older medication events to a medicine by name, for the coincidence of spelling above. Parsing the dose text into a number is rejected too: the app counts time and never reads a dose as an amount.
+
+**Analytics:** a medicine sends no event and no name, as with visits (2026-11-01). A dose stays in the daily activity count's `event` figure, like every medication event before it. The count carries no type and no name.
+
 ## 2026-11-03 — Code comments give their reason in product words, with no tracker ids
 
 - **No decision numbers, bug ids, requirement labels, task names or workflow paths in Swift comments.** They resolve only in notes that live outside this repository, so a clone reads a bare number or label in brackets and cannot follow it. A comment states the reason itself, and cites this file by date when the reason is long («DECISIONS 2026-10-30»). A pointer to a tracked document by its path stays («teamdocs/design/m1-live-activity.md §§ 2–4», «NOTIFICATIONS.md §3»): a clone can open it. The 1.2.0 sweep rewrote about 250 such comments. Where the id was the only content, the rule is now spelled out («the newborn gate», «Monday weeks»).
