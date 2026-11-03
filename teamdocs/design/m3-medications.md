@@ -390,7 +390,7 @@ Copy roles (keys under `medication.*` and `notification.medication_*`):
 - Confirmation: three titles and three messages, and a title and a message of their own for a dose between two doses; the next time in the before, between and 24 h messages is the one after Save (§ 10).
 - Events: the menu label «Medication» and «Not in the list».
 - VoiceOver: the row, line and card sentences of §§ 2.1, 6, 7, with «reminder on».
-- Report: the card title, the row formats, the PDF heads (§ 14).
+- Report: the card title, the row formats, the caption of a line with more than one dose text (dose · count · dates), the words for doses with no text written beside doses with one, the PDF heads (§ 14).
 
 Build facts:
 - A medication's name and dose are stored on the event and, before this feature, read by no screen and no file: the Events row showed the note (`EventsView.swift`, history rows), and the events CSV wrote type and note only (`ExportGenerator.eventsCSV`). § 6 rows and the CSV's two new columns fix both. Stored data is not rewritten.
@@ -437,11 +437,15 @@ Build facts:
 
 ## 14. Report section (the pediatrician report)
 
-- **Screen:** a card after Diapers, before the footnote, in the report's card pattern: `ReportCardHeader(icon: "pills.fill", tint: BBAccent, title: "Medications")` and one block per medication:
-  - `ReportRow`: the name as the label (verbatim) and the dose count as the value («8 doses»), the first–last dates as its caption suffix («2–5 Nov»);
-  - `ReportCaption` under it: the dose text as written, when there is one.
-  - Blocks sorted by name.
-  - Older events without a medication are grouped by their typed name (trimmed, case-insensitive) beside the linked ones; events with no name form one block «Without a name».
-  - The card is hidden under the new-period card, as feeding, sleep and diapers are, and absent when no dose falls in the period. No "none" line: an absence of medicine is not a missing record.
-- **PDF:** one section after Diapers. h2 «Medications» as the other sections, then a table with four fixed columns: Medication 34 % | Dose as written 30 % | Doses 12 % | First – last 24 %. Body 10 pt minimum, rows whole, the head repeated on each page the table reaches (the weighings table's pattern), Helvetica Neue. Names and dose text verbatim except emoji, as the questions.
+- **Screen:** a card after Diapers, before the footnote, in the report's card pattern: `ReportCardHeader(icon: "pills.fill", tint: BBAccent, title: "Medications")` and one block per medication line:
+  - `ReportRow`: the name as the label (verbatim), the line's whole dose count as the value («13 doses») and its first–last dates as the caption suffix («· Oct 31 – Nov 3»);
+  - `ReportCaption` under it: the dose text as written, when the line's doses carry one text; no caption when no dose has a text.
+  - **A line whose doses carry more than one dose text** shows one `ReportCaption` per text instead, in order of first use, each with its own count and first–last, joined by « · »: «2.5 ml · 10 doses · Oct 31 – Nov 2», then «5 ml · 3 doses · Nov 2 – Nov 3». Texts are grouped trimmed and case-insensitive, and a group shows its latest spelling. Doses with no text, beside doses with one, form a group of their own, worded as a dose with no text written (§ 12). A line with one text stays as above. Why: a doctor reads the dose beside the count as the dose of every dose counted. The latest text alone turns 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml, and the change of dose is the fact the doctor most needs.
+  - **Dates:** the month on both sides, «Nov 2 – Nov 5», and across a month «Oct 31 – Nov 3»; one date when the first and the last dose fall on one day; the year only when it is not this year's. Why: one form that reads the same at a month change.
+  - Blocks sorted by name. A medication's line carries its current name. Older events without a medication are grouped by their typed name (trimmed, case-insensitive) beside the linked ones; events with no name form one block «Without a name», last. The nameless line follows the same dose-text rule and drops no text it has: an older event can carry one.
+  - **New period:** a dose in the period keeps the new-period card away, as a feed, a sleep, a diaper or a weighing does, and the Medications card shows. Why: the new-period card says new entries will show there, so a dose given after a same-day visit shows that day, on the screen and in a PDF shared that day.
+  - The card is absent when no dose falls in the period. No "none" line: an absence of medicine is not a missing record.
+- **PDF:** one section after Diapers. h2 «Medications» as the other sections, then a table with four fixed columns: Medication 34 % | Dose as written 30 % | Doses 12 % | First – last 24 %. Body 10 pt minimum, rows whole, Helvetica Neue. Names and dose text verbatim except emoji, as the questions.
+  - One row per line. A line with more than one dose text takes one row per text, in the screen's order, with the name repeated, so each row reads whole on any page: «Paracetamol | 2.5 ml | 10 | Oct 31 – Nov 2», then «Paracetamol | 5 ml | 3 | Nov 2 – Nov 3». The dates take the screen's form.
+  - **Paging:** a table that fits on one page moves to the next page as one, with its h2, as the questions list does. A longer table breaks between rows, with the head repeated on each page it reaches (the weighings table's pattern). The column widths and the heads stay. Why: the list of what was given is read as one piece, and a row carried alone under a repeated head reads as an afterthought; the carry comes from where the page ends, not from the head.
 - **Not printed:** the interval, the maximum, any mark on a dose given inside the interval.
