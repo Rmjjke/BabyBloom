@@ -167,7 +167,8 @@ final class MedicationFormatTests: XCTestCase {
         let ended = d(8, 18)
         let result = lines(.ended(ended), total: 14, now: d(10, 12))
         XCTAssertNil(result.primary)
-        XCTAssertEqual(result.secondary, "Ended \(ended.appDayMonth) · 14\u{00A0}doses")
+        // A no-break space before the dot, as in every other dotted line.
+        XCTAssertEqual(result.secondary, "Ended \(ended.appDayMonth)\u{00A0}· 14\u{00A0}doses")
         XCTAssertNil(result.count)
     }
 

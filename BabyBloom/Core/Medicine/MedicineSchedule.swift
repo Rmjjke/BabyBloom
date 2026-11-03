@@ -61,6 +61,20 @@ struct MedicineSchedule: Equatable {
         return Swift.max(intervalEnds, maximumEnds)
     }
 
+    /// The «not before» once a dose at `time` is logged too: what the screen
+    /// shows after that save. Never earlier than `nextAllowed`: a dose added
+    /// can only keep or move the latest dose, and the dose `max` places from
+    /// the newest, later.
+    func nextAllowed(adding time: Date) -> Date? {
+        adding(time).nextAllowed
+    }
+
+    /// The same rules with a dose at `time` logged too.
+    private func adding(_ time: Date) -> MedicineSchedule {
+        MedicineSchedule(intervalMinutes: Int(interval / 60), maxDosesPer24h: maxPer24h,
+                         doseTimes: doses + [time], now: now)
+    }
+
     /// Whether a dose at `time` needs the calm confirmation, and the facts it
     /// names. The dose being edited must already be left out of `doses`.
     ///
@@ -97,15 +111,19 @@ struct MedicineSchedule: Equatable {
             }
         }
         // One confirmation per save, so it names the limit that sets the
-        // screen's «not before»: the maximum only when it holds the next dose
-        // back past the interval's end. On a tie, and for a dose put before a
+        // screen's «not before» once this dose is saved, the time it states:
+        // the maximum only when, with this dose, it holds the next one back
+        // past the interval's end. On a tie, and for a dose put before a
         // logged one, the interval.
         if result.daily != nil {
             switch result.neighbour {
             case nil:
                 result.showsDaily = true
-            case .earlier(_, let intervalEnds):
-                result.showsDaily = (maximumEnds ?? .distantPast) > intervalEnds
+            case .earlier:
+                let after = adding(time)
+                if let last = after.lastDose, let maximumEnds = after.maximumEnds {
+                    result.showsDaily = maximumEnds > last.addingTimeInterval(interval)
+                }
             case .later:
                 result.showsDaily = false
             }
