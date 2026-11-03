@@ -72,7 +72,9 @@ final class EndBeforeStartTests: XCTestCase {
 
     func testAStoredFeedEndingBeforeItsStartLastsZero() {
         let feed = FeedingEntry(startTime: date(10, 21, 9), type: .breast)
-        feed.endTime = date(10, 21, 8, 58)
+        // 90 s back, not a whole minute: unguarded, the text reads "-30 sec",
+        // where -120 s would print "0 sec" by itself.
+        feed.endTime = date(10, 21, 8, 59).addingTimeInterval(-30)
         XCTAssertEqual(feed.duration, 0)
         XCTAssertEqual(feed.durationFormatted, String(format: "duration.sec".l, 0))
     }
