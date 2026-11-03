@@ -364,8 +364,18 @@ One-line placements (list row, Events line, Home card) show line A only.
 | doses older than 15 days, free account | — | the dose list ends with the history footer, as every list | the history window as today | — |
 | a future time | — | the time picker stops at now | — | — |
 | AX2 | rows grow; name, status and meta wrap; a time never splits from its day word | the about card is already stacked; chips wrap to more lines; the footer button grows | lines wrap | lines wrap, nothing is cut |
-| iPad 13" | one column, max 600 pt, leading; sheets as form sheets | same | same | the card spans the Dashboard column |
+| iPad 13" | one column, max 600 pt, leading; sheets as form sheets | same | the status lines take the Events column, as its rows do | the card spans the Dashboard column |
 | light / dark | tokens only; BBAccent glyph 1.84:1 light / 9.82:1 dark, decoration | same | same | same |
+
+**Accessibility sizes, the layout rule.** It holds on every medication surface and on the forms they open, from AX1 up (`dynamicTypeSize.isAccessibilitySize`). Scaled type stops growing at AX2, so AX2 is the size to check.
+- A word never breaks inside itself. A line breaks only at a space, or after a hyphen the word already has.
+- A label that shares a line with controls stacks above them at accessibility sizes. The label comes first, then the control with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. The label keeps the row's text style, line height and tracking; nothing else in the row moves. VoiceOver reads the label once: the control keeps its own label (`labelsHidden()` hides it from sight only), and the visible label is hidden from VoiceOver.
+  - Models in the code: the visit sheet's date (`VisitFields.swift`, `datePicker`) and the growth form's measurement date (`GrowthView.swift`, `measurementDatePicker`).
+  - The dose sheet's time field (`DoseSheet.swift`, `timeField`) has the same layout, but its visible label is not hidden from VoiceOver, so «Time» is read twice there.
+- A grid that cannot give its longest word its width takes fewer columns at accessibility sizes; the tiles keep their order and spacing. Measured at AX2 on iPhone 17 (370 pt of content), the longest word in the three languages is es «Medicamento»:
+  - the Events Quick grid (label scaled 14, body, semibold, rounded): the word needs 156 pt, and a two-column tile leaves its label 148 → one column;
+  - the Events form's type grid, once its label scales (scaled 11, relative to .body like the Quick tile, medium, rounded; line 1.177 × the size, tracking 0; the glyph 22 `@ScaledMetric(relativeTo: .body)`): the word needs 121–126 pt, and a three-column tile is 118 wide → two columns.
+- Why: at AX2 the form's Time label, beside a date and a time button, had room for four letters and broke «Врем / я», and a two-column Quick tile broke «Medicament / o». A word cut in two reads as two words.
 
 ## 12. What the copy and the build need
 
