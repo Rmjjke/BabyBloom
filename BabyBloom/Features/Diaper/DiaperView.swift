@@ -245,10 +245,12 @@ struct DiaperNormEditorSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: BBTheme.Spacing.xl) {
+                // A decoration; VoiceOver would read the symbol's name.
                 Image(systemName: "drop.fill")
                     .font(.system(size: 56))
                     .foregroundStyle(BBTheme.Colors.diaper)
                     .padding(.top, BBTheme.Spacing.xl)
+                    .accessibilityHidden(true)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.title2("diaper.norm.label".l)

@@ -321,12 +321,13 @@ extension View {
     /// slot gives a second line no room. Shrinking to 0.6 keeps the whole title.
     ///
     /// `movesIntoContentAtAX`: at AX sizes any title, short or long, shrank to
-    /// 11–13 pt beside the grown Cancel and Save, so every entry sheet passes
-    /// it. The sheet puts `BBSheetHeading` first in its content, and at AX
-    /// sizes the bar shows no title at all: an empty principal item alone let
-    /// the system draw the navigation title, cut («Приём…»). The heading in
-    /// the content carries the header trait for VoiceOver. The two go
-    /// together: the flag alone leaves no title, the heading alone two.
+    /// 11–13 pt beside the grown Cancel and Save, so every entry sheet and
+    /// the profile edit sheet pass it. The sheet puts `BBSheetHeading` first
+    /// in its content, and at AX sizes the bar shows no title at all: an
+    /// empty principal item alone let the system draw the navigation title,
+    /// cut («Приём…»). The heading in the content carries the header trait
+    /// for VoiceOver. The two go together: the flag alone leaves no title,
+    /// the heading alone two.
     func bbSheetTitle(_ title: String, movesIntoContentAtAX: Bool = false) -> some View {
         modifier(BBSheetTitle(title: title, movesIntoContentAtAX: movesIntoContentAtAX))
     }
