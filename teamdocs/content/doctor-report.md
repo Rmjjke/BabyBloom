@@ -1,8 +1,7 @@
 # Pediatrician report copy
 
-Owner: content. Voice and terms: `voice.md` in this folder. Layout, states
-and the PDF spec: `teamdocs/design/m2-doctor-report.md` (Design). The
-decisions: milestone m2-doctor-visit-report plan v2 (decisions 2, 5, 7, 9).
+Voice and terms: `voice.md` in this folder. Layout, states and the PDF spec:
+`teamdocs/design/m2-doctor-report.md`.
 
 ## Who reads it
 The parent reads it on screen. The pediatrician reads the PDF, or the screen
@@ -14,7 +13,7 @@ held across the desk. Every line on it is one of four things:
 
 Nothing on it grades the baby.
 
-## Names (plan v2, decision 2)
+## Names
 - The event is **Pediatrician visit / Приём у педиатра / Visita al
   pediatra** (`visit.title`), not "doctor visit". Logging it starts the
   report period and closes the asked questions, so a visit to another
@@ -36,14 +35,30 @@ Nothing on it grades the baby.
 ## Lines
 - **label: value**, as on the weekly card. The baby's name stands alone on
   its own line (screen ①, PDF header), so in Russian it stays nominative.
-- **The percentile is a number** (decision 7): `report.percentile_weight_fmt`
-  "Weight percentile (WHO): 42".
+- **The percentile is a number**: `report.percentile_weight_fmt`
+  "Weight percentile (WHO): 42". There is no band word, tint or ⚠: a band
+  ("normal", "below normal") grades the baby, while the number is the
+  measurement a doctor plots. It is the same number the Growth screen
+  computes.
   - `%@` takes the number or the badge forms `percentile.badge_below3` /
     `_above97` ("< 3", "> 97").
   - It needs no ordinal grammar, unlike today's
     `dashboard.growth.percentile_fmt`.
+- **Before the due date there is no percentile**, so one sentence stands in
+  for both percentile rows. It says the WHO percentiles **start** from the due
+  date: "WHO percentiles start from the due date." / «Перцентили ВОЗ
+  начинаются с предполагаемой даты родов.» / "Los percentiles de la OMS
+  empiezan en la fecha prevista de parto." It does not say "are calculated
+  from", because that reads as corrected age, which the app uses only after
+  the due date. A doctor would read it as "there is a percentile, at corrected
+  age", which is the opposite of the fact.
+  - The screen reads `percentile.before_due_date`. This is the same key as on
+    the Growth screen, and it adds a sentence for the parent: the weighings are
+    still saved and shown on the chart.
+  - The PDF reads `report.pdf.before_due_date`, which is that first sentence
+    word for word. The fact reads in the same words on screen and paper.
 - **Averages say what they are averaged over**: `report.days_logged_fmt`
-  "Days with entries: %d of %d" (D19). A gap in the log reads as a gap. The
+  "Days with entries: %d of %d". A gap in the log reads as a gap. The
   weekly `weekly.days_logged_fmt` hard-codes "of 7", so the report has its own
   key.
 - **A short period (< 3 days) shows counts, not rates**:
@@ -51,22 +66,25 @@ Nothing on it grades the baby.
   `report.dirty_count_fmt`.
 - **The weight change is a difference between two dated points**:
   `report.change_since_fmt` "Since 12 Oct: +640 g". It is hidden in the
-  newborn window (D17).
+  newborn window. A small loss just after birth is normal, and a minus there
+  reads as a verdict (`DECISIONS.md` 2026-09-05).
 - **Counts by type**: `report.type_count_fmt` "%@ %d" joined by " · ", inside
   `report.feeds_by_type_fmt` ("Feeds by type, in total: Breast 120 · Formula
   30") and `report.stool_colors_fmt` ("Dirty by color, in total: Yellow 18 ·
-  Green 2"). These are totals for the period, and they sit beside "a day"
-  lines. So the label names what is counted (feeds, dirty diapers) and says
-  "in total". In CHECK 7 a tester without that cue read the numbers as ml or
-  per day. There is no warning line, swatch or colour (decision 9).
+  Green 2").
+  - These are totals for the period, and they sit beside "a day" lines. So the
+    label names what is counted (feeds, dirty diapers) and says "in total". In
+    testing, a reader without that cue read the numbers as ml or per day.
+  - There is no warning line, swatch or colour: a stool colour is printed by
+    name and count, and the doctor judges it.
 - **A count of questions is a word, not a bare number**:
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
-  `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
-  one/few/many rule (`Int.plural`). The older `question.asked_at_fmt`
-  (`· %d`) is unused since the polish batch, but it stays until the whole M2
-  batch is in main, so that no PR can reach main without the key it reads.
-  Its deletion is a cleanup card for after the batch.
-- **Composed by Dev, no key**:
+  - `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
+    one/few/many rule (`Int.plural`).
+  - The older `question.asked_at_fmt` (`· %d`) is no longer read by the app.
+    It stays in the JSON until every branch that reads it is merged, so that
+    no branch reaches main without a key it reads. Then it is deleted.
+- **Composed in code, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
   - the period length ("20 days") from `age.*`; a period that starts today
@@ -75,12 +93,12 @@ Nothing on it grades the baby.
   - the footer "brand · name · period".
 - A number never wraps away from its unit: a no-break space (` `),
   `growth.head_fmt` included.
-- **Questions** have one state, "Asked" (decision 5). Unchecked questions
-  carry over (`visit.carry_over`). Deleting a visit puts its questions back in
-  the list (`visit.delete_message`, shown only when the visit has asked
-  questions).
+- **Questions** have one state, "Asked". There is no answer field: an answer
+  goes in the visit's note. Unchecked questions carry over
+  (`visit.carry_over`). Deleting a visit puts its questions back in the list
+  (`visit.delete_message`, shown only when the visit has asked questions).
 
-## The footnote (decision 9)
+## The footnote
 `report.footnote` says where the numbers come from: entered by the parent in the
 app, with percentiles from the WHO Child Growth Standards. It ends the screen and
 the PDF.
@@ -98,13 +116,14 @@ Each language uses its natural generic:
 The brand follows the locale: Bitty / «Ночка» (nominative after «в
 приложении») / Nenita.
 
-## The closed no-verdict list — the test list (decision 9)
-Dev's PDF test (m2-report-pdf) scans the rendered report in en, ru and es: the
-screen strings and the PDF HTML. None of the keys or words below may appear.
+## The closed no-verdict list — the test list
+`BabyBloomTests/DoctorReportPDFTests.swift` scans the rendered PDF HTML in en,
+ru and es, in every report state. None of the keys or words below may appear
+in it. The screen reads the same keys as the PDF, except the parent's
+sentences, which have a `report.pdf.*` twin.
 
 **Keys.** The test reads each value from the JSON of the language under test.
-For a key with a placeholder, it scans the fixed text before the first
-placeholder.
+For a key with placeholders, it scans the longest fixed stretch between them.
 - Percentile bands: `percentile.normal`, `percentile.below_normal`,
   `percentile.above_normal`, `percentile.very_low`, `percentile.very_high`,
   `percentile.below3`, `percentile.3_15`, `percentile.15_50`,
@@ -123,10 +142,9 @@ placeholder.
   `diaper.norm.hint`, `stat.daily_norm`. The goal is the parent's setting, not
   a measurement.
 - Wrong reader: `growth.who_footnote`.
-- PDF only: `percentile.before_due_date`. The screen keeps that sentence for
-  the parent ("…shown on the chart"). The PDF prints
-  `report.pdf.before_due_date` instead, so the test scans the PDF HTML alone
-  for it.
+- The parent's sentence: `percentile.before_due_date`, as a whole value (both
+  sentences). The PDF prints only its first sentence, through
+  `report.pdf.before_due_date`.
 
 **Words.** Whole words, case-insensitive, regex per language:
 - en: `normal|abnormal|low|high|too|enough|only|good|poor|worry|concern|warning|should|risk|healthy|behind|ahead`
@@ -138,8 +156,8 @@ The parent's own notes and questions print verbatim and are allowed, so the
 test's seed data must keep them free of these words. Any new verdict key added
 anywhere in the app joins this list in the same PR.
 
-Every `report.*`, `visit.*` and `question.*` value passes this scan today
-(content check script, 2026-11-01).
+Every `report.*`, `visit.*` and `question.*` value passed this scan on
+2026-11-01, checked by script. The values changed on 2026-11-03 pass it too.
 
 ## Keys
 - **Header:** `report.title`, `report.a11y_hint` (More row),
@@ -171,19 +189,23 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 - **Questions:** `question.add`, `question.new_title` / `question.title` (sheet,
   new / edit), `question.placeholder`, `question.empty`, `question.asked`,
   `question.not_asked` (VoiceOver value and hint of the toggle),
-  `question.asked_at_fmt` (date · count), `question.back_to_list`,
-  `question.delete`; `button.edit` (new, generic).
+  `question.asked_at_count_fmt` (date · count) with `question.count.one` /
+  `.few` / `.many`, `question.back_to_list`, `question.delete`; `button.edit`
+  (new, generic).
 - **Visit:** `visit.title` (sheet title, Events row), `visit.log`, `visit.date`,
   `visit.questions_header`, `visit.carry_over`, `visit.asked_here`,
   `visit.delete`, `visit.delete_title`, `visit.delete_message`;
   ↺ `form.notes_optional`, `button.save` / `button.cancel` / `button.delete`.
-- **PDF:** `report.pdf.title`, `.birth_fmt`, `.age_fmt`, `.sex_fmt` (value ↺
-  `baby.gender.*`), `.due_fmt`, `.period_fmt` (range ↺ `weekly.range_fmt` +
-  length), `.date_fmt`, `.questions`, `.no_entries`, `.page_fmt`, `.file_fmt`,
-  `.before_due_date` (in place of the parent's `percentile.before_due_date`);
-  the footer of every export PDF, `export.generated_by_fmt` (brand, date);
-  table heads ↺ `export.col.date` / `.weight` / `.height` / `.head`;
-  `report.footnote`.
+- **PDF:**
+  - `report.pdf.title`, `.birth_fmt`, `.age_fmt`, `.sex_fmt` (value ↺
+    `baby.gender.*`), `.due_fmt`, `.period_fmt` (range ↺ `weekly.range_fmt` +
+    length), `.date_fmt`, `.questions`, `.no_entries`, `.page_fmt`,
+    `.file_fmt`;
+  - `.before_due_date`, the first sentence of `percentile.before_due_date`
+    word for word;
+  - the footer of every export PDF, `export.generated_by_fmt` (brand, date);
+  - table heads ↺ `export.col.date` / `.weight` / `.height` / `.head`;
+  - `report.footnote`.
 - **VoiceOver:** `report.a11y_share`, `report.a11y_period_hint`; the question
   row hint reuses `button.edit`.
 
@@ -191,17 +213,27 @@ Every `report.*`, `visit.*` and `question.*` value passes this scan today
 - 2026-11-01 — the report, the visit sheet and detail, questions, the PDF, the
   closed word list; `growth.head_fmt` gets its no-break space.
 - 2026-11-01 — `report.period_today`. Events' «Delete History» gets its own
-  confirm, `confirm.delete_message_events` / `_events_hidden`, because it
-  deletes events but keeps pediatrician visits, which also show as rows on
-  Events. The shared `confirm.delete_message_all` ("All records will be
-  deleted") would over-warn there. Like the shared pair, the `_hidden`
-  variant is for when the free window hides rows; the plain one is for the
-  rest. Both name the kept visits, because a parent sees them in the same
-  list.
-- 2026-11-02 — `export.generated_by_fmt`, `report.pdf.before_due_date`. The
-  breastfeed line is a median, so its label says "typical", not "average":
-  "Typical breastfeed" / «Кормление грудью обычно» / "Toma de pecho habitual".
-  The key keeps its old name `report.breastfeed_avg_fmt`, because keys are
-  never renamed. "Normal" stays out: it is on the closed list. en
-  `duration.h_min` / `h_only` get spaces, "7 h 42 min", the same form as
-  ru, es and "15 min".
+  confirm, `confirm.delete_message_events` / `_events_hidden`.
+  - The reason: it deletes events but keeps pediatrician visits, which also
+    show as rows on Events. The shared `confirm.delete_message_all` ("All
+    records will be deleted") would over-warn there.
+  - Like the shared pair, the `_hidden` variant is for when the free window
+    hides rows; the plain one is for the rest. Both name the kept visits,
+    because a parent sees them in the same list.
+- 2026-11-02 — `export.generated_by_fmt`, `report.pdf.before_due_date`.
+  - The breastfeed line is a median, so its label says "typical", not
+    "average": "Typical breastfeed" / «Кормление грудью обычно» / "Toma de
+    pecho habitual". The key keeps its old name `report.breastfeed_avg_fmt`,
+    because keys are never renamed. "Normal" stays out: it is on the closed
+    list.
+  - en `duration.h_min` / `h_only` get spaces, "7 h 42 min", the same form as
+    ru, es and "15 min".
+- 2026-11-02 — `question.asked_at_count_fmt` and `question.count.*`: the
+  question count is a word. The "in total" labels on the counts by type.
+- 2026-11-03 — `report.pdf.before_due_date` is now the first sentence of
+  `percentile.before_due_date` word for word, in en, ru and es ("start from
+  the due date"). Before, screen and paper said one fact with two verbs. The
+  ru `percentile.before_due_date` second sentence now says what en and es
+  say: «До этой даты взвешивания всё равно сохраняются и видны на графике».
+  The old one claimed something is counted from the due date in the
+  meantime, and promised for later what the chart already shows.
