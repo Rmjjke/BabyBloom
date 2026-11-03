@@ -132,7 +132,7 @@ Doses
   - Time: scaled(15, .body, semibold, rounded) with monospaced digits, line 17.7, BBTextPrimary; the day word or date after it, glued, scaled(13, .footnote) BBTextSecondary; the dose text under it in the meta style, as typed when the dose was logged; chevron as § 2.1.
   - A free account's list shows the app's 15-day history window with `BBLockedHistoryFooter` under the last row, as every history list does. The rules read every dose whatever the window shows.
 - **End course:** a text button in the scroll after the doses, BBPrimary scaled(15, .body, medium, rounded), min height 44, leading. No confirmation: ending deletes nothing. An ended medication shows **Resume course** in the same place.
-- **Footer:** `VStack { ScrollView; footer }`. The footer holds `BBPrimaryButton("Log Dose", icon: "plus")`: min height 56, radius lg 24, 17 semibold rounded, white on the BBPrimary gradient. Padding horizontal md 16, top sm 8, bottom xs 4, on BBBackground (the Add Event sheet's footer values). An ended medication has no footer.
+- **Footer:** `VStack { ScrollView; footer }`. The footer holds `BBPrimaryButton("Log Dose", icon: "plus")`: min height 56, radius lg 24, 17 semibold rounded, BBOnPrimary on the BBPrimary gradient, primary → primary@0.9: 5.62 / 4.60:1 in light and 6.86 / 5.78:1 in dark (start / end). Why not white: white is 2.64:1 on the dark primary, and the old primary@0.8 end left long labels under 4.5:1 in light (`design-system.md` G1). Padding horizontal md 16, top sm 8, bottom xs 4, on BBBackground (the Add Event sheet's footer values). An ended medication has no footer.
 
 ## 4. Dose sheet (new dose, edit a dose)
 

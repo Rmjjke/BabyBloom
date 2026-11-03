@@ -4,7 +4,9 @@ status: baseline — describes what `main` ships at 10cf1a9 (2026-10-28); update
 2026-10-28 with the stool-colour exception (G3), the contrast floor (P8) and the
 M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02; on
 2026-11-03 BBOnPrimary and the Live Activity are in force as shipped in 1.1.0,
-and the colorset counts and the re-theme list follow the code. Every value
+and the colorset counts and the re-theme list follow the code. Also on
+2026-11-03: the primary button's ink for 1.3.0 (G1), the platform red as the
+destructive red (§ 2, G4) and G9 follow the 1.2.0 code. Every value
 marked `in force` is in code, in `DECISIONS.md` or in a product decision stated
 here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -23,7 +25,7 @@ semibold for headers.
 
 | # | principle | status | source |
 |---|---|---|---|
-| P1 | **Calm rule.** The app never frightens a tired parent: no alarming colour, icon or copy unless something genuinely needs raising with someone. A count above its reference is reassurance, never red, flagged or triangled; fast gain takes the neutral primary tint, not the green tick. Red (`BBAlert`) means only "raise this with someone": growth flags and the tails of the percentile chart — never a count. **One by-design exception:** the stool-colour warning in DiaperView (orange + triangle, G3). | in force | DECISIONS 2026-09-05 "A count above its reference is never styled as an alarm"; DECISIONS 2026-09-22 (rating prompt blocked by the calm rule); product decision 2026-10-28 (G3) |
+| P1 | **Calm rule.** The app never frightens a tired parent: no alarming colour, icon or copy unless something genuinely needs raising with someone. A count above its reference is reassurance, never red, flagged or triangled; fast gain takes the neutral primary tint, not the green tick. Red (`BBAlert`) means only "raise this with someone": growth flags and the tails of the percentile chart — never a count. The platform's destructive red marks only a delete (§ 2). **One by-design exception:** the stool-colour warning in DiaperView (orange + triangle, G3). | in force | DECISIONS 2026-09-05 "A count above its reference is never styled as an alarm"; DECISIONS 2026-09-22 (rating prompt blocked by the calm rule); product decision 2026-10-28 (G3) |
 | P2 | **Locked is not wrong.** A paywall gate is drawn in the calm primary tint (`primary@0.08` fill, `lock.fill`), never alarm red — nothing was lost. | in force | `BBLockedHistoryFooter` |
 | P3 | **Gate visible before the tap.** Every gated control carries `LockBadge` and says "locked" to VoiceOver (`bbLockedAccessibility`). A free-looking control that answers with a paywall is a bait-and-switch. | in force | `LockBadge`, `BBQuickActionButton.locked` |
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
@@ -42,7 +44,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | colorset | Swift | light | dark | role |
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
-| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; the older white-on-primary surfaces in dark are still G1 |
+| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is also the label of `BBPrimaryButton`, the `BBFab` "+" and the selected `BBHistoryFilterPicker` chip (G1), and other white-on-primary fills stay G1 |
 | BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
@@ -76,6 +78,16 @@ Outside `Colors/`:
   #8E8E93 on white was 3.3:1. `DoctorReportPDF` holds its own constants, four of
   them the light colorsets' values (`m2-doctor-report.md` § 5). Accepted
   duplication: the PDF renderer cannot read the Asset Catalog.
+- Platform red (`role: .destructive`, `.red`): the system's destructive colour,
+  #FF383C / #FF4245 on iOS 26 (#FF3B30 / #FF453A on iOS 17–18), taken from the
+  system and never re-valued. It is the app's one destructive red and marks only
+  a delete: the delete-all button, the swipe action, the photo, visit and
+  question deletes, and from 1.3.0 Delete Dose and Delete Medication. On the
+  background it is 3.25:1 in light (3.23 on iOS 17–18; under P8, accepted) and
+  5.29:1 in dark; under Increase Contrast iOS draws it darker in light and
+  lighter in dark. Why accepted: it is the system's destructive role, iOS
+  adjusts it for Increase Contrast, and a custom red would differ from the red
+  of the system's own delete alerts. Red that is not a delete: G4.
 
 Tint usage pattern (in force, from components): icon disc/tile fill =
 `tint@0.22`; tonal surface = `tint@0.08`; secondary button = `primary@0.10`
@@ -102,9 +114,12 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | primary on surface | 5.6 | 6.2 |
 | white on primary (buttons, FAB, selected chip) | 5.6 | **2.64** |
 | BBOnPrimary on primary | 5.6 | 6.9 |
+| white on `BBPrimaryButton`'s primary@0.8 end, over the background | **3.80** | **3.76** |
+| BBOnPrimary on `BBPrimaryButton`'s primary@0.9 end (from 1.3.0) | 4.60 | 5.78 |
 | white on gradient end | **2.64** | 3.05 |
 | white on gradient start | 5.6 | 4.48 |
 | alert on surface | 3.6 | — |
+| platform red (destructive text) on background | **3.25** | 5.29 |
 | feeding / sleep tint on surface | **2.1 / 2.1** | 6.0 / 5.5 |
 
 Bold = under P8 for normal-size text; see § 10.
@@ -198,8 +213,8 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 
 | component | file | purpose | used in |
 |---|---|---|---|
-| BBPrimaryButton | BBButton | full-width CTA: primary→primary@0.8 gradient, white 17 semibold, min 56 pt, radius lg, `button` shadow, loading state | Feeding, Sleep, Diaper, Events, Growth, Export, BabyProfileEditSheet, PlanPickerSection, Onboarding (Welcome, Fact, Notifications, GrowthShowcase, WidgetShowcase, OnboardingView) |
-| BBSecondaryButton | BBButton | outlined companion: primary@0.10 fill, primary@0.30 stroke | — (unused) |
+| BBPrimaryButton | BBButton | full-width CTA: primary→primary@0.8 gradient, white 17 semibold, min 56 pt, radius lg, `button` shadow, loading state. From 1.3.0 the gradient ends at primary@0.9 and the label is BBOnPrimary (G1) | Feeding, Sleep, Diaper, Events, Growth, Export, BabyProfileEditSheet, PlanPickerSection, Onboarding (Welcome, Fact, Notifications, GrowthShowcase, WidgetShowcase, OnboardingView) |
+| BBSecondaryButton | BBButton | outlined companion: primary@0.10 fill, primary@0.30 stroke | DoctorReport (QuestionsCard), since 1.2.0 |
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph + 12 pt label; optional `LockBadge` | Dashboard |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
@@ -208,9 +223,9 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
-| BBFab | BBFab | 56 pt primary circle "+", bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
+| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
-| BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text) | BBHistorySection |
+| BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1) | BBHistorySection |
 | BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation | Feeding, Sleep, Diaper |
 | BBDeleteHistoryButton | BBCharts | destructive "delete all" with a scope-honest confirmation (P4) | Events, BBHistorySection |
 | BBLockedHistoryFooter | BBLockedHistoryFooter | the one calm locked row for history beyond the free window (P2) | Events, RecentActivity, BBHistorySection |
@@ -259,17 +274,26 @@ check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientE
 triggers: any gap fixed or a new one found at review
 check: none — each gap carries its own grep; re-run it when the gap is worked
 
-Seen from code at 10cf1a9; no live look on device yet. Each line: what,
+Seen from code at 10cf1a9; no live look on device yet. G1, G4 and G9 were
+re-read at 1b01297 (1.2.0) on 2026-11-03, and G1's button numbers were also
+measured on the medication screens' renders. Each line: what,
 where, which rule. Under P8, existing contrast violations are backlog items, not
 blockers; G1 and G2 are in the backlog (2026-10-28).
 
 **Major**
 - **G1 · White on BBPrimary in dark mode is 2.64:1.** Dark primary #A795D9 is
-  a light lavender; `BBFab` "+", `BBPrimaryButton` (worse at the
-  primary@0.8 end of its gradient), the selected chip of
+  a light lavender; `BBFab` "+", `BBPrimaryButton`, the selected chip of
   `BBHistoryFilterPicker` and other `foregroundStyle(.white)` on primary fills
-  sit under 3:1. Breaks P8. Fix: adopt BBOnPrimary (§ 2) on those surfaces;
-  the Live Activity has used it since 1.1.0.
+  sit under 3:1. Breaks P8. `BBPrimaryButton`'s worse end differs by mode: in
+  dark it is the start (2.64, against 3.76 at the primary@0.8 end, which the
+  dark background darkens); in light it is the end (3.80, against 5.6 at the
+  start), where long ru and es labels measure 4.26–4.40 as their text ends.
+  Fix, decided 2026-11-03 for 1.3.0: `BBPrimaryButton`, `BBFab` and the
+  selected chip take BBOnPrimary (§ 2), and the button's gradient ends at
+  primary@0.9; the button's worse end is then 4.60 in light and 5.78 in dark.
+  Why before 1.3.0: the medication screens carry the button and are opened at
+  night, in dark. The Live Activity has used BBOnPrimary since 1.1.0; other
+  white-on-primary fills stay in this gap.
 - **G2 · 148 raw `.system(size:)` fonts in the app** (widget excluded) never
   scale with Dynamic Type, against P6 / DECISIONS 2026-08-28. Heaviest:
   GrowthInsightCards 20, BBCard 15, DiaperView 12, FeedingView 10,
@@ -278,13 +302,15 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   label 12 pt, `BBMeasureSlider` min/max 11 pt. grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
 
 **Minor**
-- **G4 · System red without a token for destructive actions:**
-  `SwipeToDeleteRow` (`Color.red`), `BBDeleteHistoryButton`
-  (`.red`, red@0.06 fill, red@0.2 stroke), `BabyProfileEditSheet:288`
-  remove photo (red@0.8), `PlanPickerSection:214` purchase error (`.red`).
-  The code itself names red "the colour for your data is about to go away"
-  (`BBLockedHistoryFooter`), yet no `destructive` token exists; a purchase
-  error is not destructive at all. Breaks P5.
+- **G4 · Red outside the destructive role.** The platform red is the app's
+  destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
+  and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
+  `BBCharts.swift:329–336`) use it for a delete. Off that role:
+  `BabyProfileEditSheet:288` remove photo at red@0.8, paler than the system's
+  red and so under its 3.25:1, and `PlanPickerSection:316` purchase error
+  (`.red`): a purchase error is not destructive at all. The code itself names
+  red "the colour for your data is about to go away" (`BBLockedHistoryFooter`).
+  Breaks P1.
 - **G5 · Dead alarm styling in shared components:** `BBStatCard.overLimit` and
   `BBProgressCard.overLimit` still render system red + triangle/exclamation;
   no call site passes `true` since DECISIONS 2026-09-05. Breaks P1 if ever
@@ -300,11 +326,14 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   subheadline), 14 (card title), 13 (footnote).
 - **G8 · Off-token radii:** 10, 14, 8, 6, 9, 4, 2 pt used raw (filter picker
   14/10, stat icon tile 10, chips 8) while `Radius.sm` (12) has 2 users.
-- **G9 · Unused system API next to hand-rolled copies:** `bbCard()`,
-  `bbBareRow()`, `bbGlass()`, `BBSecondaryButton`, `BBIconButton` have no
-  callers; `BBEventRow`, `BBProgressCard`, `BBMeasureSlider` and the weekly
-  chart hand-roll surface + radius + `card` shadow and so lack the level-1 top
-  highlight `bbCard()` defines.
+- **G9 · Unused system API next to hand-rolled copies:** `bbBareRow()`,
+  `bbGlass()` and `BBIconButton` have no callers. `bbCard()` has callers since
+  1.1.0 (the weekly card) and 1.2.0 (the doctor report's cards, header and
+  question sheet), and `BBSecondaryButton` one since 1.2.0 (the report's
+  questions card). `BBEventRow`, `BBProgressCard`, `BBMeasureSlider` and the
+  weekly chart still hand-roll surface + radius + `card` shadow and so lack the
+  level-1 top highlight `bbCard()` defines. grep: `grep -rnF --include=*.swift
+  '.bbCard()' BabyBloom | wc -l` → 8 in 1.2.0.
 - **G10 · textSecondary on background is 4.48:1 (light)** — a hair under P8,
   and it carries the 12–13 pt captions and units.
 - **G11 · `EmptyStateView` lives in `Features/Feeding/FeedingView.swift`**
