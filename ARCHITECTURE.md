@@ -1086,10 +1086,13 @@ the export and the weekly card), so the PDF cannot print a number
 the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
 the page for a closed list of verdict words. Medications given in the
 period (`summary.medications`: a medicine's doses together, older events by
-their trimmed, case-insensitive name beside them, nameless ones in one line)
-are a card after Diapers and a fixed-column table after the PDF's diapers
-section, both absent when no dose falls in the period and hidden under the
-new-period card. It renders through `PagedPDF`
+their trimmed, case-insensitive name beside them, nameless ones in one line;
+each line's doses grouped again by dose text in order of first use, so a
+changed dose shows one caption, and in the PDF one row, per text) are a card
+after Diapers and a fixed-column table after the PDF's diapers section. Both
+are absent when no dose falls in the period. A dose counts as an entry
+for the new-period card, and the table moves to the next page whole when
+it fits on one. It renders through `PagedPDF`
 (`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
 slices its layout at the page height and ignores the CSS break rules, so a
 document hands over its blocks and rows, every page is composed as its own

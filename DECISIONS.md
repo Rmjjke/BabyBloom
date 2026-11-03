@@ -20,6 +20,12 @@ live with the workflow, outside this repository.
 
 **Older events by their typed name, beside the medicines, never merged into them.** A typed "Paracetamol" and a medicine called Paracetamol may not be the same thing, and merging by guesswork would print a count nobody logged. Names match trimmed and case-insensitive; events with no name share one line.
 
+**A changed dose is stated per dose text.** When a line's doses carry more than one text, each text gets its own count and days, in order of first use: one caption each on the screen, one row each in the PDF with the name repeated. The latest text beside the whole count would turn 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml, and the change of dose is the fact the doctor most needs. Doses logged without a text, beside texted ones, are named as such rather than left blank.
+
+**A dose is an entry for the new-period card.** The card says new entries will show there, so a dose given after a same-day visit keeps the card away and shows that day, on the screen and in a PDF shared that day.
+
+**The table moves to the next page whole when it fits on one**, as the questions do. A row left alone under a repeated head reads as an afterthought to a list that is read as one piece. A longer table breaks between rows with its head repeated.
+
 **No section when nothing was given.** The absence of medicine is not a missing record, so there is no "none" line, and a report without medicines prints the same pages as before.
 
 ## 2026-11-03 — Home shows medications for a day after their last dose, in one plain card
