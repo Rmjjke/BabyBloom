@@ -14,15 +14,31 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — A medication reminder is one local notification per medication, switched on per device
+
+**Per device, off by default, never synced.** A local notification is a fact of one phone. A synced switch would ring the partner's phone at night unasked, counting from doses that phone may not have received yet. Each medication's own switch is its off; there is no app-wide one.
+
+**One request, at the screen's «not before», only while it is ahead.** The time includes the 24-hour maximum, so the notification never comes at a moment the screen still says to wait. A time already passed wants nothing: the screen says the interval is over. An ended course has none.
+
+**The body names the dose it counts from, and its day word is counted against the moment it fires.** Nothing pushes between phones, so a phone that has not synced a later dose counts from the one it has; naming that dose keeps the text true. Counted at scheduling time, a 22:00 dose read at 04:00 would say "today".
+
+**It comes at night, plainly.** The parent turned it on for the night dose, so it ignores the quiet hours the app's own nudges keep. The default sound, no badge and the plain interruption level: a fact to read, not one that breaks through a Focus.
+
+**Reconciled after every store save, not called from each surface.** Doses are logged, moved and deleted from the detail, the dose sheet, Events and its form, and a delete-all; a pass on `ModelContext.didSave` covers all of them and any surface added later. The pass removes any `bb.med.*` request the plan does not want, which also takes down one for a medication deleted on another device.
+
+**A time-interval trigger.** The interval is elapsed time; a calendar trigger would fire an hour off on the night the clocks change.
+
 ## 2026-11-03 — The dose confirmation is a system alert that never blocks, and asks only about a time the parent set
 
 **A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel is the bold side because it keeps things as they were; Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
 
-**One alert per save, naming the limit that ends later.** Its time is then the «not before» the medication's screen shows; the interval variant cannot explain a time the maximum set. On a tie, the interval.
+**One alert per save, naming the limit that ends later once the dose is saved.** Its time is then the «not before» the medication's screen shows after Save; the interval variant cannot explain a time the maximum set. On a tie, the interval. A dose that brings the 24-hour count to the maximum without passing it breaks the interval only, so it gets the interval variant with the time the maximum sets.
+
+**The «not before» is the time after Save, never earlier than before it.** The alert asks before the dose is saved, and Save is the answer it waits for. A time from before this dose is earlier than the one the screen shows after Save, so a parent who saves and follows the alert would give the next dose early: last dose 08:00, this one 10:00, every 6 hours, the old time said 14:00 where the screen then says 16:00.
 
 **No alert for an edited dose saved at its logged time, or for an ended course.** An edit that changes only the dose text or the note would otherwise ask about a time the parent did not touch, which reads as a verdict on the edit. An ended course shows no next time, so the alert would name one for a course that is over. A dose moved to a new time asks like a new one.
 
-**A «not before» that has passed is left out of the alert.** For a dose logged after the fact the interval's end can lie in the past, or before a dose logged since. Read as current advice, «next dose not before 2:00 PM» at 5 PM would say a dose is fine while the screen behind says 10 PM. The alert then states the dose it is close to and stops; the 24-hour variant names the screen's own time.
+**A «not before» that has passed is left out of the alert.** For a dose logged after the fact the time after Save can lie in the past. Read as current advice, «next dose not before 2:00 PM» at 5 PM would say a dose is fine; the alert then states the dose it is close to and stops.
 
 **The alert's Save stores exactly what it asked about, or nothing.** A medication can end or go on another device while the alert is up; saving whatever the menu then holds would file a dose nobody gave under another medication, unchecked.
 

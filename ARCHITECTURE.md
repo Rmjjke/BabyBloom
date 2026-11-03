@@ -100,8 +100,10 @@ the nearest close later dose first, and only without one the latest close
 earlier dose with its interval's end, so the time it gives is always a true
 «not before». It also flags the fullest window `[s, s + 24 h)` holding `t`
 when that is over the maximum. `showsDaily` says which of the two the one
-confirmation states: the maximum only when it holds the next dose back past
-the interval's end. `dosesInLast24Hours` is the count shown against the
+confirmation states: the maximum only when, with the dose counted, it holds
+the next dose back past the interval's end. `nextAllowed(adding:)` is the
+«not before» once a dose at `t` is logged too, never earlier than
+`nextAllowed`. `dosesInLast24Hours` is the count shown against the
 maximum. It is all elapsed time, never calendar arithmetic.
 `Medicine.status(now:excluding:)` reads `.ended`, `.noDose`, `.waiting` or
 `.allowed`; `excluding` and `Medicine.check(_:now:editing:)` leave the dose
@@ -144,18 +146,19 @@ pops itself and deletes the medicine once it has disappeared; Delete Dose
 hands the dose back and the detail deletes it in the dose sheet's
 `onDismiss`. The detail and the dose sheet draw nothing for a model with no
 context or `isDeleted` (one deleted on another device). Nothing in the feature is
-gated. The reminder and the Home card come later.
+gated. The Home card comes later; the reminder is under Notifications.
 
 **The confirmation** (`DoseConfirmation.swift`). Save in the dose sheet, and
 in the Add Event form with a medication chosen, first asks
 `Medicine.confirmation(for:now:editing:loggedTime:)` about the time it will
 store. It reads `check` and returns the words of one variant, or nil when
-the dose is on time: «before» (a close earlier dose and its interval's end),
+the dose is on time: «before» (a close earlier dose and the next time),
 «after» (a close later dose and the interval), or «24 h» (the count with
-this dose, the maximum, and the screen's `nextAllowed`), the last only when
-`showsDaily` holds. The «not before» is each message's last line and is
-dropped when it is not after now (a dose logged after the fact), so the
-alert never names a time that disagrees with the screen behind it. A
+this dose, the maximum and the next time), the last only when `showsDaily`
+holds. The next time is `nextAllowed(adding:)`: what the screen shows once
+this dose is saved, which is the answer the alert waits for. It is each
+message's last line and is dropped when it is not after now (a dose logged
+after the fact), so the alert never names a time that has passed. A
 non-nil answer raises a system alert (`View.doseConfirmation`) and keeps a
 `ConfirmedDose` (the medication's id and the time): Cancel returns to the
 sheet with every field kept; Save stores exactly that dose, or nothing when
@@ -737,8 +740,9 @@ in step with the code.
 
 Permission is requested from onboarding's own notifications page (page 8 of
 11, before the Generating loader whose last step promises reminders) — never
-at launch and never over the Dashboard. That page is the single call site of
-`requestPermission`.
+at launch and never over the Dashboard. A medication's reminder switch asks
+through the same `requestPermission` when iOS has not been asked yet; there
+is no other call site.
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
 `onAppBackgrounded()` on every `.background`.
 
@@ -761,6 +765,34 @@ entries and the Settings switch (`notify.weeklySummary`, on by default) is on.
 Off stops the notification only; the card still shows. A repeating trigger
 cannot skip an empty week. `AppClock.now` is the clock for
 this path only, so `-BBNow` can move it.
+
+**Medication reminders.** One pending request per medication,
+`bb.med.<uuid>`, while this device's switch for it is on
+(`notify.medication.<uuid>` in `UserDefaults`, off when absent, never
+synced). `MedicationReminderPlan` (pure, `Core/Medicine`) wants it at the
+schedule's `nextAllowed`, the 24-hour maximum included, only while that is
+ahead and the course runs. `MedicationReminderSync` (`Services`) makes the
+centre agree: it removes every `bb.med.*` the plan does not want (a switch
+off, a course ended or past its time, a medication deleted here or on
+another device) and adds each wanted one again, which replaces it. A pass
+runs at once after every local store save (`ModelContext.didSave`), so no
+surface that logs, moves or deletes a dose calls it, and after every
+`NSPersistentStoreRemoteChange`, debounced 0.5 s for CloudKit's bursts; also
+on every foregrounding, on backgrounding (holding a background task until it
+lands), after a switch changes, and when notifications are allowed.
+Passes are serialized, so the last one, read from the freshest store, lands.
+The trigger is a time interval (elapsed time, like the interval itself); the
+content has the default sound, no badge and the plain interruption level.
+The title is the name; the body (`MedicationFormat.reminder`) is the time
+since the dose it counts from, with that dose's time and its day word
+counted against the moment it fires. `NotificationPermission` holds iOS's
+answer (not asked, allowed, denied) for the switches: denied draws the
+switch off and disabled with «Open Settings», like the Live Activity
+switch. The switch sits in the medication form (stored on Save) and in a
+card on the detail (at once); the list row shows a bell while it is on,
+except on an ended course and while iOS has notifications off. With no
+`UNUserNotificationCenter` delegate in the app, a reminder that comes while
+the app is open is not shown; the medication's screen states the same fact.
 
 ## Timers and the Live Activity
 
@@ -1148,7 +1180,8 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
-| `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
+| `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
+| `-BBMedicationNotifyIn <seconds>` | **Simulator only.** Every pending medication reminder fires in N seconds instead of at its time, with the words of its real time, so the banner can be looked at. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |

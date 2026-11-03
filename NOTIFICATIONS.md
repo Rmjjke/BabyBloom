@@ -1,11 +1,13 @@
 # Bitty — Локальные уведомления
 
 Все уведомления — локальные (`UNUserNotificationCenter`, без сервера).
-Единственный источник истины: `BabyBloom/Services/NotificationManager.swift`
-(`NotificationManager.shared`, singleton).
+Источник истины: `BabyBloom/Services/NotificationManager.swift`
+(`NotificationManager.shared`, singleton); напоминания о лекарствах —
+`BabyBloom/Services/MedicationReminderSync.swift` (§ 8.1).
 
 Этот документ описывает фактическую реализацию. Любое значение ниже прослеживается
-до строки кода в `NotificationManager.swift`.
+до строки кода в `NotificationManager.swift`, а в § 8.1 — в `MedicationReminderSync.swift`
+и `MedicationReminderPlan.swift`.
 
 ---
 
@@ -26,6 +28,7 @@
 | `bb.growth.weigh_in` | Пора взвесить (интервал по возрасту, от последнего взвешивания) | interval, one-shot | нет |
 | `bb.growth.newborn_flag` | Сигнал первых недель (потеря веса / не вернулся к весу при рождении) | interval, one-shot | нет |
 | `bb.growth.gain_low` | Прибавка ниже нормы (Premium, не чаще раза в неделю) | interval, one-shot | нет |
+| `bb.med.<uuid>` | Лекарство: настало «следующая доза не раньше» — по интервалу или максимуму за 24 ч (по одному на лекарство, если на этом устройстве включён его переключатель) | interval, one-shot, сверяется (§ 8.1) | нет |
 
 `bb.engage.monthly_growth` больше не планируется: его заменил `bb.growth.weigh_in`, а
 `scheduleWeighInReminder` отменяет старый ID, чтобы он перестал приходить у тех, у кого
@@ -237,6 +240,33 @@ notification-tap-handling).
   в теле уведомления (`String(format:...)`).
 - **`bb.engage.measurements`** и **`bb.engage.idle`** — форматируемые строки с именем ребёнка.
 
+### 8.1 Напоминание о лекарстве — `MedicationReminderSync`
+
+Один запрос `bb.med.<uuid>` на лекарство, пока на этом устройстве включён его
+переключатель (`notify.medication.<uuid>`, по умолчанию выкл., не синхронизируется).
+Срабатывает в «следующая доза не раньше» экрана лекарства — с учётом максимума за 24 ч —
+и только если это время ещё впереди и курс не завершён (`MedicationReminderPlan`, чистая
+функция). Триггер `UNTimeIntervalNotificationTrigger` (прошедшее время, как сам интервал),
+звук `.default`, без бейджа, `interruptionLevel = .active`; приходит и ночью, тихие часы
+22:00–07:00 его не касаются: родитель включил его ради ночной дозы.
+
+Сверка: каждый проход удаляет все ожидающие `bb.med.*`, которых план не хочет (выключен
+переключатель, курс завершён, время прошло, лекарство удалено здесь или на другом
+устройстве), и заново добавляет нужные (тот же ID заменяет прежний). Проход идёт после
+каждого сохранения хранилища (`ModelContext.didSave`) и каждого
+`NSPersistentStoreRemoteChange` (это — с задержкой 0,5 с: импорт CloudKit идёт пачками),
+при каждом `onAppForegrounded()` и `onAppBackgrounded()` (там проход держит фоновую
+задачу, пока не дойдёт до центра уведомлений), при переключении и при выдаче разрешения.
+Пока приложение открыто, iOS напоминание не показывает (делегата
+`UNUserNotificationCenter` в приложении нет, как и для остальных уведомлений): экран
+лекарства в этот момент сам пишет, что интервал прошёл. Переключатель — в
+форме лекарства (сохраняется по Save) и на экране лекарства (сразу); если iOS
+запретила уведомления, он нарисован выключенным, с «Открыть настройки». Первое включение
+спрашивает разрешение через тот же `requestPermission`.
+
+Рычаг (только симулятор): `-BBMedicationNotifyIn <сек>` — каждое напоминание через N секунд,
+с текстом для его настоящего времени.
+
 ---
 
 ## 9. Ключи UserDefaults
@@ -251,6 +281,7 @@ notification-tap-handling).
 | `bb.storedBabyName` | сохранённое имя ребёнка для форматируемых текстов |
 | `bb.growth.lastGainSignalAt` | когда последний раз приходил `bb.growth.gain_low` (не чаще раза в неделю) |
 | `notify.weeklySummary` | переключатель «Недельная сводка», по умолчанию вкл. |
+| `notify.medication.<uuid>` | переключатель напоминания о лекарстве на этом устройстве, по умолчанию выкл. (пишут `MedicationReminderSection` на экране лекарства и `MedicationFormSheet.save()`, удаляет `MedicationDetailView` вместе с лекарством, читает `MedicationReminderSync`) |
 
 Флаг `hasScheduledWeeklySummary` удалён: его никто не читал.
 
@@ -280,6 +311,12 @@ notification-tap-handling).
 | `notification.weekly_body` | Кормления и сон с понедельника по воскресенье, по дням. | Feeds and sleep from Monday to Sunday, day by day. |
 | `notification.idle_title` | Всё в порядке? 👀 | Everything ok? 👀 |
 | `notification.idle_body` | %@ — уже 2 дня без новых записей… | You haven't logged anything in 2 days… %@ |
+| `notification.medication_title_fmt` | %@ (название лекарства) | %@ (the medication's name) |
+| `notification.medication_body_fmt` | С последней отмеченной дозы (%2$@) прошло %1$@. | It has been %1$@ since the last logged dose (%2$@). |
+
+В напоминании о лекарстве `%1$@` — время от названной дозы до срабатывания, `%2$@` —
+время этой дозы со словом дня, посчитанным от момента срабатывания (доза в 22:00,
+уведомление в 04:00 → «вчера, 22:00»). Без эмодзи.
 
 Русские тексты обращаются к родителю на «вы». Имя малыша (`%@`) в русском
 стоит только в именительном падеже («как там %@», «%@ растёт»): подстановка
