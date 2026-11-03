@@ -229,8 +229,8 @@ Cancel          New Medication              Save
 ```
 Events                                      (+)
 ┌──────────────────────────────────────────────┐
-│ ●  Paracetamol                             › │  status line, one per active medication
-│    Next dose not before 08:10                │
+│ ●  Paracetamol                             › │  status line, one per active medication;
+│    Next dose not before 08:10                │  glyph and › centre on the box
 └──────────────────────────────────────────────┘
 Quick input
  [ Bath ] [ Walk ] [ Medication ] [ Mood ]        Medication: no padlock while a medication is active
@@ -241,7 +241,8 @@ History
 
 - **Status lines:** above Quick input, sorted by name, sm 8 apart, md 16 above Quick input's header.
   - Box: BBSurface, radius md 16, `card` shadow, padding horizontal 16, vertical 12, min height 44; the whole line one `Button` → the medication's detail.
-  - Inside: glyph `pills.fill` scaled(15, .body) BBAccent, decorative; the name as § 2.1; the status line as § 2.1 under it; chevron as § 2.1.
+  - Inside: `HStack(alignment: .center, spacing: md 16)`: glyph `pills.fill` scaled(15, .body, medium, rounded) BBAccent, decorative; the name as § 2.1 with the status line as § 2.1 2 pt under it, the pair filling the width; chevron as § 2.1.
+  - **The glyph and the chevron centre on the box** at every text size. Why centre, where the list row of § 2.1 aligns to the top: this line holds a bare 15 pt glyph and one or two lines of text, and a chevron on the box's middle is the platform's disclosure row, so the line reads as one control; at AX2, as the name and status wrap, both stay on the middle of the grown box. The list row aligns to the top because its 44 pt disc belongs beside the name and its bell and chevron stack.
   - Shown for active medications only; none → nothing, with no gap.
 - **The Medication tile:** with at least one active medication it opens the dose sheet (§ 4), free, with no padlock. With none, it stays today's one-tap entry behind the Events gate, padlock included. Why: a one-tap dose with no name cannot be linked, so it would walk around the confirmation and the reminder.
 - **The Events form, type Medication:** a field box at the top of the medication fields with a «Medication» menu: the active medications and "Not in the list".
@@ -317,9 +318,9 @@ One-line placements (list row, Events line, Home card) show line A only.
 ┌────────────────────────────────────┐
 │ Less than 6 h since the last dose  │   title: a fact
 │                                    │
-│ Paracetamol: last dose at 08:00.   │   message: the name, both times
-│ With your 6 h interval, the next   │
-│ is not before 14:00.               │
+│ Paracetamol                        │   message, one fact a line: the name,
+│ Last dose at 08:00                 │   the last dose,
+│ Next dose not before 16:00         │   the time once this dose (10:00) is saved
 │ ────────────────────────────────── │
 │      Cancel       │      Save      │
 └────────────────────────────────────┘
@@ -328,12 +329,18 @@ One-line placements (list row, Events line, Home card) show line A only.
 - **Component:** `.alert(title, isPresented:) { … } message: { … }`. The system draws it, scales it at AX2 (it grows, scrolls and stacks the buttons) and speaks it to VoiceOver. Nothing in it is coloured.
 - **Buttons:** Cancel with `.cancel` (iOS draws it bold: the side that keeps things as they were) returns to the sheet with every field kept. Save has **no role**: it is not destructive and never red; it keeps the dose and closes the sheet.
 - **Variants** (working text; the copy note holds the words):
-  - **before:** a dose under the interval after the last one, as drawn;
-  - **after:** a dose put before a dose already logged, less than the interval earlier: «Less than 6 h from a logged dose» / «Paracetamol: a dose is logged at 16:00. Your interval is 6 h.»;
-  - **24 h:** the dose would take the count over the maximum: «With this one, 5 doses in 24 hours» / «Paracetamol: the most you set is 4 in 24 hours.»
-- **One alert per save.** When a dose breaks both limits, the alert shows the variant of the limit that ends later, the one that sets "next dose not before" on the detail; when both end at the same time, the interval variant. Why: the alert's time is the detail's time, and the interval variant cannot explain a time the maximum set (last dose 14:00, interval 6 h, yet not before 22:30).
+  - **before:** a dose under the interval after the last one, as drawn: the name, the last dose, the next time;
+  - **after:** a dose put before a dose already logged, less than the interval earlier: «Less than 6 h before a logged dose» / the name, «Logged dose at 16:00», «Interval: 6 h»; no next time;
+  - **24 h:** the dose would take the count over the maximum: «With this dose, 5 doses in 24 hours» / the name, «Your maximum in 24 hours: 4», then the next time, as in the before variant.
+- **One alert per save.** When a dose breaks both limits, the alert shows the variant of the limit that ends later once this dose is saved, the one that sets the time it names; when both end at the same time, the interval variant. Why: the alert's time is the detail's time after Save, and the interval variant cannot explain a time the maximum set (a dose at 15:00 with a 6 h interval, yet not before 22:30).
+- **The next time is the one after Save.** In the before and 24 h variants the message's last line names the time the medication's screen shows once this dose is saved: the "not before" of § 3 with this dose counted, never earlier than the time the screen showed before it.
+  - Last dose at 08:00, interval 6 h, a dose logged at 10:00 → 16:00, not 14:00.
+  - Doses at 00:00 and 08:00, maximum 2, a dose logged at 10:00 → tomorrow 08:00, not midnight.
+  - A dose inside the interval that brings the 24 h count to the maximum, not over it, breaks the interval only: the before variant, with the time the maximum sets (interval 6 h, maximum 3, doses at 00:00 and 07:00, a dose at 08:00 → tomorrow 00:00, where the interval alone ends at 14:00). After Save, line C on the detail states the count.
+  - A time not ahead of now is left out, line and all: a dose logged after the fact can end its limits in the past, where the line would read as advice that has expired.
+  - Why: the alert opens before the dose is saved, and Save is the answer it waits for. A time from before this dose is earlier than the one the screen shows after Save, so a parent who follows the alert would give the next dose early: two hours early in the first example.
 - **Shown** on Save from the dose sheet (new and edited doses) and from the Events form with a medication chosen. **Not shown** for a dose on time (exactly the interval counts as on time), for another medication, or for a free-text event.
-- Times inside follow § 8 (day word, glued, the app's clock). The name comes first, before a colon, so the ru sentence needs no case ending on typed text.
+- Times inside follow § 8 (day word, glued, the app's clock). The name comes first, on a line of its own, so the ru sentence needs no case ending on typed text.
 
 ## 11. States
 
@@ -366,7 +373,7 @@ Copy roles (keys under `medication.*` and `notification.medication_*`):
 - Dose sheet: Medication; Choose; Time; the placeholders; Delete Dose.
 - Form: New Medication; Edit Medication; the safety line; the name and dose placeholders (no number, no drug name); the interval label and the six chips; «(optional)»; Delete Medication and its confirmation (the doses stay).
 - Reminder: the switch label; «At HH:MM»; the footer; «Notifications are off in iOS Settings»; «Open Settings»; the notification title (the name) and body (elapsed time since the named dose), no emoji.
-- Confirmation: three titles and three messages.
+- Confirmation: three titles and three messages; the next time in the before and 24 h messages is the one after Save (§ 10).
 - Events: the menu label «Medication» and «Not in the list».
 - VoiceOver: the row, line and card sentences of §§ 2.1, 6, 7, with «reminder on».
 - Report: the card title, the row formats, the PDF heads (§ 14).
@@ -379,6 +386,7 @@ Build facts:
 - `BBEventRow`'s subtitle and time were fixed sizes (13 and 12 pt, not scaled); § 6 scales them.
 - `BBPrimaryButton` has no disabled look: a disabled Save draws at opacity 0.4, with the toolbar Save in BBTextSecondary (§ 4).
 - The app asks for notification permission in onboarding only. A parent who declined there reaches the reminder switch with permission not yet asked or denied: § 9 covers both. There is no app-wide notifications switch in Settings; each medication's own switch is its off.
+- The first build of the confirmation named the time before the dose (the schedule without it) and chose the variant by the limits' ends before the dose; § 10 moves both to the time after Save.
 
 ## 13. Decisions (2026-11-03)
 
@@ -407,10 +415,11 @@ Build facts:
 5. **One active medication is preselected in the Events form and the tile's sheet; with two or more the parent chooses, and Save waits.** Why: a wrong preselection files the dose under the wrong interval.
 6. **The empty state sits in a card.** Why: its subtitle is secondary text, which is under 4.5:1 on the background.
 7. **Delete Dose is also a button in the dose sheet.** Why: the custom swipe is hard to reach with VoiceOver and Switch Control.
-8. **When a dose breaks both limits, the alert shows the limit that ends later; a tie shows the interval variant.** Why: the alert's time is the detail's "next dose not before".
+8. **The alert names the time that holds after Save.** The before and 24 h variants name the detail's "next dose not before" with this dose counted, never earlier than before it, and leave out a time not ahead of now; when a dose breaks both limits, the alert shows the limit that ends later once this dose is saved, and a tie shows the interval variant. Why: the alert asks before the dose is saved, so a time from before this dose sends a parent who follows it to the next dose early; the interval variant cannot explain a time the maximum set.
 9. **`BBEventRow` scales its subtitle and time.** Why: the subtitle now carries the name and dose, and every list using the row gains the same AX2 behaviour.
 10. **The dose list keeps the app's history window with its usual footer.** Why: the window is the app's rule for every history list; the rules read every dose, so nothing about the next time depends on it.
 11. **The interval is above 0 and at most 48 h.** Why: 0 is not an interval, and 48 h is the end of the Other wheels.
+12. **The Events status line centres its glyph and chevron on the box** (§ 6). Why: a compact one-control line with a bare glyph reads as the platform's disclosure row; the list row keeps the top for its disc beside the name.
 
 ## 14. Report section (the pediatrician report)
 
