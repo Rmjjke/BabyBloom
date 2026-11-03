@@ -1,26 +1,35 @@
 import SwiftUI
 import SwiftData
 
-/// Log a dose, or change one. A plain `.sheet` with no `entrySaved`: no
-/// rating prompt ever follows a dose given to a sick baby.
+/// Log a dose, or change one. A plain `.sheet` with no rating prompt: none
+/// ever follows a dose given to a sick baby.
 struct DoseSheet: View {
     let medicine: Medicine
     /// nil logs a new dose; otherwise the dose being edited.
     let dose: CustomEvent?
+    /// Edit mode: Delete Dose hands the dose back, and the host deletes it once
+    /// this sheet has gone, so no view still holding it reads a deleted model.
+    var onDelete: ((CustomEvent) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var time: Date
     @State private var doseText: String
     @State private var note: String
     @State private var selectedDetent: PresentationDetent = .large
+    /// The edited dose's time as logged: a save that leaves the time alone
+    /// keeps it, even one later than now from a device whose clock ran ahead.
+    private let loggedTime: Date?
 
-    init(medicine: Medicine, dose: CustomEvent?) {
+    init(medicine: Medicine, dose: CustomEvent?, onDelete: ((CustomEvent) -> Void)? = nil) {
         self.medicine = medicine
         self.dose = dose
-        // Copied once, so the fields never read a dose deleted from here.
+        self.onDelete = onDelete
+        // Copied once, so the fields never read the dose again.
         _time = State(initialValue: dose?.time ?? AppClock.now)
         _doseText = State(initialValue: dose.map { $0.medicationDose ?? "" } ?? (medicine.doseText ?? ""))
         _note = State(initialValue: dose?.notes ?? "")
+        loggedTime = dose?.time
     }
 
     private var title: String {
@@ -29,11 +38,18 @@ struct DoseSheet: View {
         return dose == nil ? "medication.log_dose".l : "medication.dose_edit_title".l
     }
 
+    /// A model deleted elsewhere (another device, or a save that already ran)
+    /// has no context left; reading its fields would trap.
+    private var modelsGone: Bool {
+        func gone(_ model: some PersistentModel) -> Bool { model.modelContext == nil || model.isDeleted }
+        return gone(medicine) || (dose.map { gone($0) } ?? false)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView {
-                    if medicine.isDeleted || dose?.isDeleted == true {
+                    if modelsGone {
                         EmptyView()
                     } else {
                         fields
@@ -67,14 +83,8 @@ struct DoseSheet: View {
     private var fields: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
             BBSheetHeading(title: title)
-            // The range ends at now: a dose that has not happened cannot be
-            // picked. Save clamps too, since the picker clamps only its display.
-            DatePicker("form.time".l, selection: $time, in: ...AppClock.now,
-                       displayedComponents: [.date, .hourAndMinute])
-                .datePickerStyle(.compact)
-                .tint(BBTheme.Colors.primary)
+            timeField
                 .medicationField()
-                .accessibilityIdentifier("dose.time")
             TextField("form.dose".l, text: $doseText)
                 .medicationField()
                 .accessibilityIdentifier("dose.dose")
@@ -98,7 +108,7 @@ struct DoseSheet: View {
                 .medicationField()
                 .accessibilityElement(children: .combine)
             }
-            if dose != nil {
+            if dose != nil, onDelete != nil {
                 // Beside the swipe on the list, which VoiceOver and Switch
                 // Control reach only with effort.
                 Button(role: .destructive) { deleteDose() } label: {
@@ -113,8 +123,36 @@ struct DoseSheet: View {
         .padding(BBTheme.Spacing.md)
     }
 
+    /// At accessibility sizes the label goes above the picker: beside the
+    /// date and time buttons it had room for a few letters and broke mid-word.
+    @ViewBuilder
+    private var timeField: some View {
+        // The range ends at now: a dose that has not happened cannot be
+        // picked. Save clamps too, since the picker clamps only its display.
+        let picker = DatePicker("form.time".l, selection: $time, in: ...AppClock.now,
+                                displayedComponents: [.date, .hourAndMinute])
+            .datePickerStyle(.compact)
+            .tint(BBTheme.Colors.primary)
+            .accessibilityIdentifier("dose.time")
+        if dynamicTypeSize.isAccessibilitySize {
+            // The label stays readable by VoiceOver: the picker's own label
+            // is hidden here.
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                Text("form.time".l)
+                picker.labelsHidden()
+            }
+        } else {
+            picker
+        }
+    }
+
     private func save() {
-        let at = min(time, AppClock.now)
+        let at: Date
+        if let loggedTime, time == loggedTime {
+            at = loggedTime
+        } else {
+            at = min(time, AppClock.now)
+        }
         if let dose {
             // The name stays as logged; only the time, the dose and the note change.
             dose.time = at
@@ -132,8 +170,7 @@ struct DoseSheet: View {
 
     private func deleteDose() {
         guard let dose else { return }
-        modelContext.delete(dose)
-        try? modelContext.save()
+        onDelete?(dose)
         dismiss()
     }
 }

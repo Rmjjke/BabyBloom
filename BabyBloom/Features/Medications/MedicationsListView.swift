@@ -5,10 +5,15 @@ import SwiftData
 /// collapsed header. Medicines are free, so nothing here carries a padlock.
 struct MedicationsListView: View {
     @Query private var medicines: [Medicine]
+    /// Read so a dose logged or deleted on the detail draws the rows again: a
+    /// change on the event's side of the link does not always reach observers
+    /// of `medicine.doses`.
+    @Query private var events: [CustomEvent]
     @State private var showForm = false
     @State private var showsEnded = false
 
     var body: some View {
+        let _ = events.count
         ScrollView {
             // Once a minute: the status lines move from "next dose not before"
             // to "has passed" with no transition.
@@ -59,6 +64,7 @@ struct MedicationsListView: View {
             if !active.isEmpty {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                     BBSectionHeader(title: "medication.section_active")
+                        .accessibilityAddTraits(.isHeader)
                     ForEach(active) { medicine in
                         MedicationRowLink(medicine: medicine, now: now)
                     }
@@ -76,6 +82,8 @@ struct MedicationsListView: View {
                 } label: {
                     BBTheme.Typography.title3(String(format: "medication.section_ended_fmt".l, ended.count))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .frame(minHeight: 44, alignment: .leading)
+                        .contentShape(Rectangle())
                         .accessibilityAddTraits(.isHeader)
                 }
                 .tint(BBTheme.Colors.textSecondary)
@@ -114,7 +122,6 @@ struct MedicationRowLink: View {
 
     var body: some View {
         let lines = medicine.lines(now: now)
-        // The third line: the end of an ended course, else the dose and interval.
         let meta = medicine.isEnded ? lines.secondary : medicine.metaLine
         NavigationLink {
             MedicationDetailView(medicine: medicine)

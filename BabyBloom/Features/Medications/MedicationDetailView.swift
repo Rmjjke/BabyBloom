@@ -9,28 +9,40 @@ struct MedicationDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(SubscriptionManager.self) private var store
+    /// The dose list reads the events, not `medicine.doses`: a dose linked or
+    /// deleted on the event's side does not always reach observers of the
+    /// relationship, and a stale row would open a deleted dose.
+    @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
     @State private var showForm = false
     @State private var doseSheet: DoseSheetTarget?
     @State private var showPaywall = false
-    /// Set by the form's delete; acted on once the form has gone, so no view
-    /// above it reads a deleted model.
+    /// Set by the form's delete. The screen pops itself and the medicine goes
+    /// once the screen has disappeared, so no view on it reads a deleted model.
     @State private var deleteRequested = false
+    /// Set by Delete Dose in the sheet; carried out once the sheet has gone.
+    @State private var pendingDoseDeletion: CustomEvent?
 
     var body: some View {
-        // A deleted medicine can still be drawn once while the screen pops;
-        // reading its fields then would trap.
-        if medicine.isDeleted {
-            Color.clear
-        } else {
-            content
+        Group {
+            // Defensive: a medicine deleted on another device has no context
+            // left, and reading its fields would trap.
+            if medicine.modelContext == nil || medicine.isDeleted {
+                Color.clear
+            } else {
+                content
+            }
         }
+        .onDisappear(perform: deleteIfRequested)
     }
 
     private var content: some View {
-        VStack(spacing: 0) {
+        // Read here, in the body, so a dose added or deleted draws the screen
+        // again; the status lines below read the same doses through the link.
+        let doses = doseEvents
+        return VStack(spacing: 0) {
             ScrollView {
                 TimelineView(.everyMinute) { _ in
-                    sections(now: AppClock.now)
+                    sections(now: AppClock.now, doses: doses)
                 }
                 .padding(BBTheme.Spacing.md)
                 .frame(maxWidth: MedicationLayout.maxWidth, alignment: .leading)
@@ -40,6 +52,9 @@ struct MedicationDetailView: View {
             if !medicine.isEnded {
                 BBPrimaryButton("medication.log_dose".l, icon: "plus") { doseSheet = .new }
                     .accessibilityIdentifier("medication.log_dose")
+                    // The content's column on iPad, not the window's width.
+                    .frame(maxWidth: MedicationLayout.maxWidth)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, BBTheme.Spacing.md)
                     .padding(.top, BBTheme.Spacing.sm)
                     .padding(.bottom, BBTheme.Spacing.xs)
@@ -58,18 +73,24 @@ struct MedicationDetailView: View {
                     .accessibilityIdentifier("medication.edit")
             }
         }
-        .sheet(isPresented: $showForm, onDismiss: deleteIfRequested) {
+        .sheet(isPresented: $showForm, onDismiss: popIfDeleteRequested) {
             MedicationFormSheet(medicine: medicine) { deleteRequested = true }
         }
-        .sheet(item: $doseSheet) { target in
-            DoseSheet(medicine: medicine, dose: target.dose)
+        .sheet(item: $doseSheet, onDismiss: deletePendingDose) { target in
+            DoseSheet(medicine: medicine, dose: target.dose) { pendingDoseDeletion = $0 }
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView(source: .historyLock)
         }
     }
 
-    private func sections(now: Date) -> some View {
+    /// This medicine's doses, newest first.
+    private var doseEvents: [CustomEvent] {
+        let id = medicine.persistentModelID
+        return events.filter { $0.type == .medication && !$0.isDeleted && $0.medicine?.persistentModelID == id }
+    }
+
+    private func sections(now: Date, doses: [CustomEvent]) -> some View {
         let lines = medicine.lines(now: now)
         return VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBTheme.Typography.title2(medicine.name)
@@ -97,7 +118,7 @@ struct MedicationDetailView: View {
 
             aboutCard
 
-            doseList(now: now)
+            doseList(doses, now: now)
                 .padding(.top, BBTheme.Spacing.sm)
 
             Button {
@@ -149,20 +170,26 @@ struct MedicationDetailView: View {
     /// The app's history window applies here as on every list; the status
     /// above reads every dose whatever the window shows.
     @ViewBuilder
-    private func doseList(now: Date) -> some View {
-        let list = HistoryWindow.list(medicine.doseEvents, date: \.time, cutoff: store.historyCutoff)
+    private func doseList(_ doses: [CustomEvent], now: Date) -> some View {
+        let list = HistoryWindow.list(doses, date: \.time, cutoff: store.historyCutoff)
         if !list.deletable.isEmpty {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                 BBSectionHeader(title: "medication.detail_doses")
+                    .accessibilityAddTraits(.isHeader)
                 ForEach(Array(list.visible.enumerated()), id: \.element.persistentModelID) { index, dose in
                     SwipeToDeleteRow(onDelete: { delete(dose) }) {
-                        Button { doseSheet = .edit(dose) } label: {
-                            DoseRow(dose: dose, now: now)
-                        }
-                        .buttonStyle(BBScaleButtonStyle())
-                        .accessibilityLabel(Text(DoseRow.spoken(dose, now: now)))
-                        .accessibilityHint(Text("medication.a11y_dose_hint".l))
-                        .accessibilityIdentifier("medication.dose.\(index + 1)")
+                        // A tap gesture, not a Button: a Button still fires on
+                        // release after a drag, so the row's swipe never won.
+                        // A tap fails once the finger moves; the parent's drag wins.
+                        DoseRow(dose: dose, now: now)
+                            .onTapGesture { doseSheet = .edit(dose) }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text(DoseRow.spoken(dose, now: now)))
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityAction { doseSheet = .edit(dose) }
+                            .accessibilityHint(Text("medication.a11y_dose_hint".l))
+                            .accessibilityAction(named: Text("button.delete".l)) { delete(dose) }
+                            .accessibilityIdentifier("medication.dose.\(index + 1)")
                     }
                 }
                 if list.showsLockedFooter {
@@ -177,32 +204,35 @@ struct MedicationDetailView: View {
         try? modelContext.save()
     }
 
+    private func deletePendingDose() {
+        guard let dose = pendingDoseDeletion else { return }
+        pendingDoseDeletion = nil
+        delete(dose)
+    }
+
+    private func popIfDeleteRequested() {
+        if deleteRequested { dismiss() }
+    }
+
+    /// The doses stay, their link goes (nullify).
     private func deleteIfRequested() {
         guard deleteRequested else { return }
         deleteRequested = false
-        let context = modelContext
-        // Pop first, then delete: the doses stay, their link goes (nullify).
-        dismiss()
-        context.delete(medicine)
-        try? context.save()
+        modelContext.delete(medicine)
+        try? modelContext.save()
     }
 }
 
 /// What the dose sheet opens on.
-enum DoseSheetTarget: Identifiable {
-    case new
-    case edit(CustomEvent)
+struct DoseSheetTarget: Identifiable {
+    let dose: CustomEvent?
+    /// Taken when the sheet opens, so the id never reads a dose deleted since.
+    let id: PersistentIdentifier?
 
-    var id: String {
-        switch self {
-        case .new: return "new"
-        case .edit(let dose): return "\(dose.persistentModelID.hashValue)"
-        }
-    }
+    static var new: DoseSheetTarget { DoseSheetTarget(dose: nil, id: nil) }
 
-    var dose: CustomEvent? {
-        if case .edit(let dose) = self { return dose }
-        return nil
+    static func edit(_ dose: CustomEvent) -> DoseSheetTarget {
+        DoseSheetTarget(dose: dose, id: dose.persistentModelID)
     }
 }
 
