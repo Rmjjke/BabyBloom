@@ -146,7 +146,7 @@ final class MedicationFormatTests: XCTestCase {
     // MARK: meta
 
     func testMetaJoinsTheDoseTextAndTheInterval() {
-        XCTAssertEqual(F.meta(doseText: "2.5 ml", intervalMinutes: 360), "2.5 ml · interval 6\u{00A0}h")
+        XCTAssertEqual(F.meta(doseText: "2.5 ml", intervalMinutes: 360), "2.5 ml\u{00A0}· interval 6\u{00A0}h")
     }
 
     func testMetaWithoutADoseTextIsTheIntervalAlone() {
@@ -191,7 +191,7 @@ final class MedicationFormatTests: XCTestCase {
         let result = lines(.waiting(lastDose: last, until: until), now: now)
         XCTAssertEqual(result.primary, "Next dose not before \(until.appTimeOfDay)")
         XCTAssertEqual(result.secondary,
-                       "Last dose at \(last.appTimeOfDay) · 1\u{00A0}h\u{00A0}20\u{00A0}min ago")
+                       "Last dose at \(last.appTimeOfDay)\u{00A0}· 1\u{00A0}h\u{00A0}20\u{00A0}min ago")
         XCTAssertNil(result.count)
     }
 
@@ -199,7 +199,7 @@ final class MedicationFormatTests: XCTestCase {
         let now = d(10, 12)
         let last = now.addingTimeInterval(-30)
         let result = lines(.waiting(lastDose: last, until: last.addingTimeInterval(6 * 3600)), now: now)
-        XCTAssertTrue(result.secondary.hasSuffix(" · just now"), result.secondary)
+        XCTAssertTrue(result.secondary.hasSuffix("\u{00A0}· just now"), result.secondary)
     }
 
     func testWaitingUntilTomorrowCarriesTheDayWord() {
@@ -214,7 +214,7 @@ final class MedicationFormatTests: XCTestCase {
         let now = d(10, 12)
         let last = now.addingTimeInterval(-(8 * 3600 + 5 * 60))
         let result = lines(.allowed(lastDose: last), interval: 360, now: now)
-        XCTAssertEqual(result.primary, "Last dose at \(last.appTimeOfDay) · the 6\u{00A0}h interval has passed")
+        XCTAssertEqual(result.primary, "Last dose at \(last.appTimeOfDay)\u{00A0}· the 6\u{00A0}h interval has passed")
         XCTAssertEqual(result.secondary, "8\u{00A0}h\u{00A0}5\u{00A0}min ago")
     }
 

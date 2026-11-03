@@ -34,7 +34,7 @@ final class MedicationEventsTests: XCTestCase {
         let row = MedicationFormat.eventRow(typeWord: "Medication", isDose: true,
                                             name: "Paracetamol", dose: "2.5 ml", note: "after food")
         XCTAssertEqual(row.title, "Paracetamol")
-        XCTAssertEqual(row.subtitle, "2.5 ml · after food")
+        XCTAssertEqual(row.subtitle, "2.5 ml\u{00A0}· after food")
     }
 
     func testADoseWithNoDoseTextShowsOnlyItsNote() {
@@ -48,7 +48,7 @@ final class MedicationEventsTests: XCTestCase {
         let row = MedicationFormat.eventRow(typeWord: "Medication", isDose: false,
                                             name: "Nurofen", dose: "2.5 ml", note: "night")
         XCTAssertEqual(row.title, "Medication")
-        XCTAssertEqual(row.subtitle, "Nurofen · 2.5 ml · night")
+        XCTAssertEqual(row.subtitle, "Nurofen\u{00A0}· 2.5 ml\u{00A0}· night")
     }
 
     func testAMedicationWithNeitherReadsAsBefore() {
@@ -180,7 +180,7 @@ final class MedicationEventsTests: XCTestCase {
         let bath = CustomEvent(time: Date(), type: .bath)
         bath.notes = "warm"
 
-        XCTAssertEqual(ExportGenerator.eventNote(dose), "Paracetamol · 2.5 ml · night")
+        XCTAssertEqual(ExportGenerator.eventNote(dose), "Paracetamol\u{00A0}· 2.5 ml\u{00A0}· night")
         XCTAssertNil(ExportGenerator.eventNote(bare))
         XCTAssertEqual(ExportGenerator.eventNote(bath), "warm")
     }
