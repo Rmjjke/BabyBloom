@@ -86,17 +86,51 @@ struct BBStatCard: View {
     }
 }
 
+// MARK: - Tile Columns
+/// A tile or grid row's column count at each text size, stated in one place.
+///
+/// A row keeps a count only while its widest en, ru or es word fits the
+/// column (the tile less its side padding) at a 320-pt width with 8 pt to
+/// spare, checked at every text size; from the first size where it misses,
+/// the row takes fewer. 320 pt is Display Zoom on the smaller phones and iPad
+/// Slide Over, and a word never breaks at any width. The spare absorbs a
+/// measuring error, a later word and Bold Text.
+///
+/// One shape per text size at every width, never a count that follows the
+/// width: `ViewThatFits` compares a row's whole width, not its narrowest
+/// column, and one sheet would take two shapes at one text size.
+struct BBTileColumns {
+    /// `.large` and every smaller size.
+    let large: Int
+    let xLarge: Int
+    let xxLarge: Int
+    let xxxLarge: Int
+    /// Every accessibility size; scaled type stops growing at AX2.
+    let accessibility: Int
+
+    func count(at size: DynamicTypeSize) -> Int {
+        if size.isAccessibilitySize { return accessibility }
+        switch size {
+        case .xLarge: return xLarge
+        case .xxLarge: return xxLarge
+        case .xxxLarge: return xxxLarge
+        default: return large
+        }
+    }
+}
+
 // MARK: - Stat Grid
-/// Two stat cards a row; one at accessibility sizes, where the grown title
-/// and unit («Measurements», «Подгузников») no longer fit half a 375-pt
-/// screen. The icon plate stays 36 pt.
+/// Two stat cards a row; one from xxLarge, where in half a 320-pt screen the
+/// grown title «Measurements» keeps 7.2 pt (100.8 in 108), under the 8-pt
+/// spare. The icon plate stays 36 pt.
 struct BBStatGrid<Content: View>: View {
     @ViewBuilder let content: () -> Content
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let columns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 1, xxxLarge: 1, accessibility: 1)
 
     var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
-                                 count: dynamicTypeSize.isAccessibilitySize ? 1 : 2),
+                                 count: columns.count(at: dynamicTypeSize)),
                   spacing: BBTheme.Spacing.md) {
             content()
         }

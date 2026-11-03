@@ -400,18 +400,20 @@ struct AddFeedingSheet: View {
                             .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                        // At accessibility sizes two columns: «Сцеженное» needs
-                        // 119 pt there, more than a third of a 375-pt sheet.
-                        // Below them the row stays an HStack: a grid sets it
-                        // a third of a point lower.
-                        if dynamicTypeSize.isAccessibilitySize {
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
-                                                     count: 2),
-                                      spacing: BBTheme.Spacing.sm) {
+                        // Two columns from xxxLarge: in a third of a 320-pt
+                        // sheet «Сцеженное» keeps 3.8 pt there (86.9 in 90.7),
+                        // under the 8-pt spare. Up to there the row stays an
+                        // HStack: a grid sets it a third of a point lower.
+                        let typeColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 3, xxxLarge: 2, accessibility: 2)
+                        let typeCount = typeColumns.count(at: dynamicTypeSize)
+                        if typeCount == typeColumns.large {
+                            HStack(spacing: BBTheme.Spacing.sm) {
                                 typeTiles
                             }
                         } else {
-                            HStack(spacing: BBTheme.Spacing.sm) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: typeCount),
+                                      spacing: BBTheme.Spacing.sm) {
                                 typeTiles
                             }
                         }

@@ -6,6 +6,7 @@ struct DiaperView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var showNormEditor = false
     @State private var historyFilter: HistoryFilter = .day
@@ -75,31 +76,57 @@ struct DiaperView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_add")
 
-            HStack(spacing: BBTheme.Spacing.md) {
-                ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
-                    Button {
-                        quickAdd(type)
-                    } label: {
-                        VStack(spacing: BBTheme.Spacing.sm) {
-                            Image(systemName: type.icon)
-                                .font(.system(size: 28))
-                                .foregroundStyle(BBTheme.Colors.diaper)
-                            Text(type.displayName.l)
-                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(BBTheme.Spacing.md)
-                        .background(BBTheme.Colors.diaper.opacity(0.1))
-                        .cornerRadius(BBTheme.Radius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                .stroke(BBTheme.Colors.diaper.opacity(0.4), lineWidth: 1.5)
-                        )
-                    }
-                    .buttonStyle(BBScaleButtonStyle())
+            // Two columns from xLarge: in a third of a 320-pt row «Грязный»
+            // keeps 5.9 pt there (63.4 in 69.3), under the 8-pt spare. One at
+            // accessibility sizes, as every quick row there, so the tiles keep
+            // one shape; two would still hold the word (102.3 in 120).
+            let tileColumns = BBTileColumns(large: 3, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+            let count = tileColumns.count(at: dynamicTypeSize)
+            if count == tileColumns.large {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    quickAddTiles
+                }
+            } else if count == 1 {
+                VStack(spacing: BBTheme.Spacing.md) {
+                    quickAddTiles
+                }
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.md),
+                                         count: count),
+                          spacing: BBTheme.Spacing.md) {
+                    quickAddTiles
                 }
             }
+        }
+    }
+
+    private var quickAddTiles: some View {
+        ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
+            Button {
+                quickAdd(type)
+            } label: {
+                VStack(spacing: BBTheme.Spacing.sm) {
+                    Image(systemName: type.icon)
+                        .font(BBTheme.Typography.scaled(28, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(BBTheme.Colors.diaper)
+                    Text(type.displayName.l)
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity)
+                // sm at the sides: with md, «Грязный» broke in a third of a
+                // 320-pt row at Large (58.5 pt in 53.3). The word is centred
+                // inside the fill, so a wider screen draws it as before.
+                .padding(.horizontal, BBTheme.Spacing.sm)
+                .padding(.vertical, BBTheme.Spacing.md)
+                .background(BBTheme.Colors.diaper.opacity(0.1))
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .stroke(BBTheme.Colors.diaper.opacity(0.4), lineWidth: 1.5)
+                )
+            }
+            .buttonStyle(BBScaleButtonStyle())
         }
     }
 
@@ -349,6 +376,28 @@ struct AddDiaperSheet: View {
     @State private var notes = ""
     @State private var time = Date()
 
+    private var typeTiles: some View {
+        ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
+            Button { selectedType = type } label: {
+                VStack(spacing: 6) {
+                    Image(systemName: type.icon).font(BBTheme.Typography.scaled(22, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.diaper)
+                    Text(type.displayName.l).font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                        .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
+                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                )
+                .bbShadow(BBTheme.Shadow.card)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -357,25 +406,21 @@ struct AddDiaperSheet: View {
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.type".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                        HStack(spacing: BBTheme.Spacing.sm) {
-                            ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
-                                Button { selectedType = type } label: {
-                                    VStack(spacing: 6) {
-                                        Image(systemName: type.icon).font(BBTheme.Typography.scaled(22, relativeTo: .body, weight: .regular, design: .default))
-                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.diaper)
-                                        Text(type.displayName.l).font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                    }
-                                    .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                    )
-                                    .bbShadow(BBTheme.Shadow.card)
-                                }
-                                .buttonStyle(BBScaleButtonStyle())
+                        // Two columns at accessibility sizes: in a third of a
+                        // 320-pt sheet «Грязный» breaks at AX2 (92.9 pt in
+                        // 90.7). Below them the row stays an HStack: a grid
+                        // sets it a third of a point lower.
+                        let typeColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 3, xxxLarge: 3, accessibility: 2)
+                        let typeCount = typeColumns.count(at: dynamicTypeSize)
+                        if typeCount == typeColumns.large {
+                            HStack(spacing: BBTheme.Spacing.sm) {
+                                typeTiles
+                            }
+                        } else {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: typeCount),
+                                      spacing: BBTheme.Spacing.sm) {
+                                typeTiles
                             }
                         }
                     }
@@ -384,11 +429,15 @@ struct AddDiaperSheet: View {
                     if selectedType == .dirty || selectedType == .both {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("form.stool_color".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                            // The disc stays 36 pt; the name grows. At accessibility
-                            // sizes «Коричневый» needs 107 pt: three columns at 375 pt
-                            // hold it by 2, under the 8 pt kept spare, so two.
+                            // The disc stays 36 pt; the name grows. «Коричневый»
+                            // misses a quarter of a 320-pt sheet from xLarge
+                            // (68.0 pt in 66.0) and a third at AX2 (107.6 in 90.7).
+                            // At Large four hold it by 3.6, under the 8-pt spare
+                            // but measured with and without Bold Text; three
+                            // would set the seven swatches 3 + 3 + 1 on every phone.
+                            let stoolColumns = BBTileColumns(large: 4, xLarge: 3, xxLarge: 3, xxxLarge: 3, accessibility: 2)
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
-                                                     count: dynamicTypeSize.isAccessibilitySize ? 2 : 4),
+                                                     count: stoolColumns.count(at: dynamicTypeSize)),
                                       spacing: BBTheme.Spacing.sm) {
                                 ForEach(DiaperEntry.StoolColor.allCases, id: \.self) { color in
                                     Button {
@@ -417,7 +466,13 @@ struct AddDiaperSheet: View {
                                 }
                             }
                             if let c = selectedColor, c.isWarning {
-                                HStack(spacing: 4) {
+                                // Above Large the warning can wrap (es at xxxLarge on a
+                                // 402-pt phone), and the first baseline keeps the triangle
+                                // on its first line. Up to Large the row stays centred: on
+                                // one line a first-baseline row sets the text and the
+                                // fields below a pixel lower.
+                                HStack(alignment: dynamicTypeSize > .large ? .firstTextBaseline : .center,
+                                       spacing: 4) {
                                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                                     Text("diaper.color.warning".l)
                                         .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
