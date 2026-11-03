@@ -23,9 +23,13 @@ final class MedicationConfirmationTests: XCTestCase {
         try await super.tearDown()
     }
 
+    /// The zone the code prints clock times in: the process's system zone.
+    /// `NSTimeZone.default` does not move it, so a pinned zone here would put
+    /// "16:00" at "10:00" on a Mac in New York. No zone changes its clocks
+    /// on these June days.
     private let cal: Calendar = {
         var c = Calendar(identifier: .gregorian)
-        c.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        c.timeZone = .autoupdatingCurrent
         return c
     }()
 
