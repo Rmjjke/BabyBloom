@@ -62,31 +62,35 @@ and the Live Activity read the byte-identical copies in
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
-- **Sheet titles in the bar.** The title sits on one line between «Отмена» /
-  "Cancel" and «Сохранить» / "Save", in SF Pro 17 pt semibold at the default
-  text size. Through the sheet-title helper (`bbSheetTitle`) it shrinks to
-  fit down to 0.6 of its size; a plain bar title is cut with «…» instead. It
-  never grows past the default size, while the two buttons do, so the room
-  is widest there: 131 pt on a 402 pt-wide phone, 104 pt on a 375 pt one.
-  - A title of at most 96 pt (CoreText width) stays whole and full-size on a
-    375 pt phone, with 8 pt to spare.
+- **Sheet titles in the bar.** The title sits on one line between the bar's
+  two glyph buttons: × for Cancel or Close, ✓ for Save, a pencil for Edit.
+  It is set in SF Pro 17 pt semibold at the default text size and never
+  grows past it. Through the sheet-title helper (`bbSheetTitle`) it shrinks
+  to fit, down to 13 pt, the size of the sheets' captions; a plain bar title
+  is cut with «…» instead. At larger text sizes the title moves into the
+  sheet's content.
+  - A title of at most 166 pt (CoreText width at 17 pt semibold) stays whole
+    and full-size on every phone, with 8 pt to spare on a 320 pt one. The
+    glyphs take the same room in every language, which leaves the title
+    256 pt on a 402 pt phone, 229 on 375 and 174 on 320, so the 13 pt floor
+    never acts on a title within the budget.
+  - Every sheet title in en, ru and es is within it. The widest is es
+    «Nuevo medicamento», 163.4 pt; none shrinks on any width.
+  - The dose sheet shows no title in its bar. Its heading, the medication's
+    name, sits in the content at every size: the name is the parent's own
+    text, so no budget holds it, and as a heading it wraps instead of losing
+    its end, which is often where two names differ. The sheet's fixed
+    titles (ru «Отметить дозу», es «Registrar dosis») sit there too.
   - A Russian edit sheet may take the bare noun of what it edits: «Вопрос»
-    (61.6 pt), «Лекарство» (88.1), «Профиль» (75.5). Cancel and Save already
-    say that the sheet edits. «Профиль» is also the title of the screen the
-    sheet opens from; the sheet covers that screen, so the two never show
-    together.
-  - Not taken for the profile: «Изменить профиль» (159.6), «Правка профиля»
-    (138.1) and «Данные малыша» (138.8) are too wide; «Изменить» (82.6) reads
-    as a button; «О малыше» (86.6) reads as an information page, not a form.
-  - Still wider than 96 pt, so they shrink at the default size on a 375 pt
-    phone: ru «Приём у педиатра» 152.7, «Новое измерение» 148.8, «Новое
-    кормление» 148.7, «Новое лекарство» 142.0, «Изменить норму» 140.0, «Новое
-    событие» 127.6, «Изменить дозу» 125.5, «Новый вопрос» 119.6, «Добавить
-    сон» 113.6; es «Nuevo medicamento» 163.4, «Editar medicamento» 159.6,
-    «Visita al pediatra» 132.4, «Nueva medición» 126.9, «Nueva pregunta»
-    126.4, «Agregar sueño» 116.2, «Nuevo evento» 108.6; en "New Measurement"
-    149.1, "Pediatrician visit" 131.0, "New Medication" 127.6, "Edit
-    Medication" 123.0, "New question" 108.7, "New Feeding" 103.2.
+    (61.6 pt), «Лекарство» (88.1), «Профиль» (75.5). The bar's × and ✓
+    already say that the sheet edits. «Профиль» is also the title of the
+    screen the sheet opens from; the sheet covers that screen, so the two
+    never show together.
+  - Not taken for the profile: «Изменить» (82.6) reads as a button; «О
+    малыше» (86.6) reads as an information page, not a form. «Изменить
+    профиль» (159.6), «Правка профиля» (138.1) and «Данные малыша» (138.8)
+    fit the budget, but the bare noun already names the form in fewer
+    words.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
@@ -149,3 +153,8 @@ and the Live Activity read the byte-identical copies in
   no-break spaces in «15 al 85»), `onboarding.fact.infant2`,
   `onboarding.fact.breast1`, `onboarding.fact.formula1`, `chart.who_corridor`.
   Text unchanged.
+- 2026-11-04 — the sheet-title budget is 166 pt on every width (was 96 pt
+  on a 375 pt phone). The sheet bars carry glyph buttons instead of the
+  words Cancel and Save, so a title has 174 pt even on a 320 pt phone, and
+  the list of titles that shrank on 375 pt is empty. The dose sheet's title
+  moves into its content. No text changed.
