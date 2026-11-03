@@ -348,13 +348,21 @@ struct AddEventSheet: View {
                     if selectedType == .mood {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("form.mood".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                            HStack(spacing: BBTheme.Spacing.sm) {
+                            // Glyph and word grow with the text size, as on the type
+                            // tiles, and at accessibility sizes two columns give each
+                            // word its width: a third of the sheet is narrower than
+                            // «Беспокойный» at AX2.
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: dynamicTypeSize.isAccessibilitySize ? 2 : 3),
+                                      spacing: BBTheme.Spacing.sm) {
                                 ForEach(CustomEvent.MoodLevel.allCases, id: \.self) { mood in
                                     Button { selectedMood = mood } label: {
                                         VStack(spacing: 4) {
-                                            Image(systemName: mood.icon).font(.system(size: 24))
+                                            Image(systemName: mood.icon)
+                                                .font(BBTheme.Typography.scaled(24, relativeTo: .body, weight: .regular, design: .default))
                                                 .foregroundStyle(selectedMood == mood ? BBTheme.Colors.primary : BBTheme.Colors.accent)
-                                            Text(mood.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
+                                            Text(mood.displayName.l)
+                                                .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
                                                 .foregroundStyle(selectedMood == mood ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         }
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
@@ -483,60 +491,29 @@ struct AddEventSheet: View {
     /// the type, never the medication choice: a compact picker whose bound
     /// moves under its selection redraws its date in the short style
     /// («11/3/26»), and with the time starting at now a choice never does.
-    private var timePicker: some View {
-        DatePicker("form.time".l, selection: $time,
-                   in: Date.distantPast...(selectedType == .medication ? AppClock.now : Date.distantFuture),
-                   displayedComponents: [.date, .hourAndMinute])
-    }
-
-    /// Label above the pickers at accessibility sizes: beside the date and
-    /// time buttons it had room for a few letters and broke mid-word.
-    @ViewBuilder private var timeRow: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                // The picker keeps its own label for VoiceOver, so Time is
-                // read once.
-                Text("form.time".l)
-                    .accessibilityHidden(true)
-                timePicker
-                    .labelsHidden()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            timePicker
+    private var timeRow: some View {
+        BBLabeledPicker("form.time".l) { label in
+            DatePicker(label, selection: $time,
+                       in: Date.distantPast...(selectedType == .medication ? AppClock.now : Date.distantFuture),
+                       displayedComponents: [.date, .hourAndMinute])
         }
     }
 
     private var freeTextMedicationFields: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
             // Vertical, so a long name wraps at large text instead of shrinking.
-            // The point-size font matters: with the text-style .body the
-            // placeholder kept to one line at accessibility sizes and ended
-            // in «…» although the field had two.
             TextField("form.medication_name".l, text: $medicationName, axis: .vertical)
-                .lineLimit(placeholderLines)
+                .bbPlaceholderLabel(design: .default)
                 .oneParagraph($medicationName)
-                .font(fieldFont)
                 .medicationField()
+            // The name field's face; the placeholder is one word and needs no
+            // reserved line.
             TextField("form.dose".l, text: $medicationDose, axis: .vertical)
                 .lineLimit(1...3)
                 .oneParagraph($medicationDose)
-                .font(fieldFont)
+                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .default))
                 .medicationField()
         }
-    }
-
-    /// A placeholder wraps only into lines the field already has, so at
-    /// accessibility sizes the name field keeps two: with one, the
-    /// placeholder, the field's only visible label, ended in «…». The dose
-    /// placeholder is one word and needs none.
-    private var placeholderLines: ClosedRange<Int> {
-        dynamicTypeSize.isAccessibilitySize ? 2...4 : 1...3
-    }
-
-    /// The body face at the body size, up to the app's largest text size.
-    private var fieldFont: Font {
-        BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .default)
     }
 
     /// Kept after the alert closes, so its title does not blank as it goes.

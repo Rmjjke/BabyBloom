@@ -322,15 +322,19 @@ struct AddSleepSheet: View {
                     }
 
                     // Times
-                    DatePicker("form.start_time".l, selection: $startTime, displayedComponents: [.date, .hourAndMinute])
-                        .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
-                        .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    BBLabeledPicker("form.start_time".l) { label in
+                        DatePicker(label, selection: $startTime, displayedComponents: [.date, .hourAndMinute])
+                            .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                    }
+                    .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
-                    DatePicker("form.end_time".l, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
-                        .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
-                        .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    BBLabeledPicker("form.end_time".l) { label in
+                        DatePicker(label, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
+                            .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                    }
+                    .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
                 }
                 .padding(BBTheme.Spacing.md)
             }

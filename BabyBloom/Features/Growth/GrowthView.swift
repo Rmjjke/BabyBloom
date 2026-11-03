@@ -831,7 +831,6 @@ struct GrowthEntryRow: View {
 
 // MARK: - Add Growth Sheet
 struct AddGrowthSheet: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
@@ -847,22 +846,9 @@ struct AddGrowthSheet: View {
     @State private var includeHeight: Bool = false
     @State private var date = Date()
 
-    /// The label above the picker at accessibility sizes: beside it, the
-    /// label broke "Mea- / sure- / ment Date".
-    @ViewBuilder private var measurementDatePicker: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                // The picker keeps its own label for VoiceOver.
-                Text("form.measurement_date".l)
-                    .accessibilityHidden(true)
-                DatePicker("form.measurement_date".l, selection: $date,
-                           in: dateRange, displayedComponents: .date)
-                    .labelsHidden()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            DatePicker("form.measurement_date".l, selection: $date,
-                       in: dateRange, displayedComponents: .date)
+    private var measurementDatePicker: some View {
+        BBLabeledPicker("form.measurement_date".l) { label in
+            DatePicker(label, selection: $date, in: dateRange, displayedComponents: .date)
         }
     }
 

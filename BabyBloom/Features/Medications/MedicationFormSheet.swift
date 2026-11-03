@@ -12,7 +12,6 @@ struct MedicationFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var input: MedicationFormInput
     @State private var confirmDelete = false
@@ -108,9 +107,8 @@ struct MedicationFormSheet: View {
             divider
             // Vertical, so a long name wraps at large text instead of shrinking.
             TextField("medication.field_name_placeholder".l, text: $input.name, axis: .vertical)
-                .lineLimit(placeholderLines)
+                .bbPlaceholderLabel()
                 .oneParagraph($input.name)
-                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .accessibilityLabel(Text("medication.field_name".l))
                 .accessibilityIdentifier("medication.name")
             divider
@@ -143,9 +141,8 @@ struct MedicationFormSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             // The placeholders are long: single-line, they shrank at large text.
             TextField("medication.field_dose_placeholder".l, text: $input.doseText, axis: .vertical)
-                .lineLimit(placeholderLines)
+                .bbPlaceholderLabel()
                 .oneParagraph($input.doseText)
-                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .accessibilityLabel(Text("medication.field_dose".l))
                 .accessibilityIdentifier("medication.dose")
             divider
@@ -170,20 +167,12 @@ struct MedicationFormSheet: View {
             }
             divider
             TextField("form.notes_optional".l, text: $input.note, axis: .vertical)
-                .lineLimit(3)
-                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
+                .bbPlaceholderLabel()
         }
         .medicationField()
     }
 
     // MARK: Parts
-
-    /// A placeholder wraps only into lines the field already has, so at
-    /// accessibility sizes the name and dose fields keep two: with one, the
-    /// placeholder, the field's only visible label, ended in «…».
-    private var placeholderLines: ClosedRange<Int> {
-        dynamicTypeSize.isAccessibilitySize ? 2...4 : 1...3
-    }
 
     /// The pending time as it will be after Save: the form's interval and
     /// maximum over the doses already logged. None for a new medication.

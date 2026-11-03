@@ -16,7 +16,6 @@ struct DoseSheet: View {
     var onDelete: ((CustomEvent) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var medicine: Medicine?
     @State private var time: Date
     @State private var doseText: String
@@ -172,27 +171,15 @@ struct DoseSheet: View {
         .padding(BBTheme.Spacing.md)
     }
 
-    /// At accessibility sizes the label goes above the picker: beside the
-    /// date and time buttons it had room for a few letters and broke mid-word.
-    @ViewBuilder
+    /// The range ends at now: a dose that has not happened cannot be picked.
+    /// Save clamps too, since the picker clamps only its display.
     private var timeField: some View {
-        // The range ends at now: a dose that has not happened cannot be
-        // picked. Save clamps too, since the picker clamps only its display.
-        let picker = DatePicker("form.time".l, selection: $time, in: ...AppClock.now,
-                                displayedComponents: [.date, .hourAndMinute])
-            .datePickerStyle(.compact)
-            .tint(BBTheme.Colors.primary)
-            .accessibilityIdentifier("dose.time")
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                // The picker keeps its own label for VoiceOver, so Time is
-                // read once.
-                Text("form.time".l)
-                    .accessibilityHidden(true)
-                picker.labelsHidden()
-            }
-        } else {
-            picker
+        BBLabeledPicker("form.time".l) { label in
+            DatePicker(label, selection: $time, in: ...AppClock.now,
+                       displayedComponents: [.date, .hourAndMinute])
+                .datePickerStyle(.compact)
+                .tint(BBTheme.Colors.primary)
+                .accessibilityIdentifier("dose.time")
         }
     }
 

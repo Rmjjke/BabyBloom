@@ -420,13 +420,16 @@ struct AddDiaperSheet: View {
                     }
 
                     TextField("form.notes_optional".l, text: $notes, axis: .vertical)
-                        .lineLimit(3).padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
-
-                    DatePicker("form.time".l, selection: $time, displayedComponents: [.date, .hourAndMinute])
-                        .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                        .bbPlaceholderLabel(design: .default)
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+
+                    BBLabeledPicker("form.time".l) { label in
+                        DatePicker(label, selection: $time, displayedComponents: [.date, .hourAndMinute])
+                            .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                    }
+                    .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
                 }
                 .padding(BBTheme.Spacing.md)
             }

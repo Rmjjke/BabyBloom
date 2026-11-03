@@ -78,6 +78,7 @@
 		44696B58A00CD1932CBC7F43 /* MedicationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7F55CA505F1177A13FDB5D /* MedicationDetailView.swift */; };
 		453CE2715B6A94686369812D /* MedicationFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8B9A9A40688AC4D176E215 /* MedicationFormatTests.swift */; };
 		45407FD7DC14E1EB45FB9192 /* BBTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141E9D25B87B2C358EFCE05E /* BBTheme.swift */; };
+		48618E714D996243788C8CEB /* BBFieldLabels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37752DF6B096E92D1993AE2A /* BBFieldLabels.swift */; };
 		48CB7176CCCA6E3B92D3C3DE /* StatusWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD4BA37056F98A21BACCC4E /* StatusWord.swift */; };
 		491B39E7CEA4D583257643F7 /* String+UnitGlue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833D4E931E3BC4A0715B9DC8 /* String+UnitGlue.swift */; };
 		49C2E06C5DB3CD452835C742 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
@@ -375,6 +376,7 @@
 		3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingBreakdownCard.swift; sourceTree = "<group>"; };
 		35CC038C14DBB4D68AC2E233 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		35F49DA9A952161FFF0F24A0 /* en.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = en.json; sourceTree = "<group>"; };
+		37752DF6B096E92D1993AE2A /* BBFieldLabels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBFieldLabels.swift; sourceTree = "<group>"; };
 		37E6C36D64BC0C13BD65E0C3 /* WeeklyNotificationPlanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyNotificationPlanTests.swift; sourceTree = "<group>"; };
 		37E80A3482A70EC47B69F247 /* EventsHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsHistory.swift; sourceTree = "<group>"; };
 		390F8BD3D44D73D72C6D2893 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -675,6 +677,7 @@
 				A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */,
 				6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */,
 				3A2DCA65186F68E00645DF02 /* BBFab.swift */,
+				37752DF6B096E92D1993AE2A /* BBFieldLabels.swift */,
 				DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */,
 				8B6AD2785BEA18792EBB7624 /* BBLockedHistoryFooter.swift */,
 				7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */,
@@ -1444,6 +1447,7 @@
 				E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */,
 				92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */,
 				E4288B825DEDD42215BBD8EB /* BBFab.swift in Sources */,
+				48618E714D996243788C8CEB /* BBFieldLabels.swift in Sources */,
 				EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */,
 				C7B50CC0B3FD7AC1F8FA2AF3 /* BBLockedHistoryFooter.swift in Sources */,
 				E71A50FD691737FE791A71C7 /* BBMeasureSlider.swift in Sources */,
