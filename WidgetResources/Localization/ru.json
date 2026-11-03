@@ -108,7 +108,7 @@
   "medication.delete": "Удалить лекарство",
   "medication.delete_message": "Его дозы останутся в разделе «События».",
   "medication.form_new_title": "Новое лекарство",
-  "medication.form_edit_title": "Изменить лекарство",
+  "medication.form_edit_title": "Лекарство",
   "medication.safety_line": "Ночка считает время между дозами по интервалу, который вы указали. Дозу и интервал назначает педиатр или указывает инструкция к лекарству, приложение их не проверяет.",
   "medication.field_name": "Название",
   "medication.field_name_placeholder": "Название, как на упаковке",

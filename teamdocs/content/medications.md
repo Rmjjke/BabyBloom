@@ -108,6 +108,19 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
     keeps the time the screen showed before.
   - The time stays the message's last line in every language: a time that is
     not ahead of now is left out with its line.
+  - The line does not say what sets the time. In the before variant the
+    24 h maximum can set it: interval 6 h, maximum 3, doses at midnight and
+    7:00 AM, this one at 8:00 AM, and under "Less than 6 h since the last
+    dose" the next time is midnight tomorrow. Words such as "with your
+    interval" would name a limit that is not the one in force.
+- **The form's titles.** New: "New Medication" / «Новое лекарство» /
+  «Nuevo medicamento». Edit: "Edit Medication" / «Лекарство» / «Editar
+  medicamento». ru drops the verb, as «Вопрос» does for an edited question.
+  Between the «Отмена» and «Сохранить» buttons the title has about 127 pt at
+  the default size: «Новое лекарство» just fills it, and «Изменить
+  лекарство» shrank to 0.79. No shorter ru phrase keeps the verb («Правка
+  лекарства» needs 135 pt). The filled fields and Save show that the sheet
+  is an edit.
 - **The reminder.** Title = the name. Body = the time since the last logged
   dose, with that dose's time in parentheses, so it stays true on a phone
   that has not synced yet. No emoji. The day word in the body is computed
@@ -256,3 +269,6 @@ space.
   you save," / «Если сохранить,» / «Si guardas,», and ru names «следующая
   доза» in full (alone, «Следующая» read as the dose being logged).
   Arguments unchanged. `ended_on_fmt` has a no-break space before its dot.
+- 2026-11-03 — ru `form_edit_title` «Изменить лекарство» → «Лекарство»,
+  so the edit form's title draws at full size between Cancel and Save. The
+  alert's next-time line stays neutral on what sets the time.
