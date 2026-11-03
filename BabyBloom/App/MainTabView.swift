@@ -359,7 +359,7 @@ struct ProfileView: View {
                         if store.isPremium {
                             Text("premium.active_badge".l)
                                 .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(BBTheme.Colors.onPrimary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
                                 .background(BBTheme.Colors.primary)
