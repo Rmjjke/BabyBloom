@@ -392,7 +392,7 @@ struct AddDiaperSheet: View {
                                                 .overlay(Circle().stroke(selectedColor == color ? BBTheme.Colors.primary : .clear, lineWidth: 2.5))
                                                 .overlay(
                                                     selectedColor == color
-                                                    ? Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                                                    ? Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(Color(hex: color.checkHex))
                                                     : nil
                                                 )
                                             Text(color.displayName.l)

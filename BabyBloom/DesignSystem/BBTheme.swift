@@ -16,6 +16,9 @@ enum BBTheme {
         static let onPrimary = Color("BBOnPrimary")
         /// Soft peach — warm accent
         static let accent = Color("BBAccent")
+        /// Text ON a BBAccent fill: near-black in both modes, since white on
+        /// the light peach reads under 2:1.
+        static let onAccent = Color("BBOnAccent")
         /// Lavender-white app background
         static let background = Color("BBBackground")
         /// Mint green — success
