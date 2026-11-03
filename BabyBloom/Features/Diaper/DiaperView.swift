@@ -350,6 +350,7 @@ struct AddDiaperSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.diaper".l)
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.type".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
@@ -441,8 +442,7 @@ struct AddDiaperSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .navigationTitle("sheet.diaper".l)
-            .navigationBarTitleDisplayMode(.inline)
+            .bbSheetTitle("sheet.diaper".l, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

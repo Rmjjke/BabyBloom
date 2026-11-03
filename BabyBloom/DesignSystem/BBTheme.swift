@@ -315,15 +315,15 @@ extension View {
     /// An entry sheet's inline title between Cancel and Save. The system title
     /// truncates («Новое кормл…»); this one shrinks instead.
     /// Capped at `.large`, and one line: the bar never grows, and the principal
-    /// slot gave a second line no room — at AX2 the wider Cancel / Save left it
-    /// «Новое кормл…» again. Shrinking to 0.6 keeps the whole title.
+    /// slot gives a second line no room. Shrinking to 0.6 keeps the whole title.
     ///
-    /// `movesIntoContentAtAX`: a long title between two capsule buttons still
-    /// shrank to ~11 pt at AX2 («Приём у педиатра»). Such a
-    /// sheet puts `BBSheetHeading` first in its content, and at AX sizes the
-    /// bar shows no title at all: an empty principal item alone let the system
-    /// draw the navigation title, cut («Приём…»). The heading in the content
-    /// carries the header trait for VoiceOver.
+    /// `movesIntoContentAtAX`: at AX sizes any title, short or long, shrank to
+    /// 11–13 pt beside the grown Cancel and Save, so every entry sheet passes
+    /// it. The sheet puts `BBSheetHeading` first in its content, and at AX
+    /// sizes the bar shows no title at all: an empty principal item alone let
+    /// the system draw the navigation title, cut («Приём…»). The heading in
+    /// the content carries the header trait for VoiceOver. The two go
+    /// together: the flag alone leaves no title, the heading alone two.
     func bbSheetTitle(_ title: String, movesIntoContentAtAX: Bool = false) -> some View {
         modifier(BBSheetTitle(title: title, movesIntoContentAtAX: movesIntoContentAtAX))
     }
@@ -366,6 +366,8 @@ struct BBSheetHeading: View {
             BBTheme.Typography.title3(title)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
+                // Leading in the sheets that centre their content too.
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityAddTraits(.isHeader)
         }
     }

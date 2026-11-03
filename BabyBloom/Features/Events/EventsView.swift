@@ -314,6 +314,7 @@ struct AddEventSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.new_event".l)
                     // Type grid: glyph and word grow with the text size, and
                     // at accessibility sizes two columns give each word its
                     // width (a third of the sheet cut «Medicamento»).
@@ -429,7 +430,7 @@ struct AddEventSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.new_event".l)
+            .bbSheetTitle("sheet.new_event".l, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

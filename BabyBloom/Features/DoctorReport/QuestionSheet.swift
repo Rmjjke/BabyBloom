@@ -21,12 +21,15 @@ struct QuestionSheet: View {
         _text = State(initialValue: question?.text ?? "")
     }
 
+    private var title: String { question == nil ? "question.new_title".l : "question.title".l }
+
     private var canSave: Bool { !DoctorVisitActions.clampedQuestion(text).isEmpty }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    BBSheetHeading(title: title)
                     // Unbounded: a question may run long, and the field grows
                     // with it.
                     TextField("question.placeholder".l, text: $text, axis: .vertical)
@@ -61,7 +64,7 @@ struct QuestionSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle(question == nil ? "question.new_title".l : "question.title".l)
+            .bbSheetTitle(title, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
