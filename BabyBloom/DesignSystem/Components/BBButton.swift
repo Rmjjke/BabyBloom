@@ -19,7 +19,7 @@ struct BBPrimaryButton: View {
             HStack(spacing: BBTheme.Spacing.sm) {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(BBTheme.Colors.onPrimary)
                         .scaleEffect(0.9)
                 } else {
                     if let icon {
@@ -30,13 +30,17 @@ struct BBPrimaryButton: View {
                         .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
                 }
             }
-            .foregroundStyle(.white)
+            // The dark primary is light, so the label takes BBOnPrimary, not
+            // white (under 3:1 there). The end stop at 0.9 rather than 0.8 lets
+            // the page show through less, so a long label still reads at
+            // 4.5:1 or more where the gradient is faintest, in both modes.
+            .foregroundStyle(BBTheme.Colors.onPrimary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, BBTheme.Spacing.sm)
             .frame(minHeight: 56)
             .background(
                 LinearGradient(
-                    colors: [BBTheme.Colors.primary, BBTheme.Colors.primary.opacity(0.8)],
+                    colors: [BBTheme.Colors.primary, BBTheme.Colors.primary.opacity(0.9)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

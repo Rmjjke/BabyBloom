@@ -37,7 +37,7 @@ struct BBHistoryFilterPicker: View {
                 } label: {
                     Text(filter.rawValue.l)
                         .font(.system(size: 13, weight: selected == filter ? .semibold : .medium, design: .rounded))
-                        .foregroundStyle(selected == filter ? .white : BBTheme.Colors.textSecondary)
+                        .foregroundStyle(selected == filter ? BBTheme.Colors.onPrimary : BBTheme.Colors.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 7)
                         .background(
