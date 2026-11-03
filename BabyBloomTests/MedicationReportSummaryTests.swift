@@ -2,8 +2,10 @@ import XCTest
 @testable import BabyBloom
 
 private typealias Dose = DoctorReportSummary.Input.Dose
+private typealias DoseText = DoctorReportSummary.Medication.DoseText
 
-/// The report's medications: what falls in the period, and how doses group.
+/// The report's medications: what falls in the period, how doses group into
+/// lines, and how a line's doses group by their dose text.
 final class MedicationReportSummaryTests: XCTestCase {
 
     private let calendar: Calendar = {
@@ -44,15 +46,45 @@ final class MedicationReportSummaryTests: XCTestCase {
         XCTAssertTrue(medications([dose(5, 8)]).isEmpty)
     }
 
-    func testAMedicinesDosesGroupUnderItsCurrentNameWithTheLatestDoseText() {
-        let result = medications([dose(11, 8, name: "Paracetmol", dose: "100 mg"),
+    func testAMedicinesDosesGroupUnderItsCurrentName() {
+        let result = medications([dose(11, 8, name: "Paracetmol", dose: "120 mg (5 ml)"),
                                   dose(14, 8, name: "Paracetamol", dose: "120 mg (5 ml)", medicineName: "Paracetamol")])
-        XCTAssertEqual(result, [DoctorReportSummary.Medication(name: "Paracetamol", doseText: "120 mg (5 ml)",
-                                                               count: 2, first: at(11, 8), last: at(14, 8))])
+        XCTAssertEqual(result, [DoctorReportSummary.Medication(
+            name: "Paracetamol", texts: [DoseText(text: "120 mg (5 ml)", count: 2, first: at(11, 8), last: at(14, 8))],
+            count: 2, first: at(11, 8), last: at(14, 8))])
+        XCTAssertEqual(result.first?.doseText, "120 mg (5 ml)", "one text: the line reads as one")
+    }
+
+    /// A changed dose is stated with what each text counts, in order of first
+    /// use, never the latest text beside the whole count.
+    func testAChangedDoseStatesEachTextInOrderOfFirstUse() {
+        let result = medications([dose(11, 8, dose: "2.5 ml"), dose(12, 8, dose: " 2.5 ML "),
+                                  dose(13, 8, dose: "5 ml"), dose(14, 8, dose: "2.5 mL")])
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result.first?.count, 4)
+        XCTAssertEqual(result.first?.texts, [
+            DoseText(text: "2.5 mL", count: 3, first: at(11, 8), last: at(14, 8)),
+            DoseText(text: "5 ml", count: 1, first: at(13, 8), last: at(13, 8)),
+        ], "trimmed and case-insensitive, under the latest spelling")
+        XCTAssertNil(result.first?.doseText, "no one text stands for the line")
+    }
+
+    func testDosesWithoutATextBesideTextedOnesAreTheirOwnGroup() {
+        let result = medications([dose(11, 8), dose(12, 8, dose: "5 ml"), dose(13, 8, dose: "  ")])
+        XCTAssertEqual(result.first?.texts, [
+            DoseText(text: nil, count: 2, first: at(11, 8), last: at(13, 8)),
+            DoseText(text: "5 ml", count: 1, first: at(12, 8), last: at(12, 8)),
+        ])
+    }
+
+    func testALineWithNoTextAtAllHasOneEmptyGroup() {
+        let result = medications([dose(11, 8), dose(12, 8)])
+        XCTAssertEqual(result.first?.texts, [DoseText(text: nil, count: 2, first: at(11, 8), last: at(12, 8))])
+        XCTAssertNil(result.first?.doseText)
     }
 
     func testOlderEventsGroupByTheirTrimmedNameWhateverTheCase() {
-        let result = medications([dose(11, 8, name: "  saline drops ", linked: false),
+        let result = medications([dose(11, 8, name: "  saline drops ", dose: "2 drops", linked: false),
                                   dose(12, 8, name: "Saline Drops", dose: "2 drops", linked: false)])
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result.first?.name, "Saline Drops")
@@ -67,14 +99,18 @@ final class MedicationReportSummaryTests: XCTestCase {
         XCTAssertEqual(result.map(\.count), [1, 1])
     }
 
-    func testEventsWithNoNameShareOneLastLineWithNoDoseText() {
+    /// The nameless line follows the same dose-text rule and drops no text it has.
+    func testEventsWithNoNameShareOneLastLineAndKeepTheirTexts() {
         let result = medications([dose(11, 8, name: nil, dose: "5 ml", linked: false),
                                   dose(12, 8, name: "   ", linked: false),
                                   dose(13, 8, name: "Vitamin D", linked: false),
                                   dose(14, 8)])
         XCTAssertEqual(result.map(\.name), ["Paracetamol", "Vitamin D", nil])
         XCTAssertEqual(result.last?.count, 2)
-        XCTAssertNil(result.last?.doseText)
+        XCTAssertEqual(result.last?.texts, [
+            DoseText(text: "5 ml", count: 1, first: at(11, 8), last: at(11, 8)),
+            DoseText(text: nil, count: 1, first: at(12, 8), last: at(12, 8)),
+        ])
     }
 
     func testLinesAreByNameWhateverTheCase() {

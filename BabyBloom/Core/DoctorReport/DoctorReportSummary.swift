@@ -198,12 +198,26 @@ struct DoctorReportSummary: Equatable {
     struct Medication: Equatable {
         /// nil: the events with no name.
         let name: String?
-        /// As written on the latest dose; nil when there is none, and for the
-        /// line without a name, whose doses need not share one.
-        let doseText: String?
+        /// The dose texts the line's doses carry, in order of first use, each
+        /// with its own count and days. One entry: every dose shares it (nil:
+        /// none has one). More: the dose changed, and each text is stated
+        /// with what it counts, nil being the doses logged without one. The
+        /// latest text alone would turn 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml.
+        let texts: [DoseText]
         let count: Int
         let first: Date
         let last: Date
+
+        struct DoseText: Equatable {
+            /// As written on the group's latest dose; nil: no text written.
+            let text: String?
+            let count: Int
+            let first: Date
+            let last: Date
+        }
+
+        /// The text every dose shares; nil when none has one or they differ.
+        var doseText: String? { texts.count == 1 ? texts[0].text : nil }
     }
 
     /// Medications given in the period, by name, the line without a name

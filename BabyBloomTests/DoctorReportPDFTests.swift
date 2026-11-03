@@ -323,6 +323,43 @@ final class DoctorReportPDFTests: XCTestCase {
         }
     }
 
+    /// A changed dose takes a row per text with the name repeated; doses with
+    /// no text beside texted ones are worded, also on the nameless line.
+    func testAChangedDosePrintsARowPerTextInEveryLanguage() {
+        let paracetamol = UUID()
+        let doses = [20, 22].map {
+            Dose(time: at($0, 8), name: "Paracetamol", doseText: "2.5 ml", medicineID: paracetamol,
+                 medicineName: "Paracetamol")
+        } + [Dose(time: at(26, 8), name: "Paracetamol", doseText: "5 ml", medicineID: paracetamol,
+                  medicineName: "Paracetamol"),
+             Dose(time: at(24, 9), name: nil, doseText: "1 ml"),
+             Dose(time: at(25, 9), name: nil, doseText: nil)]
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(makeSummary(doses: doses))
+            let first = ReportFormat.dayRange(at(20, 8), at(22, 8), now: now)
+            let second = ReportFormat.dayRange(at(26, 8), at(26, 8), now: now)
+            XCTAssertTrue(page.contains("<tr><td>Paracetamol</td><td>2.5 ml</td><td>2</td><td>\(esc(first))</td></tr>"
+                                        + "<tr><td>Paracetamol</td><td>5 ml</td><td>1</td><td>\(esc(second))</td></tr>"),
+                          "\(language): one row per text, in order of first use")
+            let nameless = esc("medication.report_without_name".l)
+            XCTAssertTrue(page.contains("<tr><td>\(nameless)</td><td>1 ml</td><td>1</td>"), "\(language)")
+            XCTAssertTrue(page.contains("<tr><td>\(nameless)</td><td>\(esc("medication.report_dose_not_written".l))</td><td>1</td>"),
+                          "\(language)")
+        }
+    }
+
+    /// The screen's caption for one text of a changed dose.
+    func testAChangedDoseReadsAsTextCountAndDaysOnTheScreen() {
+        let line = MedicationFormat.reportDoseLine(
+            .init(text: "2.5 ml", count: 10, first: at(20, 8), last: at(22, 8)), now: now)
+        XCTAssertEqual(line, "2.5 ml\u{00A0}· " + MedicationFormat.doseCount(10) + "\u{00A0}· "
+                       + ReportFormat.dayRange(at(20, 8), at(22, 8), now: now))
+        let unwritten = MedicationFormat.reportDoseLine(
+            .init(text: nil, count: 1, first: at(23, 8), last: at(23, 8)), now: now)
+        XCTAssertTrue(unwritten.hasPrefix("medication.report_dose_not_written".l + "\u{00A0}· "))
+    }
+
     func testNoDoseInThePeriodPrintsNoMedicationsSection() {
         for summary in [makeSummary(), makeEmptySummary(), makeNewPeriodSummary()] {
             let page = html(summary)

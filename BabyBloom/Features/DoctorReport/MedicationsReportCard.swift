@@ -2,8 +2,9 @@ import SwiftUI
 
 /// Medications given in the report period: per medication its name as
 /// written, the doses counted with the first and last day, and the dose text
-/// under it. No interval, no maximum and no mark on an early dose: in a
-/// document for the doctor that mark would be a verdict on the parent.
+/// under it; when the dose changed, one line per text with its own count and
+/// days. No interval, no maximum and no mark on an early dose: in a document
+/// for the doctor that mark would be a verdict on the parent.
 struct MedicationsReportCard: View {
     /// Not empty: the card is absent when no dose falls in the period.
     let medications: [DoctorReportSummary.Medication]
@@ -17,7 +18,11 @@ struct MedicationsReportCard: View {
                     ReportRow(label: (medication.name ?? "medication.report_without_name".l) + ": ",
                               value: MedicationFormat.doseCount(medication.count),
                               suffix: ReportFormat.dayRange(medication.first, medication.last, now: now))
-                    if let dose = medication.doseText {
+                    if medication.texts.count > 1 {
+                        ForEach(Array(medication.texts.enumerated()), id: \.offset) { _, dose in
+                            ReportCaption(MedicationFormat.reportDoseLine(dose, now: now))
+                        }
+                    } else if let dose = medication.doseText {
                         ReportCaption(dose)
                     }
                 }

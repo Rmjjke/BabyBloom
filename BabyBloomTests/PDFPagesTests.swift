@@ -379,6 +379,31 @@ final class PDFPagesTests: XCTestCase {
         }
     }
 
+    /// A medications table that fits on a page moves to the next one whole,
+    /// with its heading, rather than leaving rows under a repeated head. The
+    /// weighings above push it down the page in steps until one lands it at
+    /// a page end.
+    func testAShortMedicationsTableMovesToTheNextPageWhole() throws {
+        let names = (1...4).map { String(format: "Лекарство %02d", $0) }
+        var moved = false
+        try inLanguage(.ru) {
+            // Without keeping together, rows split from 31 to 33 extra
+            // weighings and the table moves whole at 34; the margin absorbs
+            // small layout changes, and `moved` fails loudly beyond them.
+            for extra in 24...44 {
+                let pages = texts(try report(extraWeighings: extra, medicationNames: names).document)
+                let title = "medication.report_title".l
+                let titlePage = try XCTUnwrap(pages.firstIndex { $0.contains(title) }, "\(extra)")
+                for name in names {
+                    XCTAssertEqual(pages.firstIndex { $0.contains(name) }, titlePage, "\(extra): «\(name)»")
+                }
+                let diapers = pages.lastIndex { $0.contains("export.cat.diapers".l) }
+                if let diapers, diapers < titlePage { moved = true }
+            }
+        }
+        XCTAssertTrue(moved, "no step put the table at a page end, so nothing was tested")
+    }
+
     // MARK: Text layer
 
     func testRussianTextLayerHoldsRealLetters() throws {

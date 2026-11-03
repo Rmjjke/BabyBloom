@@ -221,14 +221,25 @@ enum DoctorReportPDF {
         let heads = ["medication.report_col_name", "medication.report_col_dose",
                      "medication.report_col_count", "medication.report_col_dates"]
             .map { "<th>\(esc($0.l))</th>" }.joined()
-        let rows = medications.map { medication in
-            let cells = [medication.name ?? "medication.report_without_name".l, medication.doseText ?? "",
-                         "\(medication.count)", ReportFormat.dayRange(medication.first, medication.last, now: now)]
-            return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
+        // A line whose dose changed takes a row per text with the name
+        // repeated, so every row reads whole on whatever page it lands.
+        let rows = medications.flatMap { medication -> [String] in
+            let name = medication.name ?? "medication.report_without_name".l
+            let lines = medication.texts.count > 1
+                ? medication.texts.map { (MedicationFormat.reportDoseText($0.text), $0.count, $0.first, $0.last) }
+                : [(medication.doseText ?? "", medication.count, medication.first, medication.last)]
+            return lines.map { dose, count, first, last in
+                let cells = [name, dose, "\(count)", ReportFormat.dayRange(first, last, now: now)]
+                return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
+            }
         }
         let table = "<table class=\"weighings\"><colgroup>\(columns)</colgroup><thead><tr>\(heads)</tr></thead><tbody>"
+        // What was given is read as one list: a table that fits a page moves
+        // to the next one whole, rather than leaving a row alone under a
+        // repeated head.
         return .rows(.init(opening: "<div><h2>\(esc("medication.report_title".l))</h2>" + table,
-                           continuation: { _ in "<div>" + table }, closing: "</tbody></table></div>", rows: rows))
+                           continuation: { _ in "<div>" + table }, closing: "</tbody></table></div>", rows: rows,
+                           keepsTogether: true))
     }
 
     // MARK: Feeding, sleep, diapers
