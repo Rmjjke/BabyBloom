@@ -62,7 +62,7 @@ struct DoctorReportView: View {
                 }
             }
             .padding(BBTheme.Spacing.md)
-            // iPad: one readable column, leading (design § 4).
+            // iPad: one readable column, leading.
             .frame(maxWidth: 600, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }

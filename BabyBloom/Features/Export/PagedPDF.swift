@@ -313,7 +313,7 @@ enum PagedPDF {
         for page in 0..<renderer.numberOfPages {
             UIGraphicsBeginPDFPage()
             // A white page, margins and footer included: a PDF page is
-            // transparent, and dark viewers drew the frame black (design review m5).
+            // transparent, and dark viewers drew the frame black.
             UIColor.white.setFill()
             UIRectFill(UIGraphicsGetPDFContextBounds())
             renderer.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())

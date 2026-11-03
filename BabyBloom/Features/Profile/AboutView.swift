@@ -1,7 +1,7 @@
 import SwiftUI
 import CloudKit
 
-/// Settings' read-only iCloud Sync line (Q-003, D21). Asks CloudKit itself:
+/// Settings' read-only iCloud Sync line. Asks CloudKit itself:
 /// the store syncs through CloudKit only, and the ubiquity token can be nil
 /// for a signed-in account with iCloud Drive off, which would read as "Off"
 /// while sync works.
@@ -13,7 +13,7 @@ struct ICloudStatusRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             // Value under the label at accessibility sizes: side by side, ru
-            // AX2 broke «Синхро / низация» and «Выключен / а» (Q-013).
+            // AX2 broke «Синхро / низация» and «Выключен / а».
             let row = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
                 : AnyLayout(HStackLayout())

@@ -9,8 +9,8 @@ enum TimerKind: String, Codable, Hashable, Sendable {
     case feeding, sleep
 }
 
-/// What the activity's title says. Formula and pumped share one bottle title
-/// (D28): on a Lock Screen the side is what a parent needs, not the milk.
+/// What the activity's title says. Formula and pumped share one bottle title:
+/// on a Lock Screen the side is what a parent needs, not the milk.
 enum TimerTitle: String, Codable, Hashable, Sendable {
     case breast, breastLeft, breastRight, breastBoth, bottle, nap, night
 

@@ -21,7 +21,7 @@ struct GrowthView: View {
     private var measurements: [WeightMeasurement] { entries.weightMeasurements }
 
     // GrowthView is only ever a push destination, and there are now two routes
-    // into it: the More tab's Growth row (D6 IA change) and the Dashboard's
+    // into it: the More tab's Growth row and the Dashboard's
     // Growth section header. Both callers own the NavigationStack, so this view
     // must NOT wrap one of its own — that would nest a stack inside a stack
     // (double nav bar) on either route. Title/toolbar attach to whichever
@@ -789,7 +789,7 @@ struct GrowthEntryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 // Weight above height at accessibility sizes, and each value
                 // one unbreakable line: side by side, ru AX2 broke «4,0 / 0 кг»
-                // (Q-014; a number never splits from its unit).
+                // (a number never splits from its unit).
                 let values = dynamicTypeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
                     : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.md))
@@ -848,7 +848,7 @@ struct AddGrowthSheet: View {
     @State private var date = Date()
 
     /// The label above the picker at accessibility sizes: beside it, the
-    /// label broke "Mea- / sure- / ment Date" (Q-013).
+    /// label broke "Mea- / sure- / ment Date".
     @ViewBuilder private var measurementDatePicker: some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {

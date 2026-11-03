@@ -69,7 +69,7 @@ final class WeightChartRenderDump: XCTestCase {
                 at(760, 12.40), at(800, 12.80), at(860, 13.30),
             ]))
 
-            // The owner's report (2026-09-23): a long flat stretch, then two
+            // A report from 2026-09-23: a long flat stretch, then two
             // weighings on one day. The readout and the date axis are what
             // make "when did it jump, and to what" answerable.
             try dump(dir, "\(locale)-same-day-jump", chart([

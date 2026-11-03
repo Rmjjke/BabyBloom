@@ -179,7 +179,7 @@ final class SubscriptionManager {
     /// `-BBSkipSplash` and `-BBSeedScenario` do.
     ///
     /// Gated on `targetEnvironment(simulator)`, deliberately NOT on `DEBUG`:
-    /// `DEBUG` is false in a release-optimized QA build, which is still a real
+    /// `DEBUG` is false in a release-optimized test build, which is still a real
     /// build on a real device, and no shipped binary may carry a path that
     /// hands out a paid entitlement for free. On device this property, its key
     /// and the branch above do not exist at all.
@@ -326,7 +326,7 @@ final class SubscriptionManager {
                 // well be entitled. Re-read StoreKit so the host acts on the
                 // truth instead of on whatever `isEntitled` happened to hold —
                 // scanned once before publishing, so the report can tell an
-                // owner from a parent who backed out.
+                // subscriber from a parent who backed out.
                 report(await Self.scanEntitlement() == true ? .alreadySubscribed : .cancelled)
                 await refreshEntitlements()
             case .pending:

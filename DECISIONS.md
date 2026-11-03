@@ -10,9 +10,14 @@ that is not visible in the code. Mechanics belong in
 [ARCHITECTURE.md](ARCHITECTURE.md); this file is the reasoning.
 
 Working-process rules (git flow, verification, task cards) are not here — they
-live with the workflow in `.desk/`.
+live with the workflow, outside this repository.
 
 ---
+
+## 2026-11-03 — Code comments give their reason in product words, with no tracker ids
+
+- **No decision numbers, bug ids, requirement labels, task names or workflow paths in Swift comments.** They resolve only in notes that live outside this repository, so a clone reads «(D27)» or «(R3.3)» and cannot follow it. A comment states the reason itself, and cites this file by date when the reason is long («DECISIONS 2026-10-30»). A pointer to a tracked document by its path stays («teamdocs/design/m1-live-activity.md §§ 2–4», «NOTIFICATIONS.md §3»): a clone can open it. The 1.2.0 sweep rewrote about 250 such comments. Where the id was the only content, the rule is now spelled out («the newborn gate», «Monday weeks»).
+- **Export is enabled only when a ticked category has records in the range.** A category with no records draws an empty box but stays selected underneath, and its row takes no tap, so «anything selected» left the button on with nothing to write, and a tap ended in «No data». The button also dims when off: the shared primary button does not dim itself, so every caller that disables it sets the opacity. `ExportSelection.exportable` is the one rule for the button and for what the file holds.
 
 ## 2026-11-02 — PDFs compose their own pages, print in Helvetica Neue with a named fallback list, and carry no emoji in the body
 

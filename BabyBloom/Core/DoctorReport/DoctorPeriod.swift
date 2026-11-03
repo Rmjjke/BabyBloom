@@ -5,8 +5,8 @@ import Foundation
 enum DoctorPeriod {
 
     /// The visit the period starts at: the latest DATE, and on the same date
-    /// the one logged last (Manager's decision). A visit logged late with an
-    /// earlier date therefore never moves the period (R4.3).
+    /// the one logged last. A visit logged late with an earlier date therefore
+    /// never moves the period.
     static func latestVisit(_ visits: [DoctorVisit]) -> DoctorVisit? {
         visits.max { a, b in
             a.date != b.date ? a.date < b.date : a.createdAt < b.createdAt
@@ -14,8 +14,7 @@ enum DoctorPeriod {
     }
 
     /// 00:00 of the latest visit's day, so entries made on the visit day belong
-    /// to the new period (plan v2 decision 6); the start of the birth day when
-    /// there is no visit.
+    /// to the new period; the start of the birth day when there is no visit.
     static func start(visits: [DoctorVisit], birthDate: Date, calendar: Calendar = .current) -> Date {
         calendar.startOfDay(for: latestVisit(visits)?.date ?? birthDate)
     }

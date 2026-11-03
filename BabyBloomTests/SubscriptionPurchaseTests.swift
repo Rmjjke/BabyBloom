@@ -47,7 +47,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
     /// Skips, rather than hangs, when StoreKit testing will not let the session
     /// buy — for either of the two causes below.
     ///
-    /// **The cause seen on every run so far** (Xcode 26.3, spike 2026-10-29):
+    /// **The cause seen on every run so far** (Xcode 26.3, 2026-10-29):
     /// storekitd logs "com.nenita.app is not installed for development" for
     /// `buyProduct` and `deleteAllTransactions`, while the session's other calls
     /// (`saveConfigurationData`, `clearOverrides`) succeed. The test bundle does
@@ -206,8 +206,8 @@ final class SubscriptionPurchaseTests: XCTestCase {
     }
 
     /// `.paymentCancelled` is what the system raises when the user backs out of
-    /// the confirmation sheet. Nothing is bought and — the part that stranded
-    /// the owner — the manager must come back out of its loading state.
+    /// the confirmation sheet. Nothing is bought and — the part that once left
+    /// the paywall spinning — the manager must come back out of its loading state.
     @MainActor
     func testACancelledPurchaseLeavesTheUserFreeAndTheCTAUsable() async throws {
         let session = try makeSession()

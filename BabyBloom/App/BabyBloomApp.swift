@@ -61,7 +61,7 @@ struct BabyBloomApp: App {
             // tree: an inner `.preferredColorScheme(nil)` would win and cancel
             // the user's pick.
             .preferredColorScheme(AppAppearance.from(appAppearance).colorScheme)
-            // Dynamic Type: allow growth up to AX2 (a sensible ceiling for MVP —
+            // Dynamic Type: allow growth up to AX2 (a sensible ceiling for now —
             // full AX5 would demand deeper per-screen relayout). Below this, the
             // scaled Typography and growth-safe layouts do the work.
             // The ceiling comes from BBTheme so this modifier and the font cap in

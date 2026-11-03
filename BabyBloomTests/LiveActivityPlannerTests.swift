@@ -142,7 +142,7 @@ final class LiveActivityPlannerTests: XCTestCase {
         XCTAssertEqual(plan(activities: [activity(for: feed, phase: .gone)], gate: closedGates[0]), [])
     }
 
-    /// QA Q4: switching off (in the app or in iOS) and on again shows the
+    /// Switching off (in the app or in iOS) and on again shows the
     /// running timer again; with the gate open, starts are kept per running entry.
     func testAClosedGateForgetsStartsSoReopeningRearms() {
         let feed = timer(.feeding, .breastLeft, minutesAgo: 20)

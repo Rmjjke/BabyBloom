@@ -44,7 +44,7 @@ enum BBTheme {
     }
 
     // MARK: Typography
-    // Scale D1: straight SF Pro (semibold, not bold) for headers; rounded for body;
+    // Type scale: straight SF Pro (semibold, not bold) for headers; rounded for body;
     // rounded + monospacedDigit for metrics/timers so digits don't jump.
     enum Typography {
         /// The app's Dynamic Type ceiling, in the ONE place that decides it.
@@ -66,7 +66,7 @@ enum BBTheme {
         private static let capTraits =
             UITraitCollection(preferredContentSizeCategory: maxContentSizeCategory)
 
-        /// Point size for the D1 scale value `size`, scaled for Dynamic Type and
+        /// Point size for the type-scale value `size`, scaled for Dynamic Type and
         /// clamped to `maxContentSizeCategory`.
         ///
         /// The `min` IS the cap. `UIFontMetrics.scaledValue(for:)` — the form
@@ -95,11 +95,11 @@ enum BBTheme {
             return min(requested, metrics.scaledValue(for: size, compatibleWith: capTraits))
         }
 
-        /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the D1 scale
+        /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the type-scale
         /// values (unchanged); the point size is scaled for the user's Content Size
         /// setting and capped at `maxContentSizeCategory`. At the standard "Large"
         /// setting the scale factor is 1.0, so rendering is pixel-identical to the
-        /// fixed-size D1 scale.
+        /// fixed-size type scale.
         static func scaled(_ size: CGFloat,
                            relativeTo style: UIFont.TextStyle,
                            weight: Font.Weight,
@@ -174,7 +174,7 @@ enum BBTheme {
     }
 
     // MARK: Shadow
-    // Depth system (D2): tinted, diffuse shadows in the brand hue instead of flat
+    // Depth system: tinted, diffuse shadows in the brand hue instead of flat
     // black — reads softer and more premium. Button shadow toned right down so it
     // no longer glows like a lantern (especially in dark mode).
     enum Shadow {
@@ -313,13 +313,13 @@ extension View {
     }
 
     /// An entry sheet's inline title between Cancel and Save. The system title
-    /// truncates («Новое кормл…», Q-010); this one shrinks instead.
+    /// truncates («Новое кормл…»); this one shrinks instead.
     /// Capped at `.large`, and one line: the bar never grows, and the principal
     /// slot gave a second line no room — at AX2 the wider Cancel / Save left it
     /// «Новое кормл…» again. Shrinking to 0.6 keeps the whole title.
     ///
     /// `movesIntoContentAtAX`: a long title between two capsule buttons still
-    /// shrank to ~11 pt at AX2 («Приём у педиатра», design review m2). Such a
+    /// shrank to ~11 pt at AX2 («Приём у педиатра»). Such a
     /// sheet puts `BBSheetHeading` first in its content, and at AX sizes the
     /// bar shows no title at all: an empty principal item alone let the system
     /// draw the navigation title, cut («Приём…»). The heading in the content

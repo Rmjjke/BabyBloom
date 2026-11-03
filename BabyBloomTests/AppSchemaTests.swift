@@ -68,7 +68,7 @@ final class AppSchemaTests: XCTestCase {
 /// Every case below is stored as its raw value. A device on an older build
 /// that receives a record holding a value it does not know crashes on read:
 /// "SwiftData/DefaultStore.swift: Fatal error: Failed to decode a composite
-/// attribute" (spike 0a, m2-visit-and-questions). It does not skip the record;
+/// attribute". It does not skip the record;
 /// it takes the whole app down, on every launch, until it updates.
 ///
 /// If this test fails because you added a case: don't. Add a new model or a new

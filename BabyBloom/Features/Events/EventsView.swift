@@ -151,8 +151,8 @@ struct EventsView: View {
                                 )
                             }
                         case .visit(let visit):
-                            // No swipe: a visit changes only in its detail
-                            // (R5.4), never from a list.
+                            // No swipe: a visit changes only in its detail,
+                            // never from a list.
                             Button { detailVisit = visit } label: {
                                 BBEventRow(
                                     icon: "stethoscope",
@@ -240,7 +240,7 @@ struct AddEventSheet: View {
     @State private var selectedMood: CustomEvent.MoodLevel = .calm
     @State private var medicationName = ""
     @State private var medicationDose = ""
-    /// Start at `.large` so all fields are visible without a manual drag (brief §2).
+    /// Start at `.large` so all fields are visible without a manual drag.
     @State private var selectedDetent: PresentationDetent = .large
 
     var body: some View {

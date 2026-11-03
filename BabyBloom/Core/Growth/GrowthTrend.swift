@@ -64,7 +64,7 @@ enum GrowthTrend {
     /// Both shapes are outside NICE's scope, whose thresholds describe a fall
     /// over weeks to months, and catching either would mean reinstating the
     /// permanent flag this bound exists to remove. The number is a judgement
-    /// rather than a published threshold; the owner may retune it.
+    /// rather than a published threshold, and may be retuned.
     static let peakLookbackDays = 180
 
     /// A rise past this many centile spaces is named as a crossing rather than

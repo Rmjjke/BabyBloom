@@ -171,8 +171,8 @@ extension EnvironmentValues {
 /// A "not enough data" hint plus the one action that resolves it.
 ///
 /// Every empty state on this screen used to name a requirement and then leave
-/// the parent to find the "+" in the navigation bar. The owner's build-14 fresh
-/// install shows what that costs: feedings and nappies were logged for days
+/// the parent to find the "+" in the navigation bar. A fresh install of build 14
+/// showed what that costs: feedings and nappies were logged for days
 /// while the screen kept saying "not enough data", because nothing on it said
 /// that only WEIGHINGS move these cards. The hint now names the missing thing
 /// and the button adds it.
@@ -410,8 +410,8 @@ struct ExplainerSheet: View {
 /// Makes a whole card open its explainer, and injects the "?" that says so.
 ///
 /// The WHOLE card is the control, not just the "?" glyph. A 20pt badge in the
-/// corner was the only way in, and the owner reported tapping the percentile
-/// card and getting nothing (build-11 review). The badge stays as the
+/// corner was the only way in, and a tap on the percentile card got nothing
+/// (build-11 review). The badge stays as the
 /// AFFORDANCE, not a control of its own: a button inside a button gives two hit
 /// targets that do the same thing. Cards whose tap already sells Premium use
 /// `InfoBadgeRole.control` instead.

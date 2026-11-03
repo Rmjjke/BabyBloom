@@ -51,8 +51,8 @@ struct NutritionSection: View {
                 }
             } else {
                 // The long form of the requirement, not the Dashboard's short
-                // `nutrition.need_weighing`: this is the card the owner watched
-                // stay empty while logging feedings and nappies, so here — where
+                // `nutrition.need_weighing`: this is the card seen to stay
+                // empty while feedings and nappies were logged, so here — where
                 // there is room and a button to press — it also says what those
                 // two logs are counted over.
                 //

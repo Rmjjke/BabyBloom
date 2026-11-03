@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Diaper facts for the report period (design § 2.1).
+/// Diaper facts for the report period.
 struct DiapersReportCard: View {
     /// nil = no diaper in the period.
     let diapers: DoctorReportSummary.Diapers?
@@ -35,7 +35,7 @@ struct DiapersReportCard: View {
                 ReportRow(format: "report.dirty_a_day_fmt".l, value: WeeklyFormat.perDay(dirty))
             }
         }
-        // Names and counts only: no swatch and no warning (plan v2 decision 9).
+        // Names and counts only: no swatch and no warning.
         if !diapers.colors.isEmpty {
             ReportRow(format: "report.stool_colors_fmt".l,
                       value: ReportFormat.countList(diapers.colors.map {

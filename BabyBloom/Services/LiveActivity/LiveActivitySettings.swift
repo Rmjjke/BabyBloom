@@ -6,7 +6,7 @@ enum LiveActivitySettings {
     static let enabledKey = "liveActivity.enabled"
     static let startedKey = "liveActivity.startedEntryIDs"
 
-    /// ON by default (D5): an unset key means the user never turned it off.
+    /// ON by default: an unset key means the user never turned it off.
     static var isEnabled: Bool {
         UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true
     }

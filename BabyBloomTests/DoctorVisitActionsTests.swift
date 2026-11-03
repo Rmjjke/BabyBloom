@@ -3,7 +3,7 @@ import SwiftData
 @testable import BabyBloom
 
 /// The visit/question write path. The invariant under every case: a visit and
-/// the questions it stamped never part (R2.1, R2.7).
+/// the questions it stamped never part.
 @MainActor
 final class DoctorVisitActionsTests: XCTestCase {
 
