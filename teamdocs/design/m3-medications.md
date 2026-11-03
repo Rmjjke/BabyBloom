@@ -305,10 +305,12 @@ One-line placements (list row, Events line, Home card) show line A only.
 | off | off | the footer: One notification after each dose, on this device only, at night too. |
 | on, a reminder pending | on | «At 08:10» (callout, secondary), then the footer |
 | on, the interval passed | on | the footer only: nothing is pending |
-| iOS notifications off | drawn off | «Notifications are off in iOS Settings», then «Open Settings ›» (BBPrimary 15 medium, min height 44, opens the app's notification settings), then the footer |
+| iOS notifications off | drawn off | «Notifications are off in iOS Settings», then «Open Settings ›» (the link below), then the footer |
 | not yet asked | off | the footer; turning it on asks iOS once, through the app's existing permission ask; a refusal returns it to the row above |
 
 - **Row:** `Toggle` with `Label` (`bell.fill` BBPrimary), text callout 16 BBTextPrimary line 18.8, tint BBPrimary, min height 44. Under-lines scaled(13, .footnote) line 15.3 BBTextSecondary, xs 4 apart, inside the same surface box.
+- **Open Settings ›:** a plain button, leading, min height 44, the whole row its tap target; it opens the app's notification settings (`openNotificationSettingsURLString`). Text scaled(15, relativeTo: .body, medium, rounded), line 17.7, tracking 0, BBPrimary. Then, xs 4 after the text and centred on its line, `chevron.right` scaled from 13 pt relative to .footnote (`@ScaledMetric(relativeTo: .footnote)`), semibold, BBPrimary, hidden from VoiceOver: the words are the button's label. At Large the chevron's ink is 10.7 pt beside the text's 10.6 pt capital.
+  - Why it scales: the chevron belongs to the link's words, and every text link in the app grows its chevron with its text, as the pediatrician report's links do. A fixed 13 pt chevron beside an AX2 capital (11.3 pt of ink by 20.0 pt) reads as a stray mark.
 - **Per device:** the switch is this phone's alone, as the footer says; the partner's phone stays quiet unless it is turned on there.
 - The same pattern as the Live Activity switch in Settings, which draws itself off with a hint line when iOS has it off.
 
@@ -326,10 +328,12 @@ One-line placements (list row, Events line, Home card) show line A only.
 └────────────────────────────────────┘
 ```
 
-- **Component:** `.alert(title, isPresented:) { … } message: { … }`. The system draws it, scales it at AX2 (it grows, scrolls and stacks the buttons) and speaks it to VoiceOver. Nothing in it is coloured.
-- **Buttons:** Cancel with `.cancel` (iOS draws it bold: the side that keeps things as they were) returns to the sheet with every field kept. Save has **no role**: it is not destructive and never red; it keeps the dose and closes the sheet.
+- **Component:** `.alert(title, isPresented:) { … } message: { … }`. The system draws it, scales it at AX2 (it grows, scrolls and stacks the buttons) and speaks it to VoiceOver. The look is the system's and follows the iOS version; the app sets only the roles. On iOS 26 both buttons draw alike, with the same weight and grey capsule, both in the app's tint (BBPrimary), and a stack puts Save on top and Cancel at the bottom. Nothing in it is red.
+- **Buttons:** Cancel with `.cancel` returns to the sheet with every field kept. Its meaning sits in the role, not the look: the role tells the system which action keeps things as they were, and the system places and draws it by its own rules. Save has **no role**: it is not destructive and never red; it keeps the dose and closes the sheet.
 - **Variants** (working text; the copy note holds the words):
   - **before:** a dose under the interval after the last one, as drawn: the name, the last dose, the next time;
+    - **between two doses:** a dose put before a logged dose that is at least the interval after it, and under the interval after the dose before it. The title «Less than 6 h after a logged dose», then the name, «Logged dose at 08:00» (the dose before it) and the next time. «Last dose at» stays for a dose that is the newest once saved. Doses at 08:00 and 16:00, interval 6 h, a dose logged at 10:00 → «Less than 6 h after a logged dose» / Paracetamol / «Logged dose at 08:00» / «Next dose not before 22:00».
+    - Why: the dose sheet's status box under the alert says «Last dose at 16:00», so «Last dose at 08:00» would name a second last dose on one screen, and 08:00 + 6 h does not give 22:00. Naming 16:00 would contradict the title, since 10:00 is on time against it. «Logged dose» is the after variant's word and claims no order; the time line stays silent on what sets the time, as it does when the maximum sets it. The case is rare, a dose logged after the fact, but it is the arithmetic a parent checks at night.
   - **after:** a dose put before a dose already logged, less than the interval earlier: «Less than 6 h before a logged dose» / the name, «Logged dose at 16:00», «Interval: 6 h»; no next time;
   - **24 h:** the dose would take the count over the maximum: «With this dose, 5 doses in 24 hours» / the name, «Your maximum in 24 hours: 4», then the next time, as in the before variant.
 - **One alert per save.** When a dose breaks both limits, the alert shows the variant of the limit that ends later once this dose is saved, the one that sets the time it names; when both end at the same time, the interval variant. Why: the alert's time is the detail's time after Save, and the interval variant cannot explain a time the maximum set (a dose at 15:00 with a 6 h interval, yet not before 22:30).
@@ -373,7 +377,7 @@ Copy roles (keys under `medication.*` and `notification.medication_*`):
 - Dose sheet: Medication; Choose; Time; the placeholders; Delete Dose.
 - Form: New Medication; Edit Medication; the safety line; the name and dose placeholders (no number, no drug name); the interval label and the six chips; «(optional)»; Delete Medication and its confirmation (the doses stay).
 - Reminder: the switch label; «At HH:MM»; the footer; «Notifications are off in iOS Settings»; «Open Settings»; the notification title (the name) and body (elapsed time since the named dose), no emoji.
-- Confirmation: three titles and three messages; the next time in the before and 24 h messages is the one after Save (§ 10).
+- Confirmation: three titles and three messages, and a title and a message of their own for a dose between two doses; the next time in the before, between and 24 h messages is the one after Save (§ 10).
 - Events: the menu label «Medication» and «Not in the list».
 - VoiceOver: the row, line and card sentences of §§ 2.1, 6, 7, with «reminder on».
 - Report: the card title, the row formats, the PDF heads (§ 14).
