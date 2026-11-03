@@ -111,4 +111,11 @@ struct MedicationFormInput: Equatable {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
     }
+
+    /// A name or dose kept to one paragraph: each run of line breaks becomes
+    /// one space, and a trailing one (a typed Return) goes.
+    static func oneParagraph(_ text: String) -> String {
+        guard text.contains(where: \.isNewline) else { return text }
+        return text.split(whereSeparator: \.isNewline).joined(separator: " ")
+    }
 }

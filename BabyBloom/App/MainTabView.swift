@@ -149,6 +149,7 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.events)
                     }
                 }
+                .accessibilityIdentifier("more.events")
                 NavigationLink(destination: MedicationsListView()) {
                     Label {
                         Text("medication.title".l)

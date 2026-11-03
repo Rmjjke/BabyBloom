@@ -292,7 +292,9 @@ struct AddEventSheet: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: CustomEvent.EventType = .bath
     @State private var notes = ""
-    @State private var time = Date()
+    // The app's clock, as in the dose sheet, so a pinned clock opens both on
+    // the same time.
+    @State private var time = AppClock.now
     @State private var selectedMood: CustomEvent.MoodLevel = .calm
     @State private var medicationName = ""
     @State private var medicationDose = ""
@@ -400,6 +402,7 @@ struct AddEventSheet: View {
                 BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
                     .disabled(!canSave)
                     .opacity(canSave ? 1 : 0.4)
+                    .accessibilityIdentifier("event.save")
                     .padding(.horizontal, BBTheme.Spacing.md)
                     .padding(.top, BBTheme.Spacing.sm)
                     .padding(.bottom, BBTheme.Spacing.xs)
@@ -420,6 +423,7 @@ struct AddEventSheet: View {
         }
         .presentationDragIndicator(.visible)
         .presentationDetents([.medium, .large], selection: $selectedDetent)
+        .doseConfirmation(confirmation, isPresented: $confirming) { saveConfirmed() }
     }
 
     enum MedicationChoice: Equatable {
@@ -461,17 +465,14 @@ struct AddEventSheet: View {
         selectedType != .medication || effectiveChoice != .unchosen
     }
 
-    private var isDose: Bool {
-        if selectedType == .medication, case .medicine = effectiveChoice { return true }
-        return false
-    }
-
-    /// A dose ends at now, as in the dose sheet; other events keep any time.
-    /// One picker with a moving bound, so switching the choice keeps its
-    /// identity and VoiceOver focus.
+    /// A medication ends at now, as in the dose sheet: a dose given, linked
+    /// or typed, has happened. Other events keep any time. The bound follows
+    /// the type, never the medication choice: a compact picker whose bound
+    /// moves under its selection redraws its date in the short style
+    /// («11/3/26»), and with the time starting at now a choice never does.
     private var timePicker: some View {
         DatePicker("form.time".l, selection: $time,
-                   in: Date.distantPast...(isDose ? AppClock.now : Date.distantFuture),
+                   in: Date.distantPast...(selectedType == .medication ? AppClock.now : Date.distantFuture),
                    displayedComponents: [.date, .hourAndMinute])
     }
 
@@ -480,29 +481,65 @@ struct AddEventSheet: View {
             // Vertical, so a long name wraps at large text instead of shrinking.
             TextField("form.medication_name".l, text: $medicationName, axis: .vertical)
                 .lineLimit(1...3)
+                .oneParagraph($medicationName)
                 .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
             TextField("form.dose".l, text: $medicationDose, axis: .vertical)
                 .lineLimit(1...3)
+                .oneParagraph($medicationDose)
                 .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
         }
     }
 
+    /// Kept after the alert closes, so its title does not blank as it goes.
+    @State private var confirmation: DoseConfirmation?
+    @State private var confirmed: ConfirmedDose?
+    @State private var confirming = false
+
+    /// A dose of a chosen medication inside its interval or over its maximum
+    /// asks first, as in the dose sheet; a free-text one never does, since a
+    /// typed name is not matched to a medication.
     private func save() {
         guard canSave else { return }
         if selectedType == .medication, case .medicine(let medicine) = effectiveChoice {
-            // Linked, with the name and dose copied; the picker clamps only
-            // its display, so the save clamps to now as well.
-            let event = CustomEvent.dose(of: medicine, at: min(time, AppClock.now))
-            event.notes = MedicationFormInput.optional(notes)
-            if event.baby == nil { event.baby = babies.first }
-            modelContext.insert(event)
-            try? modelContext.save()
-            dismiss()
+            // The picker clamps only its display, so the save clamps to now as
+            // well, once: the time checked is the time stored.
+            let at = min(time, AppClock.now)
+            if let asked = medicine.confirmation(for: at, now: AppClock.now) {
+                confirmation = asked
+                confirmed = ConfirmedDose(medicineID: medicine.persistentModelID, time: at)
+                confirming = true
+                return
+            }
+            logDose(of: medicine, at: at)
             return
         }
-        let event = CustomEvent(time: time, type: selectedType)
+        saveEvent()
+    }
+
+    /// The alert's Save: the medication and time it asked about, or nothing
+    /// when the choice moved on while it was up, and the form stays open.
+    private func saveConfirmed() {
+        guard let confirmed, selectedType == .medication, case .medicine(let medicine) = effectiveChoice,
+              medicine.persistentModelID == confirmed.medicineID else { return }
+        logDose(of: medicine, at: confirmed.time)
+    }
+
+    /// Linked, with the name and dose copied.
+    private func logDose(of medicine: Medicine, at: Date) {
+        let event = CustomEvent.dose(of: medicine, at: at)
+        event.notes = MedicationFormInput.optional(notes)
+        if event.baby == nil { event.baby = babies.first }
+        modelContext.insert(event)
+        try? modelContext.save()
+        dismiss()
+    }
+
+    private func saveEvent() {
+        // The picker clamps only its display.
+        let event = CustomEvent(time: selectedType == .medication ? min(time, AppClock.now) : time,
+                                type: selectedType)
         if selectedType == .mood { event.mood = selectedMood }
         if selectedType == .medication {
             event.medicationName = medicationName.isEmpty ? nil : medicationName
