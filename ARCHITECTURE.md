@@ -83,9 +83,11 @@ dose text onto it. The copy is the record of what was given: a rename leaves
 past doses as logged, a deleted medicine (`.nullify`) leaves them as
 medication events that keep the name, and an older version, which imports no
 `Medicine` and ignores the link, still lists each dose as the medication
-event it is. The medication screens show the copied dose text on each dose
-row; the Events rows and the CSV do not read the two fields yet. Events from before
-medicines, and free-text ones, have no link and count for no medicine.
+event it is. The medication screens, the Events rows, the events CSV (columns
+Medication and Dose) and the export PDF's events table (name · dose · note in
+its notes cell, `ExportGenerator.eventNote`) read the two copies, never the
+medicine's current name. Events from before medicines, and free-text ones, have no link
+(`CustomEvent.isDose` is false) and count for no medicine.
 
 The rules every medicine surface reads are `MedicineSchedule`
 (`Core/Medicine/`; app target only, since the widget compiles `Core/Models`
@@ -135,8 +137,25 @@ pops itself and deletes the medicine once it has disappeared; Delete Dose
 hands the dose back and the detail deletes it in the dose sheet's
 `onDismiss`. The detail and the dose sheet draw nothing for a model with no
 context or `isDeleted` (one deleted on another device). Nothing in the feature is
-gated. The Medication tile, the Events rows and form, the confirmation, the
-reminder and the Home card come later.
+gated. The confirmation, the reminder and the Home card come later.
+
+**Medicines on Events.** One `MedicationStatusLine` per running medication
+sits above Quick input and pushes its detail. While a medication runs, the
+Medication tile opens `DoseSheet(choosingFrom:)` free and with no padlock: one
+running medication is preselected, with two or more the «Medication» menu
+shows «Choose» and Save waits. With none, the tile is the old one-tap entry
+behind the gate. The Add Event form, type Medication, shows the same menu
+(`MedicationMenuField`) of running medications plus «Not in the list»: a
+chosen one logs a linked dose (`CustomEvent.dose(of:at:)`, at most now) with
+the status box (`MedicationStatusBox`) and no name or dose fields; «Not in the
+list», or no running medication, keeps the two free-text fields. No medication
+save from any path calls `entrySaved`. A medication row's text is
+`MedicationFormat.eventRow`: a dose titled by its copied name, then dose ·
+note; an older one by the type word, then name · dose · note. `BBEventRow`
+shows every string verbatim (its callers localize, so a typed note or name is
+never looked up as a key), scales its second line and time, and moves the time
+under the text at accessibility sizes, where a long word beside it broke
+mid-word.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -593,6 +612,9 @@ back to a `LockedInsightCard` of its own. And **creating** an event: the
 Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
+The one exception is a dose: while a medication runs, the Medication tile
+branches in `addEvent(_:)` to the dose sheet before the gate and wears no
+badge, because a dose given to a sick baby is never sold.
 And **how far back the five activity lists read** — the free history window
 below, the only gate that bounds something already recorded. The
 pediatrician report's PDF is an export like any other: its share button wears
@@ -617,7 +639,12 @@ surfaces use. Pediatrician visits never go through it: Events
 cap (`Core/History/HistoryMerge`), so they are free and always listed, the
 locked footer still means "entries older than 15 days", and Events' delete-all
 reaches events only (its confirm says the visits are kept). Visit rows have no
-swipe. It returns three things: `visible` (windowed, then capped),
+swipe. A medicine's doses go through the window and have twenty rows of their
+own: `EventsHistory` lists them apart and merges them back by time, so four a
+day cannot push every bath and walk out of the shared twenty, and a year of
+daily drops still draws a bounded list (the medication's screen lists every
+dose). Each half decides its footer the usual way; delete-all still reaches
+them, as events. It returns three things: `visible` (windowed, then capped),
 `showsLockedFooter`, and `deletable` — the **untouched input**, which is what
 makes the no-hostage rule a property of the type instead of a discipline at
 five call sites.
