@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// ⑦ the four data cards and ⑧ the footnote, for one period.
+/// ⑦ the data cards (medications only when given) and ⑧ the footnote, for one period.
 ///
 /// A child view so its queries can be filtered by the period: the parent's
 /// body re-runs on every sheet and every store change (a CloudKit import
@@ -18,6 +18,7 @@ struct ReportDataSection: View {
     @Query private var sleeps: [SleepEntry]
     @Query private var diapers: [DiaperEntry]
     @Query private var growthEntries: [GrowthEntry]
+    @Query private var events: [CustomEvent]
 
     init(periodStart: Date, startsAtVisit: Bool, baby: Baby, onAddWeighing: @escaping () -> Void) {
         self.periodStart = periodStart
@@ -29,12 +30,13 @@ struct ReportDataSection: View {
         _feeds = Query(filter: #Predicate<FeedingEntry> { $0.startTime >= start })
         _sleeps = Query(filter: #Predicate<SleepEntry> { $0.startTime >= sleepsFrom })
         _diapers = Query(filter: #Predicate<DiaperEntry> { $0.time >= start })
+        _events = Query(filter: #Predicate<CustomEvent> { $0.time >= start })
     }
 
     var body: some View {
         let summary = DoctorReportSummary.make(
             input: DoctorReportSummary.Input(baby: baby, feeds: feeds, sleeps: sleeps,
-                                             diapers: diapers, growth: growthEntries),
+                                             diapers: diapers, growth: growthEntries, events: events),
             periodStart: periodStart,
             now: AppClock.now,
             startsAtVisit: startsAtVisit,
@@ -49,6 +51,10 @@ struct ReportDataSection: View {
             FeedingReportCard(feeding: summary.feeding, periodStart: periodStart, isShort: summary.isShort)
             SleepReportCard(sleep: summary.sleep, periodStart: periodStart, isShort: summary.isShort)
             DiapersReportCard(diapers: summary.diapers, periodStart: periodStart, isShort: summary.isShort)
+            // Absent with no dose in the period: no medicine is not a missing record.
+            if !summary.medications.isEmpty {
+                MedicationsReportCard(medications: summary.medications, now: summary.now)
+            }
         }
         BBTheme.Typography.caption("report.footnote".l)
             .foregroundStyle(BBTheme.Colors.textSecondary)

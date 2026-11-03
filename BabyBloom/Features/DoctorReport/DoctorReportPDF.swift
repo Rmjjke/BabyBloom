@@ -42,6 +42,7 @@ enum DoctorReportPDF {
             items.append(.block(feeding(summary.feeding, periodStart: periodStart, isShort: summary.isShort)))
             items.append(.block(sleep(summary.sleep, periodStart: periodStart, isShort: summary.isShort, now: now)))
             items.append(.block(diapers(summary.diapers, periodStart: periodStart, isShort: summary.isShort)))
+            if let medications = medications(summary.medications, now: now) { items.append(medications) }
         }
         if let questions = questions(openQuestions) { items.append(questions) }
         items.append(.block("<p class=\"foot\">\(esc("report.footnote".l))</p>"))
@@ -208,6 +209,26 @@ enum DoctorReportPDF {
         let table = "<table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>"
         return .rows(.init(opening: "<p class=\"sub\">\(esc("report.weighings".l))</p>" + table,
                            continuation: { _ in table }, closing: "</tbody></table>", rows: rows))
+    }
+
+    /// Medications given in the period, a row each, names and dose text as
+    /// written but for their emoji; every page the table reaches prints its
+    /// head. Absent when none. The columns are fixed, or each page would size
+    /// its own.
+    private static func medications(_ medications: [DoctorReportSummary.Medication], now: Date) -> PagedPDF.Item? {
+        guard !medications.isEmpty else { return nil }
+        let columns = [34, 30, 12, 24].map { "<col style=\"width: \($0)%\">" }.joined()
+        let heads = ["medication.report_col_name", "medication.report_col_dose",
+                     "medication.report_col_count", "medication.report_col_dates"]
+            .map { "<th>\(esc($0.l))</th>" }.joined()
+        let rows = medications.map { medication in
+            let cells = [medication.name ?? "medication.report_without_name".l, medication.doseText ?? "",
+                         "\(medication.count)", ReportFormat.dayRange(medication.first, medication.last, now: now)]
+            return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
+        }
+        let table = "<table class=\"weighings\"><colgroup>\(columns)</colgroup><thead><tr>\(heads)</tr></thead><tbody>"
+        return .rows(.init(opening: "<div><h2>\(esc("medication.report_title".l))</h2>" + table,
+                           continuation: { _ in "<div>" + table }, closing: "</tbody></table></div>", rows: rows))
     }
 
     // MARK: Feeding, sleep, diapers

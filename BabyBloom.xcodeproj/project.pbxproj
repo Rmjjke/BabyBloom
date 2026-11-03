@@ -45,6 +45,7 @@
 		248320E6127C58340944BBA2 /* WeeklyFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A56AE937474B66A62426B5B /* WeeklyFormat.swift */; };
 		249C44967ADBA0218F3FAC3C /* MedicineScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC58DB8A226B83D0195EC7D9 /* MedicineScheduleTests.swift */; };
 		2545546E391C7F033313B63D /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
+		257A70228DB3ABDABF6484D9 /* MedicationReportSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */; };
 		26568783E2D6605496745637 /* WHOGrowthStandard+Length.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1C953E6C9361CC62C31C5A /* WHOGrowthStandard+Length.swift */; };
 		26C2AF0C818E19D8A69B484F /* FormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A99868F52DF430ACD72633A /* FormattingTests.swift */; };
 		279D31B1C59F68A21CD7E0C5 /* en.json in Resources */ = {isa = PBXBuildFile; fileRef = 35F49DA9A952161FFF0F24A0 /* en.json */; };
@@ -228,6 +229,7 @@
 		D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */; };
 		DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */; };
 		DA9C4593DD1D8F1AB98D0114 /* MedicationReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EC89049C21351A785B9D14A /* MedicationReminderTests.swift */; };
+		DC07ED4D153A4301982D3E78 /* MedicationsReportCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16CBC77B252979788D34EF17 /* MedicationsReportCard.swift */; };
 		DC59EE4045C0E7D72826FBC6 /* DoctorReportSummary+Make.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A9A34B7CC513189E619F5F /* DoctorReportSummary+Make.swift */; };
 		DEF40610A527CAEE65D4770A /* MedicationFormInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824B5299C1B6F13F6D0C4633 /* MedicationFormInput.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
@@ -341,6 +343,7 @@
 		1489A46611F6D21D351828EB /* ReportHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportHeader.swift; sourceTree = "<group>"; };
 		16311BC78AF28F08F304583D /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
 		167683C6FB84AABD9FFC660F /* PeriodSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodSummaryTests.swift; sourceTree = "<group>"; };
+		16CBC77B252979788D34EF17 /* MedicationsReportCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationsReportCard.swift; sourceTree = "<group>"; };
 		1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectedAgeTests.swift; sourceTree = "<group>"; };
 		1B3FEF1C694F286BCCE9C786 /* WHOCorridor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOCorridor.swift; sourceTree = "<group>"; };
@@ -416,6 +419,7 @@
 		63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpyAnalyticsBackend.swift; sourceTree = "<group>"; };
 		64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChange.swift; sourceTree = "<group>"; };
 		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
+		674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationReportSummaryTests.swift; sourceTree = "<group>"; };
 		68A01A1029A2A5DDFAC115FF /* PagedPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedPDF.swift; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
 		7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMeasureSlider.swift; sourceTree = "<group>"; };
@@ -603,6 +607,7 @@
 				9445CE4764757DF19F410911 /* DoctorReportView.swift */,
 				99A7DD36E21E41CE34F52635 /* FeedingReportCard.swift */,
 				32A920995A10FD975AD5DE3C /* GrowthReportCard.swift */,
+				16CBC77B252979788D34EF17 /* MedicationsReportCard.swift */,
 				8DC61B36B29C0F41B11EE8C7 /* QuestionsCard.swift */,
 				3BE30C0F950B6399116428B2 /* QuestionSheet.swift */,
 				CB6DB51AF7C71F0934F3C2DC /* ReportDataSection.swift */,
@@ -797,6 +802,7 @@
 				5332E6C0888F642F987506E0 /* MedicationFormInputTests.swift */,
 				BDC1C148D2C64F3492DC8613 /* MedicationHomeTests.swift */,
 				7EC89049C21351A785B9D14A /* MedicationReminderTests.swift */,
+				674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */,
 				5B706374C142AA60C96371AF /* MedicationStoreTests.swift */,
 				63224488CC245E6D9CAC116F /* MedicineModelTests.swift */,
 				FC58DB8A226B83D0195EC7D9 /* MedicineScheduleTests.swift */,
@@ -1505,6 +1511,7 @@
 				FD34452EFE9375DDFA203750 /* MedicationReminderSync.swift in Sources */,
 				D622971EC8275C1BF0B26348 /* MedicationStatusLine.swift in Sources */,
 				8FA7597B4B70A6B8628993AC /* MedicationsListView.swift in Sources */,
+				DC07ED4D153A4301982D3E78 /* MedicationsReportCard.swift in Sources */,
 				5A32EC56AA2DB4389483C466 /* Medicine.swift in Sources */,
 				9C52CBDB5617A394307AA9C2 /* MedicineSchedule.swift in Sources */,
 				7B2737EB596E0135A560C902 /* NamePage.swift in Sources */,
@@ -1616,6 +1623,7 @@
 				453CE2715B6A94686369812D /* MedicationFormatTests.swift in Sources */,
 				C8C01ECBF688EAE390CBE4F7 /* MedicationHomeTests.swift in Sources */,
 				DA9C4593DD1D8F1AB98D0114 /* MedicationReminderTests.swift in Sources */,
+				257A70228DB3ABDABF6484D9 /* MedicationReportSummaryTests.swift in Sources */,
 				432BB9DB84F4AD4632A0CE6E /* MedicationStoreTests.swift in Sources */,
 				929535DF284A4D4C03008514 /* MedicineModelTests.swift in Sources */,
 				249C44967ADBA0218F3FAC3C /* MedicineScheduleTests.swift in Sources */,

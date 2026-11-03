@@ -25,6 +25,15 @@ struct ReportRow: View {
         self.suffix = suffix
     }
 
+    /// A label that is not a key: a medication's name as typed, which a
+    /// format split at `%@` could cut.
+    init(label: String, value: String, suffix: String? = nil) {
+        self.label = label
+        self.tail = ""
+        self.value = value
+        self.suffix = suffix
+    }
+
     var body: some View {
         Group {
             if typeSize.isAccessibilitySize {

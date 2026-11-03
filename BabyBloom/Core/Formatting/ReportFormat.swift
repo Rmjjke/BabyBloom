@@ -19,6 +19,13 @@ enum ReportFormat {
         return text.replacingOccurrences(of: " ", with: nbsp)
     }
 
+    /// «2 Nov – 5 Nov», or the one date when both are on the same day.
+    static func dayRange(_ first: Date, _ last: Date, now: Date = AppClock.now) -> String {
+        Calendar.current.isDate(first, inSameDayAs: last)
+            ? date(first, now: now)
+            : date(first, now: now) + nbsp + "– " + date(last, now: now)
+    }
+
     /// «> 97» held together.
     static func glued(_ text: String) -> String { text.replacingOccurrences(of: " ", with: nbsp) }
 

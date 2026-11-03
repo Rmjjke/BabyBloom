@@ -31,10 +31,18 @@ final class PDFPagesTests: XCTestCase {
 
     /// A seeded baby with a growth history plus `extraWeighings` older ones with weights no
     /// other line prints, so a row cut in two shows up as its weight printed twice.
-    private func report(extraWeighings: Int, name: String? = nil, questions: [String]? = nil) throws -> Report {
+    private func report(extraWeighings: Int, name: String? = nil, questions: [String]? = nil,
+                        medicationNames: [String] = []) throws -> Report {
         let (baby, context, container) = try seeded()
         if let name { baby.name = name }
         let now = Date()
+        for (offset, medication) in medicationNames.enumerated() {
+            let event = CustomEvent(time: now.addingTimeInterval(-Double(offset + 1) * 600), type: .medication)
+            event.medicationName = medication
+            event.medicationDose = "5 ml"
+            event.baby = baby
+            context.insert(event)
+        }
         let values = (0..<extraWeighings).map { 6 + Double($0) * 0.01 }
         for (offset, value) in values.enumerated() {
             let entry = GrowthEntry(date: baby.birthDate.addingTimeInterval(86_400 + Double(offset) * 6 * 3600),
@@ -350,6 +358,24 @@ final class PDFPagesTests: XCTestCase {
             XCTAssertEqual(ranges.first?.lowerBound, 0)
             for (one, next) in zip(ranges, ranges.dropFirst()) { XCTAssertEqual(one.upperBound, next.lowerBound) }
             XCTAssertEqual(ranges.dropLast().map(\.count), Array(repeating: 9, count: 4), "hint \(hint)")
+        }
+    }
+
+    // MARK: Medications
+
+    /// The medications table in a rendered PDF, in every language: each row
+    /// once and searchable, and the head on every page the table reaches.
+    func testMedicationsPrintEveryRowOnceWithTheHeadOnEveryPage() throws {
+        let names = (1...70).map { String(format: "Medicine %02d", $0) }
+        for language in [SupportedLanguage.en, .ru, .es] {
+            try inLanguage(language) {
+                let pages = texts(try report(extraWeighings: 0, medicationNames: names).document)
+                XCTAssertGreaterThan(pages.count, 1, "\(language): the table should reach a second page")
+                assertEveryRowPrintedOnce(names, in: pages)
+                let head = "medication.report_col_dose".l.replacingOccurrences(of: "\u{A0}", with: " ")
+                assertHeadOnEveryPageWithRows(head, names, in: pages)
+                XCTAssertTrue(pages.joined().contains("medication.report_title".l), "\(language)")
+            }
         }
     }
 

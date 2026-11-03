@@ -36,11 +36,22 @@ struct DoctorReportSummary: Equatable {
             var heightCm: Double?
             var headCm: Double?
         }
+        /// A medication event: a medicine's dose, or an older or free-text one.
+        struct Dose: Equatable {
+            var time: Date
+            /// The name and dose text copied when it was logged, or as typed.
+            var name: String?
+            var doseText: String?
+            /// The medicine it is a dose of; nil for an event without one.
+            var medicineID: UUID?
+            var medicineName: String?
+        }
 
         var feeds: [Feed] = []
         var sleeps: [Sleep] = []
         var diapers: [Diaper] = []
         var growth: [Growth] = []
+        var doses: [Dose] = []
         var birthDate: Date
         var correctedBirthDate: Date
         var birthWeightKg: Double?
@@ -181,6 +192,24 @@ struct DoctorReportSummary: Equatable {
     /// A visit starts the period and nothing was logged since: ONE «new period»
     /// card replaces the three empty ones. Never for «since birth».
     let showsNewPeriodCard: Bool
+
+    /// One line of the medications section: a medicine, an older event's
+    /// typed name, or the events with no name together.
+    struct Medication: Equatable {
+        /// nil: the events with no name.
+        let name: String?
+        /// As written on the latest dose; nil when there is none, and for the
+        /// line without a name, whose doses need not share one.
+        let doseText: String?
+        let count: Int
+        let first: Date
+        let last: Date
+    }
+
+    /// Medications given in the period, by name, the line without a name
+    /// last. Empty: no section. Never an interval, a maximum or a mark on an
+    /// early dose: in a document for the doctor that would be a verdict.
+    var medications: [Medication] = []
 
     // MARK: Building — implemented in DoctorReportSummary+Make.swift
 
