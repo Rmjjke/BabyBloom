@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — Every clock time takes the device's 12/24-hour cycle, in the app's language
+
+**One locale for formatted times and pickers.** `Date.appTimeOfDay` formats with the environment locale the root gives every `DatePicker`: the app language's region, with the device's hour cycle on top. Formatted with the pinned region instead, en_US and es_419 printed "3:43 AM" in a dose sheet whose picker read 09:43 on a 24-hour phone. Medication times are compared at night, so two clocks on one sheet invite a misread.
+
+**Everywhere a time is printed for a person:** rows and status lines, the Live Activity's start time, the medication reminder's body, the widget's formatting pin, and the export PDF. The export is the parent's own record, shared from the screen they read it on, so it takes the same clock, on the screen's own hour-and-minute skeleton: a date formatter's short time style keeps Russian at 14:30 on a 12-hour phone. The CSV keeps `HH:mm` in `en_US_POSIX`: its columns are for machines, not for reading.
+
 ## 2026-11-03 — The report lists medications given, and nothing about whether they were on time
 
 **Name and dose as written, the dose count, the first and last day.** The doctor asks what was given and how often. No interval, no maximum and no mark on a dose given inside the interval: in a document for the doctor such a mark would be a verdict on the parent.
