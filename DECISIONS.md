@@ -14,6 +14,12 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-03 — An end before its start reads as 0 min; stored rows are not repaired
+
+- **Add Sleep's End follows Start.** `DatePicker(in: startTime...)` limits what the End picker shows, not the value it is bound to: with Start moved past End, the form showed End equal to Start and saved the earlier end, a negative sleep. Now moving Start past End moves End to it, and `SleepEntry.manual` stores the later of the two, so what is saved is what the form showed.
+- **A stored end before its start reads as 0 min.** The guard sits in `SleepEntry.duration` and `FeedingEntry.duration` (Today, History, the Sleep chart, the export, the widget) and in the pure cores, `PeriodSummary` and the report's clipping (the weekly card, the report). The store loaders map rows as they are, because rules belong to the cores. Such rows exist: earlier versions saved them, and a timer stopped on a phone whose clock runs behind the starting phone's still can. The row still counts as an entry, as History lists it.
+- **No repair of stored rows.** Rewriting them is a write on users' data that CloudKit syncs to every device, for the same 0 min the read already shows. Rejected for that reason.
+
 ## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
 
 - **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.

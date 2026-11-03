@@ -156,6 +156,7 @@
 		9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */; };
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
 		A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
+		A407F3798D9B0C9BE27C095A /* EndBeforeStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */; };
 		A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */; };
 		A5DBC483D11DD0BF4ACB66B7 /* SeedScenario+Weekly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12F9DE413A81B2C7F0C6E6 /* SeedScenario+Weekly.swift */; };
 		A5EE64D635654990A9E43BDA /* LiveActivitySync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05024C51D306FE0E87B08E38 /* LiveActivitySync.swift */; };
@@ -358,6 +359,7 @@
 		50258D2BEF608D26A2639534 /* CustomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEvent.swift; sourceTree = "<group>"; };
 		5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTrigger.swift; sourceTree = "<group>"; };
 		524A26B846E0DB91693FCBE6 /* Baby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Baby.swift; sourceTree = "<group>"; };
+		526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndBeforeStartTests.swift; sourceTree = "<group>"; };
 		54CC114B5E1B3E5A7F6CBA72 /* AppSchemaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaTests.swift; sourceTree = "<group>"; };
 		56D905771541728A4DD74254 /* DoctorReportPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDF.swift; sourceTree = "<group>"; };
 		582657DC180DE03128A75629 /* NewbornWeightLoss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLoss.swift; sourceTree = "<group>"; };
@@ -706,6 +708,7 @@
 				8848A60B812E23969302C7BF /* DoctorReportSummaryTests.swift */,
 				713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */,
 				20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */,
+				526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */,
 				AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */,
@@ -1474,6 +1477,7 @@
 				953AA3E254884BB7A7811BDC /* DoctorReportSummaryTests.swift in Sources */,
 				C2F842304599D97C08199F50 /* DoctorVisitActionsTests.swift in Sources */,
 				7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */,
+				A407F3798D9B0C9BE27C095A /* EndBeforeStartTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
 				D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */,
 				A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */,
