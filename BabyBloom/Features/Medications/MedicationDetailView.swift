@@ -119,6 +119,11 @@ struct MedicationDetailView: View {
 
             aboutCard
 
+            // An ended course has no next time, so nothing to remind of.
+            if !medicine.isEnded {
+                MedicationReminderSection(medicine: medicine, now: now)
+            }
+
             doseList(doses, now: now)
                 .padding(.top, BBTheme.Spacing.sm)
 
@@ -219,6 +224,8 @@ struct MedicationDetailView: View {
     private func deleteIfRequested() {
         guard deleteRequested else { return }
         deleteRequested = false
+        // The save below starts the pass that takes its notification down.
+        UserDefaults.standard.removeObject(forKey: MedicationReminderPlan.switchKey(for: medicine.id))
         modelContext.delete(medicine)
         try? modelContext.save()
     }

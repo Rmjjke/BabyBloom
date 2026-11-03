@@ -72,11 +72,14 @@ tags: [regression]
 - tapOn: "Cancel"
 
 # Delete Medication: the form asks, the screen pops, the medication goes.
+# Centred: under the reminder card the button can sit behind the pinned Save,
+# where the tree still calls it visible and a tap lands on Save.
 - tapOn:
     id: "medication.edit"
 - scrollUntilVisible:
     element:
       id: "medication.delete"
+    centerElement: true
 - tapOn:
     id: "medication.delete"
 - tapOn: "Delete"

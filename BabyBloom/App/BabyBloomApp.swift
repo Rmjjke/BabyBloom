@@ -95,8 +95,10 @@ struct BabyBloomApp: App {
                 // have a nil owner, which makes Baby's cascade rules inert.
                 // Runs at most once per install and is a no-op afterwards.
                 OrphanedEntryAdoption.runIfNeeded(in: sharedModelContainer.mainContext)
-                // After the seed, so a seeded running timer gets its activity.
+                // After the seed, so a seeded running timer gets its activity
+                // and a seeded course its reminder.
                 LiveActivitySync.shared.start()
+                MedicationReminderSync.shared.start()
             }
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)

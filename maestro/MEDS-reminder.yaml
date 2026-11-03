@@ -1,0 +1,86 @@
+# The reminder switch: off by default; on (iOS asks once, Allow) shows when the
+# one notification comes, in the detail and the form, and a bell on the list
+# row; off takes the line and the bell away.
+#
+# Seed medsTwoCourses on the real clock: Paracetamol's latest dose 2 h ago,
+# every 6 h, so a notification is pending for 4 h from now. The pending
+# request itself is read in the log with -BBLogPendingNotifications.
+#
+# The switch is tapped by point (84%,58% on iPhone 17 at the default text
+# size, English): a tap on a Toggle's label does not flip it.
+#
+# Launch-argument mechanics are explained in SMOKE-main-tabs.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-BBSeedScenario": "medsTwoCourses"
+      "-BBLogPendingNotifications": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 20000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- tapOn:
+    id: "more.medications"
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible:
+      id: "medication.reminder"
+    timeout: 10000
+- assertVisible: "One notification after each dose, on this device only, including at night."
+- assertNotVisible:
+    id: "medication.reminder_at"
+
+# On: iOS asks the first time only.
+- tapOn:
+    point: "84%,58%"
+- tapOn:
+    text: "Allow"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "medication.reminder_at"
+    timeout: 10000
+- assertVisible: "Notification: .*"
+- takeScreenshot: ${OUT}-on
+
+# The form shows the same switch and time.
+- tapOn:
+    id: "medication.edit"
+- scrollUntilVisible:
+    element:
+      id: "medication.reminder_at"
+    direction: DOWN
+- tapOn: "Cancel"
+
+# The list row carries the bell, read as "Reminder on".
+- tapOn:
+    id: "BackButton"
+- assertVisible: "Paracetamol.*Reminder on"
+
+# Off: the time and the bell go.
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible:
+      id: "medication.reminder_at"
+    timeout: 10000
+- tapOn:
+    point: "84%,58%"
+- extendedWaitUntil:
+    notVisible:
+      id: "medication.reminder_at"
+    timeout: 5000
+- tapOn:
+    id: "BackButton"
+- assertNotVisible: "Paracetamol.*Reminder on"
+- takeScreenshot: ${OUT}-off
