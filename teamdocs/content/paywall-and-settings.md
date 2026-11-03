@@ -10,11 +10,15 @@ Voice and terms: `voice.md` in this folder.
   the parent something they already have.
   - Before writing or changing a row, check it against the code's
     `isPremium` gates.
-  - As of 2026-10-28 they are: history beyond the free 15-day window (f1),
+  - As of 2026-11-03 they are: history beyond the free 15-day window (f1),
     export (f3), the gain, trend, percentile and nutrition cards (f5), and
-    creating events such as bath, walk, medicine and mood (f2).
+    creating events such as bath, walk and mood (f2).
   - Reminders are free and stay free: gating them would take a feature away
     from current users.
+  - Medications are free (the list, doses, the early-dose confirmation and
+    the dose reminder). No row names them, and no row sells the confirmation
+    or the reminder: they are safety facts, and selling them would say a free
+    parent is less safe. Notes: `medications.md`.
 - f4 («Несколько профилей детей») is not shown: the app has one baby. The
   key numbering keeps its gap on purpose (comment in `PaywallView`).
 - A non-breaking space stands before the dash in a row ("Events — …"),
@@ -40,3 +44,5 @@ Each row that looks tappable does one thing.
 - 2026-10-28 — `onboarding.premium.f2` now sells events instead of the free
   reminders. New `settings.icloud_on/_off/_off_hint` and `about.version_fmt`
   for the Settings rows that opened nothing.
+- 2026-11-03 — `onboarding.premium.f2` lists baths, walks and mood: medications
+  are free in 1.3.0.
