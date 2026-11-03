@@ -178,9 +178,10 @@ final class MedicationFormatTests: XCTestCase {
         XCTAssertNil(result.count)
     }
 
-    func testNoDoseWithAMaximumShowsTheCount() {
+    func testNoDoseWithAMaximumShowsNoCountYet() {
         let result = lines(.noDose, max: 4, last24: 0, now: d(10, 12))
-        XCTAssertEqual(result.count, "Last 24\u{00A0}hours: 0\u{00A0}doses of the 4 you set")
+        XCTAssertEqual(result.primary, "No doses logged yet")
+        XCTAssertNil(result.count)
     }
 
     func testWaitingNamesTheEarliestTimeAndTheLastDoseWithItsAge() {

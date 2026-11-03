@@ -139,6 +139,10 @@ struct MedicationFormSheet: View {
                 .padding(.top, BBTheme.Spacing.xs)
                 .accessibilityLabel(Text("medication.field_max".l))
                 .accessibilityIdentifier("medication.max")
+                .onChange(of: input.maximumText) { _, text in
+                    let digits = MedicationFormInput.maximumDigits(text)
+                    if digits != text { input.maximumText = digits }
+                }
             divider
             TextField("form.notes_optional".l, text: $input.note, axis: .vertical)
                 .lineLimit(3)
@@ -188,7 +192,7 @@ struct MedicationFormSheet: View {
         HStack(spacing: 0) {
             Picker("medication.other_hours".l, selection: Binding(
                 get: { hours },
-                set: { input.interval = .other(hours: $0, minutes: minutes) })) {
+                set: { input.setOther(hours: $0, minutes: minutes) })) {
                 ForEach(MedicationFormInput.otherHours, id: \.self) { value in
                     Text(String(format: "duration.h_only".l, value)).tag(value)
                 }
@@ -199,10 +203,8 @@ struct MedicationFormSheet: View {
             .accessibilityIdentifier("medication.other_hours")
             Picker("medication.other_minutes".l, selection: Binding(
                 get: { minutes },
-                set: { input.interval = .other(hours: hours, minutes: $0) })) {
-                // A stored value off the quarters (from another device) stays
-                // selectable, so opening the form never changes it.
-                ForEach(Self.minuteChoices(including: minutes), id: \.self) { value in
+                set: { input.setOther(hours: hours, minutes: $0) })) {
+                ForEach(input.otherMinuteChoices(hours: hours), id: \.self) { value in
                     Text(String(format: "duration.min_only".l, value)).tag(value)
                 }
             }
@@ -213,12 +215,6 @@ struct MedicationFormSheet: View {
         }
         .frame(height: 150)
         .transition(.opacity)
-    }
-
-    private static func minuteChoices(including value: Int) -> [Int] {
-        MedicationFormInput.otherMinutes.contains(value)
-            ? MedicationFormInput.otherMinutes
-            : (MedicationFormInput.otherMinutes + [value]).sorted()
     }
 
     private func save() {

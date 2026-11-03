@@ -27,6 +27,9 @@ struct MedicationFormInput: Equatable {
     var doseText = ""
     var maximumText = ""
     var note = ""
+    /// A stored minutes value off the quarters (set on another device), kept
+    /// on the wheel for the whole edit so opening the form never changes it.
+    private(set) var keptMinutes: Int?
 
     init() {}
 
@@ -39,6 +42,7 @@ struct MedicationFormInput: Equatable {
             interval = .chip(hours: minutes / 60)
         } else {
             interval = .other(hours: minutes / 60, minutes: minutes % 60)
+            if !Self.otherMinutes.contains(minutes % 60) { keptMinutes = minutes % 60 }
         }
         doseText = medicine.doseText ?? ""
         maximumText = medicine.maxDosesPer24h.map(String.init) ?? ""
@@ -67,6 +71,26 @@ struct MedicationFormInput: Equatable {
     }
 
     var canSave: Bool { !trimmedName.isEmpty && intervalMinutes != nil && maximum != .invalid }
+
+    /// The Other minutes wheel: the quarters and a kept value; at 48 h, the
+    /// wheels' last value, only 0.
+    func otherMinuteChoices(hours: Int) -> [Int] {
+        if hours == Self.otherHours.last { return [0] }
+        guard let keptMinutes else { return Self.otherMinutes }
+        return (Self.otherMinutes + [keptMinutes]).sorted()
+    }
+
+    /// Moves the Other wheels. At 48 h the minutes go to 0, so the wheels
+    /// never stand on a value Save refuses.
+    mutating func setOther(hours: Int, minutes: Int) {
+        interval = .other(hours: hours, minutes: hours == Self.otherHours.last ? 0 : minutes)
+    }
+
+    /// What the maximum field keeps: digits, two at most. A paste of «4 doses»
+    /// reads 4, and on iPad the number pad is a full keyboard.
+    static func maximumDigits(_ text: String) -> String {
+        String(text.filter { $0.isASCII && $0.isNumber }.prefix(2))
+    }
 
     /// Writes the form into `medicine`. Doses already logged keep the name and
     /// dose text they were logged with.

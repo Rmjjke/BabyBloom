@@ -104,9 +104,11 @@ enum MedicationFormat {
                 secondary: String(format: "medication.ended_on_fmt".l, endedAt.appDayMonth, doseCount(total)),
                 count: nil)
         case .noDose:
+            // No count line before the first dose: «0 of the 4 you set» says
+            // nothing the empty list does not.
             return MedicationLines(primary: "medication.status_no_doses".l,
                                    secondary: String(format: "medication.interval_fmt".l, interval),
-                                   count: count)
+                                   count: nil)
         case .waiting(let last, let until):
             let age = Self.age(now.timeIntervalSince(last))
                 .map { String(format: "medication.ago_fmt".l, $0) } ?? "medication.just_now".l

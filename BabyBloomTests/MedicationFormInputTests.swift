@@ -52,6 +52,32 @@ final class MedicationFormInputTests: XCTestCase {
         }
     }
 
+    func testFortyEightHoursTakesNoMinutes() {
+        var input = valid()
+        input.setOther(hours: 47, minutes: 45)
+        XCTAssertEqual(input.interval, .other(hours: 47, minutes: 45))
+        input.setOther(hours: 48, minutes: 45)
+        XCTAssertEqual(input.interval, .other(hours: 48, minutes: 0))
+        XCTAssertTrue(input.canSave)
+        XCTAssertEqual(input.otherMinuteChoices(hours: 48), [0])
+    }
+
+    func testAMinutesValueOffTheQuartersStaysOnTheWheel() {
+        let medicine = Medicine(name: "Ibuprofen", intervalMinutes: 5 * 60 + 20)
+        var input = MedicationFormInput(medicine)
+        XCTAssertEqual(input.interval, .other(hours: 5, minutes: 20))
+        input.setOther(hours: 7, minutes: 30)
+        XCTAssertEqual(input.otherMinuteChoices(hours: 7), [0, 15, 20, 30, 45])
+        XCTAssertEqual(MedicationFormInput().otherMinuteChoices(hours: 7), [0, 15, 30, 45])
+    }
+
+    func testTheMaximumFieldKeepsTwoDigits() {
+        XCTAssertEqual(MedicationFormInput.maximumDigits("4 doses"), "4")
+        XCTAssertEqual(MedicationFormInput.maximumDigits("125"), "12")
+        XCTAssertEqual(MedicationFormInput.maximumDigits("٤"), "")
+        XCTAssertEqual(MedicationFormInput.maximumDigits(""), "")
+    }
+
     // MARK: maximum and interval
 
     func testMaximumDistinguishesNotSetFromInvalid() {
