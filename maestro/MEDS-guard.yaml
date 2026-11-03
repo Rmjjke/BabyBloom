@@ -90,8 +90,14 @@ tags: [regression]
 - takeScreenshot: ${OUT}-guard-saved
 
 # On time: Vitamin D's interval has passed, so the dose saves at once.
+# A tap on Back while the dose sheet is still leaving can be lost; tap again
+# until the list shows.
 - tapOn:
     id: "BackButton"
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: "Vitamin D"
+    timeout: 10000
 - tapOn: "Vitamin D"
 - tapOn:
     id: "medication.log_dose"
