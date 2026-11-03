@@ -133,27 +133,22 @@ struct DiaperView: View {
     // MARK: - Today
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            HStack {
-                BBTheme.Typography.title3("section.today".l)
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                Button {
-                    showNormEditor = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "target")
-                            .font(.system(size: 13))
-                        Text(String(format: "diaper.norm.fmt".l, dailyNorm))
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                    }
-                    .foregroundStyle(BBTheme.Colors.primary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(BBTheme.Colors.primary.opacity(0.1))
-                    .cornerRadius(BBTheme.Radius.pill)
+            // The norm chip under the title at accessibility sizes: beside it
+            // the ru row is 19.5 pt wider than a 320-pt screen at AX2. Below
+            // them it holds at 320 pt at every size (56.8 pt to spare at
+            // xxxLarge), so the text size decides, not the fit.
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    BBTheme.Typography.title3("section.today".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    normChip
                 }
-                .sheet(isPresented: $showNormEditor) {
-                    DiaperNormEditorSheet(dailyNorm: $dailyNorm)
+            } else {
+                HStack {
+                    BBTheme.Typography.title3("section.today".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Spacer()
+                    normChip
                 }
             }
 
@@ -193,6 +188,30 @@ struct DiaperView: View {
                 color: BBTheme.Colors.diaper,
                 icon: "checkmark.circle.fill"
             )
+        }
+        // On the section, not the chip: the chip sits in either shape of the
+        // Today row, and a text-size change would close the open editor.
+        .sheet(isPresented: $showNormEditor) {
+            DiaperNormEditorSheet(dailyNorm: $dailyNorm)
+        }
+    }
+
+    /// The glyph grows with its word, as a tile's glyph does.
+    private var normChip: some View {
+        Button {
+            showNormEditor = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "target")
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .default))
+                Text(String(format: "diaper.norm.fmt".l, dailyNorm))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+            }
+            .foregroundStyle(BBTheme.Colors.primary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(BBTheme.Colors.primary.opacity(0.1))
+            .cornerRadius(BBTheme.Radius.pill)
         }
     }
 
