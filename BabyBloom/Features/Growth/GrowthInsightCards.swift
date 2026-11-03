@@ -585,7 +585,7 @@ struct WeightGainCard: View {
                 )
                 .foregroundStyle(color(for: reading.band))
                 Spacer()
-                Text(String(format: "velocity.interval_fmt".l, reading.intervalDays))
+                Text(String(format: "velocity.interval_fmt".l, reading.intervalDays).gluingNumbersToUnits)
                     .font(.system(size: 12, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
@@ -595,7 +595,7 @@ struct WeightGainCard: View {
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(color(for: band))
                 Text(String(format: "velocity.expected_fmt".l,
-                            Int(expected.lowerBound.rounded()), Int(expected.upperBound.rounded())))
+                            Int(expected.lowerBound.rounded()), Int(expected.upperBound.rounded())).gluingNumbersToUnits)
                     .font(.system(size: 13, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             } else {

@@ -337,7 +337,7 @@ struct DashboardView: View {
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
                 growthRow(label: "stat.weight".l,
-                          value: weightKg.appDecimal(2) + " " + "unit.kg".l,
+                          value: ReportFormat.kg(weightKg),
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
                 if store.isPremium, let reading = latestPercentile {

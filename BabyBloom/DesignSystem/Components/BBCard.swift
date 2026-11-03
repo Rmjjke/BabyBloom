@@ -160,7 +160,7 @@ struct BBProgressCard: View {
                     .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
-                Text("\(Int(current))/\(Int(target)) \(unit.l)")
+                Text("\(Int(current))/\(Int(target)) \(unit.l)".gluingNumbersToUnits)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(overLimit ? .red.opacity(0.75) : BBTheme.Colors.textSecondary)
                 if overLimit {
