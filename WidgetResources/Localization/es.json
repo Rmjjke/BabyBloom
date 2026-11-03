@@ -586,7 +586,7 @@
   "report.pdf.date_fmt": "Fecha del informe: %@",
   "report.pdf.questions": "Preguntas de la familia",
   "report.pdf.no_entries": "No hay registros en este periodo",
-  "report.pdf.before_due_date": "Los percentiles de la OMS se calculan desde la fecha prevista de parto.",
+  "report.pdf.before_due_date": "Los percentiles de la OMS empiezan en la fecha prevista de parto.",
   "report.pdf.page_fmt": "Pág. %d de %d",
   "report.pdf.file_fmt": "Informe pediátrico – %@ – %@",
   "visit.title": "Visita al pediatra",

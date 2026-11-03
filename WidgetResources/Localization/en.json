@@ -586,7 +586,7 @@
   "report.pdf.date_fmt": "Report date: %@",
   "report.pdf.questions": "Questions from the parent",
   "report.pdf.no_entries": "No entries in this period",
-  "report.pdf.before_due_date": "WHO percentiles are calculated from the due date.",
+  "report.pdf.before_due_date": "WHO percentiles start from the due date.",
   "report.pdf.page_fmt": "Page %d of %d",
   "report.pdf.file_fmt": "Pediatrician report – %@ – %@",
   "visit.title": "Pediatrician visit",
