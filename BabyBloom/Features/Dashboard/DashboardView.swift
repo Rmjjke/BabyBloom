@@ -77,6 +77,8 @@ struct DashboardView: View {
                     if activeFeeding != nil || activeSleep != nil {
                         activeTimersSection
                     }
+                    // Under the timers, above last week.
+                    MedicationHomeSection()
                     // Under the timers: a running timer outranks last week at
                     // 3 a.m. nil = nothing logged last week.
                     if let weeklySummary {
