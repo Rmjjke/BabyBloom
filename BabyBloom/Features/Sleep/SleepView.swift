@@ -133,7 +133,7 @@ struct SleepView: View {
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.today")
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.sleep_episodes",
                     value: "\(todayEntries.count)",
@@ -257,11 +257,19 @@ struct AddSleepSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: SleepEntry.SleepType = .nap
     @State private var selectedLocation: SleepEntry.SleepLocation = .crib
     @State private var startTime = Date()
     @State private var endTime = Date()
+
+    /// Two-word names («Sueño nocturno», «En brazos») can wrap at
+    /// accessibility sizes and are centred there. Below them a centred line
+    /// sits a fraction of a pixel off the leading one, so the default stays.
+    private var wrapAlignment: TextAlignment {
+        dynamicTypeSize.isAccessibilitySize ? .center : .leading
+    }
 
     var body: some View {
         NavigationStack {
@@ -276,9 +284,10 @@ struct AddSleepSheet: View {
                             ForEach(SleepEntry.SleepType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
-                                        Image(systemName: type.icon).font(.system(size: 24))
+                                        Image(systemName: type.icon).font(BBTheme.Typography.scaled(24, relativeTo: .body, weight: .regular, design: .default))
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.sleep)
-                                        Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
+                                        Text(type.displayName.l).font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                                            .multilineTextAlignment(wrapAlignment)
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
@@ -303,9 +312,10 @@ struct AddSleepSheet: View {
                             ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
                                 Button { selectedLocation = loc } label: {
                                     VStack(spacing: 4) {
-                                        Image(systemName: loc.icon).font(.system(size: 20))
+                                        Image(systemName: loc.icon).font(BBTheme.Typography.scaled(20, relativeTo: .body, weight: .regular, design: .default))
                                             .foregroundStyle(BBTheme.Colors.primary)
-                                        Text(loc.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
+                                        Text(loc.displayName.l).font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
+                                            .multilineTextAlignment(wrapAlignment)
                                             .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, 12)

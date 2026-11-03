@@ -132,7 +132,7 @@ struct GrowthView: View {
                 showAddSheet = true
             }
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 // Weight comes from `measurements`, not from `latest`: that
                 // accessor drops future-dated rows, and this card sits two
                 // cards above the percentile — which already reads them — so a
@@ -837,6 +837,7 @@ struct AddGrowthSheet: View {
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(SubscriptionManager.self) private var store
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var weightKg: Double = 3.5
     @State private var heightCm: Double = 50.0
     @State private var headCm: Double = 34.0
@@ -857,9 +858,15 @@ struct AddGrowthSheet: View {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     BBSheetHeading(title: "sheet.new_measurement".l)
-                    Image(systemName: "ruler.fill")
-                        .font(.system(size: 48))
-                        .foregroundStyle(BBTheme.Colors.growth)
+                    // Decoration. At accessibility sizes the heading is the
+                    // sheet's top, as on the other entry sheets, and the figure
+                    // would cost about 70 pt of a sheet that already scrolls.
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "ruler.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(BBTheme.Colors.growth)
+                            .accessibilityHidden(true)
+                    }
 
                     BBMeasureSlider(
                         title: "form.weight_kg".l,

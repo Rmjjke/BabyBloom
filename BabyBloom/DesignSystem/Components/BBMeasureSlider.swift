@@ -29,7 +29,7 @@ struct BBMeasureSlider: View {
                 Spacer()
                 Text(maxLabel)
             }
-            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textSecondary)
         }
         .padding(BBTheme.Spacing.md)
@@ -61,7 +61,7 @@ struct BBOptionalMeasureToggle: View {
                         .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                     Text(hint)
-                        .font(.system(size: 12, design: .rounded))
+                        .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
                 Spacer()
@@ -83,7 +83,7 @@ struct BBOptionalMeasureToggle: View {
                     Spacer()
                     Text(maxLabel)
                 }
-                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
             }
         }

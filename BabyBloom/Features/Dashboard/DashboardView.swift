@@ -215,7 +215,7 @@ struct DashboardView: View {
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.today")
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.feedings",
                     value: "\(todayFeedings.count)",

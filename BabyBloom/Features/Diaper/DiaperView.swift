@@ -133,7 +133,7 @@ struct DiaperView: View {
             let wetCount = todayEntries.filter { $0.type == .wet || $0.type == .both }.count
             let dirtyCount = todayEntries.filter { $0.type == .dirty || $0.type == .both }.count
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.wet",
                     value: "\(wetCount)",
@@ -340,6 +340,7 @@ struct AddDiaperSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: DiaperEntry.DiaperType = .wet
     @State private var selectedColor: DiaperEntry.StoolColor? = nil
@@ -358,9 +359,9 @@ struct AddDiaperSheet: View {
                             ForEach(DiaperEntry.DiaperType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
-                                        Image(systemName: type.icon).font(.system(size: 22))
+                                        Image(systemName: type.icon).font(BBTheme.Typography.scaled(22, relativeTo: .body, weight: .regular, design: .default))
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.diaper)
-                                        Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
+                                        Text(type.displayName.l).font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
@@ -381,7 +382,12 @@ struct AddDiaperSheet: View {
                     if selectedType == .dirty || selectedType == .both {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("form.stool_color".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: BBTheme.Spacing.sm) {
+                            // The disc stays 36 pt; the name grows. At accessibility
+                            // sizes «Коричневый» needs 107 pt: three columns at 375 pt
+                            // hold it by 2, under the 8 pt kept spare, so two.
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
+                                                     count: dynamicTypeSize.isAccessibilitySize ? 2 : 4),
+                                      spacing: BBTheme.Spacing.sm) {
                                 ForEach(DiaperEntry.StoolColor.allCases, id: \.self) { color in
                                     Button {
                                         selectedColor = selectedColor == color ? nil : color
@@ -399,7 +405,7 @@ struct AddDiaperSheet: View {
                                                     : nil
                                                 )
                                             Text(color.displayName.l)
-                                                .font(.system(size: 10, weight: .medium, design: .rounded))
+                                                .font(BBTheme.Typography.scaled(10, relativeTo: .body, weight: .medium, design: .rounded))
                                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                                         }
                                         .frame(maxWidth: .infinity, minHeight: 44)   // ≥44pt tap zone
@@ -412,7 +418,7 @@ struct AddDiaperSheet: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                                     Text("diaper.color.warning".l)
-                                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                                         .foregroundStyle(.orange)
                                 }
                                 .padding(BBTheme.Spacing.sm)

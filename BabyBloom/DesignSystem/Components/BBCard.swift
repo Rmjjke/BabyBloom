@@ -41,7 +41,7 @@ struct BBStatCard: View {
                 Spacer()
                 if let trend {
                     Text(trend)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.primary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -69,11 +69,11 @@ struct BBStatCard: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Text(unit.l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
                 Text(title.l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
         }
@@ -83,6 +83,23 @@ struct BBStatCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(overLimit ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
         )
+    }
+}
+
+// MARK: - Stat Grid
+/// Two stat cards a row; one at accessibility sizes, where the grown title
+/// and unit («Measurements», «Подгузников») no longer fit half a 375-pt
+/// screen. The icon plate stays 36 pt.
+struct BBStatGrid<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
+                                 count: dynamicTypeSize.isAccessibilitySize ? 1 : 2),
+                  spacing: BBTheme.Spacing.md) {
+            content()
+        }
     }
 }
 
