@@ -2,7 +2,9 @@
 
 status: baseline — describes what `main` ships at 10cf1a9 (2026-10-28); updated
 2026-10-28 with the stool-colour exception (G3), the contrast floor (P8) and the
-M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02. Every value
+M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02; on
+2026-11-03 BBOnPrimary and the Live Activity are in force as shipped in 1.1.0,
+and the colorset counts and the re-theme list follow the code. Every value
 marked `in force` is in code, in `DECISIONS.md` or in a product decision stated
 here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -25,7 +27,7 @@ semibold for headers.
 | P2 | **Locked is not wrong.** A paywall gate is drawn in the calm primary tint (`primary@0.08` fill, `lock.fill`), never alarm red — nothing was lost. | in force | `BBLockedHistoryFooter` |
 | P3 | **Gate visible before the tap.** Every gated control carries `LockBadge` and says "locked" to VoiceOver (`bbLockedAccessibility`). A free-looking control that answers with a paywall is a bait-and-switch. | in force | `LockBadge`, `BBQuickActionButton.locked` |
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
-| P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + `ExportGenerator` hex. | in force | DECISIONS 2026-07-21, 2026-09-01 |
+| P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + the hex constants of `ExportGenerator` and of `DoctorReportPDF` (§ 2 "Outside `Colors/`"). | in force | DECISIONS 2026-07-21, 2026-09-01 |
 | P6 | **Dynamic Type through `BBTheme.Typography`**, ceiling AX2 (`accessibilityLarge`) in one constant. | in force | DECISIONS 2026-08-28 |
 | P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
 | P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | product decision 2026-10-28: WCAG 2.2 AA is the review bar |
@@ -33,14 +35,14 @@ semibold for headers.
 ## 2. Colour tokens
 
 triggers: a colorset added, removed or re-valued; a `BBTheme.Colors` member added
-check: `ls BabyBloom/Resources/Assets.xcassets/Colors | sed 's/.colorset//'` → the 17 shipped names below (18 once BBOnPrimary lands); `grep -o 'Color("BB' BabyBloom/DesignSystem/BBTheme.swift | wc -l` → 15 (BBLaunchBackground and BBSplashText are read by `SplashView` directly)
+check: `ls BabyBloom/Resources/Assets.xcassets/Colors | sed 's/.colorset//'` → the 18 names below; `grep -o 'Color("BB' BabyBloom/DesignSystem/BBTheme.swift | wc -l` → 16 (BBLaunchBackground and BBSplashText are read by `SplashView` directly)
 
 All sRGB, light (`any`) / dark (`luminosity: dark`).
 
 | colorset | Swift | light | dark | role |
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
-| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **planned (M1, accepted in the M1 plan review, 2026-10-28)** — label and glyph colour on any filled BBPrimary surface; white-on-primary in dark is G1. Added with the Live Activity, also copied to the widget catalog |
+| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; the older white-on-primary surfaces in dark are still G1 |
 | BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
@@ -60,10 +62,12 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 
 Outside `Colors/`:
 - `AccentColor.colorset` (system tint) = BBPrimary's values, #6F5BA8 / #A795D9.
-- `WidgetResources/Colors.xcassets`: copies of BBGradientStart, BBGradientEnd,
-  BBAccent; the pre-build script fails on drift (DECISIONS 2026-09-01). M1 adds
-  the colorsets the Live Activity and the widget control need (list in
-  `m1-live-activity.md` § 6).
+- `WidgetResources/Colors.xcassets`: copies of BBAccent, BBFeeding,
+  BBGradientEnd, BBGradientStart, BBOnPrimary, BBPrimary, BBSleep, BBSurface,
+  BBTextPrimary, BBTextSecondary (10; since 1.1.0 they include the ones the Live
+  Activity and the widget control need, `m1-live-activity.md` § 6). The pre-build
+  script in `project.yml` compares all 10 with the app's and fails on drift
+  (DECISIONS 2026-09-01).
 - `ExportGenerator` (PDF/HTML): solid #6F5BA8 header and table heads with white
   text (5.6:1), #6F5BA8 card titles (5.0:1 on the card), #746D85 labels and footer
   (BBTextSecondary, 4.9:1 on white); the other neutrals are iOS system greys
@@ -235,15 +239,15 @@ check: `grep -rnoE --include=*.swift 'spring\(response: [0-9.]+, dampingFraction
 ## 9. Platform surfaces
 
 triggers: a widget family / Live Activity / export format added; splash art changed
-check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBGradientEnd, BBGradientStart (plus the M1 list once it lands)
+check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientEnd, BBGradientStart, BBOnPrimary, BBPrimary, BBSleep, BBSurface, BBTextPrimary, BBTextSecondary (10 colorsets) + Contents.json
 
 - **Widget** (`Features/Widget/WidgetViews.swift`): premium gradient
   background, all text white at 0.7–1.0 opacity, raw rounded sizes 10–32 pt
   (widgets do not take Dynamic Type the same way; fixed sizes are expected
-  here). M1 adds tap areas and a start-feeding control:
+  here). Since 1.1.0 it has tap areas and a start-feeding control:
   `m1-live-activity.md` § 5.
-- **Live Activity** (M1, `planned`): Lock Screen on BBSurface, Dynamic Island
-  on its black — spec in `m1-live-activity.md`.
+- **Live Activity** (in force since 1.1.0, `Features/LiveActivity/`): Lock
+  Screen on BBSurface, Dynamic Island on its black — spec in `m1-live-activity.md`.
 - **Splash** (`Features/Splash/SplashView.swift`): BBLaunchBackground, then
   `BBSplashBg` art (design PNG with its text band stitched out), wordmark in
   BBSplashText. Launch screen is colour-only. Art: `docs/design/splash*.png`.
@@ -265,7 +269,7 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   primary@0.8 end of its gradient), the selected chip of
   `BBHistoryFilterPicker` and other `foregroundStyle(.white)` on primary fills
   sit under 3:1. Breaks P8. Fix: adopt BBOnPrimary (§ 2) on those surfaces;
-  M1 surfaces use it from the start.
+  the Live Activity has used it since 1.1.0.
 - **G2 · 148 raw `.system(size:)` fonts in the app** (widget excluded) never
   scale with Dynamic Type, against P6 / DECISIONS 2026-08-28. Heaviest:
   GrowthInsightCards 20, BBCard 15, DiaperView 12, FeedingView 10,
@@ -312,7 +316,7 @@ blockers; G1 and G2 are in the backlog (2026-10-28).
   (press, progress, swipe) ignore it. Small movements, low risk.
 - **G14 · No named motion tokens:** 8 spring variants for 4 intents.
 - **G15 · Palette of record is incomplete:** `README.md#дизайн-система` lists 4
-  light-only colours of 17 colorsets; `AccentColor.colorset` duplicates
+  light-only colours of 18 colorsets; `AccentColor.colorset` duplicates
   BBPrimary and is missing from the re-theme list in CLAUDE.md. README should
   point here.
 - **G16 · The export PDF's neutrals are mostly iOS system greys,** not the brand
