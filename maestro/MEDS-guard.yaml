@@ -9,10 +9,10 @@
 # 24 hours; Vitamin D every 24 h, its latest 26 h ago.
 #
 # The app's times and its pickers follow the device's 12/24-hour setting;
-# the launch arguments -AppleICUForce24HourTime YES and
-# -AppleICUForce12HourTime NO pin it to 24 hours for this app (the second
-# overrides a device set to 12 hours), so the times below read the same on
-# any simulator.
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # Launch-argument mechanics are explained in SMOKE-main-tabs.yaml.
 appId: com.nenita.app
@@ -25,8 +25,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
-      "-AppleICUForce24HourTime": "YES"
-      "-AppleICUForce12HourTime": "NO"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
 - extendedWaitUntil:
@@ -90,11 +89,17 @@ tags: [regression]
 - takeScreenshot: ${OUT}-guard-saved
 
 # On time: Vitamin D's interval has passed, so the dose saves at once.
-# A tap on Back while the dose sheet is still leaving can be lost; tap again
-# until the list shows.
-- tapOn:
-    id: "BackButton"
-    retryTapIfNoChange: true
+# A Back tap made while the dose sheet was still leaving was lost once: tap
+# Back until the list shows, at most three times.
+- repeat:
+    times: 3
+    while:
+      notVisible: "Vitamin D"
+    commands:
+      - tapOn:
+          id: "BackButton"
+          optional: true
+      - waitForAnimationToEnd
 - extendedWaitUntil:
     visible: "Vitamin D"
     timeout: 10000
@@ -140,8 +145,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
-      "-AppleICUForce24HourTime": "YES"
-      "-AppleICUForce12HourTime": "NO"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
       "-BBForcePremium": "true"

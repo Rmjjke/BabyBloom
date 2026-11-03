@@ -250,9 +250,8 @@ struct ExportGenerator {
     ) -> PagedPDF.Document {
         let dateFmt = documentFormatter { $0.dateStyle = .medium; $0.timeStyle = .none }
         // nil is the device's cycle; tests pass one to read both clocks.
-        let language = LocalizationManager.shared.language
-        let timeFmt = documentTimeFormatter(
-            in: hourCycle.map(language.environmentLocale(hourCycle:)) ?? language.environmentLocale)
+        let timeFmt = documentTimeFormatter(in: LocalizationManager.shared.language
+            .environmentLocale(hourCycle: hourCycle ?? Locale.current.hourCycle))
 
         // A name of emoji alone prints nothing, and the title still needs one.
         let printedName = PagedPDF.withoutEmoji(baby?.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)

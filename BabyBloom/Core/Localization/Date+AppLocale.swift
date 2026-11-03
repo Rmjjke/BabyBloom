@@ -7,10 +7,11 @@ import Foundation
 /// an English UI on a Russian phone rendered English labels beside Russian
 /// dates, and vice versa.
 ///
-/// Every on-screen date goes through these two helpers, which pin the app's
-/// language the same way `BBCharts` already pins its axis labels. Exported
-/// files deliberately do NOT use them: machine-readable columns there are
-/// pinned to `en_US_POSIX` instead (see `ExportGenerator`).
+/// Every on-screen date and time goes through these helpers, which pin the
+/// app's language the same way `BBCharts` pins its axis labels; clock times
+/// take the device's 12/24-hour cycle on top. The export PDF prints its times
+/// on that same locale; the CSV's machine-readable columns are pinned to
+/// `en_US_POSIX` instead (see `ExportGenerator`).
 extension Date {
     /// Time of day in the app's language on the device's 12/24-hour clock:
     /// "14:30" or "2:30 PM" in English alike, as the phone is set. The same

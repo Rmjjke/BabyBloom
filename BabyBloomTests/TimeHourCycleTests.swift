@@ -55,7 +55,8 @@ final class TimeHourCycleTests: XCTestCase {
     }
 
     /// The export document's text: a feed at 14:30 prints the screen's time
-    /// on a 12-hour and on a 24-hour phone, in every language.
+    /// on a 12-hour and on a 24-hour phone, in every language, and on the
+    /// device's own clock when no cycle is given, as the app exports it.
     func testTheExportDocumentPrintsTheFeedOnEitherClock() {
         let feed = FeedingEntry(startTime: halfPastTwo, type: .formula, side: nil, volumeML: 120)
         feed.endTime = halfPastTwo.addingTimeInterval(15 * 60)
@@ -69,6 +70,11 @@ final class TimeHourCycleTests: XCTestCase {
                 XCTAssertTrue(time.contains(cycle == .oneToTwelve ? "2:30" : "14:30"), "\(language) \(cycle): \(time)")
                 XCTAssertTrue(page.contains(ExportGenerator.htmlEscape(time)), "\(language) \(cycle): \(time)")
             }
+            let devicePage = ExportGenerator.buildHTML(
+                baby: nil, feedings: [feed], sleeps: [], diapers: [], growths: [], events: [],
+                categories: [.feeding], range: .all)
+            XCTAssertTrue(devicePage.contains(ExportGenerator.htmlEscape(halfPastTwo.appTimeOfDay)),
+                          "\(language) on the device's clock: \(halfPastTwo.appTimeOfDay)")
         }
     }
 

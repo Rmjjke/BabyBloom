@@ -8,10 +8,10 @@
 # 26 h ago, so only Paracetamol is on Home at first.
 #
 # The app's times and its pickers follow the device's 12/24-hour setting;
-# the launch arguments -AppleICUForce24HourTime YES and
-# -AppleICUForce12HourTime NO pin it to 24 hours for this app (the second
-# overrides a device set to 12 hours), so the times below read the same on
-# any simulator.
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # The reminder switch is tapped by point (84%,58%, iPhone 17, default size,
 # English): a tap on a Toggle's label does not flip it.
@@ -27,8 +27,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
-      "-AppleICUForce24HourTime": "YES"
-      "-AppleICUForce12HourTime": "NO"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
       "-BBLogPendingNotifications": "true"
@@ -123,8 +122,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
-      "-AppleICUForce24HourTime": "YES"
-      "-AppleICUForce12HourTime": "NO"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBNow": "2026-11-04T12:00:00"
 - extendedWaitUntil:
     visible:

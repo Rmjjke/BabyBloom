@@ -8,10 +8,10 @@
 # picker and shows the same clock ("10:00").
 #
 # The app's times and its pickers follow the device's 12/24-hour setting;
-# the launch arguments -AppleICUForce24HourTime YES and
-# -AppleICUForce12HourTime NO pin it to 24 hours for this app (the second
-# overrides a device set to 12 hours), so the times below read the same on
-# any simulator.
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # The hour wheel is driven by a point: the selected row sits mid-wheel and a
 # tap two rows above it selects the hour two earlier. Measured on iPhone 17
@@ -30,8 +30,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
-      "-AppleICUForce24HourTime": "YES"
-      "-AppleICUForce12HourTime": "NO"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "healthy"
       "-BBNow": "2026-11-03T10:00:00"
 - extendedWaitUntil:
