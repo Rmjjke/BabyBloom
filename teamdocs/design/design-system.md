@@ -7,8 +7,11 @@ M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02; on
 and the colorset counts and the re-theme list follow the code. Also on
 2026-11-03: the primary button's ink for 1.3.0 (G1), the platform red as the
 destructive red (§ 2, G4) and G9 follow the 1.2.0 code; the accent ink
-BBOnAccent and the stool check for 1.3.0 (G18, G19) follow the code of the same
-day, and an edge for the White and Black stool swatches is proposed (G20).
+BBOnAccent, the stool check and the White and Black swatches' edge for 1.3.0
+(G18, G19, G20) follow the code of the same day, and so do the
+accessibility-size layout rule (§ 3), the field-label helpers and the sheet
+heading (§ 7); scaling the fixed-size words of the entry sheets and the stat
+card is proposed (§ 3, G2).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -104,7 +107,7 @@ a wash.
 Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 - `FeedingEntry.type` — breast #E8A0BF, formula #B0C4F5, pumped #D4A8D5
 - `CustomEvent.type` — bath #B0C4F5, walk #A8D5C2, medication #F5D6A0, mood #E8A0BF, custom #D4A8D5
-- `DiaperEntry` stool swatches — yellow #F5D55F, green #6BBF6B, black #2C2C2C, brown #8B5E3C, orange #F5A45F, red #E05A5A, white #F0F0F0 (these depict a real colour, so a literal is defensible here). The selected swatch's check is a literal beside them, `StoolColor.checkHex` (from 1.3.0, G19): #171420 on yellow, green, orange, red and white; white on brown and black. Proposed: White and Black carry a 1 pt BBTextSecondary edge (G20).
+- `DiaperEntry` stool swatches — yellow #F5D55F, green #6BBF6B, black #2C2C2C, brown #8B5E3C, orange #F5A45F, red #E05A5A, white #F0F0F0 (these depict a real colour, so a literal is defensible here). The selected swatch's check is a literal beside them, `StoolColor.checkHex` (from 1.3.0, G19): #171420 on yellow, green, orange, red and white; white on brown and black. White and Black carry a 1 pt BBTextSecondary edge inside the disc, flagged by `StoolColor.needsEdge` (from 1.3.0, G20).
 
 ### Measured contrast
 
@@ -121,6 +124,7 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | BBOnPrimary on `BBPrimaryButton`'s primary@0.9 end (from 1.3.0) | 4.60 | 5.78 |
 | white on accent (the plan badge before 1.3.0) | **1.84** | **1.66** |
 | BBOnAccent on accent (the plan badge from 1.3.0) | 9.88 | 10.95 |
+| textSecondary edge of the White / Black stool swatch on the background (from 1.3.0; a border, 3:1) | 4.48 | 6.82 |
 | white on gradient end | **2.64** | 3.05 |
 | white on gradient start | 5.6 | 4.48 |
 | alert on surface | 3.6 | — |
@@ -157,6 +161,56 @@ In use but not named (via `scaled`): button label 17 semibold rounded; row
 title 15 semibold; section action 15 medium; footer/legend 13; chart title 14
 semibold; slider value 20 semibold mono; elapsed timer 36 semibold rounded mono
 (`.largeTitle`). Actual call counts: § 10 G7.
+
+**Accessibility sizes** (from AX1, `dynamicTypeSize.isAccessibilitySize`).
+Scaled type stops growing at AX2, so AX2 is the size to check. There a size
+scaled relative to `.body` is 31/17 of its base (17 → 31.0, 11 → 20.0,
+24 → 43.7 pt, measured on the simulator). From 1.3.0 the layout rule of
+`m3-medications.md` § 11 holds in every sheet and screen, not only on the
+medication path:
+- A word never breaks inside itself. A line breaks only at a space, or after
+  a hyphen the word already has.
+- A label that shares a line with its controls stacks above them:
+  `BBLabeledPicker` (§ 7).
+- A placeholder that is a field's only label stays whole:
+  `bbPlaceholderLabel` (§ 7).
+- An entry sheet's title moves from the bar into the content:
+  `BBSheetHeading` (§ 7).
+- A grid that cannot give its widest word its width takes fewer columns; the
+  tiles keep their order and spacing.
+
+Proposed (2026-11-03, not decided): every word scales, as P6 says.
+- A word set at a fixed point size (G2) takes `scaled(<its size>,
+  relativeTo: .body, weight:, design:)` with its size, weight and design, so
+  "Large" stays pixel-identical. A tile's glyph scales with its word, as on the
+  Add Event type and mood tiles.
+- These stay fixed: a colour swatch and its check (the 36 pt stool disc, on
+  whose geometry G20's edge sits); the stat card's 36 pt icon plate and the
+  glyphs of its top row; decorative figures (the Growth sheet's ruler,
+  empty-state art); the widget and the Live Activity (§ 9); the PDF.
+- A grid's column count at accessibility sizes is the largest one whose
+  column holds the widest word of en, ru and es at AX2 with sm 8 to spare, at
+  375 pt (iPhone SE and mini, and Display Zoom on the larger phones). The spare
+  keeps a measuring error of a point or a later word from landing a break.
+
+Lines at 337fff5; widths from CoreText in SF Rounded, within 1% of the
+simulator's:
+
+| grid | size → AX2 | widest word | column at 375 pt | at AX |
+|---|---|---|---|---|
+| Diaper type tiles (`DiaperView.swift:363`) | 13 → 23.7 | ru «Грязный» 93.0 | 109.0 (3) | 3, as below AX |
+| stool labels (`DiaperView.swift:400`) | 10 → 18.2 | ru «Коричневый» 107.1 | 79.8 (4), 109.0 (3) | 2 (167.5) |
+| Sleep type tiles (`SleepView.swift:281`) | 13 → 23.7 | ru «Дневной» 97.6 | 163.5 (2) | 2, as below AX; es «Sueño nocturno» wraps at its space |
+| Sleep location tiles (`SleepView.swift:308`) | 11 → 20.1 | es «Cochecito» 92.0 | 109.0 (3) | 3, as below AX |
+| Feeding type tiles (`FeedingView.swift:386`) | 12 → 21.9 | ru «Сцеженное» 119.2 | 109.0 (3) | 2 (167.5) |
+| stat-card title and unit (`BBCard.swift:76`, `:72`) | 13 → 23.7 | en «Measurements» 152.1 | 131.5 (2; 145.0 at 402 pt) | 1 (311.0): Dashboard, Feeding, Sleep, Diaper, Growth |
+| mood tiles (in code from 1.3.0) | 11 → 20.0 | ru «Беспокойный» 128.0 | 109.0 (3) | 2 (167.5) |
+
+The same surfaces' other fixed words scale by the same rule, with no change to
+their layout: the stool-colour warning (`DiaperView.swift:413`, G3), the slider
+ends and hint (`BBMeasureSlider.swift:32`, `:64`, `:86`; `FeedingView.swift:464`),
+the timer hint (`FeedingView.swift:480`) and the stat card's trend chip
+(`BBCard.swift:44`).
 
 ## 4. Spacing
 
@@ -214,7 +268,7 @@ Surface levels:
 ## 7. Components (`BabyBloom/DesignSystem/`)
 
 triggers: a file added to or removed from `DesignSystem/Components/`; a public component renamed
-check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model; `EmptyStateView` and `AppAppearance` live elsewhere)
+check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model; `EmptyStateView` and `AppAppearance` live elsewhere; `BBSheetHeading` and `bbSheetTitle` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
 
 | component | file | purpose | used in |
 |---|---|---|---|
@@ -223,7 +277,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph + 12 pt label; optional `LockBadge` | Dashboard |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
-| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
+| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. Scaling its title, unit and trend chip, with one column at accessibility sizes, is proposed (§ 3) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
@@ -239,6 +293,9 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBElapsedTimer | BBElapsedTimer | per-second elapsed label, 36 pt mono, MM:SS or HH:MM:SS | Dashboard, Feeding, Sleep |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | toggle that reveals a slider (head circumference) | Growth, BabyProfileEditSheet, Onboarding (Birth, Growth) |
+| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label beside it below AX1 (the picker alone, as before). At accessibility sizes: the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time) |
+| `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, note), QuestionSheet (unbounded) |
+| BBSheetHeading + `bbSheetTitle(_:movesIntoContentAtAX:)` | BBTheme | **from 1.3.0** — an entry sheet's title. Below AX1 it sits in the bar between Cancel and Save (capped at Large, one line, shrinks to 0.6). At accessibility sizes the bar shows no title and `BBSheetHeading` is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. The flag and the heading go together: the flag alone leaves no title, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading, so it reads with its tiles. Proposed: a decorative figure above the content (the Growth sheet's ruler) is left out at accessibility sizes, where the heading is the sheet's top | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet. The diaper norm editor and the profile edit sheet keep the system inline title, cut at accessibility sizes (a gap) |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -284,9 +341,11 @@ re-read at 1b01297 (1.2.0) on 2026-11-03, and G1's button numbers were also
 measured on the medication screens' renders. G1 was read again at c1354c4,
 with its renders in light and dark, and G18 and G19 were found there
 (2026-11-03). G18 and G19 were read at b503825 with their renders in light and
-dark, and G20 was found there. Each line: what, where, which rule. Under P8,
-existing contrast violations are backlog items, not blockers; G2 is in the
-backlog (2026-10-28), and G1, G18 and G19 are fixed for 1.3.0.
+dark, and G20 was found there; G20 was read at 890c80b with its renders in
+light and dark, and G2 at 337fff5 for the entry sheets and the stat card
+(2026-11-03). Each line: what, where, which rule. Under P8, existing contrast
+violations are backlog items, not blockers; G2 is in the backlog (2026-10-28),
+and G1, G18, G19 and G20 are fixed for 1.3.0.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -338,6 +397,10 @@ backlog (2026-10-28), and G1, G18 and G19 are fixed for 1.3.0.
   BabyProfileEditSheet 9. Includes shared components: `BBStatCard`
   unit/title 13 pt, `BBEventRow` subtitle/time 13 pt (scaled from 1.3.0, § 7), `BBQuickActionButton`
   label 12 pt, `BBMeasureSlider` min/max 11 pt. grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
+  Direction for the entry sheets and `BBStatCard` (proposed 2026-11-03): their
+  fixed words scale, and the stool, Feeding type and stat-card grids take
+  fewer columns at accessibility sizes (§ 3 Accessibility sizes). The rest of
+  the app's fixed words follow the same rule, screen by screen.
 
 **Minor**
 - **G19 · The stool swatch's check was white on every swatch; fixed for
@@ -352,17 +415,21 @@ backlog (2026-10-28), and G1, G18 and G19 are fixed for 1.3.0.
   White is #171420 in both modes; the ring is 5.12 in light and 6.86 in dark
   against the sheet.
 - **G20 · The White swatch on the light sheet and the Black swatch on the
-  dark sheet have no edge** (`DiaperView.swift:389–392`). Against the sheet
-  (BBBackground) their fills are 1.04 and 1.30, so the unselected disc nearly
-  vanishes and its label stands alone. The other five swatches read by their
-  hue. The fill cannot change, because it depicts a real colour (§ 2 Data
-  colours). Proposed (2026-11-03, not decided):
+  dark sheet had no edge; fixed for 1.3.0** (`DiaperView.swift:393`). Against
+  the sheet (BBBackground) their fills are 1.04 and 1.30, so the unselected
+  disc nearly vanished and its label stood alone. The other five swatches read
+  by their hue. The fill cannot change, because it depicts a real colour (§ 2
+  Data colours). Fix, decided 2026-11-03 for 1.3.0, in code at 890c80b:
   - White and Black carry a 1 pt BBTextSecondary edge, drawn inside the 36 pt
-    disc (`strokeBorder`), in both modes: 4.48 in light and 6.82 in dark
-    against the sheet, over P8's 3:1 for a border.
+    disc (`strokeBorder`), in both modes, flagged by `StoolColor.needsEdge`
+    (`DiaperEntry.swift:101`; the switch is exhaustive, so a new colour has to
+    choose). On the renders the edge spans radius 17–18 pt in the token's
+    colour: 4.48 in light and 6.82 in dark against the sheet, over P8's 3:1
+    for a border.
   - The disc stays 36 pt. The 2.5 pt selected ring is drawn on the same
-    circle, so it covers the edge when the swatch is chosen, and the selected
-    look does not change.
+    circle (radius 16.75–19.25 pt), so it covers the edge when the swatch is
+    chosen: on the selected White no edge pixel is left in either mode, and the
+    selected look does not change.
   - In the other mode, the edge rims a disc that already stands at 15.92
     (White on dark) and 12.72 (Black on light), so one rule per swatch needs
     no appearance branch.
@@ -370,6 +437,8 @@ backlog (2026-10-28), and G1, G18 and G19 are fixed for 1.3.0.
     colour at its rim, and it adds weight where the hue already separates the
     disc. Not a faint edge (textSecondary@0.30, the export radio circle's):
     1.50 and 2.19, under 3:1.
+  grep: `grep -rn --include=*.swift 'needsEdge' BabyBloom` → 2 lines at
+  890c80b: the flag and the disc.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
