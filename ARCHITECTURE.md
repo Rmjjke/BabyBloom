@@ -349,19 +349,51 @@ in «…» however many lines the field keeps.
 Words that had a fixed point size grow the same way: `Typography.scaled(<size>,
 relativeTo: .body, …)` keeps their size, weight and design at Large and then
 follows the text size as body text does: smaller below Large, larger above
-it, most at accessibility sizes. The entry
-sheets' tile words (with their glyphs), stool colour names, slider ends and
-hints use it, and so do the stat card's title, unit and trend chip. Some
-screens outside the entry sheets still set fixed sizes. A grid whose widest
-en, ru or es word at AX2 no longer fits its column at a 375-pt width, with
-8 pt to spare, takes fewer columns at accessibility sizes. The stool colours
-and the Feeding sheet's types drop to two. The profile edit sheet's gender and
-feeding rows, measured at a 320-pt width, drop to one; its feeding row already
+it, most at accessibility sizes. The entry sheets' tile words (with their
+glyphs), the Diaper and Events quick tiles' glyphs, the Sleep start tiles'
+glyph and caption, stool colour names, slider
+ends and hints use it, and so do the stat card's title, unit and trend chip.
+Some screens outside the entry sheets still set fixed sizes. Colour samples,
+icon plates and decorative figures keep their size, and the Growth sheet
+leaves its ruler out at accessibility sizes.
+
+A row of tiles keeps a column count only while its widest en, ru or es word
+fits the column (the tile less its side padding) at a 320-pt width with 8 pt
+to spare; the spare covers a measuring error, a later word and Bold Text.
+320 pt is Display Zoom on the smaller phones and iPad Slide Over. The rule is
+checked at every text size, with the row's count there: at Large, which every
+smaller size follows, at xLarge, xxLarge and xxxLarge, and at AX2, where scaled
+type stops growing. A row takes fewer columns from the first size where its
+widest word misses, and each text size has one shape at every width; no count
+follows the width. The rows below state their counts once, in a
+`BBTileColumns` (beside `BBStatGrid` in `DesignSystem/Components/BBCard.swift`):
+Large, which stands for every smaller size too, xLarge, xxLarge, xxxLarge and
+accessibility. A row that is an `HStack` at Large stays that `HStack` wherever
+its count is unchanged (a grid sets it a third of a point lower), becomes a
+grid where the count drops and a `VStack` where it reaches one; a row that is
+a grid at Large takes the count. The counts, Large to accessibility:
+- Diaper screen quick-add 3/2/2/2/1; Sleep screen start tiles 2/2/2/1/1;
+  Events quick row and `BBStatGrid` (five screens) 2/2/1/1/1.
+- Stool colours 4/3/3/3/2; Feeding sheet types 3/3/3/2/2; Diaper sheet types
+  and Sleep sheet locations 3/3/3/3/2; Add Event types and moods 3/3/2/2/2;
+  Sleep sheet types two at every size.
+
+Two rows keep a count with less than the 8-pt spare, each measured with and
+without Bold Text, and measured again whenever its words change in any locale.
+The stool row at Large: «Коричневый» fits a quarter of 320 pt; three columns
+would set the default Diaper sheet's seven swatches 3 + 3 + 1 on every phone.
+The profile edit sheet's feeding row at Medium and Large: «Смешанное» fits a
+third of the sheet at 320 pt, and is the same word at the same size it always
+was. The Diaper quick tile's 8-pt side padding (16 above and below) is what
+keeps its three columns at Large on 320 pt; with 16 «Грязный» broke there. In
+one column a quick or start tile keeps its shape: glyph above word, centred,
+full width. The profile edit sheet's gender and feeding rows, measured at a
+320-pt width, drop to one at accessibility sizes; its feeding row already
 takes two from xLarge, where «Смешанное» no longer fits a third of that width.
-The stat grids drop to one, through
-`BBStatGrid` beside `BBStatCard`. Colour samples, icon plates and decorative
-figures keep their size, and the Growth sheet leaves its ruler out at those
-sizes.
+They branch on the text size directly, not through `BBTileColumns`. Not yet
+checked against the rule: the Feeding screen's quick-add row and the Home
+screen's quick actions, whose words still have a fixed size, the Feeding
+timer's and sheet's breast-side choices, and the onboarding gender row.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on
