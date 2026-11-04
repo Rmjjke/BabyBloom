@@ -38,6 +38,11 @@ Each row that looks tappable does one thing.
   paywall.
 - Configure Reminders keeps its label; it opens the app's page in the iOS
   Settings app.
+- Usage Statistics is a switch, on by default. `settings.analytics_hint`
+  under its title says what it does: "We see which features are used." It
+  names only what is sent and never says "anonymous", because the install
+  keeps one random id. The rule for a switch's line: `voice.md` § Surface
+  rules.
 
 ## Changes
 
@@ -46,3 +51,4 @@ Each row that looks tappable does one thing.
   for the Settings rows that opened nothing.
 - 2026-11-03 — `onboarding.premium.f2` lists baths, walks and mood: medications
   are free in 1.3.0.
+- 2026-11-04 — `settings.analytics_hint` under Usage Statistics.

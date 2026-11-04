@@ -97,6 +97,18 @@ Settings → Notifications. Off stops the notification only; the card stays. A
 recurring notification with no off switch in the app pushes people to turn
 off all of the app's notifications in iOS, feeding reminders included.
 
+Under the switch, `settings.notify_weekly_hint` says when the notification
+comes: "It arrives on Monday mornings." / «Приходит утром по понедельникам.»
+/ «Llega los lunes por la mañana.» It is built like the Live Activity row's
+hint.
+- The app plans it for Monday 10:00 and skips a week with no entries. The
+  hint says "mornings" rather than a clock time, so it reads the same on a
+  12-hour and a 24-hour phone.
+- It names only the time. The section (Notifications) and the title
+  (Weekly summary) say what it is. "…with last week's feeds and sleep"
+  would take four lines on a 320 pt screen, where the switch leaves the
+  hint about 145 pt.
+
 ## Notification copy rules (from the 1.1.0 sweep)
 
 - Russian: «вы» to the parent in every notification.
@@ -125,3 +137,5 @@ off all of the app's notifications in iOS, feeding reminders included.
   `weekly.gain_next_monday`: the gain line names what is missing in each
   case without a pair. A parent who has weighed is no longer asked to weigh
   as if nothing were logged.
+- 2026-11-04 — `settings.notify_weekly_hint`, the line under Settings ›
+  Notifications › Weekly summary: when the notification comes.
