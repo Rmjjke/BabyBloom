@@ -57,6 +57,15 @@ and the Live Activity read the byte-identical copies in
   as one started in the app, so "a feeding" has one meaning and the widget
   needs no strings of its own. No "logged" confirmation — the widget's own
   state shows the running feed.
+- **Widget: time since the last feed** (`widget.last_feed`): "Last feed",
+  «С кормления», «Última toma». One key, two places: the medium widget's
+  row title (10 pt, above the time since the feed) and the headline at 12+
+  months (12 pt, above the same time as the hero). The row's title has
+  99.5 pt on a 10.2" iPad and 107.5 pt on the iPhone SE; «Последнее
+  кормление» (114.4 pt) was cut on both, and as a headline it took two lines
+  on the medium and shrank on the small. Not «Кормление»: above a duration
+  it reads as how long the feed lasted, and the capsule below it already
+  says «Кормление».
 - **Time past a reminder** is told as elapsed time, never as a fault:
   «Прошло ещё 20 мин», not «Просрочено на 20 мин».
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
@@ -210,3 +219,6 @@ and the Live Activity read the byte-identical copies in
   unit of `nutrition.window_fmt` and `breakdown.gain_fmt` in English and
   Spanish ("over 9 days", "119 g/week", «9 días», «119 g/sem»). Russian had
   them already.
+- 2026-11-04 — Russian `widget.last_feed` «Последнее кормление» → «С
+  кормления», whole in the medium widget's row on the iPhone SE and the
+  10.2" iPad. English and Spanish fit as they are.
