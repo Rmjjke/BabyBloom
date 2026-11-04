@@ -29,11 +29,13 @@ medication screen's Edit as the pencil and the norm editor's scroll and width
 on 320 pt (G22) are planned, and so are a bar confirm that shows ▶ while its
 sheet starts a timer, value rows that share a column of deltas taking one
 shape by fit and the percentile card's figure in place of its band label
-(§ 3, § 7, G23), all decided the same day. For the other Growth cards' tier
-tints as text ink a direction is proposed: words and figures in the text
-colours, and the tint on a mark, a tier dot before the verdict word (§ 2,
-G23); the category tints as text ink on the timer cards and the week chart are
-a gap (G24).
+(§ 3, § 7, G23), and on the other Growth cards words and figures in the text
+colours with the tier tint on a mark, a tier dot before the verdict word
+(§ 2, G23), all decided the same day. For the category tints as text ink (the
+timer cards, Home's timer card, the week chart, the bottle volume) the same
+direction is proposed: the text colours, with the tint on the wash, stroke,
+glyph disc, bars and slider beside them (§ 2, § 7, G24); the week chart's
+bars under 3:1 are a gap (G25).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -125,7 +127,7 @@ on a light surface are about 2.1:1, so a glyph whose colour is the only cue
 fails P8; on light surfaces the glyph shape carries the meaning and the tint is
 a wash.
 
-Proposed (G23, not decided): a tier tint (BBSuccess "within", BBAccent
+Planned (G23, decided 2026-11-04): a tier tint (BBSuccess "within", BBAccent
 "below", BBAlert a percentile tail) is a mark, never text ink: the percentile
 ring, the newborn tick, or the **tier dot** before a verdict word. The dot is a
 circle 7 pt across at Large, in the tier tint, 5 pt before its word and glued
@@ -135,6 +137,15 @@ baseline at 13 pt semibold), scaled with its word, hidden from VoiceOver. The
 word and any figure beside it are BBTextPrimary (14.28 / 14.05); a "not yet"
 stays BBTextSecondary, and a reading with no tier ("above") has no dot. A
 mark whose meaning its word states needs no 3:1 (WCAG 1.4.11).
+
+Proposed (G24, not decided): the same for the category tints. BBFeeding,
+BBSleep and BBDiaper are marks: the timer card's wash and 1.5 pt stroke, the
+glyph disc, the week chart's bars, a slider's track. The words and figures
+beside them are BBTextPrimary in both modes: the timer cards' label and
+digits (12.41 / 12.42 on the card's wash, 14.03 / 14.09 in dark), Home's
+timer digits, the week chart's value and today's day, and the bottle volume
+(14.28 / 14.05 on the surface), as the Live Activity and `BBMeasureSlider`
+already draw theirs. No mark is added and no width changes.
 
 ### Data colours (not tokens)
 
@@ -164,8 +175,10 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | alert on surface / background, as text | **3.64 / 3.31** | 5.53 / 6.17 |
 | success / accent on the surface, as text ink on the Growth cards (G23) | **1.98 / 1.84** | 9.47 / 9.82 |
 | feeding / sleep tint as ink on its timer card, tint@0.08 over the background (G24) | **1.80 / 1.82** | 5.94 / 5.53 |
+| textPrimary on the feeding / sleep timer card (G24, proposed) | 12.41 / 12.42 | 14.03 / 14.09 |
+| textSecondary on a tint@0.08 wash over the background: feeding and sleep (diaper 4.36, growth 4.31, primary 4.05; G10) | **4.28** | 6.11 |
 | platform red (destructive text) on background | **3.25** | 5.29 |
-| feeding / sleep tint on surface | **2.1 / 2.1** | 6.0 / 5.5 |
+| feeding / sleep / diaper tint on surface (the week chart, the bottle volume: G24; the chart's bars: G25) | **2.08 / 2.09 / 1.61** | 5.95 / 5.51 / 7.25 |
 
 Bold = under P8 for normal-size text; see § 10.
 
@@ -634,14 +647,14 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
 | BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1) | BBHistorySection |
-| BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation | Feeding, Sleep, Diaper |
+| BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation; the tallest bar's value (11 semibold) and today's day (11 bold) in the tint, BBTextPrimary proposed (G24); the bars under 3:1 in light (G25) | Feeding, Sleep, Diaper |
 | BBDeleteHistoryButton | BBCharts | destructive "delete all" with a scope-honest confirmation (P4) | Events, BBHistorySection |
 | BBLockedHistoryFooter | BBLockedHistoryFooter | the one calm locked row for history beyond the free window (P2) | Events, RecentActivity, BBHistorySection |
 | LockBadge + `bbLockedAccessibility` | LockBadge | the one padlock: 10 pt glyph on a surface disc; VoiceOver value "locked" (P3) | Events, BBQuickActionButton |
 | BrandMark | BrandMark | `BBLogo` clipped to a circle, 1 pt ring, optional shadow, on-gradient variant | MainTabView, PremiumHero, Onboarding (Welcome, Generating) |
-| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
+| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; ink: the caller's tint, BBTextPrimary proposed in both modes (G24); MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
 | BBTimerFit | BBElapsedTimer | **from 1.3.0** — a running timer with what is running: one per-second `TimelineView` clock draws both shapes, so each fit check reads the digits on screen. Below AX1 the content stands beside the digits (a `Spacer` between, the given gap on each side) while both fit one line, else above them, sm 8 apart, both leading (`ViewThatFits`); at accessibility sizes always above (§ 3) | Dashboard (`ActiveTimerCard`: title 15 semibold over subtitle 13 regular, 2 apart, md 16 gaps, beside a 48 pt plate; on 320 pt at Large it stacks at any time; the sleep card passes `showsHours`, `DashboardView.swift:187`, and past an hour stacks on en 375 pt and es 375 and 402 pt too), BBTimerCardHeader |
-| BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in the card's colour over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
+| BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in the card's colour (BBTextPrimary proposed, G24) over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | toggle that reveals a slider (head circumference) | Growth, BabyProfileEditSheet, Onboarding (Birth, Growth) |
 | BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
@@ -705,6 +718,7 @@ b8e9a41, with their renders at the default size, xLarge and xxxLarge, in
 light and dark and in the 320 pt dumps, and Home at 95525c6; G22 was found
 there (2026-11-04). G23 was found at a8369f8 and read at 6fc67d1 on every
 tint site of the Growth tab and Home's growth card, and G24 was found there
+and read at 6fc67d1 on every category-tint site, where G25 was found
 (2026-11-04). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
@@ -888,7 +902,7 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   are one VoiceOver element. A graphic whose meaning the text beside it
   states needs no 3:1 (WCAG 1.4.11). Onboarding's page follows, as the same
   card.
-  Direction for the other five sites (proposed 2026-11-04, not decided): **a
+  Direction for the other five sites (decided 2026-11-04, planned): **a
   tier tint is a mark, never text ink** (§ 2, after the tint usage pattern),
   one look in light and dark:
   - figures: BBTextPrimary in every tier (14.28 / 14.05), as the percentile
@@ -909,19 +923,53 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   make the verdict word the loudest line of its card beside a percentile
   figure already neutral. No mark at all: no tier cue is left on the cards
   that have no ring or tick.
-- **G24 · Category tints as text ink on the timer cards and the week chart**
-  (found 2026-11-04 at 6fc67d1, in G23's audit). The Feeding and Sleep timer
-  cards draw their label (13 pt medium, `BBElapsedTimer.swift:94`) and their
-  digits (36 pt semibold, `BBElapsedTimer.face`, `:14`) in the card's tint, on
-  the card's tint@0.08 over the background: BBFeeding 1.80 and BBSleep 1.82
-  in light (5.94 and 5.53 dark), against 4.5 for the label and 3 for the
-  digits. Home's running-timer card draws its digits (22 pt semibold) the
-  same way (`DashboardView.swift:648`), and the week chart prints the tallest
-  bar's value (11 pt semibold, `BBCharts.swift:232`) in the tint on the
-  surface: feeding 2.08, sleep 2.09, diapers 1.61. Breaks P8. Not from
-  1.3.0's builds. A direction is later; G23's rule would put the label and
-  the digits in BBTextPrimary and keep the tint on the card's wash, stroke
-  and glyph.
+- **G24 · Category tints as text ink on the timer cards, the week chart and
+  the bottle volume** (found 2026-11-04 at 6fc67d1, in G23's audit, and read
+  there on every category-tint site). Six sites draw words or figures in
+  BBFeeding, BBSleep or BBDiaper (kind, type, the ratio it needs):
+  - the Feeding and Sleep timer cards' label («Кормление», «Ребёнок спит»):
+    label, 13 pt medium, 4.5 (`BBElapsedTimer.swift:94`);
+  - their digits: figure, 36 pt semibold, 3 (`BBElapsedTimer.face`, `:14`);
+  - Home's running-timer card's digits: figure, 22 pt semibold, 3, and 4.5
+    once they shrink under 18.7 pt (to 15.4 at 0.7; `DashboardView.swift:648`);
+  - the week chart's tallest-bar value: small text, 11 pt semibold, 4.5
+    (`BBCharts.swift:232`);
+  - the week chart's today's day: small text, 11 pt bold, 4.5
+    (`BBCharts.swift:261`);
+  - the bottle volume on the feeding entry sheet: figure, 20 pt semibold, 3
+    (`FeedingView.swift:522`).
+  On the timer cards' tint@0.08 wash they are 1.80 (feeding) and 1.82 (sleep)
+  in light, and on the surface 2.08, 2.09 and 1.61 (diapers); in dark 5.51 to
+  7.25, all pass. Breaks P8. Not from 1.3.0's builds. The Live Activity's
+  digits (`TimerActivityViews.swift:156`, `:248`) and `BBMeasureSlider`'s
+  value (`BBMeasureSlider.swift:23`) are BBTextPrimary already.
+  Direction (proposed 2026-11-04, not decided): G23's rule, **a tint is a
+  mark, never text ink**, one look in light and dark:
+  - figures (the timer digits, the bottle volume): BBTextPrimary, 12.41 /
+    12.42 on the timer cards and 14.28 on the surface (dark 14.03 to 14.09),
+    which also passes 4.5 for Home's shrunk digits;
+  - the timer label: BBTextPrimary, apart from the title by size and weight;
+    BBTextSecondary is 4.28 on the wash (G10), no option;
+  - the week chart's value and today's day: BBTextPrimary (14.28 / 14.05);
+    today keeps its bold and its full-strength bar.
+  The tint stays on the marks each site already has: the timer card's wash
+  and 1.5 pt stroke, Home's glyph disc, the bars, the slider's track. Nothing
+  is added, no width changes, and the shapes at every size are today's. Not
+  taken: one ink colorset per category for light at 4.5 (feeding #9B596D,
+  sleep #64699D, diapers #8D733B; at 3 for the big digits alone #BB768A and
+  #8086BC), dark keeping the tints: a plum, a slate blue and an ochre the
+  palette does not have, two values per hue to keep in step, and an in-app
+  timer unlike the Lock Screen's. The chart's value in BBTextSecondary (4.92)
+  passes but reads as an axis number.
+- **G25 · The week chart's bars are under 3:1** (found 2026-11-04 at 6fc67d1,
+  in G24's audit). `BBWeeklyBarChart` (`BBCharts.swift:152–163`, `:226`)
+  fills today's bar with the tint fading to 0.35 and the other days with 0.5
+  fading to 0.175, on the surface. At their top in light: today 2.08 / 2.09 /
+  1.61 (feeding / sleep / diapers), the other days 1.42 / 1.41 / 1.26; in
+  dark today 5.95 / 5.51 / 7.25 and the other days 2.51 / 2.40 / 2.85. A bar
+  is a graphical object the chart needs (WCAG 1.4.11, 3:1); the axis numbers
+  (4.92 / 6.11) and the tallest bar's value give the figures, and the grid
+  lines are textSecondary@0.06. Breaks P8. A direction is later.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -959,7 +1007,11 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   level-1 top highlight `bbCard()` defines. grep: `grep -rnF --include=*.swift
   '.bbCard()' BabyBloom | wc -l` → 8 in 1.2.0.
 - **G10 · textSecondary on background is 4.48:1 (light)** — a hair under P8,
-  and it carries the 12–13 pt captions and units.
+  and it carries the 12–13 pt captions and units. On a tint@0.08 wash it is
+  lower: 4.28 on the feeding and sleep washes, 4.36 on diapers, 4.31 on growth
+  and 4.05 on primary (dark 6.01 to 6.13; read at 6fc67d1), under Home's
+  running-timer card's subtitle (`DashboardView.swift:655`) and
+  `BBStatCard`'s unit and title on its tonal wash (`BBCard.swift:71–77`).
 - **G11 · `EmptyStateView` lives in `Features/Feeding/FeedingView.swift`**
   though four surfaces share it; belongs in `DesignSystem/Components/`.
 - **G12 · Gradient text in light mode:** white on BBGradientEnd is 2.64:1;
