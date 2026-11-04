@@ -55,23 +55,9 @@ struct WeeklySummaryCard: View {
     private var card: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             header
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                feedsRow
-                sleepRow
-                gainRow
-                if summary.previous == nil {
-                    BBTheme.Typography.caption("weekly.first_week".l)
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                // Every week, a full one too: each per-day row is an average
-                // over the days with entries, and this line says so.
-                BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
-                                                  summary.current.daysWithEntries))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-            }
-            // iPad: the delta stays near its value.
-            .frame(maxWidth: 480, alignment: .leading)
+            valueRows
+                // iPad: the delta stays near its value.
+                .frame(maxWidth: 480, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .bbCard()
@@ -79,6 +65,46 @@ struct WeeklySummaryCard: View {
         // (`weekly.expand`, `weekly.hide`) in the accessibility tree.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("weekly.card")
+    }
+
+    /// One shape for the three rows, by fit: each on one line while every row
+    /// fits there at full size, else all stacked with the delta under the
+    /// value, as at the accessibility sizes. A shape per row would break the
+    /// deltas' column; shrinking the text cut the sleep row on 320 pt.
+    @ViewBuilder
+    private var valueRows: some View {
+        if typeSize >= .accessibility1 {
+            rows(oneLine: false)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                rows(oneLine: true)
+                rows(oneLine: false)
+            }
+        }
+    }
+
+    /// The rows and the lines under them. Everything that wraps sits in
+    /// `WrapsToWidth`, so only the rows' value lines decide the fit.
+    private func rows(oneLine: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            feedsRow(oneLine: oneLine)
+            sleepRow(oneLine: oneLine)
+            gainRow(oneLine: oneLine)
+            WrapsToWidth {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    if summary.previous == nil {
+                        BBTheme.Typography.caption("weekly.first_week".l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    // Every week, a full one too: each per-day row is an average
+                    // over the days with entries, and this line says so.
+                    BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
+                                                      summary.current.daysWithEntries))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+            }
+        }
     }
 
     // MARK: Header
@@ -142,20 +168,20 @@ struct WeeklySummaryCard: View {
 
     // MARK: Rows
 
-    private var feedsRow: some View {
+    private func feedsRow(oneLine: Bool) -> some View {
         let current = summary.current.feedsPerDay
         let previous = summary.previous?.feedsPerDay
-        return row(icon: "heart.fill", tint: BBTheme.Colors.feeding,
+        return row(oneLine: oneLine, icon: "heart.fill", tint: BBTheme.Colors.feeding,
                    format: "weekly.feeds_fmt", value: current.map(WeeklyFormat.perDay),
                    delta: WeeklyFormat.feedsDelta(current, previous),
                    previous: previous.map(WeeklyFormat.perDay),
                    bars: summary.current.feedsByDay.map(Double.init))
     }
 
-    private var sleepRow: some View {
+    private func sleepRow(oneLine: Bool) -> some View {
         let current = summary.current.sleepPerDay
         let previous = summary.previous?.sleepPerDay
-        return row(icon: "moon.fill", tint: BBTheme.Colors.sleep,
+        return row(oneLine: oneLine, icon: "moon.fill", tint: BBTheme.Colors.sleep,
                    format: "weekly.sleep_fmt", value: current.map(WeeklyFormat.duration),
                    delta: WeeklyFormat.sleepDelta(current, previous),
                    previous: previous.map(WeeklyFormat.duration),
@@ -166,10 +192,10 @@ struct WeeklySummaryCard: View {
     }
 
     @ViewBuilder
-    private var gainRow: some View {
+    private func gainRow(oneLine: Bool) -> some View {
         switch summary.gain {
         case .perWeek(let grams):
-            row(icon: "scalemass.fill", tint: BBTheme.Colors.growth,
+            row(oneLine: oneLine, icon: "scalemass.fill", tint: BBTheme.Colors.growth,
                 format: "weekly.gain_fmt", value: WeeklySummary.signed(grams),
                 delta: nil,
                 previous: summary.previousGain.map {
@@ -177,59 +203,65 @@ struct WeeklySummaryCard: View {
                 },
                 bars: nil)
         case .newborn:
-            note(icon: "scalemass.fill", text: "weekly.gain_newborn".l)
+            gainNote("weekly.gain_newborn".l)
         // Next Monday's card shows the gain on its own: nothing to add.
         case .nextMonday:
-            note(icon: "scalemass.fill", text: "weekly.gain_next_monday".l)
+            gainNote("weekly.gain_next_monday".l)
         case .needsWeighing:
-            weighingPrompt("weekly.gain_needs_weighing".l)
+            gainNote("weekly.gain_needs_weighing".l, asksForWeighing: true)
         case .needsSecond:
-            weighingPrompt("weekly.gain_needs_second".l)
+            gainNote("weekly.gain_needs_second".l, asksForWeighing: true)
         case .needsTwo:
-            weighingPrompt("weekly.gain_needs_two".l)
+            gainNote("weekly.gain_needs_two".l, asksForWeighing: true)
         }
     }
 
-    /// The gain line where the next step is a weighing, with its button.
-    private func weighingPrompt(_ text: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            note(icon: "scalemass.fill", text: text)
-            Button(action: onAddWeighing) {
-                Text("growth.add_weighing".l)
-                    .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
-                    .foregroundStyle(BBTheme.Colors.primary)
-                    .frame(minHeight: 44)
+    /// The gain line without a figure, with the weighing button where the next
+    /// step is a weighing. It wraps, so it never decides the rows' shape.
+    private func gainNote(_ text: String, asksForWeighing: Bool = false) -> some View {
+        WrapsToWidth {
+            VStack(alignment: .leading, spacing: 2) {
+                note(icon: "scalemass.fill", text: text)
+                if asksForWeighing {
+                    Button(action: onAddWeighing) {
+                        Text("growth.add_weighing".l)
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
+                            .foregroundStyle(BBTheme.Colors.primary)
+                            .frame(minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, indent)
+                    .accessibilityIdentifier("weekly.add_weighing")
+                }
             }
-            .buttonStyle(.plain)
-            .padding(.leading, indent)
-            .accessibilityIdentifier("weekly.add_weighing")
         }
     }
 
     /// A value row. A nil value (nothing of that kind logged) leaves the row
     /// out rather than printing a zero that reads as a verdict.
     @ViewBuilder
-    private func row(icon: String, tint: Color, format: String, value: String?,
+    private func row(oneLine: Bool, icon: String, tint: Color, format: String, value: String?,
                      delta: (up: Bool, text: String)?, previous: String?,
                      bars: [Double]?, extra: String? = nil) -> some View {
         if let value {
             VStack(alignment: .leading, spacing: 4) {
-                let stacked = typeSize >= .accessibility1
-                let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
-                                     : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+                let layout = oneLine ? AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+                                     : AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: icon)
                         .font(.system(size: glyph))
                         .foregroundStyle(tint)
                         .accessibilityHidden(true)
                     layout {
+                        // One line, never cut: that shape is chosen only when
+                        // the whole line fits at full size.
                         WeeklyFormat.labelled(format.l, value: value)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
-                            .lineLimit(stacked ? nil : 1)
-                            .minimumScaleFactor(0.85)
-                        if !stacked { Spacer(minLength: 0) }
+                            .fixedSize(horizontal: oneLine, vertical: !oneLine)
+                        if oneLine { Spacer(minLength: 0) }
                         if summary.previous != nil, let delta {
                             deltaView(delta)
+                                .fixedSize(horizontal: oneLine, vertical: false)
                         }
                     }
                 }
@@ -237,18 +269,20 @@ struct WeeklySummaryCard: View {
                 // value it belongs to.
                 .accessibilityElement(children: .combine)
                 if expanded {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let previous, summary.previous != nil || bars == nil {
-                            BBTheme.Typography.caption(String(format: "weekly.previous_fmt".l, previous))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                    WrapsToWidth {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let previous, summary.previous != nil || bars == nil {
+                                BBTheme.Typography.caption(String(format: "weekly.previous_fmt".l, previous))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                            if let bars { barsView(bars) }
+                            if let extra {
+                                BBTheme.Typography.caption(extra)
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
                         }
-                        if let bars { barsView(bars) }
-                        if let extra {
-                            BBTheme.Typography.caption(extra)
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                        }
+                        .padding(.leading, indent)
                     }
-                    .padding(.leading, indent)
                     .transition(.opacity)
                 }
             }
@@ -304,6 +338,27 @@ struct WeeklySummaryCard: View {
             }
         }
         .accessibilityHidden(true)
+    }
+}
+
+/// Wraps to the width it is given, and asks for none when measured for its
+/// ideal width: a line that wraps never decides whether the value rows fit on
+/// one line.
+private struct WrapsToWidth: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        guard proposal.width != nil else {
+            return CGSize(width: 0, height: content.sizeThatFits(proposal).height)
+        }
+        return content.sizeThatFits(proposal)
+    }
+
+    /// Laid out at its ideal size (a `fixedSize` ancestor), the content keeps
+    /// its own line rather than being crushed into the zero width it asked for.
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin,
+                              proposal: ProposedViewSize(width: proposal.width == nil ? nil : bounds.width,
+                                                         height: bounds.height))
     }
 }
 
