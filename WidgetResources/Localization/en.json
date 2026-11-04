@@ -361,6 +361,7 @@
   "settings.icloud_off": "Off",
   "settings.icloud_off_hint": "To keep your entries on all your devices, sign in to iCloud in the Settings app.",
   "settings.analytics": "Usage Statistics",
+  "settings.analytics_hint": "We see which features are used.",
   "settings.app_section": "App",
   "settings.about": "About",
   "about.version_fmt": "Version %@",

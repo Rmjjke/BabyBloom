@@ -361,6 +361,7 @@
   "settings.icloud_off": "Desactivada",
   "settings.icloud_off_hint": "Para tener tus registros en todos tus dispositivos, inicia sesión en iCloud en la app Ajustes.",
   "settings.analytics": "Estadísticas de uso",
+  "settings.analytics_hint": "Vemos qué funciones se usan.",
   "settings.app_section": "Aplicación",
   "settings.about": "Acerca de",
   "about.version_fmt": "Versión %@",

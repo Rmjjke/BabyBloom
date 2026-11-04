@@ -139,6 +139,49 @@ and the Live Activity read the byte-identical copies in
     «meta», as its heading "Daily Goal" / «Норма в день» / «Meta diaria».
     They are VoiceOver-only strings (`a11y_`), so they take sentence case,
     as `weekly.a11y_hide`.
+- **A switch's line.** A switch carries a line under its title only when the
+  title alone does not say what turning it on does, or when it happens. The
+  line says what the title leaves out, and nothing else.
+  - A switch that sends something later says when. The weekly summary's
+    title and its Notifications section already say what arrives, so its
+    line is the time: "It arrives on Monday mornings." / «Приходит утром по
+    понедельникам.» / «Llega los lunes por la mañana.»
+  - A part of the day, not a clock time: "mornings", not "10:00" or
+    "10 AM". A typed hour prints the wrong clock form on a phone set the
+    other way, and a part of the day stays true if the hour moves within it.
+    A time the code formats, such as the medication reminder's «Уведомление:
+    14:30», follows the phone's own clock.
+  - No "every" / «каждый» / «cada» where an empty period sends nothing: the
+    weekly summary skips a week with no entries.
+  - A switch whose title names a thing says what the switch does with it.
+    "Usage Statistics" alone can read as statistics the app shows the
+    parent, so its line says who sees what: "We see which features are
+    used." / «Мы видим, чем пользуются.» / «Vemos qué funciones se usan.» It
+    names only what is sent. What is never sent (names, measurements, notes)
+    takes three lines or more there. It never says "anonymous": the install
+    keeps one random id.
+  - A switch that shows its field at once, an optional measurement, needs
+    no more than "(optional)": the field appears as the switch turns on.
+  - Two lines at most at the default text size on a 320 pt screen, in every
+    language. In Settings the line is set at 13 pt beside the switch, in
+    about 145–155 pt there, so it holds one short sentence of about 30
+    characters in English.
+  - The switches today:
+
+    | switch | title | line under it | why |
+    |---|---|---|---|
+    | Settings › Weekly summary | `settings.notify_weekly` | `settings.notify_weekly_hint` | it sends later: the line says when |
+    | Settings › Timer on Lock Screen (not on iPad) | `settings.live_activity` | `settings.live_activity_hint`; `settings.live_activity_off_in_ios` while iOS has it off | the line says when the timer shows and what it adds: a stop from the Lock Screen |
+    | Settings › Usage Statistics | `settings.analytics` | `settings.analytics_hint` | the title names a thing: the line says who sees what |
+    | Feeding sheet › Start Timer | `form.start_timer` | `form.timer_hint` | the title says what; the sheet's button says when (Start Feeding) |
+    | Medication › reminder (form and detail) | `medication.reminder_switch` | `medication.reminder_at_fmt` while on; `medication.reminder_footer`; `medication.reminder_off_in_settings` while iOS has it off | the title says what and when: once the interval has passed |
+    | Growth sheet › Height, Head circumference | `form.height_cm`, `form.head_cm` | `form.head_optional_hint` | the switch shows the field at once |
+    | Onboarding › Head circumference | `form.head_cm` | `onboarding.growth_head_optional` | the same |
+    | Onboarding and Profile › Preterm birth | `form.preterm` | `form.preterm_hint` | the line says what it changes: growth at corrected age |
+    | Profile › Birth weight | `form.birth_weight_kg` | `form.birth_weight_hint` | the line says what it feeds and for how long |
+
+    The export screen's categories are check boxes, not switches: each one's
+    name is what it adds to the file.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + unit, in every language, in the value itself: "119 g/week",
@@ -270,3 +313,8 @@ and the Live Activity read the byte-identical copies in
   switch: "It arrives on Monday mornings." / «Приходит утром по
   понедельникам.» / «Llega los lunes por la mañana.» Two lines at most on a
   320 pt screen.
+- 2026-11-04 — A switch carries a line under its title only where the title
+  does not say what it does or when (§ Surface rules, with every switch in
+  the app). New `settings.analytics_hint` under Usage Statistics: "We see
+  which features are used." / «Мы видим, чем пользуются.» / «Vemos qué
+  funciones se usan.» Two lines at most on a 320 pt screen.
