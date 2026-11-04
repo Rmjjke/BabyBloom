@@ -74,8 +74,17 @@ struct WeeklySummary: Equatable, Sendable {
         case perWeek(Int)
         /// The newborn window: no number.
         case newborn
-        /// No two weighings ≥ 3 days apart with the later one in the week.
+        // No pair ends in the week. The rest say what is missing, judged on
+        // every weighing up to now and taken in this order (`missingPair`).
+        /// A pair ends after the week: next Monday's card shows its gain.
+        case nextMonday
+        /// A pair ended before the week, or ends after it inside the newborn
+        /// window: one weighing now completes a pair that shows.
         case needsWeighing
+        /// Weighings, but no two of them ≥ 3 days apart.
+        case needsSecond
+        /// No weighing at all.
+        case needsTwo
     }
 
     let week: Week
@@ -178,7 +187,31 @@ struct WeeklySummary: Equatable, Sendable {
                                           now: now) != nil {
             return .newborn
         }
-        return gramsPerWeek(for: week, input: input).map(Gain.perWeek) ?? .needsWeighing
+        return gramsPerWeek(for: week, input: input).map(Gain.perWeek)
+            ?? missingPair(for: week, input: input, now: now)
+    }
+
+    /// What the gain line asks for when no pair ends in the week. Judged on
+    /// every weighing up to now, not up to the week's end: a parent who
+    /// weighed this week has already done the next step, and asking for a
+    /// weighing again would send them to repeat it.
+    static func missingPair(for week: Week, input: Input, now: Date) -> Gain {
+        // Up to now, without the store's day of tolerance: a weighing dated
+        // ahead may fall past the week next Monday's card covers.
+        let logged = input.measurements.filter { $0.date <= now }
+        // `pair` keeps the newest weighing, so a pair ending after the week
+        // exists exactly when this one ends after it.
+        if let pair = WeightVelocity.pair(in: logged), pair.later.date >= week.end {
+            // The window is closed here (the gate above), but a pair ending
+            // inside it shows no number next Monday either: the weighing that
+            // ends it is the next step, as after an older pair.
+            let deferred = NewbornWeightLoss.gainDeferral(birthWeightKg: input.birthWeightKg,
+                                                          birthDate: input.birthDate,
+                                                          measurements: logged, now: now) != nil
+            return deferred ? .needsWeighing : .nextMonday
+        }
+        if WeightVelocity.pair(in: logged.filter { $0.date < week.start }) != nil { return .needsWeighing }
+        return logged.isEmpty ? .needsTwo : .needsSecond
     }
 
     /// The `WeightVelocity` pair over the weighings up to the week's end,

@@ -59,6 +59,15 @@ extension SeedScenario {
             weighings = []
         case .weeklyNewborn:
             weighings = [(birth, 3.4), (day(lastWeek, 4, hour: 10), 3.3)]
+        case .weeklyOneWeighing:
+            weighings = [(day(lastWeek, 2, hour: 10), 4.5)]
+        case .weeklyWeighedThisWeek:
+            // Not after now, or the gain line would not count it; at the
+            // week's end itself in Monday's first hour.
+            weighings = [(day(lastWeek, 0, hour: 10), 4.5),
+                         (max(lastWeek.end, now.addingTimeInterval(-3600)), 4.68)]
+        case .weeklyOlderPair:
+            weighings = [(day(before, 0, hour: 10), 4.32), (day(before, 6, hour: 10), 4.5)]
         default:
             weighings = [(day(before, 0, hour: 10), 4.32),
                          (day(lastWeek, 0, hour: 10), 4.5),

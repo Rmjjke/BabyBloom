@@ -178,19 +178,31 @@ struct WeeklySummaryCard: View {
                 bars: nil)
         case .newborn:
             note(icon: "scalemass.fill", text: "weekly.gain_newborn".l)
+        // Next Monday's card shows the gain on its own: nothing to add.
+        case .nextMonday:
+            note(icon: "scalemass.fill", text: "weekly.gain_next_monday".l)
         case .needsWeighing:
-            VStack(alignment: .leading, spacing: 2) {
-                note(icon: "scalemass.fill", text: "weekly.gain_needs_weighing".l)
-                Button(action: onAddWeighing) {
-                    Text("growth.add_weighing".l)
-                        .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .frame(minHeight: 44)
-                }
-                .buttonStyle(.plain)
-                .padding(.leading, indent)
-                .accessibilityIdentifier("weekly.add_weighing")
+            weighingPrompt("weekly.gain_needs_weighing".l)
+        case .needsSecond:
+            weighingPrompt("weekly.gain_needs_second".l)
+        case .needsTwo:
+            weighingPrompt("weekly.gain_needs_two".l)
+        }
+    }
+
+    /// The gain line where the next step is a weighing, with its button.
+    private func weighingPrompt(_ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            note(icon: "scalemass.fill", text: text)
+            Button(action: onAddWeighing) {
+                Text("growth.add_weighing".l)
+                    .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .frame(minHeight: 44)
             }
+            .buttonStyle(.plain)
+            .padding(.leading, indent)
+            .accessibilityIdentifier("weekly.add_weighing")
         }
     }
 

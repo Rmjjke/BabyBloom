@@ -90,6 +90,14 @@ enum SeedScenario: String, CaseIterable {
     case weeklyGaps
     /// A baby born ten days before last week ended: no gain number.
     case weeklyNewborn
+    /// As `weeklyNormal`, with one weighing, in last week: no pair yet.
+    case weeklyOneWeighing
+    /// As `weeklyNormal`, with last week's one weighing and one this week
+    /// (an hour before now, or at the week's end in Monday's first hour):
+    /// the pair ends after the week.
+    case weeklyWeighedThisWeek
+    /// As `weeklyNormal`, with a weighing pair in the week before only.
+    case weeklyOlderPair
     /// Pediatrician screen, one visit 20 days ago: two questions asked at it,
     /// three open, eight weighings and a month of logs since (relative to
     /// `AppClock.now`, so `-BBNow` moves the whole picture).
@@ -222,7 +230,8 @@ enum SeedScenario: String, CaseIterable {
 
     private func seed(into context: ModelContext) {
         guard self != .showcase else { return Self.seedShowcase(into: context) }
-        if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn].contains(self) {
+        if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn,
+            .weeklyOneWeighing, .weeklyWeighedThisWeek, .weeklyOlderPair].contains(self) {
             return seedWeekly(into: context)
         }
         if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits, .doctorEventsCap].contains(self) {
