@@ -29,34 +29,33 @@ struct BBStatCard: View {
 
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(displayColor.opacity(0.22))
-                        .frame(width: 36, height: 36)
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(displayColor)
+            if let trend {
+                // The trend («59 мин назад») stands beside the plate while each of
+                // its words fits the room there, wrapping between words; else it
+                // takes its own line under the plate. In two columns on a 320-pt
+                // screen that room is about 32 pt of text at Large, and «59 мин»,
+                // «13 дней» and even «назад» broke inside a word.
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        plate
+                        Spacer()
+                        trendCapsule(trend)
+                        marks
+                    }
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack {
+                            plate
+                            Spacer()
+                            marks
+                        }
+                        trendCapsule(trend)
+                    }
                 }
-                Spacer()
-                if let trend {
-                    Text(trend)
-                        .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(BBTheme.Colors.success.opacity(0.12))
-                        .cornerRadius(8)
-                }
-                if overLimit {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.red.opacity(0.85))
-                }
-                if action != nil {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
+            } else {
+                HStack {
+                    plate
+                    Spacer()
+                    marks
                 }
             }
 
@@ -83,6 +82,71 @@ struct BBStatCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(overLimit ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
         )
+    }
+
+    private var plate: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(displayColor.opacity(0.22))
+                .frame(width: 36, height: 36)
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(displayColor)
+        }
+    }
+
+    private func trendCapsule(_ trend: String) -> some View {
+        WordWrappingText(text: trend)
+            .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(BBTheme.Colors.success.opacity(0.12))
+            .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private var marks: some View {
+        if overLimit {
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(.red.opacity(0.85))
+        }
+        if action != nil {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
+        }
+    }
+}
+
+/// Text whose ideal width is its widest word. Offered less than its one line,
+/// it wraps as any text does, and `ViewThatFits` keeps a row only while every
+/// word fits it, so the text breaks between words and never inside one. Words
+/// part at plain spaces; a no-break space keeps a number with its unit.
+private struct WordWrappingText: View {
+    let text: String
+
+    var body: some View {
+        WidestWordIdeal {
+            Text(text.split(separator: " ").joined(separator: "\n")).hidden()
+            Text(text)
+        }
+    }
+}
+
+/// Lays out its second subview; the first, one word a line, only sets the
+/// ideal width. Every other proposal reaches the text unchanged, so a stack
+/// still sizes it as plain text.
+private struct WidestWordIdeal: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? subviews[0].sizeThatFits(.unspecified).width
+        return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews[0].place(at: bounds.origin, proposal: .zero)
+        subviews[1].place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
     }
 }
 
