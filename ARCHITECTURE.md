@@ -453,7 +453,7 @@ reads it once. The dose sheet passes `.content`: its title is the
 medication's name, which the parent wrote and no length holds, so it heads
 the content at every size and wraps. The modifier and the heading go together
 with the same placement: the modifier alone leaves no title where the bar has
-none, the heading alone shows it twice. The diaper norm editor, with Cancel
+none, the heading alone shows it twice. The diaper norm editor, with Close
 alone in its bar, does the same without the helper: above Large its bar shows
 no title, and its first heading, «Норма в день», takes the header trait.
 
@@ -466,7 +466,12 @@ iOS 26 the glyphs stand bare, Save and Edit in the primary ink and a disabled
 Save in the secondary one. Each button's VoiceOver name is the app's word
 (`button.cancel`, `button.save`, `button.close`, `button.edit`), set
 explicitly: a glyph's or a role's default name is read in the device's
-language. With a glyph on each side the title has 174 pt at Large on a
+language. Every other icon-only button in a bar names itself the same way:
+the Feeding, Sleep, Growth and Events add buttons take their add sheet's
+title, the Diaper one `diaper.add`. The norm editor's × is Close, because its
+− and + write the goal at once; they carry `diaper.norm.a11y_decrease` and
+`diaper.norm.a11y_increase` with the goal as their value, so VoiceOver reads
+the new number after a tap. With a glyph on each side the title has 174 pt at Large on a
 320-pt phone in every language, so a title of at most 166 pt at 17 pt
 semibold stays whole there.
 
