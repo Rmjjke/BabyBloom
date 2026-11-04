@@ -373,16 +373,16 @@ checked at every text size, with the row's count there: at Large, which every
 smaller size follows, at xLarge, xxLarge and xxxLarge, and at AX2, where scaled
 type stops growing. A row takes fewer columns from the first size where its
 widest word misses, and each text size has one shape at every width; no count
-follows the width. The rows below state their counts once, in a
-`BBTileColumns` (beside `BBStatGrid` in `DesignSystem/Components/BBCard.swift`):
-Large, which stands for every smaller size too, xLarge, xxLarge, xxxLarge and
-accessibility. A row that is an `HStack` at Large stays that `HStack` wherever
-its count is unchanged (a grid sets it a third of a point lower), becomes a
-grid where the count drops and a `VStack` where it reaches one; a row that is
-a grid at Large takes the count. The counts, Large to accessibility:
-- Diaper and Feeding screens' quick-add 3/2/2/2/1; Home quick actions
-  2/2/2/2/1; Sleep screen start tiles 2/2/2/1/1; Events quick row and
-  `BBStatGrid` (five screens) 2/2/1/1/1.
+follows the width, except on Home's quick actions (below). The rows below
+state their counts once, in a `BBTileColumns` (beside `BBStatGrid` in
+`DesignSystem/Components/BBCard.swift`): Large, which stands for every smaller
+size too, xLarge, xxLarge, xxxLarge and accessibility. A row that is an
+`HStack` at Large stays that `HStack` wherever its count is unchanged (a grid
+sets it a third of a point lower), becomes a grid where the count drops and a
+`VStack` where it reaches one; a row that is a grid at Large takes the count.
+The counts, Large to accessibility:
+- Diaper and Feeding screens' quick-add 3/2/2/2/1; Sleep screen start tiles
+  2/2/2/1/1; Events quick row and `BBStatGrid` (five screens) 2/2/1/1/1.
 - Stool colours 4/3/3/3/2; Feeding sheet types 3/3/3/2/2 and breast sides
   3/2/2/2/1; Diaper sheet types and Sleep sheet locations 3/3/3/3/2; Add Event
   types and moods 3/3/2/2/2; Sleep sheet types two at every size.
@@ -398,21 +398,30 @@ third of the sheet at 320 pt, and is the same word at the same size it always
 was. The Feeding screen's quick-add row at Large («Сцеженное», 5.4 pt with
 Bold Text) and the Feeding sheet's breast sides at Medium and Large
 («Izquierdo», 4.0 and 0.7 pt with Bold Text) keep three, because fewer columns
-would change the default screen on every phone. Side padding is what keeps three quick
-tiles at Large on 320 pt: 8 pt on the Diaper tile (16 above and below), where
-16 broke «Грязный», and none on the Feeding tile, where 8 broke «Сцеженное».
+would change the default screen on every phone. Side padding is what keeps
+three quick tiles at Large on 320 pt: 8 pt on the Diaper tile (16 above and
+below), where 16 broke «Грязный», and none on the Feeding tile, where 8 broke
+«Сцеженное». The Feeding tile's caption keeps 4 pt a side of its own, so a
+caption on one line keeps clear of the tile's border; es «Agregar manualmente»
+on 402 pt and ru «Добавить вручную» on 375 pt set on two lines.
 The breast-side chip sets its glyph 4 pt from its word, not the default 8. In
 one column a quick or start tile keeps its shape: glyph above word, centred,
 full width. The profile edit sheet's gender and feeding rows and onboarding's
 gender row, measured at a 320-pt width, drop to one at accessibility sizes;
 the profile feeding row already takes two from xLarge, where «Смешанное» no
-longer fits a third of that width. The Home quick actions stand two by two below
-the accessibility sizes: four in a row broke ru «Подгузники» at Large on
-320 pt and kept it under the 8-pt spare on 375 pt.
+longer fits a third of that width. Home's quick actions are the one
+equal-column row whose count follows the width (`QuickActionsLayout` in
+`DashboardView.swift`): below the accessibility sizes they stand four in a row
+while every action's word fits a quarter of the card as drawn, measured live
+in the app's language, at the text size and with Bold Text, else two by two;
+one column at accessibility sizes. A tile is as wide as its word or its 60-pt
+plate, whichever is wider. At Large that is four on 375 pt and wider; on
+320 pt ru goes two by two, where «Подгузники» (71.1 pt) misses a quarter (64),
+and en and es, whose widest tile is the plate, stay four.
 
-A row whose fit changes with the width or the running time takes its shape
-from the fit instead, with `ViewThatFits`: the row while it fits, else
-stacked. The Feeding timer's side pills stand three in a row while the row
+A row of content-sized parts whose fit changes with the width or the running
+time takes its shape from the fit instead, with `ViewThatFits`: the row while
+it fits, else stacked. The Feeding timer's side pills stand three in a row while the row
 fits the card, else one per row; in es the row is wider than the card on a
 320-pt screen from Medium up. Every timer card in the app takes its shape from
 `BBTimerFit` (in `DesignSystem/Components/BBElapsedTimer.swift`): the
@@ -420,7 +429,8 @@ Feeding and Sleep cards' `BBTimerCardHeader` (label over title) and Home's
 `ActiveTimerCard` (title over subtitle, its icon plate beside) set what is
 running beside the timer while the two fit one line, else above it. The
 timer's width follows the elapsed time (hours past an hour of sleep on the
-Sleep card, three-digit minutes past 100 minutes elsewhere), so `BBTimerFit`
+Sleep card and Home's sleep card, three-digit minutes past 100 minutes of
+feeding), so `BBTimerFit`
 draws both shapes from one `TimelineView` clock, and each fit check reads the
 digits on screen. Home's card, whose title and subtitle stand in one column,
 stacks at Large on a 320-pt screen whatever the time. The pills and the timer
