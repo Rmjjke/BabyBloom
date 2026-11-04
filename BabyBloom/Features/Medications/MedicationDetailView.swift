@@ -69,8 +69,7 @@ struct MedicationDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("button.edit".l) { showForm = true }
-                    .foregroundStyle(BBTheme.Colors.primary)
+                BBBarButton(.edit) { showForm = true }
                     .accessibilityIdentifier("medication.edit")
             }
         }

@@ -26,12 +26,13 @@ enum BBBarAction {
     }
 }
 
-/// A sheet bar's button as a glyph: × for Cancel and Close, ✓ for Save, a
-/// pencil for Edit. Words in the bar left a title 49 pt at Large on a 320-pt
-/// phone in ru, so every title was cut; glyphs leave it 174 pt in every
-/// language. On iOS 26 the bar draws each glyph in a glass circle and Save is
-/// the prominent one, a primary fill with an on-primary check; before iOS 26
-/// the glyphs stand bare, Save and Edit in the primary ink.
+/// A bar's button as a glyph: × for Cancel and Close, ✓ for Save, a pencil
+/// for Edit, the pushed medication screen's too. Words in the bar left a
+/// title 49 pt at Large on a 320-pt phone in ru, so every title was cut;
+/// glyphs leave it 174 pt in every language. On iOS 26 the bar draws each
+/// glyph in a glass circle and Save is the prominent one, a primary fill with
+/// an on-primary check; before iOS 26 the glyphs stand bare, Save and Edit in
+/// the primary ink.
 struct BBBarButton: View {
     private let action: BBBarAction
     private let perform: () -> Void

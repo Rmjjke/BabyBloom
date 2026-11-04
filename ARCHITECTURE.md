@@ -470,7 +470,8 @@ no title, and its first heading, «Норма в день», takes the header tr
 
 The sheet bars' buttons are glyphs, through `BBBarButton`
 (`DesignSystem/Components/BBBarButton.swift`): × for Cancel and Close in the
-secondary ink, ✓ for Save, a pencil for the visit's Edit. On iOS 26 the bar
+secondary ink, ✓ for Save, a pencil for Edit (the visit sheet's, and the
+pushed medication screen's, which takes the same button). On iOS 26 the bar
 draws each glyph in a glass circle and Save is the prominent one, a primary
 fill with an on-primary check, dimmed by the system when disabled. Before
 iOS 26 the glyphs stand bare, Save and Edit in the primary ink and a disabled
