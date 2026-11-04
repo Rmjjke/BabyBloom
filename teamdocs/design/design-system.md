@@ -53,6 +53,12 @@ as the column where its widest form does not fit (G22), a selected tile's
 or chip's border drawn outside its fill (§ 3, G29), and the splash words
 beside the art's figure wherever its crop would put them on it, as in
 landscape (G28).
+Proposed the same day: a title and its trailing value keeping the value whole
+and the title's words whole, with the value under the title at accessibility
+sizes and, in Settings' iCloud Sync row, wherever the two do not share one
+line, and the medication menu's label above it at every size (§ 3, § 7, G30);
+and the Export format tiles' description with sm 8 a side and the two tiles of
+one height (G29).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -421,6 +427,31 @@ Home's quick actions and running-timer card and onboarding's gender row
   Diaper sheet's type tiles, the Add Event type and mood tiles, the profile
   sheet's gender and feeding tiles, and onboarding's gender tiles and feeding
   rows (lines in G29).
+- **A title and its trailing value** (proposed 2026-11-04, G30). A row with a
+  title at its leading edge and a value at its trailing edge (a status, a
+  figure, a count, a badge) keeps the value whole: it never wraps or shrinks,
+  and the title wraps only between its words. Below the accessibility sizes
+  the value stands beside the title. A row whose title's longest word fits
+  beside the value's widest form at 320 pt at every size below them keeps that
+  shape below them, a branch on the text size as above; a row where it does
+  not takes its shape from the fit: beside while title and value share one
+  line, else the value under the title. At the accessibility sizes the value
+  stands under the title on any width. Under the title the value is the
+  title's next line, leading with its text, xs 4 below it (2 in a Settings
+  row, as its hints). A value picked on the row itself keeps one shape per
+  size: the medication menu's label stands above it at every size, as
+  `BBLabeledPicker`'s does. Why: the value is the fact the row is for, short
+  and bounded, so any break falls in the title, and only between words; a
+  figure that changes under a slider's drag cannot change the row's shape when
+  the shape follows the text size; the one row that takes the fit, Settings'
+  iCloud Sync, does what the system's value cell does beside the
+  system-drawn Language row (side by side while they fit, else stacked), and
+  its value changes only with the account. On 320 pt at Large «Синхронизация»
+  beside «Выключена» misses by 9.2 pt, so the title broke inside the word; at
+  the accessibility sizes on 320 pt the Premium badge, onboarding's sliders,
+  the Export category rows with their «0» and the plan rows break a word
+  beside their value, and the rows that still hold keep under 20 pt there.
+  The rows, their lines and their numbers: G30.
 
 Column counts by text size, checked at 320 pt, all in code at 95525c6 (1.3.0).
 Lines at 95525c6; widths from CoreText in SF Rounded, within 0.1 pt of the
@@ -742,6 +773,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target; `overLimit`, set by no caller, goes with its red (planned, G5) | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
+| BBValueRow | — | **proposed** (§ 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: xs)`, the title's text's leading); `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its Label's title as `SettingsSwitchLabel`'s hint does | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
 | BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
@@ -830,7 +862,10 @@ b57b678 and 1590974 with their renders and 320 pt dumps (2026-11-04). The
 selected tiles' borders were read at 3b9dd3d, where G29 was measured
 (2026-11-04). G17 and G28 were measured again at 32fefea, with the splash
 art's pixels read where they lie, in portrait, in landscape and in Split
-View (2026-11-04). Each line: what, where, which rule.
+View (2026-11-04). The title + value rows and the Export format tiles were
+measured at 8b90029 from CoreText widths, the live Settings tree and shots on
+402 pt and a 320 pt dump, where G30 was found (2026-11-04). Each line: what,
+where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
@@ -1215,8 +1250,55 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   centred when selected, the tile's edge in both states. Their description
   (11 pt, fixed) has no side padding and runs edge to edge: on 375 pt en
   «Beautiful report for printing or sharing» sets a first line of 151.2 pt
-  in 151.5, which lies 0.8 pt under the selected outline (es 0.6). A room of
-  its own for the description is not this rule; no direction yet.
+  in 151.5, which lies 0.8 pt under the selected outline (es 0.6). Measured at
+  8b90029: the two descriptions set different line counts (on 375 pt en 2
+  against 1), so the tiles have two heights. Direction (proposed): sm 8 a side
+  inside the tile, for the glyph, the name and the description, and the two
+  tiles of the taller one's height, each laid from its top
+  (`ExportView.swift:33–37`, `:99–112`). With sm 8 every line keeps 7 pt or
+  more inside the outline's inner edge, with or without Bold Text, on 320 to
+  440 pt; on 375 pt both tiles set 2 lines in every language, on 320 pt ru and
+  es set 3 against 2. Why: a sentence needs a margin from its container's
+  edge, sm 8 is the side padding of the app's other tiles that carry more than
+  a word, and two equal tiles read as one control at one height. Not taken:
+  the outline outside the fill (the sentence stays on the fill's edge, 0.15 pt
+  a side on 375 pt en); xs 4 (5.7, and 3.2 with Bold Text). The 11 pt stays
+  fixed (G2).
+- **G30 · A title and its trailing value broke a word where they did not
+  share a line** (found 2026-11-04 at 8b90029). Settings' iCloud Sync row
+  (`AboutView.swift:17–28`) sets its value beside the title below the
+  accessibility sizes. On 320 pt at Large the line needs 318.6 pt of the row's
+  256, and «Синхронизация» beside «Выключена» misses by 9.2 (20.4 with Bold
+  Text), so the title broke inside the word, as a 320 pt dump showed; es
+  «Sincronización» misses from xLarge on 320 pt (at Large with Bold Text), and
+  on 375 pt ru from xxLarge and es from xxxLarge. Every row of the kind was
+  measured from CoreText (SF Pro in Settings, SF Rounded elsewhere; the row's
+  inner width 256 on 320 pt and 311 on 375, a Settings Label's title 40 pt in at
+  Large and 60 at AX2, from the live tree and shots on 402 pt) in en, ru and
+  es, Large to AX2, regular and with Bold Text. Break: the Premium row's badge
+  (`MainTabView.swift:343`) breaks «Premium» at AX1 in ru and at AX2 in en and
+  es on 320 pt; `BBMeasureSlider` (`BBMeasureSlider.swift:16`) breaks ru
+  «рождении» at AX2 on onboarding's birth weight and height (−14.3, −24.7);
+  the Export category rows with their «0» (`ExportView.swift:162`) break ru
+  «Подгузники» and es «Alimentación» at AX2 (−5.4, −10.6); the plan rows
+  (`PlanPickerSection.swift:153`) miss by 3.8 at AX2 in ru on the title and
+  badge alone; the medication menu (`DoseSheet.swift:245`) breaks a one-word
+  name beside its label from xxLarge on 320 pt (ru «Парацетамол» −25.0 at
+  xxxLarge). Hold: the bottle volume (`FeedingView.swift:514`, +3.7 at AX2
+  with Bold Text), `BBProgressCard` (`BBCard.swift:294`, +13.4), the Growth
+  history rows (`GrowthView.swift:792`, their values stacking at accessibility
+  sizes) and `BBSectionHeader`'s action (a button, +8.9). Settings' Language
+  row is the system's picker (`MainTabView.swift:232`): its one line misses
+  from AX1 on 320 pt (en −44.0) and at AX2 on 375 pt in en (−34.5), and what
+  the system does there is not in the files; nor is whether a Settings
+  Label moves a first word wider than the 196 pt beside its icon at AX2 on
+  320 pt («Синхронизация» 236.6, «использования» 226.5) under the icon or
+  breaks it. Breaks § 3 (a word never breaks inside itself). Direction
+  (proposed): § 3's title + value rule, through `BBValueRow` (§ 7). Not taken:
+  one fit for every row (a slider's figure changes under the drag, and the
+  rows that hold would change shape with nothing broken); shorter words (they
+  hold at Large only); a title that shrinks (the user's text set smaller in
+  the one row that lacks room).
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
