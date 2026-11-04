@@ -286,6 +286,7 @@ struct DiaperView: View {
 // MARK: - Norm Editor Sheet
 struct DiaperNormEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Binding var dailyNorm: Int
 
     var body: some View {
@@ -299,8 +300,10 @@ struct DiaperNormEditorSheet: View {
                     .accessibilityHidden(true)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
+                    // Above Large it names the sheet: the bar has no title.
                     BBTheme.Typography.title2("diaper.norm.label".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .accessibilityAddTraits(dynamicTypeSize > .large ? .isHeader : [])
                     Text("diaper.norm.hint".l)
                         .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -347,7 +350,10 @@ struct DiaperNormEditorSheet: View {
                 Spacer()
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("diaper.norm.edit".l)
+            // Above Large the heading in the content names the sheet, as on
+            // every other sheet: the system title right of Cancel grows with
+            // the text and at AX2 on a 320-pt screen reaches the screen's edge.
+            .navigationTitle(dynamicTypeSize > .large ? "" : "diaper.norm.edit".l)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -485,13 +491,11 @@ struct AddDiaperSheet: View {
                                 }
                             }
                             if let c = selectedColor, c.isWarning {
-                                // Above Large the warning can wrap (es at xxxLarge on a
-                                // 402-pt phone), and the first baseline keeps the triangle
-                                // on its first line. Up to Large the row stays centred: on
-                                // one line a first-baseline row sets the text and the
-                                // fields below a pixel lower.
-                                HStack(alignment: dynamicTypeSize > .large ? .firstTextBaseline : .center,
-                                       spacing: 4) {
+                                // The warning wraps on narrow screens (ru at Large on a
+                                // 320-pt one, es at xxxLarge on a 402-pt phone), and the
+                                // first baseline keeps the triangle on its first line at
+                                // every size, so each size has one shape.
+                                HStack(alignment: .firstTextBaseline, spacing: 4) {
                                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
                                     Text("diaper.color.warning".l)
                                         .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
@@ -526,7 +530,7 @@ struct AddDiaperSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.diaper".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("sheet.diaper".l, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

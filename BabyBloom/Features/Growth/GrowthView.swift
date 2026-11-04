@@ -858,9 +858,9 @@ struct AddGrowthSheet: View {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     BBSheetHeading(title: "sheet.new_measurement".l)
-                    // Decoration. At accessibility sizes the heading is the
-                    // sheet's top, as on the other entry sheets, and the figure
-                    // would cost about 70 pt of a sheet that already scrolls.
+                    // Decoration, under the heading from xLarge. At
+                    // accessibility sizes it is left out: the figure would
+                    // cost about 70 pt of a sheet that already scrolls.
                     if !dynamicTypeSize.isAccessibilitySize {
                         Image(systemName: "ruler.fill")
                             .font(.system(size: 48))
@@ -917,7 +917,7 @@ struct AddGrowthSheet: View {
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("sheet.new_measurement".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("sheet.new_measurement".l, movesIntoContentAboveLarge: true)
             // A selection outside the picker's range renders as an empty field
             // and cannot be corrected by tapping it, so the seed is clamped
             // before it is ever shown rather than trusted to be in range.

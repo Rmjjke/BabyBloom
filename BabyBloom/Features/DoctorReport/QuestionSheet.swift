@@ -64,7 +64,7 @@ struct QuestionSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle(title, movesIntoContentAtAX: true)
+            .bbSheetTitle(title, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

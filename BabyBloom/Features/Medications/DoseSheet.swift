@@ -90,7 +90,9 @@ struct DoseSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     if modelsGone {
-                        EmptyView()
+                        // Above Large the bar has no title; `title` reads no
+                        // field of the gone models.
+                        BBSheetHeading(title: title)
                     } else {
                         fields
                     }
@@ -106,7 +108,7 @@ struct DoseSheet: View {
                     .background(BBTheme.Colors.background)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle(title, movesIntoContentAtAX: true)
+            .bbSheetTitle(title, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }

@@ -48,7 +48,7 @@ struct VisitDetailSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("visit.title".l, movesIntoContentAboveLarge: true)
             .toolbar { toolbar }
             .alert("visit.delete_title".l, isPresented: $showDeleteAlert) {
                 Button("button.delete".l, role: .destructive) {

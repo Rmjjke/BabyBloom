@@ -38,7 +38,8 @@ struct BirthPage: View {
                     // screen half the row keeps «Мальчик» 13.5 pt at AX2 and
                     // 4.6 with Bold Text, under the 8-pt spare; below them two
                     // hold, with 38 pt to spare at xxxLarge in Bold.
-                    if dynamicTypeSize.isAccessibilitySize {
+                    let genderColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+                    if genderColumns.count(at: dynamicTypeSize) == 1 {
                         VStack(spacing: BBTheme.Spacing.md) {
                             genderTiles
                         }
