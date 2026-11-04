@@ -1,0 +1,146 @@
+# The weekly card's × folds it to a line with an undo for the rest of the
+# Dashboard visit. Undo brings the card back collapsed and clears the hide, so
+# a relaunch shows the card. Leaving the Dashboard (another tab, or the app in
+# the background) ends the line, and the card stays hidden, a relaunch
+# included. Under the rows, one legend says what the arrows compare.
+#
+# On iPhone 17 at the default size the card is on the first screen, so the
+# assertNotVisible steps cannot pass just because it scrolled away.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.card"
+    timeout: 15000
+# The legend is hidden from VoiceOver, but the driver's tree still lists it
+# on iOS 26.
+- assertVisible: "Arrows show the change from the week before."
+
+# Expanded, then × → the line in the card's place.
+- tapOn:
+    id: "weekly.expand"
+- extendedWaitUntil:
+    visible: "Week before: .*"
+    timeout: 5000
+- tapOn:
+    id: "weekly.hide"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.hidden_line"
+    timeout: 5000
+- assertVisible: "The weekly summary is hidden until next Monday."
+- assertNotVisible:
+    id: "weekly.card"
+
+# Undo → the card, collapsed, and the hide is cleared: a relaunch shows it.
+- tapOn:
+    id: "weekly.undo"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.card"
+    timeout: 5000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "weekly.hidden_line"
+- assertNotVisible: "Week before: .*"
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.card"
+    timeout: 15000
+
+# × and another tab: back on Home there is neither the line nor the card.
+- tapOn:
+    id: "weekly.hide"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.hidden_line"
+    timeout: 5000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_more"
+    timeout: 10000
+- tapOn:
+    text: "Home"
+    childOf:
+      text: "Tab Bar"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 10000
+- assertNotVisible:
+    id: "weekly.hidden_line"
+- assertNotVisible:
+    id: "weekly.card"
+
+# A relaunch: still hidden until Monday. The baby's name shows once the
+# seeded records are on screen, so the card's absence is not just early.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "weekly.hidden_line"
+- assertNotVisible:
+    id: "weekly.card"
+
+# × and the app in the background: back in it there is no line either.
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.card"
+    timeout: 15000
+- tapOn:
+    id: "weekly.hide"
+- extendedWaitUntil:
+    visible:
+      id: "weekly.hidden_line"
+    timeout: 5000
+- pressKey: Home
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "weekly.hidden_line"
+- assertNotVisible:
+    id: "weekly.card"

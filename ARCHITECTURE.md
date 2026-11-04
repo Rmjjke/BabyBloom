@@ -966,7 +966,15 @@ The newborn gate (`NewbornWeightLoss.gainDeferral`)
 withholds it (DECISIONS 2026-09-05, «During the newborn window, no surface
 reports a weight-gain verdict»). The Dashboard shows `WeeklySummaryCard` under
 the running timers. It is hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
-and sends `weekly_summary_viewed` once a week. The Monday notification is a
+and sends `weekly_summary_viewed` once a week. × fades the card, in 0.2 s (no
+fade with Reduce Motion), to `WeeklyHiddenLine` on the card's own surface: the summary is hidden until next
+Monday, and «Undo», which clears the hide and brings the card back collapsed.
+The line is view state, never stored, with no timer: it lasts while the
+Dashboard stays on screen and is gone after another tab, a pushed screen or
+the app in the background, while the card stays hidden until Monday. When an
+arrow shows, one legend line under the rows says the arrows compare with the
+week before; VoiceOver skips it, since each row speaks its comparison in
+words. The Monday notification is a
 ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
 foreground and background, and after the Lock Screen and widget intents' own
 writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has

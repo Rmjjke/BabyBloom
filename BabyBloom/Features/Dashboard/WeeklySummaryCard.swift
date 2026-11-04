@@ -2,7 +2,9 @@ import SwiftUI
 
 /// Last week on the Dashboard (design: teamdocs/design/m1-weekly-summary.md).
 /// Collapsed: three value rows; the header row expands it to the week before,
-/// the per-day bars and the longest sleep. × hides it until next Monday.
+/// the per-day bars and the longest sleep. × hides it until next Monday and,
+/// for the rest of that Dashboard visit, leaves a line with an undo in its
+/// place.
 struct WeeklySummaryCard: View {
     let summary: WeeklySummary
     let onAddWeighing: () -> Void
@@ -14,6 +16,14 @@ struct WeeklySummaryCard: View {
     /// once per Dashboard visit.
     @AppStorage("weekly.viewedWeek") private var viewedWeek = ""
     @State private var expanded: Bool
+    /// Set by × and cleared when the Dashboard is left: the hidden line shows
+    /// only in the visit the card was hidden in. Not stored, and no timer, so
+    /// a slow reader or VoiceOver never misses it.
+    @State private var justHidden = false
+    /// After an undo the card comes back and VoiceOver moves to its header.
+    @State private var focusHeaderOnAppear = false
+    @AccessibilityFocusState private var headerFocused: Bool
+    @Environment(\.scenePhase) private var scenePhase
 
     /// `startExpanded` is for the render dump; the Dashboard opens it collapsed
     /// (a notification tap lands collapsed too).
@@ -43,13 +53,60 @@ struct WeeklySummaryCard: View {
         if hiddenWeek != weekKey {
             card
                 .transition(.opacity)
+                .task {
+                    guard focusHeaderOnAppear else { return }
+                    focusHeaderOnAppear = false
+                    await focusAfterSwap { headerFocused = true }
+                }
                 .onAppear {
                     // Marked only when the event went out: opting in mid-week
                     // still counts this week's view.
                     guard viewedWeek != weekKey, Analytics.shared.track(.weeklySummaryViewed) else { return }
                     viewedWeek = weekKey
                 }
+        } else if justHidden {
+            WeeklyHiddenLine(onUndo: undo)
+                .transition(.opacity)
+                // Another tab or a pushed screen: the next Dashboard has no
+                // line, and the card stays hidden until Monday.
+                .onDisappear { justHidden = false }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .background { justHidden = false }
+                }
         }
+    }
+
+    private func hide() {
+        change {
+            hiddenWeek = weekKey
+            justHidden = true
+        }
+    }
+
+    /// An empty key matches no Monday, so the hide is gone, not moved.
+    private func undo() {
+        change {
+            hiddenWeek = ""
+            justHidden = false
+            expanded = false
+            focusHeaderOnAppear = true
+        }
+    }
+
+    private func change(_ update: () -> Void) {
+        if reduceMotion {
+            update()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2), update)
+        }
+    }
+
+    /// The legend shows when an arrow does: a week before to compare with,
+    /// and a row whose figure moved.
+    private var showsLegend: Bool {
+        guard let previous = summary.previous else { return false }
+        return WeeklyFormat.feedsDelta(summary.current.feedsPerDay, previous.feedsPerDay) != nil
+            || WeeklyFormat.sleepDelta(summary.current.sleepPerDay, previous.sleepPerDay) != nil
     }
 
     private var card: some View {
@@ -96,6 +153,14 @@ struct WeeklySummaryCard: View {
                         BBTheme.Typography.caption("weekly.first_week".l)
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
+                    } else if showsLegend {
+                        // Says once what every arrow compares with, since no
+                        // word fits beside one on a 320-pt phone. For sight
+                        // only: each row already speaks its comparison.
+                        BBTheme.Typography.caption("weekly.legend".l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityHidden(true)
                     }
                     // Every week, a full one too: each per-day row is an average
                     // over the days with entries, and this line says so.
@@ -141,15 +206,9 @@ struct WeeklySummaryCard: View {
             .accessibilityValue(expanded ? "weekly.a11y_expanded".l : "weekly.a11y_collapsed".l)
             .accessibilityHint(expanded ? "weekly.a11y_collapse".l : "weekly.a11y_expand".l)
             .accessibilityIdentifier("weekly.expand")
+            .accessibilityFocused($headerFocused)
 
-            Button {
-                // Reduce Motion: the card goes without a fade.
-                if reduceMotion {
-                    hiddenWeek = weekKey
-                } else {
-                    withAnimation(.easeInOut(duration: 0.2)) { hiddenWeek = weekKey }
-                }
-            } label: {
+            Button(action: hide) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -341,6 +400,69 @@ struct WeeklySummaryCard: View {
     }
 }
 
+/// What × leaves in the card's place for the rest of the Dashboard visit: the
+/// summary is hidden until next Monday, and an undo. It sits on the card's own
+/// surface because on the bare background the secondary text is under AA.
+struct WeeklyHiddenLine: View {
+    let onUndo: () -> Void
+
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @AccessibilityFocusState private var textFocused: Bool
+
+    var body: some View {
+        Group {
+            if typeSize >= .accessibility1 {
+                stacked
+            } else {
+                // One line while the sentence and the button both fit whole,
+                // else the sentence over the button, as the gain line's
+                // weighing button.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        sentence.fixedSize()
+                        Spacer(minLength: BBTheme.Spacing.md)
+                        undo.fixedSize()
+                    }
+                    stacked
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bbCard()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("weekly.hidden_line")
+        // The card VoiceOver was on is gone: its focus moves here.
+        .task { await focusAfterSwap { textFocused = true } }
+    }
+
+    private var stacked: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            sentence.fixedSize(horizontal: false, vertical: true)
+            undo
+        }
+    }
+
+    private var sentence: some View {
+        BBTheme.Typography.callout("weekly.hidden".l)
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+            .accessibilityFocused($textFocused)
+    }
+
+    private var undo: some View {
+        Button(action: onUndo) {
+            Text("weekly.undo".l)
+                .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
+                .foregroundStyle(BBTheme.Colors.primary)
+                // «Undo» alone is 40 pt wide. The shape gives VoiceOver the
+                // whole 44-pt frame rather than the text's 19 pt.
+                .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("weekly.undo")
+    }
+}
+
 /// Wraps to the width it is given, and asks for none when measured for its
 /// ideal width: a line that wraps never decides whether the value rows fit on
 /// one line.
@@ -360,6 +482,16 @@ private struct WrapsToWidth: Layout {
                               proposal: ProposedViewSize(width: proposal.width == nil ? nil : bounds.width,
                                                          height: bounds.height))
     }
+}
+
+/// Moves VoiceOver focus a beat after the card and the line swap: the button
+/// that had focus has just gone, and VoiceOver's own move to another element
+/// can override a write made in the same pass.
+@MainActor
+private func focusAfterSwap(_ focus: () -> Void) async {
+    try? await Task.sleep(for: .milliseconds(250))
+    guard !Task.isCancelled else { return }
+    focus()
 }
 
 /// The SwiftUI half of `WeeklyFormat` (Core/Formatting): it builds a `Text`.
