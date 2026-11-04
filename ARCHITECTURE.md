@@ -443,7 +443,13 @@ changes the answer. The Growth gain card sets its number («+210 g/week») and
 the interval («over 9 days») on one row while both fit whole, else the
 interval under the number. Squeezed beside the interval, the number broke at
 its slash. Alone, it still breaks there, its only break, where it outgrows
-the line: at AX2 on a 320-pt screen in en and es.
+the line: at AX2 on a 320-pt screen in en and es. Home's Today feeding card
+sets the time since the last feed («59 мин назад») beside its plate while
+each word of it fits the room there, wrapping between words, else on its
+own line under the plate. In two columns on a 320-pt screen that room is
+about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
+`ViewThatFits` the widest word as the text's ideal width, so the check is
+about words, not the whole line.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.
