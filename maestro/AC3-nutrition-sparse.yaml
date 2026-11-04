@@ -82,11 +82,11 @@ tags: [regression]
 
 # THE POINT OF THE SCENARIO. Nothing unlogged may surface as a number.
 # Explicitly no zero rate anywhere, in the section or in the card. \W, not a
-# space: the figure is glued to "a day" with a no-break space.
-- assertNotVisible: '.*\b0([.,]0)?\Wa day.*'
+# space: the figure and the words of "a day" are glued with no-break spaces.
+- assertNotVisible: '.*\b0([.,]0)?\Wa\Wday.*'
 # and, stronger, no per-day rate AT ALL — with nothing logged there is no rate
 # to render, so any "N a day" on this screen is a bug whatever N is:
-- assertNotVisible: '.*\ba day\b.*'
+- assertNotVisible: '.*\ba\Wday\b.*'
 # and neither comparison line may be built from an absent count. (The section's
 # row LABELS are "Feedings" and "Wet diapers" with no colon, so these match the
 # card's lines only.)
