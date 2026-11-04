@@ -122,10 +122,17 @@ and the Live Activity read the byte-identical copies in
     as `weekly.a11y_hide`.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
-  - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
-    short word gets a no-break space on both sides. The code glues every
-    digit to the word after it (`gluingNumbersToUnits`), so with a plain
-    space after the short word the line breaks right there («4 в» / «сутки»).
+  - Number + unit, in every language, in the value itself: "119 g/week",
+    "over 9 days", «9 días». Most views do not glue a number in code.
+  - Number + short word + unit: "4.5 a day", "6 or more", «4 в сутки»,
+    «4,5 al día», «8 o más». The short word gets a no-break space on both
+    sides. With a plain space the line breaks inside: «reference 6 or» /
+    «more.» at the default size on a 320 pt screen. The duration, weekly and
+    report formats also glue every digit to the word after it in code
+    (`gluingNumbersToUnits`), and there a plain space after the short word
+    is where the line breaks («4 в» / «сутки»). A UI test that matches such
+    a line takes `.` where the no-break space is: a plain space no longer
+    matches.
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
@@ -146,11 +153,13 @@ and the Live Activity read the byte-identical copies in
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows.
-  - Still open: English "a day" and "or more" on the Nutrition card have the
-    same break. The e2e flows for that card match these lines with a plain
-    space, so the English change goes in together with the flows. Literal
-    numbers inside longer texts (onboarding facts, hints, notifications, the
-    export ranges) still use plain spaces.
+  - Still open:
+    - A unit with a slash can break after the slash: «100–200 g/» /
+      «week.», «г/» / «нед.», at some sizes on every screen width, in all
+      three languages. A word joiner after the slash would hold it, as
+      after a range's dash.
+    - Literal numbers inside longer texts (onboarding facts, hints,
+      notifications, the export ranges) still use plain spaces.
 
 ## Changes
 
@@ -195,3 +204,9 @@ and the Live Activity read the byte-identical copies in
   added, the VoiceOver names of the diaper goal editor's − and +: "Decrease
   goal" / "Increase goal", «Уменьшить норму» / «Увеличить норму», «Disminuir
   meta» / «Aumentar meta».
+- 2026-11-04 — English "a day" and "or more" on the Nutrition card and in
+  the feeding breakdown are glued to their number (`nutrition.per_day_fmt`,
+  `breakdown.feeds_fmt`, `breakdown.nappies_fmt`), and so are the number and
+  unit of `nutrition.window_fmt` and `breakdown.gain_fmt` in English and
+  Spanish ("over 9 days", "119 g/week", «9 días», «119 g/sem»). Russian had
+  them already.
