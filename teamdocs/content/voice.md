@@ -155,6 +155,16 @@ and the Live Activity read the byte-identical copies in
     whole label is wider than its box, and there a break after the dash
     reads better than one inside a number. A unit test also matches «15–50»
     as written.
+  - A unit with a slash stays whole. The line may break after the slash
+    («100–200 g/» / «week.»), so a word joiner follows it:
+    `g/\u{2060}week`, `г/\u{2060}нед`, `g/\u{2060}sem`. A UI test that
+    matches such a value takes `.?` after the slash.
+  - The gain card's big number (`velocity.per_week_fmt`) keeps the plain
+    slash. It stands alone beside the interval, and when it is wider than its
+    room (English from xxL on a 320 pt screen, every language at AX2 on a
+    375 pt one), the slash is the one place it can break. With a joiner it
+    would break inside «week» instead. The same key also fills the Home
+    growth row and the weekly summary's previous week, where it has room.
   - In the JSON the no-break space is written as the escape ` `, which
     reads as the same character.
   - Not glued:
@@ -162,13 +172,8 @@ and the Live Activity read the byte-identical copies in
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows.
-  - Still open:
-    - A unit with a slash can break after the slash: «100–200 g/» /
-      «week.», «г/» / «нед.», at some sizes on every screen width, in all
-      three languages. A word joiner after the slash would hold it, as
-      after a range's dash.
-    - Literal numbers inside longer texts (onboarding facts, hints,
-      notifications, the export ranges) still use plain spaces.
+  - Still open: literal numbers inside longer texts (onboarding facts,
+    hints, notifications, the export ranges) still use plain spaces.
 
 ## Changes
 
@@ -222,3 +227,7 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — Russian `widget.last_feed` «Последнее кормление» → «С
   кормления», whole in the medium widget's row on the iPhone SE and the
   10.2" iPad. English and Spanish fit as they are.
+- 2026-11-04 — A word joiner after the unit's slash in `velocity.expected_fmt`,
+  `weekly.gain_fmt` and `breakdown.gain_fmt` (en/ru/es), and a no-break space
+  between `velocity.expected_fmt`'s range and its unit. `velocity.per_week_fmt`
+  keeps the plain slash.
