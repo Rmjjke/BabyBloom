@@ -172,6 +172,7 @@
   "sheet.new_feeding": "Новое кормление",
   "sheet.add_sleep": "Добавить сон",
   "sheet.new_measurement": "Новое измерение",
+  "diaper.add": "Добавить подгузник",
   "diaper.type.wet": "Мокрый",
   "diaper.type.dirty": "Грязный",
   "diaper.type.both": "Оба",

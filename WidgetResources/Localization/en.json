@@ -172,6 +172,7 @@
   "sheet.new_feeding": "New Feeding",
   "sheet.add_sleep": "Add Sleep",
   "sheet.new_measurement": "New Measurement",
+  "diaper.add": "Add Diaper",
   "diaper.type.wet": "Wet",
   "diaper.type.dirty": "Dirty",
   "diaper.type.both": "Both",

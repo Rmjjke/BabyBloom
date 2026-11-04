@@ -172,6 +172,7 @@
   "sheet.new_feeding": "Nueva toma",
   "sheet.add_sleep": "Agregar sueño",
   "sheet.new_measurement": "Nueva medición",
+  "diaper.add": "Agregar pañal",
   "diaper.type.wet": "Mojado",
   "diaper.type.dirty": "Sucio",
   "diaper.type.both": "Ambos",

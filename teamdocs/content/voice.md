@@ -91,6 +91,27 @@ and the Live Activity read the byte-identical copies in
     профиль» (159.6), «Правка профиля» (138.1) and «Данные малыша» (138.8)
     fit the budget, but the bare noun already names the form in fewer
     words.
+- **VoiceOver names of glyph-only buttons.** A button that shows only a
+  glyph takes its VoiceOver name from the app's strings. The name iOS gives
+  a symbol follows the device's language, not the app's. The + that opens a
+  screen's entry sheet says what it adds:
+
+  | screen | key | en | ru | es |
+  |---|---|---|---|---|
+  | Feeding | `sheet.new_feeding` | New Feeding | Новое кормление | Nueva toma |
+  | Sleep | `sheet.add_sleep` | Add Sleep | Добавить сон | Agregar sueño |
+  | Diaper | `diaper.add` | Add Diaper | Добавить подгузник | Agregar pañal |
+  | Growth | `sheet.new_measurement` | New Measurement | Новое измерение | Nueva medición |
+  | Events | `sheet.new_event` | New Event | Новое событие | Nuevo evento |
+
+  - Four of them reuse their sheet's title, which already names what the
+    sheet adds, so VoiceOver reads the same words on the button and as the
+    sheet's heading.
+  - The Diaper sheet's title, «Подгузник» / "Diaper" / «Pañal», names the
+    thing, not the action, so its button has a key of its own, built like
+    «Добавить сон» with the add verb of the Terms table.
+  - The Home quick sheets for Feeding, Sleep and Diaper show the same
+    screen, so their + carries the same name.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
@@ -158,3 +179,7 @@ and the Live Activity read the byte-identical copies in
   words Cancel and Save, so a title has 174 pt even on a 320 pt phone, and
   the list of titles that shrank on 375 pt is empty. The dose sheet's title
   moves into its content. No text changed.
+- 2026-11-04 — `diaper.add` added, the VoiceOver name of the Diaper
+  screen's +: "Add Diaper", «Добавить подгузник», «Agregar pañal». The
+  Feeding, Sleep and Growth + take their sheets' titles, as Events already
+  does.
