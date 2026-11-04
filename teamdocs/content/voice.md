@@ -182,6 +182,13 @@ and the Live Activity read the byte-identical copies in
 
     The export screen's categories are check boxes, not switches: each one's
     name is what it adds to the file.
+- **A legend for a glyph.** A line that says once what a glyph means on
+  several rows is for sight only and is hidden from VoiceOver. Each row
+  speaks the glyph's meaning in words, so the legend read aloud would only
+  repeat it. Its words name the same thing as the spoken ones. The weekly
+  card's arrows: `weekly.legend` "Arrows show the change from the week
+  before.", spoken on each row as `weekly.a11y_delta_up_fmt` /
+  `_down_fmt` "… more / less than the week before".
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + unit, in every language, in the value itself: "119 g/week",
@@ -318,3 +325,6 @@ and the Live Activity read the byte-identical copies in
   the app). New `settings.analytics_hint` under Usage Statistics: "We see
   which features are used." / «Мы видим, чем пользуются.» / «Vemos qué
   funciones se usan.» Two lines at most on a 320 pt screen.
+- 2026-11-04 — A legend for a glyph is for sight only (§ Surface rules). The
+  weekly card's `weekly.legend`, and its hidden line `weekly.hidden` with
+  `weekly.undo`: `weekly-and-notifications.md`.
