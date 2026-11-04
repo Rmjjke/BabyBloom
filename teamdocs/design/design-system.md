@@ -26,10 +26,14 @@ Home's quick actions four in a row where their tiles fit, the Feeding quick
 caption's own padding and the hours on Home's sleep card (§ 3, § 7, § 10).
 The diaper norm editor's × as Close follows the code of the same day; the
 medication screen's Edit as the pencil and the norm editor's scroll and width
-on 320 pt (G22) are planned. A bar confirm that shows ▶ while its sheet
-starts a timer, and value rows that share a column of deltas taking one shape
-by fit, are proposed (§ 3, § 7); the Growth cards' tier tints as text ink are a
-gap, with a direction for the percentile card proposed (G23).
+on 320 pt (G22) are planned, and so are a bar confirm that shows ▶ while its
+sheet starts a timer, value rows that share a column of deltas taking one
+shape by fit and the percentile card's figure in place of its band label
+(§ 3, § 7, G23), all decided the same day. For the other Growth cards' tier
+tints as text ink a direction is proposed: words and figures in the text
+colours, and the tint on a mark, a tier dot before the verdict word (§ 2,
+G23); the category tints as text ink on the timer cards and the week chart are
+a gap (G24).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -68,14 +72,14 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
 | BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is the ink on every BBPrimary fill: `BBPrimaryButton`, the `BBFab` "+", the selected `BBHistoryFilterPicker` chip and the other places G1 lists |
-| BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
+| BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget); on the Growth cards the "below" tier tint. As text ink it is 1.84 on the light surface, so there it is a mark, never text ink (proposed, G23) |
 | BBOnAccent | `Colors.onAccent` | #171420 | #171420 | **from 1.3.0** (decided 2026-11-03) — text on a BBAccent fill: the plan picker's savings badge (`PlanPickerSection.swift:181`), on the paywall and on the onboarding Premium page. One value in both modes, because the peach is light in both: white on it was 1.84 / 1.66 (G18). App catalog only: the widget draws no text on the accent |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
 | BBTextPrimary | `Colors.textPrimary` | #2D2837 | #F0EDF6 | body and titles |
 | BBTextSecondary | `Colors.textSecondary` | #746D85 | #A29BB5 | captions, units, metadata, inactive |
-| BBSuccess | `Colors.success` | #7FC7A4 | #8FD4B2 | "within" ticks, trend chip wash |
-| BBAlert | `Colors.alert` | #E05A5A | #E87373 | **only** growth flags and percentile tails (P1); deliberately rare |
+| BBSuccess | `Colors.success` | #7FC7A4 | #8FD4B2 | "within" ticks, trend chip wash, the "within" tier tint and a typical percentile's ring. As text ink it is 1.98 on the light surface, so it is a mark, never text ink (proposed, G23) |
+| BBAlert | `Colors.alert` | #E05A5A | #E87373 | **only** growth flags and percentile tails (P1); deliberately rare. Under 4.5:1 as text in light (3.64 on the surface, 3.31 on the background): a flag's words are BBTextPrimary on its wash, and the two deletes drawn in it are the platform red's (G4) |
 | BBFeeding | `Colors.feeding` | #E8A0B4 | #C98BA0 | category tint — feeding |
 | BBSleep | `Colors.sleep` | #A9B0E8 | #8A93CC | category tint — sleep |
 | BBDiaper | `Colors.diaper` | #E5C98F | #C4AA75 | category tint — diapers |
@@ -105,8 +109,9 @@ Outside `Colors/`:
 - Platform red (`role: .destructive`, `.red`): the system's destructive colour,
   #FF383C / #FF4245 on iOS 26 (#FF3B30 / #FF453A on iOS 17–18), taken from the
   system and never re-valued. It is the app's one destructive red and marks only
-  a delete: the delete-all button, the swipe action, the photo, visit and
-  question deletes, and from 1.3.0 Delete Dose and Delete Medication. On the
+  a delete: the delete-all button, the swipe action, the photo delete, and
+  from 1.3.0 Delete Dose and Delete Medication (the question and visit
+  sheets' deletes draw BBAlert instead, G4). On the
   background it is 3.25:1 in light (3.23 on iOS 17–18; under P8, accepted) and
   5.29:1 in dark; under Increase Contrast iOS draws it darker in light and
   lighter in dark. Why accepted: it is the system's destructive role, iOS
@@ -119,6 +124,17 @@ fill + `primary@0.30` 1.5 pt stroke; calm gate = `primary@0.08`. Category tints
 on a light surface are about 2.1:1, so a glyph whose colour is the only cue
 fails P8; on light surfaces the glyph shape carries the meaning and the tint is
 a wash.
+
+Proposed (G23, not decided): a tier tint (BBSuccess "within", BBAccent
+"below", BBAlert a percentile tail) is a mark, never text ink: the percentile
+ring, the newborn tick, or the **tier dot** before a verdict word. The dot is a
+circle 7 pt across at Large, in the tier tint, 5 pt before its word and glued
+to it (12.1 pt in all beside a 13 pt word: `circle.fill` at 7 pt and a no-break
+space), centred on the first line's x-height middle (3.4 pt above the
+baseline at 13 pt semibold), scaled with its word, hidden from VoiceOver. The
+word and any figure beside it are BBTextPrimary (14.28 / 14.05); a "not yet"
+stays BBTextSecondary, and a reading with no tier ("above") has no dot. A
+mark whose meaning its word states needs no 3:1 (WCAG 1.4.11).
 
 ### Data colours (not tokens)
 
@@ -145,7 +161,9 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | textSecondary edge of the White / Black stool swatch on the background (from 1.3.0; a border, 3:1) | 4.48 | 6.82 |
 | white on gradient end | **2.64** | 3.05 |
 | white on gradient start | 5.6 | 4.48 |
-| alert on surface | 3.6 | — |
+| alert on surface / background, as text | **3.64 / 3.31** | 5.53 / 6.17 |
+| success / accent on the surface, as text ink on the Growth cards (G23) | **1.98 / 1.84** | 9.47 / 9.82 |
+| feeding / sleep tint as ink on its timer card, tint@0.08 over the background (G24) | **1.80 / 1.82** | 5.94 / 5.53 |
 | platform red (destructive text) on background | **3.25** | 5.29 |
 | feeding / sleep tint on surface | **2.1 / 2.1** | 6.0 / 5.5 |
 
@@ -518,7 +536,7 @@ Decided 2026-11-04:
   taken: the word, which the platform's pushed screens often keep and which
   explains itself; its cost is one action in two looks.
 
-Proposed (2026-11-04, not decided), read at a8369f8:
+Planned (decided 2026-11-04), read at a8369f8:
 - **A bar's confirm shows what it does: ▶ while the sheet starts a timer.**
   With Start Timer on, the New Feeding sheet's bottom button reads «Начать
   кормление» with ▶ (`FeedingView.swift:565`), while the bar's ✓ (`:580`)
@@ -605,7 +623,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3). Its ideal width is the larger of its label and its disc | Dashboard: four in a row while the widest tile fits a quarter of the card, else two by two (`QuickActionsLayout`, `DashboardView.swift:677`), one column at accessibility sizes (§ 3) |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
-| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). Proposed (§ 3): a fifth case for a confirm that starts a timer, `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets and the growth explainer (Close) |
+| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). Planned (decided 2026-11-04, § 3): a fifth case for a confirm that starts a timer, `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets and the growth explainer (Close) |
 | BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
@@ -685,7 +703,9 @@ screens, Home and onboarding, with their renders at Large, xxxLarge and AX2
 (2026-11-04). G21 was read at 265557e and the sheets' titles and labels at
 b8e9a41, with their renders at the default size, xLarge and xxxLarge, in
 light and dark and in the 320 pt dumps, and Home at 95525c6; G22 was found
-there (2026-11-04). Each line: what, where, which rule.
+there (2026-11-04). G23 was found at a8369f8 and read at 6fc67d1 on every
+tint site of the Growth tab and Home's growth card, and G24 was found there
+(2026-11-04). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards and
@@ -834,25 +854,74 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   stepper's gaps by the fit rule, since the row's width follows its content,
   so the card is at most 256 pt on 320. At AX1 on 320 × 568 Save cannot be
   reached, so the fix is about reaching a control and does not wait.
-- **G23 · Tier tints as text ink on the Growth cards** (found 2026-11-04 at
-  a8369f8). The WHO percentile card draws its big band label («50–85»,
-  `Typography.metric`, 28 pt semibold) and the ring's number (16 pt semibold)
-  in the reading's tier tint (`PercentileCard.swift:72`, `:85`, tints at
-  `GrowthInsightCards.swift:471`): on the light surface BBSuccess is 1.98,
-  BBAccent 1.84 and BBAlert 3.63, against 3:1 for the large label and 4.5:1
-  for the 16 pt number (dark 9.48, 9.82, 5.53, all pass). The newborn card's
-  regained figure takes BBSuccess the same way (`GrowthInsightCards.swift:518`,
-  1.98). Breaks P8. Direction for the percentile card (proposed 2026-11-04,
-  not decided): the band label goes; the big figure is the percentile itself,
-  the card's badge («61», «> 97», «< 3», 36.1 to 60.1 pt in the 168 pt beside
-  the ring on 320), in BBTextPrimary (14.28 / 14.07) under its caption
-  `percentile.weight`; the ring keeps the tint as the picture of where the
-  reading sits, without its number, hidden from VoiceOver, so the reading is
-  stated once; the caption and the figure are one VoiceOver element. A
-  graphic whose meaning the text beside it states needs no 3:1 (WCAG 1.4.11).
-  The same card renders in onboarding's growth page. The newborn figure:
-  BBTextPrimary, with its BBSuccess tick beside it carrying "regained"
-  (later).
+- **G23 · Tier tints as text ink on the Growth cards and Home's growth card**
+  (found 2026-11-04 at a8369f8; every site read at 6fc67d1). The tier tints
+  are BBSuccess ("within", a typical percentile), BBAccent ("below", an edge
+  percentile) and BBAlert (a percentile tail). As ink on the light surface
+  they are 1.98, 1.84 and 3.64 (dark 9.47, 9.82 and 5.53, all pass). Seven
+  sites draw words or figures in them (kind, type, ink, the ratio it needs):
+  - the percentile card's band label («50–85»): label, metric 28 pt
+    semibold, the tier tint, 3 (`PercentileCard.swift:72`);
+  - the percentile card's ring number: small text, 16 pt semibold, the tier
+    tint, 4.5 (`PercentileCard.swift:85`);
+  - the newborn card's regained figure («102% от веса при рождении»):
+    figure, metric, BBSuccess, 3 (`GrowthInsightCards.swift:517`);
+  - the weight gain card's figure («+180 г/нед»): figure, metric, BBSuccess
+    or BBAccent, 3 (`GrowthInsightCards.swift:582`, tints at `:677`);
+  - the weight gain card's band word: label, 14 pt semibold at a fixed size
+    (G2), BBSuccess or BBAccent, 4.5 (`GrowthInsightCards.swift:593`);
+  - the Nutrition card's three status values (gain, feeds, wet diapers):
+    small text, 13 pt semibold, BBSuccess or BBAccent, 4.5
+    (`NutritionSection.swift:155`, tints at `:176`);
+  - Home's growth card's gain value: small text, 13 pt semibold, BBSuccess or
+    BBAccent, 4.5 (`DashboardView.swift:446`, tints at `:405`).
+  "Above the reference" and a gain figure without a band are BBTextPrimary,
+  and "not enough data" and "first weeks" BBTextSecondary (4.92 / 6.11):
+  those pass. Onboarding's growth page renders the percentile card itself
+  (`GrowthShowcasePage.swift:102`, a tail there in BBTextPrimary). Breaks P8.
+  The percentile card, decided 2026-11-04 (planned): the band label goes; the
+  big figure is the percentile itself, the card's badge («61», «> 97», «< 3»,
+  36.1 to 60.1 pt in the 168 pt beside the ring on 320), in BBTextPrimary
+  (14.28 / 14.05) under its caption `percentile.weight`; the ring keeps the
+  tint as the picture of where the reading sits, without its number, hidden
+  from VoiceOver, so the reading is stated once; the caption and the figure
+  are one VoiceOver element. A graphic whose meaning the text beside it
+  states needs no 3:1 (WCAG 1.4.11). Onboarding's page follows, as the same
+  card.
+  Direction for the other five sites (proposed 2026-11-04, not decided): **a
+  tier tint is a mark, never text ink** (§ 2, after the tint usage pattern),
+  one look in light and dark:
+  - figures: BBTextPrimary in every tier (14.28 / 14.05), as the percentile
+    figure; the tint stays on the mark beside them: the newborn card's
+    BBSuccess tick, and the gain card's tier dot on its band word;
+  - labels (the gain card's band word): BBTextPrimary, led by the tier dot;
+  - small text (the Nutrition card's status values, Home's gain value):
+    BBTextPrimary, led by the tier dot; "above" with no dot; "not enough
+    data" and "first weeks" BBTextSecondary, with no dot.
+  The words say the verdict, so no colour is one (P1), and none of these
+  sites uses BBAlert. The dot adds 12.1 pt. At Large it adds a line in 5 of
+  108 measured cases (a row at 320, 375 or 402 pt in en, ru or es), none on
+  320: ru feeds on 402, es gain on 402, es feeds on 375 and 402, es Home gain
+  on 375 (CoreText at 6fc67d1, the row's label at its own width). Not taken:
+  ink tokens of the same hues for light (#357D5E and #94654E reach 4.5 on both
+  light fills, #549B7A and #B4836B reach 3; dark keeps the tints): two
+  colorsets whose forest green and brown the palette does not have, and that
+  make the verdict word the loudest line of its card beside a percentile
+  figure already neutral. No mark at all: no tier cue is left on the cards
+  that have no ring or tick.
+- **G24 · Category tints as text ink on the timer cards and the week chart**
+  (found 2026-11-04 at 6fc67d1, in G23's audit). The Feeding and Sleep timer
+  cards draw their label (13 pt medium, `BBElapsedTimer.swift:94`) and their
+  digits (36 pt semibold, `BBElapsedTimer.face`, `:14`) in the card's tint, on
+  the card's tint@0.08 over the background: BBFeeding 1.80 and BBSleep 1.82
+  in light (5.94 and 5.53 dark), against 4.5 for the label and 3 for the
+  digits. Home's running-timer card draws its digits (22 pt semibold) the
+  same way (`DashboardView.swift:648`), and the week chart prints the tallest
+  bar's value (11 pt semibold, `BBCharts.swift:232`) in the tint on the
+  surface: feeding 2.08, sleep 2.09, diapers 1.61. Breaks P8. Not from
+  1.3.0's builds. A direction is later; G23's rule would put the label and
+  the digits in BBTextPrimary and keep the tint on the card's wash, stroke
+  and glyph.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -861,7 +930,11 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   red and so under its 3.25:1, and `PlanPickerSection:316` purchase error
   (`.red`): a purchase error is not destructive at all. The code itself names
   red "the colour for your data is about to go away" (`BBLockedHistoryFooter`).
-  Breaks P1.
+  The other way round: the question and visit sheets' Delete
+  (`QuestionSheet.swift:57`, `VisitDetailSheet.swift:137`, callout) is drawn
+  in BBAlert, not the platform red, since the sheets came (read at 6fc67d1):
+  BBAlert means only "raise this with someone", and as text it is 3.31 on the
+  sheets' background in light. Breaks P1.
 - **G5 · Dead alarm styling in shared components:** `BBStatCard.overLimit` and
   `BBProgressCard.overLimit` still render system red + triangle/exclamation;
   no call site passes `true` since DECISIONS 2026-09-05. Breaks P1 if ever
