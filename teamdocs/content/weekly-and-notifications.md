@@ -34,9 +34,29 @@ are `teamdocs/design/m1-weekly-summary.md`.
 - Newborn window: no gain number at all, `weekly.gain_newborn` instead
   (`DECISIONS.md` 2026-09-05: a −180 g in week one is normal and reads as a
   verdict).
-- No weighing pair: `weekly.gain_needs_weighing` + the existing
-  `growth.add_weighing` action (`DECISIONS.md` 2026-09-05: empty states name
-  the missing thing and offer the action).
+- No weighing pair for the week: the line names what is missing, and the
+  existing `growth.add_weighing` action follows where a weighing now helps
+  (`DECISIONS.md` 2026-09-05: empty states name the missing thing and offer
+  the action). There are four cases, judged on every weighing logged up to
+  now, a pair being two weighings at least 3 days apart:
+
+  | case | line | action |
+  |---|---|---|
+  | no weighing at all | `weekly.gain_needs_two` "Two weighings at least 3 days apart will show the gain here." | yes |
+  | weighings, but no pair among them (one weighing, or several within 3 days) | `weekly.gain_needs_second` "One more weighing, at least 3 days after the first, will show the gain here." | yes |
+  | a pair whose later weighing is after the week's end | `weekly.gain_next_monday` "This week's weighing will show the gain here next Monday." | no |
+  | a pair whose later weighing is before the week | `weekly.gain_needs_weighing` "Weigh your baby, and the gain will show here next week." | yes |
+
+  - The second line says "after the first", not "in 3 days": a parent who
+    weighed five days ago may weigh today. "Weigh again" alone would send a
+    parent who weighed yesterday to weigh again at once, which still gives
+    no gain.
+  - In the third case the next Monday's card shows the gain, so there is
+    nothing to add.
+  - The last line is true only when an earlier weighing exists: a single
+    weighing in the coming week then completes a pair.
+  - Until the app tells these cases apart, it shows
+    `weekly.gain_needs_weighing` and the action in all four.
 - First week in the log: `weekly.first_week` — says when a comparison will
   come, not that something is missing.
 - Durations: `duration.h_min` ("1 h 20 min"), `duration.h_only` ("1 h") when
@@ -101,3 +121,7 @@ off all of the app's notifications in iOS, feeding reminders included.
 - 2026-11-04 — `weekly.days_logged_fmt` says that the rows are averages:
   "Averages over the days with entries: %d of 7" / «Среднее по дням с
   записями: %d из 7» / «Promedio de los días con registros: %d de 7».
+- 2026-11-04 — `weekly.gain_needs_two`, `weekly.gain_needs_second` and
+  `weekly.gain_next_monday`: the gain line names what is missing in each
+  case without a pair. A parent who has weighed is no longer asked to weigh
+  as if nothing were logged.
