@@ -31,11 +31,17 @@ sheet starts a timer, value rows that share a column of deltas taking one
 shape by fit and the percentile card's figure in place of its band label
 (§ 3, § 7, G23), and on the other Growth cards words and figures in the text
 colours with the tier tint on a mark, a tier dot before the verdict word
-(§ 2, G23), all decided the same day. For the category tints as text ink (the
-timer cards, Home's timer card, the week chart, the bottle volume) the same
-direction is proposed: the text colours, with the tint on the wash, stroke,
-glyph disc, bars and slider beside them (§ 2, § 7, G24); the week chart's
-bars under 3:1 are a gap (G25).
+(§ 2, G23), all decided the same day, and so is the same direction for the
+category tints as text ink (the timer cards, Home's timer card, the week
+chart, the bottle volume): the text colours, with the tint on the wash,
+stroke, glyph disc, bars and slider beside them (§ 2, § 7, G24). Proposed
+the same day: BBTextSecondary darker in light, #6B647C, with the onboarding
+backdrop's primary blobs at 0.08 (G10); a value over every bar of the week
+chart up to today, in the text colours, without the axis numbers (G25); a
+primary wash under BBPrimary words laid over the surface (G26); the
+stool-colour warning's words in BBTextPrimary (G3); and the photo's Remove,
+the purchase error, the delete-all button and the over-limit styling under
+the platform red's role (G4, G5).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -79,7 +85,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
 | BBTextPrimary | `Colors.textPrimary` | #2D2837 | #F0EDF6 | body and titles |
-| BBTextSecondary | `Colors.textSecondary` | #746D85 | #A29BB5 | captions, units, metadata, inactive |
+| BBTextSecondary | `Colors.textSecondary` | #746D85 | #A29BB5 | captions, units, metadata, inactive. Under 4.5:1 in light on the background (4.48) and on the washes it sits on (3.64–4.42); #6B647C in light proposed, dark unchanged (G10) |
 | BBSuccess | `Colors.success` | #7FC7A4 | #8FD4B2 | "within" ticks, trend chip wash, the "within" tier tint and a typical percentile's ring. As text ink it is 1.98 on the light surface, so it is a mark, never text ink (proposed, G23) |
 | BBAlert | `Colors.alert` | #E05A5A | #E87373 | **only** growth flags and percentile tails (P1); deliberately rare. Under 4.5:1 as text in light (3.64 on the surface, 3.31 on the background): a flag's words are BBTextPrimary on its wash, and the two deletes drawn in it are the platform red's (G4) |
 | BBFeeding | `Colors.feeding` | #E8A0B4 | #C98BA0 | category tint — feeding |
@@ -138,7 +144,7 @@ word and any figure beside it are BBTextPrimary (14.28 / 14.05); a "not yet"
 stays BBTextSecondary, and a reading with no tier ("above") has no dot. A
 mark whose meaning its word states needs no 3:1 (WCAG 1.4.11).
 
-Proposed (G24, not decided): the same for the category tints. BBFeeding,
+Planned (G24, decided 2026-11-04): the same for the category tints. BBFeeding,
 BBSleep and BBDiaper are marks: the timer card's wash and 1.5 pt stroke, the
 glyph disc, the week chart's bars, a slider's track. The words and figures
 beside them are BBTextPrimary in both modes: the timer cards' label and
@@ -146,6 +152,25 @@ digits (12.41 / 12.42 on the card's wash, 14.03 / 14.09 in dark), Home's
 timer digits, the week chart's value and today's day, and the bottle volume
 (14.28 / 14.05 on the surface), as the Live Activity and `BBMeasureSlider`
 already draw theirs. No mark is added and no width changes.
+
+Proposed (2026-11-04, not decided):
+- BBTextSecondary in light #6B647C, the same hue and chroma a little darker
+  (OKLCH L 0.550 → 0.518), dark unchanged: 5.12 on the background, 5.62 on the
+  surface and at least 4.62 on every wash secondary words sit on. The
+  widget's copy and the PDFs' constants take the same value, and the
+  onboarding backdrop's two primary blobs go to 0.08 (G10).
+- The week chart states every value up to today above its bar, today's in
+  BBTextPrimary and the other days' in BBTextSecondary, and loses its axis
+  numbers; the bars stay as they are, marks whose figures the text states
+  (G25).
+- A primary wash under BBPrimary words is laid over BBSurface: the selected
+  tiles (primary@0.12) and the primary pills (@0.10) then read 4.78 and 4.91
+  whatever is under them (G26).
+- Words are drawn in a red or an orange under 4.5:1 only as a delete in the
+  platform red (accepted at 3.25, above): the stool-colour warning's words in
+  BBTextPrimary beside its orange triangle and wash (G3); a purchase error in
+  BBTextPrimary, the photo's Remove at the full platform red and the
+  delete-all button without its red wash (G4); no over-limit red (G5).
 
 ### Data colours (not tokens)
 
@@ -175,10 +200,16 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | alert on surface / background, as text | **3.64 / 3.31** | 5.53 / 6.17 |
 | success / accent on the surface, as text ink on the Growth cards (G23) | **1.98 / 1.84** | 9.47 / 9.82 |
 | feeding / sleep tint as ink on its timer card, tint@0.08 over the background (G24) | **1.80 / 1.82** | 5.94 / 5.53 |
-| textPrimary on the feeding / sleep timer card (G24, proposed) | 12.41 / 12.42 | 14.03 / 14.09 |
+| textPrimary on the feeding / sleep timer card (G24, planned) | 12.41 / 12.42 | 14.03 / 14.09 |
 | textSecondary on a tint@0.08 wash over the background: feeding and sleep (diaper 4.36, growth 4.31, primary 4.05; G10) | **4.28** | 6.11 |
+| textSecondary #6B647C (proposed, G10) on background / surface / primary@0.08 over the background, its darkest wash | 5.12 / 5.62 / 4.62 | unchanged |
 | platform red (destructive text) on background | **3.25** | 5.29 |
+| platform red on its red@0.06 wash (the delete-all button, G4) | **3.01** | 5.01 |
 | feeding / sleep / diaper tint on surface (the week chart, the bottle volume: G24; the chart's bars: G25) | **2.08 / 2.09 / 1.61** | 5.95 / 5.51 / 7.25 |
+| the week chart's other days' bars at their top, tint@0.5 on the surface (G25) | **1.42 / 1.41 / 1.26** | **2.51 / 2.40 / 2.85** |
+| primary as words on primary@0.12 / @0.10 over the background: selected tiles, pills (G26) | **4.38 / 4.50** (4.499) | 5.71 / 5.92 |
+| primary as words on primary@0.12 / @0.10 over the surface (G26, proposed) | 4.78 / 4.91 | 5.04 / 5.22 |
+| system orange words on their orange@0.1 wash (the stool-colour warning, G3) | **2.13** | 6.14 |
 
 Bold = under P8 for normal-size text; see § 10.
 
@@ -637,24 +668,24 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
 | BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). Planned (decided 2026-11-04, § 3): a fifth case for a confirm that starts a timer, `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets and the growth explainer (Close) |
-| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
+| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt. The unit and title are BBTextSecondary on the tonal wash (4.28–4.36 in light, G10); `overLimit`, set by no caller, is proposed to go with its red (G5) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
-| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target | Dashboard, Diaper |
+| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target; `overLimit`, set by no caller, is proposed to go with its red (G5) | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
 | BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
-| BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1) | BBHistorySection |
-| BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation; the tallest bar's value (11 semibold) and today's day (11 bold) in the tint, BBTextPrimary proposed (G24); the bars under 3:1 in light (G25) | Feeding, Sleep, Diaper |
+| BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1); the other words BBTextSecondary on primary@0.08, 4.05 in light (G10) | BBHistorySection |
+| BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation; the tallest bar's value (11 semibold) and today's day (11 bold) in the tint, BBTextPrimary planned (G24). Proposed (G25): a value 4 pt over every bar up to today, «0» included, today's in BBTextPrimary and the others' in BBTextSecondary, hidden from VoiceOver; no axis numbers, the grid lines kept; the bars, under 3:1 in light, stay as marks | Feeding, Sleep, Diaper |
 | BBDeleteHistoryButton | BBCharts | destructive "delete all" with a scope-honest confirmation (P4) | Events, BBHistorySection |
 | BBLockedHistoryFooter | BBLockedHistoryFooter | the one calm locked row for history beyond the free window (P2) | Events, RecentActivity, BBHistorySection |
 | LockBadge + `bbLockedAccessibility` | LockBadge | the one padlock: 10 pt glyph on a surface disc; VoiceOver value "locked" (P3) | Events, BBQuickActionButton |
 | BrandMark | BrandMark | `BBLogo` clipped to a circle, 1 pt ring, optional shadow, on-gradient variant | MainTabView, PremiumHero, Onboarding (Welcome, Generating) |
-| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; ink: the caller's tint, BBTextPrimary proposed in both modes (G24); MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
+| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; ink: the caller's tint, BBTextPrimary planned in both modes (G24); MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
 | BBTimerFit | BBElapsedTimer | **from 1.3.0** — a running timer with what is running: one per-second `TimelineView` clock draws both shapes, so each fit check reads the digits on screen. Below AX1 the content stands beside the digits (a `Spacer` between, the given gap on each side) while both fit one line, else above them, sm 8 apart, both leading (`ViewThatFits`); at accessibility sizes always above (§ 3) | Dashboard (`ActiveTimerCard`: title 15 semibold over subtitle 13 regular, 2 apart, md 16 gaps, beside a 48 pt plate; on 320 pt at Large it stacks at any time; the sleep card passes `showsHours`, `DashboardView.swift:187`, and past an hour stacks on en 375 pt and es 375 and 402 pt too), BBTimerCardHeader |
-| BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in the card's colour (BBTextPrimary proposed, G24) over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
+| BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in the card's colour (BBTextPrimary planned, G24) over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | toggle that reveals a slider (head circumference) | Growth, BabyProfileEditSheet, Onboarding (Birth, Growth) |
 | BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
@@ -719,7 +750,9 @@ light and dark and in the 320 pt dumps, and Home at 95525c6; G22 was found
 there (2026-11-04). G23 was found at a8369f8 and read at 6fc67d1 on every
 tint site of the Growth tab and Home's growth card, and G24 was found there
 and read at 6fc67d1 on every category-tint site, where G25 was found
-(2026-11-04). Each line: what, where, which rule.
+(2026-11-04). G10, G25 and every word drawn in a tint, BBPrimary, a red or
+an orange were read at 4f3c86c, where G26 was found (2026-11-04). Each
+line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards and
@@ -943,7 +976,7 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   7.25, all pass. Breaks P8. Not from 1.3.0's builds. The Live Activity's
   digits (`TimerActivityViews.swift:156`, `:248`) and `BBMeasureSlider`'s
   value (`BBMeasureSlider.swift:23`) are BBTextPrimary already.
-  Direction (proposed 2026-11-04, not decided): G23's rule, **a tint is a
+  Direction (decided 2026-11-04, planned): G23's rule, **a tint is a
   mark, never text ink**, one look in light and dark:
   - figures (the timer digits, the bottle volume): BBTextPrimary, 12.41 /
     12.42 on the timer cards and 14.28 on the surface (dark 14.03 to 14.09),
@@ -951,7 +984,8 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   - the timer label: BBTextPrimary, apart from the title by size and weight;
     BBTextSecondary is 4.28 on the wash (G10), no option;
   - the week chart's value and today's day: BBTextPrimary (14.28 / 14.05);
-    today keeps its bold and its full-strength bar.
+    today keeps its bold and its full-strength bar. The chart's values are
+    proposed again under G25: every bar's, today's in BBTextPrimary.
   The tint stays on the marks each site already has: the timer card's wash
   and 1.5 pt stroke, Home's glyph disc, the bars, the slider's track. Nothing
   is added, no width changes, and the shapes at every size are today's. Not
@@ -969,7 +1003,53 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   dark today 5.95 / 5.51 / 7.25 and the other days 2.51 / 2.40 / 2.85. A bar
   is a graphical object the chart needs (WCAG 1.4.11, 3:1); the axis numbers
   (4.92 / 6.11) and the tallest bar's value give the figures, and the grid
-  lines are textSecondary@0.06. Breaks P8. A direction is later.
+  lines are textSecondary@0.06. Breaks P8. The bars also fade to 0.35 (today)
+  and 0.175 at their foot: 1.27 and 1.13 in light, 1.88 and 1.34 in dark
+  (feeding; read at 4f3c86c).
+  Direction (proposed 2026-11-04, not decided): every day up to today states
+  its value 4 pt above its bar, «0» included, 11 pt semibold rounded as now:
+  today's in BBTextPrimary (14.28 / 14.05), the other days' in
+  BBTextSecondary (5.62 with G10's value, 6.11 in dark), hidden from
+  VoiceOver, since each bar already speaks its day and value. The leading
+  axis numbers go and the grid lines stay: seven values beside a column of
+  0 / 5 / 10 would read as two scales. The bars stay as they are: every
+  figure is stated beside its bar, so a bar is a mark and needs no 3:1 (WCAG
+  1.4.11), as G23's ring. Today stays apart by its full-strength bar, its
+  bold day label and its value's ink. The widest value, «23,9» hours (25.3
+  pt; counts at most 14.6), leaves 11.3 pt to the next on 320 pt, where a
+  day's slot is 36.6 (CoreText; the font is fixed, G2). Not taken: a 1 pt
+  edge inside each bar in a deeper shade for light (#C68094, #8B91C8,
+  #AB9158: 3.04, 3.01, 3.03; the tints in dark), three colours the palette
+  does not have, with the other days' values still unread; solid bars in
+  BBPrimary and BBTextSecondary (5.62 each), the same lightness, so today
+  would differ by hue alone and the category colour would leave the chart.
+- **G26 · BBPrimary words on a primary wash over the background are under
+  4.5:1 in light** (found 2026-11-04 at 4f3c86c, in the rule transfer of
+  G23 and G24). BBPrimary as text is 5.12 on the background, 5.62 on the
+  surface and 4.62 on primary@0.08 over the background; on primary@0.12
+  over the background it is 4.38, and on @0.10 4.50 (4.499):
+  - the selected tiles' words (primary@0.12): `SleepView.swift:290`, `:322`;
+    `FeedingView.swift:406`, `:435`; `DiaperView.swift:421`;
+    `EventsView.swift:334`, `:370`; `BabyProfileEditSheet.swift:262`,
+    `:286`; onboarding's `BirthPage.swift:103` and `FeedingPage.swift:51`.
+    Over the Feeding timer card's wash the breast sides
+    (`FeedingView.swift:318`) read 4.18, and over an onboarding blob 3.61;
+  - the pills at @0.10: Home's age pill (`DashboardView.swift:138`), the
+    diaper norm chip (`DiaperView.swift:213`), the medication interval
+    chips (`MedicationFormSheet.swift:205`) and onboarding's fact chip
+    (`FactPage.swift:34`; 3.70 over a blob).
+  Dark passes (5.71, 5.92). Breaks P8. Passing, so not on the list: the same
+  washes over the surface (4.78 at 0.12: the Growth card's add-weighing
+  button and corrected-age pill; 4.91 at 0.10: `BBSecondaryButton`), the
+  trend capsule on success@0.12 over a stat card (4.58 to 4.66), and the
+  compact date pills (4.87, computed from the system fill). Direction
+  (proposed 2026-11-04, not decided): the wash is laid over BBSurface, 4.78
+  / 5.04 at 0.12 and 4.91 / 5.22 at 0.10, whatever is under it; a selected
+  tile is a shade lighter (#E6E1F1 → #EEEBF5 in light) and its 1.5 pt
+  BBPrimary edge carries the choice; the words keep BBPrimary, the ink of a
+  control. Not taken: the words in BBTextPrimary, which leaves the choice to
+  the wash and the edge and takes the control ink off the chips; the washes
+  at 0.08, which over a wash or a blob stay under 4.5.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -982,11 +1062,22 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   (`QuestionSheet.swift:57`, `VisitDetailSheet.swift:137`, callout) is drawn
   in BBAlert, not the platform red, since the sheets came (read at 6fc67d1):
   BBAlert means only "raise this with someone", and as text it is 3.31 on the
-  sheets' background in light. Breaks P1.
+  sheets' background in light. Breaks P1. Those two take the platform red
+  through their destructive role (decided 2026-11-04, planned). Measured at
+  4f3c86c in light (iOS 26) and dark: the delete-all button's words 3.01 /
+  5.01 on its red@0.06 wash, the photo's Remove 2.76 / 3.76 at red@0.8, the
+  purchase error 3.25 / 5.29. Proposed (2026-11-04, not decided): the Remove
+  at the full platform red (3.25, as § 2 accepts for a delete), the purchase
+  error in BBTextPrimary (13.01), the delete-all button without its wash
+  (3.25; its red@0.2 stroke stays as its shape).
 - **G5 · Dead alarm styling in shared components:** `BBStatCard.overLimit` and
   `BBProgressCard.overLimit` still render system red + triangle/exclamation;
   no call site passes `true` since DECISIONS 2026-09-05. Breaks P1 if ever
-  reused.
+  reused. Their red words read 2.68 (the value at red@0.85 on its red wash)
+  and 2.46 (the count at red@0.75) in light (at 4f3c86c); the only caller
+  passing the flag, `DiaperView.swift:168` and `:176`, passes `false`.
+  Proposed (2026-11-04, not decided): `overLimit` goes from both cards with
+  its red inks.
 - **G6 · Data colours bypass the catalog** (§ 2 Data colours): no dark
   variants, and near-misses with the category tints (breast #E8A0BF vs
   BBFeeding #E8A0B4; formula/bath #B0C4F5 vs BBSleep #A9B0E8). One literal is
@@ -1006,12 +1097,39 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   weekly chart still hand-roll surface + radius + `card` shadow and so lack the
   level-1 top highlight `bbCard()` defines. grep: `grep -rnF --include=*.swift
   '.bbCard()' BabyBloom | wc -l` → 8 in 1.2.0.
-- **G10 · textSecondary on background is 4.48:1 (light)** — a hair under P8,
-  and it carries the 12–13 pt captions and units. On a tint@0.08 wash it is
-  lower: 4.28 on the feeding and sleep washes, 4.36 on diapers, 4.31 on growth
-  and 4.05 on primary (dark 6.01 to 6.13; read at 6fc67d1), under Home's
-  running-timer card's subtitle (`DashboardView.swift:655`) and
-  `BBStatCard`'s unit and title on its tonal wash (`BBCard.swift:71–77`).
+- **G10 · textSecondary is under 4.5:1 in light on the background (4.48) and
+  on every wash it sits on** — it carries the 11–15 pt captions, units and
+  hints. Read at 4f3c86c on every site: 4.28 on the feeding and sleep
+  tint@0.08 washes, 4.36 on diapers and 4.31 on growth, under `BBStatCard`'s
+  unit and title (`BBCard.swift:70–76`) and Home's running-timer subtitle
+  (`DashboardView.swift:655–657`); 4.05 on primary@0.08 over the background,
+  under the history period picker's other words (`BBCharts.swift:38–40`),
+  the locked footer's first line (`BBLockedHistoryFooter.swift:27–30`) and
+  the paywall's Premium-active line (`PaywallView.swift:157–159`); 4.23 on
+  sleep@0.10 (the Sleep start tiles' «Начать», `SleepView.swift:130–132`),
+  4.30 on feeding@0.07 (the Feeding quick captions,
+  `FeedingView.swift:147–149`) and 4.42 on primary@0.08 over the surface
+  (Export's selected format, `ExportView.swift:106–108`); over the
+  onboarding backdrop's blobs (`OnboardingBackground.swift:30–35`) the 14
+  hints of the pages fall to 3.64 at a primary blob's centre. Dark passes
+  (4.57 to 6.83). Breaks P8.
+  Direction (proposed 2026-11-04, not decided): BBTextSecondary in light
+  #6B647C (components 0.420 / 0.392 / 0.486; OKLCH L 0.550 → 0.518, the same
+  hue and chroma), dark unchanged: 5.12 on the background, 5.62 on the
+  surface, 4.62 at worst (primary@0.08 over the background) and 4.83 to 5.05
+  on the other washes; the backdrop's two primary blobs at 0.08 (4.62 at
+  their centre; the accent blob, 4.69, stays at 0.18). Primary text against
+  it is 2.54:1 (2.90 today), and the secondary words stay the smaller or
+  lighter of their pair. The widget's copy takes the value (the Live
+  Activity's secondary lines on BBSurface, 4.92 → 5.62), and so do
+  `ExportGenerator`'s #746D85 (`:396`, `:408`, `:416`) and `DoctorReportPDF`'s
+  `secondary` (`:18`): on paper 4.92 → 5.62, on the export card's #F2F2F7
+  4.41 → 5.03 (G16). The White and Black swatches' edge (G20) goes 4.48 →
+  5.12. Why 4.6 and not 4.5: renders read a few hundredths under the
+  computed ratio, and #6C657D (4.55) leaves no margin. Not taken: today's
+  value nudged to 4.5 on the background (#736C84) with the words on the
+  washes in BBTextPrimary, which makes a stat card's value, unit and title
+  one ink; lighter washes, since the bare background is 4.48.
 - **G11 · `EmptyStateView` lives in `Features/Feeding/FeedingView.swift`**
   though four surfaces share it; belongs in `DesignSystem/Components/`.
 - **G12 · Gradient text in light mode:** white on BBGradientEnd is 2.64:1;
@@ -1027,7 +1145,9 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
 - **G16 · The export PDF's neutrals are mostly iOS system greys,** not the brand
   neutrals (#1C1C1E/#F2F2F7 vs BBTextPrimary/BBBackground; also #F9F9FB even rows,
   #E5E5EA rules). Its labels and footer are BBTextSecondary #746D85. Defensible for
-  print; noted so a re-theme does not miss it.
+  print; noted so a re-theme does not miss it. The labels on the cards'
+  #F2F2F7 are 4.41:1, under P8 (`ExportGenerator.swift:403`, `:408`, at
+  4f3c86c); G10's #6B647C makes them 5.03.
 - **G17 · Splash text contrast unknown:** BBSplashText on BBLaunchBackground
   is 1.52:1, but the text sits on the splash art, not the plain backdrop —
   needs a live look.
@@ -1036,4 +1156,9 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
 - **G3 · Stool-colour warning in DiaperView** (`DiaperView.swift:497–505` at
   95525c6, orange + `exclamationmark.triangle.fill`): it stays as it is — a
   deliberate exception to the calm rule for a medically meaningful signal
-  (pale/white stool). Product decision, 2026-10-28.
+  (pale/white stool). Product decision, 2026-10-28. Its words, system orange
+  on the orange@0.1 wash, are 2.13:1 in light (2.03 on iOS 17–18; 6.14 in
+  dark; at 4f3c86c, `DiaperView.swift:510–515`). Proposed (2026-11-04, not
+  decided): the words in BBTextPrimary (13.14 / 11.84), the orange triangle
+  and wash kept, so the exception keeps its look; the words state the
+  triangle's meaning, so the triangle needs no 3:1.
