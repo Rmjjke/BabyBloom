@@ -210,11 +210,6 @@ and the Live Activity read the byte-identical copies in
     the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
     words glues its words with no-break spaces: "1 to 24", «от 1 до 24»,
     «del 1 al 24», «de 6 a 10», «del percentil 15 al 85».
-  - The percentile band labels (`percentile.3_15` … `percentile.85_97`)
-    keep the plain dash. Each stands alone, so its line breaks only when the
-    whole label is wider than its box, and there a break after the dash
-    reads better than one inside a number. A unit test also matches «15–50»
-    as written.
   - A unit with a slash stays whole. The line may break after the slash
     («100–200 g/» / «week.»), so a word joiner follows it:
     `g/\u{2060}week`, `г/\u{2060}нед`, `g/\u{2060}sem`. A UI test that
@@ -366,3 +361,9 @@ and the Live Activity read the byte-identical copies in
   `percentile.out_of_range`, `trend.drop_fmt` (en, es), `velocity.info_body`,
   `velocity.needs_two` / `needs_second` / `no_reference`. A UI test that
   matches one of these lines takes `.` where the no-break space now is.
+- 2026-11-04 — The four percentile band labels are deleted:
+  `percentile.3_15`, `percentile.15_50`, `percentile.50_85`,
+  `percentile.85_97`. The growth card states the percentile itself ("61"),
+  so no screen, widget or report reads them. Their exception under the range
+  rule goes with them. `percentile.below3`, `percentile.above97` and the
+  badges stay.

@@ -129,8 +129,7 @@ sentences, which have a `report.pdf.*` twin.
 For a key with placeholders, it scans the longest fixed stretch between them.
 - Percentile bands: `percentile.normal`, `percentile.below_normal`,
   `percentile.above_normal`, `percentile.very_low`, `percentile.very_high`,
-  `percentile.below3`, `percentile.3_15`, `percentile.15_50`,
-  `percentile.50_85`, `percentile.85_97`, `percentile.above97`. The badges
+  `percentile.below3`, `percentile.above97`. The badges
   `percentile.badge_below3` / `_above97` are allowed, because they are the
   number.
 - Gain against the reference: `velocity.below`, `velocity.within`,
@@ -244,3 +243,6 @@ Every `report.*`, `visit.*` and `question.*` value passed this scan on
   "Averages over the days with entries: %d of %d" / «Среднее по дням с
   записями: %d из %d» / «Promedio de los días con registros: %d de %d». Its
   "a day" lines are averages too, and the line under them now says so.
+- 2026-11-04 — The four percentile band labels (`percentile.3_15` …
+  `percentile.85_97`) leave the closed list: their keys are deleted, because
+  the growth card now states the percentile itself and nothing reads them.
