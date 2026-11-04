@@ -183,6 +183,8 @@
   "diaper.norm.hint": "Для новорождённых обычно 6–⁠10 подгузников в сутки",
   "diaper.norm.fmt": "Норма: %d",
   "diaper.norm.label": "Норма в день",
+  "diaper.norm.a11y_decrease": "Уменьшить норму",
+  "diaper.norm.a11y_increase": "Увеличить норму",
   "diaper.color.warning": "Этот цвет стула требует внимания врача",
   "diaper.color.yellow": "Жёлтый",
   "diaper.color.green": "Зелёный",

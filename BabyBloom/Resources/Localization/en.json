@@ -183,6 +183,8 @@
   "diaper.norm.hint": "Newborns typically use 6–⁠10 diapers per day",
   "diaper.norm.fmt": "Goal: %d",
   "diaper.norm.label": "Daily Goal",
+  "diaper.norm.a11y_decrease": "Decrease goal",
+  "diaper.norm.a11y_increase": "Increase goal",
   "diaper.color.warning": "This stool color requires medical attention",
   "diaper.color.yellow": "Yellow",
   "diaper.color.green": "Green",

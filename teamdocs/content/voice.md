@@ -93,25 +93,33 @@ and the Live Activity read the byte-identical copies in
     words.
 - **VoiceOver names of glyph-only buttons.** A button that shows only a
   glyph takes its VoiceOver name from the app's strings. The name iOS gives
-  a symbol follows the device's language, not the app's. The + that opens a
-  screen's entry sheet says what it adds:
+  a symbol follows the device's language, not the app's: VoiceOver would
+  say «Добавить» or «Удалить» to a parent reading the app in another
+  language. The + that opens a screen's entry sheet says what it adds; the
+  − and + of the diaper goal editor say what they change:
 
-  | screen | key | en | ru | es |
+  | button | key | en | ru | es |
   |---|---|---|---|---|
-  | Feeding | `sheet.new_feeding` | New Feeding | Новое кормление | Nueva toma |
-  | Sleep | `sheet.add_sleep` | Add Sleep | Добавить сон | Agregar sueño |
-  | Diaper | `diaper.add` | Add Diaper | Добавить подгузник | Agregar pañal |
-  | Growth | `sheet.new_measurement` | New Measurement | Новое измерение | Nueva medición |
-  | Events | `sheet.new_event` | New Event | Новое событие | Nuevo evento |
+  | Feeding + | `sheet.new_feeding` | New Feeding | Новое кормление | Nueva toma |
+  | Sleep + | `sheet.add_sleep` | Add Sleep | Добавить сон | Agregar sueño |
+  | Diaper + | `diaper.add` | Add Diaper | Добавить подгузник | Agregar pañal |
+  | Growth + | `sheet.new_measurement` | New Measurement | Новое измерение | Nueva medición |
+  | Events + | `sheet.new_event` | New Event | Новое событие | Nuevo evento |
+  | Diaper goal − | `diaper.norm.a11y_decrease` | Decrease goal | Уменьшить норму | Disminuir meta |
+  | Diaper goal + | `diaper.norm.a11y_increase` | Increase goal | Увеличить норму | Aumentar meta |
 
-  - Four of them reuse their sheet's title, which already names what the
-    sheet adds, so VoiceOver reads the same words on the button and as the
-    sheet's heading.
+  - Four of the five add buttons reuse their sheet's title, which already
+    names what the sheet adds, so VoiceOver reads the same words on the
+    button and as the sheet's heading.
   - The Diaper sheet's title, «Подгузник» / "Diaper" / «Pañal», names the
     thing, not the action, so its button has a key of its own, built like
     «Добавить сон» with the add verb of the Terms table.
   - The Home quick sheets for Feeding, Sleep and Diaper show the same
     screen, so their + carries the same name.
+  - The goal editor's names use the editor's own noun: "goal", «норма»,
+    «meta», as its heading "Daily Goal" / «Норма в день» / «Meta diaria».
+    They are VoiceOver-only strings (`a11y_`), so they take sentence case,
+    as `weekly.a11y_hide`.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
@@ -183,3 +191,7 @@ and the Live Activity read the byte-identical copies in
   screen's +: "Add Diaper", «Добавить подгузник», «Agregar pañal». The
   Feeding, Sleep and Growth + take their sheets' titles, as Events already
   does.
+- 2026-11-04 — `diaper.norm.a11y_decrease` and `diaper.norm.a11y_increase`
+  added, the VoiceOver names of the diaper goal editor's − and +: "Decrease
+  goal" / "Increase goal", «Уменьшить норму» / «Увеличить норму», «Disminuir
+  meta» / «Aumentar meta».

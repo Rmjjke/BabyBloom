@@ -183,6 +183,8 @@
   "diaper.norm.hint": "Los recién nacidos suelen usar de 6 a 10 pañales al día",
   "diaper.norm.fmt": "Meta: %d",
   "diaper.norm.label": "Meta diaria",
+  "diaper.norm.a11y_decrease": "Disminuir meta",
+  "diaper.norm.a11y_increase": "Aumentar meta",
   "diaper.color.warning": "Este color de caca requiere atención médica",
   "diaper.color.yellow": "Amarillo",
   "diaper.color.green": "Verde",
