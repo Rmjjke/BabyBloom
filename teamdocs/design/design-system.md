@@ -14,18 +14,19 @@ heading (§ 7), and the fixed-size words of the entry sheets and the stat card
 growing with fewer columns, `BBStatGrid` among them (§ 3, § 7, G2). The
 column rule is checked at 320 pt and at every text size; the counts it sets,
 with two measured exceptions to its spare, and the profile sheet's rows and
-title follow the code of the same day (§ 3, § 7, `BBTileColumns`). The quick
-rows' one column at accessibility sizes is in force; sheet titles in the
-content from xLarge, the pickers' labels above at every size and the wrapped
-alignment at Large are planned (decided 2026-11-04; § 3, § 7). For sheet
-titles at Large (G21), glyph buttons in the sheet bars, a 166 pt title budget
-with a 13 pt floor and the dose sheet's name in its content are planned
-(decided 2026-11-04; § 3, § 7, § 10). Also on 2026-11-04 the tracker
+title follow the code of the same day (§ 3, § 7, `BBTileColumns`). On
+2026-11-04 the quick rows' one column at accessibility sizes, the tracker
 screens', Home's and onboarding's tile rows, with two more measured
 exceptions, the fit rule for rows whose width follows their content and the
-timer cards follow the code (§ 3, § 7, G2); Home's quick actions four in a
-row where their words fit and the Feeding quick caption's own padding are
-proposed (§ 3).
+timer cards follow the code (§ 3, § 7, G2), and so do: sheet titles in the
+content from xLarge, the pickers' labels above at every size and the wrapped
+alignment at every size; glyph buttons in the sheet bars, a 166 pt title
+budget with a 13 pt floor and the dose sheet's name in its content (G21);
+Home's quick actions four in a row where their tiles fit, the Feeding quick
+caption's own padding and the hours on Home's sleep card (§ 3, § 7, § 10).
+The diaper norm editor's × as Close and a glyph for the medication screen's
+Edit are proposed (§ 3); the norm editor's height and width on 320 pt is a
+gap (G22).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -185,11 +186,11 @@ scaled relative to `.body` grows by 40/22, body's line height there over its
 medication path:
 - A word never breaks inside itself. A line breaks only at a space, or after
   a hyphen the word already has.
-- A label that shares a line with its controls stacks above them:
-  `BBLabeledPicker` (§ 7).
+- A label that shares a line with its controls stacks above them; a date
+  picker's label stands above its pills at every size: `BBLabeledPicker` (§ 7).
 - A placeholder that is a field's only label stays whole:
   `bbPlaceholderLabel` (§ 7).
-- An entry sheet's title moves from the bar into the content:
+- A sheet's title moves from the bar into the content, from xLarge on:
   `BBSheetHeading` (§ 7).
 - A grid that cannot give its widest word its width takes fewer columns; the
   tiles keep their order and spacing.
@@ -216,7 +217,7 @@ Home's quick actions and running-timer card and onboarding's gender row
   whose 13 pt «Начать» caption scales too. A glyph that stands over or beside
   its word grows with it the same way: the Diaper norm chip's 13 pt target
   (`DiaperView.swift:206`) and onboarding's 34 pt gender figure
-  (`Onboarding/Pages/BirthPage.swift:98`).
+  (`Onboarding/Pages/BirthPage.swift:99`).
 - These stay fixed: a colour swatch and its check (the 36 pt stool disc, on
   whose geometry G20's edge sits); an icon plate with the glyph inside it (the
   stat card's 36 pt plate and the glyphs of its top row, the Feeding quick
@@ -242,9 +243,12 @@ Home's quick actions and running-timer card and onboarding's gender row
   `ViewThatFits` compares a row's whole width, not its narrowest column, so a
   count that follows the width would need a measuring layout, and one screen
   would take two shapes at one text size; `BBTileColumns` (§ 7) states the
-  row's count at each size. Content width: a row with no columns, whose whole
+  row's count at each size. The one exception is Home's quick actions, which
+  have that measuring layout (below; decided 2026-11-04, in code at
+  95525c6); any other equal-column row that wants one needs its own
+  decision. Content width: a row with no columns, whose whole
   width is the right measure. The Feeding timer's side pills
-  (`FeedingView.swift:284`) stand three in a row while the row fits the card,
+  (`FeedingView.swift:287`) stand three in a row while the row fits the card,
   else one per row, flush left; every timer card's top (`BBTimerFit`, § 7)
   sets what is running beside the digits while both fit one line, else above
   them. Their width follows the words and the running time, so a count per
@@ -280,37 +284,41 @@ Home's quick actions and running-timer card and onboarding's gender row
   measured there.
 - Where its count does not change, a row of tiles that is an `HStack` stays
   one, because a grid sets it a third of a point lower. A tile name of two
-  words that wraps at accessibility sizes is centred in its tile. Three tiles
+  words that wraps at accessibility sizes is centred in its tile. Below them
+  none wraps on 320 pt: es «Sueño nocturno», the longest, keeps one line in
+  its half of the Sleep sheet at xxxLarge (121.9 pt in 136.0, +14.1; +7.6
+  with Bold Text, +4.6 inside the selected tile's 1.5 pt border) and wraps
+  from AX1 (142.3, −6.3), where `SleepView.swift:275` centres it. Three tiles
   in two columns set 2 + 1, the third at half width under the first, at every
   size: the Feeding type, Diaper type, Sleep location and profile feeding rows,
   and from xLarge the Diaper and Feeding quick-add rows and the breast-side
   chips.
 
-Column counts by text size, checked at 320 pt, all in code at 54af23c (1.3.0).
-Lines at 54af23c; widths from CoreText in SF Rounded, within 0.1 pt of the
+Column counts by text size, checked at 320 pt, all in code at 95525c6 (1.3.0).
+Lines at 95525c6; widths from CoreText in SF Rounded, within 0.1 pt of the
 simulator's (a glyph's box as the simulator draws it). A count in bold differs
 from c813d99; xSmall to Medium take Large's count; † marks a measured
-exception.
+exception; 4 / 2 is Home's fit (below).
 
 | row | size | widest word | L | xL | xxL | xxxL | AX | where the count is set (word in its room at 320 pt) |
 |---|---|---|---|---|---|---|---|---|
-| stool labels (`DiaperView.swift:478`, grid `:457`) | 10 medium | ru «Коричневый» | 4 † | **3** | **3** | **3** | 2 | four hold at Large without the spare (62.4 in 66.0, +3.6; +0.2 with Bold Text) and break at xLarge (68.0, −2.0); three hold at xxxLarge (80.6 in 90.7, +10.1); two at AX2 (107.6 in 140.0) |
-| Feeding type tiles (`FeedingView.swift:399`, row `:460`) | 12 medium | ru «Сцеженное» | 3 | 3 | 3 | **2** | 2 | three hold at xxLarge (80.2 in 90.7, +10.4) and miss at xxxLarge (86.9, +3.8); two at AX2 (118.0 in 140.0) |
-| Diaper type tiles (`DiaperView.swift:404`, row `:432`) | 13 medium | ru «Грязный» | 3 | 3 | 3 | 3 | **2** | three hold at xxxLarge (67.6 in 90.7, +23.1) and break at AX2 (92.9, −2.2); two give 140.0 |
-| Sleep type tiles (`SleepView.swift:317`) | 13 medium | ru «Дневной» | 2 | 2 | 2 | 2 | 2 | two at AX2 (97.4 in 136.0, +38.6); es «Sueño nocturno» wraps at its space below 402 pt |
+| stool labels (`DiaperView.swift:483`, grid `:462`) | 10 medium | ru «Коричневый» | 4 † | **3** | **3** | **3** | 2 | four hold at Large without the spare (62.4 in 66.0, +3.6; +0.2 with Bold Text) and break at xLarge (68.0, −2.0); three hold at xxxLarge (80.6 in 90.7, +10.1); two at AX2 (107.6 in 140.0) |
+| Feeding type tiles (`FeedingView.swift:402`, row `:463`) | 12 medium | ru «Сцеженное» | 3 | 3 | 3 | **2** | 2 | three hold at xxLarge (80.2 in 90.7, +10.4) and miss at xxxLarge (86.9, +3.8); two at AX2 (118.0 in 140.0) |
+| Diaper type tiles (`DiaperView.swift:409`, row `:437`) | 13 medium | ru «Грязный» | 3 | 3 | 3 | 3 | **2** | three hold at xxxLarge (67.6 in 90.7, +23.1) and break at AX2 (92.9, −2.2); two give 140.0 |
+| Sleep type tiles (`SleepView.swift:317`) | 13 medium | ru «Дневной» | 2 | 2 | 2 | 2 | 2 | two at AX2 (97.4 in 136.0, +38.6); es «Sueño nocturno» keeps one line at xxxLarge (121.9, +14.1) and wraps at its space from AX1, centred |
 | Sleep location tiles (`SleepView.swift:285`, row `:343`) | 11 medium | es «Cochecito» | 3 | 3 | 3 | 3 | **2** | three hold at xxxLarge (69.0 in 90.7, +21.6) and break at AX2 (91.8, −1.1); two give 140.0 |
 | Diaper screen quick-add tiles (`DiaperView.swift:113`, row `:83`, padding sm at the sides) | 14 semibold | ru «Грязный» | 3 | **2** | **2** | **2** | **1** | three hold at Large (58.5 in 69.3, +10.8) and miss at xLarge (63.4, +5.9); two hold at xxxLarge (74.8 in 120.0, +45.2) and at AX2 (102.3, +17.7); one at accessibility sizes, the quick rows' shape (below) |
-| Feeding screen quick-add tiles (`FeedingView.swift:142`, row `:107`, no side padding) | 13 semibold | ru «Сцеженное» | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (75.1 in 85.3, +10.2; +5.4 with Bold Text) and miss at xLarge (81.9, +3.4); two hold at xxxLarge (95.5 in 136.0, +40.5) and keep +4.6 at AX2, under the spare (−4.2 with Bold Text); one at accessibility sizes |
-| Feeding sheet breast-side chips (`FeedingView.swift:428`, row `:486`, glyph xs 4 from its word, no side padding) | 15 medium, its glyph at the same size | es «Izquierdo» with its glyph | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (+5.0; +0.7 with Bold Text) and at Medium (+8.1; +4.0), the glyph's box measured on the simulator; they break at xLarge (−1.3); two hold at xxxLarge (+31.5) and break at AX2 (−8.9) |
+| Feeding screen quick-add tiles (`FeedingView.swift:142`, row `:107`, no side padding; the caption xs 4 a side, `:152`) | 13 semibold | ru «Сцеженное» | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (75.1 in 85.3, +10.2; +5.4 with Bold Text) and miss at xLarge (81.9, +3.4); two hold at xxxLarge (95.5 in 136.0, +40.5) and keep +4.6 at AX2, under the spare (−4.2 with Bold Text); one at accessibility sizes |
+| Feeding sheet breast-side chips (`FeedingView.swift:431`, row `:489`, glyph xs 4 from its word, no side padding) | 15 medium, its glyph at the same size | es «Izquierdo» with its glyph | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (+5.0; +0.7 with Bold Text) and at Medium (+8.1; +4.0), the glyph's box measured on the simulator; they break at xLarge (−1.3); two hold at xxxLarge (+31.5) and break at AX2 (−8.9) |
 | Sleep screen start tiles (`SleepView.swift:125`, row `:101`, padding lg) | 15 semibold | ru «Дневной» | 2 | 2 | 2 | **1** | **1** | two hold at xxLarge (75.1 in 88.0, +12.9) and miss at xxxLarge (83.2, +4.8); one gives 240.0 |
 | Events quick tiles (`EventsView.swift:123`, grid `:105`, padding md) | 14 semibold | es «Medicamento» | 2 | 2 | **1** | **1** | 1 | two hold at xLarge (97.9 in 108.0, +10.1) and miss at xxLarge (105.5, +2.5); one gives 256.0 |
-| Home quick actions (`BBButton.swift:121`, grid `DashboardView.swift:200`, card padding md, columns 0 apart) | 12 medium | ru «Подгузники» | **2** | 2 | 2 | 2 | **1** | four miss a quarter of 320 pt from Medium up (71.1 in 64.0 at Large, −7.1; ru «Кормление» 67.1, −3.1); two hold at xxxLarge (89.9 in 128.0, +38.1) and keep +6.0 at AX2, under the spare (−0.7 with Bold Text); one gives 256.0. Four in a row where they fit is proposed (below) |
+| Home quick actions (`BBButton.swift:121`, layout `DashboardView.swift:200`, card padding md, columns 0 apart) | 12 medium; a tile at least its 60 pt plate | ru «Подгузники» | **4 / 2** | **4 / 2** | **4 / 2** | **4 / 2** | **1** | four where the widest tile fits a quarter of the card as drawn, else two by two (below): on 320 ru goes two by two at every size (71.3 in 64.0 at Large, −7.3 on the simulator), en and es stand four (the 60 pt plate, +4.0); one at accessibility sizes, as the running cards above it |
 | Add Event type tiles (`EventsView.swift:332`, grid `:322`) | 11 medium | es «Medicamento» | 3 | 3 | **2** | **2** | 2 | three hold at xLarge (77.2 in 90.7, +13.4) and miss at xxLarge (82.8, +7.8); two give 140.0 (AX2 122.8, +17.2) |
 | mood tiles (`EventsView.swift:368`, grid `:358`) | 11 medium | ru «Беспокойный» | 3 | 3 | **2** | **2** | 2 | three hold at xLarge (80.3 in 90.7, +10.4) and miss at xxLarge (86.2, +4.5); two give 140.0 (AX2 127.9, +12.1) |
-| stat-card title (`BBCard.swift:76`, `BBStatGrid` `:129`, card padding md) | 13 regular | en «Measurements» | 2 | 2 | **1** | **1** | 1 | two hold at xLarge (95.0 in 108.0, +13.0) and miss at xxLarge (100.8, +7.2); one gives 256.0 (AX2 151.9) |
-| profile feeding tiles (`BabyProfileEditSheet.swift:284`, row `:192`, section padding md) | 13 medium | ru «Смешанное» | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (75.5 in 80.0, +4.5; +0.9 with Bold Text) and at Medium (72.0, +8.0, +7.9 on the simulator; +4.6 with Bold Text), and break at xLarge (82.3, −2.3); two hold at AX1 (112.3 in 124.0, +11.7) and break at AX2 (132.2, −8.2); one gives 256.0 |
+| stat-card title (`BBCard.swift:76`, `BBStatGrid` `:130`, card padding md) | 13 regular | en «Measurements» | 2 | 2 | **1** | **1** | 1 | two hold at xLarge (95.0 in 108.0, +13.0) and miss at xxLarge (100.8, +7.2); one gives 256.0 (AX2 151.9) |
+| profile feeding tiles (`BabyProfileEditSheet.swift:284`, row `:193`, section padding md) | 13 medium | ru «Смешанное» | 3 † | **2** | **2** | **2** | **1** | three hold at Large without the spare (75.5 in 80.0, +4.5; +0.9 with Bold Text) and at Medium (72.0, +8.0, +7.9 on the simulator; +4.6 with Bold Text), and break at xLarge (82.3, −2.3); two hold at AX1 (112.3 in 124.0, +11.7) and break at AX2 (132.2, −8.2); one gives 256.0 |
 | profile gender tiles (`BabyProfileEditSheet.swift:259`, row `:169`, section padding md) | 15 medium, its figure at `.body` | ru «Девочка» or «Мальчик» with its figure | 2 | 2 | 2 | 2 | **1** | two hold at xxxLarge (105.0 to 106.1 in 124.0, +19.0 to +17.9) and miss at AX1 (+0.8 to −1.4); one gives 256.0. The range is the figure's box, about 1 pt wider on the simulator than in AppKit |
-| onboarding gender tiles (`Onboarding/Pages/BirthPage.swift:101`, row `:46`, page padding lg) | 15 semibold, its figure scaled 34 | ru «Мальчик» | 2 | 2 | 2 | 2 | **1** | two hold at xxxLarge (83.1 in 128.0, +44.9; +38.5 with Bold Text) and keep +13.6 at AX2 (+4.6 with Bold Text, under the spare); one, as the profile sheet's gender row, gives 272.0 |
+| onboarding gender tiles (`Onboarding/Pages/BirthPage.swift:102`, row `:41`, page padding lg) | 15 semibold, its figure scaled 34 | ru «Мальчик» | 2 | 2 | 2 | 2 | **1** | two hold at xxxLarge (83.1 in 128.0, +44.9; +38.5 with Bold Text) and keep +13.6 at AX2 (+4.6 with Bold Text, under the spare); one, as the profile sheet's gender row, gives 272.0 |
 
 A quick or start tile's glyph grows with its word, and in one column the tile
 keeps its shape: glyph above word, centred, full width, as the Events quick
@@ -323,13 +331,21 @@ side, ru «Сцеженное» broke at Large on 320 pt (75.1 in 69.3). The pad
 sits inside the fill around a centred word, so 375 and 402 pt draw the words
 where they were. The Feeding quick tile's caption keeps a two-line box (30 pt
 scaled) in a row or grid, so every tile of the row is one height, and takes
-its own height in one column. The breast-side chip sets its glyph xs 4 from
+its own height in one column. The caption takes xs 4 a side of its own, while
+the tile keeps none (in force, decided 2026-11-04, in code at 95525c6,
+`FeedingView.swift:152`): with the tile's none, a one-line caption ran onto
+the border (es «Agregar manualmente» 0.0 and 1.0 pt from it on 402 pt), and sm
+8 would break es «manualmente» on 320 pt with Bold Text (−3.4). With xs 4 on
+402 the ru caption keeps one line, 7.3 and 6.7 pt clear of the border
+(rendered); es on 402 and ru on 375 take two lines, as at 6f66d45; no caption
+needs a third line at any size. The breast-side chip sets its glyph xs 4 from
 its word, not the default 8 (decided 2026-11-04, in code at 4259dd0): with 8,
 «Izquierdo» broke at Large on 320 pt with Bold Text. The quick and start rows
 and Home's quick actions take one column at accessibility sizes.
 
 Every tile row of the tracker screens, Home and onboarding's gender page is
-checked at 54af23c. Onboarding's feeding page is one column of full-width
+checked at 54af23c, and the rows whose code changed since are checked again at
+95525c6. Onboarding's feeding page is one column of full-width
 rows, not a tile row (`Onboarding/Pages/FeedingPage.swift:49`): a fixed 46 pt
 plate, the word at 17 semibold and, when chosen, a fixed 20 pt check leave the
 chosen word 139.0 pt on 320 pt, where ru «Смешанное» misses at AX1 and AX2
@@ -337,18 +353,14 @@ chosen word 139.0 pt on 320 pt, where ru «Смешанное» misses at AX1 an
 not rendered (G2).
 
 The same surfaces' other fixed words scale too, with no change to their
-layout: the stool-colour warning (`DiaperView.swift:496`, G3), the slider ends
-and hint (`BBMeasureSlider.swift:32`, `:64`, `:86`; `FeedingView.swift:527`),
-the timer hint (`FeedingView.swift:542`) and the stat card's trend chip
+layout: the stool-colour warning (`DiaperView.swift:499`, G3), the slider ends
+and hint (`BBMeasureSlider.swift:32`, `:64`, `:86`; `FeedingView.swift:530`),
+the timer hint (`FeedingView.swift:545`) and the stat card's trend chip
 (`BBCard.swift:44`); on the tracker screens, Home and onboarding the Feeding
 quick tiles' words (13 semibold) and captions (11 regular), the Feeding and
 Sleep timer cards' labels (13 medium), Home's quick-action words (12 medium)
 and timer subtitle (13 regular), the Diaper norm chip (13 medium) and
-onboarding's gender word (15 semibold). The warning's triangle sits on its
-first line from xLarge (`.firstTextBaseline` at `DiaperView.swift:493`, in
-force, in code at 6f66d45), where the warning can wrap (es at xxxLarge on
-402 pt); at Large it stays centred, because on one line the first baseline sets
-the warning and the fields below a pixel lower.
+onboarding's gender word (15 semibold).
 
 **One column for the quick rows at accessibility sizes is a shape, not the
 rule's count** (in force, decided 2026-11-04, in code at 6f66d45). With sm
@@ -359,60 +371,89 @@ in one column. The column rule sets the most columns a row may take, and the
 quick and start rows take one at accessibility sizes, full-width tiles in one
 shape.
 
-**Home's quick actions stand two by two below the accessibility sizes and in
-one column at them** (in code at 54af23c). Four in a row give each word a
-quarter of the card: 64.0 pt on 320, where ru «Подгузники» (71.1) and
-«Кормление» (67.1) break from Medium up; on 375 «Подгузники» keeps 6.7, under
-the spare (+2.9 with Bold Text). No padding saves them: without the card's
-padding a quarter is 72 pt and Bold Text still breaks the word. Three would set
-the four actions 3 + 1. The price: the default Home's quick card is two rows
-tall on every phone, and what follows it sits 94.7 pt lower on 375 and 402 pt
-(rendered). Four in a row where they fit is proposed (below).
+**Home's quick actions stand four in a row while each tile fits its quarter of
+the card as drawn, else two by two; one column at accessibility sizes** (in
+force, decided 2026-11-04, in code at 95525c6). `QuickActionsLayout`
+(`DashboardView.swift:677`, private to Home) takes the first of four and two
+whose column holds the widest tile's ideal width, as drawn: in the app's
+language, at the text size and with Bold Text, not from a table of widths. A
+tile's ideal width is the larger of its word and its 60 pt plate, so en and es
+stand four on 320 pt too, plates 4 pt apart as shipped: their widest words (en
+«Feeding» 45.7, es «Eventos» 45.3; 47.7 with Bold Text) are narrower than the
+plate, which fits a 64.0 pt quarter. ru «Подгузники» (71.3; 75.0 with Bold
+Text) misses that quarter, so ru alone goes two by two on 320. The check takes
+no spare: a live measure has no measuring error, no later word and no
+unmeasured weight to cover. Where four stand, neighbouring words keep at least
+4.6 pt apart (es with Bold Text at xxxLarge on 320, where the plates are 4
+apart). Why: two by two on every phone put what follows the card 94.7 pt lower
+on the default Home to cover 320 pt, and no padding or shorter word reaches
+320, because the words name the screens the tiles open. This is the one
+equal-column row whose count follows the width. Expected for ru below the
+accessibility sizes, from CoreText (within 0.2 pt of the simulator at Large;
+xLarge to xxxLarge not rendered; Bold Text measured, not rendered):
 
-Planned (decided 2026-11-04, not in code yet):
+| ru «Подгузники» | Large | xLarge | xxLarge | xxxLarge |
+|---|---|---|---|---|
+| width, regular / Bold Text | 71.2 / 75.0 | 76.4 / 80.5 | 83.3 / 87.7 | 90.1 / 95.0 |
+| four from, regular | 375 pt (+6.5) | 375 (+1.3) | 402 (+1.2) | 440 (+3.9) |
+| four from, Bold Text | 375 (+2.8) | 390 (+1.0) | 440 (+6.3) | none |
+
+en and es stand four on every width at every size below the accessibility
+sizes (the plate's +4.0 on 320; +3.7 and +3.5 with Bold Text at xxxLarge).
+
+In force (decided 2026-11-04, in code at b8e9a41):
 - **A sheet's title moves into its content from xLarge**, not only at
-  accessibility sizes (`BBSheetHeading`, § 7). The bar title never grows past
-  Large while Cancel and Save do, so its slot shrinks: in ru 131, 116 and 92 pt
-  at Large, xLarge and xxxLarge on 402 pt (104, 89 and 65 on 375). At 17 pt
-  semibold with the 0.6 floor, at xLarge on 375 pt ru «Новое кормление»
-  (148.7), «Новое измерение» (148.8), «Приём у педиатра» (152.7) and
-  «Редактировать профиль» (202.4) are cut, and at xxxLarge on 402 pt four
-  titles shrink to 10.2–11.0 pt. The diaper norm editor, whose bar holds
-  Cancel alone, follows: from xLarge its bar shows no title and its first
-  heading, «Норма в день» (`DiaperView.swift:302`), takes the header trait; a
-  second heading would repeat it. Its system title, shifted right of Cancel,
-  has no spare at xxxLarge and AX2 on 320 pt (from 134 to 304 against a
-  304 pt edge). This holds with glyph buttons too (planned below): the bar
-  title stays at 17 pt while the sheet's text grows to 19–23 pt from xLarge to
-  xxxLarge, so in the bar the title would be smaller than what it names.
+  accessibility sizes (`BBSheetHeading`, § 7). In the bar the title would
+  keep its Large size while the sheet's text grows, and its slot shrinks as the
+  buttons grow: with words in the bar, in ru 131, 116 and 92 pt at Large,
+  xLarge and xxxLarge on 402 pt (104, 89 and 65 on 375). At 17 pt semibold
+  with the 0.6 floor, at xLarge on 375 pt ru «Новое кормление» (148.7), «Новое
+  измерение» (148.8), «Приём у педиатра» (152.7) and «Редактировать профиль»
+  (202.4) were cut, and at xxxLarge on 402 pt four titles shrank to 10.2–11.0
+  pt. With glyph buttons (below) the slot stays, but the title would still be
+  smaller than what it names: 17 pt while the sheet's text grows to 19–23 pt
+  from xLarge to xxxLarge. The diaper norm editor, whose bar holds × alone,
+  follows: up to Large the system title is its one heading; from xLarge its
+  bar shows no title and its first heading, «Норма в день»
+  (`DiaperView.swift:304`), takes the header trait. A second heading would
+  repeat it.
 - **A date picker's label sits above its pills at every size**
   (`BBLabeledPicker`, § 7), as the sheets' other captions do. At Large on
-  320 pt the label misses beside the widest date and time pills before its
-  gap is counted: ru «Время» −21.9, «Начало» −29.5, «Конец» −19.7, en «Time»
-  −10.9 (12-hour time); the date-only ru «Дата измерения» keeps 17.0, under
-  the spare once the gap (at least 9.7 pt) is taken. On 375 pt ru «Время»
-  misses from xLarge; on 402 pt it breaks at xxxLarge («Врем / я», rendered).
-- **Text that wraps at some width takes its wrapped alignment at that size**:
-  the stool warning's triangle on the first line and the profile photo hint
-  centred, at Large too. At Large on 320 pt the ru warning wraps (253.4 pt in
-  247.0; es 259.0) and so does the ru hint (309.9 in 288.0). The cost: with a
-  warning colour picked, the warning and the fields below sit a pixel lower at
-  Large, and the hint moves by a fraction of a pixel.
+  320 pt the label missed beside the widest date and time pills before its
+  gap was counted: ru «Время» −21.9, «Начало» −29.5, «Конец» −19.7, en «Time»
+  −10.9 (12-hour time); the date-only ru «Дата измерения» kept 17.0, under
+  the spare once the gap (at least 9.7 pt) was taken. On 375 pt ru «Время»
+  missed from xLarge; on 402 pt it broke at xxxLarge («Врем / я», rendered).
+  At the default size on 402 and 375 pt the pill stands flush with its label
+  (rendered).
+- **Text that wraps at some width takes its wrapped alignment at that size,
+  so at every size**: the stool warning's triangle on the first line
+  (`.firstTextBaseline`, `DiaperView.swift:497`) and the profile photo hint
+  centred (`BabyProfileEditSheet.swift:339`). At Large on 320 pt the ru
+  warning wraps (253.4 pt in 247.0; es 259.0) and so does the ru hint (309.9
+  in 288.0); es wraps at xxxLarge on 402 pt. The cost: with a warning colour
+  picked, the warning and the fields below sit a pixel lower at Large, and the
+  hint moves by a fraction of a pixel.
 
-Planned (decided 2026-11-04, not in code yet), for sheet titles at Large
+In force (decided 2026-11-04, in code at 265557e), for sheet titles at Large
 (G21). Measured at 4259dd0 with the words of 78471f8: bar frames from the 26.3
 hierarchy on 402 and 375 pt (edge 20, gap to the title 16, buttons 36 pt
-high), CoreText widths for the words.
-- **A sheet's bar carries glyphs, not words**, on every iOS version: Cancel
-  and Close as × (`xmark`), Save as ✓ (`checkmark`), the visit sheet's Edit
-  as a pencil (`pencil`). On iOS 26 each is the platform's glass circle,
-  37 pt wide (the toolbar plus on 26.3: 37 × 36 pt), where the words take 54
-  to 114 pt. Save is the prominent one, a BBPrimary fill with a BBOnPrimary
-  check (5.62 / 6.86), like the sheet's Save button. Cancel and Close draw in
-  BBTextSecondary (4.48 / 6.82 on the background), Edit in BBPrimary
-  (5.12 / 6.86). A disabled Save (the dose sheet before a medication is
-  chosen) takes the platform's disabled look. VoiceOver reads each by its
-  word in the app's language (`button.cancel`, `button.save`, `button.close`,
+high), CoreText widths for the words; the glyphs' contrast on the 265557e
+renders.
+- **A sheet's bar carries glyphs, not words**, on every iOS version
+  (`BBBarButton`, § 7; 28 buttons in 17 bars): Cancel and Close as ×
+  (`xmark`), Save as ✓ (`checkmark`), the visit sheet's Edit as a pencil
+  (`pencil`). On iOS 26 each is the platform's glass circle, 37 pt wide (the
+  toolbar plus on 26.3: 37 × 36 pt), where the words took 54 to 114 pt. Save
+  is the prominent one, BBPrimary-tinted glass with a BBOnPrimary check, like
+  the sheet's Save button. On the renders × reads 5.53 in light and 6.71 in
+  dark against its glass, and ✓ 5.70 and 7.27 against the primary glass. Before
+  iOS 26 the glyphs stand bare: Cancel and Close in BBTextSecondary (4.48 /
+  6.82 on the background), Save and Edit in BBPrimary (5.12 / 6.86), a
+  disabled Save in BBTextSecondary. On iOS 26 a disabled Save (the dose sheet
+  before a medication is chosen) takes the platform's disabled look, exempt
+  from P8 as an inactive control. VoiceOver reads each by its word in the
+  app's language (`button.cancel`, `button.save`, `button.close`,
   `button.edit`), because the platform's own names follow the device's
   language. Hit areas stay 44 pt.
   - The title's room at Large is then 256, 229 and 174 pt on 402, 375 and
@@ -420,7 +461,7 @@ high), CoreText widths for the words.
     (es 149.5, 122.5, 67.5; en 190.1, 163.1, 108.1). All 48 titles, 16 in
     three languages, are whole at 17 pt on all three widths; the least spare
     is es «Nuevo medicamento», +10.6 on 320. With the words, ten ru and five
-    es titles shrink at Large on 375 pt, and on 320 every ru title is cut.
+    es titles shrank at Large on 375 pt, and on 320 every ru title was cut.
   - Sheets with one button (the Growth sheet, the diaper norm editor) keep
     the title centred in the same room. The bars that hold Close alone (the
     Feeding, Sleep and Diaper screens opened as sheets, the growth
@@ -432,51 +473,46 @@ high), CoreText widths for the words.
   - iOS 17 and 18 draw the glyphs without the glass, so the room there is at
     least as wide. Not rendered: no iOS 17–18 runtime on this machine.
 - **A sheet title is at most 166 pt at 17 pt semibold, and its floor is the
-  sheets' caption size, 13 pt** (`minimumScaleFactor` 13 / 17, against 0.6,
-  which reaches 10.2 pt). 166 pt is whole at Large on 320 pt with 8 to spare.
-  The budget keeps the floor from acting; the floor keeps a word over it from
-  drawing smaller than the captions under it.
+  sheets' caption size, 13 pt** (`minimumScaleFactor(13.0 / 17.0)`,
+  `BBTheme.swift:370`, against 0.6, which reached 10.2 pt). 166 pt is whole at
+  Large on 320 pt with 8 to spare. The budget keeps the floor from acting; the
+  floor keeps a word over it from drawing smaller than the captions under it.
+  Above Large the title is never in the bar, so the bar title has no size cap.
+  ru «Редактировать профиль» (202.4) is the one title over the budget until
+  «Профиль» (75.5, decided 2026-11-04) ships: whole at about 14.4 pt at Large
+  on 320 pt.
 - **The dose sheet's title, the medication's own name, sits in its content at
-  every size** (`BBSheetHeading`), and that sheet's bar shows no title. No
-  budget holds a name the parent typed: «Нурофен для детей 100 мг/5 мл»
-  (262.6 pt) would be 11.3 pt in the 174 pt room on 320 and 14.8 pt on 375,
-  and past the floor its end is cut, where two medications' names often
-  differ. In the content it wraps; one line of title3 holds 288 pt on 320.
-  The sheet's fixed titles, «Отметить дозу» and «Изменить дозу», move with
-  it.
+  every size** (`BBSheetTitlePlacement.content`, `DoseSheet.swift:95`,
+  `:112`), and that sheet's bar shows no title. No budget holds a name the
+  parent typed: «Нурофен для детей 100 мг/5 мл» (262.6 pt) would be 11.3 pt
+  in the 174 pt room on 320 and 14.8 pt on 375, and past the floor its end is
+  cut, where two medications' names often differ. In the content it wraps; one
+  line of title3 holds 288 pt on 320. The sheet's fixed titles, «Отметить
+  дозу» and «Изменить дозу», move with it.
 - Not taken: shorter words alone, and the title in the content on every
   sheet. Words cannot reach 320 pt, where the ru room is 49 pt and the
   shortest ru title, «Вопрос», is 61.6. The heading costs each sheet 45.2 pt
   at Large (a 21.2 pt line of title3 and lg 24 to the next block), and the
   bar would lose the title the platform keeps there.
 
-Proposed (2026-11-04, not decided), measured at 54af23c (CoreText widths;
-the Home and Feeding dumps at Large):
-- **Home's quick actions stand four in a row while each word fits its quarter
-  as drawn, else two by two; one column at accessibility sizes.** A layout
-  measures each tile at its own width, in its locale, at its text size and
-  with Bold Text, not a table of widths. At Large: four on 375 pt and wider
-  (+6.7, +2.9 with Bold Text; +13.4 on 402), two by two on 320 (−7.1). Four at
-  xLarge from 375 pt (+1.5; with Bold Text from 390, +1.2), at xxLarge from
-  402 (+1.4; with Bold Text from 440), at xxxLarge on 440 (+4.1; two by two
-  with Bold Text). Where four stand, neighbouring words keep at least 9.6 pt
-  apart. The spare covers a measuring error, a later word and Bold Text; a
-  live measure has none of the three, so this row takes none. It is an
-  exception to one shape per size for equal columns, for this row: the
-  default Home stays one row on every phone but the 320 pt ones, as the
-  measured exceptions keep the default Feeding and Diaper rows. Not taken:
-  shorter words (ru «Кормление» and «Подгузники» are both over the 56 pt a
-  quarter of 320 leaves with the spare, and they name the screens the tiles
-  open), three columns (3 + 1), two by two on every phone (the code at
-  54af23c, 94.7 pt lower).
-- **The Feeding quick tile's caption takes xs 4 a side; the tile keeps
-  none.** With no padding the one-line caption runs to the tile's border at
-  Large: es «Agregar manualmente» 0.0 and 1.0 pt from it on 402 pt, ru
-  «Добавить вручную» 1.7 and 2.7 on 375 (rendered). sm 8 would break es
-  «manualmente» at 320 pt (68.9 in 69.3; −3.4 with Bold Text). With xs 4 it
-  holds there (+8.4; +4.6 with Bold Text); on 402 the ru caption keeps one
-  line, 5.6 pt clear of the border, and the es one wraps as at 6f66d45; on 375
-  both wrap as at 6f66d45; en «Add Manually» sets on one line from 320 up.
+Proposed (2026-11-04, not decided), read at 265557e:
+- **The diaper norm editor's × is Close, not Cancel** (`DiaperView.swift:360`).
+  Its − and + write the stored norm at once (`DiaperView.swift:13`, passed as
+  a binding), so the × keeps the change, while VoiceOver's «Отмена» promises
+  the opposite. Before the glyphs every user read the word; now only
+  VoiceOver does. × is Cancel where it drops the sheet's edits and Close where
+  nothing waits (§ 7 `BBBarButton`). The bottom «Сохранить» names what the
+  parent wants and stays.
+- **A pushed screen's bar takes glyphs too: the medication screen's Edit is
+  the pencil** (`MedicationDetailView.swift:72`, `BBBarButton(.edit)`, read
+  «Изменить»). After the sheet bars it is the one word left in any bar of the
+  app: every other bar item is a glyph (the screens' +, the report's share, the
+  17 sheet bars), and the visit sheet's Edit, the same action, is already the
+  pencil. G21's own reason, the title's room, does not reach it: the screen's
+  bar shows no title (inline and empty, the name heads the content), and
+  «Изменить» (103 pt on 26.3) fits beside the back button on 320 pt. Not
+  taken: the word, which the platform's pushed screens often keep and which
+  explains itself; its cost is one action in two looks.
 
 ## 4. Spacing
 
@@ -534,18 +570,19 @@ Surface levels:
 ## 7. Components (`BabyBloom/DesignSystem/`)
 
 triggers: a file added to or removed from `DesignSystem/Components/`; a public component renamed
-check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model; `EmptyStateView` and `AppAppearance` live elsewhere; `BBSheetHeading` and `bbSheetTitle` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
+check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model and `BBBarAction` the bar button's; `EmptyStateView` and `AppAppearance` live elsewhere; `BBSheetHeading`, `bbSheetTitle` and `BBSheetTitlePlacement` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
 
 | component | file | purpose | used in |
 |---|---|---|---|
 | BBPrimaryButton | BBButton | full-width CTA: primary→primary@0.8 gradient, white 17 semibold, min 56 pt, radius lg, `button` shadow, loading state. From 1.3.0 the gradient ends at primary@0.9 and the label is BBOnPrimary (G1) | Feeding, Sleep, Diaper, Events, Growth, Export, BabyProfileEditSheet, PlanPickerSection, Onboarding (Welcome, Fact, Notifications, GrowthShowcase, WidgetShowcase, OnboardingView) |
 | BBSecondaryButton | BBButton | outlined companion: primary@0.10 fill, primary@0.30 stroke | DoctorReport (QuestionsCard), since 1.2.0 |
-| BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3) | Dashboard: two by two below AX1, one column at accessibility sizes (§ 3) |
+| BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3). Its ideal width is the larger of its label and its disc | Dashboard: four in a row while the widest tile fits a quarter of the card, else two by two (`QuickActionsLayout`, `DashboardView.swift:677`), one column at accessibility sizes (§ 3) |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
+| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's as Close is proposed, § 3) | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (×), the three Home quick sheets and the growth explainer (Close) |
 | BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
-| BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), Home (quick actions). The profile sheet's feeding and gender rows and onboarding's gender row branch on the text size directly, with the same counts |
+| BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
@@ -558,14 +595,14 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBLockedHistoryFooter | BBLockedHistoryFooter | the one calm locked row for history beyond the free window (P2) | Events, RecentActivity, BBHistorySection |
 | LockBadge + `bbLockedAccessibility` | LockBadge | the one padlock: 10 pt glyph on a surface disc; VoiceOver value "locked" (P3) | Events, BBQuickActionButton |
 | BrandMark | BrandMark | `BBLogo` clipped to a circle, 1 pt ring, optional shadow, on-gradient variant | MainTabView, PremiumHero, Onboarding (Welcome, Generating) |
-| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
-| BBTimerFit | BBElapsedTimer | **from 1.3.0** — a running timer with what is running: one per-second `TimelineView` clock draws both shapes, so each fit check reads the digits on screen. Below AX1 the content stands beside the digits (a `Spacer` between, the given gap on each side) while both fit one line, else above them, sm 8 apart, both leading (`ViewThatFits`); at accessibility sizes always above (§ 3) | Dashboard (`ActiveTimerCard`: title 15 semibold over subtitle 13 regular, 2 apart, md 16 gaps, beside a 48 pt plate; on 320 pt at Large it stacks at any time), BBTimerCardHeader |
+| BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
+| BBTimerFit | BBElapsedTimer | **from 1.3.0** — a running timer with what is running: one per-second `TimelineView` clock draws both shapes, so each fit check reads the digits on screen. Below AX1 the content stands beside the digits (a `Spacer` between, the given gap on each side) while both fit one line, else above them, sm 8 apart, both leading (`ViewThatFits`); at accessibility sizes always above (§ 3) | Dashboard (`ActiveTimerCard`: title 15 semibold over subtitle 13 regular, 2 apart, md 16 gaps, beside a 48 pt plate; on 320 pt at Large it stacks at any time; the sleep card passes `showsHours`, `DashboardView.swift:187`, and past an hour stacks on en 375 pt and es 375 and 402 pt too), BBTimerCardHeader |
 | BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in the card's colour over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | toggle that reveals a slider (head circumference) | Growth, BabyProfileEditSheet, Onboarding (Birth, Growth) |
-| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label beside it below AX1 (the picker alone, as before). At accessibility sizes: the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver. Planned (§ 3, decided 2026-11-04): the stacked form at every size, because at Large on 320 pt the label misses beside its pills | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the stacked form's two halves at every size without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
+| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
-| BBSheetHeading + `bbSheetTitle(_:movesIntoContentAtAX:)` | BBTheme | **from 1.3.0** — a sheet's title. Below AX1 it sits in the bar between Cancel and Save (capped at Large, one line, shrinks to 0.6). At accessibility sizes the bar shows no title and `BBSheetHeading` is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. The flag and the heading go together: the flag alone leaves no title, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading, so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes, where the heading is the sheet's top, and is hidden from VoiceOver at every size. Planned (§ 3, decided 2026-11-04): the title in the content from xLarge, and the ru profile title «Профиль» (75.5 pt; «Редактировать профиль», 202.4, shrank to 11.0 pt at Large on 402 pt and was cut on 375); glyph buttons in every sheet bar, which leave the title 174 pt at Large on 320 pt; titles of at most 166 pt with a 13 pt floor; the dose sheet's name in its content at every size | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet (from 427d55e). The diaper norm editor keeps the system inline title: whole at AX2 on 402 and 375 pt, without spare on 320 pt (§ 3) |
+| BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:370`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:304`) as the header above Large |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -619,11 +656,14 @@ Large, where G21 was found (2026-11-03). G21's ways were measured at 4259dd0
 on 2026-11-04, from the bars' frames and CoreText widths, and its direction
 was decided the same day. G2 was read at 4259dd0 and 54af23c for the tracker
 screens, Home and onboarding, with their renders at Large, xxxLarge and AX2
-(2026-11-04). Each line: what, where, which rule.
+(2026-11-04). G21 was read at 265557e and the sheets' titles and labels at
+b8e9a41, with their renders at the default size, xLarge and xxxLarge, in
+light and dark and in the 320 pt dumps, and Home at 95525c6; G22 was found
+there (2026-11-04). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards and
-Home's quick actions, and G1, G18, G19 and G20 are fixed for 1.3.0.
+Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -677,7 +717,7 @@ Home's quick actions, and G1, G18, G19 and G20 are fixed for 1.3.0.
   § 3), `BBEventRow` subtitle/time 13 pt (scaled from 1.3.0, § 7), `BBQuickActionButton`
   label 12 pt (scaled from 1.3.0, § 7). grep: `grep -rno --include=*.swift '\.system(size:' BabyBloom | grep -v WidgetViews | wc -l`
   → 158 at 337fff5, 140 at c813d99, 129 at 6f66d45, 123 at 4259dd0, 120 at
-  54af23c.
+  54af23c and at 95525c6.
   Fixed for 1.3.0 on the entry sheets, `BBStatCard`, the profile sheet and the
   Diaper and Sleep screens' quick and start tiles (decided 2026-11-03, in code
   at c813d99, 427d55e and 6f66d45), and on the Feeding, Sleep and Diaper
@@ -730,17 +770,42 @@ Home's quick actions, and G1, G18, G19 and G20 are fixed for 1.3.0.
     1.50 and 2.19, under 3:1.
   grep: `grep -rn --include=*.swift 'needsEdge' BabyBloom` → 2 lines at
   890c80b: the flag and the disc.
-- **G21 · Sheet titles at Large on 320 pt** (`bbSheetTitle`,
-  `BBTheme.swift:336`). In ru the bar slot between «Отмена» (85 pt) and
-  «Сохранить» (114 pt) is 49 pt there, so with the 0.6 floor every ru
-  entry-sheet title is cut, «Подгузник» (89.2) among them, and es titles from
-  116 pt on («Agregar sueño»); en holds. Breaks the helper's own promise of a
-  whole title. Measured at 6f66d45 from the bar's frames on 402 pt and CoreText
-  widths, not rendered. Direction decided 2026-11-04 (§ 3, planned), measured
-  at 4259dd0 with the words of 78471f8: glyph buttons in every sheet bar leave
+- **G21 · Sheet titles at Large on 320 pt were cut; fixed for 1.3.0**
+  (`bbSheetTitle`, `BBTheme.swift:334`). In ru the bar slot between «Отмена»
+  (85 pt) and «Сохранить» (114 pt) was 49 pt there, so with the 0.6 floor
+  every ru entry-sheet title was cut, «Подгузник» (89.2) among them, and es
+  titles from 116 pt on («Agregar sueño»); en held. It broke the helper's own
+  promise of a whole title. Measured at 6f66d45 from the bar's frames on
+  402 pt and CoreText widths. Fix, decided 2026-11-04 for 1.3.0, in code at
+  265557e (§ 3): glyph buttons in every sheet bar (`BBBarButton`, § 7) leave
   the title 174 pt on 320 (229 on 375, 256 on 402) in every language, and all
-  48 titles are whole at 17 pt; titles of at most 166 pt, with a 13 pt floor;
-  the dose sheet's name, which no budget holds, in its content at every size.
+  48 titles are whole at 17 pt, as the 320 pt dumps show in en, ru and es;
+  titles of at most 166 pt, with a 13 pt floor; the dose sheet's name, which
+  no budget holds, in its content at every size. grep: `grep -rn
+  --include=*.swift 'BBBarButton(' BabyBloom` → 28 lines at 265557e, one per
+  bar button. Left: a pushed screen's Edit (`MedicationDetailView.swift:72`),
+  proposed as the pencil (§ 3).
+- **G22 · The diaper norm editor does not scroll, and on 320 pt its stepper
+  card is wider than the column** (`DiaperView.swift:294`, a `VStack` with a
+  `Spacer` and no `ScrollView`; the stepper at `:314`). Height: at Large on
+  the live SE run (375 × 667) Save ends 128.0 pt above the screen's bottom, so
+  a 320 × 568 pt screen (the SE with Display Zoom) keeps 29 pt; above Large the
+  title, hint and digits grow (on 320, ru and es +31 pt at xxxLarge, +53 at
+  AX1, +105 at AX2; en +48, +70, +93), so the content no longer fits from
+  about xxxLarge (−2) and clearly at AX1 (−24) and AX2 (−47 to −76). With no
+  scroll the stack then overflows at both ends: the drop runs under the bar
+  and Save is cut. On 375 × 667 and 320 × 693 it fits at every size. Width:
+  two 52 pt symbol frames, xl 32 between each and the digits, the digits' 80 pt
+  minimum and xl 32 inside the card make 312 pt, so in the 256 pt that the
+  card's xl margins leave on 320 the card sits 4 pt from the screen's edges,
+  against the Save button's 32. Computed from the live 402 and SE runs and
+  CoreText, not rendered: there is no 320 pt simulator, and the 320 pt dump's
+  420 pt window overflows already at Large. Breaks § 3 (every control
+  reachable at every size on 320 pt) and § 4 (one inset per column). Not
+  from 1.3.0's builds: the layout is as before. Direction (later): the content
+  in a `ScrollView` with `.scrollBounceBehavior(.basedOnSize)`, as the entry
+  sheets, and the stepper's gaps at md 16 (248 pt in 256), or xl where it
+  fits by the fit rule, since the row's width follows its content.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -757,7 +822,7 @@ Home's quick actions, and G1, G18, G19 and G20 are fixed for 1.3.0.
 - **G6 · Data colours bypass the catalog** (§ 2 Data colours): no dark
   variants, and near-misses with the category tints (breast #E8A0BF vs
   BBFeeding #E8A0B4; formula/bath #B0C4F5 vs BBSleep #A9B0E8). One literal is
-  in a view: `DiaperView.swift:164` (at 54af23c) `Color(hex: "#B0C4F5")`.
+  in a view: `DiaperView.swift:164` (at 95525c6) `Color(hex: "#B0C4F5")`.
   Breaks P5 (stool swatches excepted).
 - **G7 · The type scale in use is wider than the named one:** 23 calls to named
   styles vs 104 ad-hoc `scaled()` calls at 11–64 pt, mostly 13/14/15/16 pt
@@ -796,7 +861,7 @@ Home's quick actions, and G1, G18, G19 and G20 are fixed for 1.3.0.
   needs a live look.
 
 **By design (not gaps — do not re-raise)**
-- **G3 · Stool-colour warning in DiaperView** (`DiaperView.swift:493–502` at
-  54af23c, orange + `exclamationmark.triangle.fill`): it stays as it is — a
+- **G3 · Stool-colour warning in DiaperView** (`DiaperView.swift:497–505` at
+  95525c6, orange + `exclamationmark.triangle.fill`): it stays as it is — a
   deliberate exception to the calm rule for a medically meaningful signal
   (pale/white stool). Product decision, 2026-10-28.
