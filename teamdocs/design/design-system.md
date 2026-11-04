@@ -24,9 +24,12 @@ alignment at every size; glyph buttons in the sheet bars, a 166 pt title
 budget with a 13 pt floor and the dose sheet's name in its content (G21);
 Home's quick actions four in a row where their tiles fit, the Feeding quick
 caption's own padding and the hours on Home's sleep card (§ 3, § 7, § 10).
-The diaper norm editor's × as Close and a glyph for the medication screen's
-Edit are proposed (§ 3); the norm editor's height and width on 320 pt is a
-gap (G22).
+The diaper norm editor's × as Close follows the code of the same day; the
+medication screen's Edit as the pencil and the norm editor's scroll and width
+on 320 pt (G22) are planned. A bar confirm that shows ▶ while its sheet
+starts a timer, and value rows that share a column of deltas taking one shape
+by fit, are proposed (§ 3, § 7); the Growth cards' tier tints as text ink are a
+gap, with a direction for the percentile card proposed (G23).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -495,17 +498,18 @@ renders.
   at Large (a 21.2 pt line of title3 and lg 24 to the next block), and the
   bar would lose the title the platform keeps there.
 
-Proposed (2026-11-04, not decided), read at 265557e:
-- **The diaper norm editor's × is Close, not Cancel** (`DiaperView.swift:360`).
+Decided 2026-11-04:
+- **The diaper norm editor's × is Close, not Cancel** (in force, in code at
+  2511a0b: `DiaperView.swift:371`, `BBBarButton(.close)`, read «Закрыть»).
   Its − and + write the stored norm at once (`DiaperView.swift:13`, passed as
-  a binding), so the × keeps the change, while VoiceOver's «Отмена» promises
-  the opposite. Before the glyphs every user read the word; now only
-  VoiceOver does. × is Cancel where it drops the sheet's edits and Close where
-  nothing waits (§ 7 `BBBarButton`). The bottom «Сохранить» names what the
-  parent wants and stays.
+  a binding), so the × keeps the change, and «Отмена» promised the opposite.
+  Before the glyphs every user read the word; now only VoiceOver does. × is
+  Cancel where it drops the sheet's edits and Close where nothing waits (§ 7
+  `BBBarButton`). The bottom «Сохранить» names what the parent wants and
+  stays.
 - **A pushed screen's bar takes glyphs too: the medication screen's Edit is
-  the pencil** (`MedicationDetailView.swift:72`, `BBBarButton(.edit)`, read
-  «Изменить»). After the sheet bars it is the one word left in any bar of the
+  the pencil** (planned: `MedicationDetailView.swift:72`, `BBBarButton(.edit)`,
+  read «Изменить»). After the sheet bars it is the one word left in any bar of the
   app: every other bar item is a glyph (the screens' +, the report's share, the
   17 sheet bars), and the visit sheet's Edit, the same action, is already the
   pencil. G21's own reason, the title's room, does not reach it: the screen's
@@ -513,6 +517,28 @@ Proposed (2026-11-04, not decided), read at 265557e:
   «Изменить» (103 pt on 26.3) fits beside the back button on 320 pt. Not
   taken: the word, which the platform's pushed screens often keep and which
   explains itself; its cost is one action in two looks.
+
+Proposed (2026-11-04, not decided), read at a8369f8:
+- **A bar's confirm shows what it does: ▶ while the sheet starts a timer.**
+  With Start Timer on, the New Feeding sheet's bottom button reads «Начать
+  кормление» with ▶ (`FeedingView.swift:565`), while the bar's ✓ (`:580`)
+  does the same and VoiceOver names it «Сохранить». The bar's confirm then
+  shows `play.fill` and VoiceOver reads the bottom button's word
+  (`button.start_feeding`); with the toggle off it is ✓ «Сохранить» again.
+  Same style as Save (§ 7 `BBBarButton`); bar and bottom swap together, at
+  once, when the toggle flips. One action, one glyph in both places. It is
+  the app's one sheet that starts a timer (the only Start Timer toggle,
+  `FeedingView.swift:543`). Not taken: no confirm in the bar while the timer
+  is on (the bar changes under a toggle, and every entry sheet confirms in
+  both places); ✓ named «Начать кормление» (the glyph says done while the
+  tap starts a feed, and the sighted parent still sees two signs for one act).
+- **Value rows that share a column of deltas take one shape together, by
+  fit**: one line each while every row fits at full size, else every row
+  stacked as at accessibility sizes, with no shrink (the weekly card,
+  `teamdocs/design/m1-weekly-summary.md` § 4). A fit per row would set one
+  delta at the column's edge and the next under its value. On 320 pt at Large
+  the weekly sleep row is over its room beside its delta in en, ru and es
+  (−23.8 to −57.7 pt, CoreText at a8369f8).
 
 ## 4. Spacing
 
@@ -579,7 +605,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3). Its ideal width is the larger of its label and its disc | Dashboard: four in a row while the widest tile fits a quarter of the card, else two by two (`QuickActionsLayout`, `DashboardView.swift:677`), one column at accessibility sizes (§ 3) |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
-| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's as Close is proposed, § 3) | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (×), the three Home quick sheets and the growth explainer (Close) |
+| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). Proposed (§ 3): a fifth case for a confirm that starts a timer, `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on | the 17 sheet bars, 28 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets and the growth explainer (Close) |
 | BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
@@ -784,7 +810,7 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   no budget holds, in its content at every size. grep: `grep -rn
   --include=*.swift 'BBBarButton(' BabyBloom` → 28 lines at 265557e, one per
   bar button. Left: a pushed screen's Edit (`MedicationDetailView.swift:72`),
-  proposed as the pencil (§ 3).
+  planned as the pencil (decided 2026-11-04, § 3).
 - **G22 · The diaper norm editor does not scroll, and on 320 pt its stepper
   card is wider than the column** (`DiaperView.swift:294`, a `VStack` with a
   `Spacer` and no `ScrollView`; the stepper at `:314`). Height: at Large on
@@ -802,10 +828,31 @@ Home's quick actions, and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   CoreText, not rendered: there is no 320 pt simulator, and the 320 pt dump's
   420 pt window overflows already at Large. Breaks § 3 (every control
   reachable at every size on 320 pt) and § 4 (one inset per column). Not
-  from 1.3.0's builds: the layout is as before. Direction (later): the content
-  in a `ScrollView` with `.scrollBounceBehavior(.basedOnSize)`, as the entry
-  sheets, and the stepper's gaps at md 16 (248 pt in 256), or xl where it
-  fits by the fit rule, since the row's width follows its content.
+  from 1.3.0's builds: the layout is as before. Fix decided 2026-11-04
+  (planned): the content in a `ScrollView` with
+  `.scrollBounceBehavior(.basedOnSize)`, as the entry sheets, and the
+  stepper's gaps by the fit rule, since the row's width follows its content,
+  so the card is at most 256 pt on 320. At AX1 on 320 × 568 Save cannot be
+  reached, so the fix is about reaching a control and does not wait.
+- **G23 · Tier tints as text ink on the Growth cards** (found 2026-11-04 at
+  a8369f8). The WHO percentile card draws its big band label («50–85»,
+  `Typography.metric`, 28 pt semibold) and the ring's number (16 pt semibold)
+  in the reading's tier tint (`PercentileCard.swift:72`, `:85`, tints at
+  `GrowthInsightCards.swift:471`): on the light surface BBSuccess is 1.98,
+  BBAccent 1.84 and BBAlert 3.63, against 3:1 for the large label and 4.5:1
+  for the 16 pt number (dark 9.48, 9.82, 5.53, all pass). The newborn card's
+  regained figure takes BBSuccess the same way (`GrowthInsightCards.swift:518`,
+  1.98). Breaks P8. Direction for the percentile card (proposed 2026-11-04,
+  not decided): the band label goes; the big figure is the percentile itself,
+  the card's badge («61», «> 97», «< 3», 36.1 to 60.1 pt in the 168 pt beside
+  the ring on 320), in BBTextPrimary (14.28 / 14.07) under its caption
+  `percentile.weight`; the ring keeps the tint as the picture of where the
+  reading sits, without its number, hidden from VoiceOver, so the reading is
+  stated once; the caption and the figure are one VoiceOver element. A
+  graphic whose meaning the text beside it states needs no 3:1 (WCAG 1.4.11).
+  The same card renders in onboarding's growth page. The newborn figure:
+  BBTextPrimary, with its BBSuccess tick beside it carrying "regained"
+  (later).
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
