@@ -48,8 +48,9 @@ planned too: the brand gradient one step deeper, one pair in both modes, with
 every word on it in white at full strength (G12); unchecked and unselected
 marks in BBTextSecondary at full strength (G27); the splash words in a deep
 violet (G17). The splash words over the art in landscape are a gap (G28).
-Proposed the same day: the norm editor's stepper card as wide as the column
-where its widest form does not fit (G22).
+Decided the same day and planned too: the norm editor's stepper card as wide
+as the column where its widest form does not fit (G22), and a selected tile's
+or chip's border drawn outside its fill (§ 3, G29).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -394,6 +395,29 @@ Home's quick actions and running-timer card and onboarding's gender row
   size: the Feeding type, Diaper type, Sleep location and profile feeding rows,
   and from xLarge the Diaper and Feeding quick-add rows and the breast-side
   chips.
+- **A selected tile's or chip's border is drawn outside its fill** (planned,
+  decided 2026-11-04; G29). The 1.5 pt BBPrimary border's inner edge lies on
+  the fill's edge and its outer edge 1.5 pt beyond it, on a shape whose
+  corner radius is the tile's plus 1.5 (a capsule stays a capsule). The fill,
+  the layout and the unselected tile stay as they are. Why: a word's room is
+  the tile's width less its padding (above), and a border drawn inside took
+  1.5 pt a side of it on every tile without side padding, which no count
+  measured; drawn outside it takes none, so the table's numbers hold for the
+  selected tile too. With Bold Text on 320 pt the inside border lay over the
+  word's box at three sites: the breast-side chips at Large (es «Izquierdo»
+  with its glyph, −1.0 a side), the profile feeding tiles at Large (ru
+  «Смешанное», −1.0) and the Sleep type tiles at AX2 (ru «Ночной сон» on one
+  line, −1.1). Outside they keep +0.5, +0.5 and +0.4; on the outline, half
+  inside, −0.2, −0.3 and −0.3. The cost: the border reaches 1.5 pt into the
+  gap beside the tile, so tiles sm 8 apart keep 6.5 to their neighbour, md 16
+  apart 14.5, and the md margins of a sheet or a section 14.5. Without Bold
+  Text every word on 320 pt kept +0.7 a side or more inside the border, and on
+  375 pt every word keeps +5.2 or more with Bold Text whichever way it is
+  drawn. The sites: the Feeding sheet's type tiles and breast-side chips, the
+  Feeding timer's side pills, the Sleep sheet's type and location tiles, the
+  Diaper sheet's type tiles, the Add Event type and mood tiles, the profile
+  sheet's gender and feeding tiles, and onboarding's gender tiles and feeding
+  rows (lines in G29).
 
 Column counts by text size, checked at 320 pt, all in code at 95525c6 (1.3.0).
 Lines at 95525c6; widths from CoreText in SF Rounded, within 0.1 pt of the
@@ -798,8 +822,9 @@ and read at 6fc67d1 on every category-tint site, where G25 was found
 an orange were read at 4f3c86c, where G26 was found, and G12, G17 and every
 state mark at 8d3d2ba, with the splash art under its words, where G27 and
 G28 were found (2026-11-04). G2, G21 and G22 were read at e8abca8, 4f3c86c,
-b57b678 and 1590974 with their renders and 320 pt dumps (2026-11-04). Each
-line: what, where, which rule.
+b57b678 and 1590974 with their renders and 320 pt dumps (2026-11-04). The
+selected tiles' borders were read at 3b9dd3d, where G29 was measured
+(2026-11-04). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
@@ -957,8 +982,8 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   at Large too: the xl card is 312 pt and the column 311, so the card drops
   to 248 pt, 63.5 pt from the screen's edges against Save's 32 (on 402 pt
   312, 45 from them), and on 320 at Large its edges stand 4 pt inside Save's.
-  Computed from the simulator's metrics; 375 not rendered. Proposed
-  (2026-11-04, not decided): where the xl form misses, the card takes the
+  Computed from the simulator's metrics; 375 not rendered. Decided
+  2026-11-04, planned: where the xl form misses, the card takes the
   column's width and its four gaps share the room, md 16 at least, the digits
   shrinking below that as built: 311 pt on 375 at Large (gaps 31.75), 256 on
   320 (gaps 18, the card's edges on Save's), 402 unchanged. Why: the card
@@ -1146,6 +1171,26 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   landscape crop of the art with a field band (an asset;
   `docs/design/splash4-notext.png` is portrait too) or the stack beside the
   crescent (a layout). No direction yet.
+- **G29 · A selected tile's border took its word's room** (found 2026-11-04
+  at 4259dd0, measured at 3b9dd3d). Twelve selected marks draw
+  `strokeBorder(BBPrimary, lineWidth: 1.5)` inside the tile:
+  `FeedingView.swift:325` (the timer's side pills), `:414`, `:442`;
+  `SleepView.swift:297`, `:329`; `DiaperView.swift:447`;
+  `EventsView.swift:341`, `:377`; `BabyProfileEditSheet.swift:269`, `:293`;
+  `Onboarding/Pages/BirthPage.swift:111`, `FeedingPage.swift:64`. Ten have no
+  side padding, so the border lay 1.5 pt a side inside the word's room, and
+  with Bold Text on 320 pt over the word's box at three (§ 3). Breaks § 3
+  (the column is the word's own room). Direction (decided 2026-11-04,
+  planned): drawn outside the fill (§ 3). Not taken: on the outline, half
+  inside, which leaves those three about a quarter point under it; inside
+  with fewer columns, which sets the chips and the profile feeding row 2 + 1
+  at Large on every phone. Also seen: Export's format tiles
+  (`ExportView.swift:115–119`) keep their own outline, 1 pt at rest and 2 pt
+  centred when selected, the tile's edge in both states. Their description
+  (11 pt, fixed) has no side padding and runs edge to edge: on 375 pt en
+  «Beautiful report for printing or sharing» sets a first line of 151.2 pt
+  in 151.5, which lies 0.8 pt under the selected outline (es 0.6). A room of
+  its own for the description is not this rule; no direction yet.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
