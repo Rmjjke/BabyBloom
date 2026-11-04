@@ -60,6 +60,9 @@ struct DiaperView: View {
                             .font(.system(size: 22))
                             .foregroundStyle(BBTheme.Colors.primary)
                     }
+                    // Icon only: unnamed, VoiceOver reads the symbol in the
+                    // device's language, not the app's.
+                    .accessibilityLabel(Text("diaper.add".l))
                 }
             }
         }
@@ -320,6 +323,10 @@ struct DiaperNormEditorSheet: View {
                             .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
                     }
                     .disabled(dailyNorm <= 1)
+                    // The goal as each button's value: VoiceOver speaks the new
+                    // number after a tap, as it does on a stepper.
+                    .accessibilityLabel(Text("diaper.norm.a11y_decrease".l))
+                    .accessibilityValue(Text("\(dailyNorm)"))
 
                     Text("\(dailyNorm)")
                         .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
@@ -336,6 +343,8 @@ struct DiaperNormEditorSheet: View {
                             .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
                     }
                     .disabled(dailyNorm >= 20)
+                    .accessibilityLabel(Text("diaper.norm.a11y_increase".l))
+                    .accessibilityValue(Text("\(dailyNorm)"))
                 }
                 .padding(.vertical, BBTheme.Spacing.lg)
                 .padding(.horizontal, BBTheme.Spacing.xl)
@@ -357,7 +366,9 @@ struct DiaperNormEditorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    BBBarButton(.cancel) { dismiss() }
+                    // Close, not Cancel: − and + write the goal at once, so
+                    // there is nothing to cancel.
+                    BBBarButton(.close) { dismiss() }
                 }
             }
         }
