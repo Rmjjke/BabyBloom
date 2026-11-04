@@ -1,7 +1,7 @@
 # M1 — Live Activity and widget controls (design note)
 
-status: final, 2026-10-28; § 2 "Saved looks done" + stack order 2026-10-29; § 0 confirmed against the code 2026-10-29 (one correction: the bottle timer); corrected after the Live Activity design review 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the widget design review 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31
-decisions: it starts on its own with every feeding or sleep timer, on by default, with a switch in Settings to turn it off; free, because the night feed is the core moment of value and the money comes from history and charts; WCAG 2.2 AA; the widget control starts a feeding timer and the Live Activity takes over, the same record as one made in the app, with no new strings and one meaning of "a feeding"; formula and pumped feeds already run as a timer and show as running on the Dashboard, so there is a bottle state; M1 plan review: BBOnPrimary, Lock Screen on BBSurface, a design review before merge
+status: final, 2026-10-28; § 2 "Saved looks done" + stack order 2026-10-29; § 0 confirmed against the code 2026-10-29 (one correction: the bottle timer); corrected after the Live Activity design review 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the widget design review 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31; § 5 the widget's plate and its words at the gradient decided 2026-11-04 (G12)
+decisions: it starts on its own with every feeding or sleep timer, on by default, with a switch in Settings to turn it off; free, because the night feed is the core moment of value and the money comes from history and charts; WCAG 2.2 AA; the widget control starts a feeding timer and the Live Activity takes over, the same record as one made in the app, with no new strings and one meaning of "a feeding"; formula and pumped feeds already run as a timer and show as running on the Dashboard, so there is a bottle state; M1 plan review: BBOnPrimary, Lock Screen on BBSurface, a design review before merge; the widget's plate one gradient in both modes, #5D4893 → #7B68B6, with every word and glyph on it in white at full strength, because every point of the plate then passes white (2026-11-04)
 reference: `teamdocs/design/design-system.md` (P = principle, G = gap)
 triggers: a timer kind added; a Live Activity presentation or widget family added; a token in § 6 renamed; the stale/dismissal policy changed; a Dynamic Type cap changed
 check: `grep -n 'case ' BabyBloom/Core/Models/SleepEntry.swift BabyBloom/Core/Models/FeedingEntry.swift BabyBloom/Features/LiveActivity/TimerActivityAttributes.swift` vs § 0 kinds; `ls WidgetResources/Colors.xcassets` vs § 6 list; `grep -n 'dynamicTypeSize' BabyBloom/Features/LiveActivity/TimerActivityViews.swift` vs § 1 caps
@@ -132,13 +132,17 @@ expanded  ┌──────────────────────�
 
 ## 5. Widget — tap areas and the start-feeding control
 
-The background stays the premium gradient. The control is a **BBSurface capsule with a BBPrimary label**, because white on the gradient's light end is 2.64 (G12).
+The background is the brand gradient as decided on 2026-11-04 (G12, planned; the widget's catalog takes it with the app's): one pair in both modes, BBGradientStart #5D4893 → BBGradientEnd #7B68B6. Every word and glyph on it is white at full strength, and the hierarchy goes by size and weight. White reads 7.46 at the start and 4.67 at the end, so every point of the plate passes 4.5. Why: no word, locale or new state can reach a failing corner, and the widget is quieter on a home screen at night. The control stays a **BBSurface capsule with a BBPrimary label**: a filled shape sets the one control that creates data apart from the words around it.
 
 | pair | light | dark |
 |---|---|---|
+| white words and glyphs on the plate, start / end | 7.46 / 4.67 | 7.46 / 4.67 |
+| the widget's words at their places | 5.21–6.68 | 5.21–6.68 |
 | BBPrimary label on BBSurface capsule | 5.6 | 6.2 |
 | BBTextPrimary (started state) on capsule | 14.3 | 14.1 |
-| capsule edge vs gradient start (non-text, ≥ 3) | 5.6 | 3.6 |
+| capsule against the plate around it (non-text) | 4.67–7.46 | 2.6–3.4 |
+
+In dark the capsule (BBSurface #221E2C) stands under 3:1 against parts of the plate. Its BBPrimary words and its ▶ name it, so WCAG 1.4.11 needs no edge, and it reads as a dark pill on the violet.
 
 **Small**
 
@@ -173,8 +177,8 @@ Rules for the medium, settled in the widget design review:
 - **One fact once.** While a feed runs, the capsule carries its minutes, so the "Last feed" row is hidden; otherwise "Last feed 12 min" sits above "♥ 12 min" and reads as a feed that has ended. This is the same rule as the 12+ months layout, which drops that row because the hero already says it.
 - **While a feed runs, words say what and the capsule says how long** (design look after PR #84, 2026-10-31). The prediction ("Feeding in …") is hidden then, because it contradicts a running feed. Hiding it leaves an empty hero area that reads as a widget that failed to load. The empty place shows the existing key `status.feeding_going` («Кормление идёт» / "Feeding in progress" / «Toma en curso»), with no number:
   - medium: in the hero's place, 20 pt semibold rounded, white, up to 2 lines, scale down to 0.7; the name stays at the bottom;
-  - small: under the name, in the first-run line's style, 13 pt medium, white@0.9.
-  White on the gradient's start is 5.6:1 (≥ 3 for large text, ≥ 4.5 for the 13 pt line).
+  - small: under the name, in the first-run line's style, 13 pt medium, white.
+  White on the plate is 4.67 or more at every point (≥ 3 for large text, ≥ 4.5 for the 13 pt line).
 - **No Diapers area.** The widget answers the 3 a.m. questions: when she last ate, and whether she is asleep. A third row does not fit (see row height), and adding Diapers would be a product decision, not a layout one.
 
 Control states (both families):
@@ -188,7 +192,7 @@ Control states (both families):
 | intent failed | unchanged; the next timeline reload shows the truth; no error UI (P1) | — |
 | first run (nothing logged) | idle capsule under the existing "log your first feeding" line | starts the first feed |
 
-Observation on the copy, outside this note: the medium widget's `widget.overdue_by` line ("Overdue by 20 min") is worry-framing against P1. It is white@0.75, not red, but the word itself judges.
+Observation on the copy, outside this note: the medium widget's `widget.overdue_by` line ("Overdue by 20 min") is worry-framing against P1. It is white, not red, but the word itself judges.
 
 ## 6. What the build needs
 
