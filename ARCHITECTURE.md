@@ -431,18 +431,34 @@ by the text size: its words hold at 320 pt at every size below, so no width
 changes the answer.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
-in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on
-one line, capped at `.large` and shrinking to fit between Cancel and Save.
-With `movesIntoContentAboveLarge`, which every add, dose, visit and
-medication sheet and the profile edit sheet pass, the bar shows no title
-above Large, where it would stay at its Large size while Cancel and Save
-grow. There the sheet's first content line, `BBSheetHeading`, shows it at the
-sheet's text size and carries the header trait, so VoiceOver reads it once.
-The flag and the heading go together: the flag alone leaves the sheet with no
-title above Large, the heading alone shows it twice. The diaper norm editor,
-with Cancel alone in its bar, does the same without the helper: above Large
-its bar shows no title, and its first heading, «Норма в день», takes the
-header trait.
+in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.
+With the default, `.barUpToLarge`, used by the five add sheets, the question,
+visit and medication form sheets and the profile edit sheet, the title sits in
+the bar up to Large, on one line, shrinking to fit between the bar's buttons
+down to 13/17 of its size (13 pt at Large, the sheets' caption size). Above
+Large, where it would stay at its Large size while the sheet's text grows,
+the bar shows no title; the sheet's first content line, `BBSheetHeading`,
+shows it at the sheet's text size and carries the header trait, so VoiceOver
+reads it once. The dose sheet passes `.content`: its title is the
+medication's name, which the parent wrote and no length holds, so it heads
+the content at every size and wraps. The modifier and the heading go together
+with the same placement: the modifier alone leaves no title where the bar has
+none, the heading alone shows it twice. The diaper norm editor, with Cancel
+alone in its bar, does the same without the helper: above Large its bar shows
+no title, and its first heading, «Норма в день», takes the header trait.
+
+The sheet bars' buttons are glyphs, through `BBBarButton`
+(`DesignSystem/Components/BBBarButton.swift`): × for Cancel and Close in the
+secondary ink, ✓ for Save, a pencil for the visit's Edit. On iOS 26 the bar
+draws each glyph in a glass circle and Save is the prominent one, a primary
+fill with an on-primary check, dimmed by the system when disabled. Before
+iOS 26 the glyphs stand bare, Save and Edit in the primary ink and a disabled
+Save in the secondary one. Each button's VoiceOver name is the app's word
+(`button.cancel`, `button.save`, `button.close`, `button.edit`), set
+explicitly: a glyph's or a role's default name is read in the device's
+language. With a glyph on each side the title has 174 pt at Large on a
+320-pt phone in every language, so a title of at most 166 pt at 17 pt
+semibold stays whole there.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that

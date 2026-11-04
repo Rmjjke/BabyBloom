@@ -14,6 +14,16 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — Sheet bars carry glyphs, not words; a sheet title fits 166 pt with a 13-pt floor; a medication's name heads its dose sheet
+
+**Glyphs.** At Large on a 320-pt phone (an iPhone SE with Display Zoom) the words Cancel and Save left a title 49 pt in ru, 67.5 in es and 108.1 in en, so every ru sheet title was cut, and no shorter title reaches that: the shortest ru one, «Вопрос», is 61.6 pt. × and ✓ leave 174 pt in every language, and every title is whole at 17 pt except ru «Редактировать профиль» (202 pt), which shrinks to about 14 pt. Save stays a word at the bottom of the sheets that have that button; on the question sheet, the visit sheet and the visit detail's edit mode the ✓ is the only Save. Each glyph speaks the app's word, set explicitly, because a glyph's or a role's default name follows the device's language, which the parent may not use in the app.
+
+**Budget and floor.** A sheet title is at most 166 pt at 17 pt semibold: whole at Large on a 320-pt phone with 8 pt to spare. Past it the title shrinks to 13/17 of its size, 13 pt at Large, the sheets' caption size, instead of to 0.6 (10.2 pt), which read smaller than the captions under it.
+
+**The dose sheet.** Its title is the medication's name, the parent's own text, which no budget holds: «Нурофен для детей 100 мг/5 мл» is 262.6 pt, 11.3 pt in the bar on a 320-pt phone, and past the floor its end would be cut, often where two medications' names differ. So it heads the content at every size and wraps, and that bar shows no title.
+
+Not taken: shorter words (about 15 new titles, and 320 pt still cut in ru); the title in the content on every sheet (every sheet's content 45 pt lower, and the bar loses the title the platform keeps there).
+
 ## 2026-11-04 — Above Large a sheet's title moves into its content, a date picker's label sits above it at every size, and two notes that wrap keep their wrapped alignment at Large
 
 **Sheet titles.** The bar never grows, so its title keeps its Large size while Cancel and Save grow with the text. From xLarge four ru titles were cut on a 375-pt phone («Новое кормление», «Новое измерение», «Приём у педиатра» and the profile title), and at xxxLarge on a 402-pt phone four shrank to 10–11 pt, smaller than the sheet's captions. So above Large the title is the content's first line at the sheet's text size, as it already was at accessibility sizes. The diaper norm editor, with Cancel alone in its bar, follows: its system title grows with the text, but at AX2 on a 320-pt screen it reaches the screen's edge, and with it every sheet keeps its title in one place at each size. Its first heading takes the header trait there, so VoiceOver hears one heading per sheet at every size. At Large the bars stay as they were.
