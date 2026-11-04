@@ -259,3 +259,10 @@ and the Live Activity read the byte-identical copies in
   words: with "average" in it, a label no longer fits beside the week's
   delta on a 320 pt screen. The count at the line's end is glued whole
   ("18 of 20"), since the report's line wraps on that screen.
+- 2026-11-04 — The weekly card's gain line without a pair of weighings
+  names what is missing: no weighing yet (`weekly.gain_needs_two`), one more
+  at least 3 days after the first (`weekly.gain_needs_second`), or a weighing
+  this week that shows next Monday (`weekly.gain_next_monday`). Russian «Два
+  взвешивания… покажут прибавку», «Ещё одно взвешивание… покажет прибавку»,
+  «Взвешивание этой недели покажет прибавку в следующий понедельник».
+  Spanish «Dos pesajes…», «Un pesaje más…», «El pesaje de esta semana…».
