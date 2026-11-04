@@ -146,6 +146,10 @@ struct FeedingView: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
+                        // Its own 4 pt a side: with the tile's none a one-line
+                        // caption ran onto the border (es on 402 pt); 8 would
+                        // break «manualmente» on 320 pt with Bold Text.
+                        .padding(.horizontal, BBTheme.Spacing.xs)
                         .frame(height: captionBox ? BBTheme.Typography.scaledPointSize(30, relativeTo: .body) : nil,
                                alignment: .top)
                 }
@@ -153,8 +157,7 @@ struct FeedingView: View {
                 .padding(.vertical, 14)
                 // No side padding: with sm, «Сцеженное» broke in a third of a
                 // 320-pt row at Large (75.1 pt in 69.3). The words are centred,
-                // so a wider screen draws them where they were; only a caption
-                // that now fits one line («Добавить вручную») sets on one.
+                // so a wider screen draws them where they were.
                 .background(BBTheme.Colors.feeding.opacity(0.07))
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(

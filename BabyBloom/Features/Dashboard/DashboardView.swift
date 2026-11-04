@@ -182,7 +182,9 @@ struct DashboardView: View {
                     color: BBTheme.Colors.sleep,
                     title: "status.baby_sleeping".l,
                     subtitle: sleep.type.displayName.l,
-                    startTime: sleep.startTime
+                    startTime: sleep.startTime,
+                    // As the Sleep screen it opens reads it: «01:41:02», not «101:02».
+                    showsHours: true
                 ) { selectedTab = .sleep }
             }
         }
@@ -192,15 +194,11 @@ struct DashboardView: View {
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_input")
-            // Two by two below the accessibility sizes: in a quarter of the
-            // card on a 320-pt screen ru «Подгузники» broke from Medium up
-            // (71.1 pt in 64 at Large), and on 375 pt it kept 6.7, under the
-            // 8-pt spare. One at accessibility sizes, where half the card
-            // keeps 5.9 (122.1 in 128) and Bold Text breaks the word.
-            let columns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0),
-                                     count: columns.count(at: dynamicTypeSize)),
-                      spacing: BBTheme.Spacing.md) {
+            // One at accessibility sizes whatever fits: one shape at the
+            // largest text, as the running cards above keep. Two would hold
+            // ru «Подгузники» there by 5.9 pt, and not with Bold Text.
+            QuickActionsLayout(counts: dynamicTypeSize.isAccessibilitySize ? [1] : [4, 2],
+                               rowSpacing: BBTheme.Spacing.md) {
                 BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
                 BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
                 BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
@@ -616,6 +614,8 @@ struct ActiveTimerCard: View {
     let title: String
     let subtitle: String
     let startTime: Date
+    /// Hours past an hour (sleep), else minutes past 59 (feeding).
+    var showsHours: Bool = false
     /// Where the card takes you — the screen that owns this timer.
     let onTap: () -> Void
 
@@ -644,6 +644,7 @@ struct ActiveTimerCard: View {
             // above it. On a 320-pt screen at Large that is above at any
             // time; beside three-digit minutes ru «Кормление» broke there.
             BBTimerFit(startTime: startTime,
+                       showsHours: showsHours,
                        font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
                        color: color,
                        spacing: BBTheme.Spacing.md) {
@@ -661,6 +662,59 @@ struct ActiveTimerCard: View {
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
         .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
+    }
+}
+
+// MARK: - Quick Actions Layout
+/// Home's quick actions in equal columns: the first count in `counts` whose
+/// column holds every action's word on one line, measured as drawn (in the
+/// app's language, at the text size, with Bold Text), else the last count.
+/// The one equal-column row whose count follows the width: a fixed two by two
+/// moved everything below the card 94.7 pt down on every phone to save a
+/// 320-pt one, where ru «Подгузники» (71.1 pt) misses a quarter (64), and no
+/// padding or shorter word reaches 320, because the words name the screens.
+/// Other equal-column rows keep one count per text size (`BBTileColumns`).
+private struct QuickActionsLayout: Layout {
+    let counts: [Int]
+    let rowSpacing: CGFloat
+
+    private func columnCount(width: CGFloat, subviews: Subviews) -> Int {
+        let widest = subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        return counts.first { widest <= width / CGFloat($0) } ?? counts.last ?? 1
+    }
+
+    /// The rows' heights at `width`, each its tallest action's.
+    private func rowHeights(width: CGFloat, count: Int, subviews: Subviews) -> [CGFloat] {
+        let column = ProposedViewSize(width: width / CGFloat(count), height: nil)
+        return stride(from: 0, to: subviews.count, by: count).map { start in
+            subviews[start..<min(start + count, subviews.count)]
+                .map { $0.sizeThatFits(column).height }.max() ?? 0
+        }
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width
+            ?? (subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0) * CGFloat(counts.first ?? 1)
+        let heights = rowHeights(width: width, count: columnCount(width: width, subviews: subviews),
+                                 subviews: subviews)
+        return CGSize(width: width,
+                      height: heights.reduce(0, +) + rowSpacing * CGFloat(max(heights.count - 1, 0)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let count = columnCount(width: bounds.width, subviews: subviews)
+        let column = bounds.width / CGFloat(count)
+        var top = bounds.minY
+        for (row, height) in rowHeights(width: bounds.width, count: count, subviews: subviews).enumerated() {
+            for index in row * count..<min((row + 1) * count, subviews.count) {
+                // Centred in its cell, as a stack row and a grid cell set it.
+                subviews[index].place(
+                    at: CGPoint(x: bounds.minX + column * (CGFloat(index - row * count) + 0.5), y: top + height / 2),
+                    anchor: .center,
+                    proposal: ProposedViewSize(width: column, height: nil))
+            }
+            top += height + rowSpacing
+        }
     }
 }
 
