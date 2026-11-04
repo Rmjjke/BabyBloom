@@ -68,6 +68,16 @@ and the Live Activity read the byte-identical copies in
   says «Кормление».
 - **Time past a reminder** is told as elapsed time, never as a fault:
   «Прошло ещё 20 мин», not «Просрочено на 20 мин».
+- **Time since the last feed** on Home's Today tile counts in minutes under
+  an hour and in hours under 48 hours. From 48 hours it counts whole days,
+  rounded down: «4 дня назад», "4 days ago", «hace 4 días». «131 ч назад»
+  left the arithmetic to the parent.
+  - The days form is `stats.days_ago_fmt` around the number and its day
+    word from the age plurals (`age.day.*`: one / few / many in Russian,
+    one / other in English and Spanish). The number and the word are joined
+    by a no-break space, so no count needs a key of its own and the plural
+    rule is the one the age already uses.
+  - Medications tell a dose's age the same way (`medications.md`).
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -231,3 +241,6 @@ and the Live Activity read the byte-identical copies in
   `weekly.gain_fmt` and `breakdown.gain_fmt` (en/ru/es), and a no-break space
   between `velocity.expected_fmt`'s range and its unit. `velocity.per_week_fmt`
   keeps the plain slash.
+- 2026-11-04 — The rule for the time since the last feed on Home is written
+  down: minutes, hours under 48, then whole days through `stats.days_ago_fmt`
+  and `age.day.*`. These words have been in the app since 2026-11-02.
