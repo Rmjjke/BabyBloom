@@ -239,8 +239,33 @@ and the Live Activity read the byte-identical copies in
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows.
-  - Still open: literal numbers inside longer texts (onboarding facts,
-    hints, notifications, the export ranges) still use plain spaces.
+  - The rule holds in every key and every language, long texts included:
+    onboarding facts, info sheets, hints, notifications, the export ranges.
+    Besides a number and its unit it glues:
+    - a counted word before its number: "day 14", «día 14», «день 14»,
+      «percentil 50», "Day %d";
+    - a duration as a whole: `duration.min_sec` "%d min %d sec", as
+      `duration.h_min`;
+    - a short Russian preposition before a number, in every key: «до 12
+      раз», «от 3 дней», «К 3 месяцам».
+  - A Russian ordinal stays loose: neither «14-му дню» nor «50-й
+    перцентиль» is glued, nor the preposition before it («к 14-му»). The
+    line may break after the hyphen inside the ordinal, and a glue around it
+    moves the break there: «3–97-» / «й перцентили», which reads worse than
+    a break at the space.
+  - Left to the code: a key whose every use passes through
+    `gluingNumbersToUnits` keeps its plain space in the JSON, because the
+    code glues each digit to the space after it when it shows the line.
+    These are `stats.min_ago`, `stats.h_ago`, `premium.cta_trial_fmt` and
+    `velocity.interval_fmt`. A new use of one of them outside that function
+    needs the no-break space in the JSON.
+  - Left loose, because glued it would break inside a word: Russian «на 6–8
+    кормлений» in `onboarding.fact.infant2`. The fact page's text is 224 pt
+    wide on a 320 pt screen. Glued whole, «на 6–8 кормлений» would break
+    inside «кормлений» at AX1 and AX2, and «6–8 кормлений» alone at AX2.
+  - Check a glued run against its place at AX2 before committing it: a run
+    wider than its line breaks inside a word, which is worse than the break
+    the glue prevents.
 
 ## Changes
 
@@ -328,3 +353,16 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — A legend for a glyph is for sight only (§ Surface rules). The
   weekly card's `weekly.legend`, and its hidden line `weekly.hidden` with
   `weekly.undo`: `weekly-and-notifications.md`.
+- 2026-11-04 — The no-break rule for numbers covers every key (§ Line breaks
+  around numbers). This change touches 30 English, 28 Russian and 31 Spanish
+  values and only their space characters:
+  `dashboard.growth.percentile_fmt` (en, es), `diaper.norm.hint`,
+  `duration.min_sec`, `duration.sec`, `export.range.week` / `month` /
+  `three_months`, `feeding.title.formula_ml` / `pumped_ml`,
+  `history.free_window`, `newborn.day_fmt`, `newborn.flag_loss` (ru),
+  `newborn.flag_not_regained` (en, es), `newborn.info_body`,
+  `notification.feeding_long_body` / `idle_body` / `measurements_body`, the
+  eight `onboarding.fact.*`, `percentile.info_body` (es),
+  `percentile.out_of_range`, `trend.drop_fmt` (en, es), `velocity.info_body`,
+  `velocity.needs_two` / `needs_second` / `no_reference`. A UI test that
+  matches one of these lines takes `.` where the no-break space now is.
