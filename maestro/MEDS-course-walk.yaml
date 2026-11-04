@@ -17,7 +17,9 @@
 # tap two rows above it selects the hour two earlier. The wheel opens under
 # the time button, which sits under its "Time" label at the row's leading
 # edge. Measured on iPhone 17 on the 24-hour clock (hour and minute wheels
-# only); a 12-hour clock adds an AM/PM wheel and moves the hour wheel.
+# only); a 12-hour clock adds an AM/PM wheel and moves the hour wheel. The
+# sheet's first line is the medication's name: a name that wraps to a second
+# line moves the wheel down.
 #
 # Launch-argument mechanics (dash in the key, stopApp beside clearState) are
 # explained in SMOKE-main-tabs.yaml and the platform-run skill.
@@ -119,7 +121,7 @@ tags: [regression]
     visible: "10 o’clock"
     timeout: 5000
 - tapOn:
-    point: "26%,32%"
+    point: "26%,37%"
 - extendedWaitUntil:
     visible: "08 o’clock"
     timeout: 5000

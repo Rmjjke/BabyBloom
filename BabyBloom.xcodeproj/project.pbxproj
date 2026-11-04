@@ -136,6 +136,7 @@
 		7B2737EB596E0135A560C902 /* NamePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A856FE301431E425A94C4CA /* NamePage.swift */; };
 		7B6FC7DF616E116021B47307 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */; };
+		7D8C6334D7A69970C5C129F3 /* BBBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD324B5CF444B237C361F44A /* BBBarButton.swift */; };
 		7D977904A7F13DDAA7245203 /* SubscriptionSavingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */; };
 		7E62D06C8AA07E74F4692D98 /* RoundedCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */; };
 		809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */; };
@@ -533,6 +534,7 @@
 		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DCD4BA37056F98A21BACCC4E /* StatusWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusWord.swift; sourceTree = "<group>"; };
 		DD04C96ADD5E96B506F2E05C /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		DD324B5CF444B237C361F44A /* BBBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBBarButton.swift; sourceTree = "<group>"; };
 		DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFactsTests.swift; sourceTree = "<group>"; };
 		DF8C8F5CBA8B7E78A6D587F6 /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
 		E0064AAA4003A4CF955BEA01 /* PremiumPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumPage.swift; sourceTree = "<group>"; };
@@ -672,6 +674,7 @@
 		222DE017E594D98F05EB951F /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				DD324B5CF444B237C361F44A /* BBBarButton.swift */,
 				4E466FD0062F3779056BB259 /* BBButton.swift */,
 				82422A5254915B1796A78F89 /* BBCard.swift */,
 				A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */,
@@ -1442,6 +1445,7 @@
 				B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */,
 				5B943F4DA76291B065D2F84A /* AppClock.swift in Sources */,
 				903BBA91510F94E84A770E2B /* AppSchema.swift in Sources */,
+				7D8C6334D7A69970C5C129F3 /* BBBarButton.swift in Sources */,
 				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
 				03C7164075FA330097A87835 /* BBCard.swift in Sources */,
 				E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */,

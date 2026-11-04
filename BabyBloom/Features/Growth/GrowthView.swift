@@ -917,7 +917,7 @@ struct AddGrowthSheet: View {
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("sheet.new_measurement".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("sheet.new_measurement".l)
             // A selection outside the picker's range renders as an empty field
             // and cannot be corrected by tapping it, so the seed is clamped
             // before it is ever shown rather than trusted to be in range.
@@ -946,7 +946,7 @@ struct AddGrowthSheet: View {
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
             }
         }

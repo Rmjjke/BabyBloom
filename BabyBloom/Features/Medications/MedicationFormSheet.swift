@@ -68,16 +68,13 @@ struct MedicationFormSheet: View {
                     .background(BBTheme.Colors.background)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle(title, movesIntoContentAboveLarge: true)
+            .bbSheetTitle(title)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(input.canSave ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
+                    BBBarButton(.save) { save() }
                         .disabled(!input.canSave)
                 }
             }

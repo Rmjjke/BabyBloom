@@ -315,33 +315,49 @@ extension View {
         shadow(color: config.color, radius: config.radius, x: config.x, y: config.y)
     }
 
-    /// An entry sheet's inline title between Cancel and Save. The system title
-    /// truncates («Новое кормл…»); this one shrinks instead.
-    /// Capped at `.large`, and one line: the bar never grows, and the principal
-    /// slot gives a second line no room. Shrinking to 0.6 keeps the whole title.
+    /// A sheet's title: in the bar between its glyph buttons up to Large, and
+    /// otherwise (above Large, or at every size with `.content`) the
+    /// content's first line, `BBSheetHeading`, which the sheet puts first in
+    /// its content with the same placement. The two go together: the modifier
+    /// alone leaves no title where the bar has none, the heading alone shows
+    /// it twice.
     ///
-    /// `movesIntoContentAboveLarge`: above Large the bar title keeps its Large
-    /// size while Cancel and Save grow, so it shrank and was cut: from xLarge
-    /// «Новое кормление» on a 375-pt phone, and at xxxLarge four titles sat at
-    /// 10–11 pt on a 402-pt one, smaller than the sheet's captions. Every
-    /// entry sheet and the profile edit sheet pass it. The sheet puts
-    /// `BBSheetHeading` first in its content, and above Large the bar shows
-    /// no title at all: an empty principal item alone let the system draw
-    /// the navigation title, cut («Приём…»). The heading in the content
-    /// carries the header trait for VoiceOver. The two go together: the flag
-    /// alone leaves no title, the heading alone two.
-    func bbSheetTitle(_ title: String, movesIntoContentAboveLarge: Bool = false) -> some View {
-        modifier(BBSheetTitle(title: title, movesIntoContentAboveLarge: movesIntoContentAboveLarge))
+    /// In the bar the title is one line and shrinks rather than truncate
+    /// (the system title cut «Новое кормл…»), to 13/17 of its size, 13 pt at
+    /// Large, the sheets' caption size: a title of at most 166 pt at 17 pt is
+    /// whole at Large on a 320-pt phone. Above Large it would keep its Large
+    /// size while the
+    /// sheet's text grows (cut from xLarge on a 375-pt phone, 10–11 pt at
+    /// xxxLarge on a 402-pt one), so there the bar shows no title: an empty
+    /// principal item alone let the system draw the navigation title, cut.
+    /// The heading carries the header trait for VoiceOver.
+    func bbSheetTitle(_ title: String, placement: BBSheetTitlePlacement = .barUpToLarge) -> some View {
+        modifier(BBSheetTitle(title: title, placement: placement))
+    }
+}
+
+/// Where a sheet's title stands; `bbSheetTitle` and `BBSheetHeading` take the
+/// same one.
+enum BBSheetTitlePlacement {
+    /// In the bar up to Large, the content's first line above it.
+    case barUpToLarge
+    /// The content's first line at every size, and no title in the bar: for a
+    /// title the parent wrote, such as a medication's name, which no budget
+    /// holds and whose end is often where two names differ.
+    case content
+
+    func inBar(at size: DynamicTypeSize) -> Bool {
+        self == .barUpToLarge && size <= .large
     }
 }
 
 private struct BBSheetTitle: ViewModifier {
     let title: String
-    let movesIntoContentAboveLarge: Bool
+    let placement: BBSheetTitlePlacement
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     func body(content: Content) -> some View {
-        let inBar = !(movesIntoContentAboveLarge && dynamicTypeSize > .large)
+        let inBar = placement.inBar(at: dynamicTypeSize)
         content
             .navigationTitle(inBar ? title : "")
             .navigationBarTitleDisplayMode(.inline)
@@ -351,9 +367,8 @@ private struct BBSheetTitle: ViewModifier {
                         Text(title)
                             .font(.headline)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.6)
+                            .minimumScaleFactor(13.0 / 17.0)
                             .multilineTextAlignment(.center)
-                            .dynamicTypeSize(...DynamicTypeSize.large)
                             .accessibilityAddTraits(.isHeader)
                     }
                 }
@@ -361,14 +376,15 @@ private struct BBSheetTitle: ViewModifier {
     }
 }
 
-/// The sheet's title as the content's first line, above Large only; pairs
-/// with `bbSheetTitle(_:movesIntoContentAboveLarge: true)`.
+/// The sheet's title as the content's first line wherever the bar shows none;
+/// takes the placement its sheet passes to `bbSheetTitle`.
 struct BBSheetHeading: View {
     let title: String
+    var placement: BBSheetTitlePlacement = .barUpToLarge
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        if dynamicTypeSize > .large {
+        if !placement.inBar(at: dynamicTypeSize) {
             BBTheme.Typography.title3(title)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -670,7 +670,7 @@ struct FeedingQuickSheet: View {
     var body: some View {
         NavigationStack {
             FeedingView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }
@@ -680,7 +680,7 @@ struct SleepQuickSheet: View {
     var body: some View {
         NavigationStack {
             SleepView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }
@@ -690,7 +690,7 @@ struct DiaperQuickSheet: View {
     var body: some View {
         NavigationStack {
             DiaperView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }

@@ -433,15 +433,13 @@ struct AddEventSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.new_event".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("sheet.new_event".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(canSave ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
+                    BBBarButton(.save) { save() }
                         .disabled(!canSave)
                 }
             }
