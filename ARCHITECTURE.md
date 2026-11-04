@@ -476,12 +476,15 @@ no title, and its first heading, «Норма в день», takes the header tr
 The sheet bars' buttons are glyphs, through `BBBarButton`
 (`DesignSystem/Components/BBBarButton.swift`): × for Cancel and Close in the
 secondary ink, ✓ for Save, a pencil for Edit (the visit sheet's, and the
-pushed medication screen's, which takes the same button). On iOS 26 the bar
-draws each glyph in a glass circle and Save is the prominent one, a primary
-fill with an on-primary check, dimmed by the system when disabled. Before
-iOS 26 the glyphs stand bare, Save and Edit in the primary ink and a disabled
-Save in the secondary one. Each button's VoiceOver name is the app's word
-(`button.cancel`, `button.save`, `button.close`, `button.edit`), set
+pushed medication screen's, which takes the same button). The New Feeding
+sheet's confirm is ▶ (`.startFeeding`) while Start Timer is on, the same act
+as its bottom button «Start Feeding», and ✓ when it is off; both follow the
+toggle. On iOS 26 the bar draws each glyph in a glass circle and the confirm
+(✓ or ▶) is the prominent one, a primary fill with an on-primary glyph,
+dimmed by the system when disabled. Before iOS 26 the glyphs stand bare, the
+confirm and Edit in the primary ink and a disabled Save in the secondary one.
+Each button's VoiceOver name is the app's word (`button.cancel`,
+`button.save`, `button.start_feeding`, `button.close`, `button.edit`), set
 explicitly: a glyph's or a role's default name is read in the device's
 language. Every other icon-only button in a bar names itself the same way:
 the Feeding, Sleep, Growth and Events add buttons take their add sheet's
