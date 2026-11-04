@@ -932,8 +932,9 @@ is no other call site.
 locale, is `Core/Weekly/WeeklySummary` — pure, fed by
 `WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
 notification). Averages divide by the days that have any entry: a day with
-nothing logged is a gap in the log, not a day without feeds or sleep, and the
-card says «N of 7» when days are missing. The gain is a rate in g/week, the
+nothing logged is a gap in the log, not a day without feeds or sleep. The
+card's days line says so on every week, a full one too («Averages over the
+days with entries: 7 of 7»). The gain is a rate in g/week, the
 `WeightVelocity` pair whose later weighing falls in the week, so it is the
 number Growth shows. The newborn gate (`NewbornWeightLoss.gainDeferral`)
 withholds it (DECISIONS 2026-09-05, «During the newborn window, no surface

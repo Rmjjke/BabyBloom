@@ -64,11 +64,11 @@ struct WeeklySummaryCard: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if summary.current.daysWithEntries < 7 {
-                    BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
-                                                      summary.current.daysWithEntries))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
+                // Every week, a full one too: each per-day row is an average
+                // over the days with entries, and this line says so.
+                BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
+                                                  summary.current.daysWithEntries))
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             // iPad: the delta stays near its value.
             .frame(maxWidth: 480, alignment: .leading)
