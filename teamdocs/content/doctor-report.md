@@ -58,9 +58,12 @@ Nothing on it grades the baby.
   - The PDF reads `report.pdf.before_due_date`, which is that first sentence
     word for word. The fact reads in the same words on screen and paper.
 - **Averages say what they are averaged over**: `report.days_logged_fmt`
-  "Days with entries: %d of %d". A gap in the log reads as a gap. The
-  weekly `weekly.days_logged_fmt` hard-codes "of 7", so the report has its own
-  key.
+  "Averages over the days with entries: %d of %d", in the same words as the
+  weekly card's line. A gap in the log reads as a gap, and the "a day" lines
+  above it read as averages. The weekly `weekly.days_logged_fmt` hard-codes
+  "of 7", so the report has its own key. The report shows the line when a
+  day of the period has no entry of that kind, and never in a short period,
+  which prints counts.
 - **A short period (< 3 days) shows counts, not rates**:
   `report.feeds_count_fmt`, `report.sleep_total_fmt`, `report.wet_count_fmt`,
   `report.dirty_count_fmt`.
@@ -237,3 +240,7 @@ Every `report.*`, `visit.*` and `question.*` value passed this scan on
   say: «До этой даты взвешивания всё равно сохраняются и видны на графике».
   The old one claimed something is counted from the due date in the
   meantime, and promised for later what the chart already shows.
+- 2026-11-04 — `report.days_logged_fmt` takes the weekly line's words,
+  "Averages over the days with entries: %d of %d" / «Среднее по дням с
+  записями: %d из %d» / «Promedio de los días con registros: %d de %d». Its
+  "a day" lines are averages too, and the line under them now says so.
