@@ -353,6 +353,7 @@
   "settings.notifications": "Notificaciones",
   "settings.reminders": "Configurar recordatorios",
   "settings.notify_weekly": "Resumen semanal",
+  "settings.notify_weekly_hint": "Llega los lunes por la mañana.",
   "settings.data": "Datos",
   "settings.export": "Exportar datos",
   "settings.icloud": "Sincronización con iCloud",

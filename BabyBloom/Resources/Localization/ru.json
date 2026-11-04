@@ -353,6 +353,7 @@
   "settings.notifications": "Уведомления",
   "settings.reminders": "Настроить напоминания",
   "settings.notify_weekly": "Недельная сводка",
+  "settings.notify_weekly_hint": "Приходит утром по понедельникам.",
   "settings.data": "Данные",
   "settings.export": "Экспорт данных",
   "settings.icloud": "Синхронизация iCloud",

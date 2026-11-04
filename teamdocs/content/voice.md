@@ -266,3 +266,7 @@ and the Live Activity read the byte-identical copies in
   взвешивания… покажут прибавку», «Ещё одно взвешивание… покажет прибавку»,
   «Взвешивание этой недели покажет прибавку в следующий понедельник».
   Spanish «Dos pesajes…», «Un pesaje más…», «El pesaje de esta semana…».
+- 2026-11-04 — `settings.notify_weekly_hint` under the weekly summary
+  switch: "It arrives on Monday mornings." / «Приходит утром по
+  понедельникам.» / «Llega los lunes por la mañana.» Two lines at most on a
+  320 pt screen.
