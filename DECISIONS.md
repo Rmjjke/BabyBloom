@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — The Growth percentile card states the percentile; the band label goes
+
+The WHO percentile card's figure is the percentile itself, «61», or «> 97» / «< 3» past the chart's edge, in the text colour under «Weight Percentile», as the report prints it. The band label («50–85») is gone. The ring keeps the tier tint as a picture of where the reading sits, without a number, and VoiceOver skips it: the figure is read once, with its caption.
+
+**Why.** The card set the coarse fact big (the band, 28 pt) and the precise one small (the ring's number, 16 pt), so a first-time reader could not tell which number was the percentile; the report's plain «61» was clear. Both were drawn in the tier tint, too faint on the light surface: the label missed 3:1 in the middle and edge tints (1.98 and 1.84), and the ring's number missed 4.5:1 in all three (3.63 at most, in the alert tint). In the text colour the figure has 14.28:1. The ring needs no 3:1 of its own because the figure beside it states what it shows. It is also the report's rule (2026-11-02 below): a percentile is a position on the chart, and a band word turns it into a judgement. Not taken: keeping the label (the confusion and the contrast stay); words in the big line, «61-й перцентиль» (229.7 pt, so it wraps beside the ring on a 320-pt phone); the number in both places (one figure twice, 100 pt apart).
+
 ## 2026-11-04 — The weekly card's rows take one shape together, by fit
 
 The weekly card's three value rows stand on one line each, the delta at the row's end, while all of them fit there at full size. Otherwise all three stack with the delta under the value, as they already did at the accessibility sizes. The text no longer shrinks.
@@ -843,8 +849,10 @@ byte-identical PNGs across three locales, both schemes and both tails.
 or above the 97th, `tone: .neutralOnly` swaps `BBAlert` for the neutral
 `textPrimary`. Nothing is withheld — the band label still reads «< 3-й» in
 full, and the ring's badge still names the side of the chart; only the alarm
-is. On the Growth screen a red reading arrives with its explainer, the chart,
-the history and the copy telling the parent to ask someone qualified. Three
+is. (Since 2026-11-04 the card's figure is the percentile itself, «2» or «< 3»
+past the chart's edge, and the ring carries the tint alone.) On the Growth
+screen a red reading arrives with its explainer, the chart, the history and
+the copy telling the parent to ask someone qualified. Three
 minutes into onboarding there is none of that, and a parent who has just typed
 their newborn's discharge weight is the last person who should meet a red
 number they cannot act on. This is the 2026-09-05 rule about colour one step

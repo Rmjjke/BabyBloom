@@ -350,9 +350,9 @@ struct DashboardView: View {
                 gainRow(gain)
                 if store.isPremium, let reading = latestPercentile {
                     // `rowText` already rounds, clamps and — past the chart's
-                    // edge — drops the fake-precise number for the band label,
-                    // so this line says exactly what the Growth screen's card
-                    // says about the same weighing.
+                    // edge — drops the fake-precise number for the tail in
+                    // words, the same claim the Growth screen's figure makes
+                    // about the same weighing.
                     growthRow(label: "percentile.weight".l,
                               value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
                               color: BBTheme.Colors.textPrimary)

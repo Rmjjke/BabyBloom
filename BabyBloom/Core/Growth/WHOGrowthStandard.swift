@@ -215,8 +215,8 @@ enum WHOGrowthStandard {
     /// with two digits of precision it does not have. Past the clamp the badge
     /// names the side of the chart instead and stops there.
     ///
-    /// Returned together so the ring, its badge and the Dashboard's row can
-    /// never come from different z scores.
+    /// Returned together so the ring, the card's figure and the Dashboard's
+    /// row can never come from different z scores.
     static func percentileReading(of measurement: WeightMeasurement,
                                   correctedBirthDate: Date,
                                   isMale: Bool) -> PercentileReading? {
@@ -230,46 +230,34 @@ enum WHOGrowthStandard {
     }
 
     struct PercentileReading: Equatable {
-        /// Clamped to 1–99 — what the ring draws and what the band label reads.
+        /// Clamped to 1–99 — what the ring draws and its tint reads.
         let percentile: Double
         /// The true percentile is past the chart's edge, so the clamped number
         /// is the scale talking rather than a measurement.
         let isBeyondChart: Bool
 
-        /// Short text for the ring's badge: "> 97", "< 3", or the number.
+        /// The figure the percentile card and the report print: "> 97", "< 3",
+        /// or the number.
         var badge: String {
             guard isBeyondChart else { return "\(Int(percentile))" }
             return percentile > 50 ? "percentile.badge_above97".l : "percentile.badge_below3".l
         }
 
         /// The same honesty for a surface that renders a sentence rather than a
-        /// badge: past the edge it borrows the band label, which is already
-        /// prose in every language ("> 97th", "> 97-го"), instead of forcing a
-        /// two-digit number through a "%d percentile" format.
+        /// figure: past the edge it says the tail in each language's own form
+        /// ("> 97th", "> 97-го"), instead of forcing a two-digit number through
+        /// a "%d percentile" format.
         func rowText(format: String) -> String {
             guard isBeyondChart else { return String(format: format, Int(percentile)) }
-            return percentileLabel(percentile)
+            return percentile > 50 ? "percentile.above97".l : "percentile.below3".l
         }
     }
 
     // MARK: - Presentation
 
-    /// Localized percentile band label. Bands share identical boundaries with
-    /// `percentileTint`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
-    static func percentileLabel(_ percentile: Double) -> String {
-        switch percentile {
-        case ..<3:  return "percentile.below3".l
-        case ...15: return "percentile.3_15".l
-        case ...50: return "percentile.15_50".l
-        case ...85: return "percentile.50_85".l
-        case ...97: return "percentile.85_97".l
-        default:    return "percentile.above97".l
-        }
-    }
-
     /// How far from the middle of the chart a percentile sits, for the surfaces
-    /// that tint it. Three tiers where `percentileLabel` names six bands: the
-    /// words say which band, the colour only says how far out.
+    /// that tint it. The figure says where the reading is; the colour only
+    /// says how far out.
     ///
     /// Returned as a case rather than a colour because this file is pure domain
     /// logic and must not import SwiftUI (see ARCHITECTURE.md). The mapping to
@@ -285,8 +273,9 @@ enum WHOGrowthStandard {
         case beyond
     }
 
-    /// Boundaries identical to `percentileLabel` (3 / 15 / 50 / 85 / 97), so a
-    /// reading can never read "normal" while showing the tint of a tail.
+    /// Tiers: below 3, then up to and including 15 / 85 / 97. A reading past
+    /// the chart's edge is clamped to 1 or 99, so its tail figure ("< 3",
+    /// "> 97") always sits on the `.beyond` tint.
     static func percentileTint(_ percentile: Double) -> PercentileTint {
         switch percentile {
         case ..<3:  return .beyond

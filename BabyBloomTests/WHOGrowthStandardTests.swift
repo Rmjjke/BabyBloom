@@ -137,9 +137,10 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(WHOGrowthStandard.percentile(weightKg: 30, ageDays: 365, isMale: true), 99)
     }
 
-    /// Labels and colors must switch at the same 3 / 15 / 50 / 85 / 97 boundaries,
-    /// otherwise a reading can read "normal" while showing red.
-    func testLabelAndColorBoundariesAgree() {
+    /// The tint's tiers switch below 3 and after 15 / 85 / 97, and a reading
+    /// past the chart's edge is clamped to 1 or 99, so a tail figure never
+    /// sits on a calmer ring.
+    func testTintTiersAndTheTailsAgree() throws {
         XCTAssertEqual(WHOGrowthStandard.percentileTint(2), .beyond)
         XCTAssertEqual(WHOGrowthStandard.percentileTint(3), .edge)
         XCTAssertEqual(WHOGrowthStandard.percentileTint(15), .edge)
@@ -149,8 +150,21 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(WHOGrowthStandard.percentileTint(97), .edge)
         XCTAssertEqual(WHOGrowthStandard.percentileTint(98), .beyond)
 
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "percentile.15_50".l)
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(51), "percentile.50_85".l)
+        let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
+        let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
+        let top = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 20.0),
+            correctedBirthDate: birth, isMale: true))
+        let bottom = try XCTUnwrap(WHOGrowthStandard.percentileReading(
+            of: WeightMeasurement(date: weighed, weightKg: 1.5),
+            correctedBirthDate: birth, isMale: true))
+        XCTAssertTrue(top.isBeyondChart && bottom.isBeyondChart)
+        XCTAssertEqual(top.percentile, 99)
+        XCTAssertEqual(bottom.percentile, 1)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(top.percentile), .beyond)
+        XCTAssertEqual(top.rowText(format: "%d"), "percentile.above97".l)
+        XCTAssertEqual(WHOGrowthStandard.percentileTint(bottom.percentile), .beyond)
+        XCTAssertEqual(bottom.rowText(format: "%d"), "percentile.below3".l)
     }
 
     // MARK: - Scored at the weighing, not at the calendar
@@ -203,8 +217,8 @@ final class WHOGrowthStandardTests: XCTestCase {
             correctedBirthDate: birth, isMale: true))
         XCTAssertEqual(offChart.percentile, 99, "the ring still draws the clamped value")
         XCTAssertEqual(offChart.badge, "percentile.badge_above97".l)
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(offChart.percentile),
-                       "percentile.above97".l, "badge and band label must agree")
+        XCTAssertEqual(offChart.rowText(format: "%d"), "percentile.above97".l,
+                       "the figure and the row's words name the same side")
 
         // The bottom edge, symmetrically.
         let underChart = try XCTUnwrap(WHOGrowthStandard.percentileReading(
@@ -213,12 +227,12 @@ final class WHOGrowthStandardTests: XCTestCase {
         XCTAssertEqual(underChart.badge, "percentile.badge_below3".l)
     }
 
-    /// The sentence-shaped surfaces get the same honesty as the ring.
+    /// The sentence-shaped surfaces get the same honesty as the card's figure.
     ///
     /// The Dashboard renders "%d percentile" and kept printing "99-й перцентиль"
     /// at the clamp while the Growth screen beside it already said "> 97-го" —
     /// two surfaces, one weighing, two different claims about its precision.
-    func testTheDashboardRowIsAsHonestAsTheRingBadge() throws {
+    func testTheDashboardRowIsAsHonestAsTheCardsFigure() throws {
         let birth = Calendar.current.date(byAdding: .day, value: -60, to: Date())!
         let weighed = Calendar.current.date(byAdding: .day, value: 30, to: birth)!
         let format = "%d percentile"
@@ -228,7 +242,7 @@ final class WHOGrowthStandardTests: XCTestCase {
             correctedBirthDate: birth, isMale: true))
         XCTAssertTrue(offChart.isBeyondChart)
         XCTAssertEqual(offChart.rowText(format: format), "percentile.above97".l,
-                       "past the clamp the row borrows the band label, as the card does")
+                       "past the clamp the row says the tail in words")
 
         let ordinary = try XCTUnwrap(WHOGrowthStandard.percentileReading(
             of: WeightMeasurement(date: weighed, weightKg: 4.452),
