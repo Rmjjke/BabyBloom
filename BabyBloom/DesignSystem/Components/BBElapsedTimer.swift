@@ -1,26 +1,10 @@
 import SwiftUI
 
-/// Live-updating elapsed-time label (Home's running-timer card). Its face and
-/// formatting are shared with the Feeding and Sleep cards' `BBTimerCardHeader`,
-/// which keeps its own clock.
-struct BBElapsedTimer: View {
-    let startTime: Date
-    var font: Font = BBElapsedTimer.defaultFont
-    var color: Color
-    /// When `true`, values of an hour or more render as `HH:MM:SS` (sleep cards).
-    var showsHours: Bool = false
-
-    @State private var elapsed: TimeInterval = 0
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
+/// The digits every running-timer card draws and how they read; the clock
+/// that moves them lives in `BBTimerFit`.
+enum BBElapsedTimer {
     static var defaultFont: Font {
         BBTheme.Typography.scaled(36, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit()
-    }
-
-    var body: some View {
-        Self.face(Self.formatted(elapsed, showsHours: showsHours), font: font, color: color)
-            .onReceive(timer) { _ in elapsed = Date().timeIntervalSince(startTime) }
-            .onAppear { elapsed = Date().timeIntervalSince(startTime) }
     }
 
     /// The digits as every timer card draws them.
@@ -32,6 +16,8 @@ struct BBElapsedTimer: View {
             .minimumScaleFactor(0.7)
     }
 
+    /// When `showsHours` is `true`, values of an hour or more render as
+    /// `HH:MM:SS` (sleep cards); otherwise the minutes run on past 59.
     static func formatted(_ elapsed: TimeInterval, showsHours: Bool) -> String {
         let total = Int(elapsed)
         let hours = total / 3600
@@ -42,21 +28,24 @@ struct BBElapsedTimer: View {
     }
 }
 
-/// A timer card's top: what is running (a small coloured label over the
-/// title) beside the elapsed time while the two fit one line, else above it.
-/// The timer's width follows the elapsed time as well as the text size (hours
-/// on a sleep past an hour, three-digit minutes on a feed past 100), so the
-/// fit picks the shape, not the size: beside wide digits the title's column
-/// broke «Дневной» on a 320-pt screen and «Сцеженное» at AX2. Always stacked
-/// at accessibility sizes, whatever the width, as the Feeding card was: the
-/// fit would set a short title beside its timer and a long one above it, and
-/// at the largest text the running cards keep one shape.
-struct BBTimerCardHeader: View {
-    let label: String
-    let title: String
-    let color: Color
+/// A running timer with what is running beside it while the two fit one line,
+/// else above it. The timer's width follows the elapsed time as well as the
+/// text size (hours on a sleep past an hour, three-digit minutes on a feed past
+/// 100), so the fit picks the shape, not the size: beside wide digits the
+/// words' column broke «Дневной» on a 320-pt screen and «Сцеженное» at AX2 on
+/// the Feeding and Sleep cards, and «Кормление» on Home's card. Always stacked
+/// at accessibility sizes, whatever the width: the fit would set a short title
+/// beside its timer and a long one above it, and at the largest text the
+/// running cards keep one shape.
+struct BBTimerFit<Content: View>: View {
     let startTime: Date
     var showsHours: Bool = false
+    var font: Font = BBElapsedTimer.defaultFont
+    let color: Color
+    /// The gap on each side of the spacer in the one-line shape; `nil` takes
+    /// the stack's default.
+    var spacing: CGFloat? = nil
+    @ViewBuilder let content: () -> Content
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -69,10 +58,10 @@ struct BBTimerCardHeader: View {
                     stacked(digits)
                 } else {
                     ViewThatFits(in: .horizontal) {
-                        HStack {
-                            titleColumn
+                        HStack(spacing: spacing) {
+                            content()
                             Spacer()
-                            BBElapsedTimer.face(digits, color: color)
+                            BBElapsedTimer.face(digits, font: font, color: color)
                         }
                         stacked(digits)
                     }
@@ -84,18 +73,30 @@ struct BBTimerCardHeader: View {
 
     private func stacked(_ digits: String) -> some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            titleColumn
-            BBElapsedTimer.face(digits, color: color)
+            content()
+            BBElapsedTimer.face(digits, font: font, color: color)
         }
     }
+}
 
-    private var titleColumn: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
-                .foregroundStyle(color)
-            BBTheme.Typography.title3(title)
-                .foregroundStyle(BBTheme.Colors.textPrimary)
+/// The Feeding and Sleep cards' top: a small coloured label over the title,
+/// beside the elapsed time or above it as `BBTimerFit` decides.
+struct BBTimerCardHeader: View {
+    let label: String
+    let title: String
+    let color: Color
+    let startTime: Date
+    var showsHours: Bool = false
+
+    var body: some View {
+        BBTimerFit(startTime: startTime, showsHours: showsHours, color: color) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                    .foregroundStyle(color)
+                BBTheme.Typography.title3(title)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+            }
         }
     }
 }

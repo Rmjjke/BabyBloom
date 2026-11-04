@@ -192,7 +192,15 @@ struct DashboardView: View {
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_input")
-            HStack(spacing: 0) {
+            // Two by two below the accessibility sizes: in a quarter of the
+            // card on a 320-pt screen ru «Подгузники» broke from Medium up
+            // (71.1 pt in 64 at Large), and on 375 pt it kept 6.7, under the
+            // 8-pt spare. One at accessibility sizes, where half the card
+            // keeps 5.9 (122.1 in 128) and Bold Text breaks the word.
+            let columns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0),
+                                     count: columns.count(at: dynamicTypeSize)),
+                      spacing: BBTheme.Spacing.md) {
                 BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
                 BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
                 BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
@@ -632,20 +640,22 @@ struct ActiveTimerCard: View {
                     .font(.system(size: 20))
                     .foregroundStyle(color)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text(subtitle)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            // The text beside the timer while both fit one line, else
+            // above it. On a 320-pt screen at Large that is above at any
+            // time; beside three-digit minutes ru «Кормление» broke there.
+            BBTimerFit(startTime: startTime,
+                       font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
+                       color: color,
+                       spacing: BBTheme.Spacing.md) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Text(subtitle)
+                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
             }
-            Spacer()
-            BBElapsedTimer(
-                startTime: startTime,
-                font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
-                color: color
-            )
         }
         .padding(BBTheme.Spacing.md)
         .background(color.opacity(0.08))
