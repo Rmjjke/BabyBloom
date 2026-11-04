@@ -330,15 +330,16 @@ so the app's ceiling walks straight past it. The ceiling itself
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
 
-Two layouts recur at accessibility sizes, and each has one helper in
+Two field layouts have one helper each in
 `DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
-or time picker's label above it there (beside the buttons it broke mid-word)
-and hides that visible label from VoiceOver, so the picker's own label is read
-once; the entry sheets' date and time rows use it. The profile edit sheet's
-birth date keeps its caption above the picker at every size, like the rest of
-that form, so it takes the same two halves without the helper: the caption is
-hidden from VoiceOver and the picker carries the name. `bbPlaceholderLabel` is
-for a vertical `TextField` whose placeholder is its only visible label (the
+or time picker's label above it at every size (beside the buttons it broke
+mid-word as the text grew, and at Large on a 320-pt screen it had no room
+beside the widest date) and hides that visible label from VoiceOver, so the
+picker's own label is read once; the entry sheets' date and time rows use it.
+The profile edit sheet's birth date keeps that form's smaller caption above
+the picker, so it takes the same two halves without the helper: the caption
+is hidden from VoiceOver and the picker carries the name. `bbPlaceholderLabel`
+is for a vertical `TextField` whose placeholder is its only visible label (the
 medication name, dose and note, the Diaper note, the doctor question; also
 the medication maximum, whose example placeholder needs two lines in es): it
 keeps two lines at accessibility sizes and takes the body size from
@@ -359,7 +360,10 @@ ends and hints use it, and so do the stat card's title, unit and trend chip.
 Some screens outside the entry sheets still set fixed sizes. A glyph that
 stands over or beside its word grows with it; colour samples, icon plates
 (with the glyph inside them) and decoration keep their size, and the Growth
-sheet leaves its ruler out at accessibility sizes.
+sheet leaves its ruler out at accessibility sizes. The stool warning and the
+profile photo hint keep their wrapped alignment at every size, Large
+included: the warning's triangle sits on its first line and the hint is
+centred, because in ru both wrap at Large on a 320-pt screen.
 
 A row of tiles keeps a column count only while its widest en, ru or es word
 fits the column (the tile less its side padding) at a 320-pt width with 8 pt
@@ -382,6 +386,8 @@ a grid at Large takes the count. The counts, Large to accessibility:
 - Stool colours 4/3/3/3/2; Feeding sheet types 3/3/3/2/2 and breast sides
   3/2/2/2/1; Diaper sheet types and Sleep sheet locations 3/3/3/3/2; Add Event
   types and moods 3/3/2/2/2; Sleep sheet types two at every size.
+- Profile sheet feeding 3/2/2/2/1; profile sheet and onboarding gender
+  2/2/2/2/1.
 
 Four rows keep a count with less than the 8-pt spare, each measured with and
 without Bold Text, and measured again whenever its words change in any locale.
@@ -400,8 +406,7 @@ one column a quick or start tile keeps its shape: glyph above word, centred,
 full width. The profile edit sheet's gender and feeding rows and onboarding's
 gender row, measured at a 320-pt width, drop to one at accessibility sizes;
 the profile feeding row already takes two from xLarge, where «Смешанное» no
-longer fits a third of that width. They branch on the text size directly,
-not through `BBTileColumns`. The Home quick actions stand two by two below
+longer fits a third of that width. The Home quick actions stand two by two below
 the accessibility sizes: four in a row broke ru «Подгузники» at Large on
 320 pt and kept it under the 8-pt spare on 375 pt.
 
@@ -428,14 +433,16 @@ changes the answer.
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on
 one line, capped at `.large` and shrinking to fit between Cancel and Save.
-With `movesIntoContentAtAX`, which every add, dose, visit and medication sheet
-and the profile edit sheet pass, the bar shows no title at accessibility
-sizes. There the sheet's first content line, `BBSheetHeading`, shows it and
-carries the header trait, so VoiceOver reads it once. The flag and the heading
-go together: the flag alone leaves the sheet with no title at those sizes, the
-heading alone shows it twice. The diaper norm editor keeps the system inline title: with only
-Cancel in its bar the title has room at those sizes, and its content opens
-with a heading of its own.
+With `movesIntoContentAboveLarge`, which every add, dose, visit and
+medication sheet and the profile edit sheet pass, the bar shows no title
+above Large, where it would stay at its Large size while Cancel and Save
+grow. There the sheet's first content line, `BBSheetHeading`, shows it at the
+sheet's text size and carries the header trait, so VoiceOver reads it once.
+The flag and the heading go together: the flag alone leaves the sheet with no
+title above Large, the heading alone shows it twice. The diaper norm editor,
+with Cancel alone in its bar, does the same without the helper: above Large
+its bar shows no title, and its first heading, «Норма в день», takes the
+header trait.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
