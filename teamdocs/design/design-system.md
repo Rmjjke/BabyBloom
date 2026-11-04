@@ -47,10 +47,12 @@ warning keeps its orange words (G3, by design). Decided the same day and
 planned too: the brand gradient one step deeper, one pair in both modes, with
 every word on it in white at full strength (G12); unchecked and unselected
 marks in BBTextSecondary at full strength (G27); the splash words in a deep
-violet (G17). The splash words over the art in landscape are a gap (G28).
+violet (G17).
 Decided the same day and planned too: the norm editor's stepper card as wide
-as the column where its widest form does not fit (G22), and a selected tile's
-or chip's border drawn outside its fill (§ 3, G29).
+as the column where its widest form does not fit (G22), a selected tile's
+or chip's border drawn outside its fill (§ 3, G29), and the splash words
+beside the art's figure wherever its crop would put them on it, as in
+landscape (G28).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -105,7 +107,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | BBGradientStart | `Colors.premiumGradient` | #6F5BA8 | #7E6BB8 | premium hero / widget gradient, top-leading. White words on the gradient are under 4.5:1 in both modes (G12); #5D4893 in both, planned (decided 2026-11-04) |
 | BBGradientEnd | `Colors.premiumGradient` | #A795D9 | #9C89CE | premium hero / widget gradient, bottom-trailing; #7B68B6 in both, planned (G12) |
 | BBLaunchBackground | `Color("BBLaunchBackground")` | #D3BEE7 | #D3BEE7 | splash backdrop (one value) |
-| BBSplashText | `Color("BBSplashText")` | #F7F1E4 | #F7F1E4 | splash wordmark/tagline over the art (one value); 1.0–1.2 over the art, #4A357E in both modes, planned (G17) |
+| BBSplashText | `Color("BBSplashText")` | #F7F1E4 | #F7F1E4 | splash wordmark/tagline over the art (one value); 1.1–1.5 over the art in portrait, 1.0 in landscape, #4A357E in both modes, planned (G17) |
 
 Outside `Colors/`:
 - `AccentColor.colorset` (system tint) = BBPrimary's values, #6F5BA8 / #A795D9.
@@ -233,8 +235,9 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | system orange words on their orange@0.1 wash (the stool-colour warning, G3, by design) | **2.13** | 6.14 |
 | the Export screen's unselected circle textSecondary@0.3 / unchecked square @0.4 on the surface (G27) | **1.48 / 1.71** | **1.72 / 2.10** |
 | an unchecked or unselected mark in BBTextSecondary on the surface (G27, planned; #6B647C in light) | 5.62 | 6.11 |
-| BBSplashText #F7F1E4 over the splash art under the words, worst / median (G17) | **1.00 / 1.19** | the same |
-| BBSplashText #4A357E (planned) under the tagline, every portrait screen, worst (G17) | 4.61 | the same |
+| BBSplashText #F7F1E4 over the splash art under the words in portrait, worst / median; in landscape, worst (G17, G28) | **1.07 / 1.38**; **1.00** | the same |
+| BBSplashText #4A357E (planned) under the tagline, every portrait screen, worst (G17) | 4.87 | the same |
+| BBSplashText #4A357E (planned) beside the art's figure, wordmark / tagline, worst (G28, planned) | 5.72 / 5.74 | the same |
 
 Bold = under P8 for normal-size text; see § 10.
 
@@ -788,9 +791,10 @@ check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientE
   Screen on BBSurface, Dynamic Island on its black — spec in `m1-live-activity.md`.
 - **Splash** (`Features/Splash/SplashView.swift`): BBLaunchBackground, then
   `BBSplashBg` art (design PNG with its text band stitched out), wordmark and
-  tagline in BBSplashText (1.0–1.2 over the art, G17; #4A357E planned); in
-  landscape the words lie over the crescent (G28). Launch screen is
-  colour-only. Art: `docs/design/splash*.png`.
+  tagline in BBSplashText (1.1–1.5 over the art, G17; #4A357E planned); in
+  landscape the words lie over the crescent, and beside it is planned: the
+  figure and the words side by side, the art's inner sides faded into
+  BBLaunchBackground (G28). Launch screen is colour-only. Art: `docs/design/splash*.png`.
 - **App icon**: `docs/design/icon*.png`, brief `docs/design/icon-design-brief.md`.
 - **PDF / HTML export**: § 2 "Outside `Colors/`".
 
@@ -824,7 +828,9 @@ state mark at 8d3d2ba, with the splash art under its words, where G27 and
 G28 were found (2026-11-04). G2, G21 and G22 were read at e8abca8, 4f3c86c,
 b57b678 and 1590974 with their renders and 320 pt dumps (2026-11-04). The
 selected tiles' borders were read at 3b9dd3d, where G29 was measured
-(2026-11-04). Each line: what, where, which rule.
+(2026-11-04). G17 and G28 were measured again at 32fefea, with the splash
+art's pixels read where they lie, in portrait, in landscape and in Split
+View (2026-11-04). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
@@ -1161,16 +1167,36 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   stay. Why: the mark is the row's only sign of its state. Not taken: textSecondary@0.70, the least alpha at 3:1 (3.00 / 3.72),
   a second grey for marks that renders just under 3.
 - **G28 · The splash words lie over the art's subject in landscape** (found
-  2026-11-04 at 8d3d2ba). `SplashView.swift:56` centres the words at 0.82 of
-  the screen's height over `BBSplashBg`, a portrait art (941 × 1362) drawn
-  `scaledToFill`. In portrait that is the field under the crescent; on iPhone
-  and iPad in landscape the crop keeps the art's middle, and the wordmark and
-  the tagline land on the crescent and the baby's face (1.00 today; with
-  G17's planned ink 2.79–3.33 and 3.05–4.16 at worst, over its features).
-  Not a contrast fix: the words need a place of their own in landscape, a
-  landscape crop of the art with a field band (an asset;
-  `docs/design/splash4-notext.png` is portrait too) or the stack beside the
-  crescent (a layout). No direction yet.
+  2026-11-04 at 8d3d2ba, measured again at 32fefea). `SplashView.swift:56`
+  centres the words at 0.82 of the screen's height over `BBSplashBg`, a
+  portrait art (941 × 1362) drawn `scaledToFill`. In portrait that is the
+  field under the crescent; in a window wider than the art's 0.69 the crop
+  keeps the art's middle. On iPhone and on the full iPad in landscape the
+  wordmark and the tagline then lie on the crescent and the baby's face, every
+  word's box on the figure (1.00 today; with G17's planned ink 2.05–8.38 for
+  the wordmark and 3.20–8.64 for the tagline at worst). In Split View at 2/3
+  they lie on the crescent's shadow (the wordmark 3.05–3.57). Not a contrast
+  fix: the words need a place of their own. Direction (decided 2026-11-04,
+  planned): where the 0.82 stack would touch the figure (the crescent, the
+  baby, the sprout and the crescent's shadow: x 0.2317–0.8257, y
+  0.2658–0.7269 of the art), the figure and the words sit side by side. The
+  art keeps today's fill scale where it can and is drawn smaller where it
+  must, so that the figure fits the safe height with lg above and below, and
+  the figure, xl 32 and the stack fit the safe width with lg at both ends.
+  The group is centred in the safe area, the figure leading, and a side of
+  the art inside the window fades from the figure's edge into
+  BBLaunchBackground on a smoothstep (the art's edge in view is within 1.03
+  of it). Every word clears the figure, 5.72 / 5.74 at worst. Nothing changes
+  where the stack already lies clear of the figure: every portrait window (11
+  pt at the least, on the 320 class) and Split View at 1/2 and 1/3. Why: it
+  is the one layout with the art as it is that gives the words a place of
+  their own in every window, and on phones it shows the whole figure, which
+  the crop cuts today. Not taken: the art moved up with the words under the
+  figure (the figure alone is taller than the safe height less the words on
+  phones and on the full iPads); beside at today's crop (135–140 pt beside
+  the figure for a 220–262 pt stack); a field behind the words (a panel over
+  the baby's face); a landscape crop of the art (a new brand image, not
+  needed).
 - **G29 · A selected tile's border took its word's room** (found 2026-11-04
   at 4259dd0, measured at 3b9dd3d). Twelve selected marks draw
   `strokeBorder(BBPrimary, lineWidth: 1.5)` inside the tile:
@@ -1321,23 +1347,24 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   #F2F2F7 are 4.41:1, under P8 (`ExportGenerator.swift:403`, `:408`, at
   4f3c86c); G10's #6B647C (planned) makes them 5.03.
 - **G17 · The splash words over the art are under every ratio** (measured
-  2026-11-04 at 8d3d2ba from `BBSplashBg` under the words' frames, every
-  pixel, on eight screens, en / ru / es). The wordmark
+  2026-11-04 at 8d3d2ba and again at 32fefea with the art's pixels read
+  where they lie, from `BBSplashBg` under the words' frames, every pixel, on
+  six portrait screens and eight landscape windows, en / ru / es). The wordmark
   (`SplashView.swift:33–35`, 42 semibold serif) and the tagline (`:40–50`,
   14 medium caps, tracking 4.5, at @0.85 with its leaves) are BBSplashText
   #F7F1E4 over the lavender field and its white clouds: in portrait the
-  wordmark reads 1.00–1.04 at worst (1.19 median), the tagline 1.01–1.04
-  (1.15–1.18); BBSplashText on BBLaunchBackground alone is 1.52. The
+  wordmark reads 1.16–1.41 at worst (1.45 median), the tagline 1.07–1.35
+  (1.38–1.40); BBSplashText on BBLaunchBackground alone is 1.52. The
   wordmark is the brand name, a logotype (WCAG 1.4.3 sets no minimum); the
   tagline is text (4.5). Breaks P8. Direction (decided 2026-11-04,
   planned): BBSplashText #4A357E, one value in both modes, the deep violet of
   the brand hue (OKLCH L 0.392), and the tagline at full strength: under the
-  tagline 4.61 (en, 320 pt) to 5.82 at worst on every portrait screen, the
-  wordmark 5.50–5.74. BBTextPrimary cannot carry it: it turns light in dark
+  tagline 4.87 (en, 320 pt) to 5.90 at worst on every portrait screen, the
+  wordmark 5.58–5.97. BBTextPrimary cannot carry it: it turns light in dark
   while the art stays. Why: the tagline is live text, and one ink keeps the
   lockup whole. Not taken: the wordmark kept cream as a logotype with
   only the tagline deep, one lockup in two inks; the cream kept on both lines
-  as a brand moment by design, which leaves live text at 1.0–1.2. In
+  as a brand moment by design, which leaves live text at 1.1–1.4. In
   landscape: G28.
 
 **By design (not gaps — do not re-raise)**
