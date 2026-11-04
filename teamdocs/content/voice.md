@@ -177,8 +177,15 @@ and the Live Activity read the byte-identical copies in
     growth row and the weekly summary's previous week, where it has room.
   - In the JSON the no-break space is written as the escape ` `, which
     reads as the same character.
+  - A count «5 из 7» / "5 of 7" at the end of a line that wraps stays whole:
+    `%d\u{00A0}of\u{00A0}%d` in `weekly.days_logged_fmt` and
+    `report.days_logged_fmt`. These lines wrap on a 320 pt screen, and a
+    break inside the count («…entries: 18» / «of 20») leaves 18 at a line's
+    end, where it reads as a number of its own. The run is short, so it never
+    has to break inside a word, at AX2 either.
   - Not glued:
-    - counts «5 из 7» / "5 of 7", which have no unit;
+    - the PDF page number `report.pdf.page_fmt` ("Page 2 of 3"), which
+      never wraps;
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows.
@@ -244,3 +251,11 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — The rule for the time since the last feed on Home is written
   down: minutes, hours under 48, then whole days through `stats.days_ago_fmt`
   and `age.day.*`. These words have been in the app since 2026-11-02.
+- 2026-11-04 — The days-with-entries line says that the "a day" figures
+  above it are averages, on the weekly card and in the doctor report
+  (`weekly.days_logged_fmt`, `report.days_logged_fmt`): "Averages over the
+  days with entries: 5 of 7" / «Среднее по дням с записями: 5 из 7» /
+  «Promedio de los días con registros: 5 de 7». The row labels keep their
+  words: with "average" in it, a label no longer fits beside the week's
+  delta on a 320 pt screen. The count at the line's end is glued whole
+  ("18 of 20"), since the report's line wraps on that screen.
