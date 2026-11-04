@@ -14,7 +14,7 @@ struct InsightCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            header
+            InsightCardHeader(title: title, info: info)
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -23,13 +23,38 @@ struct InsightCard<Content: View>: View {
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
     }
+}
 
-    private var header: some View {
-        HStack {
+/// A card's header row: the title, and the "?" beside its first line.
+///
+/// A title wraps at the larger text sizes on a narrow screen, and the badge
+/// stays on its first line, like every glyph beside wrapping text in the app.
+/// A hidden one-line box in the title's face carries that line's baseline, and
+/// the badge is centred in it, so beside a one-line title it sits exactly where
+/// the centred badge always sat.
+struct InsightCardHeader: View {
+    let title: String
+    var info: InfoBadgeRole = .none
+    @Environment(\.explainerAction) private var explainerAction
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
             InsightCardTitle(title)
             Spacer()
-            badge
+            if hasBadge {
+                ZStack {
+                    BBTheme.Typography.title3(" ").hidden()
+                    badge
+                }
+            }
         }
+    }
+
+    /// The box only where a badge draws: an empty one would still take its
+    /// width from the title.
+    private var hasBadge: Bool {
+        if case .control = info { return true }
+        return explainerAction != nil
     }
 
     @ViewBuilder
@@ -578,24 +603,31 @@ struct WeightGainCard: View {
         if let deferral {
             deferralContent(deferral)
         } else if let reading {
-            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-                BBTheme.Typography.metric(
-                    String(format: "velocity.per_week_fmt".l, formatted(reading.gramsPerWeek))
-                )
-                .foregroundStyle(color(for: reading.band))
-                Spacer()
-                Text(String(format: "velocity.interval_fmt".l, reading.intervalDays).gluingNumbersToUnits)
-                    .font(.system(size: 12, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            // The number and the interval share a row while both fit whole, else
+            // the interval goes under the number: squeezed beside it, the number
+            // broke at its slash. The row's width follows the digits, the words
+            // and the text size, so the fit picks the shape. Alone, the number
+            // still breaks at its slash where it outgrows the line (AX2 on a
+            // 320-pt screen in en and es).
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                    gainNumber(reading)
+                    Spacer()
+                    interval(reading)
+                }
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                    gainNumber(reading)
+                    interval(reading)
+                }
             }
 
             if let band = reading.band, let expected = reading.expectedPerWeek {
                 Text(label(for: band))
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(color(for: band))
                 Text(String(format: "velocity.expected_fmt".l,
                             Int(expected.lowerBound.rounded()), Int(expected.upperBound.rounded())).gluingNumbersToUnits)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             } else {
                 HintText(text: "velocity.no_reference".l)
@@ -653,6 +685,17 @@ struct WeightGainCard: View {
     private func formatted(_ gramsPerWeek: Double) -> String {
         let rounded = Int(gramsPerWeek.rounded())
         return rounded > 0 ? "+\(rounded)" : "\(rounded)"
+    }
+
+    private func gainNumber(_ reading: WeightVelocity.Reading) -> some View {
+        BBTheme.Typography.metric(String(format: "velocity.per_week_fmt".l, formatted(reading.gramsPerWeek)))
+            .foregroundStyle(color(for: reading.band))
+    }
+
+    private func interval(_ reading: WeightVelocity.Reading) -> some View {
+        Text(String(format: "velocity.interval_fmt".l, reading.intervalDays).gluingNumbersToUnits)
+            .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
     }
 
     private func label(for band: WeightVelocity.Band?) -> String {
