@@ -91,6 +91,11 @@ and the Live Activity read the byte-identical copies in
     «Измерения», «Эпизоды сна». Russian takes the nominative, as «Вес» and
     «Рост» on the same screens: a genitive («Кормлений») reads as the word
     the number counts.
+  - In English a tile's or a progress card's label takes sentence case:
+    "Sleep episodes", "Daily goal", "Wet diapers". The cards print the
+    label as written. Section headings, sheet titles and buttons keep Title
+    Case ("Current Measurements", "New Feeding", "Edit Goal"), and so does
+    the goal editor's heading `diaper.norm.label` "Daily Goal".
   - A duration reads in hours and minutes: "42 h 10 min", "42 h", "15 min"
     (`duration.h_min`, `duration.h_only`, `duration.min_only`). Seconds
     show only under a minute (`duration.sec`, "45 sec") and on the running
@@ -492,3 +497,8 @@ and the Live Activity read the byte-identical copies in
   (§ Counts on Home and the stat tiles). The Russian stat labels
   `stat.feedings`, `stat.sleep_episodes`, `stat.measurements`,
   `stat.diapers`, `stat.wet` and `stat.dirty` are in the nominative.
+- 2026-11-05 — English tile and card labels take sentence case:
+  `stat.sleep_episodes` "Sleep episodes", `stat.daily_norm` "Daily goal".
+  The goal editor's heading `diaper.norm.label` stays "Daily Goal", as
+  every heading (§ Counts on Home and the stat tiles). Russian and Spanish
+  labels were already in sentence case.
