@@ -316,6 +316,31 @@ extension View {
         shadow(color: config.color, radius: config.radius, x: config.x, y: config.y)
     }
 
+    /// A selected tile's or chip's primary border, 1.5 pt wide and drawn
+    /// outside its fill: the inner edge on the fill's edge, the corners
+    /// concentric with the fill's. Drawn inside, it covered the fill's outer
+    /// 1.5 pt, and with Bold Text a word that fills its tile on a 320-pt
+    /// phone («Izquierdo» with its glyph, «Смешанное») ran under it. As an
+    /// overlay it takes no room, so a tile is laid out the same selected or
+    /// not; the gaps between tiles, 8 pt or more, keep 6.5. Apply it after
+    /// `bbShadow`, so the shadow keeps the fill's outline.
+    func bbSelectedBorder(_ selected: Bool, shape: BBSelectionShape = .tile) -> some View {
+        let width: CGFloat = 1.5
+        let color = selected ? BBTheme.Colors.primary : Color.clear
+        return overlay {
+            switch shape {
+            case .tile:
+                RoundedRectangle(cornerRadius: BBTheme.Radius.md + width)
+                    .strokeBorder(color, lineWidth: width)
+                    .padding(-width)
+            case .capsule:
+                Capsule()
+                    .strokeBorder(color, lineWidth: width)
+                    .padding(-width)
+            }
+        }
+    }
+
     /// A sheet's title: in the bar between its glyph buttons up to Large, and
     /// otherwise (above Large, or at every size with `.content`) the
     /// content's first line, `BBSheetHeading`, which the sheet puts first in
@@ -335,6 +360,13 @@ extension View {
     func bbSheetTitle(_ title: String, placement: BBSheetTitlePlacement = .barUpToLarge) -> some View {
         modifier(BBSheetTitle(title: title, placement: placement))
     }
+}
+
+/// The outline `bbSelectedBorder` follows: a tile filled with `Radius.md`
+/// corners, or a pill.
+enum BBSelectionShape {
+    case tile
+    case capsule
 }
 
 /// Where a sheet's title stands; `bbSheetTitle` and `BBSheetHeading` take the
