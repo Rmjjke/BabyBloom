@@ -313,7 +313,9 @@ to 15 minutes.
 
 The palette is **entirely** in the Asset Catalog
 (`Resources/Assets.xcassets/Colors/`), reached through `BBTheme.Colors`.
-Never hardcode a colour in a view. Re-theming the app is: colorset edits, the
+Never hardcode a colour in a view. Re-theming the app is: colorset edits (a
+colorset the widget uses also has its copy in `WidgetResources/Colors.xcassets`,
+which the pre-build check keeps byte-identical), the
 two splash PNGs, and the hex constants in `ExportGenerator` and
 `DoctorReportPDF` — the PDF renderer cannot read the Asset Catalog, so those
 two are the only places a colour is duplicated (both mirror the LIGHT
@@ -361,6 +363,20 @@ reference is never styled as an alarm"). Red stays on deletes and marks: the
 delete-history button has a red stroke and no red wash, the purchase error's
 words are `textPrimary` beside a red glyph, and no card has an over-limit red
 state.
+
+**The brand gradient (`BBGradientStart` → `BBGradientEnd`, `premiumGradient`
+and the widget's `WidgetBackground`) has one value in light and dark**, and
+every word and glyph on it is white at full strength: white reads 4.67:1 at
+its lighter end and more everywhere else, so a word passes wherever it lands.
+On the widget and the paywall hero the hierarchy is size and weight, never a
+white at an opacity; the widget's one tap target is a `BBSurface` capsule
+with `BBPrimary` words. An unselected or unchecked mark (the Export screen's
+range circle and category square, the visit sheet's questions, the plan
+picker) is `textSecondary` at full strength, 5.62 light and 6.11 dark on the
+surface; the checked one is `BBPrimary`. The splash words are `BBSplashText`
+#4A357E in both modes, because the art does not change with the mode; in
+portrait they sit on its lavender field, the tagline at 4.61 or more
+(DECISIONS 2026-11-05 "One brand gradient for both modes").
 
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every

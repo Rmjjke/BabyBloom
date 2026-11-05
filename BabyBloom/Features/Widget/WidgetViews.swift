@@ -163,9 +163,9 @@ enum WidgetControl: Equatable {
     }
 }
 
-/// A BBSurface capsule: white on the gradient's light end measures 2.64:1,
-/// BBPrimary on BBSurface 5.6 / 6.2. Visually 36 pt high, with a
-/// 44 pt hit area.
+/// A BBSurface capsule with BBPrimary words (5.6 / 6.2): the one tap target
+/// stands apart from the white words around it, which read 4.67:1 at the
+/// gradient's lighter end. Visually 36 pt high, with a 44 pt hit area.
 struct WidgetFeedControl: View {
     let entry: BabyBloomEntry
     /// `tab.feeding` on the small widget, `button.start_feeding` on the medium.
@@ -274,22 +274,22 @@ struct BabyBloomSmallWidgetView: View {
                 // failed to load. The minutes stay in the capsule.
                 Text("status.feeding_going".l)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
             } else if entry.hasLoggedAFeeding {
                 if let headline = WidgetCopy.headline(for: entry) {
                     Text(headline)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
 
                 // White in every state, the due one included: BBAccent over
-                // BBGradientEnd measures 1.44:1, and the hero can scale down
-                // far enough that the 4.5:1 threshold applies. The changed
-                // wording carries the state instead — the same word-not-colour
-                // rule DECISIONS.md sets for FeedingAdequacy.
+                // BBGradientEnd measures 2.54:1 (2.82 in dark), and the hero
+                // can scale down far enough that the 4.5:1 threshold applies.
+                // The changed wording carries the state instead — the same
+                // word-not-colour rule DECISIONS.md sets for FeedingAdequacy.
                 WidgetCopy.hero(for: entry)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
@@ -303,7 +303,7 @@ struct BabyBloomSmallWidgetView: View {
                     .foregroundStyle(.white)
                 Text("widget.log_first_feeding".l)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
             }
 
@@ -338,7 +338,7 @@ struct BabyBloomMediumWidgetView: View {
                                 if let headline = WidgetCopy.headline(for: entry) {
                                     Text(headline)
                                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white.opacity(0.75))
+                                        .foregroundStyle(.white)
                                 }
                                 // See the small widget: the due state is carried by
                                 // the wording, not by a tint that fails contrast.
@@ -362,7 +362,7 @@ struct BabyBloomMediumWidgetView: View {
                             Spacer(minLength: 0)
                             Text(entry.babyName)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.9))
+                                .foregroundStyle(.white)
                                 .lineLimit(1)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -403,7 +403,6 @@ struct BabyBloomMediumWidgetView: View {
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                     Text("widget.log_first_feeding".l)
                         .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.85))
                     Spacer(minLength: 0)
                     control
                         .frame(maxWidth: 190)
@@ -448,7 +447,7 @@ struct BabyBloomMediumWidgetView: View {
                 Text(WidgetCopy.elapsedText(overdue))
             }
             .font(.system(size: 12, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.75))
+            .foregroundStyle(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
         }
@@ -474,11 +473,11 @@ struct BabyBloomMediumWidgetView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(.white)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(.white)
                 value()
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)

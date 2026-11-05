@@ -32,7 +32,7 @@ struct PremiumHero: View {
 
                 Text("onboarding.premium.headline".l)
                     .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.82))
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
