@@ -1,6 +1,6 @@
 # M1 — Live Activity and widget controls (design note)
 
-status: final, 2026-10-28; § 2 "Saved looks done" + stack order 2026-10-29; § 0 confirmed against the code 2026-10-29 (one correction: the bottle timer); corrected after the Live Activity design review 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the widget design review 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31; § 5 the widget's plate and its words at the gradient decided 2026-11-04 (G12)
+status: final, 2026-10-28; § 2 "Saved looks done" + stack order 2026-10-29; § 0 confirmed against the code 2026-10-29 (one correction: the bottle timer); corrected after the Live Activity design review 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the widget design review 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31; § 5 the widget's plate and its words at the gradient decided 2026-11-04 (G12); § 5 the plate in code at 3bb4936, 2026-11-05
 decisions: it starts on its own with every feeding or sleep timer, on by default, with a switch in Settings to turn it off; free, because the night feed is the core moment of value and the money comes from history and charts; WCAG 2.2 AA; the widget control starts a feeding timer and the Live Activity takes over, the same record as one made in the app, with no new strings and one meaning of "a feeding"; formula and pumped feeds already run as a timer and show as running on the Dashboard, so there is a bottle state; M1 plan review: BBOnPrimary, Lock Screen on BBSurface, a design review before merge; the widget's plate one gradient in both modes, #5D4893 → #7B68B6, with every word and glyph on it in white at full strength, because every point of the plate then passes white (2026-11-04)
 reference: `teamdocs/design/design-system.md` (P = principle, G = gap)
 triggers: a timer kind added; a Live Activity presentation or widget family added; a token in § 6 renamed; the stale/dismissal policy changed; a Dynamic Type cap changed
@@ -132,7 +132,7 @@ expanded  ┌──────────────────────�
 
 ## 5. Widget — tap areas and the start-feeding control
 
-The background is the brand gradient as decided on 2026-11-04 (G12, planned; the widget's catalog takes it with the app's): one pair in both modes, BBGradientStart #5D4893 → BBGradientEnd #7B68B6. Every word and glyph on it is white at full strength, and the hierarchy goes by size and weight. White reads 7.46 at the start and 4.67 at the end, so every point of the plate passes 4.5. Why: no word, locale or new state can reach a failing corner, and the widget is quieter on a home screen at night. The control stays a **BBSurface capsule with a BBPrimary label**: a filled shape sets the one control that creates data apart from the words around it.
+The background is the brand gradient as decided on 2026-11-04 (G12, in code at 3bb4936, in the widget's catalog and the app's): one pair in both modes, BBGradientStart #5D4893 → BBGradientEnd #7B68B6. Every word and glyph on it is white at full strength, and the hierarchy goes by size and weight. White reads 7.46 at the start and 4.67 at the end, so every point of the plate passes 4.5. Why: no word, locale or new state can reach a failing corner, and the widget is quieter on a home screen at night. The control stays a **BBSurface capsule with a BBPrimary label**: a filled shape sets the one control that creates data apart from the words around it.
 
 | pair | light | dark |
 |---|---|---|
@@ -140,7 +140,7 @@ The background is the brand gradient as decided on 2026-11-04 (G12, planned; the
 | the widget's words at their places | 5.21–6.68 | 5.21–6.68 |
 | BBPrimary label on BBSurface capsule | 5.6 | 6.2 |
 | BBTextPrimary (started state) on capsule | 14.3 | 14.1 |
-| capsule against the plate around it (non-text) | 4.67–7.46 | 2.6–3.4 |
+| capsule against the plate around it (non-text) | 4.67–7.46 | 2.6–3.5 |
 
 In dark the capsule (BBSurface #221E2C) stands under 3:1 against parts of the plate. Its BBPrimary words and its ▶ name it, so WCAG 1.4.11 needs no edge, and it reads as a dark pill on the violet.
 
