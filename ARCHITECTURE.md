@@ -319,6 +319,19 @@ two splash PNGs, and the hex constants in `ExportGenerator` and
 two are the only places a colour is duplicated (both mirror the LIGHT
 colorsets: a PDF page is always white).
 
+**On the growth surfaces a tier tint (`BBSuccess`, `BBAccent`, `BBAlert`) is
+a mark, never text ink**: in light the green and the peach read under 2:1 on
+the surface. The verdicts put their words and figures in `textPrimary`
+(`textSecondary` for «not enough data» and «first weeks») and the tier on a
+mark beside them: the percentile ring, the newborn card's tick, the flag
+row's icon, and the dot `BBTierValue` draws before a value (within green,
+below peach, none above). `StatusWord.ink` / `.dot` are the mapping for the
+Nutrition rows, Home's gain row (`GrowthSummaryRow`) and the weight gain
+card's band word. The dot is part of the value's text run, so it wraps with
+the first word, and the value carries its words as its VoiceOver label
+(DECISIONS 2026-11-04 "A growth verdict's tier is a dot, never the colour of
+its words").
+
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every
 Dynamic Type scale in the app goes through `Typography.scaledPointSize`**,

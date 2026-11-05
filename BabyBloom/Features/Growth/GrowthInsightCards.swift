@@ -539,8 +539,10 @@ struct NewbornProgressCard: View {
 
             if let percent = status.percentOfBirthWeight {
                 HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                    // The tick says the regain; the figure keeps the text colour,
+                    // where the green is under 3:1 on the light surface.
                     BBTheme.Typography.metric(String(format: "newborn.percent_fmt".l, Int(percent.rounded())))
-                        .foregroundStyle(status.hasRegained ? BBTheme.Colors.success : BBTheme.Colors.textPrimary)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
                     Spacer()
                     if status.hasRegained {
                         Image(systemName: "checkmark.circle.fill")
@@ -622,9 +624,7 @@ struct WeightGainCard: View {
             }
 
             if let band = reading.band, let expected = reading.expectedPerWeek {
-                Text(label(for: band))
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(color(for: band))
+                BBTierValue(text: label(for: band), dot: dot(for: band), size: 14, style: .body)
                 Text(String(format: "velocity.expected_fmt".l,
                             Int(expected.lowerBound.rounded()), Int(expected.upperBound.rounded())).gluingNumbersToUnits)
                     .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
@@ -689,7 +689,7 @@ struct WeightGainCard: View {
 
     private func gainNumber(_ reading: WeightVelocity.Reading) -> some View {
         BBTheme.Typography.metric(String(format: "velocity.per_week_fmt".l, formatted(reading.gramsPerWeek)))
-            .foregroundStyle(color(for: reading.band))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
     }
 
     private func interval(_ reading: WeightVelocity.Reading) -> some View {
@@ -707,22 +707,18 @@ struct WeightGainCard: View {
         }
     }
 
-    /// Only "below" is tinted as something to look at. A baby gaining fast is
-    /// not a problem to flag in an app.
+    /// The tier as the dot before the band word; the word and the figure keep
+    /// the text colour. "Above" has none: a baby gaining fast is not a problem
+    /// to flag in an app, and not a tick either.
     ///
-    /// Both tints are TOKENS, not the `#F5A45F` and `#6BBF6B` literals this card
-    /// shipped with. `NutritionSection` says the same words a couple of hundred
-    /// points further down the same screen, and a render of the two stacked
-    /// showed them as two different designs rather than one — the literals have
-    /// no dark variant, so dark mode widened the gap instead of closing it.
-    /// "Below" moved first; "within" followed once the stacked render made the
-    /// remaining mint-versus-green mismatch impossible to argue for.
-    private func color(for band: WeightVelocity.Band?) -> Color {
+    /// The dots are `StatusWord`'s, which `NutritionSection` draws a couple of
+    /// hundred points further down the same screen: a stacked render once
+    /// showed this card's own literals and the section's tokens as two designs.
+    private func dot(for band: WeightVelocity.Band) -> Color? {
         switch band {
-        case .below:  return BBTheme.Colors.accent
-        case .within: return BBTheme.Colors.success
-        case .above:  return BBTheme.Colors.textPrimary
-        case nil:     return BBTheme.Colors.textPrimary
+        case .below:  return StatusWord.below.dot
+        case .within: return StatusWord.within.dot
+        case .above:  return StatusWord.above.dot
         }
     }
 }
