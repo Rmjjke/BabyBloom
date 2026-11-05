@@ -272,15 +272,43 @@ and the Live Activity read the byte-identical copies in
       `duration.h_min`;
     - a short Russian preposition before a number, in every key: «до 12
       раз», «от 3 дней», «К 3 месяцам».
-  - A Russian ordinal stays loose: neither «14-му дню» nor «50-й
-    перцентиль» is glued, nor a longer preposition before it. The line may
-    break after the hyphen inside the ordinal, and a glue around it moves
-    the break there: «3–97-» / «й перцентили», which reads worse than a
-    break at the space. A one-letter preposition before it is glued like
-    any other («к 14-му дню»). Measured on the newborn sheet, the line
-    breaks at the ordinal's own hyphen in the same places with the glue and
-    without it (on a 320 pt screen at AX1, 375 pt at AX2, 402 pt at Large
-    and AX2), and loose the «к» ended a line 6 times in the 18 cases.
+  - A Russian ordinal (a number, the end of a range or `%d`, then a hyphen
+    and its ending) takes the no-break hyphen U+2011 in place of the
+    hyphen: «14‑му», «3–97‑й», «%d‑й». It draws as the hyphen,
+    and the line never breaks inside the ordinal. Every ordinal in the
+    Russian JSON has it: `dashboard.growth.percentile_fmt`,
+    `percentile.below3`, `percentile.above97`, `newborn.flag_not_regained`,
+    `newborn.info_body`, `percentile.info_body` and `chart.who_corridor`.
+    Like the no-break space, it is the raw character in the JSON, and a diff
+    shows it as a hyphen.
+    - The word after the ordinal stays loose: «50‑й перцентиль» may
+      break at the space, and a break after a whole ordinal reads well.
+      Glued, «50‑й перцентиль» would be one run wider than the value
+      beside «Перцентиль по весу» on the Home growth row (on a 320 pt screen
+      from xL, on a 375 pt one at xxxL), and the line would break inside
+      «перцентиль». On the info sheets the glue only adds lines.
+    - A one-letter preposition before the ordinal is glued like any other
+      («к 14‑му дню»); a longer word before it is not («выше 97‑го»).
+    - Measured on 320, 375 and 402 pt screens from Large to AX2, the line
+      broke at the ordinal's own hyphen 5 times on the growth info sheets:
+      «к 14-» / «му» on the newborn sheet on a 320 pt screen at AX1, 375 pt
+      at AX2 and 402 pt at Large, «10–14-» / «му» on the same sheet at AX2
+      on 402 pt, and «97-» / «го» on the percentile sheet at AX2 on 402 pt.
+      With the no-break hyphen it never does. No line breaks inside a word
+      that did not before; at AX2 on a 402 pt screen each of the two sheets
+      takes one line more.
+    - SF and SF Rounded, the app's and the widget's faces, draw U+2011 with
+      the hyphen's own glyph. Helvetica Neue, the PDF's face, draws it as a
+      hyphen a little shorter than its plain one (86% of its width in
+      Regular, 82% in Bold); Helvetica draws it at the same width.
+    - A unit test that compares one of these strings with a literal writes
+      `\u{2011}` in it; a UI test matcher takes `.` in its place.
+  - Before this rule the ordinal was loose, and a glue around it only moved
+    the break inside it: «3–97-» / «й перцентили», which reads worse than a
+    break at the space. With the glue and without it the line broke at the
+    ordinal's own hyphen in the same places, and loose, the «к» before
+    «14-му» ended a line 6 times in 18 cases on the newborn sheet, so it was
+    glued.
   - Left to the code: a key whose every use passes through
     `gluingNumbersToUnits` keeps its plain space in the JSON, because the
     code glues each digit to the space after it when it shows the line.
@@ -421,3 +449,12 @@ and the Live Activity read the byte-identical copies in
   test that matches one of these lines takes `.` where the no-break space
   now is. The ordinal rule now says the one-letter preposition before an
   ordinal is glued («к 14-му дню»).
+- 2026-11-05 — Every Russian ordinal takes the no-break hyphen U+2011 in
+  place of its hyphen (§ Line breaks around numbers), so a line no longer
+  ends on «14-» with «му» on the next: 11 hyphens in
+  `dashboard.growth.percentile_fmt`, `percentile.below3`,
+  `percentile.above97`, `newborn.flag_not_regained`, `newborn.info_body`
+  (2), `percentile.info_body` (4) and `chart.who_corridor`, nothing else
+  changed. The word after the ordinal stays loose. A test that compares
+  `percentile.below3` or `percentile.above97` with «< 3-й» or «> 97-го»
+  takes the new hyphen.
