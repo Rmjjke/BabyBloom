@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-05 — In a wide window the splash puts the figure and the words side by side
+
+Where the words' place at 82 % of the height would lie on the art's figure (a phone or a full iPad in landscape, iPad Split View 2/3), the figure and the words stand side by side, centred as one group in the safe area, and the art's sides inside the window fade into the launch colour. Every other window keeps the splash as it was. The art is not mirrored in a right-to-left language; the group is.
+
+**Why.** It is the one layout with the art as it is that gives the words a place of their own in every window, and on a phone it shows the whole figure, which the landscape crop cut at the top and the bottom. The words keep their type, size and lockup, and the fade leaves no line where the art meets the field. Not taken: the art moved up with the words under the figure (at the fill scale the figure, its shadow and the words are taller than the safe height on every phone and on the full iPads); the words beside the figure at the fill scale (on an iPhone 17 in landscape the safe area leaves 135–140 pt beside it, for a 220–262 pt lockup); a plate behind the words where they are (a panel over the baby's face, and the words still on the subject); a landscape crop of the art (a new brand image, and not needed). The figure's box is a constant measured on the art, not derived from it, so a new `BBSplashBg` needs it measured again.
+
 ## 2026-11-05 — One brand gradient for both modes, with white words at full strength; the splash words are deep violet
 
 `BBGradientStart` #5D4893 and `BBGradientEnd` #7B68B6 hold one value for light and dark, in the app and the widget. Every word and glyph on the gradient, on the widget and the paywall hero, is white at full strength. `BBSplashText` moves from cream #F7F1E4 to #4A357E in both modes, and the tagline drops its 0.85. The Export screen's unselected range circle and unchecked category square are the secondary text colour at full strength.

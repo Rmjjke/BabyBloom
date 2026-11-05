@@ -316,7 +316,8 @@ The palette is **entirely** in the Asset Catalog
 Never hardcode a colour in a view. Re-theming the app is: colorset edits (a
 colorset the widget uses also has its copy in `WidgetResources/Colors.xcassets`,
 which the pre-build check keeps byte-identical), the
-two splash PNGs, and the hex constants in `ExportGenerator` and
+two splash PNGs (a new `BBSplashBg` also means measuring its figure's box
+again, `SplashLayout.figure`), and the hex constants in `ExportGenerator` and
 `DoctorReportPDF` — the PDF renderer cannot read the Asset Catalog, so those
 two are the only places a colour is duplicated (both mirror the LIGHT
 colorsets: a PDF page is always white).
@@ -389,6 +390,29 @@ surface; the checked one is `BBPrimary`. The splash words are `BBSplashText`
 #4A357E in both modes, because the art does not change with the mode; in
 portrait they sit on its lavender field, the tagline at 4.61 or more
 (DECISIONS 2026-11-05 "One brand gradient for both modes").
+
+**The splash places its words by the art's figure** (`SplashLayout`, in
+`SplashView.swift`). `BBSplashBg` fills the window and the words stand centred
+at 82 % of its height wherever they clear the figure's box (the crescent, the
+baby, the sprout and their shadow) and the safe bottom: every portrait window,
+and iPad Split View 1/2 and 1/3. In a wider window that place is on the figure
+(a phone or a full iPad in landscape, iPad Split View 2/3), so there the
+figure and the words stand side by side, the figure leading and 32 pt before
+the words, centred as one group in the safe area and 24 pt inside it. The art
+is drawn at the largest scale that fits, never above the fill, and a side of it
+that ends inside the window fades into `BBLaunchBackground` on a smoothstep
+that starts at the figure's edge, so the figure is never faded and no line
+shows. The box is measured on the art in its pixels, so a new art means
+measuring it again. In a right-to-left language the group is mirrored and the
+art is not. The insets come from a `GeometryReader` inside the safe area,
+wrapped around the one that ignores it for the full size: a reader under
+`.ignoresSafeArea()` reports zero insets. The layout is a function of the
+window and the words' size alone, so a rotation puts everything in its new
+place in one pass and the reveal goes on. VoiceOver orders the splash's
+elements by position, and beside the words the art lies leading, so the art
+carries a lower sort priority to keep the words read first (DECISIONS
+2026-11-05 "In a wide window the splash puts the figure and the words side by
+side").
 
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every
