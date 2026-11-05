@@ -1,20 +1,19 @@
 # Design system — BabyBloom (Bitty / Ночка / Nenita)
 
 status: baseline — describes what `main` ships at 10cf1a9 (2026-10-28); updated
-2026-10-28 with D13, D14 and the M1 token BBOnPrimary. Every value marked
-`in force` is in code, in `DECISIONS.md` or an owner decision (D<n>); `planned`
-means decided, not shipped yet. Gaps are notes (§ 10), not fixes.
-owner: design · **canonical copy `teamdocs/design/design-system.md`** (committed);
-`.team/design/design-system.md` is the designer's working draft, kept
-byte-identical (`cmp` before every commit).
+2026-10-28 with the stool-colour exception (G3), the contrast floor (P8) and the
+M1 token BBOnPrimary; § 2 and G16 follow the export PDF of 2026-11-02. Every value
+marked `in force` is in code, in `DECISIONS.md` or in a product decision stated
+here with its reason; `planned` means decided, not shipped yet. Gaps are notes
+(§ 10), not fixes.
 sources: `BabyBloom/Resources/Assets.xcassets/Colors/`, `BabyBloom/DesignSystem/`,
 `DECISIONS.md`, `docs/design/`, `README.md#дизайн-система`.
 surface notes: `teamdocs/design/m1-live-activity.md` (Live Activity, widget controls).
 
 ## 1. Principles
 
-triggers: a new DECISIONS.md entry or owner decision about colour, copy tone, gates or accessibility
-check: none — principles are read against DECISIONS.md and `.team/manager/decisions.md` at review, not measured
+triggers: a new product decision or DECISIONS.md entry about colour, copy tone, gates or accessibility
+check: none — principles are read against DECISIONS.md at review, not measured
 
 Character: soft lavender femtech — pastel tints, rounded surfaces, diffuse
 shadows tinted in the brand hue, rounded SF for body and digits, straight SF
@@ -22,14 +21,14 @@ semibold for headers.
 
 | # | principle | status | source |
 |---|---|---|---|
-| P1 | **Calm rule.** The app never frightens a tired parent: no alarming colour, icon or copy unless something genuinely needs raising with someone. A count above its reference is reassurance, never red, flagged or triangled; fast gain takes the neutral primary tint, not the green tick. Red (`BBAlert`) means only "raise this with someone": growth flags and the tails of the percentile chart — never a count. **One by-design exception:** the stool-colour warning in DiaperView (orange + triangle, D13). | in force | DECISIONS 2026-09-05 "A count above its reference is never styled as an alarm"; DECISIONS 2026-09-22 (rating prompt blocked by the calm rule); D13 |
+| P1 | **Calm rule.** The app never frightens a tired parent: no alarming colour, icon or copy unless something genuinely needs raising with someone. A count above its reference is reassurance, never red, flagged or triangled; fast gain takes the neutral primary tint, not the green tick. Red (`BBAlert`) means only "raise this with someone": growth flags and the tails of the percentile chart — never a count. **One by-design exception:** the stool-colour warning in DiaperView (orange + triangle, G3). | in force | DECISIONS 2026-09-05 "A count above its reference is never styled as an alarm"; DECISIONS 2026-09-22 (rating prompt blocked by the calm rule); product decision 2026-10-28 (G3) |
 | P2 | **Locked is not wrong.** A paywall gate is drawn in the calm primary tint (`primary@0.08` fill, `lock.fill`), never alarm red — nothing was lost. | in force | `BBLockedHistoryFooter` |
 | P3 | **Gate visible before the tap.** Every gated control carries `LockBadge` and says "locked" to VoiceOver (`bbLockedAccessibility`). A free-looking control that answers with a paywall is a bait-and-switch. | in force | `LockBadge`, `BBQuickActionButton.locked` |
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
 | P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + `ExportGenerator` hex. | in force | DECISIONS 2026-07-21, 2026-09-01 |
 | P6 | **Dynamic Type through `BBTheme.Typography`**, ceiling AX2 (`accessibilityLarge`) in one constant. | in force | DECISIONS 2026-08-28 |
-| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. | in force | `BBFab` (D6 in code), `BBLockedHistoryFooter`, `DiaperView` |
-| P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | D14 (owner, 2026-10-28) |
+| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
+| P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | product decision 2026-10-28: WCAG 2.2 AA is the review bar |
 
 ## 2. Colour tokens
 
@@ -41,7 +40,7 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | colorset | Swift | light | dark | role |
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
-| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **planned (M1, accepted in the plan v2 review round, D15)** — label and glyph colour on any filled BBPrimary surface; white-on-primary in dark is G1. Added by Dev in `live-activity-timers`, also copied to the widget catalog |
+| BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **planned (M1, accepted in the M1 plan review, 2026-10-28)** — label and glyph colour on any filled BBPrimary surface; white-on-primary in dark is G1. Added with the Live Activity, also copied to the widget catalog |
 | BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget) |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
@@ -65,9 +64,14 @@ Outside `Colors/`:
   BBAccent; the pre-build script fails on drift (DECISIONS 2026-09-01). M1 adds
   the colorsets the Live Activity and the widget control need (list in
   `m1-live-activity.md` § 6).
-- `ExportGenerator` (PDF/HTML): #6F5BA8 → #A795D9 header gradient and table
-  heads, #6F5BA8 card titles; neutrals are iOS system greys (#1C1C1E text,
-  #F2F2F7 cards, #8E8E93 labels, #E5E5EA rules). The one accepted duplication.
+- `ExportGenerator` (PDF/HTML): solid #6F5BA8 header and table heads with white
+  text (5.6:1), #6F5BA8 card titles (5.0:1 on the card), #746D85 labels and footer
+  (BBTextSecondary, 4.9:1 on white); the other neutrals are iOS system greys
+  (#1C1C1E text, #F2F2F7 cards, #F9F9FB even rows, #E5E5EA rules). Solid because
+  white on the old gradient's light end (#A795D9) was under 3:1; #746D85 because
+  #8E8E93 on white was 3.3:1. `DoctorReportPDF` holds its own constants, four of
+  them the light colorsets' values (`m2-doctor-report.md` § 5). Accepted
+  duplication: the PDF renderer cannot read the Asset Catalog.
 
 Tint usage pattern (in force, from components): icon disc/tile fill =
 `tint@0.22`; tonal surface = `tint@0.08`; secondary button = `primary@0.10`
@@ -106,7 +110,7 @@ Bold = under P8 for normal-size text; see § 10.
 triggers: a `BBTheme.Typography` function added or re-sized; the Dynamic Type ceiling moved
 check: `grep -nE 'static func (largeTitle|title[123]|body|bodyEmphasized|callout|caption|metric|metricSmall)\(' BabyBloom/DesignSystem/BBTheme.swift` → the 10 rows below
 
-Scale "D1": straight SF Pro semibold for headers; SF Rounded for body; rounded +
+Scale: straight SF Pro semibold for headers; SF Rounded for body; rounded +
 `monospacedDigit` for metrics and timers. Every size goes through
 `Typography.scaled(_:relativeTo:weight:design:)`: scales with Dynamic Type,
 capped at `maxContentSizeCategory = .accessibilityLarge` (AX2), pixel-identical
@@ -167,7 +171,7 @@ track), 8 (trend chip, chart nav buttons), 6 (progress bar), 4, 9, 2 (§ 10 G8).
 triggers: a `BBTheme.Shadow` member or a surface modifier added or changed
 check: `grep -nE 'static let (soft|card|button) = ShadowConfig|struct BB[A-Za-z]+Modifier' BabyBloom/DesignSystem/BBTheme.swift` → 3 shadows + 4 modifiers
 
-Shadows "D2": diffuse, tinted with `primary` instead of black.
+Shadows: diffuse, tinted with `primary` instead of black.
 
 | shadow | colour | radius | y |
 |---|---|---|---|
@@ -236,7 +240,7 @@ check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBGradientEnd, BBGradi
 - **Widget** (`Features/Widget/WidgetViews.swift`): premium gradient
   background, all text white at 0.7–1.0 opacity, raw rounded sizes 10–32 pt
   (widgets do not take Dynamic Type the same way; fixed sizes are expected
-  here). M1 adds tap areas and a start-feeding control (D16):
+  here). M1 adds tap areas and a start-feeding control:
   `m1-live-activity.md` § 5.
 - **Live Activity** (M1, `planned`): Lock Screen on BBSurface, Dynamic Island
   on its black — spec in `m1-live-activity.md`.
@@ -252,8 +256,8 @@ triggers: any gap fixed or a new one found at review
 check: none — each gap carries its own grep; re-run it when the gap is worked
 
 Seen from code at 10cf1a9; no live look on device yet. Each line: what,
-where, which rule. Per D14, existing contrast violations are backlog items, not
-blockers; G1 and G2 are in the backlog (Manager, 2026-10-28).
+where, which rule. Under P8, existing contrast violations are backlog items, not
+blockers; G1 and G2 are in the backlog (2026-10-28).
 
 **Major**
 - **G1 · White on BBPrimary in dark mode is 2.64:1.** Dark primary #A795D9 is
@@ -311,15 +315,16 @@ blockers; G1 and G2 are in the backlog (Manager, 2026-10-28).
   light-only colours of 17 colorsets; `AccentColor.colorset` duplicates
   BBPrimary and is missing from the re-theme list in CLAUDE.md. README should
   point here.
-- **G16 · PDF neutrals are iOS system greys,** not the brand neutrals
-  (#1C1C1E/#F2F2F7/#8E8E93 vs BBTextPrimary/BBBackground/BBTextSecondary).
-  Defensible for print; noted so a re-theme does not miss it.
+- **G16 · The export PDF's neutrals are mostly iOS system greys,** not the brand
+  neutrals (#1C1C1E/#F2F2F7 vs BBTextPrimary/BBBackground; also #F9F9FB even rows,
+  #E5E5EA rules). Its labels and footer are BBTextSecondary #746D85. Defensible for
+  print; noted so a re-theme does not miss it.
 - **G17 · Splash text contrast unknown:** BBSplashText on BBLaunchBackground
   is 1.52:1, but the text sits on the splash art, not the plain backdrop —
   needs a live look.
 
 **By design (not gaps — do not re-raise)**
 - **G3 · Stool-colour warning in DiaperView** (`DiaperView.swift:410–416`,
-  orange + `exclamationmark.triangle.fill`): the owner keeps it as it is — a
+  orange + `exclamationmark.triangle.fill`): it stays as it is — a
   deliberate exception to the calm rule for a medically meaningful signal
-  (pale/white stool). D13, 2026-10-28.
+  (pale/white stool). Product decision, 2026-10-28.
