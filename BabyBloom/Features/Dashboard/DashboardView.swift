@@ -638,7 +638,6 @@ struct ActiveTimerCard: View {
             BBTimerFit(startTime: startTime,
                        showsHours: showsHours,
                        font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
-                       color: color,
                        spacing: BBTheme.Spacing.md) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)

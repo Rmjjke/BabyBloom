@@ -7,11 +7,13 @@ enum BBElapsedTimer {
         BBTheme.Typography.scaled(36, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit()
     }
 
-    /// The digits as every timer card draws them.
-    static func face(_ text: String, font: Font = defaultFont, color: Color) -> some View {
+    /// The digits as every timer card draws them. In the text ink, never the
+    /// category tint: the tint marks the card (its wash, stroke and disc), and
+    /// as ink on that wash it read under the contrast the digits need.
+    static func face(_ text: String, font: Font = defaultFont) -> some View {
         Text(text)
             .font(font)
-            .foregroundStyle(color)
+            .foregroundStyle(BBTheme.Colors.textPrimary)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
     }
@@ -41,7 +43,6 @@ struct BBTimerFit<Content: View>: View {
     let startTime: Date
     var showsHours: Bool = false
     var font: Font = BBElapsedTimer.defaultFont
-    let color: Color
     /// The gap on each side of the spacer in the one-line shape; `nil` takes
     /// the stack's default.
     var spacing: CGFloat? = nil
@@ -61,7 +62,7 @@ struct BBTimerFit<Content: View>: View {
                         HStack(spacing: spacing) {
                             content()
                             Spacer()
-                            BBElapsedTimer.face(digits, font: font, color: color)
+                            BBElapsedTimer.face(digits, font: font)
                         }
                         stacked(digits)
                     }
@@ -74,26 +75,26 @@ struct BBTimerFit<Content: View>: View {
     private func stacked(_ digits: String) -> some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             content()
-            BBElapsedTimer.face(digits, font: font, color: color)
+            BBElapsedTimer.face(digits, font: font)
         }
     }
 }
 
-/// The Feeding and Sleep cards' top: a small coloured label over the title,
-/// beside the elapsed time or above it as `BBTimerFit` decides.
+/// The Feeding and Sleep cards' top: a small label over the title, beside the
+/// elapsed time or above it as `BBTimerFit` decides. Both words are text ink;
+/// the card around them carries the category's tint.
 struct BBTimerCardHeader: View {
     let label: String
     let title: String
-    let color: Color
     let startTime: Date
     var showsHours: Bool = false
 
     var body: some View {
-        BBTimerFit(startTime: startTime, showsHours: showsHours, color: color) {
+        BBTimerFit(startTime: startTime, showsHours: showsHours) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
-                    .foregroundStyle(color)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
                 BBTheme.Typography.title3(title)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
             }

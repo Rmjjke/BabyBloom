@@ -332,6 +332,14 @@ the first word, and the value carries its words as its VoiceOver label
 (DECISIONS 2026-11-04 "A growth verdict's tier is a dot, never the colour of
 its words").
 
+**A category tint (`BBFeeding`, `BBSleep`, `BBDiaper`) is a mark too**: the
+running-timer cards' wash, stroke and Home's glyph disc, the week chart's
+bars, the bottle slider. The words and figures beside them are text ink: the
+timer's label and digits (`BBElapsedTimer.face` and `BBTimerCardHeader` take
+no colour), the chart's day labels and the bottle volume. As ink in light a
+tint read at 1.6–2.1:1 on its wash or the surface, under the 3:1 a large
+figure needs; the same digits are `textPrimary` on the Lock Screen too.
+
 A delete draws the system red: from `role: .destructive` where the button has
 a role (the sheets' Delete, the confirmations), from `Color.red` where it has
 none (the delete-history button, the swipe action). Never `BBAlert` on a

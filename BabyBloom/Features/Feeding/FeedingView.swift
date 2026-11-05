@@ -271,7 +271,6 @@ struct FeedingTimerCard: View {
         VStack(spacing: BBTheme.Spacing.md) {
             BBTimerCardHeader(label: "tab.feeding".l,
                               title: entry.displayTitle,
-                              color: BBTheme.Colors.feeding,
                               startTime: entry.startTime)
 
             // Breast side switcher (for breast feeding)
@@ -519,7 +518,7 @@ struct AddFeedingSheet: View {
                                 Spacer()
                                 Text("\(Int(volumeML))\u{00A0}\("unit.ml".l)")
                                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
-                                    .foregroundStyle(BBTheme.Colors.feeding)
+                                    .foregroundStyle(BBTheme.Colors.textPrimary)
                             }
                             Slider(value: $volumeML, in: 0...500, step: 10) { editing in
                                 if editing { userTouchedVolume = true }

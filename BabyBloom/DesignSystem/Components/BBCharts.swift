@@ -258,7 +258,7 @@ struct BBWeeklyBarChart: View {
                             let isToday = (label == todayLabel)
                             Text(label)
                                 .font(.system(size: 11, weight: isToday ? .bold : .medium, design: .rounded))
-                                .foregroundStyle(isToday ? color : BBTheme.Colors.textSecondary)
+                                .foregroundStyle(isToday ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
                         }
                     }
                 }

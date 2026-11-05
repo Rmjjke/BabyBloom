@@ -241,7 +241,6 @@ struct SleepTimerCard: View {
         VStack(spacing: BBTheme.Spacing.md) {
             BBTimerCardHeader(label: "status.baby_sleeping".l,
                               title: entry.type.displayName.l,
-                              color: BBTheme.Colors.sleep,
                               startTime: entry.startTime,
                               showsHours: true)
 
