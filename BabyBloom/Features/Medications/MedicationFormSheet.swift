@@ -206,6 +206,7 @@ struct MedicationFormSheet: View {
                 .padding(.horizontal, BBTheme.Spacing.md)
                 .frame(minHeight: 44)
                 .background(Capsule().fill(selected ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(0.10)))
+                .background(Capsule().fill(BBTheme.Colors.surface))
                 .overlay(Capsule().strokeBorder(selected ? Color.clear : BBTheme.Colors.primary.opacity(0.30),
                                                 lineWidth: 1.5))
                 .contentShape(Capsule())

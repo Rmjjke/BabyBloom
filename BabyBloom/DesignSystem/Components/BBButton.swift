@@ -79,7 +79,10 @@ struct BBSecondaryButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, BBTheme.Spacing.sm)
             .frame(minHeight: 56)
+            // Over the surface, so the primary words keep 4.5:1 wherever the
+            // button is placed, the bare background included.
             .background(BBTheme.Colors.primary.opacity(0.1))
+            .background(BBTheme.Colors.surface)
             .cornerRadius(BBTheme.Radius.lg)
             .overlay(
                 RoundedRectangle(cornerRadius: BBTheme.Radius.lg)

@@ -262,7 +262,7 @@ struct BabyProfileEditSheet: View {
                 .foregroundStyle(editedGender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)
@@ -286,7 +286,7 @@ struct BabyProfileEditSheet: View {
                     .foregroundStyle(editedFeedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                    .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.md)
                     .overlay(
                         RoundedRectangle(cornerRadius: BBTheme.Radius.md)
@@ -327,7 +327,7 @@ struct BabyProfileEditSheet: View {
                 } label: {
                     Text("profile.remove_photo".l)
                         .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(.red.opacity(0.8))
+                        .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
             } else {

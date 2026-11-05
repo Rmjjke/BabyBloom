@@ -289,7 +289,7 @@ struct AddSleepSheet: View {
                         .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 12)
-                .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)
@@ -321,7 +321,7 @@ struct AddSleepSheet: View {
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                                     .cornerRadius(BBTheme.Radius.md)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: BBTheme.Radius.md)

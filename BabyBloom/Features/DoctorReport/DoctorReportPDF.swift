@@ -15,7 +15,7 @@ enum DoctorReportPDF {
     // colorsets (CLAUDE.md theming). The page is always light, whatever the
     // phone's appearance.
     private static let text = "#2D2837"        // BBTextPrimary
-    private static let secondary = "#746D85"   // BBTextSecondary
+    private static let secondary = "#6B647C"   // BBTextSecondary
     private static let primary = "#6F5BA8"     // BBPrimary: headings and the rule
     private static let tableFill = "#F6F3FB"   // BBBackground: table header fill
     private static let rowRule = "#E5E5EA"     // decorative

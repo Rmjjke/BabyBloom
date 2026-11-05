@@ -317,7 +317,7 @@ struct FeedingTimerCard: View {
                     .foregroundStyle(entry.side == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                    .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.pill)
                     .overlay(
                         Capsule()
@@ -406,7 +406,7 @@ struct AddFeedingSheet: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, BBTheme.Spacing.md)
-                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)
@@ -434,7 +434,7 @@ struct AddFeedingSheet: View {
                 .foregroundStyle(selectedSide == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)

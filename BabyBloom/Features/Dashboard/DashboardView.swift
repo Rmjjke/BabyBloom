@@ -139,6 +139,7 @@ struct DashboardView: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(BBTheme.Colors.primary.opacity(0.1))
+                        .background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.pill)
                 } else {
                     BBTheme.Typography.title1("brand.name".l)

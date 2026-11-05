@@ -35,6 +35,7 @@ struct FactPage: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                         .background(BBTheme.Colors.primary.opacity(0.1))
+                        .background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.pill)
 
                     Text(OnboardingFacts.body(for: fact, name: babyName))

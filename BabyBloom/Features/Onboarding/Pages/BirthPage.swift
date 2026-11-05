@@ -104,7 +104,7 @@ struct BirthPage: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, BBTheme.Spacing.md)
-                .background(gender == g ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(gender == g ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)

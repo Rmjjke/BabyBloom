@@ -8,10 +8,7 @@ struct BBStatCard: View {
     let icon: String
     let color: Color
     var trend: String? = nil
-    var overLimit: Bool = false
     var action: (() -> Void)? = nil
-
-    private var displayColor: Color { overLimit ? .red.opacity(0.85) : color }
 
     var body: some View {
         if let action {
@@ -64,7 +61,7 @@ struct BBStatCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
                     BBTheme.Typography.metric(value)
-                        .foregroundStyle(overLimit ? .red.opacity(0.85) : BBTheme.Colors.textPrimary)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Text(unit.l)
@@ -77,21 +74,17 @@ struct BBStatCard: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
-        .bbCardTonal(displayColor)
-        .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
-                .stroke(overLimit ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
-        )
+        .bbCardTonal(color)
     }
 
     private var plate: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .fill(displayColor.opacity(0.22))
+                .fill(color.opacity(0.22))
                 .frame(width: 36, height: 36)
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(displayColor)
+                .foregroundStyle(color)
         }
     }
 
@@ -107,11 +100,6 @@ struct BBStatCard: View {
 
     @ViewBuilder
     private var marks: some View {
-        if overLimit {
-            Image(systemName: "exclamationmark.circle.fill")
-                .font(.system(size: 14))
-                .foregroundStyle(.red.opacity(0.85))
-        }
         if action != nil {
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .semibold))
@@ -279,6 +267,9 @@ struct BBEventRow: View {
 }
 
 // MARK: - Progress Card
+/// A count against its target, in the category's colour at every count. There
+/// is no over-the-target state: a count above its reference is never styled
+/// as an alarm (DECISIONS 2026-09-05), and red stays on deletes.
 struct BBProgressCard: View {
     let title: String
     let current: Double
@@ -286,40 +277,33 @@ struct BBProgressCard: View {
     let unit: String
     let color: Color
     let icon: String
-    var overLimit: Bool = false
 
     private var progress: Double { min(current / max(target, 1), 1.0) }
-    private var displayColor: Color { overLimit ? .red.opacity(0.75) : color }
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(displayColor)
+                    .foregroundStyle(color)
                 Text(title.l)
                     .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
                 Text("\(Int(current))/\(Int(target)) \(unit.l)".gluingNumbersToUnits)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(overLimit ? .red.opacity(0.75) : BBTheme.Colors.textSecondary)
-                if overLimit {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.red.opacity(0.75))
-                }
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(displayColor.opacity(0.22))
+                        .fill(color.opacity(0.22))
                         .frame(height: 8)
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             LinearGradient(
-                                colors: [displayColor, displayColor.opacity(0.7)],
+                                colors: [color, color.opacity(0.7)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -331,13 +315,9 @@ struct BBProgressCard: View {
             .frame(height: 8)
         }
         .padding(BBTheme.Spacing.md)
-        .background(overLimit ? Color.red.opacity(0.06) : BBTheme.Colors.surface)
+        .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
-        .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                .stroke(overLimit ? Color.red.opacity(0.25) : Color.clear, lineWidth: 1.5)
-        )
     }
 }
 

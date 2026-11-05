@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-05 — Secondary text is #6B647C in light; the week chart states each day's value instead of axis numbers
+
+`BBTextSecondary` in light moves from #746D85 to #6B647C, in the app, the widget and both PDFs; dark #A29BB5 is unchanged. The week chart (Feeding, Sleep, Diapers) puts a value over every bar up to today, «0» included, today's in the text colour and the others in the secondary one, and drops its leading axis numbers; the grid lines stay. A selected tile's or a pill's primary wash is laid over the surface. Onboarding's two primary blobs go to 0.08.
+
+**Why.** #746D85 read 4.48:1 on the background and 4.05–4.36 on the washes it sits on in twelve places (stat cards, the timer cards, the filter picker, the start tiles), under the 4.5 that 11–14 pt text needs. #6B647C reads 5.12 on the background, 5.62 on the surface and at least 4.62 on every one of those washes. It is a step darker in the same hue, so primary over secondary still reads as two levels (14.28 against 5.62 on the surface). Not taken: the words on washes in the primary text colour (a stat card's value, unit and title would become one ink, and a picker's unselected words as loud as a heading); lighter washes (the bare background was already under 4.5). The chart's axis numbers were secondary text and only the tallest bar had a value, so a parent read every other day off the grid; a value over each bar says it, and VoiceOver still reads each bar's day and value once, since the labels are hidden from it. A selected wash over the background left `BBPrimary` words at 4.38 (3.61 over an onboarding blob); over the surface they read 4.78, and the 1.5 pt edge still marks the choice. The blobs at 0.12–0.16 took the onboarding hints under 4.5 at their centre.
+
+**Reds.** Red stays on deletes and on marks. Remove photo takes the full system red (at 0.8 it read 2.76:1); the delete-history button loses its red wash, which took its red words from 3.25 to 3.01; the purchase error is not a delete, so its words are the text colour beside a red glyph; the stat and progress cards lose their over-limit red state, which no caller set and which a count above its reference must never show (2026-09-05).
+
 ## 2026-11-04 — A growth verdict's tier is a dot, never the colour of its words
 
 On the Growth screen and Home's growth card every verdict word and figure is in the text colour: the gain card's figure and band word, the newborn card's figure, the Nutrition rows' values and Home's gain value. The tier tint moves to a mark beside them: a dot before the value, `BBSuccess` for within, `BBAccent` for below, none for above. «Not enough data» and «first weeks» stay in the secondary text colour, without a dot. The newborn card keeps its green tick and the percentile card its tinted ring, the same rule.
