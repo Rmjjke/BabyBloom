@@ -64,7 +64,15 @@ and the Export format tiles' description with sm 8 a side and the two tiles of
 one height (G29).
 Decided on 2026-11-05 and planned: the event row's time under its texts
 wherever a word of the title or the second line misses beside it, and the
-Nutrition card's three rows taking one shape by fit (§ 3, § 7).
+Nutrition card's three rows taking one shape by fit (§ 3, § 7); a screen's
+large title in the content wherever it misses the bar's one line, with the
+inline title after the scroll (§ 3, § 7, G31); and Growth without the
+floating + (P7, § 7, G32).
+Proposed on 2026-11-05: the Export PDF told apart from the doctor's report by
+its tile's words, its first page and its file name, with a pointer to the
+report under the format tiles (§ 7, G33); a weight-for-age section in the
+report PDF (§ 9, G34); and a weighing's head value on its own line in the
+report screen's Growth card (§ 7, G35).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -89,7 +97,7 @@ semibold for headers.
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
 | P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + the hex constants of `ExportGenerator` and of `DoctorReportPDF` (§ 2 "Outside `Colors/`"). | in force | DECISIONS 2026-07-21, 2026-09-01 |
 | P6 | **Dynamic Type through `BBTheme.Typography`**, ceiling AX2 (`accessibilityLarge`) in one constant. | in force | DECISIONS 2026-08-28 |
-| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **Proposed** (G32): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
+| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **Planned** (decided 2026-11-05, G32): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
 | P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | product decision 2026-10-28: WCAG 2.2 AA is the review bar |
 
 ## 2. Colour tokens
@@ -308,8 +316,9 @@ medication path:
   `bbPlaceholderLabel` (§ 7).
 - A sheet's title moves from the bar into the content, from xLarge on:
   `BBSheetHeading` (§ 7).
-- Proposed: a screen's large title moves from the bar into the content
-  wherever it misses the bar's one line: `BBScreenHeading` (§ 7, G31).
+- Planned (decided 2026-11-05): a screen's large title moves from the bar
+  into the content wherever it misses the bar's one line: `BBScreenHeading`
+  (§ 7, G31).
 - A grid that cannot give its widest word its width takes fewer columns; the
   tiles keep their order and spacing.
 
@@ -802,9 +811,11 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBValueRow | — | **planned** (decided 2026-11-04; § 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: xs)`, the title's text's leading); `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its Label's title as `SettingsSwitchLabel`'s hint does | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
 | BBTierValue | BBTierValue | **from 1.3.0** (G23, § 2) — a value whose tier a dot carries: the words semibold at the caller's size relative to its text style (13 / `caption1` on Home and the Nutrition card, 14 / `body` on the Growth cards), in BBTextPrimary or the caller's text ink, led by a dot in the tier tint drawn into the words' own run of text: 7/13 of the size across (7 pt at 13, 7.5 at 14) and a 5/13 gap, both scaled with the style, on the baseline, its centre within 0.2 pt of the x-height's middle, glued to the first word by a word joiner (U+2060). A wrapped second line starts at the dot's x, the text's leading edge; the dot stays on the first line. The tint is resolved from the environment, so it follows a switch between light and dark; the tints are under 3:1 on the light surfaces and stand as marks beside words that say the verdict. VoiceOver reads the words, the dot is silent. In code at 855227f | Dashboard (`DashboardView.swift:598`), the Growth cards (`GrowthInsightCards.swift:628`), the Nutrition card (`NutritionSection.swift:156`) |
 | Nutrition card rows | — (`NutritionSection`) | the card's three rows (gain, feeds, wet diapers): the label beside its status (BBTierValue) below the accessibility sizes, the status under the label at them. **Planned** (decided 2026-11-05): the three take one shape by fit, all beside while every row keeps its words whole, else all stacked as at the accessibility sizes, so the eye does not jump between rows (the weekly rows' rule, 0334779). Beside, ru xxxLarge on 320 pt breaks three words («12·в·сутки» 102 pt in 98, «Кормления» 105 in 98, «в·пределах» 112 in 106), and with Bold Text ru xxLarge one («подгузники» 103 in 100); stacked, the status lines wrap between words | Growth |
+| Report weighing row | — (`GrowthReportCard`) | **proposed** (§ 3, G35) — a weighing in the report screen's Growth card, one Text: the date in `callout` (16 regular rounded relative to `.callout`) with « · », then the values in `metricSmall` (17 semibold rounded relative to `.body`, monospaced digits), weight and length joined by « · », BBTextPrimary, letter-spacing 0, the SF line (20.0 pt for `metricSmall` at Large), wrapping between words; at accessibility sizes the date as a caption (12 medium rounded relative to `caption1`, tracking 0.3, BBTextSecondary) over the values, xs 4 apart. A weighing with a head value adds a line under its values, «Head: 38.5 cm» from `growth.head_fmt` split at its %@ as `ReportRow` splits a row's key: the words in `callout`, the figure in `metricSmall`, BBTextPrimary, never stacked; 0 apart below the accessibility sizes (the row 20.0 → 40.0 pt at Large), xs 4 at them (about 70 → 111 pt at AX2). It sets one line at every size: 112.2 / 123.1 / 128.3 pt at Large (en / ru / es) and about 202 / 222 / 232 at AX2, in the card's 256 pt on 320 and 338 on 402. Leading, full width, growing in height (`fixedSize(horizontal: false, vertical: true)`); VoiceOver reads the row as one element: date, values, head. No line without a head value | the report screen (`GrowthReportCard.swift:130`) |
+| Export format card | — (`ExportView`) | **planned** (decided 2026-11-04, G29): sm 8 a side inside each tile for the glyph, the name and the description (11 pt regular rounded, fixed, centred), the two tiles of the taller one's height, each laid from its top. **Proposed** (G33): the PDF tile's description says what the file holds, without «report» / «отчёт» / «informe»: «Every entry, day by day» / «Все записи по дням» / «Cada registro, día a día» (117.6 / 106.1 / 116.7 pt), at most 135.5 pt so it sets one line from 375 pt; then, sm 8 under the tiles, a caption pointing to the doctor's PDF, «For the doctor’s visit: More › For the pediatrician», its path built from the More tab's and the report row's own names (`tab.more`, `report.title`) so it cannot drift from them: caption (12 medium rounded relative to `caption1`, tracking 0.3; 14.1 pt line at Large, 29.4 at AX2), BBTextSecondary (5.62:1 on the surface in light), leading at the card's content edge, 256 pt wide on 320 and 338 on 402, wrapping between words, no line limit, shown whichever format is selected. Plain text, not a link: a link would jump from Profile to another tab, which the app does nowhere else. VoiceOver reads «, » for « › ». Lines at Large on 320 / 402 and at AX2: en 2 / 1 and 3 / 2, ru 1 / 1 and 2 / 2, es 2 / 1 and 3 / 2 | Export (`ExportView.swift:32`, `:99–119`) |
 | SettingsSwitchLabel | — (private, `App/MainTabView.swift:382`) | **from 1.3.0** — a Settings switch's label: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`), both inside one `Label`'s title, the icon in BBTextPrimary on the title's row; the hint starts at the title's leading edge and VoiceOver reads both with the switch. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). In code at 8b90029 | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches — every Settings switch |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
-| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **Proposed** (P7, G32): not on Growth, where at rest it sits over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding then returns to xl 32, as on Events | Feeding, Sleep, Diaper, Growth (proposed: without Growth) |
+| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **Planned** (decided 2026-11-05; P7, G32): not on Growth, where at rest it sits over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding then returns to xl 32, as on Events | Feeding, Sleep, Diaper, Growth (planned: without Growth) |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
 | BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1); the other words BBTextSecondary on primary@0.08, 4.62 in light from 16f2802 (4.05 with #746D85 before, G10) | BBHistorySection |
 | BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation. The day labels 11 pt rounded in BBTextSecondary, today's bold in BBTextPrimary (G24, from fa5c55f; the tint before); a value 4 pt over every bar up to today, «0» included, 11 semibold rounded, today's in BBTextPrimary and the others' in BBTextSecondary, hidden from VoiceOver, a future day without one; no axis numbers, the grid lines kept at BBTextSecondary@0.06; the bars, under 3:1 in light, stay as marks (G25, from 16f2802; before it only the tallest bar's value, in the tint, with axis numbers). The values and labels stay at a fixed 11 pt; at 320 pt the widest value («24,0», 25.4 pt) has a 36.6 pt slot | Feeding, Sleep, Diaper |
@@ -820,7 +831,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
 | BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:370`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:304`) as the header above Large |
-| BBScreenHeading + `bbScreenTitle(_:)` | — | **proposed** (§ 3, G31) — a screen's large title. It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
+| BBScreenHeading + `bbScreenTitle(_:)` | — | **planned** (decided 2026-11-05; § 3, G31) — a screen's large title. It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -858,7 +869,32 @@ check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientE
   figure and the words side by side, the art's inner sides faded into
   BBLaunchBackground (G28). Launch screen is colour-only. Art: `docs/design/splash*.png`.
 - **App icon**: `docs/design/icon*.png`, brief `docs/design/icon-design-brief.md`.
-- **PDF / HTML export**: § 2 "Outside `Colors/`".
+- **PDF / HTML export**: § 2 "Outside `Colors/`". Proposed (G34): the
+  report PDF's last section, after the questions and before its closing
+  line, a weight-for-age chart kept whole on one page, 149.0 pt tall on A4
+  (595.2 × 841.8, margins 36, the body to 781.8): the 17.0 pt section pitch,
+  the report's heading «Weight for age» (13 px, weight 600, #6F5BA8,
+  Helvetica Neue, 13.3 pt tall) with « · WHO percentiles» on its line in
+  10 px #6B647C, 7.2 pt, then a plot 473 × 90 pt (x 64–537) with 6 pt above
+  it for the top label and 4 + 11.5 pt below for the dates. Gridlines 0.5 pt
+  #E5E5EA at whole kilograms, from the floor of the lowest of P3 and the
+  child's weights to the ceiling of the highest of P97 and them, a step of
+  1 kg up to a 6 kg range, else 2, labelled «N kg» in 10 px #6B647C,
+  right-aligned at x 60 and centred on their line. The x axis is the window
+  the Growth screen's chart takes for the same weighings
+  (`GrowthView.swift:503–548`), with 3 pt ticks of 0.5 pt #6B647C at its
+  start and at each month mark of age at least 15 % of the span from it
+  (past six marks, every second one), each labelled with the report's short
+  date 4 pt under the plot, centred and clamped inside x 60–541. Every label
+  is kept: the screen drops one within 18 % of its right edge because its
+  chart would cut it (`GrowthView.swift:734`); on the page a label is moved,
+  not dropped. P3 and P97 dashed 0.75 pt (3 on, 2 off), P50 solid 1 pt, all
+  #6B647C, from `WHOCorridor` for the baby's sex, each numbered «3», «50»,
+  «97» at x 541 beside its end; the child's weights a 1.5 pt #6F5BA8 line
+  with a 2.5 pt-radius dot at each, the points the screen draws. Lines, not a
+  band: a black-and-white print keeps them. Every label is text in Helvetica
+  Neue in the text layer. Shown only where the report's weight percentile
+  shows a figure and the window holds two weights or more.
 
 ## 10. Gaps and inconsistencies (notes, not fixes — 2026-10-28)
 
@@ -903,7 +939,11 @@ their renders in light and dark and the week chart's 320 pt shots
 (2026-11-05). The screens' large titles were measured at 3bb4936 from
 CoreText widths against the bar's room and a shot of the report at AX2 on
 402 pt, and Growth's floating + from the app's tree and shots on 440 pt at
-Large and AX2, where G31 and G32 were found (2026-11-05). Each line:
+Large and AX2, where G31 and G32 were found (2026-11-05). The two PDFs'
+words and file names, the report PDF's pages and the report screen's
+weighings were read at eb1f410 from the code, the rendered PDFs of 8eea793,
+the shots of bb17b39 and CoreText widths, where G33 to G35 were found
+(2026-11-05). Each line:
 what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
@@ -1362,8 +1402,8 @@ and G1, G4, G5, G10, G18, G19, G20, G21 and G23 to G26 are fixed for 1.3.0.
   on 375 pt. The other seven titles fit at every width and size (ru
   «Подгузники», the widest, 272.6 at AX2 in 288). Breaks § 3 (a word never
   breaks inside itself; here the title is cut inside one). Direction
-  (proposed): the title leaves the bar where it misses it, `BBScreenHeading`
-  (§ 7). At AX2 every heading but es «Medicamentos» (title2, 260.1 pt) takes
+  (decided 2026-11-05, planned): the title leaves the bar where it misses
+  it, `BBScreenHeading` (§ 7). At AX2 every heading but es «Medicamentos» (title2, 260.1 pt) takes
   two lines on 320 pt, and on 402 pt «For the / pediatrician», «Недавние /
   записи», «Actividad / reciente» and «Экспорт / данных» do. Not taken: an
   empty bar once the heading has scrolled away, as the sheets have (a screen
@@ -1383,13 +1423,80 @@ and G1, G4, G5, G10, G18, G19, G20, G21 and G23 to G26 are fixed for 1.3.0.
   every width: the + spans W − 72 to W − 16, the plot's trailing 40 pt
   W − 72 to W − 32, the «?» about W − 54 to W − 34. Breaks P7 (a tap target
   keeps its 44 pt; under the + the «?» and the chart's corner keep none at
-  rest). Direction (proposed): Growth has no floating + (P7, `BBFab`); a
+  rest). Direction (decided 2026-11-05, planned): Growth has no floating +
+  (P7, `BBFab`); a
   weighing is added from the bar's + and «Add a weighing», and the bottom
   padding returns to xl 32. Not taken: an inset (the end of the scroll is
   clear already, and at rest nothing moves out from under a fixed overlay);
   hiding it while scrolling (it returns at rest); bottom-leading (it would
   cover the chart's start and the cards' first words); a 72 pt trailing inset
   on the chart (a smaller plot on every width, the «?» still under the +).
+- **G33 · Two PDFs, one word** (found 2026-11-05 at eb1f410). The app makes
+  two PDFs: the doctor's, from More › «For the pediatrician», and the
+  export, from Profile › Data › «Export Data» › PDF (16 pages for 30 days: a
+  summary, then a table per category). The entry rows are apart; at the
+  choice and after it «report» names both. The PDF tile reads «Beautiful
+  report for printing or sharing» (ru «Красивый отчёт…», es «Un informe
+  bonito…», `ExportView.swift:106`), the export's first page «Health &
+  activity report» under «Bitty — Mia» (`ExportGenerator.swift:424`), and
+  its file «Bitty_mia_2026-11-05.pdf» (`ExportView.swift:285`) lies beside
+  «Pediatrician report – Mia – 2026-11-05.pdf». A parent who looks for the
+  doctor's report under Export picks the tile that promises one and gets the
+  tables. No written rule covers it: one word names two files. Direction
+  (proposed): «report» stays the doctor's word. The PDF tile says what the
+  file holds («Every entry, day by day», 117.6 pt at 11 pt; on 320 pt with
+  sm 8 a side en 2 lines, ru 1, es 2, against 2, 3 and 3 today); under the
+  tiles a caption points to the doctor's PDF («For the doctor’s visit:
+  More › For the pediatrician», § 7 Export format card); the export's first
+  page says «All entries» under its title and its file is «All entries –
+  Mia – 2026-11-05.pdf», the name as typed, as the doctor's file has it. The
+  entry rows stay. Not taken: renaming «Export Data» (the name says what the
+  row does); a subtitle on the More row (one two-line row in a plain list);
+  a link from Export to the report (a jump from Profile to another tab, which
+  the app makes nowhere else); renaming the doctor's PDF (its names are
+  decided).
+- **G34 · No growth chart in the report PDF** (found 2026-11-05 at eb1f410,
+  with the rendered PDFs of 8eea793). The Growth tab draws the weight on
+  WHO's 3–97 corridor; the report PDF prints the same weighings as numbers
+  only: the latest values, the weight and length percentiles as numbers, a
+  table of the period's weighings. A doctor reads a growth history against
+  the curves first. No rule is broken; a piece is missing. The month-long
+  seed (doctorMonth) has 16.2 pt left on its one page (the closing line ends
+  765.6, the body 781.8), so any chart takes it to 2 pages. Direction
+  (proposed): weight for age only, as the report's last section before its
+  closing line, kept whole (§ 9). Page 1 stays as today on every seed;
+  doctorMonth goes from 1 page to 2, with the chart and the closing line on
+  page 2; a short history (two weighings, the last question ending 591.4)
+  stays on 1 page with 14.2 pt to spare; a period of today only stays on 1;
+  a 2-page report stays on 2. The curves are lines, not a band, with no
+  tint, no band word and no mark, as the percentile number has none
+  (`m2-doctor-report.md` § 10.1 rule 7). Not taken: the chart in the Growth
+  section under «At birth» (148 pt there push Diapers, the questions and the
+  closing line of doctorMonth to page 2, splitting the month's figures); a
+  length chart (the screen draws none, and a second block takes the short
+  history to 2 pages); a head chart (the app holds no WHO head table, and
+  head has no percentile); a filled band (a black-and-white print turns it
+  into a grey slab and loses its edges); the period's window alone (a month
+  of weighings draws a short stroke, not the curve).
+- **G35 · Head on the PDF's weighings, not on the screen's** (found
+  2026-11-05 at eb1f410). The report screen's Growth card lists each
+  weighing as «28 Oct · 5.42 kg · 58 cm» (`GrowthReportCard.swift:130`); the
+  PDF's table of the same weighings has a Head column
+  (`DoctorReportPDF.swift:206`), and the data holds the value
+  (`DoctorReportSummary.Weighing.headCm`). The screen shows head only as the
+  latest value in the card's facts. Breaks the report's rule that the PDF's
+  rows are the screen's rows (`m2-doctor-report.md` § 5). Direction
+  (proposed): a weighing with a head value gets a line under its values,
+  «Head: 38.5 cm» (`growth.head_fmt`), the one shape that fits at every size:
+  112.2 / 123.1 / 128.3 pt at Large (en / ru / es) and about 202 / 222 / 232
+  at AX2, in 256 pt on 320 (§ 7 Report weighing row). Not taken: head joined
+  to the line bare (28 to 48 pt over on 320 pt at Large, over on every width
+  at AX2, and a bare third number does not read as head); joined with
+  «Head:» (74 to 102 pt over on 320 pt at Large); left out (the screen and
+  its PDF keep disagreeing on one list). Also seen: a weighing from another
+  year carries the year («May 28, 2026»), and its line wraps between words at
+  Large on 320 pt (en by 7 pt with a wide value, ru by 17, es by 3); nothing
+  is cut.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
