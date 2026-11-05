@@ -205,6 +205,24 @@ and the Live Activity read the byte-identical copies in
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
+  - A one-letter Russian preposition (в, к, с, у, о) before a word, in a
+    verdict and in the other growth and Nutrition texts: «в пределах
+    ориентира», «с интервалом», «в сутки», «О питании». The verdict stands
+    in a narrow column at the right of its row, after the number: «8 в сутки
+    · в пределах ориентира». With a plain space that line ended on «· в» at
+    the default size on 375 and 402 pt screens. The no-break space joins the
+    preposition to the next word only, so the run stays short. Every
+    `velocity.*` and `nutrition.*` value is glued this way, the info sheets'
+    titles and texts included.
+  - On a 320 pt screen at xxxL, the largest size before the accessibility
+    sizes, the Nutrition card's gain row leaves its verdict about 103 pt.
+    The dot and «в пределах» take 116 pt, so «пределах» breaks inside. The
+    same card breaks words at that size without the glue too («Кормлени» /
+    «я», «подгузни» / «ки»): the cure there is the row's layout, not the
+    words.
+  - Not glued yet: a one-letter preposition before a word in the other keys
+    (the Home cards, onboarding facts, notifications, Premium, Settings), and
+    the conjunctions «и» and «а».
   - A number range stays on one line. The line may break after an en dash
     («6–» / «10»), so a word joiner (U+2060, invisible, no width) follows
     the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
@@ -220,8 +238,10 @@ and the Live Activity read the byte-identical copies in
     375 pt one), the slash is the one place it can break. With a joiner it
     would break inside «week» instead. The same key also fills the Home
     growth row and the weekly summary's previous week, where it has room.
-  - In the JSON the no-break space is written as the escape ` `, which
-    reads as the same character.
+  - In the JSON the no-break space and the word joiner are the raw
+    characters U+00A0 and U+2060, not escapes. An editor and a diff show
+    them as a plain space or as nothing, so a value is checked with a script
+    that prints its code points.
   - A count «5 из 7» / "5 of 7" at the end of a line that wraps stays whole:
     `%d\u{00A0}of\u{00A0}%d` in `weekly.days_logged_fmt` and
     `report.days_logged_fmt`. These lines wrap on a 320 pt screen, and a
@@ -367,3 +387,11 @@ and the Live Activity read the byte-identical copies in
   so no screen, widget or report reads them. Their exception under the range
   rule goes with them. `percentile.below3`, `percentile.above97` and the
   badges stay.
+- 2026-11-05 — Russian one-letter prepositions before a word are glued to
+  it in the growth and Nutrition texts (§ Line breaks around numbers), so
+  the Nutrition rows and the Home gain row no longer end a line on «· в».
+  26 no-break spaces, nothing else changed: `velocity.within`,
+  `velocity.needs_two`, `velocity.first_weeks`, `velocity.info_title`,
+  `velocity.info_body`, `nutrition.status_within`, `nutrition.need_weighing`,
+  `nutrition.need_weighing_detail`, `nutrition.info_title`,
+  `nutrition.info_body`.
