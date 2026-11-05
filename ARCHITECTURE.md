@@ -332,6 +332,13 @@ the first word, and the value carries its words as its VoiceOver label
 (DECISIONS 2026-11-04 "A growth verdict's tier is a dot, never the colour of
 its words").
 
+A delete draws the system red: from `role: .destructive` where the button has
+a role (the sheets' Delete, the confirmations), from `Color.red` where it has
+none (the delete-history button, the swipe action). Never `BBAlert` on a
+delete's label, which overrides the role: `BBAlert` means a growth flag or a
+percentile tail (DECISIONS 2026-09-05 "A count above its reference is never
+styled as an alarm").
+
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every
 Dynamic Type scale in the app goes through `Typography.scaledPointSize`**,

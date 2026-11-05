@@ -53,8 +53,9 @@ struct QuestionSheet: View {
                             dismiss()
                             onDelete(question)
                         } label: {
+                            // The role draws the system red; `BBAlert` is the
+                            // growth flags' colour, not a delete's.
                             BBTheme.Typography.callout("question.delete".l)
-                                .foregroundStyle(BBTheme.Colors.alert)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
                         .accessibilityIdentifier("doctor.question_sheet.delete")

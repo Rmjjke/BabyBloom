@@ -133,8 +133,8 @@ struct VisitDetailSheet: View {
         Button(role: .destructive) {
             showDeleteAlert = true
         } label: {
+            // The role draws the system red, as every delete in the app.
             BBTheme.Typography.callout("visit.delete".l)
-                .foregroundStyle(BBTheme.Colors.alert)
                 .frame(maxWidth: .infinity, minHeight: 44)
         }
         .padding(.top, BBTheme.Spacing.md)
