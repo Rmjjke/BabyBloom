@@ -27,9 +27,10 @@ Nothing on it grades the baby.
 - "Height", not WHO's "length": the app says height everywhere (stat,
   export columns), so the parent meets one word. Card titles reuse
   `export.cat.*`.
-- Breastfeeding is "Breast / Грудь / Pecho" (`report.type_breast`). The
-  app's `feeding.type.breast` is an abbreviation (BF / ГВ / LM), which a doctor
-  must not have to decode. Formula and pumped reuse `feeding.type.*`.
+- Breastfeeding is "Breast / Грудь / Pecho" (`report.type_breast`), the same
+  word the app uses for the type (`feeding.type.breast`) and in the history's
+  titles («Левая грудь»). No abbreviation a doctor would have to decode.
+  Formula and pumped reuse `feeding.type.*`.
 - The app spells it the US way: "pediatrician", "color".
 
 ## Lines
@@ -246,3 +247,6 @@ Every `report.*`, `visit.*` and `question.*` value passed this scan on
 - 2026-11-04 — The four percentile band labels (`percentile.3_15` …
   `percentile.85_97`) leave the closed list: their keys are deleted, because
   the growth card now states the percentile itself and nothing reads them.
+- 2026-11-05 — The app names a breast feed with the report's word, "Breast /
+  Грудь / Pecho" (`feeding.type.breast`), in place of the abbreviation BF /
+  ГВ / LM, so the screen, the export and the report say one word.

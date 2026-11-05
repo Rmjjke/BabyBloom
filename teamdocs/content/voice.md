@@ -26,7 +26,8 @@ and the Live Activity read the byte-identical copies in
 |---|---|---|---|---|
 | add (a record, a weighing, a question, a medication) | Add | Добавить | Agregar | every form: «Agregar», «agregar», «Agrega», «agrega»; never «Añadir». iOS 26 says «Agregar» in es_419 (348 strings, no «Añadir») and «Añadir» in Spain's es; «agregar» is ordinary Spanish in Spain too |
 | breastfeeding (full) | Breastfeeding | Кормление грудью | Lactancia | Lock Screen, Dynamic Island |
-| breastfeeding (list shorthand) | BF | ГВ | LM | in-app lists only, never on the Lock Screen |
+| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the report's word (`report.type_breast`); history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
+| pumped milk (a feed with no amount) | Pumped milk | Сцеженное молоко | Leche extraída | `feeding.title.pumped`; the type is Pumped / Сцеженное / Extraída |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
 | Lock Screen | Lock Screen | экран блокировки | pantalla bloqueada | Apple's own terms |
 | stop a feeding | Stop | Завершить | Detener | `button.finish`, everywhere |
@@ -78,6 +79,25 @@ and the Live Activity read the byte-identical copies in
     by a no-break space, so no count needs a key of its own and the plural
     rule is the one the age already uses.
   - Medications tell a dose's age the same way (`medications.md`).
+- **Counts on Home and the stat tiles.** A count takes no unit word: «шт» /
+  "pcs" / «uds» and «раз» / "times" / «veces» do not agree with every
+  number ("1 times").
+  - Home's progress cards read "N of M" (`progress.of_fmt`: "0 of 6",
+    «0 из 6», «0 de 6»), and the card's title names what is counted. A
+    measure keeps its unit, glued to the number: `progress.of_unit_fmt`
+    "10 of 14 h".
+  - A stat tile shows the bare number above its label, and the label is a
+    category name: «Кормления», «Сон», «Подгузники», «Мокрые», «Грязные»,
+    «Измерения», «Эпизоды сна». Russian takes the nominative, as «Вес» and
+    «Рост» on the same screens: a genitive («Кормлений») reads as the word
+    the number counts.
+  - A duration reads in hours and minutes: "42 h 10 min", "42 h", "15 min"
+    (`duration.h_min`, `duration.h_only`, `duration.min_only`). Seconds
+    show only under a minute (`duration.sec`, "45 sec") and on the running
+    timer.
+  - The views still print «0/6 шт», a unit on the count tiles and «15 мин
+    0 сек»: the keys and labels above are in place, the code that reads
+    them is not yet.
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -255,6 +275,8 @@ and the Live Activity read the byte-identical copies in
   - Not glued:
     - the PDF page number `report.pdf.page_fmt` ("Page 2 of 3"), which
       never wraps;
+    - Home's progress count `progress.of_fmt` («0 из 6»), a short value on
+      one line beside the card's title;
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows;
@@ -458,3 +480,15 @@ and the Live Activity read the byte-identical copies in
   changed. The word after the ordinal stays loose. A test that compares
   `percentile.below3` or `percentile.above97` with «< 3-й» or «> 97-го»
   takes the new hyphen.
+- 2026-11-05 — A breast feed is "Breast / Грудь / Pecho", the report's word,
+  wherever the app names it by type (`feeding.type.breast`,
+  `feeding.title.breast`), in place of BF / ГВ / LM. The history titles read
+  "Left breast / Right breast / Both breasts", «Левая грудь / Правая грудь /
+  Обе груди», «Pecho izquierdo / Pecho derecho / Ambos pechos». en
+  `feeding.title.pumped` is "Pumped milk", one name with the type "Pumped".
+  `export.summary.total_time` names what it counts: "Total feeding time" /
+  «Общее время кормлений» / «Tiempo total de tomas». New
+  `progress.of_fmt` and `progress.of_unit_fmt` for Home's progress counts
+  (§ Counts on Home and the stat tiles). The Russian stat labels
+  `stat.feedings`, `stat.sleep_episodes`, `stat.measurements`,
+  `stat.diapers`, `stat.wet` and `stat.dirty` are in the nominative.
