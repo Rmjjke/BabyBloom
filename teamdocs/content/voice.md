@@ -205,24 +205,28 @@ and the Live Activity read the byte-identical copies in
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
-  - A one-letter Russian preposition (в, к, с, у, о) before a word, in a
-    verdict and in the other growth and Nutrition texts: «в пределах
-    ориентира», «с интервалом», «в сутки», «О питании». The verdict stands
-    in a narrow column at the right of its row, after the number: «8 в сутки
-    · в пределах ориентира». With a plain space that line ended on «· в» at
-    the default size on 375 and 402 pt screens. The no-break space joins the
-    preposition to the next word only, so the run stays short. Every
-    `velocity.*` and `nutrition.*` value is glued this way, the info sheets'
-    titles and texts included.
+  - A one-letter Russian preposition (в, к, с, у, о) or conjunction (и, а)
+    before a word, in every text of the app: «в пределах ориентира»,
+    «с интервалом», «О питании», «Мокрый и грязный», «а не диагноз».
+    Russian typesetting never leaves a one-letter word at the end of a line.
+    The verdict stands in a narrow column at the right of its row, after the
+    number: «8 в сутки · в пределах ориентира». With a plain space that line
+    ended on «· в» at the default size on 375 and 402 pt screens. The
+    no-break space joins the one-letter word to the next word only, so the
+    run stays short. Two one-letter words in a row are both glued: «и к
+    10–14-му дню».
   - On a 320 pt screen at xxxL, the largest size before the accessibility
     sizes, the Nutrition card's gain row leaves its verdict about 103 pt.
     The dot and «в пределах» take 116 pt, so «пределах» breaks inside. The
     same card breaks words at that size without the glue too («Кормлени» /
     «я», «подгузни» / «ки»): the cure there is the row's layout, not the
     words.
-  - Not glued yet: a one-letter preposition before a word in the other keys
-    (the Home cards, onboarding facts, notifications, Premium, Settings), and
-    the conjunctions «и» and «а».
+  - The event row's title «Мокрый и грязный» (`diaper.title.both`) breaks
+    inside «грязный» on a 320 pt screen at AX1. Beside the icon and the time
+    the title has about 111 pt, less than «и грязный». Loose, the «и» ended
+    a line in 12 of the 18 cases (three widths, six sizes from Large to
+    AX2). At AX2 the row breaks both words without the glue too: the cure
+    there is the row's layout, not the words.
   - A number range stays on one line. The line may break after an en dash
     («6–» / «10»), so a word joiner (U+2060, invisible, no width) follows
     the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
@@ -253,7 +257,12 @@ and the Live Activity read the byte-identical copies in
       never wraps;
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
-    - strings that VoiceOver speaks and the screen never shows.
+    - strings that VoiceOver speaks and the screen never shows;
+    - a two-word label where the glue only trades the loose letter for a
+      break inside the word: «О приложении» (`settings.about`). The Settings
+      row holds it on one line at every size but AX1 and AX2 on a 320 pt
+      screen. There, glued, it breaks inside «приложении» at AX1, where
+      loose it breaks after «О»; at AX2 the word breaks either way.
   - The rule holds in every key and every language, long texts included:
     onboarding facts, info sheets, hints, notifications, the export ranges.
     Besides a number and its unit it glues:
@@ -264,10 +273,14 @@ and the Live Activity read the byte-identical copies in
     - a short Russian preposition before a number, in every key: «до 12
       раз», «от 3 дней», «К 3 месяцам».
   - A Russian ordinal stays loose: neither «14-му дню» nor «50-й
-    перцентиль» is glued, nor the preposition before it («к 14-му»). The
-    line may break after the hyphen inside the ordinal, and a glue around it
-    moves the break there: «3–97-» / «й перцентили», which reads worse than
-    a break at the space.
+    перцентиль» is glued, nor a longer preposition before it. The line may
+    break after the hyphen inside the ordinal, and a glue around it moves
+    the break there: «3–97-» / «й перцентили», which reads worse than a
+    break at the space. A one-letter preposition before it is glued like
+    any other («к 14-му дню»). Measured on the newborn sheet, the line
+    breaks at the ordinal's own hyphen in the same places with the glue and
+    without it (on a 320 pt screen at AX1, 375 pt at AX2, 402 pt at Large
+    and AX2), and loose the «к» ended a line 6 times in the 18 cases.
   - Left to the code: a key whose every use passes through
     `gluingNumbersToUnits` keeps its plain space in the JSON, because the
     code glues each digit to the space after it when it shows the line.
@@ -395,3 +408,16 @@ and the Live Activity read the byte-identical copies in
   `velocity.info_body`, `nutrition.status_within`, `nutrition.need_weighing`,
   `nutrition.need_weighing_detail`, `nutrition.info_title`,
   `nutrition.info_body`.
+- 2026-11-05 — Every Russian text now glues a one-letter preposition (в, к,
+  с, у, о) or conjunction (и, а) to the next word (§ Line breaks around
+  numbers): 154 no-break spaces in 105 keys, nothing else changed. They are
+  in the Home cards, the empty states, onboarding and its facts, the
+  notifications, the weekly summary, Premium, Settings, the export, the
+  widget and the Live Activity, the doctor report, the visit questions and
+  the growth sheets. In `velocity.*` and `nutrition.*` only «и» and «а» were
+  still loose. Left plain: the VoiceOver-only `medication.a11y_hint`,
+  `premium.locked_a11y` and `report.a11y_hint`, and `settings.about`. At
+  the default size no line breaks inside a word that did not before. A UI
+  test that matches one of these lines takes `.` where the no-break space
+  now is. The ordinal rule now says the one-letter preposition before an
+  ordinal is glued («к 14-му дню»).
