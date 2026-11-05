@@ -28,12 +28,14 @@ The diaper norm editor's × as Close and its scroll (G22), the medication
 screen's Edit as the pencil, the weight gain card's number and interval and
 the Today feeding card's time since the last feed taking their shape from the
 fit, and the Growth cards' ? on a wrapped title's first line follow the code
-of the same day (§ 3, § 7). Planned: a bar confirm that shows ▶ while its
-sheet starts a timer, value rows that share a column of deltas taking one
-shape by fit and the percentile card's figure in place of its band label
-(§ 3, § 7, G23), and on the other Growth cards words and figures in the text
-colours with the tier tint on a mark, a tier dot before the verdict word
-(§ 2, G23), all decided the same day, and so is the same direction for the
+of the same day (§ 3, § 7). A bar confirm that shows ▶ while its sheet
+starts a timer, value rows that share a column of deltas taking one shape by
+fit and the percentile card's figure in place of its band label, decided the
+same day, are in code (7335076, 0334779, e3d45e2; § 3, § 7,
+G23), and so is a Settings switch's hint inside its label (8b90029, § 7).
+Planned: on the other Growth cards words and figures in the text colours with
+the tier tint on a mark, a tier dot before the verdict word (§ 2, G23),
+decided the same day, and so is the same direction for the
 category tints as text ink (the timer cards, Home's timer card, the week
 chart, the bottle volume): the text colours, with the tint on the wash,
 stroke, glyph disc, bars and slider beside them (§ 2, § 7, G24). Decided
@@ -53,7 +55,7 @@ as the column where its widest form does not fit (G22), a selected tile's
 or chip's border drawn outside its fill (§ 3, G29), and the splash words
 beside the art's figure wherever its crop would put them on it, as in
 landscape (G28).
-Proposed the same day: a title and its trailing value keeping the value whole
+Decided the same day and planned too: a title and its trailing value keeping the value whole
 and the title's words whole, with the value under the title at accessibility
 sizes and, in Settings' iCloud Sync row, wherever the two do not share one
 line, and the medication menu's label above it at every size (§ 3, § 7, G30);
@@ -97,13 +99,13 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 |---|---|---|---|---|
 | BBPrimary | `Colors.primary` | #6F5BA8 | #A795D9 | brand violet: primary buttons, FAB, links, selected states, calm gates, shadow hue |
 | BBOnPrimary | `Colors.onPrimary` | #FFFFFF | #171420 | **in force since 1.1.0** (decided 2026-10-28) — label and glyph colour on any filled BBPrimary surface. Shipped with the Live Activity (its button capsule, `TimerActivityViews.swift`) and copied to the widget catalog; from 1.3.0 it is the ink on every BBPrimary fill: `BBPrimaryButton`, the `BBFab` "+", the selected `BBHistoryFilterPicker` chip and the other places G1 lists |
-| BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget); on the Growth cards the "below" tier tint. As text ink it is 1.84 on the light surface, so there it is a mark, never text ink (planned, G23) |
+| BBAccent | `Colors.accent` | #E8B49B | #EFBFA6 | warm peach accent (also copied to the widget); on the Growth cards the "below" tier tint. As text ink it is 1.84 on the light surface, so there it is a mark, never text ink (G23: in code on the percentile card at e3d45e2, planned on the other cards) |
 | BBOnAccent | `Colors.onAccent` | #171420 | #171420 | **from 1.3.0** (decided 2026-11-03) — text on a BBAccent fill: the plan picker's savings badge (`PlanPickerSection.swift:181`), on the paywall and on the onboarding Premium page. One value in both modes, because the peach is light in both: white on it was 1.84 / 1.66 (G18). App catalog only: the widget draws no text on the accent |
 | BBBackground | `Colors.background` | #F6F3FB | #171420 | app background |
 | BBSurface | `Colors.surface` | #FFFFFF | #221E2C | elevated cards, rows, badge discs |
 | BBTextPrimary | `Colors.textPrimary` | #2D2837 | #F0EDF6 | body and titles |
 | BBTextSecondary | `Colors.textSecondary` | #746D85 | #A29BB5 | captions, units, metadata, inactive. Under 4.5:1 in light on the background (4.48) and on the washes it sits on (3.64–4.42); #6B647C in light planned (decided 2026-11-04), dark unchanged (G10) |
-| BBSuccess | `Colors.success` | #7FC7A4 | #8FD4B2 | "within" ticks, trend chip wash, the "within" tier tint and a typical percentile's ring. As text ink it is 1.98 on the light surface, so it is a mark, never text ink (planned, G23) |
+| BBSuccess | `Colors.success` | #7FC7A4 | #8FD4B2 | "within" ticks, trend chip wash, the "within" tier tint and a typical percentile's ring. As text ink it is 1.98 on the light surface, so it is a mark, never text ink (G23: in code on the percentile card at e3d45e2, planned on the other cards) |
 | BBAlert | `Colors.alert` | #E05A5A | #E87373 | **only** growth flags and percentile tails (P1); deliberately rare. Under 4.5:1 as text in light (3.64 on the surface, 3.31 on the background): a flag's words are BBTextPrimary on its wash, and the two deletes drawn in it are the platform red's (G4) |
 | BBFeeding | `Colors.feeding` | #E8A0B4 | #C98BA0 | category tint — feeding |
 | BBSleep | `Colors.sleep` | #A9B0E8 | #8A93CC | category tint — sleep |
@@ -150,7 +152,8 @@ on a light surface are about 2.1:1, so a glyph whose colour is the only cue
 fails P8; on light surfaces the glyph shape carries the meaning and the tint is
 a wash.
 
-Planned (G23, decided 2026-11-04): a tier tint (BBSuccess "within", BBAccent
+Decided 2026-11-04 (G23), in code on the percentile card at e3d45e2 and
+planned on the other cards: a tier tint (BBSuccess "within", BBAccent
 "below", BBAlert a percentile tail) is a mark, never text ink: the percentile
 ring, the newborn tick, or the **tier dot** before a verdict word. The dot is a
 circle 7 pt across at Large, in the tier tint, 5 pt before its word and glued
@@ -427,7 +430,7 @@ Home's quick actions and running-timer card and onboarding's gender row
   Diaper sheet's type tiles, the Add Event type and mood tiles, the profile
   sheet's gender and feeding tiles, and onboarding's gender tiles and feeding
   rows (lines in G29).
-- **A title and its trailing value** (proposed 2026-11-04, G30). A row with a
+- **A title and its trailing value** (decided 2026-11-04, planned, G30). A row with a
   title at its leading edge and a value at its trailing edge (a status, a
   figure, a count, a badge) keeps the value whole: it never wraps or shrinks,
   and the title wraps only between its words. Below the accessibility sizes
@@ -679,17 +682,18 @@ Decided 2026-11-04:
   taken: the word, which the platform's pushed screens often keep and which
   explains itself; its cost is one action in two looks.
 
-Planned (decided 2026-11-04), read at a8369f8:
+In force (decided 2026-11-04), in code at 7335076 and 0334779:
 - **A bar's confirm shows what it does: ▶ while the sheet starts a timer.**
   With Start Timer on, the New Feeding sheet's bottom button reads «Начать
-  кормление» with ▶ (`FeedingView.swift:565`), while the bar's ✓ (`:580`)
-  does the same and VoiceOver names it «Сохранить». The bar's confirm then
+  кормление» with ▶ (`FeedingView.swift:566–567`), and the bar's confirm
   shows `play.fill` and VoiceOver reads the bottom button's word
-  (`button.start_feeding`); with the toggle off it is ✓ «Сохранить» again.
-  Same style as Save (§ 7 `BBBarButton`); bar and bottom swap together, at
-  once, when the toggle flips. One action, one glyph in both places. It is
-  the app's one sheet that starts a timer (the only Start Timer toggle,
-  `FeedingView.swift:543`). Not taken: no confirm in the bar while the timer
+  (`button.start_feeding`; `BBBarAction.startFeeding`, `:581`); with the
+  toggle off it is ✓ «Сохранить» again. Before, the bar's ✓ did the same as
+  ▶ and VoiceOver named it «Сохранить». Same style as Save (§ 7
+  `BBBarButton`); bar and bottom swap together, at once, when the toggle
+  flips. One action, one glyph in both places. It is the app's one sheet that
+  starts a timer (the only Start Timer toggle, `FeedingView.swift:543`). Not
+  taken: no confirm in the bar while the timer
   is on (the bar changes under a toggle, and every entry sheet confirms in
   both places); ✓ named «Начать кормление» (the glyph says done while the
   tap starts a feed, and the sighted parent still sees two signs for one act).
@@ -699,7 +703,8 @@ Planned (decided 2026-11-04), read at a8369f8:
   `teamdocs/design/m1-weekly-summary.md` § 4). A fit per row would set one
   delta at the column's edge and the next under its value. On 320 pt at Large
   the weekly sleep row is over its room beside its delta in en, ru and es
-  (−23.8 to −57.7 pt, CoreText at a8369f8).
+  (−23.8 to −57.7 pt, CoreText at a8369f8). The weekly card is the app's one
+  column of deltas (`WeeklySummaryCard.swift:366`, at 7070300).
 
 ## 4. Spacing
 
@@ -757,7 +762,7 @@ Surface levels:
 ## 7. Components (`BabyBloom/DesignSystem/`)
 
 triggers: a file added to or removed from `DesignSystem/Components/`; a public component renamed
-check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model and `BBBarAction` the bar button's; `EmptyStateView` and `AppAppearance` live elsewhere; `BBSheetHeading`, `bbSheetTitle` and `BBSheetTitlePlacement` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
+check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model and `BBBarAction` the bar button's; `EmptyStateView`, `AppAppearance` and `SettingsSwitchLabel` live elsewhere; `BBSheetHeading`, `bbSheetTitle` and `BBSheetTitlePlacement` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
 
 | component | file | purpose | used in |
 |---|---|---|---|
@@ -766,14 +771,15 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3). Its ideal width is the larger of its label and its disc | Dashboard: four in a row while the widest tile fits a quarter of the card, else two by two (`QuickActionsLayout`, `DashboardView.swift:677`), one column at accessibility sizes (§ 3) |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
-| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). Planned (decided 2026-11-04, § 3): a fifth case for a confirm that starts a timer, `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on | the 17 sheet bars and the medication screen's bar, 29 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets, the growth explainer (Close) and the medication screen, a pushed screen (the pencil, in code at b57b678) |
+| BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). A fifth case, `.startFeeding`, is a confirm that starts a timer: `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on (§ 3; in code at 7335076, `BBBarButton.swift:9`) | the 17 sheet bars and the medication screen's bar, 29 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets, the growth explainer (Close) and the medication screen, a pushed screen (the pencil, in code at b57b678) |
 | BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt. The trend chip stands beside the plate while each of its words fits the room there, wrapping between words, else on its own line under the plate, leading, sm 8 below it (in force, in code at 4f3c86c, `WordWrappingText` `:127`, § 3). The unit and title are BBTextSecondary on the tonal wash (4.28–4.36 in light; 4.83–5.05 with #6B647C, planned, G10); `overLimit`, set by no caller, goes with its red (planned, G5) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6) | Feeding, Sleep, Diaper, Events, RecentActivity |
 | BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target; `overLimit`, set by no caller, goes with its red (planned, G5) | Dashboard, Diaper |
 | BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
-| BBValueRow | — | **proposed** (§ 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: xs)`, the title's text's leading); `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its Label's title as `SettingsSwitchLabel`'s hint does | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
+| BBValueRow | — | **planned** (decided 2026-11-04; § 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: xs)`, the title's text's leading); `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its Label's title as `SettingsSwitchLabel`'s hint does | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
+| SettingsSwitchLabel | — (private, `App/MainTabView.swift:382`) | **from 1.3.0** — a Settings switch's label: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`), both inside one `Label`'s title, the icon in BBTextPrimary on the title's row; the hint starts at the title's leading edge and VoiceOver reads both with the switch. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). In code at 8b90029 | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches — every Settings switch |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
 | BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+" | Feeding, Sleep, Diaper, Growth |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
@@ -864,8 +870,11 @@ selected tiles' borders were read at 3b9dd3d, where G29 was measured
 art's pixels read where they lie, in portrait, in landscape and in Split
 View (2026-11-04). The title + value rows and the Export format tiles were
 measured at 8b90029 from CoreText widths, the live Settings tree and shots on
-402 pt and a 320 pt dump, where G30 was found (2026-11-04). Each line: what,
-where, which rule.
+402 pt and a 320 pt dump, where G30 was found (2026-11-04). The Feeding
+sheet's bar confirm, the weekly card's rows, legend and hidden line, the
+Settings switch labels and the percentile card were read at 3b9dd3d to
+7070300 with their renders, trees and 320 pt dumps (2026-11-05). Each line:
+what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
@@ -1040,7 +1049,8 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   - the percentile card's ring number: small text, 16 pt semibold, the tier
     tint, 4.5 (`PercentileCard.swift:85`);
   - the newborn card's regained figure («102% от веса при рождении»):
-    figure, metric, BBSuccess, 3 (`GrowthInsightCards.swift:517`);
+    figure, metric, BBSuccess, 3 (`GrowthInsightCards.swift:517`; `:543` at
+    7070300);
   - the weight gain card's figure («+180 г/нед»): figure, metric, BBSuccess
     or BBAccent, 3 (`GrowthInsightCards.swift:582`, tints at `:677`);
   - the weight gain card's band word: label, 14 pt semibold at a fixed size
@@ -1054,7 +1064,9 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   and "not enough data" and "first weeks" BBTextSecondary (4.92 / 6.11):
   those pass. Onboarding's growth page renders the percentile card itself
   (`GrowthShowcasePage.swift:102`, a tail there in BBTextPrimary). Breaks P8.
-  The percentile card, decided 2026-11-04 (planned): the band label goes; the
+  The percentile card, decided 2026-11-04, in force (in code at e3d45e2: the
+  figure `PercentileCard.swift:72`, one element `:75`, the ring `:80–89`;
+  the band label and the ring number are gone): the band label goes; the
   big figure is the percentile itself, the card's badge («61», «> 97», «< 3»,
   36.1 to 60.1 pt in the 168 pt beside the ring on 320), in BBTextPrimary
   (14.28 / 14.05) under its caption `percentile.weight`; the ring keeps the
@@ -1252,7 +1264,8 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   «Beautiful report for printing or sharing» sets a first line of 151.2 pt
   in 151.5, which lies 0.8 pt under the selected outline (es 0.6). Measured at
   8b90029: the two descriptions set different line counts (on 375 pt en 2
-  against 1), so the tiles have two heights. Direction (proposed): sm 8 a side
+  against 1), so the tiles have two heights. Direction (decided 2026-11-04,
+  planned): sm 8 a side
   inside the tile, for the glyph, the name and the description, and the two
   tiles of the taller one's height, each laid from its top
   (`ExportView.swift:33–37`, `:99–112`). With sm 8 every line keeps 7 pt or
@@ -1294,7 +1307,7 @@ and G1, G18, G19, G20 and G21 are fixed for 1.3.0.
   Label moves a first word wider than the 196 pt beside its icon at AX2 on
   320 pt («Синхронизация» 236.6, «использования» 226.5) under the icon or
   breaks it. Breaks § 3 (a word never breaks inside itself). Direction
-  (proposed): § 3's title + value rule, through `BBValueRow` (§ 7). Not taken:
+  (decided 2026-11-04, planned): § 3's title + value rule, through `BBValueRow` (§ 7). Not taken:
   one fit for every row (a slider's figure changes under the drag, and the
   rows that hold would change shape with nothing broken); shorter words (they
   hold at Large only); a title that shrinks (the user's text set smaller in
