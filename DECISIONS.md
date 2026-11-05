@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-06 — A row's trailing value keeps its width; at accessibility sizes it stands under the title
+
+Every row with a title and one trailing value is a `BBValueRow`. The value keeps its one-line width and the title wraps beside it, between words only; at accessibility sizes the value stands under the title. Settings' iCloud Sync row takes its shape from the fit instead: beside while the title and the value share one line, else under, at any size. The medication menu's label stands above its menu at every size.
+
+**Why.** The value is the fact the row is for, short and bounded: given its width first, any break falls in the title, and there only between words. Below the accessibility sizes the other rows hold their words on a 320-pt screen, so a branch on the text size changes nothing where nothing is broken, and it cannot flip under the finger while a slider's figure grows (9,9 → 10,0 kg). The iCloud Sync title misses one line beside its value at Large on 320 pt in ru and es; its value changes only with the account, so the row does what the system's value cell beside it does. The medication menu's value is a name of any length, picked right there: beside, a one-word name breaks from xxLarge on 320 pt, and a fit would move the label under the user's pick. Not taken: one fit for every row (the sliders would need their widest figure measured, and the rows that hold would stack from xLarge on 320 pt, where today their title wraps between words); shorter titles («iCloud» alone holds at Large, not as the text grows); a title that shrinks (`minimumScaleFactor` sets the user's chosen text smaller in the one row that lacks room); for the menu, the label whole beside it and the name wrapping (a name whose one word is wider than the room still breaks inside itself).
+
 ## 2026-11-05 — In a wide window the splash puts the figure and the words side by side
 
 Where the words' place at 82 % of the height would lie on the art's figure (a phone or a full iPad in landscape, iPad Split View 2/3), the figure and the words stand side by side, centred as one group in the safe area, and the art's sides inside the window fade into the launch colour. Every other window keeps the splash as it was. The art is not mirrored in a right-to-left language; the group is.

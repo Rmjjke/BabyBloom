@@ -282,14 +282,19 @@ struct BBProgressCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(color)
-                Text(title.l)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
+            // The glyph and the title make the title side; at the
+            // accessibility sizes the figure goes under the title's text.
+            BBValueRow {
+                HStack {
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(color)
+                    Text(title.l)
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .alignmentGuide(.bbValueRowTitle) { $0[.leading] }
+                }
+            } value: {
                 Text("\(Int(current))/\(Int(target)) \(unit.l)".gluingNumbersToUnits)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)

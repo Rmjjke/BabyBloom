@@ -502,11 +502,12 @@ struct AddFeedingSheet: View {
                     // Volume (if formula/pumped)
                     if selectedType == .formula || selectedType == .pumped {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                            HStack {
+                            // The figure under the title at the accessibility sizes.
+                            BBValueRow {
                                 Text("form.volume_ml".l)
                                     .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                                Spacer()
+                            } value: {
                                 Text("\(Int(volumeML))\u{00A0}\("unit.ml".l)")
                                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.textPrimary)

@@ -156,34 +156,34 @@ struct PlanPickerSection: View {
                     .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
                     .accessibilityHidden(true)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(titleKey.l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                        .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let product {
-                        Text(product.displayPrice + " " + periodKey.l)
-                            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded).monospacedDigit())
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                // At the accessibility sizes the badge goes under the price.
+                BBValueRow {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(titleKey.l)
+                            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+                            .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text("premium.loading".l)
-                            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                        if let product {
+                            Text(product.displayPrice + " " + periodKey.l)
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded).monospacedDigit())
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            Text("premium.loading".l)
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded))
+                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                        }
                     }
-                }
-
-                Spacer(minLength: BBTheme.Spacing.sm)
-
-                if let badge {
-                    Text(badge)
-                        .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .bold, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.onAccent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(BBTheme.Colors.accent)
-                        .cornerRadius(BBTheme.Radius.pill)
-                        .fixedSize(horizontal: false, vertical: true)
+                } value: {
+                    if let badge {
+                        Text(badge)
+                            .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .bold, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.onAccent)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(BBTheme.Colors.accent)
+                            .cornerRadius(BBTheme.Radius.pill)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -241,24 +241,20 @@ struct DoseSheet: View {
 }
 
 /// The «Medication» field of the dose sheet and the Add Event form: a label
-/// and a menu that shows the choice, or «Choose».
+/// over a menu that shows the choice, or «Choose».
 struct MedicationMenuField<Items: View>: View {
     let value: String
     @ViewBuilder let items: () -> Items
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        // Stacked at accessibility sizes, so a long name never squeezes the label.
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: BBTheme.Spacing.sm))
-        layout {
+        // The label above its menu at every size, so a long name never
+        // squeezes it, whatever the text size.
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             // The menu carries the label for VoiceOver, so it is read once.
             Text("medication.picker_label".l)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .accessibilityHidden(true)
-            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: BBTheme.Spacing.sm) }
             Menu {
                 items()
             } label: {

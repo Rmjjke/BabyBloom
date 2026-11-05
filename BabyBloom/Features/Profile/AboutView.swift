@@ -8,29 +8,33 @@ import CloudKit
 struct ICloudStatusRow: View {
     /// nil until CloudKit answers: no value rather than a guessed one.
     @State private var isOn: Bool?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            // Value under the label at accessibility sizes: side by side, ru
-            // AX2 broke «Синхро / низация» and «Выключен / а».
-            let row = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
-                : AnyLayout(HStackLayout())
-            row {
-                Label("settings.icloud".l, systemImage: "icloud.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                if let isOn {
-                    Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
+        // One Label around the title, the value and the hint, as the switch
+        // rows hold their hint: the value and the hint start at the title's x.
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                // By fit: on a 320 pt window the ru and es titles miss one line
+                // beside the value at Large, and side by side the title broke
+                // inside its words («Синхро / низация»).
+                BBValueRow(shape: .byFit, underSpacing: 2) {
+                    Text("settings.icloud".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                } value: {
+                    if let isOn {
+                        Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                }
+                if isOn == false {
+                    Text("settings.icloud_off_hint".l)
+                        .font(.footnote)
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
-            if isOn == false {
-                Text("settings.icloud_off_hint".l)
-                    .font(.footnote)
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-            }
+        } icon: {
+            Image(systemName: "icloud.fill")
+                .foregroundStyle(BBTheme.Colors.textPrimary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("settings.icloud")
