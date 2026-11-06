@@ -45,6 +45,9 @@ enum DoctorReportPDF {
             if let medications = medications(summary.medications, now: now) { items.append(medications) }
         }
         if let questions = questions(openQuestions) { items.append(questions) }
+        // After the questions, which are what the visit is for; a block of its
+        // own, so a short period keeps its one page.
+        if let chart = weightChart(summary.growth.weightChart, now: now) { items.append(chart) }
         items.append(.block("<p class=\"foot\">\(esc("report.footnote".l))</p>"))
 
         let head = """
@@ -82,7 +85,146 @@ enum DoctorReportPDF {
         ol { margin: 3px 0; padding-left: 20px; }
         li { margin: 2px 0; }
         .foot { font-size: 10px; color: \(secondary); margin-top: 18px; }
+        .curves { font-size: 10px; font-weight: 400; color: \(secondary); }
+        svg text { font-size: \(String(format: "%.3f", Double(Chart.labelSize)))px; fill: \(secondary); \(PagedPDF.cssType) }
         """
+    }
+
+    // MARK: Weight for age
+
+    /// The chart's frame, in page points. The formatter lays the 523.2 pt
+    /// printable width out as 612 CSS px, so the svg takes the whole width
+    /// with a 523.2-wide viewBox — one user unit is one page point, x 0 the
+    /// left margin — and a CSS height scaled by the same factor.
+    private enum Chart {
+        static let width: CGFloat = 523.2
+        static let height: CGFloat = 111.5
+        static let cssPerPoint: CGFloat = 612 / 523.2
+        static let plotLeft: CGFloat = 28
+        static let plotRight: CGFloat = 501
+        static let plotTop: CGFloat = 6
+        static let plotBottom: CGFloat = 96
+        /// The heading's 10 px span in points: every label prints at its size.
+        /// A label's size is set in user units, which are points here.
+        static let labelSize: CGFloat = 10 / cssPerPoint
+        /// Page x 60…541: the x labels never pass the y labels' column or the
+        /// curve numbers.
+        static let labelMin: CGFloat = 24
+        static let labelMax: CGFloat = 505
+        static let xLabelTop: CGFloat = 100
+        static let tickLength: CGFloat = 3
+        static let gap: CGFloat = 4
+    }
+
+    /// An x label of the chart, placed: the tick it names, its left edge and
+    /// width in points from the left margin.
+    struct ChartLabel: Equatable {
+        let date: Date
+        let text: String
+        let left: CGFloat
+        let width: CGFloat
+    }
+
+    /// Every chart label's font; the x labels are measured in it.
+    static var chartLabelFont: UIFont { PagedPDF.font(ofSize: Chart.labelSize) }
+
+    /// The x axis as printed: each date centred on its tick, then moved inside
+    /// the label bounds rather than dropped — the window's first date is the
+    /// one the doctor reads the line from. Labels that would touch take their
+    /// ticks with them, so every tick drawn carries its date: first the month
+    /// marks that would sit on the start's label, then every second mark,
+    /// until the rest clear. Year-dated labels, twice as wide, are what need it.
+    static func chartXLabels(_ chart: WeightForAgeChart, now: Date,
+                             width: (String) -> CGFloat) -> [ChartLabel] {
+        func place(_ tick: Date) -> ChartLabel {
+            let text = ReportFormat.date(tick, now: now)
+            let textWidth = width(text)
+            let left = min(max(chartX(tick, chart) - textWidth / 2, Chart.labelMin), Chart.labelMax - textWidth)
+            return ChartLabel(date: tick, text: text, left: left, width: textWidth)
+        }
+        func apart(_ before: ChartLabel, _ after: ChartLabel) -> Bool {
+            after.left >= before.left + before.width + Chart.gap
+        }
+        guard let first = chart.ticks.first else { return [] }
+        let start = place(first)
+        var marks = Array(chart.ticks.dropFirst().map(place).drop { !apart(start, $0) })
+        while !zip([start] + marks, marks).allSatisfy({ apart($0.0, $0.1) }) {
+            marks = marks.count > 1 ? stride(from: 0, to: marks.count, by: 2).map { marks[$0] } : []
+        }
+        return [start] + marks
+    }
+
+    private static func chartX(_ date: Date, _ chart: WeightForAgeChart) -> CGFloat {
+        let domain = chart.window.domain
+        let span = domain.upperBound.timeIntervalSince(domain.lowerBound)
+        let share = span > 0 ? date.timeIntervalSince(domain.lowerBound) / span : 0
+        return Chart.plotLeft + CGFloat(share) * (Chart.plotRight - Chart.plotLeft)
+    }
+
+    private static func chartY(_ kg: Double, _ chart: WeightForAgeChart) -> CGFloat {
+        let range = chart.kgRange
+        let share = (kg - Double(range.lowerBound)) / Double(range.upperBound - range.lowerBound)
+        return Chart.plotBottom - CGFloat(share) * (Chart.plotBottom - Chart.plotTop)
+    }
+
+    /// The weight-for-age section: an inline svg, which the formatter draws as
+    /// vectors with every label left as text.
+    private static func weightChart(_ chart: WeightForAgeChart?, now: Date) -> PagedPDF.Item? {
+        guard let chart else { return nil }
+        let font = chartLabelFont
+        // An svg label sits on its baseline: half the cap height below a line
+        // centres the digits on it.
+        let midCap = font.capHeight / 2
+        func n(_ value: CGFloat) -> String { String(format: "%.2f", Double(value)) }
+        func line(_ x1: CGFloat, _ y1: CGFloat, _ x2: CGFloat, _ y2: CGFloat, _ color: String) -> String {
+            "<line x1=\"\(n(x1))\" y1=\"\(n(y1))\" x2=\"\(n(x2))\" y2=\"\(n(y2))\" stroke=\"\(color)\" stroke-width=\"0.5\"/>"
+        }
+
+        var svg = ""
+        for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
+            let y = chartY(Double(kg), chart)
+            svg += line(Chart.plotLeft, y, Chart.plotRight, y, rowRule)
+            svg += "<text x=\"\(n(Chart.labelMin))\" y=\"\(n(y + midCap))\" text-anchor=\"end\">"
+                + "\(esc("\(kg)\(ReportFormat.nbsp)\("unit.kg".l)"))</text>"
+        }
+        let width = { (text: String) in (text as NSString).size(withAttributes: [.font: font]).width }
+        for label in chartXLabels(chart, now: now, width: width) {
+            let x = chartX(label.date, chart)
+            svg += line(x, Chart.plotBottom, x, Chart.plotBottom + Chart.tickLength, secondary)
+            svg += "<text x=\"\(n(label.left))\" y=\"\(n(Chart.xLabelTop + font.ascender))\">\(esc(label.text))</text>"
+        }
+
+        let curves: [(KeyPath<WHOCorridor.Sample, Double>, String, String)] = [
+            (\.low, "3", " stroke-width=\"0.75\" stroke-dasharray=\"3 2\""),
+            (\.mid, "50", " stroke-width=\"1\""),
+            (\.high, "97", " stroke-width=\"0.75\" stroke-dasharray=\"3 2\""),
+        ]
+        for (value, centile, stroke) in curves {
+            let points = chart.curves.map {
+                (chartX(chart.window.date(atAgeDays: $0.ageDays), chart), chartY($0[keyPath: value], chart))
+            }
+            svg += "<polyline points=\"\(points.map { "\(n($0.0)),\(n($0.1))" }.joined(separator: " "))\" "
+                + "fill=\"none\" stroke=\"\(secondary)\"\(stroke)/>"
+            if let end = points.last {
+                svg += "<text x=\"\(n(end.0 + Chart.gap))\" y=\"\(n(end.1 + midCap))\">\(centile)</text>"
+            }
+        }
+
+        // The child last, over the curves; the dots after the line, so no
+        // stretch of line runs over a dot.
+        let child = chart.points.map { (chartX($0.date, chart), chartY($0.weightKg, chart)) }
+        svg += "<polyline points=\"\(child.map { "\(n($0.0)),\(n($0.1))" }.joined(separator: " "))\" fill=\"none\" "
+            + "stroke=\"\(primary)\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+        for (x, y) in child {
+            svg += "<circle cx=\"\(n(x))\" cy=\"\(n(y))\" r=\"2.5\" fill=\"\(primary)\"/>"
+        }
+
+        let heading = "<h2>\(esc("report.pdf.chart_title".l))"
+            + "<span class=\"curves\">\(esc(ReportFormat.joiner + "report.pdf.chart_curves".l))</span></h2>"
+        let frame = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100%\" "
+            + "height=\"\(n(Chart.height * Chart.cssPerPoint))\" viewBox=\"0 0 \(n(Chart.width)) \(n(Chart.height))\" "
+            + "preserveAspectRatio=\"xMinYMin meet\" style=\"display:block\">"
+        return .block("<div>\(heading)\(frame)\(svg)</svg></div>")
     }
 
     // MARK: Header

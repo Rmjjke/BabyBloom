@@ -884,7 +884,11 @@ beneath them, the drawing face of `correctedAgeDaysIfBorn` returning nil — and
 window spans the baby's weights *and* the band, so neither is clipped. One
 weighing is enough to draw (the chart widens to a 28-day window around it),
 which is what every fresh install has, and the corridor is free for everyone —
-the showcase page promises it before anyone has paid.
+the showcase page promises it before anyone has paid. The x window — whole
+days of age, widened to the first and the last weighing — is
+`WeightChartWindow` (`Core/Growth/`), and the pediatrician report's chart
+draws from it too, so the PDF shows the stretch of the corridor the parent
+sees on the screen.
 
 `showsWHOCorridor` exists for a caller that ever reuses this shell for height
 or head circumference: those are different tables, and a weight corridor under
@@ -1465,7 +1469,24 @@ changed dose shows one caption, and in the PDF one row, per text) are a card
 after Diapers and a fixed-column table after the PDF's diapers section. Both
 are absent when no dose falls in the period. A dose counts as an entry
 for the new-period card, and the table moves to the next page whole when
-it fits on one. It renders through `PagedPDF`
+it fits on one. When the weight percentile shows a figure and two weighings
+or more are known, the PDF closes with a weight-for-age section after the
+questions, before the closing line. `WeightForAgeChart`
+(`Core/DoctorReport/`, in `summary.growth`) is what it draws, with no drawing
+in it: the screen's window, the weighings, WHO 3rd, 50th and 97th sampled
+daily, a whole-kg y axis and the dates the x axis may be labelled at.
+`DoctorReportPDF` writes it as an inline `<svg>`, which the formatter draws
+as vectors with every label left as text in Helvetica Neue; the 523.2 pt
+printable width lays out as 612 CSS px, so the svg spans it with a 523.2-wide
+viewBox and one user unit is one page point. The x labels are placed by the
+renderer, which knows the font: each centred on its tick and kept inside the
+plot, and labels that would touch go with their ticks — first the months on
+the start's label, then every second one — so every tick drawn carries its
+date (DECISIONS 2026-11-06). The section is one block: a month's report takes
+it and the closing line to page 2 and leaves page 1 as it was, and a short
+period keeps its one page. On the screen, a weighing with a head value shows
+it on a line of its own under the date and values, as the PDF's table gives
+it a column, and the row stays one VoiceOver element. It renders through `PagedPDF`
 (`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
 slices its layout at the page height and ignores the CSS break rules, so a
 document hands over its blocks and rows, every page is composed as its own

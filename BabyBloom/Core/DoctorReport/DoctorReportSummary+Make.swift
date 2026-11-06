@@ -243,15 +243,23 @@ extension DoctorReportSummary {
         let latestWeight = weighings.last
         let latestHeight = latest(in: known, \.heightCm)
         let latestHead = latest(in: known, \.headCm)
+        let weightPercentile = percentileRow(at: latestWeight?.date, input: input) { _ in
+            latestWeight.flatMap {
+                WHOGrowthStandard.percentileReading(of: $0, correctedBirthDate: input.correctedBirthDate,
+                                                    isMale: input.isMale)
+            }
+        }
+        // Only under a figure: before the due date or past the tables the
+        // curves would be extrapolated or absent, and the row already says why.
+        var weightChart: WeightForAgeChart?
+        if case .reading = weightPercentile {
+            weightChart = WeightForAgeChart(weighings: weighings, correctedBirthDate: input.correctedBirthDate,
+                                            isMale: input.isMale, calendar: frame.calendar)
+        }
 
         return Growth(
             latestWeight: latestWeight.map { Measure(value: $0.weightKg, date: $0.date) },
-            weightPercentile: percentileRow(at: latestWeight?.date, input: input) { _ in
-                latestWeight.flatMap {
-                    WHOGrowthStandard.percentileReading(of: $0, correctedBirthDate: input.correctedBirthDate,
-                                                        isMale: input.isMale)
-                }
-            },
+            weightPercentile: weightPercentile,
             latestHeight: latestHeight,
             heightPercentile: percentileRow(at: latestHeight?.date, input: input) { date in
                 latestHeight.flatMap {
@@ -267,7 +275,8 @@ extension DoctorReportSummary {
             atBirthHeightCm: known
                 .filter { frame.calendar.isDate($0.date, inSameDayAs: input.birthDate) }
                 .sorted { $0.date < $1.date }
-                .compactMap { $0.heightCm.flatMap { $0 > 0 ? $0 : nil } }.first)
+                .compactMap { $0.heightCm.flatMap { $0 > 0 ? $0 : nil } }.first,
+            weightChart: weightChart)
     }
 
     /// `WeightVelocity`'s order (private there): oldest first, and of two

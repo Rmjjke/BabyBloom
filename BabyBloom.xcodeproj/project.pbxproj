@@ -49,6 +49,7 @@
 		24577B13AFD3466DDB0C5BB8 /* FeedingRhythm.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */; };
 		248320E6127C58340944BBA2 /* WeeklyFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A56AE937474B66A62426B5B /* WeeklyFormat.swift */; };
 		249C44967ADBA0218F3FAC3C /* MedicineScheduleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC58DB8A226B83D0195EC7D9 /* MedicineScheduleTests.swift */; };
+		24F5D6679FC26D74070AA4AA /* WeightChartWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2C216E4F84E31408CF49C2 /* WeightChartWindow.swift */; };
 		2545546E391C7F033313B63D /* CustomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50258D2BEF608D26A2639534 /* CustomEvent.swift */; };
 		257A70228DB3ABDABF6484D9 /* MedicationReportSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */; };
 		26568783E2D6605496745637 /* WHOGrowthStandard+Length.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1C953E6C9361CC62C31C5A /* WHOGrowthStandard+Length.swift */; };
@@ -57,6 +58,7 @@
 		27A64E73F78D081549F72ECE /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01F832BBE867DF06E7EE6F2E /* MainTabView.swift */; };
 		282B1AA5BDE0C4DCBD9848B8 /* OnboardingBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08481481275F9B15129634B6 /* OnboardingBackground.swift */; };
 		2896483E3214C21CD769A12C /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F691DCEBF4864F06700FFE43 /* DeepLink.swift */; };
+		2AF95ECB04A9D44A4741910D /* WeightChartWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D8B280FFA8B34EFB671579 /* WeightChartWindowTests.swift */; };
 		2E0CFE2B20544952018C5766 /* WHOGrowthStandard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C25B2EC0FCAB1DDE48B3F66 /* WHOGrowthStandard.swift */; };
 		2EB6774515BC328880914153 /* AgeDescriptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5144AF014B68CE7465D4B34 /* AgeDescriptionTests.swift */; };
 		2F24EE28F336A1DD117C1085 /* LiveActivitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DCEDD73AA2EF1C9EA7517FB /* LiveActivitySettings.swift */; };
@@ -140,6 +142,7 @@
 		756E50D0B3BC99E5ACEC621F /* DecimalFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */; };
 		75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */; };
 		7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */; };
+		7A247FA719B1F2C134F9E6E3 /* WeightForAgeChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988C30B92DC57518B85A413B /* WeightForAgeChart.swift */; };
 		7B2737EB596E0135A560C902 /* NamePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A856FE301431E425A94C4CA /* NamePage.swift */; };
 		7B6FC7DF616E116021B47307 /* Baby.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524A26B846E0DB91693FCBE6 /* Baby.swift */; };
 		7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */; };
@@ -249,6 +252,7 @@
 		DC59EE4045C0E7D72826FBC6 /* DoctorReportSummary+Make.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A9A34B7CC513189E619F5F /* DoctorReportSummary+Make.swift */; };
 		DEF40610A527CAEE65D4770A /* MedicationFormInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 824B5299C1B6F13F6D0C4633 /* MedicationFormInput.swift */; };
 		DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A003916D83216166C88BE0C /* Assets.xcassets */; };
+		E08866CF6A2E11C8E01CB60B /* WeightForAgeChartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE52FA63F19FEE565C8224AF /* WeightForAgeChartTests.swift */; };
 		E13AFAAB5FF18C7392BD1B2E /* FeedingReportCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A7DD36E21E41CE34F52635 /* FeedingReportCard.swift */; };
 		E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582657DC180DE03128A75629 /* NewbornWeightLoss.swift */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
@@ -444,6 +448,7 @@
 		674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationReportSummaryTests.swift; sourceTree = "<group>"; };
 		68A01A1029A2A5DDFAC115FF /* PagedPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedPDF.swift; sourceTree = "<group>"; };
 		68E65FA2B824597BC7D701A5 /* SubscriptionSavingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSavingsTests.swift; sourceTree = "<group>"; };
+		6C2C216E4F84E31408CF49C2 /* WeightChartWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChartWindow.swift; sourceTree = "<group>"; };
 		7083D1ABF23AD48FC2C4827F /* BBMeasureSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBMeasureSlider.swift; sourceTree = "<group>"; };
 		713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorVisitActionsTests.swift; sourceTree = "<group>"; };
 		71C58120F53C2F5AF8BA2F52 /* BabyBloom.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BabyBloom.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -484,11 +489,13 @@
 		92018595E27242A50820D2B8 /* WidgetRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRenderDump.swift; sourceTree = "<group>"; };
 		929F2F04A221C78A10186554 /* TimerActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActivityViews.swift; sourceTree = "<group>"; };
 		92BA2D1C6628C94C4AD48E95 /* GrowthShowcasePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthShowcasePage.swift; sourceTree = "<group>"; };
+		93D8B280FFA8B34EFB671579 /* WeightChartWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightChartWindowTests.swift; sourceTree = "<group>"; };
 		9445CE4764757DF19F410911 /* DoctorReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportView.swift; sourceTree = "<group>"; };
 		953C4AE02D2D566EE63230A0 /* SideBySideIdeal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBySideIdeal.swift; sourceTree = "<group>"; };
 		96AF18E1355A04D9F979B421 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		96FEC8E9C21E1552873021F0 /* ReviewPromptClinicalBlockerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptClinicalBlockerTests.swift; sourceTree = "<group>"; };
 		97E664569DD7197025727900 /* WidgetElapsedTextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetElapsedTextTests.swift; sourceTree = "<group>"; };
+		988C30B92DC57518B85A413B /* WeightForAgeChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightForAgeChart.swift; sourceTree = "<group>"; };
 		99A7DD36E21E41CE34F52635 /* FeedingReportCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingReportCard.swift; sourceTree = "<group>"; };
 		99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLossTests.swift; sourceTree = "<group>"; };
 		9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -540,6 +547,7 @@
 		CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEventTests.swift; sourceTree = "<group>"; };
 		CD6C8B0BD12C14B9987CEEBA /* MedicationReminderPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationReminderPlan.swift; sourceTree = "<group>"; };
 		CE1C953E6C9361CC62C31C5A /* WHOGrowthStandard+Length.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WHOGrowthStandard+Length.swift"; sourceTree = "<group>"; };
+		CE52FA63F19FEE565C8224AF /* WeightForAgeChartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightForAgeChartTests.swift; sourceTree = "<group>"; };
 		CEDB039AFD50ADF3376CDFF1 /* BBScreenTitleFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBScreenTitleFitTests.swift; sourceTree = "<group>"; };
 		D180AE05B613883F4456A0EB /* Double+AppRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+AppRate.swift"; sourceTree = "<group>"; };
 		D1E9DEDFFC24FD88F28B7817 /* WHOLengthStandardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOLengthStandardTests.swift; sourceTree = "<group>"; };
@@ -880,6 +888,8 @@
 				DAE7C80A290A93593D96A530 /* WeeklySummaryRenderDump.swift */,
 				9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */,
 				C9B93053C148D1C6ED53A55A /* WeightChartRenderDump.swift */,
+				93D8B280FFA8B34EFB671579 /* WeightChartWindowTests.swift */,
+				CE52FA63F19FEE565C8224AF /* WeightForAgeChartTests.swift */,
 				07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */,
 				E2BF1EDC4FAA44E63CEBAFE0 /* WHOCorridorTests.swift */,
 				D46814FBF17ACE8377F73724 /* WHOGrowthStandardTests.swift */,
@@ -1060,6 +1070,7 @@
 				0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */,
 				582657DC180DE03128A75629 /* NewbornWeightLoss.swift */,
 				DCD4BA37056F98A21BACCC4E /* StatusWord.swift */,
+				6C2C216E4F84E31408CF49C2 /* WeightChartWindow.swift */,
 				001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */,
 				3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */,
 				1B3FEF1C694F286BCCE9C786 /* WHOCorridor.swift */,
@@ -1118,6 +1129,7 @@
 				AFA0F1C917B0043BE5D6B378 /* DoctorReportSummary.swift */,
 				07A9A34B7CC513189E619F5F /* DoctorReportSummary+Make.swift */,
 				D6CBF82AC40811CFE6035353 /* DoctorReportSummary+Store.swift */,
+				988C30B92DC57518B85A413B /* WeightForAgeChart.swift */,
 			);
 			path = DoctorReport;
 			sourceTree = "<group>";
@@ -1626,6 +1638,8 @@
 				526C04993CAD4A155C0E67E1 /* WeeklySummary+Store.swift in Sources */,
 				4FA1FC6EF847EBB826070C7C /* WeeklySummary.swift in Sources */,
 				836B5234B81D61CED074A8DB /* WeeklySummaryCard.swift in Sources */,
+				24F5D6679FC26D74070AA4AA /* WeightChartWindow.swift in Sources */,
+				7A247FA719B1F2C134F9E6E3 /* WeightForAgeChart.swift in Sources */,
 				75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */,
 				FE9898FF8306099A659D3475 /* WeightVelocity.swift in Sources */,
 				11094C9AC10A2830CF27EF8D /* WelcomePage.swift in Sources */,
@@ -1721,6 +1735,8 @@
 				145F8ECFD2EDFD176DCFD507 /* WeeklySummaryRenderDump.swift in Sources */,
 				4B86F85353F0FBAE92EA879B /* WeeklySummaryTests.swift in Sources */,
 				954B71C8BA4964C0C08D9FBF /* WeightChartRenderDump.swift in Sources */,
+				2AF95ECB04A9D44A4741910D /* WeightChartWindowTests.swift in Sources */,
+				E08866CF6A2E11C8E01CB60B /* WeightForAgeChartTests.swift in Sources */,
 				D4181BBA847525B9B05B25B9 /* WeightVelocityTests.swift in Sources */,
 				CFAC11584D9A5A725B6C868D /* WidgetElapsedTextTests.swift in Sources */,
 				FF9A4F7F37D85BD05A79DC9D /* WidgetRenderDump.swift in Sources */,

@@ -125,7 +125,9 @@ struct GrowthReportCard: View {
         }
     }
 
-    /// «28 Oct · 5.42 kg · 58 cm»; at accessibility sizes the date goes over the value.
+    /// «28 Oct · 5.42 kg · 58 cm»; at accessibility sizes the date goes over the
+    /// value. A head value takes a line of its own under them, as the PDF's
+    /// table gives it a column: a third part on the first line wraps at 320 pt.
     @ViewBuilder
     private func weighingLine(_ weighing: DoctorReportSummary.Weighing) -> some View {
         let value = ([ReportFormat.kg(weighing.weightKg)]
@@ -136,16 +138,29 @@ struct GrowthReportCard: View {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
                     ReportCaption(ReportFormat.date(weighing.date))
                     BBTheme.Typography.metricSmall(value)
+                    if let head = weighing.headCm { headLine(head) }
                 }
             } else {
-                BBTheme.Typography.callout(ReportFormat.date(weighing.date) + ReportFormat.joiner)
-                    + BBTheme.Typography.metricSmall(value)
+                VStack(alignment: .leading, spacing: 0) {
+                    BBTheme.Typography.callout(ReportFormat.date(weighing.date) + ReportFormat.joiner)
+                        + BBTheme.Typography.metricSmall(value)
+                    if let head = weighing.headCm { headLine(head) }
+                }
             }
         }
         .foregroundStyle(BBTheme.Colors.textPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
+    }
+
+    /// «Head: 38.5 cm», split at `%@` as `ReportRow` splits it, so the word
+    /// order stays the translator's.
+    private func headLine(_ cm: Double) -> Text {
+        let parts = "growth.head_fmt".l.components(separatedBy: "%@")
+        return BBTheme.Typography.callout(parts.first ?? "")
+            + BBTheme.Typography.metricSmall(cm.appDecimal(1))
+            + BBTheme.Typography.callout(parts.dropFirst().joined())
     }
 
     // MARK: At birth

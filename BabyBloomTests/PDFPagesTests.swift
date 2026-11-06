@@ -12,6 +12,8 @@ final class PDFPagesTests: XCTestCase {
         let document: PDFDocument
         let weights: [String]
         let html: String
+        let summary: DoctorReportSummary
+        let now: Date
     }
 
     private func inLanguage(_ language: SupportedLanguage, _ body: () throws -> Void) rethrows {
@@ -60,7 +62,9 @@ final class PDFPagesTests: XCTestCase {
         let data = DoctorReportPDF.data(summary: summary, baby: baby, openQuestions: open, periodStart: start, now: now)
         let html = DoctorReportPDF.html(summary: summary, baby: baby, openQuestions: open, periodStart: start, now: now)
         let document = try XCTUnwrap(PDFDocument(data: data))
-        return withExtendedLifetime(container) { Report(document: document, weights: values.map(ReportFormat.kg), html: html) }
+        return withExtendedLifetime(container) {
+            Report(document: document, weights: values.map(ReportFormat.kg), html: html, summary: summary, now: now)
+        }
     }
 
     private func exportPDF(rows: Int) throws -> (document: PDFDocument, weights: [String]) {
@@ -427,6 +431,67 @@ final class PDFPagesTests: XCTestCase {
                 XCTAssertFalse(text.unicodeScalars.contains { [0x138, 0xFB01, 0xFB02].contains($0.value) },
                                "\(language): a substituted character")
                 XCTAssertTrue(text.contains("Is it fine"), "\(language): the question is not searchable")
+            }
+        }
+    }
+
+    // MARK: Weight chart
+
+    /// Every label of the chart reads back from the text layer, in Helvetica
+    /// Neue at the labels' size: the centiles at the curves' end (page x 541),
+    /// each y label, and the x labels inside page x 60…541.
+    func testTheChartsLabelsAreTextInHelveticaNeue() throws {
+        let face = DoctorReportPDF.chartLabelFont
+        func width(_ text: String) -> CGFloat { (text as NSString).size(withAttributes: [.font: face]).width }
+        func plainText(_ selection: PDFSelection) -> String {
+            (selection.string ?? "").replacingOccurrences(of: "\u{A0}", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        for language in [SupportedLanguage.en, .ru, .es] {
+            try inLanguage(language) {
+                let report = try report(extraWeighings: 0)
+                let chart = try XCTUnwrap(report.summary.growth.weightChart, "\(language)")
+                let document = report.document
+                let heading = try XCTUnwrap(document.findString("report.pdf.chart_title".l, withOptions: []).first,
+                                            "\(language): no chart heading")
+                let page = try XCTUnwrap(heading.pages.first)
+                // The svg hangs under its heading: 111.5 pt and the h2's gap.
+                let top = heading.bounds(for: page).minY
+                let band = (top - 130)...top
+                let lines = try XCTUnwrap(page.selection(for: page.bounds(for: .mediaBox))).selectionsByLine()
+                    .filter { band.contains($0.bounds(for: page).midY) }
+                func assertFace(_ selection: PDFSelection, _ label: String) {
+                    let font = selection.attributedString?.attribute(.font, at: 0, effectiveRange: nil) as? UIFont
+                    XCTAssertEqual(font?.fontName, "HelveticaNeue", "\(language) «\(label)»")
+                    XCTAssertEqual(font?.pointSize ?? 0, face.pointSize, accuracy: 0.2, "\(language) «\(label)»")
+                }
+
+                for centile in ["3", "50", "97"] {
+                    let found = document.findString(centile, withOptions: []).first { selection in
+                        let bounds = selection.bounds(for: page)
+                        return selection.pages.first == page && band.contains(bounds.midY) && abs(bounds.minX - 541) < 1
+                    }
+                    let selection = try XCTUnwrap(found, "\(language): centile \(centile) not at the curves' end")
+                    assertFace(selection, centile)
+                }
+                for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
+                    let label = "\(kg) \("unit.kg".l)"
+                    // A centile on the same baseline joins the label's line.
+                    let line = try XCTUnwrap(lines.first { plainText($0) == label || plainText($0).hasPrefix(label + " ") },
+                                             "\(language): y label «\(label)»")
+                    XCTAssertGreaterThanOrEqual(line.bounds(for: page).minX, 36 - 0.5, "\(language) «\(label)»")
+                    assertFace(line, label)
+                }
+                let labels = DoctorReportPDF.chartXLabels(chart, now: report.now, width: width)
+                    .map { $0.text.replacingOccurrences(of: "\u{A0}", with: " ") }
+                XCTAssertGreaterThanOrEqual(labels.count, 2, "\(language)")
+                let row = try XCTUnwrap(lines.first { plainText($0).hasPrefix(labels[0]) },
+                                        "\(language): x labels «\(labels)»")
+                XCTAssertEqual(plainText(row).components(separatedBy: " ").filter { !$0.isEmpty },
+                               labels.joined(separator: " ").components(separatedBy: " "), "\(language)")
+                XCTAssertGreaterThanOrEqual(row.bounds(for: page).minX, 60 - 0.5, "\(language): x labels")
+                XCTAssertLessThanOrEqual(row.bounds(for: page).maxX, 541 + 0.5, "\(language): x labels")
+                assertFace(row, labels[0])
             }
         }
     }
