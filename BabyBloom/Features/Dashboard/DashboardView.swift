@@ -488,7 +488,7 @@ struct DashboardView: View {
     private var progressSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
             BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, color: BBTheme.Colors.feeding, icon: "heart.fill")
-            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
+            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, measure: .hours, color: BBTheme.Colors.sleep, icon: "moon.fill")
             BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
     }

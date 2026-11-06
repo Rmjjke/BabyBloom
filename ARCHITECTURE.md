@@ -317,9 +317,11 @@ to 15 minutes.
 and the export. Each caller turns seconds into minutes its own way: a clock
 floors, a countdown rounds up. Seconds show only under a minute and on a
 running timer. A count carries no unit word: a stat tile shows the figure
-alone, and a progress card reads «0 из 6» (`progress.of_fmt`), or «10 из 14 ч»
-for a measured target (`progress.of_unit_fmt`). A duration tile keeps its unit
-words inside the value, drawn smaller than the figures.
+alone, and a progress card reads «0 из 6» (`progress.of_fmt`). Home's sleep
+card is a span of time, so both sides go through the writer: «2 ч 55 мин из
+14 ч» (`progress.of_duration_fmt`, `BBProgressCard.Measure.hours`), the same
+total the Sleep tile shows. A duration tile keeps its unit words inside the
+value, drawn smaller than the figures.
 
 ## Theming and typography
 

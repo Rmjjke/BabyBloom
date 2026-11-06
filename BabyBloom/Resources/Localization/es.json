@@ -16,6 +16,7 @@
   "progress.wet_nappies": "Pañales mojados",
   "progress.of_fmt": "%d de %d",
   "progress.of_unit_fmt": "%d de %d %@",
+  "progress.of_duration_fmt": "%@ de %@",
   "nav.diapers": "Pañales",
   "nav.growth": "Crecimiento",
   "nav.events": "Eventos",

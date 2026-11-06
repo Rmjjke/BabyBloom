@@ -45,15 +45,35 @@ final class DurationFormatsTests: XCTestCase {
                        "a feed and a sleep of one length read the same")
     }
 
-    func testProgressReadsAsWordsWithTheUnitOnlyForAMeasuredTarget() {
+    /// A count reads its two numbers; sleep reads two durations from the one
+    /// writer, so 2 h 55 min is never «2 of 14 h» beside a tile saying
+    /// «2 h 55 min».
+    func testProgressReadsACountAsNumbersAndSleepAsTwoDurations() {
+        let sleep = { (hours: Double, target: Double) in
+            BBProgressCard.valueText(current: hours, target: target, measure: .hours)
+        }
+        defer { LocalizationManager.shared.setLanguage(.en) }
+
         LocalizationManager.shared.setLanguage(.en)
-        XCTAssertEqual(BBProgressCard.valueText(current: 0, target: 6, unit: nil), "0 of 6")
-        XCTAssertEqual(BBProgressCard.valueText(current: 10.7, target: 14, unit: "unit.h"), "10 of 14\(nbsp)h")
+        XCTAssertEqual(BBProgressCard.valueText(current: 0, target: 6, measure: .count), "0 of 6")
+        XCTAssertEqual(sleep(175.0 / 60, 14), "2\(nbsp)h\(nbsp)55\(nbsp)min of 14\(nbsp)h")
+        XCTAssertEqual(sleep(0, 16), "0\(nbsp)min of 16\(nbsp)h")
+        XCTAssertEqual(sleep(0.75, 16), "45\(nbsp)min of 16\(nbsp)h")
+        XCTAssertEqual(sleep(16 + 20.0 / 60, 16), "16\(nbsp)h\(nbsp)20\(nbsp)min of 16\(nbsp)h",
+                       "past the target the line reads as it is")
+        XCTAssertEqual(sleep(10799.6 / 3600, 14), "3\(nbsp)h of 14\(nbsp)h",
+                       "seconds round before the minutes floor, as the Sleep tile does")
+        XCTAssertEqual(sleep(10790.0 / 3600, 14), "2\(nbsp)h\(nbsp)59\(nbsp)min of 14\(nbsp)h",
+                       "a part minute is not rounded up")
 
         LocalizationManager.shared.setLanguage(.ru)
-        defer { LocalizationManager.shared.setLanguage(.en) }
-        XCTAssertEqual(BBProgressCard.valueText(current: 0, target: 6, unit: nil), "0 из 6")
-        XCTAssertEqual(BBProgressCard.valueText(current: 10, target: 14, unit: "unit.h"), "10 из 14\(nbsp)ч")
+        XCTAssertEqual(BBProgressCard.valueText(current: 0, target: 6, measure: .count), "0 из 6")
+        XCTAssertEqual(sleep(175.0 / 60, 14), "2\(nbsp)ч\(nbsp)55\(nbsp)мин из 14\(nbsp)ч")
+        XCTAssertEqual(sleep(0, 16), "0\(nbsp)мин из 16\(nbsp)ч")
+
+        LocalizationManager.shared.setLanguage(.es)
+        XCTAssertEqual(BBProgressCard.valueText(current: 0, target: 6, measure: .count), "0 de 6")
+        XCTAssertEqual(sleep(175.0 / 60, 14), "2\(nbsp)h\(nbsp)55\(nbsp)min de 14\(nbsp)h")
     }
 
     func testTileValueCutsFiguresFromWords() {
