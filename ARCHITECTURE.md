@@ -1298,6 +1298,14 @@ nenita://tab/sleep` works for testing; a widget link would reach its app without
 - **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
 - **The onboarding showcase** renders the same view with `isInteractive: false`, so a tap there starts nothing.
 
+The widget writes time since an event in whole days from 48 hours, rounded
+down, as Home's Today tile does (`WidgetCopy.elapsedText`): the medium's feed
+row, the hero past 12 months and the overdue line («Прошло ещё 4 дня»).
+«131 ч 5 мин» left the reader to divide. A duration keeps its hours and
+minutes (`WidgetCopy.minutesText`): a running feed in the capsule, a running
+or finished sleep, the countdown to the next feed and the Live Activity's
+ended timer.
+
 The splash plays on **every** cold launch (~5s) — it is `@State`, not
 persisted, and there is no `hasShownSplash` flag.
 

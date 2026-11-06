@@ -97,6 +97,18 @@ enum WidgetCopy {
             : String(format: "duration.h_min".l, total / 60, total % 60)).gluingNumbersToUnits
     }
 
+    /// Time since something happened (the last feed, the moment a feed was
+    /// due): from 48 hours whole days, rounded down, as Home writes them
+    /// («5 дней»), where «131 ч 5 мин» left the reader to divide. A duration
+    /// that is not time since an event, such as a running or ended timer or
+    /// a sleep's length, stays in `minutesText`.
+    static func elapsedText(_ interval: TimeInterval) -> String {
+        let hours = Int(max(0, interval) / 3600)
+        guard hours >= 48 else { return minutesText(interval) }
+        let days = hours / 24
+        return "\(days)\u{00A0}\(days.dayWord)"
+    }
+
     /// `nil` in the due state on purpose: the hero there is already a whole
     /// sentence ("Time to feed"), and a "Feeding in" label above it read as a
     /// broken one.
@@ -129,7 +141,7 @@ enum WidgetCopy {
             }
         } else if let last = entry.lastFeedingTime {
             // 12+ months: the app does not predict here, so neither do we.
-            Text(minutesText(entry.date.timeIntervalSince(last)))
+            Text(elapsedText(entry.date.timeIntervalSince(last)))
         }
     }
 }
@@ -366,7 +378,7 @@ struct BabyBloomMediumWidgetView: View {
                            let last = entry.lastFeedingTime {
                             link(.feeding) {
                                 statRow(icon: "heart.fill", title: "widget.last_feed".l) {
-                                    Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
+                                    Text(WidgetCopy.elapsedText(entry.date.timeIntervalSince(last)))
                                 }
                             }
                             .layoutPriority(1)
@@ -423,7 +435,8 @@ struct BabyBloomMediumWidgetView: View {
         }
     }
 
-    /// The overdue state: the same, plus how long overdue, in whole minutes. Hidden for
+    /// The overdue state: the same, plus how long overdue, in whole minutes
+    /// (whole days from 48 hours). Hidden for
     /// the first partial minute — "Просрочено на 0 мин" would undercut the
     /// hero that just said it is time.
     @ViewBuilder
@@ -432,7 +445,7 @@ struct BabyBloomMediumWidgetView: View {
         if overdue >= 60 {
             HStack(spacing: 4) {
                 Text("widget.overdue_by".l)
-                Text(WidgetCopy.minutesText(overdue))
+                Text(WidgetCopy.elapsedText(overdue))
             }
             .font(.system(size: 12, weight: .medium, design: .rounded))
             .foregroundStyle(.white.opacity(0.75))
