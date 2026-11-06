@@ -36,9 +36,10 @@ structure below.
 
 ## Domain model
 
-Eight `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the 1.2.0 pair
-`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`). They are listed ONCE,
+Nine `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, the 1.2.0 pair
+`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`) and the 1.3.0
+`Medicine` (`Medicine.swift`). They are listed ONCE,
 in `AppSchema.models`, and every container — app, widget, tests — opens the
 store through `AppSchema.schema`; `AppSchemaTests` pins the list.
 
@@ -55,8 +56,8 @@ optional.** That is not style — it is what CloudKit requires of a mirrored
 SwiftData schema. A new non-optional property without a default will compile
 and then fail at container creation, at launch, in `fatalError`.
 
-`Baby` owns the five entry types, the visits and the questions with
-`deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
+`Baby` owns the five entry types, the visits, the questions and the medicines
+with `deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
 its history.
 
 **Visits and questions change only through `DoctorVisitActions`**
@@ -72,6 +73,38 @@ day in any time zone a synced device sits in; readers take `startOfDay`. Every
 action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
 report's period starts: 00:00 of the latest visit's date (same date → the one
 logged last), else the birth day.
+
+**A medicine and its doses** (`Medicine`, 1.3.0). A medicine holds a name,
+the minimum interval between doses in minutes, an optional dose text, note
+and 24-hour maximum, and `endedAt` once its course is ended. A dose is NOT a
+model: it is a `.medication` `CustomEvent` made by `CustomEvent.dose(of:at:)`,
+which links it (`CustomEvent.medicine`) and copies the medicine's name and
+dose text onto it. The copy is the record of what was given: a rename leaves
+past doses as logged, a deleted medicine (`.nullify`) leaves them as
+medication events that keep the name, and an older version, which imports no
+`Medicine` and ignores the link, still lists each dose as the medication
+event it is. No screen or export shows those two fields yet; the Events rows
+and the CSV read them from the medicines screens on. Events from before
+medicines, and free-text ones, have no link and count for no medicine.
+
+The rules every medicine surface reads are `MedicineSchedule`
+(`Core/Medicine/`; app target only, since the widget compiles `Core/Models`
+but not this folder). Only linked `.medication` events are doses, and a dose
+later than now is ignored. The next allowed time is the last dose plus the
+interval and, once the last `max` doses fall within 24 hours, no earlier than
+the oldest of them plus 24 hours. `check(t)` flags a dose closer than the
+interval on EITHER side of `t` (exactly the interval is on time). It names
+the nearest close later dose first, and only without one the latest close
+earlier dose with its interval's end, so the time it gives is always a true
+«not before». It also flags the fullest window `[s, s + 24 h)` holding `t`
+when that is over the maximum. `showsDaily` says which of the two the one
+confirmation states: the maximum only when it holds the next dose back past
+the interval's end. `dosesInLast24Hours` is the count shown against the
+maximum. It is all elapsed time, never calendar arithmetic.
+`Medicine.status(now:)` reads `.ended`, `.noDose`, `.waiting` or `.allowed`;
+`Medicine.check(_:now:editing:)` leaves the dose being edited out. Nothing
+about a medicine is sent to analytics; a dose sits in the daily activity
+count's `event` figure like every event.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -1025,8 +1058,8 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly and doctor seeds, the pediatrician period length, the visit date's default and upper bound, and the Today tile's «last feed … ago» read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, and the Today tile's «last feed … ago» read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
