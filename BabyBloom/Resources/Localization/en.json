@@ -16,6 +16,7 @@
   "progress.wet_nappies": "Wet diapers",
   "progress.of_fmt": "%d of %d",
   "progress.of_unit_fmt": "%d of %d %@",
+  "progress.of_duration_fmt": "%@ of %@",
   "nav.diapers": "Diapers",
   "nav.growth": "Growth",
   "nav.events": "Events",

@@ -84,9 +84,20 @@ and the Live Activity read the byte-identical copies in
   "pcs" / «uds» and «раз» / "times" / «veces» do not agree with every
   number ("1 times").
   - Home's progress cards read "N of M" (`progress.of_fmt`: "0 of 6",
-    «0 из 6», «0 de 6»), and the card's title names what is counted. A
-    measure keeps its unit, glued to the number: `progress.of_unit_fmt`
-    "10 of 14 h".
+    «0 из 6», «0 de 6»), and the card's title names what is counted.
+  - Sleep is a duration, so its card reads today's sleep against the
+    target in the duration writer's words on both sides
+    (`progress.of_duration_fmt`): "2 h 55 min of 14 h", «2 ч 55 мин из
+    14 ч», «2 h 55 min de 14 h». Whole hours ("2 of 14 h",
+    `progress.of_unit_fmt`) dropped up to 59 minutes and disagreed with
+    the Sleep tile on the same screen, which shows the same total to the
+    minute. The key adds no glue of its own: each duration keeps the
+    writer's glue, and the word between them is a plain space, as in
+    "0 of 6". The edges read as they are: "0 min of 16 h", "45 min of
+    16 h", and past the target "16 h 20 min of 16 h", with no alarm style.
+    The longest line, "13 h 55 min of 16 h", stays on one line on every
+    width and text size. `progress.of_unit_fmt` keeps its value until
+    nothing reads it.
   - A stat tile shows the bare number above its label, and the label is a
     category name: «Кормления», «Сон», «Подгузники», «Мокрые», «Грязные»,
     «Измерения», «Эпизоды сна». Russian takes the nominative, as «Вес» and
@@ -571,3 +582,9 @@ and the Live Activity read the byte-identical copies in
   "Formula 120 ml", «Сцеженное 120 мл». `export.format.pdf_desc` glues "day
   by day" / «día a día». The export's count tiles take the app's tile labels
   (§ Counts on Home and the stat tiles).
+- 2026-11-06 — Home's sleep card has its own line, today's sleep against
+  the target in hours and minutes on both sides: "2 h 55 min of 14 h" /
+  «2 ч 55 мин из 14 ч» / «2 h 55 min de 14 h» (`progress.of_duration_fmt`,
+  new). Whole hours read 2 h 55 min as "2 of 14 h". `progress.of_fmt` and
+  `progress.of_unit_fmt` keep their values (§ Counts on Home and the stat
+  tiles).
