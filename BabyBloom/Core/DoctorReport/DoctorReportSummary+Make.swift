@@ -20,6 +20,8 @@ extension DoctorReportSummary {
         let feeding = feedingSection(feeds, frame: frame)
         let sleep = sleepSection(sleeps, frame: frame)
         let diaperSection = diapersSection(diapers, frame: frame)
+        let medications = medicationsSection(input.doses.filter { frame.contains($0.time) },
+                                             locale: calendar.locale ?? Locale(identifier: "en_US_POSIX"))
 
         return DoctorReportSummary(
             periodStart: periodStart,
@@ -29,8 +31,67 @@ extension DoctorReportSummary {
             feeding: feeding,
             sleep: sleep,
             diapers: diaperSection,
+            // A dose is an entry like the rest: one given after a same-day
+            // visit is the new period's first fact, not something to hide.
             showsNewPeriodCard: startsAtVisit && frame.periodDays == 0 && feeding == nil
-                && sleep == nil && diaperSection == nil && growth.weighings.isEmpty)
+                && sleep == nil && diaperSection == nil && growth.weighings.isEmpty
+                && medications.isEmpty,
+            medications: medications)
+    }
+
+    // MARK: Medications
+
+    /// A medicine's doses together; older and free-text events by their typed
+    /// name, trimmed and case-insensitive, beside the medicines and never
+    /// merged into one by guesswork; the events with no name in one line.
+    static func medicationsSection(_ doses: [Input.Dose], locale: Locale) -> [Medication] {
+        enum Key: Hashable { case medicine(UUID), named(String), nameless }
+        let groups = Dictionary(grouping: doses) { dose -> Key in
+            if let id = dose.medicineID { return .medicine(id) }
+            guard let name = trimmed(dose.name) else { return .nameless }
+            return .named(name.lowercased())
+        }
+        let lines = groups.map { key, doses -> Medication in
+            let sorted = doses.sorted { $0.time < $1.time }
+            let latest = sorted[sorted.count - 1]
+            let name: String? = switch key {
+            case .medicine: trimmed(latest.medicineName) ?? trimmed(latest.name)
+            case .named: trimmed(latest.name)
+            case .nameless: nil
+            }
+            return Medication(name: name, texts: doseTexts(sorted),
+                              count: sorted.count, first: sorted[0].time, last: latest.time)
+        }
+        return lines.sorted { a, b in
+            guard let x = a.name else { return false }
+            guard let y = b.name else { return true }
+            let order = x.compare(y, options: [.caseInsensitive], range: nil, locale: locale)
+            return order == .orderedSame ? a.first < b.first : order == .orderedAscending
+        }
+    }
+
+    /// One line's doses (sorted by time) by their dose text, trimmed and
+    /// case-insensitive, in order of first use; each group shows its latest
+    /// spelling. The doses without a text are a group of their own.
+    private static func doseTexts(_ sorted: [Input.Dose]) -> [Medication.DoseText] {
+        var order: [String?] = []
+        var groups: [String?: [Input.Dose]] = [:]
+        for dose in sorted {
+            let key = trimmed(dose.doseText)?.lowercased()
+            if groups[key] == nil { order.append(key) }
+            groups[key, default: []].append(dose)
+        }
+        return order.map { key in
+            let doses = groups[key] ?? []
+            let latest = doses[doses.count - 1]
+            return .init(text: key == nil ? nil : trimmed(latest.doseText),
+                         count: doses.count, first: doses[0].time, last: latest.time)
+        }
+    }
+
+    private static func trimmed(_ raw: String?) -> String? {
+        let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? nil : text
     }
 
     // MARK: The period

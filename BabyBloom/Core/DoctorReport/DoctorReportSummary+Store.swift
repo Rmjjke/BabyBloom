@@ -9,7 +9,7 @@ import SwiftData
 /// never filter one way here and another there.
 extension DoctorReportSummary.Input {
     init(baby: Baby, feeds: [FeedingEntry], sleeps: [SleepEntry], diapers: [DiaperEntry],
-         growth: [GrowthEntry]) {
+         growth: [GrowthEntry], events: [CustomEvent] = []) {
         self.init(
             feeds: feeds.map { Feed(start: $0.startTime, end: $0.endTime, type: $0.type, volumeML: $0.volumeML) },
             sleeps: sleeps.map { Sleep(start: $0.startTime, end: $0.endTime) },
@@ -18,6 +18,10 @@ extension DoctorReportSummary.Input {
                 Growth(date: $0.date, weightKg: $0.weightKg, heightCm: $0.heightCm,
                        headCm: $0.headCircumferenceCm)
             },
+            doses: events.filter { $0.type == .medication && !$0.isDeleted }.map {
+                Dose(time: $0.time, name: $0.medicationName, doseText: $0.medicationDose,
+                     medicineID: $0.medicine?.id, medicineName: $0.medicine?.name)
+            },
             birthDate: baby.birthDate,
             correctedBirthDate: baby.correctedBirthDate,
             birthWeightKg: baby.birthWeightKg,
@@ -25,7 +29,7 @@ extension DoctorReportSummary.Input {
     }
 
     /// The rows a period reads, for `ReportDataSection`'s queries and `load`
-    /// alike: feeds and diapers from the start, sleeps from 36 h before it (a
+    /// alike: feeds, diapers and events from the start, sleeps from 36 h before it (a
     /// night that crosses the start counts by its part inside, and no
     /// sleep is longer than a day and a half). Growth is read whole.
     static func window(periodStart: Date) -> (from: Date, sleepsFrom: Date) {
@@ -43,7 +47,9 @@ extension DoctorReportSummary.Input {
         let diapers = (try? context.fetch(FetchDescriptor<DiaperEntry>(
             predicate: #Predicate { $0.time >= start }))) ?? []
         let growth = (try? context.fetch(FetchDescriptor<GrowthEntry>())) ?? []
+        let events = (try? context.fetch(FetchDescriptor<CustomEvent>(
+            predicate: #Predicate { $0.time >= start }))) ?? []
         return DoctorReportSummary.Input(baby: baby, feeds: feeds, sleeps: sleeps,
-                                         diapers: diapers, growth: growth)
+                                         diapers: diapers, growth: growth, events: events)
     }
 }

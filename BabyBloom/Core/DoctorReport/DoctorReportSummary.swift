@@ -36,11 +36,22 @@ struct DoctorReportSummary: Equatable {
             var heightCm: Double?
             var headCm: Double?
         }
+        /// A medication event: a medicine's dose, or an older or free-text one.
+        struct Dose: Equatable {
+            var time: Date
+            /// The name and dose text copied when it was logged, or as typed.
+            var name: String?
+            var doseText: String?
+            /// The medicine it is a dose of; nil for an event without one.
+            var medicineID: UUID?
+            var medicineName: String?
+        }
 
         var feeds: [Feed] = []
         var sleeps: [Sleep] = []
         var diapers: [Diaper] = []
         var growth: [Growth] = []
+        var doses: [Dose] = []
         var birthDate: Date
         var correctedBirthDate: Date
         var birthWeightKg: Double?
@@ -181,6 +192,38 @@ struct DoctorReportSummary: Equatable {
     /// A visit starts the period and nothing was logged since: ONE «new period»
     /// card replaces the three empty ones. Never for «since birth».
     let showsNewPeriodCard: Bool
+
+    /// One line of the medications section: a medicine, an older event's
+    /// typed name, or the events with no name together.
+    struct Medication: Equatable {
+        /// nil: the events with no name.
+        let name: String?
+        /// The dose texts the line's doses carry, in order of first use, each
+        /// with its own count and days. One entry: every dose shares it (nil:
+        /// none has one). More: the dose changed, and each text is stated
+        /// with what it counts, nil being the doses logged without one. The
+        /// latest text alone would turn 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml.
+        let texts: [DoseText]
+        let count: Int
+        let first: Date
+        let last: Date
+
+        struct DoseText: Equatable {
+            /// As written on the group's latest dose; nil: no text written.
+            let text: String?
+            let count: Int
+            let first: Date
+            let last: Date
+        }
+
+        /// The text every dose shares; nil when none has one or they differ.
+        var doseText: String? { texts.count == 1 ? texts[0].text : nil }
+    }
+
+    /// Medications given in the period, by name, the line without a name
+    /// last. Empty: no section. Never an interval, a maximum or a mark on an
+    /// early dose: in a document for the doctor that would be a verdict.
+    var medications: [Medication] = []
 
     // MARK: Building — implemented in DoctorReportSummary+Make.swift
 

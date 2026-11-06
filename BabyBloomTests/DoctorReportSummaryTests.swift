@@ -449,6 +449,13 @@ final class DoctorReportSummaryTests: XCTestCase {
         weighed.growth.append(Growth(date: at(1, 8, month: 11), weightKg: 5.9))
         XCTAssertFalse(make(weighed, start: today).showsNewPeriodCard)
 
+        // A dose given after a same-day visit is an entry like the rest.
+        var dosed = old
+        dosed.doses.append(.init(time: at(1, 8, 30, month: 11), name: "Paracetamol", doseText: "5 ml"))
+        let afterVisit = make(dosed, start: today)
+        XCTAssertFalse(afterVisit.showsNewPeriodCard)
+        XCTAssertEqual(afterVisit.medications.map(\.count), [1])
+
         XCTAssertFalse(make(input(), start: at(12, 0)).showsNewPeriodCard,
                        "a visit weeks ago with nothing since shows the «No … since» lines")
     }

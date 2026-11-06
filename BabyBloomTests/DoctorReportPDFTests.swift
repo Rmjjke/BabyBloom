@@ -5,6 +5,7 @@ private typealias Feed = DoctorReportSummary.Input.Feed
 private typealias Sleep = DoctorReportSummary.Input.Sleep
 private typealias Diaper = DoctorReportSummary.Input.Diaper
 private typealias Growth = DoctorReportSummary.Input.Growth
+private typealias Dose = DoctorReportSummary.Input.Dose
 
 /// The report PDF's HTML against the screen's own formatters, and against
 /// the closed list of verdict words the report must never print
@@ -38,7 +39,7 @@ final class DoctorReportPDFTests: XCTestCase {
     /// a due date after the weighings gives «before the due date», a birth three
     /// years back gives «past the WHO table».
     private func makeSummary(latestWeight: Double = 5.42, birthDate: Date? = nil,
-                             correctedBirthDate: Date? = nil) -> DoctorReportSummary {
+                             correctedBirthDate: Date? = nil, doses: [Dose] = []) -> DoctorReportSummary {
         let days = Array(12...29)
         let feeds = days.flatMap { day -> [Feed] in
             [Feed(start: at(day, 8), end: at(day, 8).addingTimeInterval(20 * 60), type: .breast, volumeML: nil),
@@ -54,7 +55,7 @@ final class DoctorReportPDFTests: XCTestCase {
             Growth(date: at(28, 12), weightKg: latestWeight, heightCm: 58, headCm: 39),
         ]
         let input = DoctorReportSummary.Input(
-            feeds: feeds, sleeps: sleeps, diapers: diapers, growth: growth,
+            feeds: feeds, sleeps: sleeps, diapers: diapers, growth: growth, doses: doses,
             birthDate: birthDate ?? at(2, 12, month: 9),
             correctedBirthDate: correctedBirthDate ?? birthDate ?? at(2, 12, month: 9),
             birthWeightKg: 3.4, isMale: false)
@@ -96,6 +97,17 @@ final class DoctorReportPDFTests: XCTestCase {
             birthWeightKg: nil, isMale: false)
         return DoctorReportSummary.make(input: input, periodStart: at(1, 0, month: 11), now: now,
                                         startsAtVisit: true, calendar: calendar)
+    }
+
+    /// Paracetamol given from 20 to 28 Oct (a linked dose and its copied name),
+    /// an older free-text event, and one with no name.
+    private var medicationDoses: [Dose] {
+        let paracetamol = UUID()
+        return [20, 22, 28].map {
+            Dose(time: at($0, 8), name: "Paracetamol", doseText: "120 mg (5 ml)",
+                 medicineID: paracetamol, medicineName: "Paracetamol")
+        } + [Dose(time: at(25, 10), name: "Saline drops", doseText: nil),
+             Dose(time: at(26, 10), name: nil, doseText: nil)]
     }
 
     /// 32 weeks: preterm, so the due date and the corrected age exist.
@@ -236,6 +248,7 @@ final class DoctorReportPDFTests: XCTestCase {
         let preterm = makeBaby(gestationalWeeks: 32)
         return [
             ("filled", makeSummary(), makeBaby(), periodStart),
+            ("medications", makeSummary(doses: medicationDoses), makeBaby(), periodStart),
             ("empty", makeEmptySummary(), makeBaby(), periodStart),
             ("short", makeShortSummary(), makeBaby(), at(30, 0)),
             ("new period", makeNewPeriodSummary(), makeBaby(), at(1, 0, month: 11)),
@@ -284,6 +297,83 @@ final class DoctorReportPDFTests: XCTestCase {
                 try assertNoVerdict(in: page, language: language, state: state.name)
             }
         }
+    }
+
+    // MARK: Medications
+
+    func testTheMedicationsSectionPrintsWhatWasGivenInEveryLanguage() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(makeSummary(doses: medicationDoses))
+            XCTAssertTrue(page.contains("<h2>\(esc("medication.report_title".l))</h2>"), "\(language)")
+            for key in ["medication.report_col_name", "medication.report_col_dose",
+                        "medication.report_col_count", "medication.report_col_dates"] {
+                XCTAssertTrue(page.contains("<th>\(esc(key.l))</th>"), "\(language): \(key)")
+            }
+            let range = ReportFormat.dayRange(at(20, 8), at(28, 8), now: now)
+            XCTAssertTrue(page.contains("<tr><td>Paracetamol</td><td>120 mg (5 ml)</td><td>3</td><td>\(esc(range))</td></tr>"),
+                          "\(language)")
+            XCTAssertTrue(page.contains("<td>Saline drops</td><td></td><td>1</td>"), "\(language)")
+            XCTAssertTrue(page.contains("<td>\(esc("medication.report_without_name".l))</td><td></td><td>1</td>"),
+                          "\(language)")
+            // After Diapers, before the footnote.
+            let diapers = page.range(of: "<h2>\(esc("export.cat.diapers".l))</h2>")!.lowerBound
+            let medications = page.range(of: "<h2>\(esc("medication.report_title".l))</h2>")!.lowerBound
+            XCTAssertLessThan(diapers, medications, "\(language)")
+        }
+    }
+
+    /// A changed dose takes a row per text with the name repeated; doses with
+    /// no text beside texted ones are worded, also on the nameless line.
+    func testAChangedDosePrintsARowPerTextInEveryLanguage() {
+        let paracetamol = UUID()
+        let doses = [20, 22].map {
+            Dose(time: at($0, 8), name: "Paracetamol", doseText: "2.5 ml", medicineID: paracetamol,
+                 medicineName: "Paracetamol")
+        } + [Dose(time: at(26, 8), name: "Paracetamol", doseText: "5 ml", medicineID: paracetamol,
+                  medicineName: "Paracetamol"),
+             Dose(time: at(24, 9), name: nil, doseText: "1 ml"),
+             Dose(time: at(25, 9), name: nil, doseText: nil)]
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(makeSummary(doses: doses))
+            let first = ReportFormat.dayRange(at(20, 8), at(22, 8), now: now)
+            let second = ReportFormat.dayRange(at(26, 8), at(26, 8), now: now)
+            XCTAssertTrue(page.contains("<tr><td>Paracetamol</td><td>2.5 ml</td><td>2</td><td>\(esc(first))</td></tr>"
+                                        + "<tr><td>Paracetamol</td><td>5 ml</td><td>1</td><td>\(esc(second))</td></tr>"),
+                          "\(language): one row per text, in order of first use")
+            let nameless = esc("medication.report_without_name".l)
+            XCTAssertTrue(page.contains("<tr><td>\(nameless)</td><td>1 ml</td><td>1</td>"), "\(language)")
+            XCTAssertTrue(page.contains("<tr><td>\(nameless)</td><td>\(esc("medication.report_dose_not_written".l))</td><td>1</td>"),
+                          "\(language)")
+        }
+    }
+
+    /// The screen's caption for one text of a changed dose.
+    func testAChangedDoseReadsAsTextCountAndDaysOnTheScreen() {
+        let line = MedicationFormat.reportDoseLine(
+            .init(text: "2.5 ml", count: 10, first: at(20, 8), last: at(22, 8)), now: now)
+        XCTAssertEqual(line, "2.5 ml\u{00A0}· " + MedicationFormat.doseCount(10) + "\u{00A0}· "
+                       + ReportFormat.dayRange(at(20, 8), at(22, 8), now: now))
+        let unwritten = MedicationFormat.reportDoseLine(
+            .init(text: nil, count: 1, first: at(23, 8), last: at(23, 8)), now: now)
+        XCTAssertTrue(unwritten.hasPrefix("medication.report_dose_not_written".l + "\u{00A0}· "))
+    }
+
+    func testNoDoseInThePeriodPrintsNoMedicationsSection() {
+        for summary in [makeSummary(), makeEmptySummary(), makeNewPeriodSummary()] {
+            let page = html(summary)
+            XCTAssertFalse(page.contains(esc("medication.report_title".l)))
+            XCTAssertFalse(page.contains("<colgroup>"))
+        }
+    }
+
+    func testANameIsPrintedAsWrittenButForItsEmoji() {
+        let doses = [Dose(time: at(20, 8), name: "Ibuprofen 💊 <syrup>", doseText: "2.5 ml & more")]
+        let page = html(makeSummary(doses: doses))
+        XCTAssertTrue(page.contains("<td>Ibuprofen  &lt;syrup&gt;</td><td>2.5 ml &amp; more</td>")
+                      || page.contains("<td>Ibuprofen &lt;syrup&gt;</td><td>2.5 ml &amp; more</td>"), page)
+        XCTAssertFalse(page.contains("💊"))
     }
 
     // MARK: c) Russian decimals

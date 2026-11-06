@@ -72,6 +72,19 @@ enum MedicationFormat {
                                     many: "medication.dose_count.many"), count)
     }
 
+    /// A dose text in the report as written, or the words for the doses
+    /// logged without one when they stand beside doses that have one.
+    static func reportDoseText(_ text: String?) -> String {
+        text ?? "medication.report_dose_not_written".l
+    }
+
+    /// One dose text of a line whose dose changed: "2.5 ml · 10 doses ·
+    /// Oct 31 – Nov 2".
+    static func reportDoseLine(_ dose: DoctorReportSummary.Medication.DoseText, now: Date) -> String {
+        [reportDoseText(dose.text), doseCount(dose.count), ReportFormat.dayRange(dose.first, dose.last, now: now)]
+            .joined(separator: separator)
+    }
+
     /// The list row's third line: the dose text and the interval, or the
     /// interval alone.
     static func meta(doseText: String?, intervalMinutes: Int) -> String {

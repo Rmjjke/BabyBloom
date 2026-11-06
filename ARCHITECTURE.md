@@ -1072,7 +1072,7 @@ because e2e flows select on them; the tab bar itself is reached as
 comes right after Growth in More. Top to bottom: the name ①, the period line
 (②, tap → the visit detail), the age ③, the questions card (④ open
 questions, add, log the visit; ⑥ the questions asked at the latest visit,
-«Back to the list»), the four data cards ⑦ and the footnote ⑧. The numbers
+«Back to the list»), the data cards ⑦ and the footnote ⑧. The numbers
 come from `DoctorReportSummary` (`Core/DoctorReport/`), pure and built from
 plain values through its store bridge, over `[periodStart, AppClock.now)`.
 It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
@@ -1084,7 +1084,15 @@ each caller passes in, never in the core. The share button ⑩ (Premium) makes
 same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
 the export and the weekly card), so the PDF cannot print a number
 the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
-the page for a closed list of verdict words. It renders through `PagedPDF`
+the page for a closed list of verdict words. Medications given in the
+period (`summary.medications`: a medicine's doses together, older events by
+their trimmed, case-insensitive name beside them, nameless ones in one line;
+each line's doses grouped again by dose text in order of first use, so a
+changed dose shows one caption, and in the PDF one row, per text) are a card
+after Diapers and a fixed-column table after the PDF's diapers section. Both
+are absent when no dose falls in the period. A dose counts as an entry
+for the new-period card, and the table moves to the next page whole when
+it fits on one. It renders through `PagedPDF`
 (`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
 slices its layout at the page height and ignores the CSS break rules, so a
 document hands over its blocks and rows, every page is composed as its own

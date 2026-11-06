@@ -14,6 +14,20 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — The report lists medications given, and nothing about whether they were on time
+
+**Name and dose as written, the dose count, the first and last day.** The doctor asks what was given and how often. No interval, no maximum and no mark on a dose given inside the interval: in a document for the doctor such a mark would be a verdict on the parent.
+
+**Older events by their typed name, beside the medicines, never merged into them.** A typed "Paracetamol" and a medicine called Paracetamol may not be the same thing, and merging by guesswork would print a count nobody logged. Names match trimmed and case-insensitive; events with no name share one line.
+
+**A changed dose is stated per dose text.** When a line's doses carry more than one text, each text gets its own count and days, in order of first use: one caption each on the screen, one row each in the PDF with the name repeated. The latest text beside the whole count would turn 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml, and the change of dose is the fact the doctor most needs. Doses logged without a text, beside texted ones, are named as such rather than left blank.
+
+**A dose is an entry for the new-period card.** The card says new entries will show there, so a dose given after a same-day visit keeps the card away and shows that day, on the screen and in a PDF shared that day.
+
+**The table moves to the next page whole when it fits on one**, as the questions do. A row left alone under a repeated head reads as an afterthought to a list that is read as one piece. A longer table breaks between rows with its head repeated.
+
+**No section when nothing was given.** The absence of medicine is not a missing record, so there is no "none" line, and a report without medicines prints the same pages as before.
+
 ## 2026-11-03 — Home shows medications for a day after their last dose, in one plain card
 
 **While a course runs and its last dose is under a day old.** That covers the night and the day after a fever without a course nobody ended staying on Home for weeks. A course with no dose has nothing to state yet.
@@ -36,7 +50,7 @@ live with the workflow, outside this repository.
 
 ## 2026-11-03 — The dose confirmation is a system alert that never blocks, and asks only about a time the parent set
 
-**A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel is the bold side because it keeps things as they were; Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
+**A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel has the cancel role because it keeps things as they were (iOS 26 draws both buttons alike, so the role carries the meaning); Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
 
 **One alert per save, naming the limit that ends later once the dose is saved.** Its time is then the «not before» the medication's screen shows after Save; the interval variant cannot explain a time the maximum set. On a tie, the interval. A dose that brings the 24-hour count to the maximum without passing it breaks the interval only, so it gets the interval variant with the time the maximum sets. A dose put between two logged doses names the earlier one "a logged dose", not "the last dose": the last dose is the newest, and the screen shows a later one.
 

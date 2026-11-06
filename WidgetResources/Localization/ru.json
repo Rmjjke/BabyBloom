@@ -143,6 +143,7 @@
   "medication.a11y_dose_hint": "Открывает дозу, чтобы её изменить",
   "medication.report_title": "Лекарства",
   "medication.report_without_name": "Без названия",
+  "medication.report_dose_not_written": "Доза не записана",
   "medication.report_col_name": "Лекарство",
   "medication.report_col_dose": "Доза (как записано)",
   "medication.report_col_count": "Количество доз",
