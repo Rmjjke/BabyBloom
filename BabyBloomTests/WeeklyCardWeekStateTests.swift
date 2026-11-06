@@ -116,6 +116,7 @@ final class WeeklyCardWeekStateTests: XCTestCase {
     /// `viewed` marks the week the card first appears with as already counted,
     /// so no analytics event leaves a test.
     private func host(_ source: Source, startExpanded: Bool, viewed: String) throws -> UIView {
+        try Self.enableAccessibility()
         UserDefaults.standard.set(viewed, forKey: "weekly.viewedWeek")
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let window = UIWindow(windowScene: scene)
@@ -133,6 +134,21 @@ final class WeeklyCardWeekStateTests: XCTestCase {
         windows.forEach { $0.isHidden = true }
         let card = try host(Source(summary), startExpanded: false, viewed: "2026-10-26")
         return readout(card)
+    }
+
+    /// SwiftUI builds a hosted view's accessibility elements only while an
+    /// assistive client is on. A simulator that ran a UI test driver since it
+    /// booted has one; a freshly booted one does not, and the card would read
+    /// as empty. Turning it on for the test process is what VoiceOver does. It
+    /// stays on for the rest of the run, the state every test already runs in
+    /// on a simulator that has had a UI test driver.
+    private static func enableAccessibility() throws {
+        let library = try XCTUnwrap(dlopen("/usr/lib/libAccessibility.dylib", RTLD_NOW),
+                                    "libAccessibility did not load: the card's elements cannot be read")
+        let symbol = try XCTUnwrap(dlsym(library, "_AXSApplicationAccessibilitySetEnabled"),
+                                   "_AXSApplicationAccessibilitySetEnabled is gone from libAccessibility")
+        typealias SetEnabled = @convention(c) (Bool) -> Void
+        unsafeBitCast(symbol, to: SetEnabled.self)(true)
     }
 
     private func settle() {
