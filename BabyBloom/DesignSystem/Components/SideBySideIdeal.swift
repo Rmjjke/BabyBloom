@@ -96,4 +96,9 @@ extension String {
     var oneWordALine: String {
         split(separator: " ").joined(separator: "\n")
     }
+
+    /// The text's first word, up to its first plain space.
+    var firstWord: String {
+        split(separator: " ", maxSplits: 1).first.map(String.init) ?? self
+    }
 }

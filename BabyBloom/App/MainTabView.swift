@@ -268,32 +268,30 @@ struct ProfileView: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
                 .accessibilityIdentifier("settings.reminders")
-                Toggle(isOn: Binding(
-                    get: { weeklyNotificationEnabled },
-                    set: { isOn in
-                        weeklyNotificationEnabled = isOn
-                        NotificationManager.shared.rescheduleWeeklySummary()
-                    })) {
-                    SettingsSwitchLabel(title: "settings.notify_weekly".l,
-                                        hint: "settings.notify_weekly_hint".l,
-                                        systemImage: "calendar")
-                }
+                SettingsSwitchRow(title: "settings.notify_weekly".l,
+                                  hint: "settings.notify_weekly_hint".l,
+                                  systemImage: "calendar",
+                                  isOn: Binding(
+                                      get: { weeklyNotificationEnabled },
+                                      set: { isOn in
+                                          weeklyNotificationEnabled = isOn
+                                          NotificationManager.shared.rescheduleWeeklySummary()
+                                      }))
                 .tint(BBTheme.Colors.primary)
                 .accessibilityIdentifier("settings.notify_weekly")
                 // No Live Activities on iPad: no switch rather than a dead one.
                 if UIDevice.current.userInterfaceIdiom != .pad {
-                    Toggle(isOn: Binding(
-                        get: { liveActivityEnabled && liveActivity.systemEnabled },
-                        set: { isOn in
-                            liveActivityEnabled = isOn
-                            liveActivity.switchChanged()
-                        })) {
-                        SettingsSwitchLabel(title: "settings.live_activity".l,
-                                            hint: liveActivity.systemEnabled
-                                                ? "settings.live_activity_hint".l
-                                                : "settings.live_activity_off_in_ios".l,
-                                            systemImage: "lock.rectangle.stack.fill")
-                    }
+                    SettingsSwitchRow(title: "settings.live_activity".l,
+                                      hint: liveActivity.systemEnabled
+                                          ? "settings.live_activity_hint".l
+                                          : "settings.live_activity_off_in_ios".l,
+                                      systemImage: "lock.rectangle.stack.fill",
+                                      isOn: Binding(
+                                          get: { liveActivityEnabled && liveActivity.systemEnabled },
+                                          set: { isOn in
+                                              liveActivityEnabled = isOn
+                                              liveActivity.switchChanged()
+                                          }))
                     .disabled(!liveActivity.systemEnabled)
                     .accessibilityIdentifier("settings.live_activity")
                 }
@@ -321,12 +319,11 @@ struct ProfileView: View {
                     .accessibilityIdentifier("settings.export")
                 }
                 ICloudStatusRow()
-                Toggle(isOn: Binding(get: { analyticsEnabled },
-                                     set: { Analytics.shared.setEnabled($0) })) {
-                    SettingsSwitchLabel(title: "settings.analytics".l,
-                                        hint: "settings.analytics_hint".l,
-                                        systemImage: "chart.bar.xaxis")
-                }
+                SettingsSwitchRow(title: "settings.analytics".l,
+                                  hint: "settings.analytics_hint".l,
+                                  systemImage: "chart.bar.xaxis",
+                                  isOn: Binding(get: { analyticsEnabled },
+                                                set: { Analytics.shared.setEnabled($0) }))
                 .tint(BBTheme.Colors.primary)
             }
 
@@ -379,30 +376,6 @@ struct ProfileView: View {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
             }
-        }
-    }
-}
-
-/// A settings switch's label with a line under its title: what the switch
-/// does or when its notification comes. One Label around both lines: a Label
-/// nested in a VStack put its icon on a row of its own (live, iOS 26).
-private struct SettingsSwitchLabel: View {
-    let title: String
-    let hint: String
-    let systemImage: String
-
-    var body: some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text(hint)
-                    .font(.footnote)
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-            }
-        } icon: {
-            Image(systemName: systemImage)
-                .foregroundStyle(BBTheme.Colors.textPrimary)
         }
     }
 }

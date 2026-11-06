@@ -546,6 +546,27 @@ outline and take the taller tile's height, so the two stay one row. The
 caption under them names where the doctor's PDF is from the tab's and the
 row's own keys (`ExportDoctorHint`), so it follows a rename of either.
 
+A Settings switch with a line under its title (`SettingsSwitchRow`, in
+`Features/Profile/SettingsRows.swift`) is the system switch row while every
+word of its title and its line keeps whole beside the switch, else the switch
+stands under the line at the title's x, sm 8 under it, and under at every
+accessibility size: ru «Статистика использования» misses beside it from
+xxxLarge on 320 pt. Under, the visible texts are hidden from VoiceOver and the
+switch carries them as its label, so it still reads as one switch with both.
+At the accessibility sizes the system Label in a List starts the first line
+of every text it holds past its icon's column (53 pt at AX1 and 59.7 at AX2,
+of a 256-pt row on 320 pt), so a first word wider than that line's room breaks
+inside itself. A row whose first words miss it (`SettingsRowLabel`: the iCloud
+Sync row and the switch rows under their texts) sets the icon on its own line
+above the texts, xs 4 apart; ru and es iCloud Sync do so at AX2 on 320 pt, and
+ru at AX1 with Bold Text. Neither can measure the system row it draws: at those
+sizes a Label's ideal width is its icon's column alone, and a switch whose
+label answered a custom ideal stood its List row as tall as that label's
+ideal. So each draws the plain system row and answers `ViewThatFits` from
+hidden copies (`ProbedIdealWidth`): the same switch row one word a line, or
+the icon's column plus each text's first word in the body font the Label sets
+on its title.
+
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while
 it fits, else stacked. The Feeding timer's side pills stand three in a row while the row
@@ -586,7 +607,16 @@ one shape together through it: all beside while every row keeps its words
 whole, else all stacked as at the accessibility sizes (ru at xxxLarge on
 320 pt, and at xxLarge with Bold Text). Its hidden measuring copies take the
 drawn `multilineTextAlignment`: wrapped flush right, a text reports about a
-space more width. The diaper norm editor's stepper card
+space more width. Home's growth card takes one shape for its rows the same
+way (`GrowthSummaryRow`): all beside while every row keeps its words whole,
+else every value under its label, as at the accessibility sizes; the line
+asking for a second weighing is prose and does not count. Growth's history
+row (`GrowthEntryRow`) sets its date as `BBEventRow` sets its time: beside the
+values while every value and word keeps whole there, else on a line of its
+own under them, and under at the accessibility sizes. The weight and the
+length stand side by side while both fit whole, else one under the other; a
+value is never shrunk or cut, and the row's shape makes the room for it. The
+diaper norm editor's stepper card
 (− digits +) keeps the column's xl inset, as Save: with xl between each
 symbol and the digits and inside the card it needs 313 pt with «12», 2 more
 than a 375-pt column leaves. Where that misses, the card takes the column's

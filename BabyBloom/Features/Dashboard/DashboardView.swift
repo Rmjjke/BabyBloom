@@ -344,16 +344,7 @@ struct DashboardView: View {
                 // parent who has not weighed yet is doing nothing wrong.
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
-                GrowthSummaryRow(label: "stat.weight".l, value: ReportFormat.kg(weightKg))
-                gainRow(gain)
-                if store.isPremium, let reading = latestPercentile {
-                    // `rowText` already rounds, clamps and — past the chart's
-                    // edge — drops the fake-precise number for the tail in
-                    // words, the same claim the Growth screen's figure makes
-                    // about the same weighing.
-                    GrowthSummaryRow(label: "percentile.weight".l,
-                                     value: reading.rowText(format: "dashboard.growth.percentile_fmt".l))
-                }
+                summary(weightKg: weightKg, gain: gain)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -363,14 +354,50 @@ struct DashboardView: View {
         .bbShadow(BBTheme.Shadow.card)
     }
 
+    /// All the card's rows beside, or all under: one shape for the card, so the
+    /// values do not jump between the right edge and the margin row to row.
+    /// Under at every accessibility size; below them beside only where every
+    /// word of every row keeps whole beside (`GrowthSummaryRow`).
     @ViewBuilder
-    private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
+    private func summary(weightKg: Double, gain: DashboardGrowthSummary.Gain) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            summaryRows(weightKg: weightKg, gain: gain, beside: false)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                summaryRows(weightKg: weightKg, gain: gain, beside: true)
+                summaryRows(weightKg: weightKg, gain: gain, beside: false)
+            }
+        }
+    }
+
+    private func summaryRows(weightKg: Double, gain: DashboardGrowthSummary.Gain, beside: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            GrowthSummaryRow(label: "stat.weight".l, value: ReportFormat.kg(weightKg), beside: beside)
+            gainRow(gain, beside: beside)
+            if store.isPremium, let reading = latestPercentile {
+                // `rowText` already rounds, clamps and — past the chart's
+                // edge — drops the fake-precise number for the tail in
+                // words, the same claim the Growth screen's figure makes
+                // about the same weighing.
+                GrowthSummaryRow(label: "percentile.weight".l,
+                                 value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
+                                 beside: beside)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func gainRow(_ gain: DashboardGrowthSummary.Gain, beside: Bool) -> some View {
         switch gain {
         case .word(let word):
             GrowthSummaryRow(label: "nutrition.row_gain".l, value: gainValue(word),
-                             ink: word.ink, dot: word.dot)
+                             ink: word.ink, dot: word.dot, beside: beside)
         case .needsAnotherWeighing:
+            // Prose wraps between its words at any width, so its one line must
+            // not count against the rows beside: the ideal width 0 leaves the
+            // card's shape to the rows.
             HintText(text: "nutrition.need_weighing".l)
+                .frame(idealWidth: 0, maxWidth: .infinity, alignment: .leading)
         case .unavailable:
             // Past the age the gain reference covers the section says nothing
             // about gain. "Not enough data" would be untrue.
@@ -554,47 +581,61 @@ struct DashboardView: View {
 /// One line of Home's growth card: the label, and its value with the tier dot
 /// when it is a verdict (`StatusWord`'s colours, as the Growth tab draws them).
 ///
-/// At an accessibility size the label and its value cannot share a line
-/// without one of them being proposed a width narrower than its own longest
-/// word, and SwiftUI answers that by breaking INSIDE the word — the defect
-/// `NutritionSection` documents. Same two layouts, same reason.
+/// Squeezed beside its label, either text can be proposed a width narrower
+/// than its own longest word, and SwiftUI answers that by breaking INSIDE the
+/// word — the defect `NutritionSection` documents. Same two layouts, same
+/// reason: the card stands its rows beside only where every word keeps whole
+/// (`SideBySideIdeal`), else the value goes under its label.
 struct GrowthSummaryRow: View {
     let label: String
     let value: String
     var ink: Color = BBTheme.Colors.textPrimary
     var dot: Color?
-
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let beside: Bool
 
     var body: some View {
-        if dynamicTypeSize.isAccessibilitySize {
+        if beside {
+            // The hidden copies measure the two texts in their own fonts: whole,
+            // and one word a line. With no icon column the stack's chrome is its
+            // two gaps and the spacer's least length.
+            SideBySideIdeal(chrome: 3 * BBTheme.Spacing.sm) {
+                Group {
+                    labelText(label)
+                    labelText(label.oneWordALine)
+                    valueText(value)
+                        .multilineTextAlignment(.trailing)
+                    valueText(value.oneWordALine)
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                    labelText(label)
+                    Spacer(minLength: BBTheme.Spacing.sm)
+                    valueText(value)
+                        .multilineTextAlignment(.trailing)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        } else {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
-                labelText
-                valueText
+                labelText(label)
+                valueText(value)
                     .multilineTextAlignment(.leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
-        } else {
-            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-                labelText
-                Spacer(minLength: BBTheme.Spacing.sm)
-                valueText
-                    .multilineTextAlignment(.trailing)
-            }
-            .accessibilityElement(children: .combine)
         }
     }
 
-    private var labelText: some View {
-        Text(label)
+    private func labelText(_ text: String) -> some View {
+        Text(text)
             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private var valueText: some View {
-        BBTierValue(text: value, dot: dot, ink: ink, size: 13, style: .caption1)
+    private func valueText(_ text: String) -> some View {
+        BBTierValue(text: text, dot: dot, ink: ink, size: 13, style: .caption1)
             .fixedSize(horizontal: false, vertical: true)
     }
 }

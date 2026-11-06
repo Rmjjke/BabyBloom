@@ -411,23 +411,16 @@ struct BBProgressCard: View {
 }
 
 // MARK: - Section Header
+// A title alone: a screen's add lives in its bar, so no header carries a
+// second door to the same sheet.
 struct BBSectionHeader: View {
     let title: String
-    var action: (() -> Void)? = nil
-    var actionTitle: String = "button.all"
 
     var body: some View {
         HStack {
             BBTheme.Typography.title3(title.l)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Spacer()
-            if let action {
-                Button(action: action) {
-                    Text(actionTitle.l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                }
-            }
         }
     }
 }
