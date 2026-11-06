@@ -146,13 +146,27 @@ pops itself and deletes the medicine once it has disappeared; Delete Dose
 hands the dose back and the detail deletes it in the dose sheet's
 `onDismiss`. The detail and the dose sheet draw nothing for a model with no
 context or `isDeleted` (one deleted on another device). Nothing in the feature is
-gated. The Home card comes later; the reminder is under Notifications.
+gated. The reminder is under Notifications.
+
+**The Home card** (`MedicationHomeCard.swift`). While a course runs and its
+last dose is under 24 hours old (`Medicine.onHome`), the Dashboard shows one
+plain card under the running timers and above the weekly card: a line per
+medication (name and line A, by name), the whole card one link, to the
+detail with one medication and to the list with two or more. A course with
+no dose does not show, and one nobody ends leaves Home a day after its last
+dose. `MedicationHomeSection` reads its own queries (a dose saved anywhere
+redraws it) and ticks each minute while the card shows. It is a plain view
+that draws nothing when empty, not a `TimelineView`: an empty
+`TimelineView` still takes a place in the Dashboard's stack, and the stack's
+32 pt spacing with it.
 
 **The confirmation** (`DoseConfirmation.swift`). Save in the dose sheet, and
 in the Add Event form with a medication chosen, first asks
 `Medicine.confirmation(for:now:editing:loggedTime:)` about the time it will
 store. It reads `check` and returns the words of one variant, or nil when
-the dose is on time: «before» (a close earlier dose and the next time),
+the dose is on time: «before» (a close earlier dose and the next time; when
+a later dose is logged too, `laterDoseLogged`, the neutral «between» words
+name it a logged dose, since «last dose» names only the newest),
 «after» (a close later dose and the interval), or «24 h» (the count with
 this dose, the maximum and the next time), the last only when `showsDaily`
 holds. The next time is `nextAllowed(adding:)`: what the screen shows once

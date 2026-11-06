@@ -12,6 +12,8 @@ struct MedicationReminderCard: View {
     let fireDate: Date?
     let now: Date
     @State private var permission = NotificationPermission.shared
+    /// The Open Settings chevron grows with its text.
+    @ScaledMetric(relativeTo: .footnote) private var chevronSize: CGFloat = 13
 
     var body: some View {
         let denied = permission.state == .denied
@@ -39,7 +41,7 @@ struct MedicationReminderCard: View {
                         Text("medication.open_settings".l)
                             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: chevronSize, weight: .semibold))
                             .accessibilityHidden(true)
                     }
                     .foregroundStyle(BBTheme.Colors.primary)

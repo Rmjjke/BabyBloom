@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — Home shows medications for a day after their last dose, in one plain card
+
+**While a course runs and its last dose is under a day old.** That covers the night and the day after a fever without a course nobody ended staying on Home for weeks. A course with no dose has nothing to state yet.
+
+**A plain card, not the running timer's tinted one, and one target.** A timer says something is running; this card states a standing fact, and it looks the same inside the interval and after it, so nothing on Home counts down or changes colour when a dose would be allowed. One medication opens its detail, two or more the list, so the card never asks which line was meant.
+
 ## 2026-11-03 — A medication reminder is one local notification per medication, switched on per device
 
 **Per device, off by default, never synced.** A local notification is a fact of one phone. A synced switch would ring the partner's phone at night unasked, counting from doses that phone may not have received yet. Each medication's own switch is its off; there is no app-wide one.
@@ -32,7 +38,7 @@ live with the workflow, outside this repository.
 
 **A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel is the bold side because it keeps things as they were; Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
 
-**One alert per save, naming the limit that ends later once the dose is saved.** Its time is then the «not before» the medication's screen shows after Save; the interval variant cannot explain a time the maximum set. On a tie, the interval. A dose that brings the 24-hour count to the maximum without passing it breaks the interval only, so it gets the interval variant with the time the maximum sets.
+**One alert per save, naming the limit that ends later once the dose is saved.** Its time is then the «not before» the medication's screen shows after Save; the interval variant cannot explain a time the maximum set. On a tie, the interval. A dose that brings the 24-hour count to the maximum without passing it breaks the interval only, so it gets the interval variant with the time the maximum sets. A dose put between two logged doses names the earlier one "a logged dose", not "the last dose": the last dose is the newest, and the screen shows a later one.
 
 **The «not before» is the time after Save, never earlier than before it.** The alert asks before the dose is saved, and Save is the answer it waits for. A time from before this dose is earlier than the one the screen shows after Save, so a parent who saves and follows the alert would give the next dose early: last dose 08:00, this one 10:00, every 6 hours, the old time said 14:00 where the screen then says 16:00.
 

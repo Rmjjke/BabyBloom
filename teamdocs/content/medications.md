@@ -22,6 +22,8 @@ have said otherwise, so the text states facts and never argues.
 | minimum interval | Minimum time between doses | Минимальный интервал между дозами | Tiempo mínimo entre dosis | no default value |
 | end / resume | End Course / Resume Course | Закончить курс / Возобновить курс | Terminar / Reanudar tratamiento | ru not «Завершить», which stops a feeding |
 | 24 h maximum | Most doses in 24 hours | Не больше доз за 24 часа | Máximo de dosis en 24 horas | optional, never prefilled |
+| the newest dose | Last dose | Последняя доза | Última dosis | only the medication's newest dose; any other is a logged dose |
+| a dose already in the log | logged dose | отмеченная доза | dosis registrada | claims no order |
 
 Buttons of the feature use Title Case in en ("Log Dose", "End Course").
 
@@ -42,6 +44,9 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   today. From 48 hours the age is told in days ("3 days ago", «3 дня назад»,
   «hace 3 días»): "73 h ago" would leave the arithmetic to the parent. A dose
   row shows its time with "Today", "Yesterday" or the date.
+- **"Last dose" is the newest dose.** "Last dose at", "since the last dose"
+  and their ru and es words name only the medication's newest dose, on every
+  screen and in the confirmation. Any other dose is a "logged dose".
 - **When-strings.** A time that is not today is built with
   `medication.when_yesterday_fmt`, `_tomorrow_fmt` or `_date_fmt`: en puts
   the day after the time ("1:30 AM tomorrow"), ru and es before it
@@ -91,6 +96,25 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   - the 24 h maximum, which names its own "next dose not before" time.
   When a dose breaks both limits, the alert shows the variant of the limit
   that ends later.
+- **A dose put between two logged doses.** When a later dose is logged too,
+  at least the interval after this one, the before variant names the earlier
+  dose in neutral words: "Less than 6 h after a logged dose" / «Меньше 6 ч
+  после отмеченной дозы» / «Menos de 6 h después de una dosis registrada»,
+  and "Logged dose at 8:00 AM" / «Отмеченная доза: 8:00» / «Dosis
+  registrada: 8:00». The last line stays as in the before variant.
+  - Example: doses at 8:00 AM and 4:00 PM, interval 6 h, a dose put at
+    10:00 AM. 4:00 PM is exactly 6 h after it, which counts as on time, so
+    the check names the 8:00 AM dose. The alert reads "Less than 6 h after a
+    logged dose" / "Logged dose at 8:00 AM" / "If you save, next dose not
+    before 10:00 PM".
+  - Why: the dose sheet's status box under the alert says "Last dose at
+    4:00 PM". "Last dose at 8:00 AM" would name a second last dose on the
+    same screen, and 8:00 AM + 6 h does not give 10:00 PM. Naming 4:00 PM
+    instead would contradict the title, since 10:00 AM is on time against
+    it. "Logged dose" is already the after variant's word and claims no
+    order.
+  - When the later dose is less than the interval after this one, the after
+    variant shows, as before.
 - **The alert's time is the one after Save.** The before and 24 h variants
   end on the next time the medication's screen shows once this dose is
   saved, and the line says so: "If you save, next dose not before 4:00 PM" /
@@ -108,6 +132,19 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
     keeps the time the screen showed before.
   - The time stays the message's last line in every language: a time that is
     not ahead of now is left out with its line.
+  - The line does not say what sets the time. In the before variant the
+    24 h maximum can set it: interval 6 h, maximum 3, doses at midnight and
+    7:00 AM, this one at 8:00 AM, and under "Less than 6 h since the last
+    dose" the next time is midnight tomorrow. Words such as "with your
+    interval" would name a limit that is not the one in force.
+- **The form's titles.** New: "New Medication" / «Новое лекарство» /
+  «Nuevo medicamento». Edit: "Edit Medication" / «Лекарство» / «Editar
+  medicamento». ru drops the verb, as «Вопрос» does for an edited question.
+  Between the «Отмена» and «Сохранить» buttons the title has about 127 pt at
+  the default size: «Новое лекарство» just fills it, and «Изменить
+  лекарство» shrank to 0.79. No shorter ru phrase keeps the verb («Правка
+  лекарства» needs 135 pt). The filled fields and Save show that the sheet
+  is an edit.
 - **The reminder.** Title = the name. Body = the time since the last logged
   dose, with that dose's time in parentheses, so it stays true on a phone
   that has not synced yet. No emoji. The day word in the body is computed
@@ -172,6 +209,10 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
 - One-line places (the list row, the Events line, the Home card) show line A only.
 - The list row's meta line is the dose text · `interval_short_fmt`, or `interval_fmt` alone when there is no dose text.
 - A dose row shows its time with `day_today`, `day_yesterday` or `appDayMonth`.
+- `status_last_at_fmt` takes the medication's newest dose only, as do the
+  alert's `alert_before_title_fmt` and `alert_before_message_fmt`. A
+  confirmation that names an older dose uses `alert_between_title_fmt` and
+  `alert_between_message_fmt` (see "The alert" below).
 
 ### Where the other keys go
 
@@ -203,7 +244,8 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   - `notification.medication_body_fmt`(interval, dose time).
 - **Events form:** `picker_label`, `picker_choose`, `picker_not_listed`.
 - **The alert:** one variant per save.
-  - before: `alert_before_title_fmt`(interval) and `alert_before_message_fmt`(name, the earlier dose's time, the next time once this dose is saved);
+  - before: `alert_before_title_fmt`(interval) and `alert_before_message_fmt`(name, the earlier dose's time, the next time once this dose is saved), when this dose is the newest once saved;
+  - before, with a later dose logged (this dose is not the newest once saved): `alert_between_title_fmt`(interval) and `alert_between_message_fmt`(name, the earlier dose's time, the next time once this dose is saved), the same arguments;
   - after: `alert_after_title_fmt`(interval) and `alert_after_message_fmt`(name, the later dose's time, interval);
   - 24 h: `alert_max_title_fmt`(dose count phrase with the new dose) and `alert_max_message_fmt`(name, maximum, the next time once this dose is saved).
   - The next time is the schedule's "not before" with this dose counted, never earlier than the time before it. It is the message's last line, left out when it is not ahead of now.
@@ -256,3 +298,9 @@ space.
   you save," / «Если сохранить,» / «Si guardas,», and ru names «следующая
   доза» in full (alone, «Следующая» read as the dose being logged).
   Arguments unchanged. `ended_on_fmt` has a no-break space before its dot.
+- 2026-11-03 — ru `form_edit_title` «Изменить лекарство» → «Лекарство»,
+  so the edit form's title draws at full size between Cancel and Save. The
+  alert's next-time line stays neutral on what sets the time.
+- 2026-11-03 — `alert_between_title_fmt` and `alert_between_message_fmt`
+  added, for a dose put between two logged doses. "Last dose" names only
+  the medication's newest dose.
