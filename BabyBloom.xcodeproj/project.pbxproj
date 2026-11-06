@@ -186,6 +186,7 @@
 		9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */; };
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
 		A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
+		A407F3798D9B0C9BE27C095A /* EndBeforeStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */; };
 		A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */; };
 		A5DBC483D11DD0BF4ACB66B7 /* SeedScenario+Weekly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12F9DE413A81B2C7F0C6E6 /* SeedScenario+Weekly.swift */; };
 		A5EE64D635654990A9E43BDA /* LiveActivitySync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05024C51D306FE0E87B08E38 /* LiveActivitySync.swift */; };
@@ -420,6 +421,7 @@
 		504E0F822AF49E0A345783FD /* StoreFromOlderVersionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreFromOlderVersionsTests.swift; sourceTree = "<group>"; };
 		5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTrigger.swift; sourceTree = "<group>"; };
 		524A26B846E0DB91693FCBE6 /* Baby.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Baby.swift; sourceTree = "<group>"; };
+		526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndBeforeStartTests.swift; sourceTree = "<group>"; };
 		5332E6C0888F642F987506E0 /* MedicationFormInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationFormInputTests.swift; sourceTree = "<group>"; };
 		54CC114B5E1B3E5A7F6CBA72 /* AppSchemaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchemaTests.swift; sourceTree = "<group>"; };
 		56D905771541728A4DD74254 /* DoctorReportPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDF.swift; sourceTree = "<group>"; };
@@ -821,6 +823,7 @@
 				713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */,
 				20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */,
 				4380369C7F8D9462E7D130F0 /* DurationFormatsTests.swift */,
+				526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
 				4504212871C1399B76EC5403 /* ExportSelectionTests.swift */,
 				B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */,
@@ -1658,6 +1661,7 @@
 				C2F842304599D97C08199F50 /* DoctorVisitActionsTests.swift in Sources */,
 				7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */,
 				668CE503FFB10DB8442B5496 /* DurationFormatsTests.swift in Sources */,
+				A407F3798D9B0C9BE27C095A /* EndBeforeStartTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
 				90FFF159DCBB9A999D5AB2D8 /* ExportSelectionTests.swift in Sources */,
 				D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */,
@@ -1805,7 +1809,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 28;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1825,7 +1829,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1897,7 +1901,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 28;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 6T959D75QM;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1911,7 +1915,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

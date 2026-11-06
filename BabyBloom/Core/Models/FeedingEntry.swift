@@ -30,9 +30,11 @@ final class FeedingEntry {
     }
 
     // MARK: Computed
+    /// Never below 0, as `SleepEntry.duration`: a timer stopped on a phone
+    /// whose clock runs behind the one that started it stores an end before
+    /// its start.
     var duration: TimeInterval {
-        guard let end = endTime else { return Date().timeIntervalSince(startTime) }
-        return end.timeIntervalSince(startTime)
+        max(0, (endTime ?? Date()).timeIntervalSince(startTime))
     }
 
     /// Seconds only under a minute: from one minute a feed reads like a sleep.
