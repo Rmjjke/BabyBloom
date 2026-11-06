@@ -39,10 +39,10 @@ Nothing on it grades the baby.
 - "Height", not WHO's "length": the app says height everywhere (stat,
   export columns), so the parent meets one word. Card titles reuse
   `export.cat.*`.
-- Breastfeeding is "Breast / Грудь / Pecho" (`report.type_breast`), the same
-  word the app uses for the type (`feeding.type.breast`) and in the history's
-  titles («Левая грудь»). No abbreviation a doctor would have to decode.
-  Formula and pumped reuse `feeding.type.*`.
+- Breastfeeding is "Breast / Грудь / Pecho" (`feeding.type.breast`), the one
+  key for the word: the report reads the app's type name, the word of the
+  history's titles too («Левая грудь»). No abbreviation a doctor would have
+  to decode. Formula and pumped reuse `feeding.type.*` the same way.
 - The app spells it the US way: "pediatrician", "color".
 
 ## Lines
@@ -190,8 +190,8 @@ and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
     `percentile.out_of_range`, `percentile.badge_*`.
 - **Feeding:**
   - ↺ `weekly.feeds_fmt`;
-  - `report.feeds_by_type_fmt`, `report.type_count_fmt`, `report.type_breast`
-    (+ ↺ `feeding.type.formula` / `.pumped`), `report.bottle_a_day_fmt`,
+  - `report.feeds_by_type_fmt`, `report.type_count_fmt`
+    (+ ↺ `feeding.type.breast` / `.formula` / `.pumped`), `report.bottle_a_day_fmt`,
     `report.breastfeed_avg_fmt`, `report.days_logged_fmt`.
 - **Sleep:** ↺ `weekly.sleep_fmt`, `weekly.longest_sleep_fmt`, `duration.*`.
 - **Diapers:** `report.wet_a_day_fmt`, `report.dirty_a_day_fmt`,
