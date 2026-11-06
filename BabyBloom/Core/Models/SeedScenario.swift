@@ -91,6 +91,20 @@ enum SeedScenario: String, CaseIterable {
     case weeklyGaps
     /// A baby born ten days before last week ended: no gain number (S5, D17).
     case weeklyNewborn
+    /// Pediatrician screen, one visit 20 days ago: two questions asked at it,
+    /// three open, eight weighings and a month of logs since (relative to
+    /// `AppClock.now`, so `-BBNow` moves the whole picture).
+    case doctorMonth
+    /// Same logs, no visit and five open questions: the period starts at birth
+    /// and the screen shows its no-visit hint.
+    case doctorNoVisit
+    /// `doctorMonth` plus a visit logged today with two more questions asked at
+    /// it: the period is empty ("today") and one question is left open.
+    case doctorVisitToday
+    /// Two visits on one day (the later-logged one wins) and an older visit
+    /// logged late, so the period start, the row order and a question asked
+    /// before it was written are all exercised.
+    case doctorTwoVisits
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -181,6 +195,8 @@ enum SeedScenario: String, CaseIterable {
         for entry in (try? context.fetch(FetchDescriptor<DiaperEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<GrowthEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<CustomEvent>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorQuestion>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorVisit>())) ?? [] { context.delete(entry) }
         for baby in (try? context.fetch(FetchDescriptor<Baby>())) ?? [] { context.delete(baby) }
     }
 
@@ -198,6 +214,9 @@ enum SeedScenario: String, CaseIterable {
         guard self != .showcase else { return Self.seedShowcase(into: context) }
         if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn].contains(self) {
             return seedWeekly(into: context)
+        }
+        if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits].contains(self) {
+            return seedDoctor(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)

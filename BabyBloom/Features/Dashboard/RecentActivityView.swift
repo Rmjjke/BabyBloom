@@ -15,9 +15,14 @@ struct RecentActivityView: View {
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var sleeps: [SleepEntry]
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
 
+    @Query(sort: [SortDescriptor(\DoctorVisit.date, order: .reverse),
+                  SortDescriptor(\DoctorVisit.createdAt, order: .reverse)])
+    private var visits: [DoctorVisit]
+
     @Environment(\.modelContext) private var modelContext
     @Environment(SubscriptionManager.self) private var store
     @State private var showPaywall = false
+    @State private var detailVisit: DoctorVisit?
 
     private var baby: Baby? { babies.first }
 
@@ -40,12 +45,20 @@ struct RecentActivityView: View {
                                   cap: 20)
     }
 
+    /// `model` plus the visits, which bypass the window and the cap: the report
+    /// starts from a visit, so one behind the lock would hide that record.
+    private func rows(of model: HistoryWindow.List<RecentEvent>) -> [RecentEvent] {
+        HistoryMerge.merge(model.visible,
+                           exempt: DoctorPeriod.newestFirst(visits).map(RecentEvent.visit),
+                           date: \.eventTime)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
                 let model = self.model
-                let events = model.visible
-                if model.deletable.isEmpty {
+                let rows = self.rows(of: model)
+                if model.deletable.isEmpty && visits.isEmpty {
                     Text("empty.today_no_records".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -57,9 +70,19 @@ struct RecentActivityView: View {
                         .bbShadow(BBTheme.Shadow.card)
                 } else {
                     VStack(spacing: BBTheme.Spacing.sm) {
-                        ForEach(events) { event in
-                            SwipeToDeleteRow(onDelete: { delete(event) }) {
-                                row(for: event)
+                        ForEach(rows) { event in
+                            if case .visit(let visit) = event {
+                                // No swipe: a visit changes only in its detail.
+                                Button { detailVisit = visit } label: {
+                                    row(for: event)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityHint("report.a11y_period_hint".l)
+                                .accessibilityIdentifier("recent.visit_row.\(visitNumber(of: visit, in: rows))")
+                            } else {
+                                SwipeToDeleteRow(onDelete: { delete(event) }) {
+                                    row(for: event)
+                                }
                             }
                         }
                     }
@@ -77,6 +100,16 @@ struct RecentActivityView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView(source: .historyLock)
         }
+        .visitDetailSheet(item: $detailVisit)
+    }
+
+    /// 1-based position among the visit rows, for the UI-test identifier.
+    private func visitNumber(of visit: DoctorVisit, in rows: [RecentEvent]) -> Int {
+        let ids = rows.compactMap { row -> PersistentIdentifier? in
+            if case .visit(let v) = row { return v.persistentModelID }
+            return nil
+        }
+        return (ids.firstIndex(of: visit.persistentModelID) ?? 0) + 1
     }
 
     @ViewBuilder
@@ -106,6 +139,14 @@ struct RecentActivityView: View {
                 subtitle: entry.color?.displayName.l ?? "",
                 time: entry.time.appTimeOfDay
             )
+        case .visit(let visit):
+            BBEventRow(
+                icon: "stethoscope",
+                iconColor: BBTheme.Colors.events,
+                title: "visit.title".l,
+                subtitle: DoctorPeriod.noteFirstLine(visit.note) ?? "",
+                time: visit.date.appDayMonth
+            )
         }
     }
 
@@ -115,6 +156,9 @@ struct RecentActivityView: View {
         case .feeding(let entry): deleteEntry(entry)
         case .sleep(let entry):   deleteEntry(entry)
         case .diaper(let entry):  deleteEntry(entry)
+        // Unreachable, no swipe exists on a visit row: a visit changes only
+        // in its detail (R5.4).
+        case .visit:              break
         }
     }
 
@@ -147,12 +191,14 @@ enum RecentEvent: Identifiable {
     case feeding(FeedingEntry)
     case sleep(SleepEntry)
     case diaper(DiaperEntry)
+    case visit(DoctorVisit)
 
     var id: PersistentIdentifier {
         switch self {
         case .feeding(let entry): return entry.persistentModelID
         case .sleep(let entry):   return entry.persistentModelID
         case .diaper(let entry):  return entry.persistentModelID
+        case .visit(let visit):   return visit.persistentModelID
         }
     }
 
@@ -161,6 +207,7 @@ enum RecentEvent: Identifiable {
         case .feeding(let entry): return entry.startTime
         case .sleep(let entry):   return entry.startTime
         case .diaper(let entry):  return entry.time
+        case .visit(let visit):   return visit.date
         }
     }
 }

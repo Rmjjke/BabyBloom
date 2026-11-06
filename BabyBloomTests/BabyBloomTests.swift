@@ -131,14 +131,7 @@ final class BabyBloomTests: XCTestCase {
     // properties, optional inverse relationships): a regression here would
     // otherwise only surface as a fatalError at app launch.
     func testModelContainerSchemaIsValid() throws {
-        let schema = Schema([
-            Baby.self,
-            FeedingEntry.self,
-            SleepEntry.self,
-            DiaperEntry.self,
-            GrowthEntry.self,
-            CustomEvent.self
-        ])
+        let schema = AppSchema.schema
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = ModelContext(container)

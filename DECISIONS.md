@@ -14,6 +14,38 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
+
+**No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
+
+**Why.** It follows from 2026-09-23 (no care timeline). Each event carries its own client time under a persistent id, so a `doctor_visit_logged` event would tell the backend the day this baby saw a pediatrician. In the Flo Health sense, that is health information revealed by an event. A presence flag in the daily aggregate would leak the same day. An event shaped for privacy, such as a once-per-install marker, buys nothing a product question needs today. If report usage ever matters, that is its own reviewed decision, not an extension of this one. The question and note texts could never reach a payload anyway, because the payload is typed.
+
+**Visit rows in Events and Recent activity are free.** They sit outside the 15-day window and the 20-row cap, and they are read-only: a visit changes only in its detail. The locked footer and «Delete History» keep counting events only. The Events confirm text says the visits are kept.
+
+**Why.** Logging a visit is free (plan v2, decision 4), and the visit is where the report's period starts. A visit hidden behind the lock would hide the record the free report is measured from. Deleting visits from a list would split the "questions go back to open" rule across three screens.
+
+**The doctor sheets never ask for a rating.** They use plain `.sheet`, never `.entrySheet` (2026-09-22). A question for the pediatrician is often a worry.
+
+---
+
+## 2026-11-01 — A persisted enum is closed while older versions sync; visits and questions are new models
+
+No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingType`/`BreastSide`, `DiaperEntry.DiaperType`/`StoolColor`, `CustomEvent.EventType`/`MoodLevel`, `Baby.Gender`/`FeedingType`, `SleepEntry.SleepType`/`SleepLocation`.
+- A new kind of record is a new `@Model`. A new property of a record is a new optional attribute.
+- `FrozenPersistedEnumTests` pins every case.
+- Hence the pediatrician visit (M2) is `DoctorVisit` plus `DoctorQuestion`, not a `CustomEvent.EventType.doctorVisit`, even though the parent sees it as an event.
+
+**Why.** A spike (m2-visit-and-questions, slice 0a) wrote a `CustomEvent` whose stored `type` was a value the current build does not know. That is what CloudKit delivers to a 1.1 device from a newer one. Reading it crashed the app: "SwiftData/DefaultStore.swift:1890: Fatal error: Failed to decode a composite attribute … valueType: EventType".
+- The value is a plain VARCHAR raw value, and SwiftData does not skip the record: it traps on every read.
+- The Events tab, the weekly summary and the export all read every event, so a parent with an iPad still on the old version would have a crashing iPad.
+- Unknown record types and unknown attributes are what an older build CAN handle: `NSPersistentCloudKitContainer` imports only the record types its model knows.
+
+**A visit's date is stored at noon of its day.** It is not stored at midnight. The format is fixed once 1.2 ships, so the reason is recorded here: a visit stored at 00:00 Moscow time reads as the previous day on a device in New York (the second parent's iPad, a trip). That would move the report's period start. Noon survives any offset up to ±11 h.
+
+**Rejected:** a tolerant decoder (a String attribute plus a computed enum with a fallback case). It would protect only the builds that ship it. Every 1.1 device already installed keeps the trapping decoder.
+
+---
+
 ## 2026-10-30 — On-screen numbers go through the app language's locale; es keeps the es_419 period
 
 Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /

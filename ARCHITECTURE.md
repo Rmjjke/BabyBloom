@@ -36,16 +36,42 @@ structure below.
 
 ## Domain model
 
-Six `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`.
+Eight `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the M2 pair
+`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`). They are listed ONCE,
+in `AppSchema.models`, and every container — app, widget, tests — opens the
+store through `AppSchema.schema`; `AppSchemaTests` pins the list.
+
+**A persisted enum is closed.** Enum properties (`CustomEvent.type`,
+`FeedingEntry.side`, …) are stored as their raw value. A build that reads a
+value it does not know — one written by a newer version and delivered by
+CloudKit — crashes in SwiftData's decoder, on every launch. A new kind of
+record is therefore a new model or a new optional attribute, never a new
+case; `FrozenPersistedEnumTests` fails on a new case with that explanation
+(DECISIONS 2026-11-01).
 
 **Every stored property has a default value and every relationship is
 optional.** That is not style — it is what CloudKit requires of a mirrored
 SwiftData schema. A new non-optional property without a default will compile
 and then fail at container creation, at launch, in `fatalError`.
 
-`Baby` owns the five entry types with `deleteRule: .cascade` and an explicit
-`inverse:`. Deleting the baby deletes its history.
+`Baby` owns the five entry types, the visits and the questions with
+`deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
+its history.
+
+**Visits and questions change only through `DoctorVisitActions`**
+(`Services/`), the same idea as `TimerActions`. A visit stamps the questions
+asked at it (`askedAt` + `visit`) in the same save that writes it, and
+deleting a visit returns those questions to open before it goes; the
+visit→questions relationship is `.nullify`, which alone would leave them
+"asked" at nothing. A question is open when it has no `askedAt` OR no
+`visit` — the link is the truth, so a cross-device merge that leaves a stray
+stamp brings the question back instead of losing it. A visit's `date` is held
+at NOON of its day (`DoctorVisitActions.visitDay`), so it reads as the same
+day in any time zone a synced device sits in; readers take `startOfDay`. Every
+action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
+report's period starts: 00:00 of the latest visit's date (same date → the one
+logged last), else the birth day.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -96,8 +122,16 @@ in this repo, CloudKit mirrors the store.
 
 The widget opens **the same store with `cloudKitDatabase: .none`**. A widget
 extension must not drive sync — the app target owns it. Because the models
-are CloudKit-compatible, `.none` reads the identical store with no schema
-mismatch.
+are CloudKit-compatible and the widget uses the app's own `AppSchema`, `.none`
+reads the identical store with no schema mismatch. A widget list that lacked
+a model would open the store as another model version, and a lightweight
+migration may drop the tables it does not know.
+
+**A new model needs the CloudKit schema deployed to Production** (CloudKit
+Console → Deploy Schema Changes) before the build that adds it ships.
+TestFlight and App Store builds sync against Production, where the new record
+types do not exist until deployed; without that the new records never sync,
+and nothing reports it. It is an owner step on the release card.
 
 Two consequences worth knowing before you debug something:
 
@@ -506,7 +540,12 @@ also spelled out in six JSON strings, see the comment on the constant — and
 `cutoff()`, `startOfDay(now − 14 days)`.
 
 `HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
-surfaces use. It returns three things: `visible` (windowed, then capped),
+surfaces use. Pediatrician visits never go through it: Events
+(`EventsHistory`) and Recent activity merge them in AFTER the window and the
+cap (`Core/History/HistoryMerge`), so they are free and always listed, the
+locked footer still means "entries older than 15 days", and Events' delete-all
+reaches events only (its confirm says the visits are kept). Visit rows have no
+swipe. It returns three things: `visible` (windowed, then capped),
 `showsLockedFooter`, and `deletable` — the **untouched input**, which is what
 makes the no-hostage rule a property of the type instead of a discipline at
 five call sites.
@@ -835,7 +874,8 @@ the App Store Connect answers in step.
 ## Navigation
 
 `MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth,
-Recent activity, Events and Profile live under More rather than in the bar;
+«For the pediatrician», Recent activity, Events and Profile live under More
+rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
 stats → growth → progress. Its Growth header AND the data card under it are one
@@ -850,6 +890,20 @@ on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
+
+**«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, M2)
+comes right after Growth in More. Today it holds the period line (②, tap →
+the visit detail) and the questions card (④ open questions, add, log the
+visit; ⑥ the questions asked at the latest visit, «Back to the list»). The
+report's data cards slot in under them and read the same `periodStart`. A
+visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
+through `.visitDetailSheet(item:)` — from the period line, Events and Recent
+activity. That modifier deletes in the sheet's `onDismiss`, after the sheet
+is gone: deleting while a sheet still holds the model makes its body read a
+deleted model ("backing data could no longer be found"). The question sheet
+follows the same rule in the report screen. The doctor sheets are plain
+`.sheet`, never `.entrySheet` — no rating prompt over a question for the
+doctor (DECISIONS 2026-11-01).
 
 **Deep links.** `nenita://tab/<home|feeding|sleep|diapers>`
 (`Features/Widget/DeepLink.swift`, shared with the widget) selects a tab. The
@@ -930,8 +984,8 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; and four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification and the weekly seeds read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and four for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late. All four share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly and doctor seeds, the pediatrician period length and the visit date's default and upper bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |

@@ -225,6 +225,11 @@ struct BBSectionHeader: View {
 // MARK: - Swipe to Delete Row
 struct SwipeToDeleteRow<Content: View>: View {
     let onDelete: () -> Void
+    // Defaults keep every history list as it was; the doctor report reuses
+    // the row with its own action («Back to the list»).
+    var title: String = "button.delete"
+    var systemImage: String = "trash.fill"
+    var tint: Color = .red
     @ViewBuilder let content: () -> Content
 
     @State private var offset: CGFloat = 0
@@ -239,9 +244,9 @@ struct SwipeToDeleteRow<Content: View>: View {
                 }
             } label: {
                 VStack(spacing: 4) {
-                    Image(systemName: "trash.fill")
+                    Image(systemName: systemImage)
                         .font(.system(size: 16, weight: .semibold))
-                    Text("button.delete".l)
+                    Text(title.l)
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                 }
                 .foregroundStyle(.white)
@@ -250,7 +255,7 @@ struct SwipeToDeleteRow<Content: View>: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                    .fill(Color.red)
+                    .fill(tint)
             )
             .opacity(offset < -12 ? 1 : 0)
 
