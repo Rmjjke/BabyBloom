@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-06 — Growth's weighings speak from overlay elements, not from Swift Charts' marks; a future day in the week chart says nothing
+
+Each weighing on Growth's weight chart is read by VoiceOver from an invisible element the chart's overlay places on its dot, with the readout's date, age and weight; every mark in the chart is hidden. The week chart's future days, which show no bar and no number, are hidden too.
+
+**Why.** Swift Charts merges marks that stand closer than its element width into one element and words it itself: two newborn weighings four days apart, or two on one day, read «13 Nov 2023 at 00 to 20 Nov 2023 at 00» with «3,4 to 3,18, 2 values», in the device's locale whatever the app's language, and no public API turns that merge off. An element of our own per weighing reads each one in the app's words however close the dots stand. Hiding every mark also takes away the chart's Audio Graph (the Chart Details rotor). The one Swift Charts made was titled «Chart» in English in every language, and its weight axis had no unit and no dates at its ends, so it said nothing the elements do not say better. A future day's bar plots 0 and Swift Charts read it as «0», a fact that is not true yet.
+
+Not taken: a custom `accessibilityChartDescriptor` (it describes the Audio Graph only and leaves the merged element as it is); a wider chart or bigger dots (the merge follows the element width, and the newborn weeks would still merge); one combined element for the whole chart (the parent could no longer step through the weighings).
+
 ## 2026-11-06 — A number keeps its unit or word on its line; an age is glued where it is made; Settings' baby row sets the avatar above where a word misses beside it
 
 A number and the unit or word after it are joined by a no-break space, on screen and in the PDFs: `ReportFormat` glues units and dates, `gluingNumbersToUnits` glues each part of a duration, and `Baby.describeAge` joins the age's number and its word («11 месяцев», «3 weeks», «2 meses»), so every caller gets the glue from there and none glues it again. The report screen's period length and dates take the PDF's own `ReportFormat.periodLength` and `dayMonth`. The spaces a format string puts around a glued phrase stay breakable. At the accessibility sizes Settings' baby row keeps the avatar beside the name and the age while every word keeps whole there; else the avatar and the chevron take a line of their own above them, sm 8 apart.

@@ -228,6 +228,8 @@ struct BBWeeklyBarChart: View {
                 .cornerRadius(4)
                 .foregroundStyle(barGradient(for: day))
                 .spokenValue(day.isFuture ? nil : voiceOverValue?(day.value))
+                // A future day shows no bar and no number; it would read «0».
+                .accessibilityHidden(day.isFuture)
                 .annotation(position: .top, spacing: 4) {
                     // Each day up to today states its value, «0» included, so
                     // the chart needs no axis numbers; a future day has none

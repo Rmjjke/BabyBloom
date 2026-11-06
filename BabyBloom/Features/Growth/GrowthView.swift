@@ -621,8 +621,11 @@ struct WeightChartView: View {
                             .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2))
                             .frame(width: isSelected ? 14 : 9, height: isSelected ? 14 : 9)
                     }
-                    .accessibilityLabel(caption(weighing))
-                    .accessibilityValue("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
+                    // Swift Charts merges marks that stand closer than its
+                    // element width into one element it words itself («13 Nov
+                    // 2023 at 00 to 20 Nov 2023 at 00, 2 values»), and no API
+                    // turns that off: the weighings speak from the overlay.
+                    .accessibilityHidden(true)
             }
         }
         .chartLegend(.hidden)
@@ -660,19 +663,51 @@ struct WeightChartView: View {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .onTapGesture { location in
-                        select(nearest: location, shown: shown, proxy: proxy, geometry: geometry)
-                    }
-                    .accessibilityHidden(true)
+                ZStack(alignment: .topLeading) {
+                    spokenWeighings(proxy: proxy, geometry: geometry)
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture { location in
+                            select(nearest: location, shown: shown, proxy: proxy, geometry: geometry)
+                        }
+                        .accessibilityHidden(true)
+                }
             }
         }
         // Only a tap that moves the readout ticks — not the reset after a save.
         .sensoryFeedback(.selection, trigger: selectedIndex) { _, new in new != nil }
         .frame(height: 190)
         .accessibilityIdentifier("growth.weight_chart")
+    }
+
+    /// One VoiceOver element per weighing, on its dot, oldest first: every
+    /// weighing reads its own date and weight, however close the dots stand.
+    /// Below the tap layer, so a tap still reaches the readout's selection.
+    @ViewBuilder
+    private func spokenWeighings(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
+        if let plotFrame = proxy.plotFrame {
+            let origin = geometry[plotFrame].origin
+            ZStack(alignment: .topLeading) {
+                ForEach(measurements.indices, id: \.self) { index in
+                    let weighing = measurements[index]
+                    if let x = proxy.position(forX: weighing.date),
+                       let y = proxy.position(forY: weighing.weightKg) {
+                        Color.clear
+                            .frame(width: 24, height: 24)
+                            .position(x: origin.x + x, y: origin.y + y)
+                            .accessibilityElement()
+                            .accessibilityLabel(caption(weighing))
+                            .accessibilityValue("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
+                            // Screen order would put a later weighing first
+                            // where two share a day; the list's order holds.
+                            .accessibilitySortPriority(Double(measurements.count - index))
+                    }
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+            .accessibilityElement(children: .contain)
+        }
     }
 
     /// Nearest in SCREEN space, not by date alone: two weighings on one day
