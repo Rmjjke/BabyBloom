@@ -21,6 +21,18 @@ Nothing on it grades the baby.
 - The screen and the More row are **For the pediatrician / Для педиатра /
   Para el pediatra** (`report.title`). The PDF is "Report for the
   pediatrician" (`report.pdf.title`).
+- **"Report" names this PDF only** (`voice.md` § Terms). The Export PDF reads
+  "All entries" / «Все записи» / «Todos los registros» on its first page and
+  in its file name (`export.pdf.subtitle`, `export.file_fmt`), and its tile
+  says "Every entry, day by day" (`export.format.pdf_desc`). When both PDFs
+  said "report", a parent looking for this one on the Export screen took
+  16 pages of tables.
+  - The Export screen points here: `export.pdf_doctor_hint_fmt` "For the
+    doctor's visit: More › For the pediatrician" / «Для приёма у врача: Ещё ›
+    Для педиатра» / «Para la consulta médica: Más › Para el pediatra».
+  - The path is joined in code from `tab.more` and `report.title`, so it
+    always matches the names it points to. VoiceOver reads ", " in place of
+    « › ».
 - The button is **Log the visit / Отметить приём / Registrar la visita**
   (`visit.log`): a button names its action, not a fact ("Visit happened").
   Copy that refers to it quotes it by this name.
@@ -160,7 +172,8 @@ test's seed data must keep them free of these words. Any new verdict key added
 anywhere in the app joins this list in the same PR.
 
 Every `report.*`, `visit.*` and `question.*` value passed this scan on
-2026-11-01, checked by script. The values changed on 2026-11-03 pass it too.
+2026-11-01, checked by script. The values changed on 2026-11-03 pass it too,
+and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
 
 ## Keys
 - **Header:** `report.title`, `report.a11y_hint` (More row),
@@ -206,6 +219,12 @@ Every `report.*`, `visit.*` and `question.*` value passed this scan on
     `.file_fmt`;
   - `.before_due_date`, the first sentence of `percentile.before_due_date`
     word for word;
+  - the weight-for-age section's heading, one line: `.chart_title` "Weight
+    for age" / «Вес по возрасту» / «Peso para la edad», then « · » and
+    `.chart_curves` "WHO percentiles" / «перцентили ВОЗ» / «percentiles de la
+    OMS», lowercase because it follows the mid-dot. The heading lists no
+    percentile numbers: the curves carry «3», «50», «97» at their ends, and
+    «3, 50, 97» reads as a decimal in Russian and Spanish;
   - the footer of every export PDF, `export.generated_by_fmt` (brand, date);
   - table heads ↺ `export.col.date` / `.weight` / `.height` / `.head`;
   - `report.footnote`.
@@ -248,5 +267,10 @@ Every `report.*`, `visit.*` and `question.*` value passed this scan on
   `percentile.85_97`) leave the closed list: their keys are deleted, because
   the growth card now states the percentile itself and nothing reads them.
 - 2026-11-05 — The app names a breast feed with the report's word, "Breast /
-  Грудь / Pecho" (`feeding.type.breast`), in place of the abbreviation BF /
-  ГВ / LM, so the screen, the export and the report say one word.
+  Грудь / Pecho", in place of the abbreviation BF / ГВ / LM, so the screen,
+  the export and the report say one word.
+- 2026-11-05 — "Report" names the pediatrician's PDF only (§ Names). The
+  Export PDF's tile, first page and file name say "Every entry, day by day"
+  and "All entries", and the Export screen points to this report with
+  `export.pdf_doctor_hint_fmt`. New `report.pdf.chart_title` and
+  `report.pdf.chart_curves` head the weight-for-age section.
