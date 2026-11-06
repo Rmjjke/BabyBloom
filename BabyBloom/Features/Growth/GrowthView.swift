@@ -112,6 +112,9 @@ struct GrowthView: View {
                         .font(.system(size: 22))
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
+                // Icon only: unnamed, VoiceOver reads the symbol in the
+                // device's language, not the app's.
+                .accessibilityLabel(Text("sheet.new_measurement".l))
             }
         }
         .entrySheet(isPresented: $showAddSheet) {

@@ -62,6 +62,64 @@ and the Live Activity read the byte-identical copies in
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
+- **Sheet titles in the bar.** The title sits on one line between the bar's
+  two glyph buttons: × for Cancel or Close, ✓ for Save, a pencil for Edit.
+  It is set in SF Pro 17 pt semibold at the default text size and never
+  grows past it. Through the sheet-title helper (`bbSheetTitle`) it shrinks
+  to fit, down to 13 pt, the size of the sheets' captions; a plain bar title
+  is cut with «…» instead. At larger text sizes the title moves into the
+  sheet's content.
+  - A title of at most 166 pt (CoreText width at 17 pt semibold) stays whole
+    and full-size on every phone, with 8 pt to spare on a 320 pt one. The
+    glyphs take the same room in every language, which leaves the title
+    256 pt on a 402 pt phone, 229 on 375 and 174 on 320, so the 13 pt floor
+    never acts on a title within the budget.
+  - Every sheet title in en, ru and es is within it. The widest is es
+    «Nuevo medicamento», 163.4 pt; none shrinks on any width.
+  - The dose sheet shows no title in its bar. Its heading, the medication's
+    name, sits in the content at every size: the name is the parent's own
+    text, so no budget holds it, and as a heading it wraps instead of losing
+    its end, which is often where two names differ. The sheet's fixed
+    titles (ru «Отметить дозу», es «Registrar dosis») sit there too.
+  - A Russian edit sheet may take the bare noun of what it edits: «Вопрос»
+    (61.6 pt), «Лекарство» (88.1), «Профиль» (75.5). The bar's × and ✓
+    already say that the sheet edits. «Профиль» is also the title of the
+    screen the sheet opens from; the sheet covers that screen, so the two
+    never show together.
+  - Not taken for the profile: «Изменить» (82.6) reads as a button; «О
+    малыше» (86.6) reads as an information page, not a form. «Изменить
+    профиль» (159.6), «Правка профиля» (138.1) and «Данные малыша» (138.8)
+    fit the budget, but the bare noun already names the form in fewer
+    words.
+- **VoiceOver names of glyph-only buttons.** A button that shows only a
+  glyph takes its VoiceOver name from the app's strings. The name iOS gives
+  a symbol follows the device's language, not the app's: VoiceOver would
+  say «Добавить» or «Удалить» to a parent reading the app in another
+  language. The + that opens a screen's entry sheet says what it adds; the
+  − and + of the diaper goal editor say what they change:
+
+  | button | key | en | ru | es |
+  |---|---|---|---|---|
+  | Feeding + | `sheet.new_feeding` | New Feeding | Новое кормление | Nueva toma |
+  | Sleep + | `sheet.add_sleep` | Add Sleep | Добавить сон | Agregar sueño |
+  | Diaper + | `diaper.add` | Add Diaper | Добавить подгузник | Agregar pañal |
+  | Growth + | `sheet.new_measurement` | New Measurement | Новое измерение | Nueva medición |
+  | Events + | `sheet.new_event` | New Event | Новое событие | Nuevo evento |
+  | Diaper goal − | `diaper.norm.a11y_decrease` | Decrease goal | Уменьшить норму | Disminuir meta |
+  | Diaper goal + | `diaper.norm.a11y_increase` | Increase goal | Увеличить норму | Aumentar meta |
+
+  - Four of the five add buttons reuse their sheet's title, which already
+    names what the sheet adds, so VoiceOver reads the same words on the
+    button and as the sheet's heading.
+  - The Diaper sheet's title, «Подгузник» / "Diaper" / «Pañal», names the
+    thing, not the action, so its button has a key of its own, built like
+    «Добавить сон» with the add verb of the Terms table.
+  - The Home quick sheets for Feeding, Sleep and Diaper show the same
+    screen, so their + carries the same name.
+  - The goal editor's names use the editor's own noun: "goal", «норма»,
+    «meta», as its heading "Daily Goal" / «Норма в день» / «Meta diaria».
+    They are VoiceOver-only strings (`a11y_`), so they take sentence case,
+    as `weekly.a11y_hide`.
 - **Line breaks around numbers.** A number never wraps away from its unit,
   and a short word that belongs to the number stays on its line.
   - Number + short word + unit: «4 в сутки», «4,5 al día», «8 o más». The
@@ -71,6 +129,16 @@ and the Live Activity read the byte-identical copies in
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
+  - A number range stays on one line. The line may break after an en dash
+    («6–» / «10»), so a word joiner (U+2060, invisible, no width) follows
+    the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
+    words glues its words with no-break spaces: "1 to 24", «от 1 до 24»,
+    «del 1 al 24», «de 6 a 10», «del percentil 15 al 85».
+  - The percentile band labels (`percentile.3_15` … `percentile.85_97`)
+    keep the plain dash. Each stands alone, so its line breaks only when the
+    whole label is wider than its box, and there a break after the dash
+    reads better than one inside a number. A unit test also matches «15–50»
+    as written.
   - In the JSON the no-break space is written as the escape ` `, which
     reads as the same character.
   - Not glued:
@@ -103,3 +171,27 @@ and the Live Activity read the byte-identical copies in
   `velocity.info_body`, `nutrition.info_body`, `notification.weigh_in_body`,
   `onboarding.showcase.invite`, `question.add`, `medication.add`,
   `medication.empty_body`. No other word changed.
+- 2026-11-04 — ru `profile.edit_title` «Редактировать профиль» → «Профиль».
+  The old title was 202.4 pt: it shrank to 11 pt on a 402 pt phone, smaller
+  than the sheet's captions, and was cut on a 375 pt one. en "Edit Profile"
+  (86.4 pt) and es «Editar perfil» (92.7) stay.
+- 2026-11-04 — number ranges never split across lines. A word joiner after
+  the dash in en/ru/es `diaper.norm.hint` (es: no-break spaces in «de 6 a
+  10»), `newborn.info_body` (three ranges), `velocity.expected_fmt`,
+  `breakdown.gain_fmt`, `breakdown.feeds_fmt`, `percentile.info_body` (es:
+  no-break spaces in «15 al 85»), `onboarding.fact.infant2`,
+  `onboarding.fact.breast1`, `onboarding.fact.formula1`, `chart.who_corridor`.
+  Text unchanged.
+- 2026-11-04 — the sheet-title budget is 166 pt on every width (was 96 pt
+  on a 375 pt phone). The sheet bars carry glyph buttons instead of the
+  words Cancel and Save, so a title has 174 pt even on a 320 pt phone, and
+  the list of titles that shrank on 375 pt is empty. The dose sheet's title
+  moves into its content. No text changed.
+- 2026-11-04 — `diaper.add` added, the VoiceOver name of the Diaper
+  screen's +: "Add Diaper", «Добавить подгузник», «Agregar pañal». The
+  Feeding, Sleep and Growth + take their sheets' titles, as Events already
+  does.
+- 2026-11-04 — `diaper.norm.a11y_decrease` and `diaper.norm.a11y_increase`
+  added, the VoiceOver names of the diaper goal editor's − and +: "Decrease
+  goal" / "Increase goal", «Уменьшить норму» / «Увеличить норму», «Disminuir
+  meta» / «Aumentar meta».
