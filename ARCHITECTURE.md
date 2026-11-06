@@ -1087,7 +1087,10 @@ the running timers. It is hidden per week by × (`weekly.hiddenWeek`, the Monday
 and sends `weekly_summary_viewed` once a week. × fades the card, in 0.2 s (no
 fade with Reduce Motion), to `WeeklyHiddenLine` on the card's own surface: the summary is hidden until next
 Monday, and «Undo», which clears the hide and brings the card back collapsed.
-The line is view state, never stored, with no timer: it lasts while the
+Each week's card opens collapsed: the open state is the Monday it was opened
+in (view state), so the same card handed the next week's summary, by an app
+left running across Monday 00:00, shows that week collapsed, a card hidden
+while open too. The line is view state, never stored, with no timer: it lasts while the
 Dashboard stays on screen and is gone after another tab, a pushed screen or
 the app in the background, while the card stays hidden until Monday. When an
 arrow shows, one legend line under the rows says the arrows compare with the

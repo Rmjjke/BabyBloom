@@ -15,7 +15,17 @@ struct WeeklySummaryCard: View {
     /// The week `weekly_summary_viewed` was last sent for: once a week, not
     /// once per Dashboard visit.
     @AppStorage("weekly.viewedWeek") private var viewedWeek = ""
-    @State private var expanded: Bool
+    /// The Monday the card was opened in, "" when closed: the open state
+    /// belongs to its week. The Dashboard keeps one card across Monday 00:00
+    /// (an app left open, a notification tap into a running app), so a plain
+    /// flag would open the new week as the last one was left. Derived rather
+    /// than reset on a change, so a card hidden while open comes back closed
+    /// with the new week too.
+    @State private var openWeek: String
+    private var expanded: Bool {
+        get { openWeek == weekKey }
+        nonmutating set { openWeek = newValue ? weekKey : "" }
+    }
     /// Set by × and cleared when the Dashboard is left: the hidden line shows
     /// only in the visit the card was hidden in. Not stored, and no timer, so
     /// a slow reader or VoiceOver never misses it.
@@ -30,7 +40,7 @@ struct WeeklySummaryCard: View {
     init(summary: WeeklySummary, startExpanded: Bool = false, onAddWeighing: @escaping () -> Void) {
         self.summary = summary
         self.onAddWeighing = onAddWeighing
-        _expanded = State(initialValue: startExpanded)
+        _openWeek = State(initialValue: startExpanded ? Self.key(of: summary.week) : "")
     }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -42,10 +52,12 @@ struct WeeklySummaryCard: View {
     @ScaledMetric(relativeTo: .caption) private var arrow: CGFloat = 10
     private var indent: CGFloat { glyph + 8 }
 
+    private var weekKey: String { Self.key(of: summary.week) }
+
     /// The Monday as a calendar date, not an instant: an instant shifts with
     /// the time zone, and a hidden card would come back after a flight.
-    private var weekKey: String {
-        let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: summary.week.start)
+    private static func key(of week: WeeklySummary.Week) -> String {
+        let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: week.start)
         return String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
     }
 
