@@ -18,9 +18,12 @@ final class OnboardingPageLayoutTests: XCTestCase {
 
     /// The ground's blobs are larger than a small phone. As layout children
     /// they made the flow's stack 380 pt wide, and the stack then placed every
-    /// page at that width, past both edges of a 320- or 375-pt screen.
+    /// page at that width, past both edges of a 320- or 375-pt screen. A
+    /// landscape phone is less than 380 pt tall, so the same held for height.
     func testTheGroundTakesTheSizeItIsOffered() {
-        for size in [CGSize(width: 320, height: 568), CGSize(width: 375, height: 667), CGSize(width: 402, height: 874)] {
+        let sizes = [CGSize(width: 320, height: 568), CGSize(width: 375, height: 667),
+                     CGSize(width: 402, height: 874), CGSize(width: 568, height: 320)]
+        for size in sizes {
             let fit = UIHostingController(rootView: OnboardingBackground()).sizeThatFits(in: size)
             XCTAssertEqual(fit.width, size.width, accuracy: 0.5, "\(size)")
             XCTAssertEqual(fit.height, size.height, accuracy: 0.5, "\(size)")
