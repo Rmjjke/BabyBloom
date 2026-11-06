@@ -264,11 +264,8 @@ struct BabyProfileEditSheet: View {
                 .padding(.vertical, 10)
                 .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
-                .overlay(
-                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                        .strokeBorder(editedGender == gender ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                )
                 .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(editedGender == gender)
             }
             .buttonStyle(BBScaleButtonStyle())
         }
@@ -288,11 +285,8 @@ struct BabyProfileEditSheet: View {
                     .padding(.vertical, 10)
                     .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.md)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                            .strokeBorder(editedFeedingType == ft ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                    )
                     .bbShadow(BBTheme.Shadow.card)
+                    .bbSelectedBorder(editedFeedingType == ft)
             }
             .buttonStyle(BBScaleButtonStyle())
         }

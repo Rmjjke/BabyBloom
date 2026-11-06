@@ -319,10 +319,7 @@ struct FeedingTimerCard: View {
                     .padding(.vertical, 8)
                     .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.pill)
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(entry.side == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                    )
+                    .bbSelectedBorder(entry.side == side, shape: .capsule)
             }
             .buttonStyle(BBScaleButtonStyle())
         }
@@ -408,11 +405,8 @@ struct AddFeedingSheet: View {
                 .padding(.vertical, BBTheme.Spacing.md)
                 .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
-                .overlay(
-                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                        .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                )
                 .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(selectedType == type)
             }
             .buttonStyle(BBScaleButtonStyle())
         }
@@ -436,11 +430,8 @@ struct AddFeedingSheet: View {
                 .padding(.vertical, 12)
                 .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
-                .overlay(
-                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                        .strokeBorder(selectedSide == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                )
                 .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(selectedSide == side)
             }
             .buttonStyle(BBScaleButtonStyle())
         }

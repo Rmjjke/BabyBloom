@@ -354,6 +354,18 @@ so the words read 4.78 on any ground, a timer card's wash or an onboarding
 blob included; over the bare background they were 4.38. Onboarding's two
 primary blobs stay at 0.08 for the same reason (DECISIONS 2026-11-05).
 
+A selected tile's or chip's 1.5 pt `BBPrimary` border lies outside its fill:
+`bbSelectedBorder(_:shape:)` puts the stroke's inner edge on the fill's edge,
+with corners `Radius.md + 1.5` concentric with the fill's (`.capsule` for the
+feeding timer's side pills). Drawn inside, it covered the fill's outer 1.5 pt,
+and with Bold Text a word that fills its tile on a 320-pt phone («Izquierdo»
+with its glyph, «Смешанное») ran under it. As an overlay it takes no room: a
+tile is laid out the same selected or not, and a gap beside a selected tile
+reads 1.5 pt less (8 → 6.5). VoiceOver's frame of a selected tile takes the
+border in, 1.5 pt a side. It goes after `bbShadow`, so the shadow keeps the
+fill's outline. The Export format tiles and the plan rows draw their own
+outline.
+
 A delete draws the system red: from `role: .destructive` where the button has
 a role (the sheets' Delete, the confirmations), from `Color.red` where it has
 none (the delete-history button, the swipe action, remove photo). Never
