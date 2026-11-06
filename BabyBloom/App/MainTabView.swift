@@ -149,6 +149,17 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.events)
                     }
                 }
+                NavigationLink(destination: MedicationsListView()) {
+                    Label {
+                        Text("medication.title".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                    } icon: {
+                        Image(systemName: "pills.fill")
+                            .foregroundStyle(BBTheme.Colors.primary)
+                    }
+                }
+                .accessibilityHint("medication.a11y_hint".l)
+                .accessibilityIdentifier("more.medications")
             }
             .navigationTitle("tab.more".l)
             .navigationBarTitleDisplayMode(.large)

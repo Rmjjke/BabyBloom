@@ -51,8 +51,10 @@ final class Medicine {
         self.createdAt = Date()
     }
 
-    /// What a medicine form accepts: half an hour to a week.
-    static let intervalMinutesRange = 30...(7 * 24 * 60)
+    /// What the medicine form accepts: above zero in its 15-minute steps, and
+    /// at most 48 hours, the last value of its wheels. Zero is not an
+    /// interval: every dose would be on time and the status line meaningless.
+    static let intervalMinutesRange = 15...(48 * 60)
     /// What a medicine form accepts for the 24-hour maximum.
     static let maxDosesPer24hRange = 1...24
 
