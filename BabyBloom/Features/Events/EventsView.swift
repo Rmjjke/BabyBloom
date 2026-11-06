@@ -100,11 +100,11 @@ struct EventsView: View {
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_input")
-            // One column at accessibility sizes: half the width cannot hold a
-            // tile word whole (es «Medicamento» at AX2 needs 156 pt of the 148
-            // a half gives on a 402-pt iPhone).
+            // One column from xxLarge: in half a 320-pt row es «Medicamento»
+            // keeps 2.5 pt there (105.5 in 108), under the 8-pt spare.
+            let tileColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 1, xxxLarge: 1, accessibility: 1)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
-                                     count: dynamicTypeSize.isAccessibilitySize ? 1 : 2),
+                                     count: tileColumns.count(at: dynamicTypeSize)),
                       spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
                     let locked = isLocked(type)
@@ -114,7 +114,7 @@ struct EventsView: View {
                         VStack(spacing: BBTheme.Spacing.sm) {
                             ZStack(alignment: .bottomTrailing) {
                                 Image(systemName: type.icon)
-                                    .font(.system(size: 26))
+                                    .font(BBTheme.Typography.scaled(26, relativeTo: .body, weight: .regular, design: .default))
                                     .foregroundStyle(Color(hex: type.colorHex))
                                 if locked {
                                     LockBadge().offset(x: 8, y: 4)
@@ -316,10 +316,12 @@ struct AddEventSheet: View {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     BBSheetHeading(title: "sheet.new_event".l)
                     // Type grid: glyph and word grow with the text size, and
-                    // at accessibility sizes two columns give each word its
-                    // width (a third of the sheet cut «Medicamento»).
+                    // from xxLarge two columns: in a third of a 320-pt sheet
+                    // es «Medicamento» keeps 7.8 pt there (82.8 in 90.7),
+                    // under the 8-pt spare.
+                    let typeColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 2, xxxLarge: 2, accessibility: 2)
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
-                                             count: dynamicTypeSize.isAccessibilitySize ? 2 : 3),
+                                             count: typeColumns.count(at: dynamicTypeSize)),
                               spacing: BBTheme.Spacing.sm) {
                         ForEach(CustomEvent.EventType.allCases, id: \.self) { type in
                             Button { selectedType = type } label: {
@@ -350,11 +352,12 @@ struct AddEventSheet: View {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("form.mood".l).font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             // Glyph and word grow with the text size, as on the type
-                            // tiles, and at accessibility sizes two columns give each
-                            // word its width: a third of the sheet is narrower than
-                            // «Беспокойный» at AX2.
+                            // tiles, and from xxLarge two columns: in a third of a
+                            // 320-pt sheet «Беспокойный» keeps 4.5 pt there (86.2
+                            // in 90.7), under the 8-pt spare.
+                            let moodColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 2, xxxLarge: 2, accessibility: 2)
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
-                                                     count: dynamicTypeSize.isAccessibilitySize ? 2 : 3),
+                                                     count: moodColumns.count(at: dynamicTypeSize)),
                                       spacing: BBTheme.Spacing.sm) {
                                 ForEach(CustomEvent.MoodLevel.allCases, id: \.self) { mood in
                                     Button { selectedMood = mood } label: {

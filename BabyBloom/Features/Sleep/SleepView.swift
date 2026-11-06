@@ -6,6 +6,7 @@ struct SleepView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
     /// The history list's free window sells from here; nothing else on this
@@ -95,9 +96,19 @@ struct SleepView: View {
     // MARK: - Start Sleep
     private var startSleepSection: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            HStack(spacing: BBTheme.Spacing.md) {
-                sleepTypeButton(.nap)
-                sleepTypeButton(.night)
+            // One column from xxxLarge: in half a 320-pt row «Дневной» keeps
+            // 4.8 pt there (83.2 in 88), under the 8-pt spare.
+            let tileColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 1, accessibility: 1)
+            if tileColumns.count(at: dynamicTypeSize) == 1 {
+                VStack(spacing: BBTheme.Spacing.md) {
+                    sleepTypeButton(.nap)
+                    sleepTypeButton(.night)
+                }
+            } else {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    sleepTypeButton(.nap)
+                    sleepTypeButton(.night)
+                }
             }
         }
     }
@@ -108,13 +119,13 @@ struct SleepView: View {
         } label: {
             VStack(spacing: BBTheme.Spacing.sm) {
                 Image(systemName: type.icon)
-                    .font(.system(size: 30))
+                    .font(BBTheme.Typography.scaled(30, relativeTo: .body, weight: .regular, design: .default))
                     .foregroundStyle(BBTheme.Colors.sleep)
                 Text(type.displayName.l)
                     .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text("button.start".l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             .frame(maxWidth: .infinity)
@@ -271,6 +282,29 @@ struct AddSleepSheet: View {
         dynamicTypeSize.isAccessibilitySize ? .center : .leading
     }
 
+    private var locationTiles: some View {
+        ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
+            Button { selectedLocation = loc } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: loc.icon).font(BBTheme.Typography.scaled(20, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(BBTheme.Colors.primary)
+                    Text(loc.displayName.l).font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
+                        .multilineTextAlignment(wrapAlignment)
+                        .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .strokeBorder(selectedLocation == loc ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                )
+                .bbShadow(BBTheme.Shadow.card)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -308,26 +342,21 @@ struct AddSleepSheet: View {
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.location".l)
                             .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                        HStack(spacing: BBTheme.Spacing.sm) {
-                            ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
-                                Button { selectedLocation = loc } label: {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: loc.icon).font(BBTheme.Typography.scaled(20, relativeTo: .body, weight: .regular, design: .default))
-                                            .foregroundStyle(BBTheme.Colors.primary)
-                                        Text(loc.displayName.l).font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
-                                            .multilineTextAlignment(wrapAlignment)
-                                            .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                    }
-                                    .frame(maxWidth: .infinity).padding(.vertical, 12)
-                                    .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                            .strokeBorder(selectedLocation == loc ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                    )
-                                    .bbShadow(BBTheme.Shadow.card)
-                                }
-                                .buttonStyle(BBScaleButtonStyle())
+                        // Two columns at accessibility sizes: in a third of a
+                        // 320-pt sheet es «Cochecito» breaks at AX2 (91.8 pt in
+                        // 90.7). Below them the row stays an HStack: a grid
+                        // sets it a third of a point lower.
+                        let locationColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 3, xxxLarge: 3, accessibility: 2)
+                        let locationCount = locationColumns.count(at: dynamicTypeSize)
+                        if locationCount == locationColumns.large {
+                            HStack(spacing: BBTheme.Spacing.sm) {
+                                locationTiles
+                            }
+                        } else {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: locationCount),
+                                      spacing: BBTheme.Spacing.sm) {
+                                locationTiles
                             }
                         }
                     }

@@ -14,13 +14,19 @@ live with the workflow, outside this repository.
 
 ---
 
-## 2026-11-03 — A word set at a fixed size grows at accessibility sizes, and a grid gives up columns for its widest word
+## 2026-11-03 — A word set at a fixed size grows with the text size, and a tile row gives up columns for its widest word
 
 **The word scales from the size it had.** `Typography.scaled(<size>, relativeTo: .body)`, with the same weight and design. Below the accessibility sizes the factor is the one the body text gets, so at Large every screen stays as it was.
 
 **Why grow.** At AX2 the tile, stool and stat-card words stayed at 10–13 pt beside 31 pt body text: the smallest text on screen, for the people who asked for the largest. They also carry meaning. A tile's word is its name. A stool colour's word is the cue that does not depend on seeing the colour, next to the warning colours. A stat card's title and unit say what the number is. Colour samples, icon plates and decoration keep their size: the sample is the information, and a plate is not read.
 
-**Columns by the widest word, at 375 pt, with 8 pt to spare.** 375 pt is the SE and mini width, and Display Zoom's on the largest phones. Display Zoom on the smaller phones and iPad Slide Over are narrower, at 320 pt, and this rule does not cover them. The spare is there because three stool columns would hold «Коричневый» by 2 pt, which is inside the measuring error. A grid that keeps its columns at AX2 (Diaper type, Sleep type, Sleep location) does so because its widest word fits, not by exemption.
+**Columns by the widest word, at 320 pt, at every text size, with 8 pt to spare.** 320 pt is Display Zoom on the smaller phones and iPad Slide Over. Display Zoom is often turned on together with large text, and a word that never breaks has no width exception, so the narrowest width sets the count; the first version checked 375 pt and left 320 pt uncovered. A scaled word grows from xLarge on, not only at accessibility sizes, so the rule is checked at xLarge, xxLarge and xxxLarge with the row's count there and at AX2, and a row gives up columns from the first size where its widest word misses. The spare keeps a measuring error, a later word or Bold Text from landing a break. A row that keeps its columns (Diaper type and Sleep location up to xxxLarge, Sleep type at every size) does so because its widest word fits, not by exemption.
+
+**One shape per text size, at every width.** Not a count that follows the width: `ViewThatFits` compares a row's whole width, not its narrowest column, so it would need a measuring layout of its own, and one sheet would take two shapes at one text size. Each row states its counts once, in `BBTileColumns`.
+
+**The stool row keeps four columns at Large, under the spare.** «Коричневый» fits a quarter of 320 pt by 3.6 pt, and by 0.2 with Bold Text, both measured. The spare covers an unmeasured word or weight, and here both are measured; the colour names are measured again whenever they change in any locale. Three columns would set the default Diaper sheet's seven swatches 3 + 3 + 1 on every phone. From xLarge four break, and the row takes three. The profile edit sheet's feeding row keeps three at Medium and Large the same way: «Смешанное» fits a third of the sheet at 320 pt by 7.9 and 4.5 pt (4.5 and 0.9 with Bold Text), the same word at the same size as before the words grew, and from xLarge it breaks and the row takes two.
+
+**The Diaper quick tile takes 8 pt of side padding, not 16.** With 16 the row broke at Large on 320 pt: «Грязный» is 58.5 pt in 53.3. Taken literally, the rule would then set two columns from Large, and the default Diaper screen's three tiles would become 2 + 1 on every phone. With 8 the three hold at Large with 10.8 pt to spare. The padding sits inside the tile's fill and the word is centred, so Large on wider screens draws as before.
 
 ## 2026-11-03 — Every clock time takes the device's 12/24-hour cycle, in the app's language
 
