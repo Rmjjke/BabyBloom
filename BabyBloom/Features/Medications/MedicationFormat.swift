@@ -144,6 +144,19 @@ enum MedicationFormat {
         medicines.sorted { ($0.endedAt ?? .distantPast) > ($1.endedAt ?? .distantPast) }
     }
 
+    /// The reminder's title and body. The title is the name as typed. The body
+    /// is the time since the dose it counts from, with that dose's time, so a
+    /// phone that has not synced a later dose yet still states a fact. The day
+    /// word is counted against the moment it fires: a 22:00 dose read at 04:00
+    /// is yesterday's.
+    static func reminder(name: String, lastDose: Date, fireDate: Date,
+                         calendar: Calendar = .current) -> (title: String, body: String) {
+        let minutes = Int((fireDate.timeIntervalSince(lastDose) / 60).rounded())
+        return (String(format: "notification.medication_title_fmt".l, name),
+                String(format: "notification.medication_body_fmt".l,
+                       duration(minutes: minutes), when(lastDose, now: fireDate, calendar: calendar)))
+    }
+
     /// A VoiceOver label: the visible lines read in order.
     static func spoken(_ parts: [String?]) -> String {
         parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ". ")

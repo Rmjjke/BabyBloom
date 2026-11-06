@@ -23,11 +23,17 @@ extension MedicationFormat {
     /// The words for `check`, or nil when the dose is on time.
     ///
     /// One alert per save. The 24-hour variant shows only when the check says
-    /// the maximum ends later than the interval. Its time is `nextAllowed`,
-    /// the «not before» the medication's screen shows as the alert opens. On
-    /// a tie, and for a dose put before a logged one, the interval variant.
+    /// that, once this dose is saved, the maximum ends later than the
+    /// interval. On a tie, and for a dose put before a logged one, the
+    /// interval variant.
+    ///
+    /// The «not before» of the before and 24-hour variants is `nextAfterSave`:
+    /// the time the medication's screen shows once this dose is saved. The
+    /// time before the save would send a parent who saves anyway and follows
+    /// the alert hours early (last dose 08:00, this one 10:00, every 6 h: the
+    /// screen then says 16:00, not 14:00).
     static func confirmation(name: String, check: DoseCheck, intervalMinutes: Int,
-                             nextAllowed: Date?, now: Date,
+                             nextAfterSave: Date?, now: Date,
                              calendar: Calendar = .current) -> DoseConfirmation? {
         let interval = duration(minutes: intervalMinutes)
         func at(_ date: Date) -> String { when(date, now: now, calendar: calendar) }
@@ -39,9 +45,9 @@ extension MedicationFormat {
             return text.components(separatedBy: "\n").dropLast().joined(separator: "\n")
         }
         if check.showsDaily, let daily = check.daily {
-            // A dose over the maximum means doses are logged, so `nextAllowed`
-            // exists; the window's end only guards a bad store.
-            let next = nextAllowed ?? daily.windowStart.addingTimeInterval(MedicineSchedule.day)
+            // With this dose counted `nextAfterSave` always exists; the
+            // window's end only guards a caller that passes none.
+            let next = nextAfterSave ?? daily.windowStart.addingTimeInterval(MedicineSchedule.day)
             return DoseConfirmation(
                 title: String(format: "medication.alert_max_title_fmt".l, doseCount(daily.count)),
                 message: message(String(format: "medication.alert_max_message_fmt".l, name, daily.max, at(next)),
@@ -49,11 +55,12 @@ extension MedicationFormat {
         }
         switch check.neighbour {
         case .earlier(let dose, let intervalEnds):
+            let next = nextAfterSave ?? intervalEnds
             return DoseConfirmation(
                 title: String(format: "medication.alert_before_title_fmt".l, interval),
                 message: message(String(format: "medication.alert_before_message_fmt".l,
-                                        name, at(dose), at(intervalEnds)),
-                                 next: intervalEnds))
+                                        name, at(dose), at(next)),
+                                 next: next))
         case .later(let dose):
             return DoseConfirmation(
                 title: String(format: "medication.alert_after_title_fmt".l, interval),
@@ -80,7 +87,7 @@ extension Medicine {
         let schedule = schedule(now: now, excluding: editing)
         return MedicationFormat.confirmation(name: name, check: schedule.check(time),
                                              intervalMinutes: intervalMinutes,
-                                             nextAllowed: schedule.nextAllowed, now: now)
+                                             nextAfterSave: schedule.nextAllowed(adding: time), now: now)
     }
 }
 

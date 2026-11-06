@@ -119,10 +119,22 @@ struct MedicationDisc: View {
 struct MedicationRowLink: View {
     let medicine: Medicine
     let now: Date
+    /// This device's reminder switch for the medication.
+    @AppStorage private var reminderOn: Bool
+    @State private var permission = NotificationPermission.shared
+
+    init(medicine: Medicine, now: Date) {
+        self.medicine = medicine
+        self.now = now
+        _reminderOn = AppStorage(wrappedValue: false, MedicationReminderPlan.switchKey(for: medicine.id))
+    }
 
     var body: some View {
         let lines = medicine.lines(now: now)
         let meta = medicine.isEnded ? lines.secondary : medicine.metaLine
+        // The bell shows what the detail's switch shows: off on an ended
+        // course and while iOS has notifications off.
+        let bell = reminderOn && !medicine.isEnded && permission.state != .denied
         NavigationLink {
             MedicationDetailView(medicine: medicine)
         } label: {
@@ -144,7 +156,15 @@ struct MedicationRowLink: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                MedicationChevron()
+                VStack(spacing: BBTheme.Spacing.xs) {
+                    if bell {
+                        Image(systemName: "bell.fill")
+                            .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .regular, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .accessibilityHidden(true)
+                    }
+                    MedicationChevron()
+                }
             }
             .padding(BBTheme.Spacing.md)
             .frame(minHeight: 76, alignment: .top)
@@ -156,7 +176,9 @@ struct MedicationRowLink: View {
         .buttonStyle(BBScaleButtonStyle())
         // A label on the link replaces the composed one and keeps the button
         // trait; `children: .ignore` on a button can drop its activation.
-        .accessibilityLabel(Text(MedicationFormat.spoken([medicine.name, lines.primary, meta])))
+        // The bell's words are in the label, so the glyph is never the only cue.
+        .accessibilityLabel(Text(MedicationFormat.spoken([medicine.name, lines.primary, meta,
+                                                          bell ? "medication.a11y_reminder_on".l : nil])))
         .accessibilityHint(Text("medication.a11y_open_one".l))
     }
 }

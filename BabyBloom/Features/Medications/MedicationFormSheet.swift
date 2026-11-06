@@ -17,11 +17,16 @@ struct MedicationFormSheet: View {
     @State private var input: MedicationFormInput
     @State private var confirmDelete = false
     @State private var selectedDetent: PresentationDetent = .large
+    /// This device's reminder switch, stored on Save with the rest.
+    @State private var reminderOn: Bool
 
     init(medicine: Medicine?, onDelete: (() -> Void)? = nil) {
         self.medicine = medicine
         self.onDelete = onDelete
         _input = State(initialValue: medicine.map(MedicationFormInput.init) ?? MedicationFormInput())
+        _reminderOn = State(initialValue: medicine.map {
+            UserDefaults.standard.bool(forKey: MedicationReminderPlan.switchKey(for: $0.id))
+        } ?? false)
     }
 
     private var title: String {
@@ -36,6 +41,11 @@ struct MedicationFormSheet: View {
                         BBSheetHeading(title: title)
                         mainGroup
                         detailsGroup
+                        if medicine?.isEnded != true {
+                            MedicationReminderCard(isOn: $reminderOn, fireDate: reminderFireDate,
+                                                   now: AppClock.now)
+                                .medicationField()
+                        }
                         if medicine != nil, onDelete != nil {
                             Button(role: .destructive) { confirmDelete = true } label: {
                                 Text("medication.delete".l)
@@ -175,6 +185,16 @@ struct MedicationFormSheet: View {
         dynamicTypeSize.isAccessibilitySize ? 2...4 : 1...3
     }
 
+    /// The pending time as it will be after Save: the form's interval and
+    /// maximum over the doses already logged. None for a new medication.
+    private var reminderFireDate: Date? {
+        guard let medicine, let minutes = input.intervalMinutes else { return nil }
+        let maximum: Int? = if case .value(let value) = input.maximum { value } else { nil }
+        let schedule = MedicineSchedule(intervalMinutes: minutes, maxDosesPer24h: maximum,
+                                        doseTimes: medicine.doseTimes(), now: AppClock.now)
+        return MedicationReminderPlan.fireDate(isOn: reminderOn, isEnded: medicine.isEnded, schedule: schedule)
+    }
+
     private var isOther: Bool {
         if case .other = input.interval { return true }
         return false
@@ -250,7 +270,11 @@ struct MedicationFormSheet: View {
             target.baby = babies.first
         }
         input.apply(to: target)
+        UserDefaults.standard.set(reminderOn, forKey: MedicationReminderPlan.switchKey(for: target.id))
         try? modelContext.save()
+        // A change to the switch alone saves no model, so the pass is asked
+        // for here rather than left to the save.
+        MedicationReminderSync.shared.reconcile()
         dismiss()
     }
 }

@@ -1,7 +1,8 @@
-# The calm confirmation. A dose inside the interval asks first, naming both
-# times; Cancel returns to the sheet with what was typed, Save keeps exactly
-# one dose. A dose on time saves with no alert. The Add Event form with a
-# medication chosen asks the same way.
+# The calm confirmation. A dose over the 24-hour maximum or inside the
+# interval asks first, naming the time that holds once it is saved; Cancel
+# returns to the sheet with what was typed, Save keeps exactly one dose. A
+# dose on time saves with no alert. The Add Event form with a medication
+# chosen asks the same way.
 #
 # Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
 # 6 h, at most 4 in 24 h, its latest dose at 8:00 AM and 4 doses in the last
@@ -36,7 +37,9 @@ tags: [regression]
     timeout: 10000
 - assertVisible: "Last 24.hours: 4.doses of the 4 you set"
 
-# Inside the interval: the alert names the last dose and the next time.
+# Paracetamol at 10:00 is inside the interval and the fifth dose in 24 hours.
+# Once saved, the maximum ends later (8:00 PM) than the interval (4:00 PM),
+# so the alert names the 24 hours and 8:00 PM, the time the screen then shows.
 - tapOn:
     id: "medication.log_dose"
 - extendedWaitUntil:
@@ -49,14 +52,14 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Less than 6.h since the last dose"
+    visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Last dose at 8:00.AM.Next dose not before 2:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
 - takeScreenshot: ${OUT}-guard-before
 
 # Cancel: back on the sheet with the note as typed, nothing saved.
 - tapOn: "Cancel"
-- assertNotVisible: "Less than 6.h since the last dose"
+- assertNotVisible: "With this dose, 5.doses in 24.hours"
 - assertVisible:
     id: "dose.save"
 - assertVisible: "after food"
@@ -65,9 +68,9 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Less than 6.h since the last dose"
+    visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Last dose at 8:00.AM.Next dose not before 2:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
 # While the alert is up it is all the tree holds, so its Save is the only one.
 - tapOn: "Save"
 - extendedWaitUntil:
@@ -95,6 +98,25 @@ tags: [regression]
     timeout: 10000
 - assertNotVisible: "Less than .*"
 - assertNotVisible: "With this dose.*"
+
+# A second Vitamin D dose at once is inside its 24 h interval: the interval
+# variant names the last dose and the next time after Save, tomorrow.
+- tapOn:
+    id: "medication.log_dose"
+- extendedWaitUntil:
+    visible:
+      id: "dose.save"
+    timeout: 10000
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "Less than 24.h since the last dose"
+    timeout: 10000
+- assertVisible: "(?s)Vitamin D.Last dose at 10:00.AM.If you save, next dose not before .*10:00.AM.*"
+- takeScreenshot: ${OUT}-guard-interval
+- tapOn: "Cancel"
+- assertVisible:
+    id: "dose.save"
 
 # The Add Event form (creating events is Premium) with Paracetamol chosen.
 - launchApp:
@@ -139,16 +161,16 @@ tags: [regression]
 - tapOn:
     id: "event.save"
 - extendedWaitUntil:
-    visible: "Less than 6.h since the last dose"
+    visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
-- assertVisible: "(?s)Paracetamol.Last dose at 8:00.AM.Next dose not before 2:00.PM"
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 8:00.PM"
 - tapOn: "Cancel"
 - assertVisible:
     id: "event.save"
 - tapOn:
     id: "event.save"
 - extendedWaitUntil:
-    visible: "Less than 6.h since the last dose"
+    visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
 - tapOn: "Save"
 # Back on Events, Paracetamol's line counts from the new dose.

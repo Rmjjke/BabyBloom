@@ -132,7 +132,7 @@ tags: [regression]
 - tapOn:
     id: "medication.course"
 - extendedWaitUntil:
-    visible: "Ended .* · 1.dose"
+    visible: "Ended .*.· 1.dose"
     timeout: 10000
 - assertNotVisible: "Next dose not before.*"
 - assertNotVisible:

@@ -241,14 +241,38 @@ final class MedicineScheduleTests: XCTestCase {
         XCTAssertTrue(result.showsDaily)
     }
 
-    func testOnATieBetweenTheTwoLimitsTheIntervalIsNamed() {
-        // Every 6 h, at most 4: both limits end at 02:00 tomorrow.
+    func testOnATieBetweenTheTwoLimitsOnceSavedTheIntervalIsNamed() {
+        // Every 16 h, at most 2. With the 08:00 dose both limits end at
+        // midnight: the interval from 08:00, the maximum from 00:00.
+        let s = schedule(hours: 16, max: 2, [d(9, 20), d(10, 0)], now: d(10, 9))
+        let result = s.check(d(10, 8))
+        XCTAssertEqual(result.neighbour, .earlier(dose: d(10, 0), intervalEnds: d(10, 16)))
+        XCTAssertEqual(result.daily?.count, 3)
+        XCTAssertEqual(s.nextAllowed(adding: d(10, 8)), d(11, 0))
+        XCTAssertFalse(result.showsDaily)
+    }
+
+    /// The limits are compared as they end once this dose is saved, the time
+    /// the confirmation states. Before it both end at 02:00 tomorrow; with
+    /// the 01:00 dose the interval ends at 07:00 and the maximum at 08:00.
+    func testATieBeforeTheSaveNamesTheMaximumThatEndsLaterAfterIt() {
         let s = schedule(hours: 6, max: 4, [d(10, 2), d(10, 8), d(10, 14), d(10, 20)], now: d(11, 1))
         XCTAssertEqual(s.nextAllowed, d(11, 2))
         let result = s.check(d(11, 1))
         XCTAssertEqual(result.neighbour, .earlier(dose: d(10, 20), intervalEnds: d(11, 2)))
         XCTAssertNotNil(result.daily)
-        XCTAssertFalse(result.showsDaily)
+        XCTAssertEqual(s.nextAllowed(adding: d(11, 1)), d(11, 8))
+        XCTAssertTrue(result.showsDaily)
+    }
+
+    /// A dose inside the interval that brings the count to the maximum, not
+    /// over it, breaks the interval only; the maximum still sets the time.
+    func testADoseThatReachesTheMaximumIsAnIntervalCheckWithTheMaximumsTime() {
+        let s = schedule(hours: 6, max: 3, [d(10, 0), d(10, 7)], now: d(10, 9))
+        let result = s.check(d(10, 8))
+        XCTAssertEqual(result.neighbour, .earlier(dose: d(10, 7), intervalEnds: d(10, 13)))
+        XCTAssertNil(result.daily)
+        XCTAssertEqual(s.nextAllowed(adding: d(10, 8)), d(11, 0))
     }
 
     func testADosePutBeforeALoggedOneNamesTheIntervalEvenOverTheMaximum() {

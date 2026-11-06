@@ -50,7 +50,7 @@ final class MedicationConfirmationTests: XCTestCase {
         let schedule = MedicineSchedule(intervalMinutes: interval, maxDosesPer24h: max,
                                         doseTimes: doses, now: now)
         return F.confirmation(name: "Paracetamol", check: schedule.check(time), intervalMinutes: interval,
-                              nextAllowed: schedule.nextAllowed, now: now, calendar: cal)
+                              nextAfterSave: schedule.nextAllowed(adding: time), now: now, calendar: cal)
     }
 
     private func schedule(interval: Int, max: Int?, doses: [Date], now: Date) -> MedicineSchedule {
@@ -63,14 +63,27 @@ final class MedicationConfirmationTests: XCTestCase {
 
     // MARK: Which variant
 
-    func testATieBetweenTheLimitsNamesTheInterval() {
+    /// The shape of the app's seed: before this dose both limits end at
+    /// 14:00. With it, the interval ends at 16:00 and the maximum at 20:00,
+    /// so the alert names the 24 hours and the time the screen then shows.
+    func testTheSeedsFifthDoseNamesTheTwentyFourHoursAndTheTimeAfterTheSave() {
         let now = d(10, 10)
-        // The shape of the app's seed: both limits end at 14:00.
         let doses = [d(10, 8), d(10, 2), d(9, 20), d(9, 14)]
         let result = confirm(interval: 360, max: 4, doses: doses, now: now, at: now)
-        XCTAssertEqual(result?.title, "Less than 6\u{00A0}h since the last dose")
+        XCTAssertEqual(result?.title, "With this dose, 5\u{00A0}doses in 24\u{00A0}hours")
         XCTAssertEqual(result?.message,
-                       "Paracetamol\nLast dose at \(when(d(10, 8), now: now))\nNext dose not before \(when(d(10, 14), now: now))")
+                       "Paracetamol\nYour maximum in 24\u{00A0}hours: 4\nIf you save, next dose not before \(when(d(10, 20), now: now))")
+    }
+
+    /// Both limits end at midnight once the dose is saved: the interval
+    /// variant, with that time.
+    func testATieOnceSavedNamesTheInterval() {
+        let now = d(10, 9)
+        let result = confirm(interval: 960, max: 2, doses: [d(9, 20), d(10, 0)], now: now, at: d(10, 8))
+        XCTAssertEqual(result?.title,
+                       String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 960)))
+        XCTAssertEqual(lines(result?.message).last,
+                       "If you save, next dose not before \(when(d(11, 0), now: now))")
     }
 
     func testAForwardDoseKeepsItsNextTime() {
@@ -78,32 +91,33 @@ final class MedicationConfirmationTests: XCTestCase {
         let doses = [d(10, 8), d(10, 2), d(9, 20), d(9, 14)]
         let result = confirm(interval: 360, max: 4, doses: doses, now: now, at: now)
         XCTAssertEqual(lines(result?.message).count, 3)
-        XCTAssertTrue(lines(result?.message).last?.hasPrefix("Next dose") == true)
+        XCTAssertTrue(lines(result?.message).last?.hasPrefix("If you save") == true)
     }
 
     func testAMaximumThatEndsLaterNamesTheTwentyFourHours() {
         let now = d(10, 10)
         let doses = [d(10, 0), d(10, 8)]
         let result = confirm(interval: 360, max: 2, doses: doses, now: now, at: now)
-        let next = schedule(interval: 360, max: 2, doses: doses, now: now).nextAllowed
+        let next = schedule(interval: 360, max: 2, doses: doses, now: now).nextAllowed(adding: now)
         XCTAssertEqual(result?.title, String(format: "medication.alert_max_title_fmt".l, F.doseCount(3)))
         XCTAssertEqual(result?.message,
                        String(format: "medication.alert_max_message_fmt".l, "Paracetamol", 2,
-                              when(d(11, 0), now: now)))
-        // The time in the alert is the one the medication's screen shows.
-        XCTAssertEqual(next.map { when($0, now: now) }, when(d(11, 0), now: now))
+                              when(d(11, 8), now: now)))
+        // The time in the alert is the one the medication's screen shows
+        // once this dose is saved.
+        XCTAssertEqual(next, d(11, 8))
     }
 
     func testTheMaximumAloneNamesTheTwentyFourHours() {
         let now = d(10, 12, 30)
         let doses = [d(10, 0), d(10, 4), d(10, 8)]
         let result = confirm(interval: 240, max: 3, doses: doses, now: now, at: d(10, 12))
-        let next = schedule(interval: 240, max: 3, doses: doses, now: now).nextAllowed
+        let next = schedule(interval: 240, max: 3, doses: doses, now: now).nextAllowed(adding: d(10, 12))
         XCTAssertEqual(result?.title, String(format: "medication.alert_max_title_fmt".l, F.doseCount(4)))
         XCTAssertEqual(result?.message,
                        String(format: "medication.alert_max_message_fmt".l, "Paracetamol", 3,
-                              when(d(11, 0), now: now)))
-        XCTAssertEqual(next.map { when($0, now: now) }, when(d(11, 0), now: now))
+                              when(d(11, 4), now: now)))
+        XCTAssertEqual(next, d(11, 4))
     }
 
     func testADosePutBeforeALoggedOneNamesTheLoggedDose() {
@@ -122,17 +136,20 @@ final class MedicationConfirmationTests: XCTestCase {
                        String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 360)))
         XCTAssertEqual(result?.message,
                        String(format: "medication.alert_before_message_fmt".l, "Paracetamol",
-                              when(d(10, 8), now: now), when(d(10, 14), now: now)))
+                              when(d(10, 8), now: now), when(d(10, 16), now: now)))
     }
 
     // MARK: Back-dated doses and the next line
 
-    func testABackDatedDoseBetweenTwoNamesTheEarlierDoseWithoutANextTime() {
+    /// The later dose still sets the screen's time after the save, so that is
+    /// the time named, though the earlier dose's interval has passed.
+    func testABackDatedDoseBetweenTwoNamesTheEarlierDoseAndTheScreensTime() {
         let now = d(10, 17)
         let result = confirm(interval: 360, max: nil, doses: [d(10, 8), d(10, 16)], now: now, at: d(10, 10))
         XCTAssertEqual(result?.title,
                        String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 360)))
-        XCTAssertEqual(result?.message, "Paracetamol\nLast dose at \(when(d(10, 8), now: now))")
+        XCTAssertEqual(result?.message,
+                       "Paracetamol\nLast dose at \(when(d(10, 8), now: now))\nIf you save, next dose not before \(when(d(10, 22), now: now))")
     }
 
     func testADoseLoggedAfterTheFactDropsAPassedNextTime() {
@@ -140,19 +157,78 @@ final class MedicationConfirmationTests: XCTestCase {
         let result = confirm(interval: 360, max: nil, doses: [d(10, 8)], now: now, at: d(10, 10))
         XCTAssertNotNil(result)
         XCTAssertEqual(lines(result?.message).count, 2)
-        XCTAssertFalse(lines(result?.message).contains { $0.hasPrefix("Next dose") })
+        XCTAssertFalse(lines(result?.message).contains { $0.hasPrefix("If you save") })
     }
 
     func testABackDatedDoseOverTheMaximumNamesTheScreensTime() {
         let now = d(10, 21)
         let doses = [d(10, 0), d(10, 6), d(10, 20)]
         let result = confirm(interval: 360, max: 3, doses: doses, now: now, at: d(10, 12, 30))
-        let next = schedule(interval: 360, max: 3, doses: doses, now: now).nextAllowed
-        XCTAssertEqual(next, d(11, 2))
+        let before = schedule(interval: 360, max: 3, doses: doses, now: now)
+        XCTAssertEqual(before.nextAllowed, d(11, 2))
+        // Counted, the 12:30 dose moves the 24 hours on to 06:00.
+        XCTAssertEqual(before.nextAllowed(adding: d(10, 12, 30)), d(11, 6))
         XCTAssertEqual(result?.title, String(format: "medication.alert_max_title_fmt".l, F.doseCount(4)))
         XCTAssertEqual(result?.message,
                        String(format: "medication.alert_max_message_fmt".l, "Paracetamol", 3,
-                              when(d(11, 2), now: now)))
+                              when(d(11, 6), now: now)))
+    }
+
+    /// The three cases the rule was set on, in every language: 08:00 then
+    /// 10:00 every 6 h names 16:00; 00:00 and 08:00 with at most 2, then
+    /// 10:00, names 08:00 tomorrow; 00:00 and 07:00 with at most 3, then
+    /// 08:00, reaches the maximum without passing it, so the interval variant
+    /// names midnight, the time the maximum sets.
+    func testTheAlertNamesTheTimeAfterTheSaveInEveryLanguage() {
+        let now = d(10, 10)
+        for code in ["en", "ru", "es"] {
+            LocalizationManager.shared.setLanguage(code)
+            let interval = confirm(interval: 360, max: nil, doses: [d(10, 8)], now: now, at: now)
+            XCTAssertEqual(lines(interval?.message).last,
+                           lines(String(format: "medication.alert_before_message_fmt".l, "Paracetamol",
+                                        when(d(10, 8), now: now), when(d(10, 16), now: now))).last, code)
+            // The clock follows the app's language: 12-hour in en and es.
+            XCTAssertTrue(lines(interval?.message).last?.contains(code == "ru" ? "16:00" : "4:00") == true,
+                          "\(code): \(interval?.message ?? "nil")")
+
+            let daily = confirm(interval: 360, max: 2, doses: [d(10, 0), d(10, 8)], now: now, at: now)
+            XCTAssertEqual(lines(daily?.message).last,
+                           lines(String(format: "medication.alert_max_message_fmt".l, "Paracetamol", 2,
+                                        when(d(11, 8), now: now))).last, code)
+            XCTAssertTrue(lines(daily?.message).last?.contains("8:00") == true,
+                          "\(code): \(daily?.message ?? "nil")")
+            XCTAssertTrue(lines(daily?.message).last?.contains(when(d(11, 8), now: now)) == true, code)
+
+            let reached = confirm(interval: 360, max: 3, doses: [d(10, 0), d(10, 7)], now: d(10, 9), at: d(10, 8))
+            XCTAssertEqual(reached?.title,
+                           String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 360)), code)
+            XCTAssertEqual(reached?.message,
+                           String(format: "medication.alert_before_message_fmt".l, "Paracetamol",
+                                  when(d(10, 7), now: d(10, 9)), when(d(11, 0), now: d(10, 9))), code)
+        }
+    }
+
+    /// The time after the save is never earlier than the one before it, so
+    /// the alert can only err towards waiting.
+    func testTheTimeAfterTheSaveIsNeverEarlierThanBefore() {
+        let now = d(10, 23)
+        let cases: [(interval: Int, max: Int?, doses: [Date], at: Date)] = [
+            (360, nil, [d(10, 8)], d(10, 10)),
+            (360, nil, [d(10, 8), d(10, 16)], d(10, 10)),
+            (360, 4, [d(10, 8), d(10, 2), d(9, 20), d(9, 14)], d(10, 10)),
+            (240, 3, [d(10, 0), d(10, 4), d(10, 8)], d(10, 12)),
+            (360, 3, [d(10, 0), d(10, 6), d(10, 20)], d(10, 12, 30)),
+            (480, 2, [d(10, 22)], d(10, 21)),
+        ]
+        for item in cases {
+            let before = schedule(interval: item.interval, max: item.max, doses: item.doses, now: now)
+            let after = before.nextAllowed(adding: item.at)
+            XCTAssertNotNil(after)
+            if let pre = before.nextAllowed, let after { XCTAssertGreaterThanOrEqual(after, pre) }
+            if case .earlier(_, let intervalEnds) = before.check(item.at).neighbour, let after {
+                XCTAssertGreaterThanOrEqual(after, intervalEnds)
+            }
+        }
     }
 
     /// The drop rule removes the last line, so the time must be the last
@@ -255,7 +331,7 @@ final class MedicationConfirmationTests: XCTestCase {
         XCTAssertEqual(result?.message,
                        String(format: "medication.alert_before_message_fmt".l, "Paracetamol",
                               F.when(d(10, 8), now: now, calendar: current),
-                              F.when(d(10, 14), now: now, calendar: current)))
+                              F.when(d(10, 15, 30), now: now, calendar: current)))
     }
 
     func testANewDoseTwoHoursAfterALinkedDoseAsks() throws {
@@ -265,5 +341,18 @@ final class MedicationConfirmationTests: XCTestCase {
         XCTAssertEqual(result.title,
                        String(format: "medication.alert_before_title_fmt".l, F.duration(minutes: 360)))
         XCTAssertTrue(result.message.hasPrefix("Paracetamol\n"), result.message)
+    }
+
+    func testTheAlertsTimeIsTheOneTheScreenShowsAfterTheSave() throws {
+        let context = try makeContext()
+        let ours = medicine(context, doses: [d(10, 8)])
+        let now = d(10, 10)
+        let result = try XCTUnwrap(ours.confirmation(for: now, now: now))
+        context.insert(CustomEvent.dose(of: ours, at: now))
+        guard case .waiting(_, let until) = ours.status(now: now) else {
+            return XCTFail("expected a waiting status, got \(ours.status(now: now))")
+        }
+        XCTAssertEqual(until, d(10, 16))
+        XCTAssertTrue(result.message.hasSuffix(F.when(until, now: now, calendar: .current)), result.message)
     }
 }
