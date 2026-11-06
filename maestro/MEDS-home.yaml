@@ -4,8 +4,14 @@
 # moves the pending reminder.
 #
 # Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
-# 6 h, at most 4 in 24 h, latest dose 8:00 AM; Vitamin D every 24 h, latest
+# 6 h, at most 4 in 24 h, latest dose 08:00; Vitamin D every 24 h, latest
 # 26 h ago, so only Paracetamol is on Home at first.
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # The reminder switch is tapped by point (84%,58%, iPhone 17, default size,
 # English): a tap on a Toggle's label does not flip it.
@@ -21,6 +27,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
       "-BBLogPendingNotifications": "true"
@@ -28,7 +35,7 @@ tags: [regression]
     visible:
       id: "home.medications"
     timeout: 20000
-- assertVisible: "(?s).*Paracetamol.*Next dose not before 2:00.PM.*"
+- assertVisible: "(?s).*Paracetamol.*Next dose not before 14:00.*"
 - assertNotVisible: ".*Vitamin D.*"
 - takeScreenshot: ${OUT}-one
 
@@ -48,7 +55,7 @@ tags: [regression]
     text: "Allow"
     optional: true
 - extendedWaitUntil:
-    visible: "Notification: 2:00.PM"
+    visible: "Notification: 14:00"
     timeout: 10000
 - tapOn:
     id: "medication.log_dose"
@@ -65,7 +72,7 @@ tags: [regression]
 # While the alert is up it is all the tree holds, so its Save is the only one.
 - tapOn: "Save"
 - extendedWaitUntil:
-    visible: "Notification: 8:00.PM"
+    visible: "Notification: 20:00"
     timeout: 10000
 - takeScreenshot: ${OUT}-moved
 
@@ -86,7 +93,7 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Last dose at 10:00.AM.· just now"
+    visible: "Last dose at 10:00.· just now"
     timeout: 10000
 - tapOn:
     text: "Home"
@@ -100,7 +107,7 @@ tags: [regression]
     visible:
       id: "home.medications"
     timeout: 10000
-- assertVisible: "(?s).*Paracetamol.*Next dose not before 8:00.PM.*Vitamin D.*Next dose not before 10:00.AM tomorrow.*"
+- assertVisible: "(?s).*Paracetamol.*Next dose not before 20:00.*Vitamin D.*Next dose not before 10:00 tomorrow.*"
 - takeScreenshot: ${OUT}-two
 - tapOn:
     id: "home.medications"
@@ -115,6 +122,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBNow": "2026-11-04T12:00:00"
 - extendedWaitUntil:
     visible:

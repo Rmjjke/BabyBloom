@@ -102,11 +102,24 @@ struct ExportGenerator {
     /// Human-readable PDF text: follows the language the user picked in the
     /// app, NOT the device. Same rule BBCharts already applies to its axis
     /// labels — a Spanish user on a Russian phone must not get Russian dates
-    /// inside an otherwise Spanish document.
+    /// inside an otherwise Spanish document. Its locale carries the device's
+    /// 12/24-hour cycle, as on screen; clock times go through
+    /// `documentTimeFormatter`.
     static func documentFormatter(_ configure: (DateFormatter) -> Void) -> DateFormatter {
         let f = DateFormatter()
-        f.locale = LocalizationManager.shared.language.locale
+        f.locale = LocalizationManager.shared.language.environmentLocale
         configure(f)
+        return f
+    }
+
+    /// Clock times in the PDF, on the same skeleton as `appTimeOfDay`, so the
+    /// export prints what the screen shows. Not `timeStyle = .short`: a style
+    /// keeps a 24-hour language 24-hour on a 12-hour phone (Russian printed
+    /// 14:30 where the screen read 2:30 PM).
+    static func documentTimeFormatter(in locale: Locale) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = locale
+        f.setLocalizedDateFormatFromTemplate("jmm")
         return f
     }
 
@@ -216,11 +229,12 @@ struct ExportGenerator {
         growths: [GrowthEntry],
         events: [CustomEvent],
         categories: Set<ExportCategory>,
-        range: ExportDateRange
+        range: ExportDateRange,
+        hourCycle: Locale.HourCycle? = nil
     ) -> String {
         document(baby: baby, feedings: feedings, sleeps: sleeps,
                              diapers: diapers, growths: growths, events: events,
-                             categories: categories, range: range).html
+                             categories: categories, range: range, hourCycle: hourCycle).html
     }
 
     private static func document(
@@ -231,10 +245,13 @@ struct ExportGenerator {
         growths: [GrowthEntry],
         events: [CustomEvent],
         categories: Set<ExportCategory>,
-        range: ExportDateRange
+        range: ExportDateRange,
+        hourCycle: Locale.HourCycle? = nil
     ) -> PagedPDF.Document {
         let dateFmt = documentFormatter { $0.dateStyle = .medium; $0.timeStyle = .none }
-        let timeFmt = documentFormatter { $0.timeStyle = .short; $0.dateStyle = .none }
+        // nil is the device's cycle; tests pass one to read both clocks.
+        let timeFmt = documentTimeFormatter(in: LocalizationManager.shared.language
+            .environmentLocale(hourCycle: hourCycle ?? Locale.current.hourCycle))
 
         // A name of emoji alone prints nothing, and the title still needs one.
         let printedName = PagedPDF.withoutEmoji(baby?.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)

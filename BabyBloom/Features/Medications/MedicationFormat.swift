@@ -44,7 +44,7 @@ enum MedicationFormat {
     }
 
     /// A clock time, with "yesterday", "tomorrow" or the date when it is not
-    /// on `now`'s day. The clock follows the app's language.
+    /// on `now`'s day, on the device's 12/24-hour clock in the app's language.
     static func when(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
         let time = date.appTimeOfDay
         switch dayOffset(of: date, from: now, calendar: calendar) {

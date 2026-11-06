@@ -34,17 +34,20 @@ final class DateAppLocaleTests: XCTestCase {
         XCTAssertNotEqual(en, ru, "en and ru rendered identically — the locale never took")
     }
 
-    /// English uses a 12-hour clock, Russian and Spanish a 24-hour one, so the
-    /// two must not come out the same string.
-    func testTimeOfDayFollowsTheAppLanguage() {
-        LocalizationManager.shared.setLanguage("en")
-        let en = reference.appTimeOfDay
-        LocalizationManager.shared.setLanguage("ru")
-        let ru = reference.appTimeOfDay
+    /// The clock is the device's and the words are the language's: on a
+    /// 12-hour phone English says PM where Spanish says p. m.; on a 24-hour
+    /// phone every language reads 14:30. Pinned to each cycle so the test does
+    /// not depend on the simulator's own setting.
+    func testTimeOfDayTakesTheLanguagesWordsOnTheDevicesClock() {
+        let en = reference.appTimeOfDay(in: SupportedLanguage.en.environmentLocale(hourCycle: .oneToTwelve))
+        let es = reference.appTimeOfDay(in: SupportedLanguage.es.environmentLocale(hourCycle: .oneToTwelve))
+        XCTAssertTrue(en.contains("2:30") && en.contains("PM"), "en on a 12-hour clock: \(en)")
+        XCTAssertTrue(es.contains("2:30") && es.contains("p."), "es on a 12-hour clock: \(es)")
 
-        XCTAssertNotEqual(en, ru, "en and ru times rendered identically: \(en)")
-        XCTAssertTrue(ru.contains("14"), "ru should use a 24-hour clock, got \(ru)")
-        XCTAssertTrue(en.contains("2"), "en should use a 12-hour clock, got \(en)")
+        for language in SupportedLanguage.allCases {
+            let text = reference.appTimeOfDay(in: language.environmentLocale(hourCycle: .zeroToTwentyThree))
+            XCTAssertTrue(text.contains("14:30"), "\(language) on a 24-hour clock: \(text)")
+        }
     }
 
     /// Switching the language must change what the SAME date renders as —

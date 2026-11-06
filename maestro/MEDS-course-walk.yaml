@@ -3,14 +3,19 @@
 # end the course and see the line go while the dose stays.
 #
 # The clock is pinned (-BBNow 10:00), so every time below is exact: a dose at
-# 10:00 with a 6 h interval reads "not before 4:00 PM"; moved to 08:00 it
-# reads "not before 2:00 PM". The app's clock is English 12-hour whatever the
-# device; the dose sheet's time button is the system picker, in the device's
-# format ("10:00" on a 24-hour region, "10:00 AM" otherwise).
+# 10:00 with a 6 h interval reads "not before 16:00"; moved to 08:00 it
+# reads "not before 14:00". The dose sheet's time button is the system
+# picker and shows the same clock ("10:00").
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # The hour wheel is driven by a point: the selected row sits mid-wheel and a
 # tap two rows above it selects the hour two earlier. Measured on iPhone 17
-# with a 24-hour region (hour and minute wheels only); a 12-hour region adds an
+# on the 24-hour clock (hour and minute wheels only); a 12-hour clock adds an
 # AM/PM wheel and moves the hour wheel left.
 #
 # Launch-argument mechanics (dash in the key, stopApp beside clearState) are
@@ -25,6 +30,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "healthy"
       "-BBNow": "2026-11-03T10:00:00"
 - extendedWaitUntil:
@@ -83,15 +89,15 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Next dose not before 4:00.PM"
+    visible: "Next dose not before 16:00"
     timeout: 10000
-- assertVisible: "Last dose at 10:00.AM.· just now"
+- assertVisible: "Last dose at 10:00.· just now"
 
 # The list follows at once, with no wait for the minute tick.
 - tapOn:
     id: "BackButton"
 - extendedWaitUntil:
-    visible: "Next dose not before 4:00.PM"
+    visible: "Next dose not before 16:00"
     timeout: 5000
 - assertNotVisible: "No doses logged yet"
 - tapOn: "Paracetamol"
@@ -107,7 +113,7 @@ tags: [regression]
     visible:
       id: "dose.time"
     timeout: 10000
-- tapOn: "10:00(.AM)?"
+- tapOn: "10:00"
 - extendedWaitUntil:
     visible: "10 o’clock"
     timeout: 5000
@@ -121,9 +127,9 @@ tags: [regression]
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:
-    visible: "Next dose not before 2:00.PM"
+    visible: "Next dose not before 14:00"
     timeout: 10000
-- assertVisible: "Last dose at 8:00.AM.· 2.h ago"
+- assertVisible: "Last dose at 08:00.· 2.h ago"
 
 # End the course: no status, no Log Dose, the dose still listed.
 - scrollUntilVisible:

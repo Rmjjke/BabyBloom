@@ -47,12 +47,16 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// For SwiftUI's environment (date pickers): the language's month names and
-    /// formats, but the user's own 12/24-hour choice, which a fixed
-    /// identifier would replace with the pinned region's.
-    var environmentLocale: Locale {
+    /// For SwiftUI's environment (date pickers) and every clock time the app
+    /// formats: the language's month names and formats, but the user's own
+    /// 12/24-hour choice, which a fixed identifier would replace with the
+    /// pinned region's. One locale for both, so a sheet's picker and its
+    /// status line never show two clocks.
+    var environmentLocale: Locale { environmentLocale(hourCycle: Locale.current.hourCycle) }
+
+    func environmentLocale(hourCycle: Locale.HourCycle) -> Locale {
         var components = Locale.Components(locale: locale)
-        components.hourCycle = Locale.current.hourCycle
+        components.hourCycle = hourCycle
         return Locale(components: components)
     }
 

@@ -3,8 +3,14 @@
 # leaves the screen it was on with no stale row, and the app keeps running.
 #
 # Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
-# 6 h, its latest doses at 8:00 AM and 2:00 AM today and 8:00 PM yesterday.
+# 6 h, its latest doses at 08:00 and 02:00 today and 20:00 yesterday.
 # Deleting the first two moves "Last dose at" back one dose each time.
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
 #
 # Launch-argument mechanics are explained in SMOKE-main-tabs.yaml.
 appId: com.nenita.app
@@ -17,6 +23,7 @@ tags: [regression]
       "-BBSkipSplash": "true"
       "-hasCompletedOnboarding": "true"
       "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
       "-BBSeedScenario": "medsTwoCourses"
       "-BBNow": "2026-11-03T10:00:00"
 - extendedWaitUntil:
@@ -31,10 +38,10 @@ tags: [regression]
     id: "more.medications"
 - tapOn: "Paracetamol"
 - extendedWaitUntil:
-    visible: "Last dose at 8:00.AM.· 2.h ago"
+    visible: "Last dose at 08:00.· 2.h ago"
     timeout: 10000
 
-# Delete Dose in the sheet: the 8:00 AM dose goes, 2:00 AM is the last.
+# Delete Dose in the sheet: the 08:00 dose goes, 02:00 is the last.
 - tapOn:
     id: "medication.dose.1"
 - extendedWaitUntil:
@@ -47,19 +54,19 @@ tags: [regression]
 - tapOn:
     id: "dose.delete"
 - extendedWaitUntil:
-    visible: "Last dose at 2:00.AM.· the 6.h interval has passed"
+    visible: "Last dose at 02:00.· the 6.h interval has passed"
     timeout: 10000
 - assertNotVisible:
     id: "dose.delete"
 
-# A swipe on the list: the 2:00 AM dose goes, yesterday's 8:00 PM is the last.
+# A swipe on the list: the 02:00 dose goes, yesterday's 20:00 is the last.
 - swipe:
     from:
       id: "medication.dose.1"
     direction: LEFT
 - tapOn: "Delete"
 - extendedWaitUntil:
-    visible: "Last dose at 8:00.PM yesterday.· the 6.h interval has passed"
+    visible: "Last dose at 20:00 yesterday.· the 6.h interval has passed"
     timeout: 10000
 
 # The row that is now first opens its own dose, not a deleted one.

@@ -211,8 +211,12 @@ final class WidgetRenderDump: XCTestCase {
 
         for (language, identifier) in [("en", "en_US"), ("ru", "ru_RU"), ("es", "es_419")] {
             LocalizationManager.shared.setLanguage(language)
-            XCTAssertEqual(WidgetCopy.formattingLocale.identifier, identifier,
-                           "\(language) formats system output through the wrong locale")
+            // The language's region with the device's hour cycle on top.
+            let pinned = WidgetCopy.formattingLocale
+            XCTAssertEqual(Locale.Components(locale: pinned).languageComponents.languageCode?.identifier,
+                           String(identifier.prefix(2)), "\(language) formats system output through the wrong locale")
+            XCTAssertEqual(pinned.region?.identifier, String(identifier.dropFirst(3)), "\(language)")
+            XCTAssertEqual(pinned.hourCycle, Locale.current.hourCycle, "\(language): not the device's clock")
 
             let views: [(String, AnyView, CGSize)] = [
                 ("small", AnyView(BabyBloomSmallWidgetView(entry: entry)), Self.smallSize),
