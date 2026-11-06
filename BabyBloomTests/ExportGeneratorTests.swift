@@ -128,6 +128,104 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertEqual(ExportGenerator.fileNamePart("  Mia \n"), "Mia")
         XCTAssertEqual(ExportGenerator.fileNamePart("   "), "baby.default_name".l)
         XCTAssertEqual(ExportGenerator.fileNamePart(String(repeating: "Я", count: 200)).count, 60)
+        // Cut at 60 inside a gap, the name must not end in a space before « – ».
+        XCTAssertEqual(ExportGenerator.fileNamePart(String(repeating: "a", count: 59) + " b"),
+                       String(repeating: "a", count: 59))
+        // An emoji family and a flag keep their joiners and tags; a bidi override goes.
+        XCTAssertEqual(ExportGenerator.fileNamePart("Mia 👨‍👩‍👧‍👦"), "Mia 👨‍👩‍👧‍👦")
+        XCTAssertEqual(ExportGenerator.fileNamePart("Mia 🏴󠁧󠁢󠁳󠁣󠁴󠁿"), "Mia 🏴󠁧󠁢󠁳󠁣󠁴󠁿")
+        XCTAssertEqual(ExportGenerator.fileNamePart("Mia\u{202E}fdp"), "Miafdp")
+    }
+
+    // MARK: - File names
+
+    /// Noon, so the day in the name is the same whatever zone the suite runs in.
+    private var fileDay: Date {
+        DateComponents(calendar: calendar, year: 2026, month: 11, day: 1, hour: 12).date!
+    }
+
+    func testTheExportPDFIsNamedAllEntries() {
+        defer { LocalizationManager.shared.setLanguage(.en) }
+        let expected: [(SupportedLanguage, String)] = [
+            (.en, "All entries – Mia Rose – 2026-11-01.pdf"),
+            (.ru, "Все записи – Mia Rose – 2026-11-01.pdf"),
+            (.es, "Todos los registros – Mia Rose – 2026-11-01.pdf"),
+        ]
+        for (language, name) in expected {
+            LocalizationManager.shared.setLanguage(language)
+            XCTAssertEqual(ExportGenerator.pdfFileName(babyName: "Mia Rose", date: fileDay), name)
+        }
+        LocalizationManager.shared.setLanguage(.en)
+        XCTAssertEqual(ExportGenerator.pdfFileName(babyName: "Mia/Ann: Jr", date: fileDay),
+                       "All entries – MiaAnn Jr – 2026-11-01.pdf")
+        XCTAssertEqual(ExportGenerator.pdfFileName(babyName: "  ", date: fileDay),
+                       "All entries – Baby – 2026-11-01.pdf")
+    }
+
+    func testCSVFileNamesKeepTheirShape() {
+        XCTAssertEqual(ExportGenerator.csvFileName(babyName: "Mia Rose", date: fileDay, file: "feeding.csv"),
+                       "Mia_Rose_2026-11-01_feeding.csv")
+        XCTAssertEqual(ExportGenerator.csvFileName(babyName: "", date: fileDay, file: "sleep.csv"),
+                       "Baby_2026-11-01_sleep.csv")
+    }
+
+    /// A long name gives way inside the name only: the day and the extension
+    /// stay, the whole fits the 255 bytes a file name may take, and the file
+    /// is written. 60 family emoji are 1,500 bytes.
+    func testEveryFileNameKeepsItsDateWithinTheByteLimit() {
+        let family = "👨‍👩‍👧‍👦"
+        let whole = [String(repeating: "Abcdefghij", count: 6), String(repeating: "Александра", count: 6)]
+        let emoji = [String(repeating: family, count: 60), String(repeating: family, count: 20)]
+        let makers: [(kind: String, end: String, make: (String) -> String)] = [
+            ("export", ".pdf", { ExportGenerator.pdfFileName(babyName: $0, date: self.fileDay) }),
+            ("report", ".pdf", { DoctorReportPDF.fileName(babyName: $0, date: self.fileDay) }),
+            ("csv", "_feeding.csv", { ExportGenerator.csvFileName(babyName: $0, date: self.fileDay, file: "feeding.csv") }),
+        ]
+        defer {
+            ExportGenerator.cleanupExports()
+            LocalizationManager.shared.setLanguage(.en)
+        }
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            for name in whole + emoji {
+                for maker in makers {
+                    let file = maker.make(name)
+                    let label = "\(language) \(maker.kind) \(name.utf8.count) bytes: \(file)"
+                    XCTAssertLessThanOrEqual(file.utf8.count, 255, label)
+                    XCTAssertTrue(file.contains("2026-11-01"), label)
+                    XCTAssertTrue(file.hasSuffix(maker.end), label)
+                    if whole.contains(name) {
+                        XCTAssertTrue(file.contains(maker.kind == "csv" ? ExportGenerator.fileSlug(name) : name), label)
+                    } else {
+                        // Whole emoji only: no half of a family left behind.
+                        XCTAssertTrue(file.contains(family), label)
+                        let rest = file.replacingOccurrences(of: family, with: "").unicodeScalars
+                        XCTAssertFalse(rest.contains { $0.value == 0x200D || $0.properties.isEmojiPresentation }, label)
+                    }
+                    XCTAssertNotNil(ExportGenerator.writeTempFile(name: file, data: Data("x".utf8)), label)
+                }
+            }
+        }
+    }
+
+    /// The tile's label says «a day»; a «/day» after the figure said it twice.
+    func testTheFeedsADayTileIsTheBareFigure() {
+        defer { LocalizationManager.shared.setLanguage(.en) }
+        let now = Date()
+        let feeds = [noon(2, from: now), noon(2, from: now), noon(1, from: now), noon(1, from: now)].map { start in
+            let feed = FeedingEntry(startTime: start, type: .formula, side: nil, volumeML: 90)
+            feed.endTime = start.addingTimeInterval(15 * 60)
+            return feed
+        }
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = ExportGenerator.buildHTML(
+                baby: nil, feedings: feeds, sleeps: [], diapers: [], growths: [], events: [],
+                categories: [.feeding], range: .all)
+            XCTAssertTrue(page.contains("<span class=\"val\">\(WeeklyFormat.perDay(2))</span><span class=\"lbl\">\("export.summary.avg".l)</span>"),
+                          "\(language)")
+            XCTAssertFalse(page.contains("/\("filter.day".l.lowercased())"), "\(language)")
+        }
     }
 
     func testTheFeedCountLeavesOutARunningFeed() {

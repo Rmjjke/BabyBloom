@@ -372,16 +372,12 @@ enum DoctorReportPDF {
         return PagedPDF.data(document, renderer: ReportPageRenderer(footerLeft: footer))
     }
 
-    /// «<report.pdf.file_fmt>.pdf», the name cleaned as every export's is.
+    /// «<report.pdf.file_fmt>.pdf», named as every export's file is.
     static func fileName(babyName: String, date: Date) -> String {
-        let formatter = DateFormatter()
-        // Digits only, whatever the app language or the phone's calendar.
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.dateFormat = "yyyy-MM-dd"
-        let base = String(format: "report.pdf.file_fmt".l, ExportGenerator.fileNamePart(babyName),
-                          formatter.string(from: date))
-        return ExportGenerator.fileNamePart(base) + ".pdf"
+        let day = ExportGenerator.fileDate(date)
+        return ExportGenerator.fileName(fitting: ExportGenerator.fileNamePart(babyName)) {
+            String(format: "report.pdf.file_fmt".l, $0, day) + ".pdf"
+        }
     }
 
     /// Draws «<brand> · <name> · <period>» left and «Page N of M» right on every page.

@@ -26,13 +26,14 @@ and the Live Activity read the byte-identical copies in
 |---|---|---|---|---|
 | add (a record, a weighing, a question, a medication) | Add | Добавить | Agregar | every form: «Agregar», «agregar», «Agrega», «agrega»; never «Añadir». iOS 26 says «Agregar» in es_419 (348 strings, no «Añadir») and «Añadir» in Spain's es; «agregar» is ordinary Spanish in Spain too |
 | breastfeeding (full) | Breastfeeding | Кормление грудью | Lactancia | Lock Screen, Dynamic Island |
-| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the report's word (`report.type_breast`); history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
+| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the one key for the word, the report's included; history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
 | pumped milk (a feed with no amount) | Pumped milk | Сцеженное молоко | Leche extraída | `feeding.title.pumped`; the type is Pumped / Сцеженное / Extraída |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
 | Lock Screen | Lock Screen | экран блокировки | pantalla bloqueada | Apple's own terms |
 | stop a feeding | Stop | Завершить | Detener | `button.finish`, everywhere |
 | stop a sleep | Woke Up | Проснулся | Se despertó | `button.woke_up`, everywhere |
 | start a feeding | Start Feeding | Начать кормление | Iniciar toma | `button.start_feeding`, app and widget |
+| report (a PDF) | report | отчёт | informe | the pediatrician's PDF only (`report.pdf.title`, `report.pdf.file_fmt`). The Export PDF is "All entries" / «Все записи» / «Todos los registros» on its first page and in its file name (`export.pdf.subtitle`, `export.file_fmt`), and its tile says "Every entry, day by day" / «Все записи по дням» / «Cada registro, día a día». When both said "report", a parent looking for the doctor's report on the Export screen took its tables. The Export screen names the way to the report in `export.pdf_doctor_hint_fmt`; a path like that is joined in code from the tab's and the row's own keys (`tab.more` › `report.title`), never typed into a value, so it cannot drift from the names it points to |
 
 ## Surface rules
 
@@ -91,13 +92,26 @@ and the Live Activity read the byte-identical copies in
     «Измерения», «Эпизоды сна». Russian takes the nominative, as «Вес» and
     «Рост» on the same screens: a genitive («Кормлений») reads as the word
     the number counts.
+  - In English a tile's or a progress card's label takes sentence case:
+    "Sleep episodes", "Daily goal", "Wet diapers". The cards print the
+    label as written. Section headings, sheet titles and buttons keep Title
+    Case ("Current Measurements", "New Feeding", "Edit Goal"), and so does
+    the goal editor's heading `diaper.norm.label` "Daily Goal".
   - A duration reads in hours and minutes: "42 h 10 min", "42 h", "15 min"
     (`duration.h_min`, `duration.h_only`, `duration.min_only`). Seconds
     show only under a minute (`duration.sec`, "45 sec") and on the running
     timer.
-  - The views still print «0/6 шт», a unit on the count tiles and «15 мин
-    0 сек»: the keys and labels above are in place, the code that reads
-    them is not yet.
+  - The code reads these keys: Home's progress cards print
+    `progress.of_fmt` / `progress.of_unit_fmt`, the tiles print the bare
+    number, and every duration from one minute comes from one writer, with
+    no seconds. The unit words `unit.pcs`, `unit.times` and `unit.hours`,
+    `duration.min_sec` and `report.type_breast` lost their last reader and
+    are gone.
+  - The export's summary follows the tile rule. Its feeds-a-day tile is
+    labelled "Feeds a day" / «Кормления в день» / «Tomas al día»
+    (`export.summary.avg`), the weekly card's words in the nominative, and
+    its value is the bare figure: the label carries "a day", so the value
+    takes no «/день».
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -290,8 +304,7 @@ and the Live Activity read the byte-identical copies in
     Besides a number and its unit it glues:
     - a counted word before its number: "day 14", «día 14», «день 14»,
       «percentil 50», "Day %d";
-    - a duration as a whole: `duration.min_sec` "%d min %d sec", as
-      `duration.h_min`;
+    - a duration as a whole: `duration.h_min` "%d h %d min";
     - a short Russian preposition before a number, in every key: «до 12
       раз», «от 3 дней», «К 3 месяцам».
   - A Russian ordinal (a number, the end of a range or `%d`, then a hyphen
@@ -492,3 +505,17 @@ and the Live Activity read the byte-identical copies in
   (§ Counts on Home and the stat tiles). The Russian stat labels
   `stat.feedings`, `stat.sleep_episodes`, `stat.measurements`,
   `stat.diapers`, `stat.wet` and `stat.dirty` are in the nominative.
+- 2026-11-05 — English tile and card labels take sentence case:
+  `stat.sleep_episodes` "Sleep episodes", `stat.daily_norm` "Daily goal".
+  The goal editor's heading `diaper.norm.label` stays "Daily Goal", as
+  every heading (§ Counts on Home and the stat tiles). Russian and Spanish
+  labels were already in sentence case.
+- 2026-11-05 — "Report" / «отчёт» / «informe» names the pediatrician's PDF
+  only (§ Terms). `export.format.pdf_desc` "Every entry, day by day" / «Все
+  записи по дням» / «Cada registro, día a día» and `export.pdf.subtitle`
+  "All entries" / «Все записи» / «Todos los registros». New
+  `export.file_fmt`, the Export PDF's file name in the form of
+  `report.pdf.file_fmt` (name, then date); `export.pdf_doctor_hint_fmt`, the
+  line under the format tiles that names the way to the report; and
+  `report.pdf.chart_title` · `report.pdf.chart_curves`, the heading of the
+  report's weight-for-age section, with no list of percentile numbers.

@@ -32,13 +32,23 @@ struct ExportView: View {
 
                 // ── Format ──────────────────────────────────────────────
                 sectionCard(title: "export.format".l) {
-                    HStack(spacing: BBTheme.Spacing.sm) {
-                        ForEach(ExportFormat.allCases, id: \.self) { fmt in
-                            formatButton(fmt)
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack(spacing: BBTheme.Spacing.sm) {
+                            ForEach(ExportFormat.allCases, id: \.self) { fmt in
+                                formatButton(fmt)
+                            }
                         }
+                        // Both tiles take the taller one's height.
+                        .fixedSize(horizontal: false, vertical: true)
+
+                        // Under either format: a parent on CSV may be looking for
+                        // the same file. Plain text, not a link: a link would jump
+                        // to another tab, which the app does nowhere else.
+                        BBTheme.Typography.caption(ExportDoctorHint.text)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityLabel(ExportDoctorHint.spokenText)
                     }
-                    // Both tiles take the taller one's height.
-                    .fixedSize(horizontal: false, vertical: true)
                 }
 
                 // ── Date range ──────────────────────────────────────────
@@ -53,8 +63,8 @@ struct ExportView: View {
                 // ── Categories ──────────────────────────────────────────
                 sectionCard(title: "export.categories".l) {
                     VStack(spacing: 0) {
-                        ForEach(Array(ExportCategory.allCases.enumerated()), id: \.offset) { i, cat in
-                            categoryToggle(cat, isLast: i == ExportCategory.allCases.count - 1)
+                        ForEach(ExportCategory.allCases, id: \.self) { cat in
+                            categoryToggle(cat)
                         }
                     }
                 }
@@ -161,7 +171,7 @@ struct ExportView: View {
 
     // MARK: - Category toggle
 
-    private func categoryToggle(_ cat: ExportCategory, isLast: Bool) -> some View {
+    private func categoryToggle(_ cat: ExportCategory) -> some View {
         let isOn = categories.contains(cat)
         let count = recordCount(cat)
         let isEmpty = count == 0
@@ -197,9 +207,6 @@ struct ExportView: View {
         }
         .buttonStyle(.plain)
         .disabled(isEmpty)
-        if !isLast {
-            Divider()
-        }
     }
 
     /// Number of records for a category within the currently selected range.
@@ -275,7 +282,8 @@ struct ExportView: View {
         let fmt        = selectedFormat
         let range      = selectedRange
         let babySnap   = baby
-        let slug       = "\(babySlug())_\(rangeSlug())"
+        let babyName   = baby?.name ?? ""
+        let now        = Date()
 
         // Wipe stale exports so we never re-share a previous file.
         ExportGenerator.cleanupExports()
@@ -294,7 +302,8 @@ struct ExportView: View {
                     diapers: diapers, growths: growths, events: events,
                     categories: cats, range: range
                 )
-                if let url = ExportGenerator.writeTempFile(name: "\("brand.name".l)_\(slug).pdf", data: data) {
+                let name = ExportGenerator.pdfFileName(babyName: babyName, date: now)
+                if let url = ExportGenerator.writeTempFile(name: name, data: data) {
                     items.append(url)
                 }
             } else {
@@ -303,8 +312,9 @@ struct ExportView: View {
                     diapers: diapers, growths: growths, events: events,
                     categories: cats
                 )
-                for (name, content) in files {
-                    if let url = ExportGenerator.writeTempCSV(name: "\(slug)_\(name)", content: content) {
+                for (file, content) in files {
+                    let name = ExportGenerator.csvFileName(babyName: babyName, date: now, file: file)
+                    if let url = ExportGenerator.writeTempCSV(name: name, content: content) {
                         items.append(url)
                     }
                 }
@@ -319,19 +329,21 @@ struct ExportView: View {
             }
         }
     }
+}
 
-    private func babySlug() -> String {
-        ExportGenerator.fileSlug(baby?.name ?? "")
-    }
+// MARK: - Where the doctor's PDF is
 
-    private func rangeSlug() -> String {
-        // Part of a FILENAME, so it is pinned to en_US_POSIX like the CSV
-        // columns: a device on a non-Gregorian calendar would otherwise stamp
-        // an unrecognisable year onto the exported file.
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
+/// The caption under the format tiles, «For the doctor's visit: More › For the
+/// pediatrician». The path is built from the tab's and the row's own names, so
+/// it can never drift from what it points to.
+enum ExportDoctorHint {
+    /// A no-break space holds « › » to the word before it: no line starts with the sign.
+    static var text: String { line(joinedBy: "\u{00A0}\u{203A} ") }
+    /// « › » has no spoken name in the three languages; a comma reads as a pause.
+    static var spokenText: String { line(joinedBy: ", ") }
+
+    private static func line(joinedBy separator: String) -> String {
+        String(format: "export.pdf_doctor_hint_fmt".l, "tab.more".l + separator + "report.title".l)
     }
 }
 

@@ -288,10 +288,10 @@ struct ExportGenerator {
             <div class="stat"><span class="val">\(minutesText(totalFeedMin))</span><span class="lbl">\("export.summary.total_time".l)</span></div>
             """
             // No finished day, no rate: a half-lived today would print a figure
-            // the report refuses to.
+            // the report refuses to. The bare figure: its label says «a day».
             if let avgFeedPerDay {
                 sections += """
-                <div class="stat"><span class="val">\(WeeklyFormat.perDay(avgFeedPerDay))/\("filter.day".l.lowercased())</span><span class="lbl">\("export.summary.avg".l)</span></div>
+                <div class="stat"><span class="val">\(WeeklyFormat.perDay(avgFeedPerDay))</span><span class="lbl">\("export.summary.avg".l)</span></div>
                 """
             }
         }
@@ -444,13 +444,61 @@ struct ExportGenerator {
     }
 
     /// A name as part of a file name: no path separators or control characters,
-    /// trimmed, at most 60 characters (a long Cyrillic name in UTF-8 would
-    /// otherwise near the 255-byte limit), and the default name when blank.
+    /// trimmed, at most 60 characters, and the default name when blank. It
+    /// takes the name only, never a whole file name: cut to 60 there, a long
+    /// name pushed the date and the extension out.
     static func fileNamePart(_ raw: String) -> String {
-        let banned = CharacterSet(charactersIn: "/\\:").union(.controlCharacters)
+        // The joiners and the emoji tags are format characters too, but they
+        // hold an emoji family or a regional flag together: without them a
+        // family in the name was written as four separate people. The bidi
+        // overrides stay out, as they could turn «.pdf» around in Files.
+        var banned = CharacterSet(charactersIn: "/\\:").union(.controlCharacters)
+        banned.remove(charactersIn: "\u{200C}\u{200D}")
+        banned.remove(charactersIn: Unicode.Scalar(0xE0020)!...Unicode.Scalar(0xE007F)!)
         let cleaned = String(String.UnicodeScalarView(raw.unicodeScalars.filter { !banned.contains($0) }))
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        return cleaned.isEmpty ? "baby.default_name".l : String(cleaned.prefix(60))
+        return cleaned.isEmpty ? "baby.default_name".l
+            : String(cleaned.prefix(60)).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// The file name `build` makes around `name`, within the 255 UTF-8 bytes a
+    /// file name may take. Only the name gives way, from its end, so the date
+    /// and the extension stay: 60 family emoji are 1,500 bytes, and a file
+    /// named that long is never written.
+    static func fileName(fitting name: String, _ build: (String) -> String) -> String {
+        let budget = 255 - build("").utf8.count
+        var kept = ""
+        for character in name {
+            guard kept.utf8.count + character.utf8.count <= budget else { break }
+            kept.append(character)
+        }
+        kept = kept.trimmingCharacters(in: .whitespaces)
+        return build(kept.isEmpty ? "baby.default_name".l : kept)
+    }
+
+    /// The day inside a file name, «2026-11-05»: digits only, whatever the app
+    /// language or the phone's calendar.
+    static func fileDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
+    /// «All entries – Mia – 2026-11-05.pdf»: it reads apart from the report's
+    /// «Pediatrician report – Mia – 2026-11-05.pdf» in Files and Mail.
+    static func pdfFileName(babyName: String, date: Date) -> String {
+        let day = fileDate(date)
+        return fileName(fitting: fileNamePart(babyName)) {
+            String(format: "export.file_fmt".l, $0, day) + ".pdf"
+        }
+    }
+
+    /// «Mia_Rose_2026-11-05_feeding.csv», `file` being the table's own name.
+    static func csvFileName(babyName: String, date: Date, file: String) -> String {
+        let day = fileDate(date)
+        return fileName(fitting: fileSlug(babyName)) { "\($0)_\(day)_\(file)" }
     }
 
     /// The name inside the export's file names, as typed («Mia_Rose»): spaces

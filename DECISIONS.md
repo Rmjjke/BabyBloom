@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-06 — An exported file's name gives way in the baby's name only; the Export PDF reads «All entries»
+
+The two PDFs and the CSV files are named by a pattern around the baby's name and the day. The name is cleaned and cut to 60 characters; where the whole would pass the 255 UTF-8 bytes a file name may take, the name gives way from its end, a whole character at a time, and the day and the extension always stay. The Export PDF is «All entries – Mia – 2026-11-05.pdf» beside the report's «Pediatrician report – Mia – 2026-11-05.pdf»; the CSV files keep «Mia_2026-11-05_feeding.csv».
+
+**Why.** The report's name was cut to 60 characters as a whole, so in English a name over about 25 characters lost the day and then «.pdf», and a file without its extension opens nowhere. A cap in characters does not bound the bytes: 60 family emoji are 1,500 bytes, a file that long is never written, and Export then has nothing to share. The Export PDF was «<app name>_Mia_2026-11-05.pdf» beside a report named in words: in Files and Mail a parent could not tell which one the doctor wants. Not taken: shortening the pattern's words (they are what tells the two files apart); a byte cap on the name alone (the pattern's length differs per language).
+
 ## 2026-11-06 — A screen's large title leaves the bar where it misses the bar's one line; Growth has no floating +
 
 The nine scrolling screens with a large title keep it in the bar while its one line fits the bar's room, measured at the bar's face and the current text size. Where it misses, the bar goes inline, the title is the content's first lines (`BBScreenHeading`), wrapping between words, and the bar shows a 17-pt title once the heading has scrolled under it. Growth has no floating +: a weighing is added from the bar's + and «Add a weighing».

@@ -542,7 +542,9 @@ the switch rows hold theirs, so the state and the hint start at the title's x,
 and it stays one VoiceOver element. The medication menu's label stands above
 its menu at every size, not beside it below the accessibility sizes: a long
 running name squeezed it. The Export format tiles keep 8 pt a side inside the
-outline and take the taller tile's height, so the two stay one row.
+outline and take the taller tile's height, so the two stay one row. The
+caption under them names where the doctor's PDF is from the tab's and the
+row's own keys (`ExportDoctorHint`), so it follows a rename of either.
 
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while
@@ -1480,7 +1482,12 @@ The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
 fetches with `Input.window(periodStart:)`, the same window
 `ReportDataSection`'s queries use. Every PDF prints numbers in the app
 language; every CSV stays dot-decimal with units in its headers (DECISIONS
-2026-11-02), and file names go through `ExportGenerator.fileNamePart`. A
+2026-11-02). A file name cleans and caps the baby's name alone
+(`ExportGenerator.fileNamePart`), and `ExportGenerator.fileName(fitting:_:)`
+lets that name give way, a whole character at a time, until the whole fits
+the 255 UTF-8 bytes a file name may take: the day and the extension always
+stay. The Export PDF is «All entries – Mia – 2026-11-05.pdf», the report
+«Pediatrician report – Mia – 2026-11-05.pdf» (DECISIONS 2026-11-06). A
 visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
 through `.visitDetailSheet(item:)` — from the period line, Events and Recent
 activity. That modifier deletes in the sheet's `onDismiss`, after the sheet

@@ -413,6 +413,16 @@ final class DoctorReportPDFTests: XCTestCase {
         }
     }
 
+    /// Cut to 60 over the whole name, a long name pushed the date out.
+    func testALongNameKeepsTheDate() {
+        for (language, long) in [(SupportedLanguage.en, String(repeating: "Abcdefghij", count: 6)),
+                                 (.ru, String(repeating: "Александра", count: 6))] {
+            LocalizationManager.shared.setLanguage(language)
+            XCTAssertEqual(DoctorReportPDF.fileName(babyName: long, date: now),
+                           String(format: "report.pdf.file_fmt".l, long, "2026-11-01") + ".pdf", "\(language)")
+        }
+    }
+
     // MARK: f) Preterm header
 
     func testAPretermHeaderPrintsTheDueDateAndCorrectedAge() {
