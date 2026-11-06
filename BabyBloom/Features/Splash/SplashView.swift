@@ -47,12 +47,14 @@ struct SplashView: View {
                         Image(systemName: "leaf.fill")
                             .font(.system(size: 9))
                     }
-                    .foregroundStyle(Color("BBSplashText").opacity(0.85))
+                    .foregroundStyle(Color("BBSplashText"))
                     .opacity(taglineVisible ? 1 : 0)
                     .offset(y: taglineVisible ? 0 : 12)
                 }
-                // Sits below the crescent's lower rim so the cream text lands on
-                // the lavender field rather than on the white artwork.
+                // Sits below the crescent's lower rim so the words land on the
+                // lavender field rather than on the artwork's figure. Their ink is
+                // a deep violet in both modes: the art does not change with the
+                // mode, and cream over the field and its white clouds read 1.0–1.2.
                 .position(x: geo.size.width / 2, y: geo.size.height * 0.82)
             }
             .opacity(fadingOut ? 0 : 1)

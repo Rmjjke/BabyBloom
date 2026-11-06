@@ -39,7 +39,8 @@ enum BBTheme {
         static let growth = Color("BBGrowth")
         static let events = Color("BBEvents")
 
-        // Premium hero gradient (violet → lavender)
+        // Premium hero and widget gradient (violet → lighter violet), one value
+        // in light and dark: white words read 4.67:1 or more on every point of it
         static let premiumGradient = LinearGradient(
             colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
             startPoint: .topLeading, endPoint: .bottomTrailing

@@ -138,7 +138,7 @@ struct ExportView: View {
                         .foregroundStyle(BBTheme.Colors.primary)
                 } else {
                     Circle()
-                        .stroke(BBTheme.Colors.textSecondary.opacity(0.3), lineWidth: 1.5)
+                        .stroke(BBTheme.Colors.textSecondary, lineWidth: 1.5)
                         .frame(width: 20, height: 20)
                 }
             }
@@ -177,7 +177,7 @@ struct ExportView: View {
                 }
                 Image(systemName: isOn && !isEmpty ? "checkmark.square.fill" : "square")
                     .font(.system(size: 20))
-                    .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.4))
+                    .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
             }
             .padding(.vertical, 10)
             .contentShape(Rectangle())
