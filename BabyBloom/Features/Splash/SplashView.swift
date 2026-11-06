@@ -51,9 +51,9 @@ struct SplashView: View {
                         .clipped()
                         .opacity(bgVisible ? 1 : 0)
                         .scaleEffect(bgVisible ? 1.0 : 1.06)
-                        // VoiceOver orders the splash by position, and beside the
-                        // words the art lies leading: this keeps it read last.
-                        .accessibilitySortPriority(-1)
+                        // Decorative, as are the tagline's leaves: VoiceOver
+                        // reads the splash's words only.
+                        .accessibilityHidden(true)
 
                     VStack(spacing: 16) {
                         // Stage 2: wordmark
@@ -68,11 +68,13 @@ struct SplashView: View {
                             Image(systemName: "leaf.fill")
                                 .font(.system(size: 9))
                                 .scaleEffect(x: -1)
+                                .accessibilityHidden(true)
                             Text("splash.tagline".l.uppercased())
                                 .font(.system(size: 14, weight: .medium))
                                 .tracking(4.5)
                             Image(systemName: "leaf.fill")
                                 .font(.system(size: 9))
+                                .accessibilityHidden(true)
                         }
                         .foregroundStyle(Color("BBSplashText"))
                         .opacity(taglineVisible ? 1 : 0)
