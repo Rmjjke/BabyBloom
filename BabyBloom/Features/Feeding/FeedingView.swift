@@ -6,6 +6,7 @@ struct FeedingView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     // Identifiable request drives `.entrySheet(item:)` so the sheet is rebuilt with the
     // tapped type on every present. The previous `.sheet(isPresented:)` read a
     // separate @State (`quickAddType`) whose value was captured stale — the sheet
@@ -99,41 +100,69 @@ struct FeedingView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_add")
 
-            HStack(spacing: BBTheme.Spacing.md) {
-                ForEach(FeedingEntry.FeedingType.allCases, id: \.self) { type in
-                    Button {
-                        quickStart(type)
-                    } label: {
-                        VStack(spacing: 6) {
-                            Image(systemName: type.icon)
-                                .font(.system(size: 22, weight: .medium))
-                                .foregroundStyle(BBTheme.Colors.feeding)
-                                .frame(width: 44, height: 44)
-                                .background(BBTheme.Colors.feeding.opacity(0.22))
-                                .cornerRadius(12)
-                            Text(type.displayName.l)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Text(type == .breast ? "button.start".l : "button.add_manually".l)
-                                .font(.system(size: 11, weight: .regular, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .frame(height: 30, alignment: .top)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .padding(.horizontal, BBTheme.Spacing.sm)
-                        .background(BBTheme.Colors.feeding.opacity(0.07))
-                        .cornerRadius(BBTheme.Radius.md)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
-                        )
-                    }
-                    .buttonStyle(BBScaleButtonStyle())
+            // Two columns from xLarge: in a third of a 320-pt row «Сцеженное»
+            // keeps 3.4 pt there (81.9 in 85.3), under the 8-pt spare. One at
+            // accessibility sizes, where half a row keeps 4.5 pt (131.5 in
+            // 136) and Bold Text breaks the word.
+            let tileColumns = BBTileColumns(large: 3, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+            let count = tileColumns.count(at: dynamicTypeSize)
+            if count == tileColumns.large {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    quickAddTiles(captionBox: true)
+                }
+            } else if count == 1 {
+                VStack(spacing: BBTheme.Spacing.md) {
+                    quickAddTiles(captionBox: false)
+                }
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.md),
+                                         count: count),
+                          spacing: BBTheme.Spacing.md) {
+                    quickAddTiles(captionBox: true)
                 }
             }
+        }
+    }
+
+    /// `captionBox`: the caption keeps a two-line box, so every tile of a row
+    /// or grid is one height; in one column a tile takes its caption's height.
+    private func quickAddTiles(captionBox: Bool) -> some View {
+        ForEach(FeedingEntry.FeedingType.allCases, id: \.self) { type in
+            Button {
+                quickStart(type)
+            } label: {
+                VStack(spacing: 6) {
+                    Image(systemName: type.icon)
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(BBTheme.Colors.feeding)
+                        .frame(width: 44, height: 44)
+                        .background(BBTheme.Colors.feeding.opacity(0.22))
+                        .cornerRadius(12)
+                    Text(type.displayName.l)
+                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Text(type == .breast ? "button.start".l : "button.add_manually".l)
+                        .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .frame(height: captionBox ? BBTheme.Typography.scaledPointSize(30, relativeTo: .body) : nil,
+                               alignment: .top)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                // No side padding: with sm, «Сцеженное» broke in a third of a
+                // 320-pt row at Large (75.1 pt in 69.3). The words are centred,
+                // so a wider screen draws them where they were; only a caption
+                // that now fits one line («Добавить вручную») sets on one.
+                .background(BBTheme.Colors.feeding.opacity(0.07))
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
+                )
+            }
+            .buttonStyle(BBScaleButtonStyle())
         }
     }
 
@@ -234,55 +263,30 @@ struct FeedingTimerCard: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            // The timer under the title at accessibility sizes: beside the wide
-            // AX2 digits the title's column broke «Сцеженное» mid-word.
-            let header = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
-                : AnyLayout(HStackLayout())
-            header {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("tab.feeding".l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.feeding)
-                    BBTheme.Typography.title3(entry.displayTitle)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                }
-                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.feeding)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            BBTimerCardHeader(label: "tab.feeding".l,
+                              title: entry.displayTitle,
+                              color: BBTheme.Colors.feeding,
+                              startTime: entry.startTime)
 
             // Breast side switcher (for breast feeding)
             if entry.type == .breast {
-                // One pill per row at accessibility sizes: three in a row broke
-                // «Правая» inside the word.
-                let pills = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
-                    : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
-                pills {
-                    ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
-                        Button {
-                            onSideChange(side)
-                        } label: {
-                            Text(side.displayName.l)
-                                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                                .foregroundStyle(entry.side == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.pill)
-                                .overlay(
-                                    Capsule()
-                                        .strokeBorder(entry.side == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                )
-                        }
-                        .buttonStyle(BBScaleButtonStyle())
+                // Three in a row while they fit the card, else one per row,
+                // flush left: in es the row is wider than a 320-pt screen's
+                // card from Medium up (264 pt in 240 at Large). The pills size
+                // to their words, so the row's own width decides, not a count
+                // per size. One per row at accessibility sizes on any width,
+                // under the header, which stacks there too.
+                let stacked = VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) { sidePills }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if dynamicTypeSize.isAccessibilitySize {
+                    stacked
+                } else {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: BBTheme.Spacing.sm) { sidePills }
+                            .frame(maxWidth: .infinity)
+                        stacked
                     }
                 }
-                // Under the stacked header, flush left with it; centred as before
-                // in a row.
-                .frame(maxWidth: .infinity,
-                       alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
             }
 
             BBPrimaryButton("button.finish".l, icon: "stop.fill") {
@@ -296,6 +300,27 @@ struct FeedingTimerCard: View {
             RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
                 .stroke(BBTheme.Colors.feeding.opacity(0.3), lineWidth: 1.5)
         )
+    }
+
+    private var sidePills: some View {
+        ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
+            Button {
+                onSideChange(side)
+            } label: {
+                Text(side.displayName.l)
+                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                    .foregroundStyle(entry.side == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(entry.side == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.pill)
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(entry.side == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                    )
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
     }
 }
 
@@ -388,6 +413,34 @@ struct AddFeedingSheet: View {
         }
     }
 
+    private var sideChips: some View {
+        ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
+            Button {
+                selectedSide = side
+            } label: {
+                // xs between glyph and word: with the default 8, «Izquierdo»
+                // broke in a third of a 320-pt sheet at Large with Bold Text
+                // (67.6 pt in 64.3).
+                HStack(spacing: BBTheme.Spacing.xs) {
+                    Image(systemName: side.icon)
+                    Text(side.displayName.l)
+                }
+                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                .foregroundStyle(selectedSide == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .strokeBorder(selectedSide == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                )
+                .bbShadow(BBTheme.Shadow.card)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -426,33 +479,25 @@ struct AddFeedingSheet: View {
                                 .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                            // Stacked at accessibility sizes, as the timer
-                            // card's pills: «Прав / ая», «Izquie / rdo».
-                            let chips = dynamicTypeSize.isAccessibilitySize
-                                ? AnyLayout(VStackLayout(spacing: BBTheme.Spacing.sm))
-                                : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
-                            chips {
-                                ForEach(FeedingEntry.BreastSide.allCases, id: \.self) { side in
-                                    Button {
-                                        selectedSide = side
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: side.icon)
-                                            Text(side.displayName.l)
-                                        }
-                                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                        .foregroundStyle(selectedSide == side ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 12)
-                                        .background(selectedSide == side ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                        .cornerRadius(BBTheme.Radius.md)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                                .strokeBorder(selectedSide == side ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                        )
-                                        .bbShadow(BBTheme.Shadow.card)
-                                    }
-                                    .buttonStyle(BBScaleButtonStyle())
+                            // Two columns from xLarge: in a third of a 320-pt
+                            // sheet «Izquierdo» misses there by 1.3 pt. One at
+                            // accessibility sizes, where half a sheet misses
+                            // by 8.6.
+                            let chipColumns = BBTileColumns(large: 3, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+                            let chipCount = chipColumns.count(at: dynamicTypeSize)
+                            if chipCount == chipColumns.large {
+                                HStack(spacing: BBTheme.Spacing.sm) {
+                                    sideChips
+                                }
+                            } else if chipCount == 1 {
+                                VStack(spacing: BBTheme.Spacing.sm) {
+                                    sideChips
+                                }
+                            } else {
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                         count: chipCount),
+                                          spacing: BBTheme.Spacing.sm) {
+                                    sideChips
                                 }
                             }
                         }

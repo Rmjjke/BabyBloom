@@ -236,17 +236,11 @@ struct SleepTimerCard: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("status.baby_sleeping".l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.sleep)
-                    BBTheme.Typography.title3(entry.type.displayName.l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                }
-                Spacer()
-                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.sleep, showsHours: true)
-            }
+            BBTimerCardHeader(label: "status.baby_sleeping".l,
+                              title: entry.type.displayName.l,
+                              color: BBTheme.Colors.sleep,
+                              startTime: entry.startTime,
+                              showsHours: true)
 
             BBPrimaryButton("button.woke_up".l, icon: "sun.max.fill") {
                 onStop()
