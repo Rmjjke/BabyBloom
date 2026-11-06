@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — A sheet bar's confirm shows ▶ while the sheet starts a timer
+
+With Start Timer on, the New Feeding sheet's bar confirm shows `play.fill` in Save's style, and VoiceOver names it «Start Feeding», the bottom button's word. With the toggle off it is ✓ «Save» again. Both buttons follow the toggle in the same frame. It is the app's one sheet that starts a timer.
+
+**Why.** One act should carry one sign. With the timer on the tap saves a feed that has only begun, so a ✓ said "done" in the bar while the bottom button said «Start Feeding» with ▶, and VoiceOver read «Save» for both acts. Not taken: hiding the bar's confirm while the timer is on, because every entry sheet confirms in both places and the bar would lose a button under a toggle; and a ✓ named «Start Feeding», because the sighted parent would still see two signs for one act.
+
 ## 2026-11-04 — The weekly gain line without a number says what is missing, and asks for a weighing only where one helps
 
 When no weighing pair ends in the week, the gain line has four cases, judged on every weighing logged up to now, not only up to the week's end, and taken in this order. A pair whose later weighing is after the week: «This week's weighing will show the gain here next Monday», with no button. A pair that ended before the week: «Weigh your baby, and the gain will show here next week», with «Add a weighing». Weighings with no two at least 3 days apart: «One more weighing, at least 3 days after the first, …», with the button. No weighing at all: «Two weighings at least 3 days apart …», with the button. The newborn window still comes first. A pair that ends after the week but inside the newborn window (the window closed this week, the weighing came before it did) takes the older pair's line and button: next Monday's card withholds that pair as well, so «next Monday» would be a promise it cannot keep, and the weighing that ends the window is the next step.

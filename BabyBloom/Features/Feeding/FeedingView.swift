@@ -560,7 +560,8 @@ struct AddFeedingSheet: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             // Big primary action pinned to the safe area for one-handed / night use;
-            // mirrors the toolbar Save (both call save()).
+            // mirrors the bar's confirm: both call save(), and both show ▶ and
+            // Start Feeding while the timer is on.
             .safeAreaInset(edge: .bottom) {
                 BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l,
                                 icon: startTimer ? "play.fill" : "checkmark") {
@@ -577,7 +578,7 @@ struct AddFeedingSheet: View {
                     BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    BBBarButton(.save) { save() }
+                    BBBarButton(startTimer ? .startFeeding : .save) { save() }
                 }
             }
         }

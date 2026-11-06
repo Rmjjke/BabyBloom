@@ -4,12 +4,16 @@ import SwiftUI
 /// VoiceOver reads, so every sheet bar draws and speaks alike.
 enum BBBarAction {
     case cancel, close, save, edit
+    /// The confirm of a sheet that starts a feed's timer instead of saving a
+    /// finished entry: the tap saves and starts it, so the glyph is ▶, not ✓.
+    case startFeeding
 
     var glyph: String {
         switch self {
         case .cancel, .close: "xmark"
         case .save: "checkmark"
         case .edit: "pencil"
+        case .startFeeding: "play.fill"
         }
     }
 
@@ -22,17 +26,22 @@ enum BBBarAction {
         case .close: "button.close".l
         case .save: "button.save".l
         case .edit: "button.edit".l
+        case .startFeeding: "button.start_feeding".l
         }
     }
+
+    /// The sheet's confirm, drawn as the prominent button.
+    var confirms: Bool { self == .save || self == .startFeeding }
 }
 
-/// A bar's button as a glyph: × for Cancel and Close, ✓ for Save, a pencil
-/// for Edit, the pushed medication screen's too. Words in the bar left a
-/// title 49 pt at Large on a 320-pt phone in ru, so every title was cut;
-/// glyphs leave it 174 pt in every language. On iOS 26 the bar draws each
-/// glyph in a glass circle and Save is the prominent one, a primary fill with
-/// an on-primary check; before iOS 26 the glyphs stand bare, Save and Edit in
-/// the primary ink.
+/// A bar's button as a glyph: × for Cancel and Close, ✓ for Save, ▶ for a
+/// confirm that starts a feed, a pencil for Edit, the pushed medication
+/// screen's too. Words in the bar left a title 49 pt at Large on a 320-pt
+/// phone in ru, so every title was cut; glyphs leave it 174 pt in every
+/// language. On iOS 26 the bar draws each glyph in a glass circle and the
+/// confirm is the prominent one, a primary fill with an on-primary glyph;
+/// before iOS 26 the glyphs stand bare, the confirm and Edit in the primary
+/// ink.
 struct BBBarButton: View {
     private let action: BBBarAction
     private let perform: () -> Void
@@ -49,7 +58,7 @@ struct BBBarButton: View {
     }
 
     @ViewBuilder private var button: some View {
-        if action == .save, #available(iOS 26.0, *) {
+        if action.confirms, #available(iOS 26.0, *) {
             Button(action: perform) {
                 Image(systemName: action.glyph)
                     .foregroundStyle(BBTheme.Colors.onPrimary)
@@ -69,7 +78,8 @@ struct BBBarButton: View {
     private var ink: Color {
         switch action {
         case .cancel, .close: BBTheme.Colors.textSecondary
-        case .save, .edit: isEnabled ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary
+        case .save, .edit, .startFeeding:
+            isEnabled ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary
         }
     }
 }
