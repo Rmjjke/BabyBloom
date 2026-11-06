@@ -344,6 +344,65 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertFalse(heightOnly.isEmpty)
     }
 
+    // MARK: Weight chart
+
+    /// The chart draws every known weighing, not only the period's, as the
+    /// Growth screen does; a row dated next week is not one of them.
+    func testTheChartDrawsEveryKnownWeighing() throws {
+        let growth = make(input(growth: [
+            Growth(date: at(1, 12, month: 8), weightKg: 4.9),
+            Growth(date: at(15, 12), heightCm: 60),
+            Growth(date: at(28, 12), weightKg: 6.6, heightCm: 63),
+            Growth(date: at(10, 12, month: 11), weightKg: 7.0),
+        ])).growth
+        let chart = try XCTUnwrap(growth.weightChart)
+        XCTAssertEqual(chart, WeightForAgeChart(
+            weighings: [WeightMeasurement(date: at(1, 12, month: 8), weightKg: 4.9),
+                        WeightMeasurement(date: at(28, 12), weightKg: 6.6)],
+            correctedBirthDate: at(1, 12, month: 6), isMale: false, calendar: calendar))
+        XCTAssertEqual(chart.points.first?.date, at(1, 12, month: 8), "older than the period, still drawn")
+        XCTAssertEqual(growth.weighings.count, 1, "the period's list is unchanged")
+    }
+
+    func testOneWeighingHasNoChart() {
+        let growth = make(input(growth: [Growth(date: at(28, 12), weightKg: 6.6)])).growth
+        guard case .reading = growth.weightPercentile else { return XCTFail("expected a reading") }
+        XCTAssertNil(growth.weightChart)
+    }
+
+    /// The latest weighing before the due date has no percentile, so no chart,
+    /// although the window would reach the tables.
+    func testNoChartWhenTheLatestWeighingIsBeforeTheDueDate() {
+        let growth = make(input(growth: [Growth(date: at(20, 12), weightKg: 2.3),
+                                         Growth(date: at(25, 12), weightKg: 2.4)],
+                                birth: at(1, 12), correctedBirth: at(30, 12)),
+                          start: at(1, 0)).growth
+        XCTAssertEqual(growth.weightPercentile, .beforeDueDate)
+        XCTAssertNil(growth.weightChart)
+    }
+
+    /// Past the tables at the latest weighing: no chart, although the earlier
+    /// one is still inside them.
+    func testNoChartWhenTheLatestWeighingIsPastTheTables() {
+        let birth = calendar.date(byAdding: .day, value: -740, to: at(20, 12))!
+        let growth = make(input(growth: [Growth(date: at(10, 12, month: 9), weightKg: 11.5),
+                                         Growth(date: at(20, 12), weightKg: 12)],
+                                birth: birth), start: at(1, 0, month: 9)).growth
+        XCTAssertEqual(growth.weightPercentile, .outOfRange)
+        XCTAssertNil(growth.weightChart)
+    }
+
+    /// Born early: the weighings before the due date stay on the chart once
+    /// the latest has a percentile.
+    func testAPretermBabysEarlyWeighingsStayOnTheChart() throws {
+        let growth = make(input(growth: [Growth(date: at(20, 12, month: 8), weightKg: 2.3),
+                                         Growth(date: at(28, 12), weightKg: 4.5)],
+                                birth: at(1, 12, month: 8), correctedBirth: at(10, 12, month: 9))).growth
+        let chart = try XCTUnwrap(growth.weightChart)
+        XCTAssertLessThan(chart.window.lowAgeDays, 0)
+        XCTAssertEqual(chart.points.count, 2)
+    }
+
     // MARK: Feeding, sleep, diapers
 
     func testByTypeIsHiddenWithOneTypeAndMostFrequentFirstWithMore() {

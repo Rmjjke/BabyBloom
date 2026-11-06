@@ -99,6 +99,9 @@ struct DoctorReportSummary: Equatable {
         let weighings: [Weighing]
         let atBirthWeightKg: Double?
         let atBirthHeightCm: Double?
+        /// The PDF's weight-for-age chart; nil when the weight percentile shows
+        /// no figure or fewer than two weighings are known.
+        var weightChart: WeightForAgeChart? = nil
 
         static func == (a: Growth, b: Growth) -> Bool {
             a.latestWeight == b.latestWeight && a.weightPercentile == b.weightPercentile
@@ -106,6 +109,7 @@ struct DoctorReportSummary: Equatable {
                 && a.latestHead == b.latestHead && a.change?.baseDate == b.change?.baseDate
                 && a.change?.grams == b.change?.grams && a.weighings == b.weighings
                 && a.atBirthWeightKg == b.atBirthWeightKg && a.atBirthHeightCm == b.atBirthHeightCm
+                && a.weightChart == b.weightChart
         }
 
         /// No weighing ever: the card shows `report.empty_growth` + «Add a weighing».
@@ -184,7 +188,7 @@ struct DoctorReportSummary: Equatable {
     /// Fewer than 3 days: raw counts, no averages, no days lines.
     var isShort: Bool { periodDays < 3 }
 
-    let growth: Growth
+    var growth: Growth
     /// nil = no finished entry of that kind in the period → «No … logged since».
     let feeding: Feeding?
     let sleep: Sleep?

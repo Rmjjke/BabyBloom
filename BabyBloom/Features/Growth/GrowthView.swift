@@ -505,40 +505,12 @@ struct WeightChartView: View {
         let sample: WHOCorridor.Sample
     }
 
-    /// The narrowest window the chart will draw. A single weighing — which is
-    /// every fresh install that answered the measurements page — would
-    /// otherwise be a zero-width axis; four weeks around it shows the point
-    /// sitting in the corridor, which is the whole reason one point is now
-    /// worth charting at all.
-    private static let minimumSpanDays = 28
-
-    private func date(atAgeDays days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: days, to: correctedBirthDate) ?? correctedBirthDate
-    }
-
     private func layout() -> Frame? {
-        guard let first = measurements.first, let last = measurements.last else { return nil }
-        let ages = measurements.map {
-            Calendar.current.dateComponents([.day], from: correctedBirthDate, to: $0.date).day ?? 0
-        }
-        var low = ages.min() ?? 0
-        var high = ages.max() ?? 0
-        // Whole days floor the time of day away; without the extra day the band
-        // would stop short of an afternoon weighing on the last day.
-        if date(atAgeDays: high) < last.date { high += 1 }
-        if high - low < Self.minimumSpanDays {
-            // Centred on the data, then pulled back so the window never opens
-            // empty space BEFORE the due date: no band can be drawn there and
-            // no weighing sits there, so a fresh install's single birth point
-            // would otherwise be pinned to the middle of a half-blank chart.
-            // The floor is `min(low, 0)`, not 0 — a preterm baby's pre-due-date
-            // weighings carry negative ages and must stay on the axis.
-            let middle = (low + high) / 2
-            low = max(middle - Self.minimumSpanDays / 2, min(low, 0))
-            high = low + Self.minimumSpanDays
-        }
+        // The x window is the report chart's too, so the two show one stretch.
+        guard let window = WeightChartWindow(measurements: measurements, correctedBirthDate: correctedBirthDate),
+              let first = measurements.first else { return nil }
         let samples = showsWHOCorridor
-            ? WHOCorridor.samples(fromAgeDays: low, toAgeDays: high, isMale: isMale)
+            ? WHOCorridor.samples(fromAgeDays: window.lowAgeDays, toAgeDays: window.highAgeDays, isMale: isMale)
             : []
 
         // The y window spans the baby AND the band, so the corridor is never
@@ -557,10 +529,10 @@ struct WeightChartView: View {
             maxKg = middle + 0.25
         }
         let pad = max((maxKg - minKg) * 0.08, 0.05)
-        return Frame(xDomain: min(date(atAgeDays: low), first.date)...max(date(atAgeDays: high), last.date),
-                     spanDays: high - low,
+        return Frame(xDomain: window.domain,
+                     spanDays: window.spanDays,
                      weightRange: (minKg - pad)...(maxKg + pad),
-                     band: samples.map { BandPoint(date: date(atAgeDays: $0.ageDays), sample: $0) })
+                     band: samples.map { BandPoint(date: window.date(atAgeDays: $0.ageDays), sample: $0) })
     }
 
     private var shownIndex: Int? {

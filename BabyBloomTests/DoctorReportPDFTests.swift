@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import BabyBloom
 
 private typealias Feed = DoctorReportSummary.Input.Feed
@@ -522,6 +523,164 @@ final class DoctorReportPDFTests: XCTestCase {
             XCTAssertTrue(page.contains("<h2>\(esc(key.l))</h2>"), key)
         }
         XCTAssertFalse(page.contains(esc("report.pdf.no_entries".l)))
+    }
+
+    // MARK: j) Weight chart
+
+    private func labelWidth(_ text: String) -> CGFloat {
+        (text as NSString).size(withAttributes: [.font: DoctorReportPDF.chartLabelFont]).width
+    }
+
+    /// A girl born on 2 Sep, weighed on the median at each age.
+    private func medianChart(_ ages: [Int]) throws -> WeightForAgeChart {
+        let birth = at(2, 12, month: 9)
+        let weighings = ages.map { days in
+            WeightMeasurement(date: calendar.date(byAdding: .day, value: days, to: birth)!,
+                              weightKg: WHOGrowthStandard.weight(atZ: 0, ageDays: days, isMale: false)!)
+        }
+        return try XCTUnwrap(WeightForAgeChart(weighings: weighings, correctedBirthDate: birth, isMale: false,
+                                               calendar: calendar), "\(ages)")
+    }
+
+    /// The section follows the questions and precedes the closing line; its
+    /// centiles and every axis label are text the doctor can search.
+    func testTheChartPrintsAfterTheQuestionsWithItsLabelsAsText() throws {
+        let summary = makeSummary()
+        let chart = try XCTUnwrap(summary.growth.weightChart)
+        XCTAssertEqual(chart.window.lowAgeDays, 35)
+        XCTAssertEqual(chart.window.highAgeDays, 63)
+        XCTAssertEqual(chart.ticks, [at(7, 12), at(2, 12, month: 11)])
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary)
+            let heading = "<h2>\(esc("report.pdf.chart_title".l))<span class=\"curves\">"
+                + "\(esc(ReportFormat.joiner + "report.pdf.chart_curves".l))</span></h2>"
+            let questions = try XCTUnwrap(page.range(of: "</ol>", options: .backwards), "\(language)")
+            let section = try XCTUnwrap(page.range(of: heading), "\(language)")
+            let svg = try XCTUnwrap(page.range(of: "<svg"), "\(language)")
+            let footnote = try XCTUnwrap(page.range(of: esc("report.footnote".l)), "\(language)")
+            XCTAssertLessThan(questions.upperBound, section.lowerBound, "\(language): after the questions")
+            XCTAssertLessThanOrEqual(section.upperBound, svg.lowerBound, "\(language)")
+            XCTAssertLessThan(svg.lowerBound, footnote.lowerBound, "\(language): before the closing line")
+            for centile in ["3", "50", "97"] {
+                XCTAssertTrue(page.contains(">\(centile)</text>"), "\(language): \(centile)")
+            }
+            for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
+                let label = esc("\(kg)\(ReportFormat.nbsp)\("unit.kg".l)")
+                XCTAssertTrue(page.contains(">\(label)</text>"), "\(language): \(kg) kg")
+            }
+            let labels = DoctorReportPDF.chartXLabels(chart, now: now, width: labelWidth)
+            XCTAssertEqual(labels.map(\.text), chart.ticks.map { ReportFormat.date($0, now: now) }, "\(language)")
+            for label in labels {
+                XCTAssertTrue(page.contains(">\(esc(label.text))</text>"), "\(language): «\(label.text)»")
+            }
+        }
+    }
+
+    /// No figure for the weight percentile, or one weighing, or none: no
+    /// section, never an empty chart. Before the due date the window would
+    /// reach the tables; the missing figure alone keeps the chart out.
+    func testNoChartWithoutAPercentileFigureOrASecondWeighing() {
+        let cases: [(String, DoctorReportSummary, Date)] = [
+            ("before the due date", makeSummary(correctedBirthDate: at(5, 12, month: 11)), periodStart),
+            ("past the WHO table",
+             makeSummary(birthDate: at(2, 12, month: 9).addingTimeInterval(-3 * 366 * 86_400)), periodStart),
+            ("one weighing", makeNewPeriodSummary(), at(1, 0, month: 11)),
+            ("no weighing", makeEmptySummary(), periodStart),
+            ("short period", makeShortSummary(), at(30, 0)),
+        ]
+        for (name, summary, start) in cases {
+            XCTAssertNil(summary.growth.weightChart, name)
+            for language in [SupportedLanguage.en, .ru, .es] {
+                LocalizationManager.shared.setLanguage(language)
+                let page = html(summary, periodStart: start)
+                XCTAssertFalse(page.contains("<svg"), "\(name), \(language)")
+                XCTAssertFalse(page.contains(esc("report.pdf.chart_title".l)), "\(name), \(language)")
+            }
+        }
+    }
+
+    /// Every x label inside page x 60…541 and clear of the one before it, in
+    /// every language, this year's dates and year-dated ones alike. Each label
+    /// names its tick: the window's start always, then month marks from the
+    /// first that clears the start's label, every one or every 2nd, 4th….
+    func testTheXLabelsStayInsideTheAxisAndApart() throws {
+        let later = calendar.date(byAdding: .year, value: 3, to: now)!
+        for ages in [[42, 56], [0, 30], [10, 95], [0, 365], [0, 700], [300, 700]] {
+            let chart = try medianChart(ages)
+            let marks = Array(chart.ticks.dropFirst())
+            for language in [SupportedLanguage.en, .ru, .es] {
+                LocalizationManager.shared.setLanguage(language)
+                for reportDate in [now, later] {
+                    let context = "\(ages), \(language), \(reportDate)"
+                    let labels = DoctorReportPDF.chartXLabels(chart, now: reportDate, width: labelWidth)
+                    XCTAssertEqual(labels.first?.date, chart.ticks.first, context)
+                    XCTAssertEqual(labels.map(\.text), labels.map { ReportFormat.date($0.date, now: reportDate) },
+                                   context)
+                    let kept = labels.dropFirst().map(\.date)
+                    if let firstKept = kept.first {
+                        let rest = Array(marks[try XCTUnwrap(marks.firstIndex(of: firstKept), context)...])
+                        let strides = (0...4).map { 1 << $0 }
+                        XCTAssertTrue(strides.contains { by in
+                            stride(from: 0, to: rest.count, by: by).map { rest[$0] } == kept
+                        }, "\(context): \(labels.map(\.text))")
+                    }
+                    for label in labels {
+                        XCTAssertGreaterThanOrEqual(label.left, 24, context)
+                        XCTAssertLessThanOrEqual(label.left + label.width, 505, context)
+                    }
+                    for (before, after) in zip(labels, labels.dropFirst()) {
+                        XCTAssertGreaterThanOrEqual(after.left, before.left + before.width + 4, context)
+                    }
+                }
+            }
+            // Room for every label: every tick keeps its date.
+            let narrow = DoctorReportPDF.chartXLabels(chart, now: now) { _ in 10 }
+            XCTAssertEqual(narrow.map(\.date), chart.ticks, "\(ages)")
+        }
+    }
+
+    /// Labels too wide for their places take their ticks with them: the marks
+    /// that would sit on the start's label go, then every second one, until
+    /// the rest clear. The window's first date always stays.
+    func testALabelTooWideForItsPlaceGoesWithItsTick() throws {
+        let chart = try medianChart([0, 700])
+        XCTAssertEqual(chart.ticks.count, 6)
+        let wide = DoctorReportPDF.chartXLabels(chart, now: now) { _ in 120 }
+        XCTAssertEqual(wide.map(\.date), [0, 3, 5].map { chart.ticks[$0] })
+        for (before, after) in zip(wide, wide.dropFirst()) {
+            XCTAssertGreaterThanOrEqual(after.left, before.left + before.width + 4)
+        }
+        let tooWide = DoctorReportPDF.chartXLabels(chart, now: now) { _ in 300 }
+        XCTAssertEqual(tooWide.map(\.date), [chart.ticks[0]])
+    }
+
+    /// The svg draws a tick only under a label, so no tick goes unnamed; each
+    /// tick stands at its own date on the axis, under its label.
+    func testEveryTickDrawnCarriesItsDate() throws {
+        let summary = makeSummary()
+        let chart = try XCTUnwrap(summary.growth.weightChart)
+        let domain = chart.window.domain
+        // The plot runs from svg x 28 to 501 (page x 64…537).
+        func axisX(_ date: Date) -> Double {
+            28 + 473 * date.timeIntervalSince(domain.lowerBound) / domain.upperBound.timeIntervalSince(domain.lowerBound)
+        }
+        // A tick runs from the plot's bottom (y 96) 3 pt down; no gridline ends at y 99.
+        let tickPattern = try NSRegularExpression(pattern: "<line x1=\"([0-9.]+)\" y1=\"96\\.00\" x2=\"[0-9.]+\" y2=\"99\\.00\"")
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary)
+            let labels = DoctorReportPDF.chartXLabels(chart, now: now, width: labelWidth)
+            let ticks = tickPattern.matches(in: page, range: NSRange(page.startIndex..., in: page)).compactMap { match in
+                Range(match.range(at: 1), in: page).flatMap { Double(page[$0]) }
+            }
+            XCTAssertEqual(ticks.count, labels.count, "\(language)")
+            for (x, label) in zip(ticks, labels) {
+                XCTAssertEqual(x, axisX(label.date), accuracy: 0.01, "\(language): «\(label.text)»")
+                XCTAssertTrue((Double(label.left)...Double(label.left + label.width)).contains(x),
+                              "\(language): the tick at \(x) is outside «\(label.text)»")
+            }
+        }
     }
 
     // MARK: e) Rendering
