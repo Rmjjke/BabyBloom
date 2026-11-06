@@ -48,7 +48,7 @@ struct VisitDetailSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("visit.title".l)
             .toolbar { toolbar }
             .alert("visit.delete_title".l, isPresented: $showDeleteAlert) {
                 Button("button.delete".l, role: .destructive) {
@@ -70,27 +70,22 @@ struct VisitDetailSheet: View {
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         if isEditing {
             ToolbarItem(placement: .cancellationAction) {
-                Button("button.cancel".l) { isEditing = false }
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                BBBarButton(.cancel) { isEditing = false }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("button.save".l) { saveEdit() }
-                    .fontWeight(.semibold)
-                    .foregroundStyle(BBTheme.Colors.primary)
+                BBBarButton(.save) { saveEdit() }
                     .accessibilityIdentifier("doctor.visit_sheet.save")
             }
         } else {
             ToolbarItem(placement: .cancellationAction) {
-                Button("button.close".l) { dismiss() }
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                BBBarButton(.close) { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("button.edit".l) {
+                BBBarButton(.edit) {
                     editDate = visit.date
                     editNote = visit.note ?? ""
                     isEditing = true
                 }
-                .foregroundStyle(BBTheme.Colors.primary)
                 .accessibilityIdentifier("doctor.visit_detail.edit")
             }
         }

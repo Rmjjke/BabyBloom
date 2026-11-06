@@ -90,9 +90,10 @@ struct DoseSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     if modelsGone {
-                        // Above Large the bar has no title; `title` reads no
+                        // This sheet's bar has no title; `title` reads no
                         // field of the gone models.
-                        BBSheetHeading(title: title)
+                        BBSheetHeading(title: title, placement: .content)
+                            .padding(BBTheme.Spacing.md)
                     } else {
                         fields
                     }
@@ -108,16 +109,13 @@ struct DoseSheet: View {
                     .background(BBTheme.Colors.background)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle(title, movesIntoContentAboveLarge: true)
+            .bbSheetTitle(title, placement: .content)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(canSave ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
+                    BBBarButton(.save) { save() }
                         .disabled(!canSave)
                 }
             }
@@ -130,7 +128,7 @@ struct DoseSheet: View {
 
     private var fields: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
-            BBSheetHeading(title: title)
+            BBSheetHeading(title: title, placement: .content)
             if showsMenu {
                 MedicationMenuField(value: medicine?.name ?? "medication.picker_choose".l) {
                     ForEach(choices) { choice in

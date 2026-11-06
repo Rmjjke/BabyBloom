@@ -47,15 +47,13 @@ struct VisitSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("visit.title".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(BBTheme.Colors.primary)
+                    BBBarButton(.save) { save() }
                         .accessibilityIdentifier("doctor.visit_sheet.save")
                 }
             }

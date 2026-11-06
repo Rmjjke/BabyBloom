@@ -357,8 +357,7 @@ struct DiaperNormEditorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
             }
         }
@@ -530,15 +529,13 @@ struct AddDiaperSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.diaper".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("sheet.diaper".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(BBTheme.Colors.primary)
+                    BBBarButton(.save) { save() }
                 }
             }
         }

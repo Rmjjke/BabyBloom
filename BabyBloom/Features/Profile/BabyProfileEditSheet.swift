@@ -224,16 +224,13 @@ struct BabyProfileEditSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("profile.edit_title".l, movesIntoContentAboveLarge: true)
+            .bbSheetTitle("profile.edit_title".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
+                    BBBarButton(.save) { save() }
                 }
             }
         }
