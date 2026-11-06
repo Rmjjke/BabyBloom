@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — A growth verdict's tier is a dot, never the colour of its words
+
+On the Growth screen and Home's growth card every verdict word and figure is in the text colour: the gain card's figure and band word, the newborn card's figure, the Nutrition rows' values and Home's gain value. The tier tint moves to a mark beside them: a dot before the value, `BBSuccess` for within, `BBAccent` for below, none for above. «Not enough data» and «first weeks» stay in the secondary text colour, without a dot. The newborn card keeps its green tick and the percentile card its tinted ring, the same rule.
+
+**Why.** In light the tints are under every floor as ink: `BBSuccess` 1.98 and `BBAccent` 1.84 on the surface, where a figure needs 3 and a 13–14 pt word 4.5. The text colour reads 14.28 in light and 14.05 in dark. A mark beside words that say the verdict needs no ratio of its own, and the verdict stays in words, so no colour carries it. It is the rule the percentile card took the same day; a neutral figure there and a green one two cards below would read as two designs. Not taken: darker ink tokens of the same hues (#357D5E, #94654E reach 4.5, but they are a forest green and a brown the palette does not have, the verdict word would become the loudest line on the card, and «below» in brown reads close to a warning); the text colour with no mark (the gain card has no ring or tick to carry the tier).
+
+**How.** `BBTierValue` draws the dot inside the value's own run of text, so it stays on the first line when the value wraps, sits beside the first word under a trailing alignment, and a word joiner keeps it from ending a line alone. It scales with the value's text style. VoiceOver reads the value's words, not the dot. At Large the dot adds about 12 pt beside a 13 pt value, which costs a status line in 5 of 108 measured row × width × language cases (none on 320).
+
 ## 2026-11-04 — The weekly card's × leaves a line with an undo; one legend says what the arrows compare
 
 × still hides the weekly card until next Monday. For the rest of that Dashboard visit the card's surface stays in its place with one line, «The weekly summary is hidden until next Monday.», and «Undo», which brings the card back. The line has no timer and is not stored; another tab, a pushed screen or the app in the background ends it. Under the rows, when an arrow shows, one caption says the arrows show the change from the week before. VoiceOver skips it, since each row already speaks its comparison in words.
@@ -1457,7 +1465,9 @@ neutral below it.
 MORE nappies than the norm — clinically inverted, and in the one domain where
 this app has to stay calm. The same reasoning covers `WeightVelocity.Band
 .above`, which takes the neutral primary tint rather than the green "within"
-tick: fast gain is not a worry, and it is not an achievement either.
+tick: fast gain is not a worry, and it is not an achievement either. (Since
+2026-11-04 every verdict word is in the text colour and the tier is a dot
+before it; `.above` gets none.)
 
 **Consequence.** The palette gained `BBAlert`, and red became a token instead
 of the `#E05A5A` literal repeated across the growth cards. Having exactly one

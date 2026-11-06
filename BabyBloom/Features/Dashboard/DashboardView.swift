@@ -294,8 +294,8 @@ struct DashboardView: View {
             // A gesture, NOT a `NavigationLink` — the same trade `ExplainerCard`
             // documents, for the same reason. A link is a Button, and a Button
             // flattens its label into ONE accessibility element, which would
-            // destroy the per-row structure `growthRow` builds on purpose (label
-            // and value read as one statement, one stop per row — the rule
+            // destroy the per-row structure `GrowthSummaryRow` builds on purpose
+            // (label and value read as one statement, one stop per row — the rule
             // DECISIONS 2026-09-05 "One explainer pattern" records for
             // `NutritionSection`, which this card copies). The way in without
             // sight is the named action on the header title, which is an element
@@ -344,18 +344,15 @@ struct DashboardView: View {
                 // parent who has not weighed yet is doing nothing wrong.
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
-                growthRow(label: "stat.weight".l,
-                          value: ReportFormat.kg(weightKg),
-                          color: BBTheme.Colors.textPrimary)
+                GrowthSummaryRow(label: "stat.weight".l, value: ReportFormat.kg(weightKg))
                 gainRow(gain)
                 if store.isPremium, let reading = latestPercentile {
                     // `rowText` already rounds, clamps and — past the chart's
                     // edge — drops the fake-precise number for the tail in
                     // words, the same claim the Growth screen's figure makes
                     // about the same weighing.
-                    growthRow(label: "percentile.weight".l,
-                              value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
-                              color: BBTheme.Colors.textPrimary)
+                    GrowthSummaryRow(label: "percentile.weight".l,
+                                     value: reading.rowText(format: "dashboard.growth.percentile_fmt".l))
                 }
             }
         }
@@ -370,9 +367,8 @@ struct DashboardView: View {
     private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
         switch gain {
         case .word(let word):
-            growthRow(label: "nutrition.row_gain".l,
-                      value: gainValue(word),
-                      color: gainColor(word))
+            GrowthSummaryRow(label: "nutrition.row_gain".l, value: gainValue(word),
+                             ink: word.ink, dot: word.dot)
         case .needsAnotherWeighing:
             HintText(text: "nutrition.need_weighing".l)
         case .unavailable:
@@ -396,58 +392,6 @@ struct DashboardView: View {
         let grams = Int(reading.gramsPerWeek.rounded())
         let signed = grams > 0 ? "+\(grams)" : "\(grams)"
         return String(format: "velocity.per_week_fmt".l, signed) + " · " + status
-    }
-
-    /// `NutritionSection`'s mapping, unchanged: colour reinforces the word and
-    /// never carries the message on its own, and nothing here is red. `.above`
-    /// takes the neutral `WeightGainCard` tint rather than the reassuring
-    /// green — gaining fast is not a problem, and it is not a tick either.
-    private func gainColor(_ word: StatusWord) -> Color {
-        switch word {
-        case .below:         return BBTheme.Colors.accent
-        case .within:        return BBTheme.Colors.success
-        case .above:         return BBTheme.Colors.textPrimary
-        case .notEnoughData, .firstWeeks: return BBTheme.Colors.textSecondary
-        }
-    }
-
-    /// At an accessibility size the label and its value cannot share a line
-    /// without one of them being proposed a width narrower than its own longest
-    /// word, and SwiftUI answers that by breaking INSIDE the word — the defect
-    /// `NutritionSection` documents. Same two layouts, same reason.
-    @ViewBuilder
-    private func growthRow(label: String, value: String, color: Color) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
-                growthLabel(label)
-                growthValue(value, color: color)
-                    .multilineTextAlignment(.leading)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-        } else {
-            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-                growthLabel(label)
-                Spacer(minLength: BBTheme.Spacing.sm)
-                growthValue(value, color: color)
-                    .multilineTextAlignment(.trailing)
-            }
-            .accessibilityElement(children: .combine)
-        }
-    }
-
-    private func growthLabel(_ label: String) -> some View {
-        Text(label)
-            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-            .foregroundStyle(BBTheme.Colors.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func growthValue(_ value: String, color: Color) -> some View {
-        Text(value)
-            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .semibold, design: .rounded))
-            .foregroundStyle(color)
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Growth derivations
@@ -604,6 +548,54 @@ struct DashboardView: View {
     private var sleepTarget: Double {
         let ageMonths = baby?.correctedAgeMonths ?? 0
         return ageMonths < 1 ? 16 : (ageMonths < 3 ? 15 : 14)
+    }
+}
+
+/// One line of Home's growth card: the label, and its value with the tier dot
+/// when it is a verdict (`StatusWord`'s colours, as the Growth tab draws them).
+///
+/// At an accessibility size the label and its value cannot share a line
+/// without one of them being proposed a width narrower than its own longest
+/// word, and SwiftUI answers that by breaking INSIDE the word — the defect
+/// `NutritionSection` documents. Same two layouts, same reason.
+struct GrowthSummaryRow: View {
+    let label: String
+    let value: String
+    var ink: Color = BBTheme.Colors.textPrimary
+    var dot: Color?
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                labelText
+                valueText
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                labelText
+                Spacer(minLength: BBTheme.Spacing.sm)
+                valueText
+                    .multilineTextAlignment(.trailing)
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var labelText: some View {
+        Text(label)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var valueText: some View {
+        BBTierValue(text: value, dot: dot, ink: ink, size: 13, style: .caption1)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

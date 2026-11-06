@@ -153,10 +153,8 @@ struct NutritionSection: View {
     }
 
     private func statusView(value: Double?, word: StatusWord) -> some View {
-        Text(statusText(value: value, word: word))
-            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
-                                            weight: .semibold, design: .rounded))
-            .foregroundStyle(color(for: word))
+        BBTierValue(text: statusText(value: value, word: word),
+                    dot: word.dot, ink: word.ink, size: 13, style: .caption1)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -170,17 +168,28 @@ struct NutritionSection: View {
         guard let value else { return status }
         return String(format: "nutrition.per_day_fmt".l, value.appRate).gluingNumbersToUnits + " · " + status
     }
+}
 
-    /// `.above` takes the neutral primary tint, matching `WeightGainCard`:
-    /// gaining faster than the reference is neither a worry nor a tick.
-    private func color(for word: StatusWord) -> Color {
-        switch word {
-        case .below:         return BBTheme.Colors.accent
-        case .within:        return BBTheme.Colors.success
-        case .above:         return BBTheme.Colors.textPrimary
-        // A deferral is not a verdict, so it takes the same quiet tint the
+/// A verdict's colours, here and on Home's growth card: the words in the text
+/// colour, the tier on the dot before them (`BBTierValue`). Colour reinforces
+/// the word and never carries it, and none of it is red.
+extension StatusWord {
+    var ink: Color {
+        switch self {
+        case .below, .within, .above: return BBTheme.Colors.textPrimary
+        // A deferral is not a verdict, so it takes the same quiet ink the
         // "we cannot say yet" state does.
         case .notEnoughData, .firstWeeks: return BBTheme.Colors.textSecondary
+        }
+    }
+
+    /// `.above` has none, matching `WeightGainCard`: gaining faster than the
+    /// reference is neither a worry nor a tick.
+    var dot: Color? {
+        switch self {
+        case .below:  return BBTheme.Colors.accent
+        case .within: return BBTheme.Colors.success
+        case .above, .notEnoughData, .firstWeeks: return nil
         }
     }
 }
