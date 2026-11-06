@@ -61,6 +61,77 @@ struct SettingsRowLabel<Texts: View, FirstWords: View>: View {
     }
 }
 
+/// The baby's row at the top of Settings: the avatar beside the name and the
+/// age while every word keeps whole there, else, at the accessibility sizes,
+/// the avatar on a line of its own above them. Beside the 56-pt avatar on a
+/// 320-pt screen at AX2 the column split «Алекса|ндра», and with Bold Text the
+/// glued «11 месяцев» missed it too: a glued phrase wider than its line is
+/// broken at its no-break space, so «месяцев» started a line alone.
+struct SettingsBabyRowLabel: View {
+    let baby: Baby
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let age = baby.ageDescription
+        if dynamicTypeSize.isAccessibilitySize {
+            ViewThatFits(in: .horizontal) {
+                ProbedIdealWidth {
+                    beside(name: baby.name, age: age)
+                    // The same row one word a line: its ideal width is the
+                    // narrowest the drawn row keeps every word whole at. The
+                    // age's no-break space keeps it one word here.
+                    beside(name: baby.name.oneWordALine, age: age.oneWordALine)
+                        .hidden()
+                        .accessibilityHidden(true)
+                }
+                // The chevron rides the avatar's line, so the texts get the
+                // row's whole width: beside them it still split a bold
+                // «Александра» at AX2.
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    HStack {
+                        avatar
+                        Spacer(minLength: 0)
+                        chevron
+                    }
+                    texts(name: baby.name, age: age)
+                }
+            }
+        } else {
+            beside(name: baby.name, age: age)
+        }
+    }
+
+    private func beside(name: String, age: String) -> some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            avatar
+            texts(name: name, age: age)
+            Spacer()
+            chevron
+        }
+    }
+
+    private func texts(name: String, age: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(name)
+                .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+            Text(age)
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.primary)
+        }
+    }
+
+    private var avatar: some View {
+        BabyAvatarView(photoData: baby.photoData, gender: baby.gender, size: 56)
+    }
+
+    private var chevron: some View {
+        Image(systemName: "chevron.right")
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+    }
+}
+
 /// Draws its first subview, a system row, as the system sizes it; asked its
 /// ideal width, it answers the sum of the other subviews' ideal widths: hidden
 /// probes whose width is the narrowest the row keeps every word whole at.

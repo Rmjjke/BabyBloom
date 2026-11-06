@@ -85,14 +85,14 @@ final class CorrectedAgeTests: XCTestCase {
     func testCorrectedDescriptionDescribesCorrectedAge() {
         // 70 days old, born 8 weeks early → corrected 14 days: weeks, not months.
         let young = baby(ageDays: 70, gestationalWeeks: 32)
-        XCTAssertEqual(young.correctedAgeDescription, "2 \(2.weekWord)")
-        XCTAssertEqual(young.ageDescription, "2 \(2.monthWord)")
+        XCTAssertEqual(young.correctedAgeDescription, "2\u{00A0}\(2.weekWord)")
+        XCTAssertEqual(young.ageDescription, "2\u{00A0}\(2.monthWord)")
 
         // 100 days old, born 8 weeks early → corrected 44 days: months, like the
         // chronological description, but a different number of them.
         let older = baby(ageDays: 100, gestationalWeeks: 32)
-        XCTAssertEqual(older.correctedAgeDescription, "1 \(1.monthWord)")
-        XCTAssertEqual(older.ageDescription, "3 \(3.monthWord)")
+        XCTAssertEqual(older.correctedAgeDescription, "1\u{00A0}\(1.monthWord)")
+        XCTAssertEqual(older.ageDescription, "3\u{00A0}\(3.monthWord)")
     }
 
     // MARK: - Birth weight

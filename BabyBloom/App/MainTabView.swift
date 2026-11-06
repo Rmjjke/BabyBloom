@@ -198,24 +198,8 @@ struct ProfileView: View {
                     Button {
                         showProfileEdit = true
                     } label: {
-                        HStack(spacing: BBTheme.Spacing.md) {
-                            BabyAvatarView(photoData: baby.photoData,
-                                           gender: baby.gender,
-                                           size: 56)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(baby.name)
-                                    .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                                Text(baby.ageDescription)
-                                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.primary)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
-                        }
-                        .padding(.vertical, 6)
+                        SettingsBabyRowLabel(baby: baby)
+                            .padding(.vertical, 6)
                     }
                 }
             }

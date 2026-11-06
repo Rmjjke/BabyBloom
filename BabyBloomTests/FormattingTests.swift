@@ -78,4 +78,19 @@ final class FormattingTests: XCTestCase {
             XCTAssertFalse(WeeklyFormat.duration(15 * 60).range(of: #"\d "#, options: .regularExpression) != nil)
         }
     }
+
+    /// The report screen's period line: «20 days» and «13 окт.» never split,
+    /// and a visit today reads the word, not «0 days».
+    func testTheReportPeriodAndDateHoldTogether() {
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            XCTAssertEqual(ReportFormat.periodLength(days: 20), "20\(nbsp)\(20.dayWord)", "\(language)")
+            XCTAssertEqual(ReportFormat.periodLength(days: 0), "report.period_today".l, "\(language)")
+            let date = ReportFormat.dayMonth(now)
+            XCTAssertFalse(date.contains(" "), "\(language): «\(date)»")
+            XCTAssertEqual(date.replacingOccurrences(of: nbsp, with: " "), now.appDayMonth, "\(language)")
+        }
+        LocalizationManager.shared.setLanguage(.ru)
+        XCTAssertEqual(ReportFormat.periodLength(days: 21), "21\(nbsp)день")
+    }
 }
