@@ -4,7 +4,7 @@ import SwiftData
 struct DashboardView: View {
     /// The tab selection, owned by MainTabView. The active-timer cards use it
     /// to jump to the screen that owns the timer — a card that shows a running
-    /// timer but cannot take you to it reads as broken (owner report, build 5).
+    /// timer but cannot take you to it reads as broken.
     @Binding var selectedTab: MainTabView.Tab
 
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
@@ -52,7 +52,7 @@ struct DashboardView: View {
         todaySleeps.filter { !$0.isActive }.reduce(0) { $0 + $1.duration / 3600 }
     }
 
-    /// Free for everyone (D10). `AppClock` so the L3 lever can stand on any week.
+    /// Free for everyone. `AppClock` so a test run can stand on any week.
     private var weeklySummary: WeeklySummary? {
         guard let baby else { return nil }
         return WeeklySummary.make(
@@ -77,8 +77,10 @@ struct DashboardView: View {
                     if activeFeeding != nil || activeSleep != nil {
                         activeTimersSection
                     }
+                    // Under the timers, above last week.
+                    MedicationHomeSection()
                     // Under the timers: a running timer outranks last week at
-                    // 3 a.m. (design note § 1). nil = nothing logged last week.
+                    // 3 a.m. nil = nothing logged last week.
                     if let weeklySummary {
                         WeeklySummaryCard(summary: weeklySummary,
                                           onAddWeighing: { showQuickGrowthSheet = true })
@@ -93,7 +95,7 @@ struct DashboardView: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             // No navigation bar here, so nothing backs the status bar: scrolled
-            // text drew under the clock (CHECK 4). A strip as tall as the top
+            // text drew under the clock. A strip as tall as the top
             // inset, shifted up by it, covers exactly that band (a zero-height
             // strip with ignoresSafeArea did not, live).
             .overlay(alignment: .top) {
@@ -137,6 +139,7 @@ struct DashboardView: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(BBTheme.Colors.primary.opacity(0.1))
+                        .background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.pill)
                 } else {
                     BBTheme.Typography.title1("brand.name".l)
@@ -180,7 +183,9 @@ struct DashboardView: View {
                     color: BBTheme.Colors.sleep,
                     title: "status.baby_sleeping".l,
                     subtitle: sleep.type.displayName.l,
-                    startTime: sleep.startTime
+                    startTime: sleep.startTime,
+                    // As the Sleep screen it opens reads it: «01:41:02», not «101:02».
+                    showsHours: true
                 ) { selectedTab = .sleep }
             }
         }
@@ -190,7 +195,11 @@ struct DashboardView: View {
     private var quickActionsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_input")
-            HStack(spacing: 0) {
+            // One at accessibility sizes whatever fits: one shape at the
+            // largest text, as the running cards above keep. Two would hold
+            // ru «Подгузники» there by 5.9 pt, and not with Bold Text.
+            QuickActionsLayout(counts: dynamicTypeSize.isAccessibilitySize ? [1] : [4, 2],
+                               rowSpacing: BBTheme.Spacing.md) {
                 BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
                 BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
                 BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
@@ -213,11 +222,10 @@ struct DashboardView: View {
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.today")
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.feedings",
                     value: "\(todayFeedings.count)",
-                    unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
                     trend: lastFeedingText,
@@ -225,8 +233,9 @@ struct DashboardView: View {
                 )
                 BBStatCard(
                     title: "stat.sleep",
-                    value: totalSleepToday.appDecimal(1),
-                    unit: "unit.hours",
+                    // Back to whole seconds first: hours summed as a Double
+                    // can land a hair under a whole minute.
+                    value: DurationText.minutes(Int((totalSleepToday * 3600).rounded()) / 60),
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep,
                     action: { showQuickSleepSheet = true }
@@ -234,7 +243,6 @@ struct DashboardView: View {
                 BBStatCard(
                     title: "stat.diapers",
                     value: "\(todayDiapers.count)",
-                    unit: "unit.pcs",
                     icon: "drop.fill",
                     color: BBTheme.Colors.diaper,
                     action: { showQuickDiaperSheet = true }
@@ -266,9 +274,7 @@ struct DashboardView: View {
 
     private var lastFeedingText: String? {
         guard let last = feedings.first else { return nil }
-        let mins = Int(Date().timeIntervalSince(last.startTime) / 60)
-        if mins < 60 { return String(format: "stats.min_ago".l, mins) }
-        return String(format: "stats.h_ago".l, mins / 60)
+        return ReportFormat.ago(from: last.startTime, to: AppClock.now)
     }
 
     // MARK: - Growth
@@ -288,8 +294,8 @@ struct DashboardView: View {
             // A gesture, NOT a `NavigationLink` — the same trade `ExplainerCard`
             // documents, for the same reason. A link is a Button, and a Button
             // flattens its label into ONE accessibility element, which would
-            // destroy the per-row structure `growthRow` builds on purpose (label
-            // and value read as one statement, one stop per row — the rule
+            // destroy the per-row structure `GrowthSummaryRow` builds on purpose
+            // (label and value read as one statement, one stop per row — the rule
             // DECISIONS 2026-09-05 "One explainer pattern" records for
             // `NutritionSection`, which this card copies). The way in without
             // sight is the named action on the header title, which is an element
@@ -320,7 +326,7 @@ struct DashboardView: View {
 
             // A permanent teaser, not a free-first-days window: a section that
             // vanished after two days would read as breakage, in the one domain
-            // where the app must never frighten (owner decision 2026-09-01).
+            // where the app must never frighten (DECISIONS 2026-09-01).
             if !store.isPremium {
                 LockedInsightCard(
                     title: "dashboard.growth.locked_title".l,
@@ -338,19 +344,7 @@ struct DashboardView: View {
                 // parent who has not weighed yet is doing nothing wrong.
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
-                growthRow(label: "stat.weight".l,
-                          value: weightKg.appDecimal(2) + " " + "unit.kg".l,
-                          color: BBTheme.Colors.textPrimary)
-                gainRow(gain)
-                if store.isPremium, let reading = latestPercentile {
-                    // `rowText` already rounds, clamps and — past the chart's
-                    // edge — drops the fake-precise number for the band label,
-                    // so this line says exactly what the Growth screen's card
-                    // says about the same weighing.
-                    growthRow(label: "percentile.weight".l,
-                              value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
-                              color: BBTheme.Colors.textPrimary)
-                }
+                summary(weightKg: weightKg, gain: gain)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -360,15 +354,50 @@ struct DashboardView: View {
         .bbShadow(BBTheme.Shadow.card)
     }
 
+    /// All the card's rows beside, or all under: one shape for the card, so the
+    /// values do not jump between the right edge and the margin row to row.
+    /// Under at every accessibility size; below them beside only where every
+    /// word of every row keeps whole beside (`GrowthSummaryRow`).
     @ViewBuilder
-    private func gainRow(_ gain: DashboardGrowthSummary.Gain) -> some View {
+    private func summary(weightKg: Double, gain: DashboardGrowthSummary.Gain) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            summaryRows(weightKg: weightKg, gain: gain, beside: false)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                summaryRows(weightKg: weightKg, gain: gain, beside: true)
+                summaryRows(weightKg: weightKg, gain: gain, beside: false)
+            }
+        }
+    }
+
+    private func summaryRows(weightKg: Double, gain: DashboardGrowthSummary.Gain, beside: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            GrowthSummaryRow(label: "stat.weight".l, value: ReportFormat.kg(weightKg), beside: beside)
+            gainRow(gain, beside: beside)
+            if store.isPremium, let reading = latestPercentile {
+                // `rowText` already rounds, clamps and — past the chart's
+                // edge — drops the fake-precise number for the tail in
+                // words, the same claim the Growth screen's figure makes
+                // about the same weighing.
+                GrowthSummaryRow(label: "percentile.weight".l,
+                                 value: reading.rowText(format: "dashboard.growth.percentile_fmt".l),
+                                 beside: beside)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func gainRow(_ gain: DashboardGrowthSummary.Gain, beside: Bool) -> some View {
         switch gain {
         case .word(let word):
-            growthRow(label: "nutrition.row_gain".l,
-                      value: gainValue(word),
-                      color: gainColor(word))
+            GrowthSummaryRow(label: "nutrition.row_gain".l, value: gainValue(word),
+                             ink: word.ink, dot: word.dot, beside: beside)
         case .needsAnotherWeighing:
+            // Prose wraps between its words at any width, so its one line must
+            // not count against the rows beside: the ideal width 0 leaves the
+            // card's shape to the rows.
             HintText(text: "nutrition.need_weighing".l)
+                .frame(idealWidth: 0, maxWidth: .infinity, alignment: .leading)
         case .unavailable:
             // Past the age the gain reference covers the section says nothing
             // about gain. "Not enough data" would be untrue.
@@ -390,58 +419,6 @@ struct DashboardView: View {
         let grams = Int(reading.gramsPerWeek.rounded())
         let signed = grams > 0 ? "+\(grams)" : "\(grams)"
         return String(format: "velocity.per_week_fmt".l, signed) + " · " + status
-    }
-
-    /// `NutritionSection`'s mapping, unchanged: colour reinforces the word and
-    /// never carries the message on its own, and nothing here is red. `.above`
-    /// takes the neutral `WeightGainCard` tint rather than the reassuring
-    /// green — gaining fast is not a problem, and it is not a tick either.
-    private func gainColor(_ word: StatusWord) -> Color {
-        switch word {
-        case .below:         return BBTheme.Colors.accent
-        case .within:        return BBTheme.Colors.success
-        case .above:         return BBTheme.Colors.textPrimary
-        case .notEnoughData, .firstWeeks: return BBTheme.Colors.textSecondary
-        }
-    }
-
-    /// At an accessibility size the label and its value cannot share a line
-    /// without one of them being proposed a width narrower than its own longest
-    /// word, and SwiftUI answers that by breaking INSIDE the word — the defect
-    /// `NutritionSection` documents. Same two layouts, same reason.
-    @ViewBuilder
-    private func growthRow(label: String, value: String, color: Color) -> some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
-                growthLabel(label)
-                growthValue(value, color: color)
-                    .multilineTextAlignment(.leading)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-        } else {
-            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-                growthLabel(label)
-                Spacer(minLength: BBTheme.Spacing.sm)
-                growthValue(value, color: color)
-                    .multilineTextAlignment(.trailing)
-            }
-            .accessibilityElement(children: .combine)
-        }
-    }
-
-    private func growthLabel(_ label: String) -> some View {
-        Text(label)
-            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-            .foregroundStyle(BBTheme.Colors.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func growthValue(_ value: String, color: Color) -> some View {
-        Text(value)
-            .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .semibold, design: .rounded))
-            .foregroundStyle(color)
-            .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Growth derivations
@@ -510,9 +487,9 @@ struct DashboardView: View {
     /// One table, one answer.
     private var progressSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
-            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
-            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
-            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
+            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, color: BBTheme.Colors.feeding, icon: "heart.fill")
+            BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, measure: .hours, color: BBTheme.Colors.sleep, icon: "moon.fill")
+            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
     }
 
@@ -601,6 +578,68 @@ struct DashboardView: View {
     }
 }
 
+/// One line of Home's growth card: the label, and its value with the tier dot
+/// when it is a verdict (`StatusWord`'s colours, as the Growth tab draws them).
+///
+/// Squeezed beside its label, either text can be proposed a width narrower
+/// than its own longest word, and SwiftUI answers that by breaking INSIDE the
+/// word — the defect `NutritionSection` documents. Same two layouts, same
+/// reason: the card stands its rows beside only where every word keeps whole
+/// (`SideBySideIdeal`), else the value goes under its label.
+struct GrowthSummaryRow: View {
+    let label: String
+    let value: String
+    var ink: Color = BBTheme.Colors.textPrimary
+    var dot: Color?
+    let beside: Bool
+
+    var body: some View {
+        if beside {
+            // The hidden copies measure the two texts in their own fonts: whole,
+            // and one word a line. With no icon column the stack's chrome is its
+            // two gaps and the spacer's least length.
+            SideBySideIdeal(chrome: 3 * BBTheme.Spacing.sm) {
+                Group {
+                    labelText(label)
+                    labelText(label.oneWordALine)
+                    valueText(value)
+                        .multilineTextAlignment(.trailing)
+                    valueText(value.oneWordALine)
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                    labelText(label)
+                    Spacer(minLength: BBTheme.Spacing.sm)
+                    valueText(value)
+                        .multilineTextAlignment(.trailing)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                labelText(label)
+                valueText(value)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func labelText(_ text: String) -> some View {
+        Text(text)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func valueText(_ text: String) -> some View {
+        BBTierValue(text: text, dot: dot, ink: ink, size: 13, style: .caption1)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 // MARK: - Active Timer Card
 struct ActiveTimerCard: View {
     let icon: String
@@ -608,6 +647,8 @@ struct ActiveTimerCard: View {
     let title: String
     let subtitle: String
     let startTime: Date
+    /// Hours past an hour (sleep), else minutes past 59 (feeding).
+    var showsHours: Bool = false
     /// Where the card takes you — the screen that owns this timer.
     let onTap: () -> Void
 
@@ -632,25 +673,80 @@ struct ActiveTimerCard: View {
                     .font(.system(size: 20))
                     .foregroundStyle(color)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Text(subtitle)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            // The text beside the timer while both fit one line, else
+            // above it. On a 320-pt screen at Large that is above at any
+            // time; beside three-digit minutes ru «Кормление» broke there.
+            BBTimerFit(startTime: startTime,
+                       showsHours: showsHours,
+                       font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
+                       spacing: BBTheme.Spacing.md) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Text(subtitle)
+                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
             }
-            Spacer()
-            BBElapsedTimer(
-                startTime: startTime,
-                font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
-                color: color
-            )
         }
         .padding(BBTheme.Spacing.md)
         .background(color.opacity(0.08))
         .cornerRadius(BBTheme.Radius.md)
         .overlay(RoundedRectangle(cornerRadius: BBTheme.Radius.md).stroke(color.opacity(0.3), lineWidth: 1.5))
+    }
+}
+
+// MARK: - Quick Actions Layout
+/// Home's quick actions in equal columns: the first count in `counts` whose
+/// column holds every action's word on one line, measured as drawn (in the
+/// app's language, at the text size, with Bold Text), else the last count.
+/// The one equal-column row whose count follows the width: a fixed two by two
+/// moved everything below the card 94.7 pt down on every phone to save a
+/// 320-pt one, where ru «Подгузники» (71.1 pt) misses a quarter (64), and no
+/// padding or shorter word reaches 320, because the words name the screens.
+/// Other equal-column rows keep one count per text size (`BBTileColumns`).
+private struct QuickActionsLayout: Layout {
+    let counts: [Int]
+    let rowSpacing: CGFloat
+
+    private func columnCount(width: CGFloat, subviews: Subviews) -> Int {
+        let widest = subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        return counts.first { widest <= width / CGFloat($0) } ?? counts.last ?? 1
+    }
+
+    /// The rows' heights at `width`, each its tallest action's.
+    private func rowHeights(width: CGFloat, count: Int, subviews: Subviews) -> [CGFloat] {
+        let column = ProposedViewSize(width: width / CGFloat(count), height: nil)
+        return stride(from: 0, to: subviews.count, by: count).map { start in
+            subviews[start..<min(start + count, subviews.count)]
+                .map { $0.sizeThatFits(column).height }.max() ?? 0
+        }
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width
+            ?? (subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0) * CGFloat(counts.first ?? 1)
+        let heights = rowHeights(width: width, count: columnCount(width: width, subviews: subviews),
+                                 subviews: subviews)
+        return CGSize(width: width,
+                      height: heights.reduce(0, +) + rowSpacing * CGFloat(max(heights.count - 1, 0)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let count = columnCount(width: bounds.width, subviews: subviews)
+        let column = bounds.width / CGFloat(count)
+        var top = bounds.minY
+        for (row, height) in rowHeights(width: bounds.width, count: count, subviews: subviews).enumerated() {
+            for index in row * count..<min((row + 1) * count, subviews.count) {
+                // Centred in its cell, as a stack row and a grid cell set it.
+                subviews[index].place(
+                    at: CGPoint(x: bounds.minX + column * (CGFloat(index - row * count) + 0.5), y: top + height / 2),
+                    anchor: .center,
+                    proposal: ProposedViewSize(width: column, height: nil))
+            }
+            top += height + rowSpacing
+        }
     }
 }
 
@@ -660,7 +756,7 @@ struct FeedingQuickSheet: View {
     var body: some View {
         NavigationStack {
             FeedingView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }
@@ -670,7 +766,7 @@ struct SleepQuickSheet: View {
     var body: some View {
         NavigationStack {
             SleepView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }
@@ -680,7 +776,7 @@ struct DiaperQuickSheet: View {
     var body: some View {
         NavigationStack {
             DiaperView()
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("button.close".l) { dismiss() } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { BBBarButton(.close) { dismiss() } } }
         }
     }
 }

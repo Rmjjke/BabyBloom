@@ -6,6 +6,7 @@ struct SleepView: View {
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
     /// The history list's free window sells from here; nothing else on this
@@ -31,6 +32,7 @@ struct SleepView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBScreenHeading(title: "tab.sleep".l, horizontalPadding: BBTheme.Spacing.md)
 
                     // Active sleep
                     if let active = activeEntry {
@@ -61,7 +63,7 @@ struct SleepView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
                 // Extra bottom clearance so the history period-selector / delete-all
-                // button never tucks under the tab bar. (D2 bugfix)
+                // button never tucks under the tab bar.
                 .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
@@ -70,8 +72,7 @@ struct SleepView: View {
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
-            .navigationTitle("tab.sleep".l)
-            .navigationBarTitleDisplayMode(.large)
+            .bbScreenTitle("tab.sleep".l)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -81,6 +82,9 @@ struct SleepView: View {
                             .font(.system(size: 22))
                             .foregroundStyle(BBTheme.Colors.primary)
                     }
+                    // Icon only: unnamed, VoiceOver reads the symbol in the
+                    // device's language, not the app's.
+                    .accessibilityLabel(Text("sheet.add_sleep".l))
                 }
             }
         }
@@ -95,9 +99,19 @@ struct SleepView: View {
     // MARK: - Start Sleep
     private var startSleepSection: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            HStack(spacing: BBTheme.Spacing.md) {
-                sleepTypeButton(.nap)
-                sleepTypeButton(.night)
+            // One column from xxxLarge: in half a 320-pt row «Дневной» keeps
+            // 4.8 pt there (83.2 in 88), under the 8-pt spare.
+            let tileColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 1, accessibility: 1)
+            if tileColumns.count(at: dynamicTypeSize) == 1 {
+                VStack(spacing: BBTheme.Spacing.md) {
+                    sleepTypeButton(.nap)
+                    sleepTypeButton(.night)
+                }
+            } else {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    sleepTypeButton(.nap)
+                    sleepTypeButton(.night)
+                }
             }
         }
     }
@@ -108,13 +122,13 @@ struct SleepView: View {
         } label: {
             VStack(spacing: BBTheme.Spacing.sm) {
                 Image(systemName: type.icon)
-                    .font(.system(size: 30))
+                    .font(BBTheme.Typography.scaled(30, relativeTo: .body, weight: .regular, design: .default))
                     .foregroundStyle(BBTheme.Colors.sleep)
                 Text(type.displayName.l)
                     .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Text("button.start".l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             .frame(maxWidth: .infinity)
@@ -133,18 +147,16 @@ struct SleepView: View {
     private var todaySection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.today")
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.sleep_episodes",
                     value: "\(todayEntries.count)",
-                    unit: "unit.times",
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep
                 )
                 BBStatCard(
                     title: "stat.total",
-                    value: (totalSleepToday / 3600).appDecimal(1),
-                    unit: "unit.hours",
+                    value: DurationText.minutes(Int(totalSleepToday) / 60),
                     icon: "clock.fill",
                     color: BBTheme.Colors.primary
                 )
@@ -164,9 +176,18 @@ struct SleepView: View {
                     return dayEntries.reduce(0) { $0 + $1.duration } / 3600
                 },
                 color: BBTheme.Colors.sleep,
-                formatValue: { v in v == 0 ? "0" : v.appDecimal(1) }
+                formatValue: { v in v == 0 ? "0" : v.appDecimal(1) },
+                voiceOverValue: Self.chartVoiceOverValue(hours:)
             )
         }
+    }
+
+    /// A day's bar as VoiceOver reads it: the day's sleep in whole minutes,
+    /// floored as the Total tile and the rows floor theirs, so today's bar and
+    /// the tile say the same. The hours are rounded back to whole milliseconds
+    /// first: 7380 s / 3600 × 60 lands a hair under 123 and floored lost a minute.
+    static func chartVoiceOverValue(hours: Double) -> String {
+        DurationText.minutes(Int((hours * 3_600_000).rounded()) / 60_000)
     }
 
     // MARK: - History
@@ -225,17 +246,10 @@ struct SleepTimerCard: View {
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("status.baby_sleeping".l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.sleep)
-                    BBTheme.Typography.title3(entry.type.displayName.l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                }
-                Spacer()
-                BBElapsedTimer(startTime: entry.startTime, color: BBTheme.Colors.sleep, showsHours: true)
-            }
+            BBTimerCardHeader(label: "status.baby_sleeping".l,
+                              title: entry.type.displayName.l,
+                              startTime: entry.startTime,
+                              showsHours: true)
 
             BBPrimaryButton("button.woke_up".l, icon: "sun.max.fill") {
                 onStop()
@@ -257,16 +271,45 @@ struct AddSleepSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: SleepEntry.SleepType = .nap
     @State private var selectedLocation: SleepEntry.SleepLocation = .crib
     @State private var startTime = Date()
     @State private var endTime = Date()
 
+    /// Two-word names («Sueño nocturno», «En brazos») can wrap at
+    /// accessibility sizes and are centred there. Below them a centred line
+    /// sits a fraction of a pixel off the leading one, so the default stays.
+    private var wrapAlignment: TextAlignment {
+        dynamicTypeSize.isAccessibilitySize ? .center : .leading
+    }
+
+    private var locationTiles: some View {
+        ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
+            Button { selectedLocation = loc } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: loc.icon).font(BBTheme.Typography.scaled(20, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(BBTheme.Colors.primary)
+                    Text(loc.displayName.l).font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
+                        .multilineTextAlignment(wrapAlignment)
+                        .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(selectedLocation == loc)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.add_sleep".l)
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.sleep_type".l)
@@ -275,19 +318,17 @@ struct AddSleepSheet: View {
                             ForEach(SleepEntry.SleepType.allCases, id: \.self) { type in
                                 Button { selectedType = type } label: {
                                     VStack(spacing: 6) {
-                                        Image(systemName: type.icon).font(.system(size: 24))
+                                        Image(systemName: type.icon).font(BBTheme.Typography.scaled(24, relativeTo: .body, weight: .regular, design: .default))
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.sleep)
-                                        Text(type.displayName.l).font(.system(size: 13, weight: .medium, design: .rounded))
+                                        Text(type.displayName.l).font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                                            .multilineTextAlignment(wrapAlignment)
                                             .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                                     .cornerRadius(BBTheme.Radius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                    )
                                     .bbShadow(BBTheme.Shadow.card)
+                                    .bbSelectedBorder(selectedType == type)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
                             }
@@ -298,39 +339,45 @@ struct AddSleepSheet: View {
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.location".l)
                             .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                        HStack(spacing: BBTheme.Spacing.sm) {
-                            ForEach(SleepEntry.SleepLocation.allCases, id: \.self) { loc in
-                                Button { selectedLocation = loc } label: {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: loc.icon).font(.system(size: 20))
-                                            .foregroundStyle(BBTheme.Colors.primary)
-                                        Text(loc.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedLocation == loc ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                    }
-                                    .frame(maxWidth: .infinity).padding(.vertical, 12)
-                                    .background(selectedLocation == loc ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                            .strokeBorder(selectedLocation == loc ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                    )
-                                    .bbShadow(BBTheme.Shadow.card)
-                                }
-                                .buttonStyle(BBScaleButtonStyle())
+                        // Two columns at accessibility sizes: in a third of a
+                        // 320-pt sheet es «Cochecito» breaks at AX2 (91.8 pt in
+                        // 90.7). Below them the row stays an HStack: a grid
+                        // sets it a third of a point lower.
+                        let locationColumns = BBTileColumns(large: 3, xLarge: 3, xxLarge: 3, xxxLarge: 3, accessibility: 2)
+                        let locationCount = locationColumns.count(at: dynamicTypeSize)
+                        if locationCount == locationColumns.large {
+                            HStack(spacing: BBTheme.Spacing.sm) {
+                                locationTiles
+                            }
+                        } else {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: locationCount),
+                                      spacing: BBTheme.Spacing.sm) {
+                                locationTiles
                             }
                         }
                     }
 
                     // Times
-                    DatePicker("form.start_time".l, selection: $startTime, displayedComponents: [.date, .hourAndMinute])
-                        .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
-                        .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    BBLabeledPicker("form.start_time".l) { label in
+                        DatePicker(label, selection: $startTime, displayedComponents: [.date, .hourAndMinute])
+                            .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                    }
+                    .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    // `in: startTime...` below limits what the End picker
+                    // shows, never its binding: without this, End shows
+                    // Start while the earlier end waits to be saved.
+                    .onChange(of: startTime) { _, start in
+                        if endTime < start { endTime = start }
+                    }
 
-                    DatePicker("form.end_time".l, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
-                        .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
-                        .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                        .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    BBLabeledPicker("form.end_time".l) { label in
+                        DatePicker(label, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
+                            .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
+                    }
+                    .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
                 }
                 .padding(BBTheme.Spacing.md)
             }
@@ -345,12 +392,10 @@ struct AddSleepSheet: View {
             .bbSheetTitle("sheet.add_sleep".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(BBTheme.Colors.primary)
+                    BBBarButton(.save) { save() }
                 }
             }
         }
@@ -359,15 +404,15 @@ struct AddSleepSheet: View {
     }
 
     private func save() {
-        let entry = SleepEntry(startTime: startTime, type: selectedType, location: selectedLocation)
-        entry.endTime = endTime
+        let entry = SleepEntry.manual(start: startTime, end: endTime, type: selectedType, location: selectedLocation)
         entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         WidgetRefresh.entriesChanged()
         NotificationManager.shared.onSleepEnded(
             ageMonths: babies.first?.ageInMonths ?? 0,
-            endedAt: endTime
+            // The wake window runs from the end that was stored.
+            endedAt: entry.endTime ?? startTime
         )
         reviewPrompt.entrySaved(.sleep)
         dismiss()

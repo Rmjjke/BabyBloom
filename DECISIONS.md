@@ -10,7 +10,427 @@ that is not visible in the code. Mechanics belong in
 [ARCHITECTURE.md](ARCHITECTURE.md); this file is the reasoning.
 
 Working-process rules (git flow, verification, task cards) are not here — they
-live with the workflow in `.desk/`.
+live with the workflow, outside this repository.
+
+---
+
+## 2026-11-06 — Growth's weighings speak from overlay elements, not from Swift Charts' marks; a future day in the week chart says nothing
+
+Each weighing on Growth's weight chart is read by VoiceOver from an invisible element the chart's overlay places on its dot, with the readout's date, age and weight; every mark in the chart is hidden. The week chart's future days, which show no bar and no number, are hidden too.
+
+**Why.** Swift Charts merges marks that stand closer than its element width into one element and words it itself: two newborn weighings four days apart, or two on one day, read «13 Nov 2023 at 00 to 20 Nov 2023 at 00» with «3,4 to 3,18, 2 values», in the device's locale whatever the app's language, and no public API turns that merge off. An element of our own per weighing reads each one in the app's words however close the dots stand. Hiding every mark also takes away the chart's Audio Graph (the Chart Details rotor). The one Swift Charts made was titled «Chart» in English in every language, and its weight axis had no unit and no dates at its ends, so it said nothing the elements do not say better. A future day's bar plots 0 and Swift Charts read it as «0», a fact that is not true yet.
+
+Not taken: a custom `accessibilityChartDescriptor` (it describes the Audio Graph only and leaves the merged element as it is); a wider chart or bigger dots (the merge follows the element width, and the newborn weeks would still merge); one combined element for the whole chart (the parent could no longer step through the weighings).
+
+## 2026-11-06 — A number keeps its unit or word on its line; an age is glued where it is made; Settings' baby row sets the avatar above where a word misses beside it
+
+A number and the unit or word after it are joined by a no-break space, on screen and in the PDFs: `ReportFormat` glues units and dates, `gluingNumbersToUnits` glues each part of a duration, and `Baby.describeAge` joins the age's number and its word («11 месяцев», «3 weeks», «2 meses»), so every caller gets the glue from there and none glues it again. The report screen's period length and dates take the PDF's own `ReportFormat.periodLength` and `dayMonth`. The spaces a format string puts around a glued phrase stay breakable. At the accessibility sizes Settings' baby row keeps the avatar beside the name and the age while every word keeps whole there; else the avatar and the chevron take a line of their own above them, sm 8 apart.
+
+**Why.** A line that starts with «месяцев» or «kg» alone reads as a second fact. The age came out of `describeAge` with a plain space into Home's pill, Settings, Growth, onboarding and both reports, and the report screen left «20 дней» and «13 окт.» breakable where the PDF glued them; one source leaves no caller to forget. Glue alone does not hold a phrase wider than its line: the text engine then breaks at the no-break space. On 320 pt at AX2 in ru with Bold Text «11 месяцев» missed the column beside the 56-pt avatar, so «месяцев» still started a line, and «Александра» split inside itself. The row has to give the words room, and it measures the fit as Settings' other rows do, from a hidden copy one word a line. The chevron goes up with the avatar: beside the texts it still split a bold «Александра».
+
+Not taken: a smaller name or age at the accessibility sizes (the words would stop growing with the text size); the avatar above at every accessibility size (rows whose words hold would leave the usual look); gluing a date that stands as a whole line, such as a visit's (wider than its line at the largest sizes, it would break inside a word instead of between words).
+
+## 2026-11-06 — A Settings switch goes under its texts where a word misses beside it; at the accessibility sizes a Settings icon goes above where a first word misses beside it
+
+A Settings switch with a line under its title stands beside its texts, as the system draws it, while every word of the title and the line keeps whole there; else it stands under the line at the title's x, sm 8 apart, and under at every accessibility size. VoiceOver reads one switch with the title and the line either way. At the accessibility sizes a Settings row whose text's first word misses its room beside the icon sets the icon on a line of its own above the texts, xs 4 apart; every other row keeps the system Label. Home's growth card and Growth's history rows go by fit as the Nutrition card and `BBEventRow` do, and Growth's «Current Measurements» header has no «All».
+
+**Why.** Beside the switch the List gives the texts what the switch leaves, and ru «использования» broke inside itself from xxxLarge on 320 pt; a branch on the text size sees neither the width nor the language, and the en rows hold beside there. At the accessibility sizes the system Label in a List starts the first line of every text it holds past its icon's column, so a long first word has less room than the row shows: «Синхронизация» broke at AX2 on 320 pt in ru and es, and at AX1 with Bold Text. The fit cannot ask the drawn row: at those sizes a Label's ideal width is its icon's column alone, which every row fits, and a switch whose label answered a custom ideal stood its List row as tall as that label's ideal, cutting the texts or stretching the row. So the drawn row stays the system's and hidden copies answer the width: the same switch row one word a line, or the icon's column plus each text's first word. The copies take the body font the Label sets on its title; on the default font the first word measured without Bold Text, and the iCloud row stayed beside, broken. Under its texts the switch carries them as its own label and the visible copies are hidden from VoiceOver: merged by the List, the row read the line alone. The header's «All» opened the add sheet, not every measurement, and the bar's + and «Add a weighing» add one already.
+
+Not taken: the switch under at every size from xxxLarge (it would move rows that hold); the icon above in every row at the accessibility sizes (rows whose words hold would leave the system's look); a custom label inside the switch that measures itself (the row's height followed it); shorter titles (they hold at one size, not as the text grows).
+
+## 2026-11-06 — The report's weight chart is an inline SVG; its x axis keeps a tick only under a label that fits
+
+The pediatrician report's weight-for-age chart is an `<svg>` inside the report's HTML, which `UIMarkupTextPrintFormatter` draws as vectors and whose labels stay text. Its frame is in page points: the formatter lays the 523.2 pt printable width out as 612 CSS px, so the svg takes the whole width with a 523.2-wide viewBox and a CSS height scaled by 612 / 523.2, and a label's size is the heading's 10 px in those units. The x axis may be labelled at the window's start and at whole months of corrected age; a month nearer the start than 15 % of the axis is never a candidate, and past six months every second one goes, until six are left. The renderer centres each label on its tick and keeps it inside the plot; labels that would touch go with their ticks, first the months that would sit on the start's label, then every second one, until the rest stand 4 pt apart. The y axis is whole kilograms, a step of 1 kg up to a 6 kg range, else 2 kg, with one more kilogram on top when the range is odd, so both ends of the axis carry a label.
+
+**Why.** An svg keeps the chart in the one document `PagedPDF` already composes and moves whole, and its text is searchable and prints in the report's font; drawing in Core Graphics would need a second drawing path into a reserved box, with the labels set by hand to match the HTML text beside them. The px-to-point factor is the formatter's own layout, measured on a rendered page, not a guess at CSS's 96 dpi. A tick without its date makes the doctor count gridlines to read a month, so a label that does not fit takes its tick instead of being cut or overprinted: on a 473 pt axis, ru and es dates with a year are twice as wide as the month-day dates, and two years of weighings no longer fit six labels. Halving keeps the remaining months evenly spaced. A month within 15 % of the start would sit on the start's own label at any language's width.
+
+Not taken: a label moved off its tick to make room — a date under the wrong point is a misreading, not a layout trade. A filled band for the 3rd–97th corridor — it prints as a grey slab in black and white, and its edges are what the doctor reads. Fewer than two weighings drawn — one point says nothing a percentile row does not.
+
+## 2026-11-06 — An exported file's name gives way in the baby's name only; the Export PDF reads «All entries»
+
+The two PDFs and the CSV files are named by a pattern around the baby's name and the day. The name is cleaned and cut to 60 characters; where the whole would pass the 255 UTF-8 bytes a file name may take, the name gives way from its end, a whole character at a time, and the day and the extension always stay. The Export PDF is «All entries – Mia – 2026-11-05.pdf» beside the report's «Pediatrician report – Mia – 2026-11-05.pdf»; the CSV files keep «Mia_2026-11-05_feeding.csv».
+
+**Why.** The report's name was cut to 60 characters as a whole, so in English a name over about 25 characters lost the day and then «.pdf», and a file without its extension opens nowhere. A cap in characters does not bound the bytes: 60 family emoji are 1,500 bytes, a file that long is never written, and Export then has nothing to share. The Export PDF was «<app name>_Mia_2026-11-05.pdf» beside a report named in words: in Files and Mail a parent could not tell which one the doctor wants. Not taken: shortening the pattern's words (they are what tells the two files apart); a byte cap on the name alone (the pattern's length differs per language).
+
+## 2026-11-06 — A screen's large title leaves the bar where it misses the bar's one line; Growth has no floating +
+
+The nine scrolling screens with a large title keep it in the bar while its one line fits the bar's room, measured at the bar's face and the current text size. Where it misses, the bar goes inline, the title is the content's first lines (`BBScreenHeading`), wrapping between words, and the bar shows a 17-pt title once the heading has scrolled under it. Growth has no floating +: a weighing is added from the bar's + and «Add a weighing».
+
+**Why.** The bar never wraps a large title; it cuts the tail: «For the pediatri…» at AX2 on a 402-pt phone, «For the pediatr…» at Large on 320. A branch on the text size sees neither the width nor the language, and an inline title from AX1 leaves Large on 320 pt cut and sets a 17-pt title over 48-pt content. The fit is measured, not observed: the bar gives no signal that it cut, and its room is fixed by the platform's margins (16 pt a side below 414 pt, 20 from). CoreText measures a title about 3 % wider than the bar draws it; the fit takes that width, so in a few cells a title leaves the bar a size early rather than staying cut. The width comes from a `GeometryReader` in the same pass, because a width read after the first frame flips the bar's shape in sight. The hidden principal item stays in the bar at opacity 0: with no principal content the system draws the navigation title there, inline and cut. The heading steps down to title1 and title2 where even its widest word misses at largeTitle (es «Medicamentos» on 320 pt from AX1), with sm 8 to spare so a measuring error or Bold Text does not break the word. On Growth the + sat at rest over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; a weighing is added a few times a month, not one-handed at night. Not taken: an empty bar once the heading has scrolled away, as the sheets have (a screen with no name beside screens that keep theirs); shorter titles (the names are decided, and es «Medicamentos» alone misses at AX1 on 320 pt); a bar title that shrinks (`minimumScaleFactor` sets the user's chosen size smaller); for Growth, an inset or hiding the + while scrolling (at rest it still covers).
+
+## 2026-11-06 — A row whose texts share a line with a trailing part goes by fit at its widest word
+
+`BBEventRow` keeps its time beside the title and subtitle while each of their words fits its column there, else sets it under them, as at the accessibility sizes. The Nutrition card's three rows stand all beside while every row keeps its words whole, else all three stack. Both decide with `ViewThatFits` on an ideal width that is the least width at which the stack's own split leaves every word whole (`WidestWordIdeal`, `SideBySideIdeal`), not the texts' one-line width.
+
+**Why.** Beside a trailing part SwiftUI offers each text its share of the row, and a share narrower than a word breaks inside the word: ru «вскарм/ливание» in the feeding history on a 320-pt screen at Large, «сутк/и» and «в предел/ах» in the Nutrition card there at xxxLarge, and at xxLarge with Bold Text. A branch on the text size sees neither the width nor the language: moved down to xLarge it would stack rows on 375 pt that hold today. The one-line width as the ideal would stack every row that only wraps between words, which reads well. A concrete width passes through untouched, so where the rows fit they are pixel-identical to before: at Large on 375 and 402 pt, and at every accessibility size. The Nutrition rows take one shape because three rows of one shape read as a table and a mix does not (the weekly card's rows, 2026-11-04). The measuring copies take the drawn alignment: wrapped flush right, a text reports about a space more width, and measured flush left the check let rows through that then broke. Not taken: `minimumScaleFactor` (it sets the user's chosen text smaller); shorter copy (it holds at one size, not as the text grows); a width threshold in points (wrong in the next language or font).
+
+## 2026-11-06 — A row's trailing value keeps its width; at accessibility sizes it stands under the title
+
+Every row with a title and one trailing value is a `BBValueRow`. The value keeps its one-line width and the title wraps beside it, between words only; at accessibility sizes the value stands under the title. Settings' iCloud Sync row takes its shape from the fit instead: beside while the title and the value share one line, else under, at any size. The medication menu's label stands above its menu at every size.
+
+**Why.** The value is the fact the row is for, short and bounded: given its width first, any break falls in the title, and there only between words. Below the accessibility sizes the other rows hold their words on a 320-pt screen, so a branch on the text size changes nothing where nothing is broken, and it cannot flip under the finger while a slider's figure grows (9,9 → 10,0 kg). The iCloud Sync title misses one line beside its value at Large on 320 pt in ru and es; its value changes only with the account, so the row does what the system's value cell beside it does. The medication menu's value is a name of any length, picked right there: beside, a one-word name breaks from xxLarge on 320 pt, and a fit would move the label under the user's pick. Not taken: one fit for every row (the sliders would need their widest figure measured, and the rows that hold would stack from xLarge on 320 pt, where today their title wraps between words); shorter titles («iCloud» alone holds at Large, not as the text grows); a title that shrinks (`minimumScaleFactor` sets the user's chosen text smaller in the one row that lacks room); for the menu, the label whole beside it and the name wrapping (a name whose one word is wider than the room still breaks inside itself).
+
+## 2026-11-05 — In a wide window the splash puts the figure and the words side by side
+
+Where the words' place at 82 % of the height would lie on the art's figure (a phone or a full iPad in landscape, iPad Split View 2/3), the figure and the words stand side by side, centred as one group in the safe area, and the art's sides inside the window fade into the launch colour. Every other window keeps the splash as it was. The art is not mirrored in a right-to-left language; the group is.
+
+**Why.** It is the one layout with the art as it is that gives the words a place of their own in every window, and on a phone it shows the whole figure, which the landscape crop cut at the top and the bottom. The words keep their type, size and lockup, and the fade leaves no line where the art meets the field. Not taken: the art moved up with the words under the figure (at the fill scale the figure, its shadow and the words are taller than the safe height on every phone and on the full iPads); the words beside the figure at the fill scale (on an iPhone 17 in landscape the safe area leaves 135–140 pt beside it, for a 220–262 pt lockup); a plate behind the words where they are (a panel over the baby's face, and the words still on the subject); a landscape crop of the art (a new brand image, and not needed). The figure's box is a constant measured on the art, not derived from it, so a new `BBSplashBg` needs it measured again.
+
+## 2026-11-05 — One brand gradient for both modes, with white words at full strength; the splash words are deep violet
+
+`BBGradientStart` #5D4893 and `BBGradientEnd` #7B68B6 hold one value for light and dark, in the app and the widget. Every word and glyph on the gradient, on the widget and the paywall hero, is white at full strength. `BBSplashText` moves from cream #F7F1E4 to #4A357E in both modes, and the tagline drops its 0.85. The Export screen's unselected range circle and unchecked category square are the secondary text colour at full strength.
+
+**Why the gradient.** White read 2.64:1 at the light gradient's lighter end and 3.05 at the dark one's, whose pair was lighter than light's, and the widget's smaller words stood at 0.7–0.9 white on top of that: 16 of its words and glyphs failed in dark and all but one in light. The new pair is one step deeper in the same hue, and white reads 4.67 at its lightest point, so every point of the plate passes, not only the points where today's words sit: a longer word, another locale or a new state cannot land on a failing corner. One pair serves both modes because it is dimmer than the old dark plate, so the widget is quieter on a night home screen, and its words keep one ink. The hierarchy stays with size and weight, which differ in every pair. Not taken: the old lavender in dark with near-black words (the widget would be brighter in dark than in light, and the ink of one plate would flip by mode on the widget and the hero); a pale plate in light with dark words (the widget's light face would stop being the brand's violet).
+
+**Why the splash ink.** The splash art is the same in both modes, and cream over its lavender field and white clouds read 1.0–1.2 under the tagline, which is live text and needs 4.5. #4A357E is the lightest ink in the brand hue that reads 4.6 on every pixel under the tagline on every portrait screen (4.61 at worst, en on a 320-pt phone). The wordmark is a logotype and needs no ratio, but it takes the same ink so the lockup stays one piece. Not taken: a cream wordmark over a violet tagline (one lockup in two inks); everything kept cream as a brand moment (the tagline would stay unreadable on purpose). In landscape the cropped art puts the words on its figure; that is a layout question, not an ink.
+
+**Why the marks.** At 0.3 and 0.4 the Export marks read 1.48–2.10, under the 3:1 a mark needs, and the row's words name the category or the range, not whether it is in the export, so the mark is the only sign of the state. At full strength they read 5.62 (6.11 in dark), as the visit sheet's and the plan picker's already did. Not taken: the secondary colour at 0.70, the least alpha at 3:1, which would be a second grey for marks and renders a few hundredths under 3 live.
+
+## 2026-11-05 — Secondary text is #6B647C in light; the week chart states each day's value instead of axis numbers
+
+`BBTextSecondary` in light moves from #746D85 to #6B647C, in the app, the widget and both PDFs; dark #A29BB5 is unchanged. The week chart (Feeding, Sleep, Diapers) puts a value over every bar up to today, «0» included, today's in the text colour and the others in the secondary one, and drops its leading axis numbers; the grid lines stay. A selected tile's or a pill's primary wash is laid over the surface. Onboarding's two primary blobs go to 0.08.
+
+**Why.** #746D85 read 4.48:1 on the background and 4.05–4.36 on the washes it sits on in twelve places (stat cards, the timer cards, the filter picker, the start tiles), under the 4.5 that 11–14 pt text needs. #6B647C reads 5.12 on the background, 5.62 on the surface and at least 4.62 on every one of those washes. It is a step darker in the same hue, so primary over secondary still reads as two levels (14.28 against 5.62 on the surface). Not taken: the words on washes in the primary text colour (a stat card's value, unit and title would become one ink, and a picker's unselected words as loud as a heading); lighter washes (the bare background was already under 4.5). The chart's axis numbers were secondary text and only the tallest bar had a value, so a parent read every other day off the grid; a value over each bar says it, and VoiceOver still reads each bar's day and value once, since the labels are hidden from it. A selected wash over the background left `BBPrimary` words at 4.38 (3.61 over an onboarding blob); over the surface they read 4.78, and the 1.5 pt edge still marks the choice. The blobs at 0.12–0.16 took the onboarding hints under 4.5 at their centre.
+
+**Reds.** Red stays on deletes and on marks. Remove photo takes the full system red (at 0.8 it read 2.76:1); the delete-history button loses its red wash, which took its red words from 3.25 to 3.01; the purchase error is not a delete, so its words are the text colour beside a red glyph; the stat and progress cards lose their over-limit red state, which no caller set and which a count above its reference must never show (2026-09-05).
+
+## 2026-11-04 — A growth verdict's tier is a dot, never the colour of its words
+
+On the Growth screen and Home's growth card every verdict word and figure is in the text colour: the gain card's figure and band word, the newborn card's figure, the Nutrition rows' values and Home's gain value. The tier tint moves to a mark beside them: a dot before the value, `BBSuccess` for within, `BBAccent` for below, none for above. «Not enough data» and «first weeks» stay in the secondary text colour, without a dot. The newborn card keeps its green tick and the percentile card its tinted ring, the same rule.
+
+**Why.** In light the tints are under every floor as ink: `BBSuccess` 1.98 and `BBAccent` 1.84 on the surface, where a figure needs 3 and a 13–14 pt word 4.5. The text colour reads 14.28 in light and 14.05 in dark. A mark beside words that say the verdict needs no ratio of its own, and the verdict stays in words, so no colour carries it. It is the rule the percentile card took the same day; a neutral figure there and a green one two cards below would read as two designs. Not taken: darker ink tokens of the same hues (#357D5E, #94654E reach 4.5, but they are a forest green and a brown the palette does not have, the verdict word would become the loudest line on the card, and «below» in brown reads close to a warning); the text colour with no mark (the gain card has no ring or tick to carry the tier).
+
+**How.** `BBTierValue` draws the dot inside the value's own run of text, so it stays on the first line when the value wraps, sits beside the first word under a trailing alignment, and a word joiner keeps it from ending a line alone. It scales with the value's text style. VoiceOver reads the value's words, not the dot. At Large the dot adds about 12 pt beside a 13 pt value, which costs a status line in 5 of 108 measured row × width × language cases (none on 320).
+
+## 2026-11-04 — The weekly card's × leaves a line with an undo; one legend says what the arrows compare
+
+× still hides the weekly card until next Monday. For the rest of that Dashboard visit the card's surface stays in its place with one line, «The weekly summary is hidden until next Monday.», and «Undo», which brings the card back. The line has no timer and is not stored; another tab, a pushed screen or the app in the background ends it. Under the rows, when an arrow shows, one caption says the arrows show the change from the week before. VoiceOver skips it, since each row already speaks its comparison in words.
+
+**Why.** The card used to fade out with nothing said, so a parent did not learn where it went or when it comes back, and a mistaken tap could not be taken back. A confirmation before hiding would cost a step every week for an act an undo already covers; a toast with an undo leaves on a timer, which a slow reader or VoiceOver can miss (WCAG 2.2.1), and the app has no toasts. The line stays on the card's surface because on the bare background the secondary text is 4.48:1, under AA. The legend exists because no word fits beside an arrow at Large on a 320-pt phone (the shortest, "↓ 25 min vs the week before", takes 168.6 pt with 44 pt left), so the comparison is said once for all rows.
+
+## 2026-11-04 — The Growth percentile card states the percentile; the band label goes
+
+The WHO percentile card's figure is the percentile itself, «61», or «> 97» / «< 3» past the chart's edge, in the text colour under «Weight Percentile», as the report prints it. The band label («50–85») is gone. The ring keeps the tier tint as a picture of where the reading sits, without a number, and VoiceOver skips it: the figure is read once, with its caption.
+
+**Why.** The card set the coarse fact big (the band, 28 pt) and the precise one small (the ring's number, 16 pt), so a first-time reader could not tell which number was the percentile; the report's plain «61» was clear. Both were drawn in the tier tint, too faint on the light surface: the label missed 3:1 in the middle and edge tints (1.98 and 1.84), and the ring's number missed 4.5:1 in all three (3.63 at most, in the alert tint). In the text colour the figure has 14.28:1. The ring needs no 3:1 of its own because the figure beside it states what it shows. It is also the report's rule (2026-11-02 below): a percentile is a position on the chart, and a band word turns it into a judgement. Not taken: keeping the label (the confusion and the contrast stay); words in the big line, «61-й перцентиль» (229.7 pt, so it wraps beside the ring on a 320-pt phone); the number in both places (one figure twice, 100 pt apart).
+
+## 2026-11-04 — The weekly card's rows take one shape together, by fit
+
+The weekly card's three value rows stand on one line each, the delta at the row's end, while all of them fit there at full size. Otherwise all three stack with the delta under the value, as they already did at the accessibility sizes. The text no longer shrinks.
+
+**Why.** On one line with a 0.85 shrink floor, the sleep row did not fit a 320-pt phone at Large: 23.8 to 57.7 pt short, so it shrank past the floor and was cut («14 h 2…»). The deltas read down as one column; a fit per row would set one delta at the row's end and the next under its value. The fit is measured live, so no width table goes stale: at Large the rows stack on 320 pt in en, ru and es, and take one line in en and es from 375 pt and in ru from 402 (on 375 while the sleep delta is under an hour). Where the rows fitted before, the card is the same to the pixel; where they stack, it is about 35 pt taller. Not taken: the delta under the value on every phone (a line more per row where one fits); shorter labels or units (words stay whole, and the days line already says what the rows average over).
+
+## 2026-11-04 — A sheet bar's confirm shows ▶ while the sheet starts a timer
+
+With Start Timer on, the New Feeding sheet's bar confirm shows `play.fill` in Save's style, and VoiceOver names it «Start Feeding», the bottom button's word. With the toggle off it is ✓ «Save» again. Both buttons follow the toggle in the same frame. It is the app's one sheet that starts a timer.
+
+**Why.** One act should carry one sign. With the timer on the tap saves a feed that has only begun, so a ✓ said "done" in the bar while the bottom button said «Start Feeding» with ▶, and VoiceOver read «Save» for both acts. Not taken: hiding the bar's confirm while the timer is on, because every entry sheet confirms in both places and the bar would lose a button under a toggle; and a ✓ named «Start Feeding», because the sighted parent would still see two signs for one act.
+
+## 2026-11-04 — The weekly gain line without a number says what is missing, and asks for a weighing only where one helps
+
+When no weighing pair ends in the week, the gain line has four cases, judged on every weighing logged up to now, not only up to the week's end, and taken in this order. A pair whose later weighing is after the week: «This week's weighing will show the gain here next Monday», with no button. A pair that ended before the week: «Weigh your baby, and the gain will show here next week», with «Add a weighing». Weighings with no two at least 3 days apart: «One more weighing, at least 3 days after the first, …», with the button. No weighing at all: «Two weighings at least 3 days apart …», with the button. The newborn window still comes first. A pair that ends after the week but inside the newborn window (the window closed this week, the weighing came before it did) takes the older pair's line and button: next Monday's card withholds that pair as well, so «next Monday» would be a promise it cannot keep, and the weighing that ends the window is the next step.
+
+**Why.** One line for all four asked every parent to weigh, including one who had weighed that week; a weighing then changes nothing until Monday, so the button sent them to repeat it. «Weigh, and the gain shows next week» is true only where an earlier weighing exists to pair with, so it keeps that case alone. With one weighing, the next one helps only 3 days or more after it, so the line says «after the first»: a parent who weighed yesterday learns that a weighing today gives nothing. Judging up to the week's end would miss the weighing made this week, which is the one the parent remembers.
+
+## 2026-11-04 — The weekly card's days line shows on every week, a full one too
+
+The weekly card's rows («Feeds a day», «Sleep a day») are averages over the days with entries. The line under them names that basis on every week: «Averages over the days with entries: 7 of 7» on a full week, «5 of 7» with gaps. It used to show only when a day was missing.
+
+**Why.** A label with «average» in it does not fit beside the row's delta on a 320-pt phone: measured in en, ru and es, 11 of the 12 rows are over their room. Abbreviations would break the rule that words are whole. A caption under the rows wraps, so it fits every width and every text size. Hidden on a full week, it left the rows reading «a day» with nothing to say what they average over, and a full week is the common case. The pediatrician report keeps showing its days line only when a day of its period is missing: its words are the same, but when it shows was not changed.
+
+## 2026-11-04 — Home's quick actions stand four in a row while their words fit; the Feeding quick caption keeps 4 pt a side; Home's sleep card reads hours
+
+**Home's quick actions follow the fit.** Two by two on every phone (the entry below) moved everything under the card 94.7 pt down on the default Home of every phone to save a 320-pt one. That is the trade turned down for the Diaper, profile and Feeding rows, and Home is the screen every parent opens. No padding or shorter word reaches 320 pt: a quarter of the card less the spare is 56 pt, ru «Кормление» is 67.1 and «Подгузники» 71.1, and they are the names of the screens the tiles open. So the row stands four in a row while every action's word fits a quarter of the card as drawn, else two by two, and one column at accessibility sizes. The check is live, in the app's language, at the text size and with Bold Text, so there is no width table to go stale and no measuring error: at Large that is four on 375 pt (ru «Подгузники» 6.7 pt to spare, 2.8 with Bold Text) and 402 pt; on 320 pt ru goes two by two, and en and es stay four, because their widest tile is its 60-pt icon plate, which fits the 64-pt quarter. It is the one equal-column row with two shapes at one size; every other row keeps one count per size, because its words would set some phones' default screens in two shapes for the price of none.
+
+**The Feeding quick caption keeps 4 pt a side.** With no padding on the tile (the entry of the same day below), a caption on one line ran onto the border: es «Agregar manualmente» 0.0 and 1.0 pt from it on 402 pt, ru «Добавить вручную» 1.7 and 2.7 on 375. 8 pt would break es «manualmente» on 320 pt with Bold Text; 4 holds it. The price: es on 402 pt and ru on 375 pt go back to two caption lines, as before the tile lost its padding.
+
+**Home's sleep card reads hours.** It showed «101:02» where the Sleep screen it opens shows «01:41:02»: one fact in two formats a tap apart. The digits are wider («01:41:02» 98.0 pt at 22 pt against 77.4), so past an hour the card stacks on en 375 pt and es 402 pt, where before it stacked past 100 minutes. Feeding keeps minutes past 59 on both screens.
+
+## 2026-11-04 — Sheet bars carry glyphs, not words; a sheet title fits 166 pt with a 13-pt floor; a medication's name heads its dose sheet
+
+**Glyphs.** At Large on a 320-pt phone (an iPhone SE with Display Zoom) the words Cancel and Save left a title 49 pt in ru, 67.5 in es and 108.1 in en, so every ru sheet title was cut, and no shorter title reaches that: the shortest ru one, «Вопрос», is 61.6 pt. × and ✓ leave 174 pt in every language, and every title is whole at 17 pt except ru «Редактировать профиль» (202 pt), which shrinks to about 14 pt. Save stays a word at the bottom of the sheets that have that button; on the question sheet, the visit sheet and the visit detail's edit mode the ✓ is the only Save. Each glyph speaks the app's word, set explicitly, because a glyph's or a role's default name follows the device's language, which the parent may not use in the app.
+
+**Budget and floor.** A sheet title is at most 166 pt at 17 pt semibold: whole at Large on a 320-pt phone with 8 pt to spare. Past it the title shrinks to 13/17 of its size, 13 pt at Large, the sheets' caption size, instead of to 0.6 (10.2 pt), which read smaller than the captions under it.
+
+**The dose sheet.** Its title is the medication's name, the parent's own text, which no budget holds: «Нурофен для детей 100 мг/5 мл» is 262.6 pt, 11.3 pt in the bar on a 320-pt phone, and past the floor its end would be cut, often where two medications' names differ. So it heads the content at every size and wraps, and that bar shows no title.
+
+Not taken: shorter words (about 15 new titles, and 320 pt still cut in ru); the title in the content on every sheet (every sheet's content 45 pt lower, and the bar loses the title the platform keeps there).
+
+## 2026-11-04 — Above Large a sheet's title moves into its content, a date picker's label sits above it at every size, and two notes that wrap keep their wrapped alignment at Large
+
+**Sheet titles.** The bar never grows, so its title keeps its Large size while Cancel and Save grow with the text. From xLarge four ru titles were cut on a 375-pt phone («Новое кормление», «Новое измерение», «Приём у педиатра» and the profile title), and at xxxLarge on a 402-pt phone four shrank to 10–11 pt, smaller than the sheet's captions. So above Large the title is the content's first line at the sheet's text size, as it already was at accessibility sizes. The diaper norm editor, with Cancel alone in its bar, follows: its system title grows with the text, but at AX2 on a 320-pt screen it reaches the screen's edge, and with it every sheet keeps its title in one place at each size. Its first heading takes the header trait there, so VoiceOver hears one heading per sheet at every size. At Large the bars stay as they were.
+
+**Date picker labels.** Beside the date and time buttons the label broke inside its word («Врем / я» at xxxLarge on a 402-pt phone), and at Large on a 320-pt screen ru «Время», «Начало», «Конец» and en «Time» had no room beside the widest date. The label sits above its picker at every size, as the sheets' other captions do; each date row is one line taller. Not a fit with `ViewThatFits`: a row whose shape follows the date would jump while the parent picks one.
+
+**Wrapped alignment.** The ru stool warning and the ru profile photo hint wrap at Large on a 320-pt screen, so the warning's triangle sits on its first line and the hint is centred at every size, Large included. The price: with a warning colour picked, the warning and the fields below sit a pixel lower at Large.
+
+## 2026-11-04 — Home's quick actions stand two by two below the accessibility sizes
+
+Superseded the same day: the row now follows the fit (see «Home's quick actions stand four in a row while their words fit» above).
+
+Four in a row give each word a quarter of the quick-actions card: 64 pt on a 320-pt screen. ru «Подгузники» is 71.1 pt at Large, so it broke in the middle on every 320-pt screen, from Medium up. On 375 pt it keeps 6.7 pt, under the 8-pt spare (2.8 with Bold Text). No padding saves it: without the card's padding a quarter is 72 pt, and Bold Text still breaks the word. So the row takes two columns at every size below the accessibility sizes, one shape on every phone, and one column at accessibility sizes, where half a card keeps 5.9 pt and Bold Text breaks the word. Three would hold at Large, but they would set the four actions 3 + 1, one alone under the first; two by two keeps them in one block. The price: the default Home's quick-actions card is two rows tall on every phone.
+
+## 2026-11-04 — A row whose fit changes with the width or the clock takes its shape from the fit; other rows keep one shape per size
+
+**A row whose fit depends on the width or the clock follows the fit.** The Feeding timer's side pills and the Feeding and Sleep timer cards' header (label and title beside the timer) stand in a row while it fits and stack when it does not, through `ViewThatFits`. The objection to `ViewThatFits` for tile rows was that it compares a row's whole width, not its narrowest column. Here the row's whole width is the right measure, because these rows have no columns. A count per text size would have to assume the widest content. In es the three pills are wider than the card on a 320-pt screen from Medium up (264 pt in 240 at Large), so they would stack on every phone at every size from there. The timer's width follows the elapsed time, not only the text size: hours after an hour of sleep, three-digit minutes after 100 minutes of feeding. So the Sleep card would stack at every size on every phone. Beside those digits on a 320-pt screen the title's column broke «Дневной» at Large, and at AX2 it broke even at 402 pt. The header draws both shapes from one clock, so the fit is checked on the digits that are shown. Home's running-timer card takes the same fit: beside three-digit minutes «Кормление» broke at Large on a 320-pt screen, and there its title and subtitle do not fit one line beside even two-digit minutes, so the card stacks at any time. The pills and the timer rows stack at accessibility sizes on any width, as the Feeding card did before: there the fit would set a short title beside its timer and a long one above it, and at the largest text the running cards keep one shape. Equal-column rows keep one shape per size and their counts in `BBTileColumns`, all but Home's quick actions, which follow their words' fit (the entry above). So does a content-sized row whose words are fixed and hold at 320 pt at every size below the accessibility sizes, because no wider window changes the answer: the Diaper screen's Today row (title and norm chip, 56.8 pt to spare at xxxLarge, 19.5 pt short at AX2) stacks at accessibility sizes by the text size, as `BBEventRow` does.
+
+**The Feeding quick tile has no side padding; the breast-side chip sets its glyph 4 pt from its word.** Both rows broke at Large on a 320-pt screen: «Сцеженное» 75.1 pt in 69.3, and «Izquierdo» with Bold Text 67.6 in 64.3. Taken literally, the rule would set the default Feeding screen's three tiles, and the default sheet's three chips, 2 + 1 on every phone. Without the padding, three tiles hold at Large with 10.2 pt to spare (5.4 with Bold Text); with the 4-pt gap, three chips hold with 5.0 (0.7). Both are measured in both weights, so they keep their count under the spare, as the stool row does. The price at 402 pt: «Добавить вручную» and «Agregar manualmente» now set on one line instead of two, and the chip's glyph and word sit 4 pt closer. The caption has since taken 4 pt a side of its own (the entry above), and es sets on two lines there again.
+
+## 2026-11-03 — A word set at a fixed size grows with the text size, and a tile row gives up columns for its widest word
+
+**The word scales from the size it had.** `Typography.scaled(<size>, relativeTo: .body)`, with the same weight and design. Below the accessibility sizes the factor is the one the body text gets, so at Large every screen stays as it was.
+
+**Why grow.** At AX2 the tile, stool and stat-card words stayed at 10–13 pt beside 31 pt body text: the smallest text on screen, for the people who asked for the largest. They also carry meaning. A tile's word is its name. A stool colour's word is the cue that does not depend on seeing the colour, next to the warning colours. A stat card's title and unit say what the number is. Colour samples, icon plates and decoration keep their size: the sample is the information, and a plate is not read.
+
+**Columns by the widest word, at 320 pt, at every text size, with 8 pt to spare.** 320 pt is Display Zoom on the smaller phones and iPad Slide Over. Display Zoom is often turned on together with large text, and a word that never breaks has no width exception, so the narrowest width sets the count; the first version checked 375 pt and left 320 pt uncovered. A scaled word grows from xLarge on, not only at accessibility sizes, so the rule is checked at xLarge, xxLarge and xxxLarge with the row's count there and at AX2, and a row gives up columns from the first size where its widest word misses. The spare keeps a measuring error, a later word or Bold Text from landing a break. A row that keeps its columns (Diaper type and Sleep location up to xxxLarge, Sleep type at every size) does so because its widest word fits, not by exemption.
+
+**One shape per text size, at every width,** for a row of equal columns (a row whose fit changes with the width or the clock follows the fit, 2026-11-04, and so do Home's quick actions, measured by a layout of their own, 2026-11-04). Not a count that follows the width: `ViewThatFits` compares a row's whole width, not its narrowest column, so it would need a measuring layout of its own, and one sheet would take two shapes at one text size. Each row states its counts once, in `BBTileColumns`.
+
+**The stool row keeps four columns at Large, under the spare.** «Коричневый» fits a quarter of 320 pt by 3.6 pt, and by 0.2 with Bold Text, both measured. The spare covers an unmeasured word or weight, and here both are measured; the colour names are measured again whenever they change in any locale. Three columns would set the default Diaper sheet's seven swatches 3 + 3 + 1 on every phone. From xLarge four break, and the row takes three. The profile edit sheet's feeding row keeps three at Medium and Large the same way: «Смешанное» fits a third of the sheet at 320 pt by 7.9 and 4.5 pt (4.5 and 0.9 with Bold Text), the same word at the same size as before the words grew, and from xLarge it breaks and the row takes two.
+
+**The Diaper quick tile takes 8 pt of side padding, not 16.** With 16 the row broke at Large on 320 pt: «Грязный» is 58.5 pt in 53.3. Taken literally, the rule would then set two columns from Large, and the default Diaper screen's three tiles would become 2 + 1 on every phone. With 8 the three hold at Large with 10.8 pt to spare. The padding sits inside the tile's fill and the word is centred, so Large on wider screens draws as before.
+
+## 2026-11-03 — Every clock time takes the device's 12/24-hour cycle, in the app's language
+
+**One locale for formatted times and pickers.** `Date.appTimeOfDay` formats with the environment locale the root gives every `DatePicker`: the app language's region, with the device's hour cycle on top. Formatted with the pinned region instead, a dose sheet on a 24-hour phone in English or Spanish showed its picker at 09:43 and the last dose in its status line at "3:43 AM": two clocks side by side. Medication times are compared at night, so two clocks on one sheet invite a misread.
+
+**Everywhere a time is printed for a person:** rows and status lines, the Live Activity's start time, the medication reminder's body, the widget's formatting pin, and the export PDF. The export is the parent's own record, shared from the screen they read it on, so it takes the same clock, on the screen's own hour-and-minute skeleton: a date formatter's short time style keeps Russian at 14:30 on a 12-hour phone. The CSV keeps `HH:mm` in `en_US_POSIX`: its columns are for machines, not for reading.
+
+## 2026-11-03 — The report lists medications given, and nothing about whether they were on time
+
+**Name and dose as written, the dose count, the first and last day.** The doctor asks what was given and how often. No interval, no maximum and no mark on a dose given inside the interval: in a document for the doctor such a mark would be a verdict on the parent.
+
+**Older events by their typed name, beside the medicines, never merged into them.** A typed "Paracetamol" and a medicine called Paracetamol may not be the same thing, and merging by guesswork would print a count nobody logged. Names match trimmed and case-insensitive; events with no name share one line.
+
+**A changed dose is stated per dose text.** When a line's doses carry more than one text, each text gets its own count and days, in order of first use: one caption each on the screen, one row each in the PDF with the name repeated. The latest text beside the whole count would turn 10 × 2.5 ml and 3 × 5 ml into 13 × 5 ml, and the change of dose is the fact the doctor most needs. Doses logged without a text, beside texted ones, are named as such rather than left blank.
+
+**A dose is an entry for the new-period card.** The card says new entries will show there, so a dose given after a same-day visit keeps the card away and shows that day, on the screen and in a PDF shared that day.
+
+**The table moves to the next page whole when it fits on one**, as the questions do. A row left alone under a repeated head reads as an afterthought to a list that is read as one piece. A longer table breaks between rows with its head repeated.
+
+**No section when nothing was given.** The absence of medicine is not a missing record, so there is no "none" line, and a report without medicines prints the same pages as before.
+
+## 2026-11-03 — Home shows medications for a day after their last dose, in one plain card
+
+**While a course runs and its last dose is under a day old.** That covers the night and the day after a fever without a course nobody ended staying on Home for weeks. A course with no dose has nothing to state yet.
+
+**A plain card, not the running timer's tinted one, and one target.** A timer says something is running; this card states a standing fact, and it looks the same inside the interval and after it, so nothing on Home counts down or changes colour when a dose would be allowed. One medication opens its detail, two or more the list, so the card never asks which line was meant.
+
+## 2026-11-03 — A medication reminder is one local notification per medication, switched on per device
+
+**Per device, off by default, never synced.** A local notification is a fact of one phone. A synced switch would ring the partner's phone at night unasked, counting from doses that phone may not have received yet. Each medication's own switch is its off; there is no app-wide one.
+
+**One request, at the screen's «not before», only while it is ahead.** The time includes the 24-hour maximum, so the notification never comes at a moment the screen still says to wait. A time already passed wants nothing: the screen says the interval is over. An ended course has none.
+
+**The body names the dose it counts from, and its day word is counted against the moment it fires.** Nothing pushes between phones, so a phone that has not synced a later dose counts from the one it has; naming that dose keeps the text true. Counted at scheduling time, a 22:00 dose read at 04:00 would say "today".
+
+**It comes at night, plainly.** The parent turned it on for the night dose, so it ignores the quiet hours the app's own nudges keep. The default sound, no badge and the plain interruption level: a fact to read, not one that breaks through a Focus.
+
+**Reconciled after every store save, not called from each surface.** Doses are logged, moved and deleted from the detail, the dose sheet, Events and its form, and a delete-all; a pass on `ModelContext.didSave` covers all of them and any surface added later. The pass removes any `bb.med.*` request the plan does not want, which also takes down one for a medication deleted on another device.
+
+**A time-interval trigger.** The interval is elapsed time; a calendar trigger would fire an hour off on the night the clocks change.
+
+## 2026-11-03 — The dose confirmation is a system alert that never blocks, and asks only about a time the parent set
+
+**A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel has the cancel role because it keeps things as they were (iOS 26 draws both buttons alike, so the role carries the meaning); Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
+
+**One alert per save, naming the limit that ends later once the dose is saved.** Its time is then the «not before» the medication's screen shows after Save; the interval variant cannot explain a time the maximum set. On a tie, the interval. A dose that brings the 24-hour count to the maximum without passing it breaks the interval only, so it gets the interval variant with the time the maximum sets. A dose put between two logged doses names the earlier one "a logged dose", not "the last dose": the last dose is the newest, and the screen shows a later one.
+
+**The «not before» is the time after Save, never earlier than before it.** The alert asks before the dose is saved, and Save is the answer it waits for. A time from before this dose is earlier than the one the screen shows after Save, so a parent who saves and follows the alert would give the next dose early: last dose 08:00, this one 10:00, every 6 hours, the old time said 14:00 where the screen then says 16:00.
+
+**No alert for an edited dose saved at its logged time, or for an ended course.** An edit that changes only the dose text or the note would otherwise ask about a time the parent did not touch, which reads as a verdict on the edit. An ended course shows no next time, so the alert would name one for a course that is over. A dose moved to a new time asks like a new one.
+
+**A «not before» that has passed is left out of the alert.** For a dose logged after the fact the time after Save can lie in the past. Read as current advice, «next dose not before 2:00 PM» at 5 PM would say a dose is fine; the alert then states the dose it is close to and stops.
+
+**The alert's Save stores exactly what it asked about, or nothing.** A medication can end or go on another device while the alert is up; saving whatever the menu then holds would file a dose nobody gave under another medication, unchecked.
+
+**A medication's name and dose stay one paragraph.** The fields wrap at large text, so Return would start a new line; the copies travel into every row, the alert's first line and the export, so Return ends editing instead.
+
+## 2026-11-03 — On Events a dose is free, outside the cap, and titled by its medicine
+
+**Doses have twenty rows of their own on Events, and keep the 15-day window.** In the shared twenty, four a day would fill the list in five days and push every bath and walk off it. Uncapped like a visit, a year of daily drops on a subscriber's list would draw hundreds of rows in one stack. The medication's own screen lists every dose, so Events shows the latest. The window stays because it is the rule for every history list. Each half decides its own locked footer: a free account's footer under old doses sells rows a subscriber does see. Older and free-text medication events are not doses and count in the shared twenty as before.
+
+**The Medication tile logs a dose free while a medication runs.** Creating events stays Premium, so the toolbar plus and the Bath, Walk and Mood tiles keep their padlock on a free account. The Medication tile opens the dose sheet instead, with no padlock. With no running medication it stays the one-tap entry behind the gate: a nameless dose cannot be linked, so it would time no interval.
+
+**With two or more running medications nothing is preselected,** in the dose sheet and in the Add Event form, and Save waits for the choice. A wrong preselection would file the dose under another medication and time the wrong interval.
+
+**A medication row reads the name and dose copied onto the event,** never the medicine's current name, so a rename leaves the record as it was given. The events CSV carries the same two fields as columns.
+
+**`BBEventRow` shows its text verbatim.** Its callers pass text already localized; looking a typed note or a medication name up as a copy key could translate it.
+
+## 2026-11-03 — The medication screens are free, state facts, and preset nothing
+
+**Free, with no padlock anywhere in the feature.** Adding, ending and deleting a medication, and logging, editing and deleting a dose, never meet a gate. The night dose of a feverish baby is the moment the app is for, and a paywall in front of it would charge for safety. The dose list still keeps the app's 15-day history window with its usual footer: that window is the rule for every history list, and the status reads every dose whatever the list shows.
+
+**The footer under the dose list sends no lock event.** Medicines send no analytics; a `history_lock_shown` from that list would say the baby had a medicine.
+
+**Nothing is preset.** No interval chip is selected, no placeholder holds a number or a drug name, and Save stays off until a name and an interval are set. At night a preset reads as a prescription and a sample value as a suggestion.
+
+**The interval is above zero and at most 48 hours** (15-minute steps on the Other wheels). Zero is not an interval: every dose would be on time and the status line would mean nothing. 48 hours is the wheels' last value; the model had allowed half an hour to a week before any screen used it.
+
+**The look never changes with the state.** "Next dose not before" and "the interval has passed" share one style; only the words change, with no tick, colour or animation. A visual that completes reads as an instruction to give.
+
+**An age counts days from 48 hours** ("3 days ago"), because "73 h ago" leaves the arithmetic to the parent.
+
+**No rating prompt after a dose**, from any path: the dose sheet is a plain sheet and never calls `entrySaved`. A dose is given to a sick baby (2026-11-01).
+
+**A dose is the first event that can be edited**, and only its time, dose text and note. The copied name stays as logged, so the record keeps what was given. Other event types stay without an edit path.
+
+**An ended course takes no new dose but keeps its doses editable**, and can be resumed as the same medication: one name, one dose list, one report row instead of duplicates.
+
+**No count line before the first dose.** "Last 24 hours: 0 doses of the 4 you set" says nothing that "No doses logged yet" does not, and a figure next to the maximum before any dose reads as a target.
+
+**The dose list reads a query of events, not `medicine.doses`.** A dose linked or deleted on the event's side does not reliably reach SwiftUI observers of the relationship. A swiped-away row then stays on screen, and tapping it opens a deleted dose, which traps. A `@Query` refreshes on every change to the store, synced ones included. For the same reason a model is deleted only after the screen or sheet that holds it has gone.
+
+## 2026-11-03 — A medicine is its own model; a dose stays a medication event that copies the name and links to it
+
+`Medicine` holds the name, the minimum interval, an optional dose text, note and 24-hour maximum, and the course end. A dose is a `.medication` `CustomEvent` linked to its medicine, carrying the name and dose text as they were when it was logged. Deleting a medicine nullifies the link and keeps every dose.
+
+**Why a model and not fields on each event.** The interval, the course end and, later, the reminder switch belong to the medicine, not to a dose. A list of medicines built from typed names would split «Paracetamol» from «paracetamol » on the first typo, and it would have no place to say a course is over.
+
+**Why doses stay medication events, and not a dose model.** One record kind for every reader: Events, the export and a device on an older version list a dose as the medication event it already is. A dose model would be missing from all of them, and the Events form and the medicine screen would write two different records for the same act. The persisted-enum trap of 2026-11-01 does not apply: `.medication` is an existing case, and the link is a new optional attribute, which an older build ignores.
+
+**Why the name and dose are copied.** A dose is a record of what was given. A later rename, or a deleted medicine, must not rewrite it. These are the fields the Events form has always written, so an older version stores them too. Until 1.3.0, though, no screen and no export shows them: the Events rows and the CSV start reading them with the medicines screens.
+
+**The rules** (`MedicineSchedule`):
+- **Elapsed time, never calendar arithmetic.** «Every 6 h» after 01:00 on the night the clocks go back is 06:00 of real time, which is what the leaflet means.
+- **A dose later than now is ignored at the read**, as a future weighing is (2026-09-05): a skewed clock on another phone would otherwise hold every later dose back from a time that never came.
+- **Too close counts in both directions.** A dose back-dated to 14:00 when 16:00 is logged sits inside the 16:00 dose's interval just as much. Exactly the interval apart is on time.
+- **Only linked `.medication` events count.** A free-text event that happens to carry the same name is not matched: guessing would make the confirmation fire, or stay silent, on a coincidence of spelling.
+- **The confirmation names a true time.** A close later dose is named first. Only without one is the latest earlier dose named, with the end of its interval. A dose put between two logged ones has no free time between them, so the earlier dose's end would name a time inside the later dose's interval.
+- **One confirmation per save names the limit that sets the screen's «not before».** That is the maximum only when it holds the next dose back past the interval's end. A tie, and a dose put before a logged one, name the interval.
+- **24 hours means any window `[s, s + 24 h)` that holds the dose**, not only the 24 hours before it, because a back-dated dose can overfill a window that ends after it.
+- **The next allowed time includes the maximum.** Once the last `max` doses fall within 24 hours, the next waits until the oldest of them is a day old. Otherwise «allowed now» could show while logging a dose raised the confirmation.
+
+**Rejected:** matching older medication events to a medicine by name, for the coincidence of spelling above. Parsing the dose text into a number is rejected too: the app counts time and never reads a dose as an amount.
+
+**Analytics:** a medicine sends no event and no name, as with visits (2026-11-01). A dose stays in the daily activity count's `event` figure, like every medication event before it. The count carries no type and no name.
+
+## 2026-11-03 — Code comments give their reason in product words, with no tracker ids
+
+- **No decision numbers, bug ids, requirement labels, task names or workflow paths in Swift comments.** They resolve only in notes that live outside this repository, so a clone reads a bare number or label in brackets and cannot follow it. A comment states the reason itself, and cites this file by date when the reason is long («DECISIONS 2026-10-30»). A pointer to a tracked document by its path stays («teamdocs/design/m1-live-activity.md §§ 2–4», «NOTIFICATIONS.md §3»): a clone can open it. The 1.2.0 sweep rewrote about 250 such comments. Where the id was the only content, the rule is now spelled out («the newborn gate», «Monday weeks»).
+- **Export is enabled only when a ticked category has records in the range.** A category with no records draws an empty box but stays selected underneath, and its row takes no tap, so «anything selected» left the button on with nothing to write, and a tap ended in «No data». The button also dims when off: the shared primary button does not dim itself, so every caller that disables it sets the opacity. `ExportSelection.exportable` is the one rule for the button and for what the file holds.
+
+## 2026-11-03 — An end before its start reads as 0 min; stored rows are not repaired
+
+- **Add Sleep's End follows Start.** `DatePicker(in: startTime...)` limits what the End picker shows, not the value it is bound to: with Start moved past End, the form showed End equal to Start and saved the earlier end, a negative sleep. Now moving Start past End moves End to it, and `SleepEntry.manual` stores the later of the two, so what is saved is what the form showed.
+- **A stored end before its start reads as 0 min.** The guard sits in `SleepEntry.duration` and `FeedingEntry.duration` (Today, History, the Sleep chart, the export, the widget) and in the pure cores, `PeriodSummary` and the report's clipping (the weekly card, the report). The store loaders map rows as they are, because rules belong to the cores. Such rows exist: earlier versions saved them, and a timer stopped on a phone whose clock runs behind the starting phone's still can. The row still counts as an entry, as History lists it.
+- **No repair of stored rows.** Rewriting them is a write on users' data that CloudKit syncs to every device, for the same 0 min the read already shows. Rejected for that reason.
+
+## 2026-11-02 — PDFs compose their own pages, print in Helvetica Neue with a named fallback list, and carry no emoji in the body
+
+All of this comes from one engine, `UIMarkupTextPrintFormatter`, and all of it was seen on rendered files read back, not in its documentation.
+
+**We compose the pages.** The engine slices its layout at the page height and ignores `page-break-*` and repeated `thead`: a table row printed half on each page, and page 2 had no head. `PagedPDF` gives every page its own small document and formatter and asks the engine what fits. A row taller than a page is the one thing that still slices.
+- Rejected, `WKWebView`'s print path: rows stayed whole, but the head did not repeat, the text layer kept the defect below, every caller would turn async, and the first render took 1.87 s against 0.36 s on the simulator.
+- Rejected for now, a Core Text redraw of both layouts: 0.06 s, it keeps the system font and draws real emoji, but it rewrites both layouts and their tests. It is the way to go if the PDF ever needs real emoji.
+- The cost is about one layout per page, about 25 ms on the simulator. Cold, before this change against after, medians of 3: a one-page report 0.27 → 0.29 s, two pages 0.33 → 0.52 s, an export of 5 pages 0.41 → 0.50 s, of 630 rows 0.49 → 1.56 s, of 1890 rows 1.02 → 2.16 s, of 3780 rows (about 130 pages) 1.56 → 3.19 s; 7560 rows, a year, 3.40 s after this change, 3.1 to 4.3 s over three runs. Laying the whole document out first and looking for one more row on every page took about 11.7 s at 3780 rows: that is why a long document skips the first and a settled page the second, and why the layout that proved a page fits also draws it.
+- Accepted for now: a long export holds the main thread for those seconds, behind the button's spinner. Yielding between pages would keep the screen alive without shortening the render, and add an async path to share. The task waits 100 ms before the render, or the spinner never reaches the screen: a main-queue task can run before the button's new state commits, and the screen then stays still until the share sheet.
+
+**Helvetica Neue, not the system font, in both PDFs and every language.** The system font draws Cyrillic «к» and Latin «ĸ» with one glyph, and the text layer then spells every «к» U+0138. The page looks right, so nobody sees it, but a search for «кг» finds nothing and a copied value pastes as «5,32 ĸг». Restoring the system font would look harmless and bring this back. Every language, because a Russian question in an English report breaks the same way. PDFs only: the app keeps the system font. Ligatures are off for the same reason: «ﬁ» is one character in the text layer, and a search for «fine» misses it.
+
+**A named fallback list.** The engine has no system fallback: a glyph no named family holds prints a boxed «?», so a Chinese, Arabic or Thai name was a row of boxes. The CSS names a family per script, following the system's cascade list. Apple Color Emoji must stay off it: with that family named, the whole text prints boxed. The report's footer, which UIKit draws, takes the same list as a cascade: UIKit's own fallback sends a sign like ❤ to the colour font, and a PDF prints that as a box and a gap.
+
+**No emoji in the PDF body or the report's footer.** The engine can print a colour emoji only as a box, whichever way it is offered (a font, an image), and UIKit drawing the footer line into the same PDF prints one too. `PagedPDF.withoutEmoji` removes them at render only: the store, the screens, the CSV and file names keep what the parent typed.
+- A clean line on a doctor's paper beats a box, and this is the one exception to printing questions verbatim. A question of emoji alone leaves the list, and a name of emoji alone leaves no empty line.
+- Unicode also tags digits, «#», «*», «©», «®» and «™» as emoji-capable, so that tag alone must never filter: a lost digit in a question about a dose is worse than any box. They stay as text and lose only the request for the emoji form: «1️⃣» prints 1, «❤️» prints ❤.
+- A closed list becomes text instead of leaving, because a sentence must not survive with its answer gone: «Iron ❌, Vit D ✅» would print «Iron , Vit D ». ✅→✓, ❌ ❎→✗, ➕→+, ➖→−, ➗→÷, ❓ ❔→?, ❗ ❕→!, and «🔟» prints 10. The list stays closed: any other emoji leaves, and growing it is a new decision.
+- An emoji between two words or numbers leaves a space, or «5🍼10 мл» would read 510.
+
+## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
+
+- **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
+- **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). The label says «typical», not «average».
+- **«N days ago» from 48 h**, floored, with the age plurals. «131 h ago» was a number to work out, not an answer. Under 48 h, hours stay: «30 h ago» still reads at a glance.
+- **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made. The Height and Head cards therefore read the newest entry that HAS the figure, and the first weighing starts from the birth weight.
+- **The environment locale keeps the user's hour cycle.** Only the language is the app's; a fixed `ru_RU` / `en_US` would have turned a 24-hour phone's time pickers to AM/PM.
+
+## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
+
+**The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; a closed list of verdict words that must not appear is a test (`DoctorReportPDFTests`).
+- Past the chart's edge it prints «> 97» / «< 3» (`PercentileReading.badge`), never a clamped 99 or 1.
+- The number comes from `WHOGrowthStandard`, the same functions the Growth screen uses.
+
+**Why.** A percentile is a position on the WHO chart, which is what a doctor plots anyway. A band word turns that position into a judgement, and that is where the 2026-09-05 line sits. A second implementation in the exporter was the risk that entry named; the report reads the one in `Core/Growth`.
+
+**Numbers: PDFs in the app language, CSV invariant.** Every PDF the app makes, the report and the existing export, prints numbers in the app language («4,25 кг» in ru), with localized units glued by a no-break space. The CSV keeps a dot decimal (en_US_POSIX) and puts the units in the column headers.
+
+**Why.** A PDF is read by a person, possibly a doctor in Russia or Spain. A CSV is read by spreadsheets and scripts, where a comma decimal inside a comma-separated file breaks every column after it.
+
+The export's «a day» figures use the report's rule: `PeriodSummary` over finished days, divided by days with entries. A week or month range starts mid-day («now minus 7 days»), so its cut first day is left out too and the span starts at the next midnight. So the export and the report never print two different averages for the same days.
+
+---
+
+## 2026-11-01 — The pediatrician report counts its period its own way, on the weekly card's day core
+
+`PeriodSummary` buckets any `[start, end)` into calendar days. The weekly card is a 7-day instance of it, and the report is "since the last visit". Each caller decides what goes in. The report differs from the weekly card in four places:
+- **Running timers are left out.** The weekly card counts a running feed.
+- **A sleep that began before the period counts only its part inside.** The weekly card files a sleep whole on its start day.
+- **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
+- **Averages and «Days with entries: N of M» use the FINISHED days only.** Today stays in every count, but it does not average: the report is opened at the visit, mid-morning. Under 3 finished days, raw counts replace the averages. This amends the first rule, which let today join the count once it had an entry. The final review showed that 2 morning feeds after three days of 8 read as «6.5 a day», and «wet a day», the hydration number, dropped with it.
+
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (the weekly card's reason for dividing by days with entries, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+
+**Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
+
+---
+
+## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
+
+**No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
+
+**Why.** It follows from 2026-09-23 (no care timeline). Each event carries its own client time under a persistent id, so a `doctor_visit_logged` event would tell the backend the day this baby saw a pediatrician. In the Flo Health sense, that is health information revealed by an event. A presence flag in the daily aggregate would leak the same day. An event shaped for privacy, such as a once-per-install marker, buys nothing a product question needs today. If report usage ever matters, that is its own reviewed decision, not an extension of this one. The question and note texts could never reach a payload anyway, because the payload is typed.
+
+**Visit rows in Events and Recent activity are free.** They sit outside the 15-day window and the 20-row cap, and they are read-only: a visit changes only in its detail. The locked footer and «Delete History» keep counting events only. The Events confirm text says the visits are kept.
+
+**Why.** Logging a visit is free (plan v2, decision 4), and the visit is where the report's period starts. A visit hidden behind the lock would hide the record the free report is measured from. Deleting visits from a list would split the "questions go back to open" rule across three screens.
+
+**The doctor sheets never ask for a rating.** They use plain `.sheet`, never `.entrySheet` (2026-09-22). A question for the pediatrician is often a worry.
+
+---
+
+## 2026-11-01 — A persisted enum is closed while older versions sync; visits and questions are new models
+
+No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingType`/`BreastSide`, `DiaperEntry.DiaperType`/`StoolColor`, `CustomEvent.EventType`/`MoodLevel`, `Baby.Gender`/`FeedingType`, `SleepEntry.SleepType`/`SleepLocation`.
+- A new kind of record is a new `@Model`. A new property of a record is a new optional attribute.
+- `FrozenPersistedEnumTests` pins every case.
+- Hence the pediatrician visit (1.2.0) is `DoctorVisit` plus `DoctorQuestion`, not a `CustomEvent.EventType.doctorVisit`, even though the parent sees it as an event.
+
+**Why.** A spike for the visits feature wrote a `CustomEvent` whose stored `type` was a value the current build does not know. That is what CloudKit delivers to a 1.1 device from a newer one. Reading it crashed the app: "SwiftData/DefaultStore.swift:1890: Fatal error: Failed to decode a composite attribute … valueType: EventType".
+- The value is a plain VARCHAR raw value, and SwiftData does not skip the record: it traps on every read.
+- The Events tab, the weekly summary and the export all read every event, so a parent with an iPad still on the old version would have a crashing iPad.
+- Unknown record types and unknown attributes are what an older build CAN handle: `NSPersistentCloudKitContainer` imports only the record types its model knows.
+
+**A visit's date is stored at noon of its day.** It is not stored at midnight. The format is fixed once 1.2 ships, so the reason is recorded here: a visit stored at 00:00 Moscow time reads as the previous day on a device in New York (the second parent's iPad, a trip). That would move the report's period start. Noon survives any offset up to ±11 h.
+
+**Rejected:** a tolerant decoder (a String attribute plus a computed enum with a fallback case). It would protect only the builds that ship it. Every 1.1 device already installed keeps the trapping decoder.
+
+---
+
+## 2026-11-01 — Length-for-age is WHO's table, generated and cross-checked, on its own denser grid
+
+`WHOGrowthStandard+Length.swift` holds WHO length-for-age LMS rows for
+0–730 days, generated from WHO's expanded tables
+(`lhfa-{boys,girls}-percentiles-expanded-tables.xlsx`,
+who.int/tools/child-growth-standards/standards/length-height-for-age), never
+typed. The generator checked every row against WHO's anthro package
+(`data-raw/growthstandards/lenanthro.txt`): identical for both sexes, `l` = 1
+throughout, all rows recumbent length. `GrowthEntry.heightCm` is scored as
+length, with no lying/standing adjustment, because WHO switches to height only
+after 24 months.
+
+**Why.** The pediatrician report shows a length percentile next to weight's,
+and a transcription slip in a reference table is
+invisible in review. Generating from WHO's file and cross-checking against a
+second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
+lengths to ±0.1 percentile.
+
+**Rejected: reusing the weight table's day grid.** The z error of an
+interpolated median is about δM / (M·S), and length's S is about a quarter of
+weight's, so the same relative error in M costs four times as much z. At the median, where one z moves the percentile most,
+that reached 0.31 of a percentile and failed the ±0.1 test at day 45. The
+length grid is daily to 30 days, every third day to 182, then weekly (161 nodes
+per sex): under 0.022 of a percentile anywhere in −3…+3 z.
 
 ---
 
@@ -22,10 +442,10 @@ Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /
 `%@` (e.g. `growth.head_fmt`). Russian shows "4,29"; Spanish shows "4.29",
 because es is pinned to es_419.
 
-**Why.** The owner called the ru dot a defect (QA Q-001). One rule for every
+**Why.** A period in Russian numbers was reported as a defect. One rule for every
 number, following the region the app already pins: a comma only in
 measurements would put two separators on one screen, and moving es to Spain is
-a product change, not a bug fix (Manager decision, m1-bugfix-batch-1). Export
+a product change, not a bug fix. Export
 columns stay `en_US_POSIX` (machine-readable); whether the PDF report follows
 the app language is open.
 
@@ -45,7 +465,7 @@ dropped the widget reload. A rule applied in five places drifts; in one place
 it holds.
 
 Why reconcile instead of event-by-event updates: the activity must never
-disagree with the app (R3), and the events that can make it wrong are many and
+disagree with the app, and the events that can make it wrong are many and
 partly invisible: an app kill, a CloudKit change from another phone, iOS
 revoking the permission, a timer crossing 8 h while nobody looks. A pure
 planner that compares "what is running" with "what is shown" fixes all of them
@@ -53,9 +473,8 @@ the same way, any missed call is repaired by the next one, and the rules are
 unit-tested without ActivityKit.
 
 Why no push: updating an activity from another device needs aps-environment, a
-server and push tokens. For M1 the owner accepted that a stop made elsewhere
-reaches this Lock Screen when the app next runs (spec R3.4, verdict
-2026-10-29).
+server and push tokens. For 1.1.0 it was accepted that a stop made elsewhere
+reaches this Lock Screen when the app next runs (2026-10-29).
 
 Rejected: calling `Activity.update` / `end` from each screen's button. It is
 simpler on day one, but leaves exactly the drift above.
@@ -63,7 +482,7 @@ simpler on day one, but leaves exactly the drift above.
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
 The 10 `SubscriptionPurchaseTests` cases skip on this machine with
-`notEntitled`. The spike (card storekit-notentitled-spike, timeboxed) found
+`notEntitled`. A timeboxed spike found
 where the refusal comes from: storekitd logs **"com.nenita.app is not installed
 for development"** for every purchase-side `SKTestSession` call
 (`buyProduct`, `deleteAllTransactions`). The session's configuration calls
@@ -530,8 +949,10 @@ byte-identical PNGs across three locales, both schemes and both tails.
 or above the 97th, `tone: .neutralOnly` swaps `BBAlert` for the neutral
 `textPrimary`. Nothing is withheld — the band label still reads «< 3-й» in
 full, and the ring's badge still names the side of the chart; only the alarm
-is. On the Growth screen a red reading arrives with its explainer, the chart,
-the history and the copy telling the parent to ask someone qualified. Three
+is. (Since 2026-11-04 the card's figure is the percentile itself, «2» or «< 3»
+past the chart's edge, and the ring carries the tint alone.) On the Growth
+screen a red reading arrives with its explainer, the chart, the history and
+the copy telling the parent to ask someone qualified. Three
 minutes into onboarding there is none of that, and a parent who has just typed
 their newborn's discharge weight is the last person who should meet a red
 number they cannot act on. This is the 2026-09-05 rule about colour one step
@@ -1094,6 +1515,10 @@ weighing wobbled a little below the one before it.
 
 ## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
 
+> **Amended 2026-11-02**: the pediatrician report and
+> its PDF print the WHO percentile NUMBER for weight and length. See the entry
+> of that date. Everything else here stands.
+
 `ExportGenerator` writes raw growth rows — date, weight, height, head — and no
 percentile, gain band or centile-trend verdict. Verified, not merely observed:
 the file references none of `Core/Growth`.
@@ -1120,7 +1545,9 @@ neutral below it.
 MORE nappies than the norm — clinically inverted, and in the one domain where
 this app has to stay calm. The same reasoning covers `WeightVelocity.Band
 .above`, which takes the neutral primary tint rather than the green "within"
-tick: fast gain is not a worry, and it is not an achievement either.
+tick: fast gain is not a worry, and it is not an achievement either. (Since
+2026-11-04 every verdict word is in the text colour and the tier is a dot
+before it; `.above` gets none.)
 
 **Consequence.** The palette gained `BBAlert`, and red became a token instead
 of the `#E05A5A` literal repeated across the growth cards. Having exactly one

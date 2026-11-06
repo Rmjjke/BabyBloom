@@ -44,6 +44,7 @@ struct BabyProfileEditSheet: View {
     // Only for the entitlement `NotificationManager` needs in `save()` — this
     // sheet sells nothing.
     @Environment(SubscriptionManager.self) private var store
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showRemovePhotoAlert = false
@@ -84,6 +85,7 @@ struct BabyProfileEditSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "profile.edit_title".l)
 
                     // ── Photo picker ─────────────────────────────────────
                     avatarSection
@@ -92,7 +94,7 @@ struct BabyProfileEditSheet: View {
                     formSection {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("profile.name_label".l)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                             TextField("onboarding.name_placeholder".l, text: $editedName)
                                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
@@ -106,10 +108,16 @@ struct BabyProfileEditSheet: View {
                     // ── Birth date ────────────────────────────────────────
                     formSection {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                            // The caption above, as on the rest of the form, is
+                            // for the eye; the picker carries the name, so
+                            // VoiceOver reads it once (with "" it read none).
+                            // Not BBLabeledPicker: its label takes the row's
+                            // text style, and this form's captions are smaller.
                             Text("profile.birth_date".l)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
-                            DatePicker("", selection: $editedBirthDate,
+                                .accessibilityHidden(true)
+                            DatePicker("profile.birth_date".l, selection: $editedBirthDate,
                                        in: ...latestSelectableBirthDate,
                                        displayedComponents: .date)
                                 .labelsHidden()
@@ -126,9 +134,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $recordsBirthWeight,
                             value: $birthWeightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: "\(birthWeightKg.appDecimal(2)) \("unit.kg".l)",
-                            minLabel: "\(0.5.appDecimal(1)) \("unit.kg".l)",
-                            maxLabel: "6 \("unit.kg".l)",
+                            display: "\(birthWeightKg.appDecimal(2))\u{00A0}\("unit.kg".l)",
+                            minLabel: "\(0.5.appDecimal(1))\u{00A0}\("unit.kg".l)",
+                            maxLabel: "6\u{00A0}\("unit.kg".l)",
                             color: BBTheme.Colors.growth
                         )
                     }
@@ -141,9 +149,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $wasBornEarly,
                             value: $gestationalWeeks,
                             range: 22...36, step: 1,
-                            display: "\(Int(gestationalWeeks)) \("unit.weeks_short".l)",
-                            minLabel: "22 \("unit.weeks_short".l)",
-                            maxLabel: "36 \("unit.weeks_short".l)",
+                            display: "\(Int(gestationalWeeks))\u{00A0}\("unit.weeks_short".l)",
+                            minLabel: "22\u{00A0}\("unit.weeks_short".l)",
+                            maxLabel: "36\u{00A0}\("unit.weeks_short".l)",
                             color: BBTheme.Colors.accent
                         )
                     }
@@ -152,32 +160,20 @@ struct BabyProfileEditSheet: View {
                     formSection {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("profile.gender".l)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
-                            HStack(spacing: BBTheme.Spacing.sm) {
-                                ForEach(Baby.Gender.allCases, id: \.self) { gender in
-                                    Button {
-                                        withAnimation(.spring(response: 0.3)) {
-                                            editedGender = gender
-                                        }
-                                    } label: {
-                                        HStack(spacing: 6) {
-                                            Image(systemName: gender == .male ? "figure.stand" : "figure.stand.dress")
-                                            Text(gender.displayName.l)
-                                                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                        }
-                                        .foregroundStyle(editedGender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 10)
-                                        .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                        .cornerRadius(BBTheme.Radius.md)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                                .strokeBorder(editedGender == gender ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                        )
-                                        .bbShadow(BBTheme.Shadow.card)
-                                    }
-                                    .buttonStyle(BBScaleButtonStyle())
+                            // One column at accessibility sizes: «Мальчик» with its
+                            // figure needs about 146 pt at AX2, and two columns
+                            // give 124 each at a 320-pt width. Below them two
+                            // hold, with 18 pt to spare at xxxLarge.
+                            let genderColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+                            if genderColumns.count(at: dynamicTypeSize) == 1 {
+                                VStack(spacing: BBTheme.Spacing.sm) {
+                                    genderTiles
+                                }
+                            } else {
+                                HStack(spacing: BBTheme.Spacing.sm) {
+                                    genderTiles
                                 }
                             }
                         }
@@ -187,29 +183,28 @@ struct BabyProfileEditSheet: View {
                     formSection {
                         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                             Text("profile.feeding".l)
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
-                            HStack(spacing: BBTheme.Spacing.sm) {
-                                ForEach(Baby.FeedingType.allCases, id: \.self) { ft in
-                                    Button {
-                                        withAnimation(.spring(response: 0.3)) {
-                                            editedFeedingType = ft
-                                        }
-                                    } label: {
-                                        Text(ft.displayName.l)
-                                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                                            .foregroundStyle(editedFeedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 10)
-                                            .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                            .cornerRadius(BBTheme.Radius.md)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                                    .strokeBorder(editedFeedingType == ft ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                            )
-                                            .bbShadow(BBTheme.Shadow.card)
-                                    }
-                                    .buttonStyle(BBScaleButtonStyle())
+                            // Fewer columns as the word grows, measured at a
+                            // 320-pt width: in a third of it «Смешанное» breaks
+                            // from xLarge, and at AX2 it needs about 132 pt, more
+                            // than half. Up to Large the row stays an HStack: a
+                            // grid sets it a third of a point lower there.
+                            let feedingColumns = BBTileColumns(large: 3, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+                            let count = feedingColumns.count(at: dynamicTypeSize)
+                            if count == feedingColumns.large {
+                                HStack(spacing: BBTheme.Spacing.sm) {
+                                    feedingTiles
+                                }
+                            } else if count == 1 {
+                                VStack(spacing: BBTheme.Spacing.sm) {
+                                    feedingTiles
+                                }
+                            } else {
+                                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                         count: count),
+                                          spacing: BBTheme.Spacing.sm) {
+                                    feedingTiles
                                 }
                             }
                         }
@@ -229,17 +224,13 @@ struct BabyProfileEditSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .navigationTitle("profile.edit_title".l)
-            .navigationBarTitleDisplayMode(.inline)
+            .bbSheetTitle("profile.edit_title".l)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("button.save".l) { save() }
-                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
+                    BBBarButton(.save) { save() }
                 }
             }
         }
@@ -253,6 +244,51 @@ struct BabyProfileEditSheet: View {
         .alert("profile.remove_photo".l, isPresented: $showRemovePhotoAlert) {
             Button("button.delete".l, role: .destructive) { editedPhotoData = nil }
             Button("button.cancel".l, role: .cancel) {}
+        }
+    }
+
+    private var genderTiles: some View {
+        ForEach(Baby.Gender.allCases, id: \.self) { gender in
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    editedGender = gender
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: gender == .male ? "figure.stand" : "figure.stand.dress")
+                    Text(gender.displayName.l)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                }
+                .foregroundStyle(editedGender == gender ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(editedGender == gender ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(editedGender == gender)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
+    private var feedingTiles: some View {
+        ForEach(Baby.FeedingType.allCases, id: \.self) { ft in
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    editedFeedingType = ft
+                }
+            } label: {
+                Text(ft.displayName.l)
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                    .foregroundStyle(editedFeedingType == ft ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(editedFeedingType == ft ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
+                    .cornerRadius(BBTheme.Radius.md)
+                    .bbShadow(BBTheme.Shadow.card)
+                    .bbSelectedBorder(editedFeedingType == ft)
+            }
+            .buttonStyle(BBScaleButtonStyle())
         }
     }
 
@@ -271,7 +307,7 @@ struct BabyProfileEditSheet: View {
                             .frame(width: 30, height: 30)
                         Image(systemName: "camera.fill")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(BBTheme.Colors.onPrimary)
                     }
                     .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 30)
                     .contentShape(Rectangle())
@@ -284,14 +320,17 @@ struct BabyProfileEditSheet: View {
                     showRemovePhotoAlert = true
                 } label: {
                     Text("profile.remove_photo".l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(.red.opacity(0.8))
+                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
+                        .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
             } else {
                 Text("profile.photo_hint".l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
+                    // Centred under the centred photo at every size: in ru it
+                    // wraps at Large on a 320-pt screen.
+                    .multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity)

@@ -13,8 +13,8 @@
 # **Fixture choice is load-bearing.** `newbornStalePair` logs feeds and nappies
 # 16-21 days back and NOTHING since, so every row is outside the 15-day window:
 # the lock is the first thing on the screen and no flow has to scroll a
-# 150-row list to reach it (`showcase`'s Month range takes ~45 paged scrolls —
-# see .team/app-map.md). It also exercises the branch where the visible list is
+# 150-row list to reach it (`showcase`'s Month range takes ~45 paged scrolls
+# to get there). It also exercises the branch where the visible list is
 # empty but the footer still stands, which is the case a naive "no records"
 # empty state would have got wrong.
 #
@@ -180,10 +180,11 @@ tags: [regression]
 - assertVisible: "Delete History"
 - tapOn: "Delete History"
 # Events has no range picker, so its confirmation must NOT say "in the
-# selected period" — that would understate a wipe of the whole history.
+# selected period" — that would understate a wipe of the whole history. It
+# deletes the events and keeps the pediatrician visits, and says both.
 - assertNotVisible: "Everything in the selected period will be deleted, including entries that are not shown. This action cannot be undone."
 - extendedWaitUntil:
-    visible: "All records will be deleted, including entries that are not shown. This action cannot be undone."
+    visible: "All events will be deleted, including entries that are not shown. Pediatrician visits will be kept. This action cannot be undone."
     timeout: 10000
 - tapOn: "Delete"
 - extendedWaitUntil:

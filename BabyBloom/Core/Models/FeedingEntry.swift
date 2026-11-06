@@ -30,18 +30,18 @@ final class FeedingEntry {
     }
 
     // MARK: Computed
+    /// Never below 0, as `SleepEntry.duration`: a timer stopped on a phone
+    /// whose clock runs behind the one that started it stores an end before
+    /// its start.
     var duration: TimeInterval {
-        guard let end = endTime else { return Date().timeIntervalSince(startTime) }
-        return end.timeIntervalSince(startTime)
+        max(0, (endTime ?? Date()).timeIntervalSince(startTime))
     }
 
+    /// Seconds only under a minute: from one minute a feed reads like a sleep.
     var durationFormatted: String {
-        let mins = Int(duration) / 60
-        let secs = Int(duration) % 60
-        if mins > 0 {
-            return String(format: "duration.min_sec".l, mins, secs)
-        }
-        return String(format: "duration.sec".l, secs)
+        let seconds = max(0, Int(duration))
+        guard seconds >= 60 else { return String(format: "duration.sec".l, seconds) }
+        return DurationText.minutes(seconds / 60)
     }
 
     var isActive: Bool { endTime == nil }

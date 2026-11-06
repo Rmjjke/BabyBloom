@@ -1,7 +1,7 @@
 import XCTest
 @testable import BabyBloom
 
-/// The capture brief's one hard requirement: nothing on the Growth screen may
+/// The screenshot capture's one hard requirement: nothing on the Growth screen may
 /// render red, because the app ships in the Medical category and a red "below
 /// normal" verdict in a storefront screenshot reads as a diagnosis.
 ///
@@ -38,7 +38,7 @@ final class ShowcaseGrowthTests: XCTestCase {
                                                       ageDays: ageDays,
                                                       isMale: SeedScenario.showcaseIsMale)
         XCTAssertNotNil(percentile, "A weighing the tables cannot score renders the out-of-range card.")
-        // `.beyond` is the tier the brief rules out; it is returned below the
+        // `.beyond` is the tier the capture rules out; it is returned below the
         // 3rd centile. Asserting on the tier rather than on a number keeps this
         // test honest if the band edges are ever retuned.
         XCTAssertEqual(WHOGrowthStandard.percentileTint(percentile!), .typical,
@@ -72,8 +72,8 @@ final class ShowcaseGrowthTests: XCTestCase {
                        "`.below` renders the card in the accent colour and reads as a warning.")
     }
 
-    /// The brief proposed 4.80 kg at six weeks. This is why the fixture says
-    /// 4.70 — and it fails the moment someone "restores" the brief's figure.
+    /// The capture first proposed 4.80 kg at six weeks. This is why the fixture
+    /// says 4.70 — and it fails the moment someone "restores" that figure.
     func testTheBriefsOwnSixWeekWeightWouldHaveFallenBelowTheBand() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())

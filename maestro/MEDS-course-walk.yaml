@@ -1,0 +1,158 @@
+# A medication course from empty to ended: add a medication, log a dose,
+# read "Next dose not before", move the dose earlier and see the line move,
+# end the course and see the line go while the dose stays.
+#
+# The clock is pinned (-BBNow 10:00), so every time below is exact: a dose at
+# 10:00 with a 6 h interval reads "not before 16:00"; moved to 08:00 it
+# reads "not before 14:00". The dose sheet's time button is the system
+# picker and shows the same clock ("10:00").
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
+#
+# The hour wheel is driven by a point: the selected row sits mid-wheel and a
+# tap two rows above it selects the hour two earlier. The wheel opens under
+# the time button, which sits under its "Time" label at the row's leading
+# edge. Measured on iPhone 17 on the 24-hour clock (hour and minute wheels
+# only); a 12-hour clock adds an AM/PM wheel and moves the hour wheel. The
+# sheet's first line is the medication's name: a name that wraps to a second
+# line moves the wheel down.
+#
+# Launch-argument mechanics (dash in the key, stopApp beside clearState) are
+# explained in SMOKE-main-tabs.yaml and the platform-run skill.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
+      "-BBSeedScenario": "healthy"
+      "-BBNow": "2026-11-03T10:00:00"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 20000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- tapOn:
+    id: "more.medications"
+- extendedWaitUntil:
+    visible: "No medications yet"
+    timeout: 10000
+
+# The form: Save stays off until there is a name AND an interval.
+- tapOn:
+    id: "medication.empty_add"
+- extendedWaitUntil:
+    visible:
+      id: "medication.name"
+    timeout: 10000
+- assertVisible:
+    id: "medication.save"
+    enabled: false
+- tapOn:
+    id: "medication.name"
+- inputText: "Paracetamol"
+- assertVisible:
+    id: "medication.save"
+    enabled: false
+- tapOn:
+    id: "medication.chip.6"
+- assertVisible:
+    id: "medication.save"
+    enabled: true
+- tapOn:
+    id: "medication.save"
+- extendedWaitUntil:
+    visible: "No doses logged yet"
+    timeout: 10000
+
+# Log Dose: the time starts at now.
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible:
+      id: "medication.status"
+    timeout: 10000
+- tapOn:
+    id: "medication.log_dose"
+- extendedWaitUntil:
+    visible:
+      id: "dose.time"
+    timeout: 10000
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "Next dose not before 16:00"
+    timeout: 10000
+- assertVisible: "Last dose at 10:00.· just now"
+
+# The list follows at once, with no wait for the minute tick.
+- tapOn:
+    id: "BackButton"
+- extendedWaitUntil:
+    visible: "Next dose not before 16:00"
+    timeout: 5000
+- assertNotVisible: "No doses logged yet"
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible:
+      id: "medication.status"
+    timeout: 10000
+
+# Move the dose two hours earlier: the line moves with it.
+- tapOn:
+    id: "medication.dose.1"
+- extendedWaitUntil:
+    visible:
+      id: "dose.time"
+    timeout: 10000
+- tapOn: "10:00"
+- extendedWaitUntil:
+    visible: "10 o’clock"
+    timeout: 5000
+- tapOn:
+    point: "26%,37%"
+- extendedWaitUntil:
+    visible: "08 o’clock"
+    timeout: 5000
+# Close the wheel by a tap outside it: the dismiss region spans the screen,
+# and its centre falls on the wheel's bottom edge.
+- tapOn:
+    point: "75%,70%"
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "Next dose not before 14:00"
+    timeout: 10000
+- assertVisible: "Last dose at 08:00.· 2.h ago"
+
+# End the course: no status, no Log Dose, the dose still listed.
+- scrollUntilVisible:
+    element:
+      id: "medication.course"
+- tapOn:
+    id: "medication.course"
+- extendedWaitUntil:
+    visible: "Ended .*.· 1.dose"
+    timeout: 10000
+- assertNotVisible: "Next dose not before.*"
+- assertNotVisible:
+    id: "medication.log_dose"
+- assertVisible:
+    id: "medication.dose.1"
+- tapOn:
+    id: "BackButton"
+- extendedWaitUntil:
+    visible: "Ended \\(1\\)"
+    timeout: 10000
+- assertNotVisible: "Next dose not before.*"

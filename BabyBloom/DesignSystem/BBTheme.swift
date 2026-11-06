@@ -16,6 +16,9 @@ enum BBTheme {
         static let onPrimary = Color("BBOnPrimary")
         /// Soft peach — warm accent
         static let accent = Color("BBAccent")
+        /// Text ON a BBAccent fill: near-black in both modes, since white on
+        /// the light peach reads under 2:1.
+        static let onAccent = Color("BBOnAccent")
         /// Lavender-white app background
         static let background = Color("BBBackground")
         /// Mint green — success
@@ -36,7 +39,8 @@ enum BBTheme {
         static let growth = Color("BBGrowth")
         static let events = Color("BBEvents")
 
-        // Premium hero gradient (violet → lavender)
+        // Premium hero and widget gradient (violet → lighter violet), one value
+        // in light and dark: white words read 4.67:1 or more on every point of it
         static let premiumGradient = LinearGradient(
             colors: [Color("BBGradientStart"), Color("BBGradientEnd")],
             startPoint: .topLeading, endPoint: .bottomTrailing
@@ -44,7 +48,7 @@ enum BBTheme {
     }
 
     // MARK: Typography
-    // Scale D1: straight SF Pro (semibold, not bold) for headers; rounded for body;
+    // Type scale: straight SF Pro (semibold, not bold) for headers; rounded for body;
     // rounded + monospacedDigit for metrics/timers so digits don't jump.
     enum Typography {
         /// The app's Dynamic Type ceiling, in the ONE place that decides it.
@@ -66,7 +70,7 @@ enum BBTheme {
         private static let capTraits =
             UITraitCollection(preferredContentSizeCategory: maxContentSizeCategory)
 
-        /// Point size for the D1 scale value `size`, scaled for Dynamic Type and
+        /// Point size for the type-scale value `size`, scaled for Dynamic Type and
         /// clamped to `maxContentSizeCategory`.
         ///
         /// The `min` IS the cap. `UIFontMetrics.scaledValue(for:)` — the form
@@ -95,11 +99,11 @@ enum BBTheme {
             return min(requested, metrics.scaledValue(for: size, compatibleWith: capTraits))
         }
 
-        /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the D1 scale
+        /// Dynamic-Type-aware system font. `size`/`weight`/`design` are the type-scale
         /// values (unchanged); the point size is scaled for the user's Content Size
         /// setting and capped at `maxContentSizeCategory`. At the standard "Large"
         /// setting the scale factor is 1.0, so rendering is pixel-identical to the
-        /// fixed-size D1 scale.
+        /// fixed-size type scale.
         static func scaled(_ size: CGFloat,
                            relativeTo style: UIFont.TextStyle,
                            weight: Font.Weight,
@@ -174,7 +178,7 @@ enum BBTheme {
     }
 
     // MARK: Shadow
-    // Depth system (D2): tinted, diffuse shadows in the brand hue instead of flat
+    // Depth system: tinted, diffuse shadows in the brand hue instead of flat
     // black — reads softer and more premium. Button shadow toned right down so it
     // no longer glows like a lantern (especially in dark mode).
     enum Shadow {
@@ -312,24 +316,114 @@ extension View {
         shadow(color: config.color, radius: config.radius, x: config.x, y: config.y)
     }
 
-    /// An entry sheet's inline title between Cancel and Save. The system title
-    /// truncates («Новое кормл…», Q-010); this one shrinks instead.
-    /// Capped at `.large`, and one line: the bar never grows, and the principal
-    /// slot gave a second line no room — at AX2 the wider Cancel / Save left it
-    /// «Новое кормл…» again. Shrinking to 0.6 keeps the whole title.
-    func bbSheetTitle(_ title: String) -> some View {
-        navigationTitle(title)
+    /// A selected tile's or chip's primary border, 1.5 pt wide and drawn
+    /// outside its fill: the inner edge on the fill's edge, the corners
+    /// concentric with the fill's. Drawn inside, it covered the fill's outer
+    /// 1.5 pt, and with Bold Text a word that fills its tile on a 320-pt
+    /// phone («Izquierdo» with its glyph, «Смешанное») ran under it. As an
+    /// overlay it takes no room, so a tile is laid out the same selected or
+    /// not; the gaps between tiles, 8 pt or more, keep 6.5. Apply it after
+    /// `bbShadow`, so the shadow keeps the fill's outline.
+    func bbSelectedBorder(_ selected: Bool, shape: BBSelectionShape = .tile) -> some View {
+        let width: CGFloat = 1.5
+        let color = selected ? BBTheme.Colors.primary : Color.clear
+        return overlay {
+            switch shape {
+            case .tile:
+                RoundedRectangle(cornerRadius: BBTheme.Radius.md + width)
+                    .strokeBorder(color, lineWidth: width)
+                    .padding(-width)
+            case .capsule:
+                Capsule()
+                    .strokeBorder(color, lineWidth: width)
+                    .padding(-width)
+            }
+        }
+    }
+
+    /// A sheet's title: in the bar between its glyph buttons up to Large, and
+    /// otherwise (above Large, or at every size with `.content`) the
+    /// content's first line, `BBSheetHeading`, which the sheet puts first in
+    /// its content with the same placement. The two go together: the modifier
+    /// alone leaves no title where the bar has none, the heading alone shows
+    /// it twice.
+    ///
+    /// In the bar the title is one line and shrinks rather than truncate
+    /// (the system title cut «Новое кормл…»), to 13/17 of its size, 13 pt at
+    /// Large, the sheets' caption size: a title of at most 166 pt at 17 pt is
+    /// whole at Large on a 320-pt phone. Above Large it would keep its Large
+    /// size while the
+    /// sheet's text grows (cut from xLarge on a 375-pt phone, 10–11 pt at
+    /// xxxLarge on a 402-pt one), so there the bar shows no title: an empty
+    /// principal item alone let the system draw the navigation title, cut.
+    /// The heading carries the header trait for VoiceOver.
+    func bbSheetTitle(_ title: String, placement: BBSheetTitlePlacement = .barUpToLarge) -> some View {
+        modifier(BBSheetTitle(title: title, placement: placement))
+    }
+}
+
+/// The outline `bbSelectedBorder` follows: a tile filled with `Radius.md`
+/// corners, or a pill.
+enum BBSelectionShape {
+    case tile
+    case capsule
+}
+
+/// Where a sheet's title stands; `bbSheetTitle` and `BBSheetHeading` take the
+/// same one.
+enum BBSheetTitlePlacement {
+    /// In the bar up to Large, the content's first line above it.
+    case barUpToLarge
+    /// The content's first line at every size, and no title in the bar: for a
+    /// title the parent wrote, such as a medication's name, which no budget
+    /// holds and whose end is often where two names differ.
+    case content
+
+    func inBar(at size: DynamicTypeSize) -> Bool {
+        self == .barUpToLarge && size <= .large
+    }
+}
+
+private struct BBSheetTitle: ViewModifier {
+    let title: String
+    let placement: BBSheetTitlePlacement
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        let inBar = placement.inBar(at: dynamicTypeSize)
+        content
+            .navigationTitle(inBar ? title : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text(title)
-                        .font(.headline)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                        .multilineTextAlignment(.center)
-                        .dynamicTypeSize(...DynamicTypeSize.large)
-                        .accessibilityAddTraits(.isHeader)
+                    if inBar {
+                        Text(title)
+                            .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(13.0 / 17.0)
+                            .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                 }
             }
+    }
+}
+
+/// The sheet's title as the content's first line wherever the bar shows none;
+/// takes the placement its sheet passes to `bbSheetTitle`.
+struct BBSheetHeading: View {
+    let title: String
+    var placement: BBSheetTitlePlacement = .barUpToLarge
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        if !placement.inBar(at: dynamicTypeSize) {
+            BBTheme.Typography.title3(title)
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                // Leading in the sheets that centre their content too.
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+        }
     }
 }

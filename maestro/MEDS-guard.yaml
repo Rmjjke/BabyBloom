@@ -1,0 +1,202 @@
+# The calm confirmation. A dose over the 24-hour maximum or inside the
+# interval asks first, naming the time that holds once it is saved; Cancel
+# returns to the sheet with what was typed, Save keeps exactly one dose. A
+# dose on time saves with no alert. The Add Event form with a medication
+# chosen asks the same way.
+#
+# Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
+# 6 h, at most 4 in 24 h, its latest dose at 08:00 and 4 doses in the last
+# 24 hours; Vitamin D every 24 h, its latest 26 h ago.
+#
+# The app's times and its pickers follow the device's 12/24-hour setting;
+# the launch argument -AppleICUForce24HourTime <true/> pins it to 24 hours
+# for this app, over the region and over a device set to 12 hours, so the
+# times below read the same on any simulator. The value must be the plist
+# boolean: a plain YES arrives as a string and is ignored.
+#
+# Launch-argument mechanics are explained in SMOKE-main-tabs.yaml.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
+      "-BBSeedScenario": "medsTwoCourses"
+      "-BBNow": "2026-11-03T10:00:00"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 20000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- tapOn:
+    id: "more.medications"
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible: "Last dose at 08:00.· 2.h ago"
+    timeout: 10000
+- assertVisible: "Last 24.hours: 4.doses of the 4 you set"
+
+# Paracetamol at 10:00 is inside the interval and the fifth dose in 24 hours.
+# Once saved, the maximum ends later (20:00) than the interval (16:00), so
+# the alert names the 24 hours and 20:00, the time the screen then shows.
+- tapOn:
+    id: "medication.log_dose"
+- extendedWaitUntil:
+    visible:
+      id: "dose.save"
+    timeout: 10000
+- tapOn:
+    id: "dose.note"
+- inputText: "after food"
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "With this dose, 5.doses in 24.hours"
+    timeout: 10000
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
+- takeScreenshot: ${OUT}-guard-before
+
+# Cancel: back on the sheet with the note as typed, nothing saved.
+- tapOn: "Cancel"
+- assertNotVisible: "With this dose, 5.doses in 24.hours"
+- assertVisible:
+    id: "dose.save"
+- assertVisible: "after food"
+
+# Save: one dose is kept and the screen counts from it.
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "With this dose, 5.doses in 24.hours"
+    timeout: 10000
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
+# While the alert is up it is all the tree holds, so its Save is the only one.
+- tapOn: "Save"
+- extendedWaitUntil:
+    visible: "Last dose at 10:00.· just now"
+    timeout: 10000
+- assertNotVisible:
+    id: "dose.save"
+- assertVisible: "Last 24.hours: 5.doses of the 4 you set"
+- takeScreenshot: ${OUT}-guard-saved
+
+# On time: Vitamin D's interval has passed, so the dose saves at once.
+# A Back tap made while the dose sheet was still leaving was lost once: tap
+# Back until the list shows, at most three times.
+- repeat:
+    times: 3
+    while:
+      notVisible: "Vitamin D"
+    commands:
+      - tapOn:
+          id: "BackButton"
+          optional: true
+      - waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "Vitamin D"
+    timeout: 10000
+- tapOn: "Vitamin D"
+- tapOn:
+    id: "medication.log_dose"
+- extendedWaitUntil:
+    visible:
+      id: "dose.save"
+    timeout: 10000
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "Last dose at 10:00.· just now"
+    timeout: 10000
+- assertNotVisible: "Less than .*"
+- assertNotVisible: "With this dose.*"
+
+# A second Vitamin D dose at once is inside its 24 h interval: the interval
+# variant names the last dose and the next time after Save, tomorrow.
+- tapOn:
+    id: "medication.log_dose"
+- extendedWaitUntil:
+    visible:
+      id: "dose.save"
+    timeout: 10000
+- tapOn:
+    id: "dose.save"
+- extendedWaitUntil:
+    visible: "Less than 24.h since the last dose"
+    timeout: 10000
+- assertVisible: "(?s)Vitamin D.Last dose at 10:00.If you save, next dose not before .*10:00.*"
+- takeScreenshot: ${OUT}-guard-interval
+- tapOn: "Cancel"
+- assertVisible:
+    id: "dose.save"
+
+# The Add Event form (creating events is Premium) with Paracetamol chosen.
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-AppleICUForce24HourTime": "<true/>"
+      "-BBSeedScenario": "medsTwoCourses"
+      "-BBNow": "2026-11-03T10:00:00"
+      "-BBForcePremium": "true"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 20000
+- tapOn:
+    text: "More"
+    childOf:
+      text: "Tab Bar"
+- tapOn:
+    id: "more.events"
+- extendedWaitUntil:
+    visible:
+      id: "events.quick.medication"
+    timeout: 10000
+# The toolbar's plus has no label of its own to tap by.
+- tapOn:
+    point: "92%,8%"
+- extendedWaitUntil:
+    visible:
+      id: "event.type.medication"
+    timeout: 10000
+- tapOn:
+    id: "event.type.medication"
+- tapOn:
+    id: "medication.picker"
+- tapOn: "Paracetamol"
+- extendedWaitUntil:
+    visible: "Next dose not before 14:00"
+    timeout: 5000
+- tapOn:
+    id: "event.save"
+- extendedWaitUntil:
+    visible: "With this dose, 5.doses in 24.hours"
+    timeout: 10000
+- assertVisible: "(?s)Paracetamol.Your maximum in 24.hours: 4.If you save, next dose not before 20:00"
+- tapOn: "Cancel"
+- assertVisible:
+    id: "event.save"
+- tapOn:
+    id: "event.save"
+- extendedWaitUntil:
+    visible: "With this dose, 5.doses in 24.hours"
+    timeout: 10000
+- tapOn: "Save"
+# Back on Events, Paracetamol's line counts from the new dose.
+- extendedWaitUntil:
+    visible: "Next dose not before 20:00"
+    timeout: 10000
+- assertNotVisible:
+    id: "event.save"
+- takeScreenshot: ${OUT}-guard-form-saved

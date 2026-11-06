@@ -30,7 +30,7 @@ final class AnalyticsEventTests: XCTestCase {
     private static let allowList: [String: [String: Expected]] = [
         "onboarding_page_viewed":  ["page": .token(pages)],
         "onboarding_completed":    ["birth_measurements_known": .bool],
-        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events"])],
+        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report"])],
         "plan_selected":           ["plan": .token(plans)],
         "purchase_result":         ["plan": .token(plans),
                                     "result": .token(["success", "cancelled", "failed", "pending",
@@ -46,13 +46,13 @@ final class AnalyticsEventTests: XCTestCase {
         "widget_installed":        [:],
         "history_lock_shown":      ["surface": .token(["feeding", "sleep", "diaper", "events", "recent_activity"])],
         "review_prompt_requested": [:],
-        // Names only (D11): how often the Lock Screen timer is used, nothing
+        // Names only: how often the Lock Screen timer is used, nothing
         // about the timer itself.
         "live_activity_started":                  [:],
         "live_activity_stopped_from_lock_screen": [:],
-        // D11/D16: that the widget's button started a feed, nothing about the feed.
+        // That the widget's button started a feed, nothing about the feed.
         "widget_feeding_logged":                  [:],
-        // D11: that the weekly card was seen, none of its figures.
+        // That the weekly card was seen, none of its figures.
         "weekly_summary_viewed":                  [:],
     ]
 
@@ -189,7 +189,7 @@ final class AnalyticsEventTests: XCTestCase {
         XCTAssertFalse(other.outsideSession)
     }
 
-    /// The same order AmplitudeCore's own detection uses, so dev and QA
+    /// The same order AmplitudeCore's own detection uses, so dev and tester
     /// traffic never reads as `appstore`.
     func testBuildChannelKeepsEverythingButTheStoreOutOfAppstore() {
         typealias C = AnalyticsEvent.BuildChannel

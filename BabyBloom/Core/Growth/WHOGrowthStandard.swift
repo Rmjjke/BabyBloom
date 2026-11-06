@@ -32,7 +32,9 @@ enum WHOGrowthStandard {
         let s: Double
     }
 
-    private struct Node {
+    /// One stored row of a WHO table. Internal rather than private so the
+    /// length-for-age table can live in its own file.
+    struct Node {
         let day: Int
         let l: Double
         let m: Double
@@ -48,8 +50,15 @@ enum WHOGrowthStandard {
 
     /// Interpolated coefficients for an age, or `nil` outside the covered range.
     static func lms(ageDays: Int, isMale: Bool) -> LMS? {
+        lms(in: isMale ? boys : girls, ageDays: ageDays)
+    }
+
+    /// The lookup both tables share: weight-for-age here, length-for-age in
+    /// `WHOGrowthStandard+Length.swift`. Each table has its OWN day grid (see
+    /// that file for why length's is denser); this only needs rows sorted by
+    /// ascending `day`, starting at day 0.
+    static func lms(in table: [Node], ageDays: Int) -> LMS? {
         guard ageDays >= 0, ageDays <= maxAgeDays else { return nil }
-        let table = isMale ? boys : girls
 
         // Exact node, or the pair straddling this age.
         var lower = table[0]
@@ -75,13 +84,16 @@ enum WHOGrowthStandard {
     /// Standard deviations from the median for this weight, or `nil` if the age
     /// is outside the tables or the weight is not a positive number.
     static func zScore(weightKg: Double, ageDays: Int, isMale: Bool) -> Double? {
-        guard weightKg > 0, let c = lms(ageDays: ageDays, isMale: isMale), c.m > 0, c.s > 0 else {
-            return nil
-        }
+        zScore(of: weightKg, lms: lms(ageDays: ageDays, isMale: isMale))
+    }
+
+    /// The LMS z score of a measurement, shared by weight and length.
+    static func zScore(of value: Double, lms c: LMS?) -> Double? {
+        guard value > 0, let c, c.m > 0, c.s > 0 else { return nil }
         if abs(c.l) < 1e-9 {
-            return log(weightKg / c.m) / c.s
+            return log(value / c.m) / c.s
         }
-        return (pow(weightKg / c.m, c.l) - 1) / (c.l * c.s)
+        return (pow(value / c.m, c.l) - 1) / (c.l * c.s)
     }
 
     /// The weight sitting `z` standard deviations from the median at this age —
@@ -94,7 +106,12 @@ enum WHOGrowthStandard {
     /// third minute in the app is therefore the same reference every number in
     /// the app is scored against.
     static func weight(atZ z: Double, ageDays: Int, isMale: Bool) -> Double? {
-        guard let c = lms(ageDays: ageDays, isMale: isMale), c.m > 0, c.s > 0 else { return nil }
+        value(atZ: z, lms: lms(ageDays: ageDays, isMale: isMale))
+    }
+
+    /// The inverse of `zScore(of:lms:)`, shared by weight and length.
+    static func value(atZ z: Double, lms c: LMS?) -> Double? {
+        guard let c, c.m > 0, c.s > 0 else { return nil }
         if abs(c.l) < 1e-9 {
             return c.m * exp(z * c.s)
         }
@@ -198,8 +215,8 @@ enum WHOGrowthStandard {
     /// with two digits of precision it does not have. Past the clamp the badge
     /// names the side of the chart instead and stops there.
     ///
-    /// Returned together so the ring, its badge and the Dashboard's row can
-    /// never come from different z scores.
+    /// Returned together so the ring, the card's figure and the Dashboard's
+    /// row can never come from different z scores.
     static func percentileReading(of measurement: WeightMeasurement,
                                   correctedBirthDate: Date,
                                   isMale: Bool) -> PercentileReading? {
@@ -213,46 +230,34 @@ enum WHOGrowthStandard {
     }
 
     struct PercentileReading: Equatable {
-        /// Clamped to 1–99 — what the ring draws and what the band label reads.
+        /// Clamped to 1–99 — what the ring draws and its tint reads.
         let percentile: Double
         /// The true percentile is past the chart's edge, so the clamped number
         /// is the scale talking rather than a measurement.
         let isBeyondChart: Bool
 
-        /// Short text for the ring's badge: "> 97", "< 3", or the number.
+        /// The figure the percentile card and the report print: "> 97", "< 3",
+        /// or the number.
         var badge: String {
             guard isBeyondChart else { return "\(Int(percentile))" }
             return percentile > 50 ? "percentile.badge_above97".l : "percentile.badge_below3".l
         }
 
         /// The same honesty for a surface that renders a sentence rather than a
-        /// badge: past the edge it borrows the band label, which is already
-        /// prose in every language ("> 97th", "> 97-го"), instead of forcing a
-        /// two-digit number through a "%d percentile" format.
+        /// figure: past the edge it says the tail in each language's own form
+        /// ("> 97th", "> 97-го"), instead of forcing a two-digit number through
+        /// a "%d percentile" format.
         func rowText(format: String) -> String {
             guard isBeyondChart else { return String(format: format, Int(percentile)) }
-            return percentileLabel(percentile)
+            return percentile > 50 ? "percentile.above97".l : "percentile.below3".l
         }
     }
 
     // MARK: - Presentation
 
-    /// Localized percentile band label. Bands share identical boundaries with
-    /// `percentileTint`: 3 / 15 / 50 / 85 / 97 (upper-inclusive within a band).
-    static func percentileLabel(_ percentile: Double) -> String {
-        switch percentile {
-        case ..<3:  return "percentile.below3".l
-        case ...15: return "percentile.3_15".l
-        case ...50: return "percentile.15_50".l
-        case ...85: return "percentile.50_85".l
-        case ...97: return "percentile.85_97".l
-        default:    return "percentile.above97".l
-        }
-    }
-
     /// How far from the middle of the chart a percentile sits, for the surfaces
-    /// that tint it. Three tiers where `percentileLabel` names six bands: the
-    /// words say which band, the colour only says how far out.
+    /// that tint it. The figure says where the reading is; the colour only
+    /// says how far out.
     ///
     /// Returned as a case rather than a colour because this file is pure domain
     /// logic and must not import SwiftUI (see ARCHITECTURE.md). The mapping to
@@ -268,8 +273,9 @@ enum WHOGrowthStandard {
         case beyond
     }
 
-    /// Boundaries identical to `percentileLabel` (3 / 15 / 50 / 85 / 97), so a
-    /// reading can never read "normal" while showing the tint of a tail.
+    /// Tiers: below 3, then up to and including 15 / 85 / 97. A reading past
+    /// the chart's edge is clamped to 1 or 99, so its tail figure ("< 3",
+    /// "> 97") always sits on the `.beyond` tint.
     static func percentileTint(_ percentile: Double) -> PercentileTint {
         switch percentile {
         case ..<3:  return .beyond

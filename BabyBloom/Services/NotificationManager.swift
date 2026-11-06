@@ -44,7 +44,12 @@ final class NotificationManager: @unchecked Sendable {
     func requestPermission(completion: (@MainActor @Sendable (Bool) -> Void)? = nil) {
         UNUserNotificationCenter.current()
             .requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, _ in
-                if granted { Task { @MainActor in self?.rescheduleWeeklySummary() } }
+                Task { @MainActor in
+                    await NotificationPermission.shared.refresh()
+                    guard granted else { return }
+                    self?.rescheduleWeeklySummary()
+                    MedicationReminderSync.shared.reconcile()
+                }
                 guard let completion else { return }
                 Task { @MainActor in completion(granted) }
             }
@@ -54,18 +59,27 @@ final class NotificationManager: @unchecked Sendable {
 
     /// Backgrounding is the other half of the weekly plan: entries are only
     /// made while the app runs, so this pass sees every one of them.
-    /// Synchronous: at `.background` the app may be suspended right after the
-    /// call, so the request goes out before this returns.
+    /// At `.background` the app may be suspended right after the call: the
+    /// weekly request goes out before this returns, and the medication pass
+    /// holds a background task until it lands. That pass also re-words a
+    /// pending reminder after a language change.
     @MainActor
     func onAppBackgrounded() {
         rescheduleWeeklySummary()
+        MedicationReminderSync.shared.reconcileBeforeSuspension()
     }
 
     func onAppForegrounded() {
         // Weekly summary: re-planned from the store on every foreground, so a
         // permission granted after launch, a week that got its first entry or
         // the switch turned back on all take effect.
-        Task { @MainActor in self.rescheduleWeeklySummary() }
+        Task { @MainActor in
+            self.rescheduleWeeklySummary()
+            // A dose synced while the app was away moves its reminder; a
+            // permission changed in Settings redraws the switches.
+            MedicationReminderSync.shared.reconcile()
+            await NotificationPermission.shared.refresh()
+        }
         guard UserDefaults.standard.bool(forKey: kFirstFeeding) ||
               UserDefaults.standard.bool(forKey: kFirstSleep) else { return }
         let name = storedBabyName
@@ -477,7 +491,7 @@ final class NotificationManager: @unchecked Sendable {
              in:    3 * 24 * 3600)
     }
 
-    /// The Monday notification (D9, D26, content Q7): ONE pending request under
+    /// The Monday notification: ONE pending request under
     /// the old id, so the Sunday 20:00 repeating request of earlier builds is
     /// replaced on the first pass, never doubled. See `WeeklyNotificationPlan`.
     @MainActor
@@ -491,7 +505,7 @@ final class NotificationManager: @unchecked Sendable {
         content.sound    = .default
 
         #if targetEnvironment(simulator)
-        // L3: `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
+        // `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
         // the week holds, so its text can be looked at without waiting a week.
         let fireIn = UserDefaults.standard.integer(forKey: "BBWeeklyNotifyIn")
         if fireIn > 0 {
@@ -526,11 +540,11 @@ final class NotificationManager: @unchecked Sendable {
         }
     }
 
-    /// L3's clock lever for QA's reminder rows: `-BBLogPendingNotifications
+    /// A simulator lever for checking reminder rows: `-BBLogPendingNotifications
     /// true` logs every pending request and when it will fire, so a delivery
     /// time is read rather than waited for.
     @MainActor
-    private func logPendingIfAsked() {
+    func logPendingIfAsked() {
         #if targetEnvironment(simulator)
         guard UserDefaults.standard.bool(forKey: "BBLogPendingNotifications") else { return }
         UNUserNotificationCenter.current().getPendingNotificationRequests { requests in

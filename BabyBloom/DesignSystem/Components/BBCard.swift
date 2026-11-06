@@ -4,14 +4,13 @@ import SwiftUI
 struct BBStatCard: View {
     let title: String
     let value: String
-    let unit: String
+    /// A unit key drawn beside the value (kg, cm). A count has none, and a
+    /// duration carries its unit words inside the value («1 ч 15 мин»).
+    var unit: String = ""
     let icon: String
     let color: Color
     var trend: String? = nil
-    var overLimit: Bool = false
     var action: (() -> Void)? = nil
-
-    private var displayColor: Color { overLimit ? .red.opacity(0.85) : color }
 
     var body: some View {
         if let action {
@@ -29,34 +28,33 @@ struct BBStatCard: View {
 
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(displayColor.opacity(0.22))
-                        .frame(width: 36, height: 36)
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(displayColor)
+            if let trend {
+                // The trend («59 мин назад») stands beside the plate while each of
+                // its words fits the room there, wrapping between words; else it
+                // takes its own line under the plate. In two columns on a 320-pt
+                // screen that room is about 32 pt of text at Large, and «59 мин»,
+                // «13 дней» and even «назад» broke inside a word.
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        plate
+                        Spacer()
+                        trendCapsule(trend)
+                        marks
+                    }
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack {
+                            plate
+                            Spacer()
+                            marks
+                        }
+                        trendCapsule(trend)
+                    }
                 }
-                Spacer()
-                if let trend {
-                    Text(trend)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(BBTheme.Colors.success.opacity(0.12))
-                        .cornerRadius(8)
-                }
-                if overLimit {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.red.opacity(0.85))
-                }
-                if action != nil {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
+            } else {
+                HStack {
+                    plate
+                    Spacer()
+                    marks
                 }
             }
 
@@ -64,25 +62,173 @@ struct BBStatCard: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    BBTheme.Typography.metric(value)
-                        .foregroundStyle(overLimit ? .red.opacity(0.85) : BBTheme.Colors.textPrimary)
+                    Text(Self.valueText(value))
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                    Text(unit.l)
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    if !unit.isEmpty {
+                        Text(unit.l)
+                            .font(Self.wordFont)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
                 }
                 Text(title.l)
-                    .font(.system(size: 13, weight: .regular, design: .rounded))
+                    .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
-        .bbCardTonal(displayColor)
-        .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.lg)
-                .stroke(overLimit ? Color.red.opacity(0.3) : Color.clear, lineWidth: 1.5)
-        )
+        .bbCardTonal(color)
+    }
+
+    private var plate: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(color.opacity(0.22))
+                .frame(width: 36, height: 36)
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(color)
+        }
+    }
+
+    private func trendCapsule(_ trend: String) -> some View {
+        WordWrappingText(text: trend)
+            .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(BBTheme.Colors.success.opacity(0.12))
+            .cornerRadius(8)
+    }
+
+    @ViewBuilder
+    private var marks: some View {
+        if action != nil {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
+        }
+    }
+
+    private static var wordFont: Font {
+        BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded)
+    }
+
+    struct ValueRun: Equatable {
+        let text: String
+        let isWord: Bool
+    }
+
+    /// The value cut into figures (digits, separators, a dash) and the words
+    /// between them; letters and spaces are words.
+    static func valueRuns(_ value: String) -> [ValueRun] {
+        var runs: [ValueRun] = []
+        for character in value {
+            let isWord = character.isLetter || character.isWhitespace
+            if let last = runs.last, last.isWord == isWord {
+                runs[runs.count - 1] = ValueRun(text: last.text + String(character), isWord: isWord)
+            } else {
+                runs.append(ValueRun(text: String(character), isWord: isWord))
+            }
+        }
+        return runs
+    }
+
+    /// Figures at the metric size, words at the unit's size. One Text, so a
+    /// long «10 ч 45 мин» scales down as one line instead of wrapping.
+    static func valueText(_ value: String) -> AttributedString {
+        valueRuns(value).reduce(into: AttributedString()) { text, run in
+            var part = AttributedString(run.text)
+            part.font = run.isWord
+                ? wordFont
+                : BBTheme.Typography.scaled(28, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit()
+            part.foregroundColor = run.isWord ? BBTheme.Colors.textSecondary : BBTheme.Colors.textPrimary
+            text += part
+        }
+    }
+}
+
+/// Text whose ideal width is its widest word. Offered less than its one line,
+/// it wraps as any text does, and `ViewThatFits` keeps a row only while every
+/// word fits it, so the text breaks between words and never inside one. Words
+/// part at plain spaces; a no-break space keeps a number with its unit.
+private struct WordWrappingText: View {
+    let text: String
+
+    var body: some View {
+        WidestWordIdeal {
+            Text(text.oneWordALine).hidden()
+            Text(text)
+        }
+    }
+}
+
+/// Lays out its second subview; the first, one word a line, only sets the
+/// ideal width, plus `spare`. Every other proposal reaches the text
+/// unchanged, so a stack still sizes it as plain text.
+struct WidestWordIdeal: Layout {
+    var spare: CGFloat = 0
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? subviews[0].sizeThatFits(.unspecified).width + spare
+        return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews[0].place(at: bounds.origin, proposal: .zero)
+        subviews[1].place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+    }
+}
+
+// MARK: - Tile Columns
+/// A tile or grid row's column count at each text size, stated in one place.
+///
+/// A row keeps a count only while its widest en, ru or es word fits the
+/// column (the tile less its side padding) at a 320-pt width with 8 pt to
+/// spare, checked at every text size; from the first size where it misses,
+/// the row takes fewer. 320 pt is Display Zoom on the smaller phones and iPad
+/// Slide Over, and a word never breaks at any width. The spare absorbs a
+/// measuring error, a later word and Bold Text.
+///
+/// One shape per text size at every width, never a count that follows the
+/// width: `ViewThatFits` compares a row's whole width, not its narrowest
+/// column, and one sheet would take two shapes at one text size. Home's
+/// quick actions, the one exception, measure theirs in `DashboardView`.
+struct BBTileColumns {
+    /// `.large` and every smaller size.
+    let large: Int
+    let xLarge: Int
+    let xxLarge: Int
+    let xxxLarge: Int
+    /// Every accessibility size; scaled type stops growing at AX2.
+    let accessibility: Int
+
+    func count(at size: DynamicTypeSize) -> Int {
+        if size.isAccessibilitySize { return accessibility }
+        switch size {
+        case .xLarge: return xLarge
+        case .xxLarge: return xxLarge
+        case .xxxLarge: return xxxLarge
+        default: return large
+        }
+    }
+}
+
+// MARK: - Stat Grid
+/// Two stat cards a row; one from xxLarge, where in half a 320-pt screen the
+/// grown title «Measurements» keeps 7.2 pt (100.8 in 108), under the 8-pt
+/// spare. The icon plate stays 36 pt.
+struct BBStatGrid<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let columns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 1, xxxLarge: 1, accessibility: 1)
+
+    var body: some View {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
+                                 count: columns.count(at: dynamicTypeSize)),
+                  spacing: BBTheme.Spacing.md) {
+            content()
+        }
     }
 }
 
@@ -94,39 +240,20 @@ struct BBEventRow: View {
     let subtitle: String
     let time: String
     var trailing: String? = nil
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    /// The time goes under the texts wherever a word of the title or the
+    /// subtitle would miss the room beside it, and at every accessibility size.
+    /// Beside a grown time a long word (a medication's name, «вскармливание»
+    /// on a 320-pt screen) had room for a few letters and broke mid-word.
     var body: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.22))
-                    .frame(width: 44, height: 44)
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title.l)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                if !subtitle.isEmpty {
-                    Text(subtitle.l)
-                        .font(.system(size: 13, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(time)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                if let trailing {
-                    Text(trailing)
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                under
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    beside
+                    under
                 }
             }
         }
@@ -135,50 +262,147 @@ struct BBEventRow: View {
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
     }
+
+    /// The time on the right. Its ideal width holds the texts at their widest
+    /// word, so `ViewThatFits` keeps it only while no word breaks; a width it
+    /// does get reaches the texts untouched, and a row that fits draws as the
+    /// bare stack.
+    var beside: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            badge
+            WidestWordIdeal {
+                VStack(alignment: .leading, spacing: 2) {
+                    texts(title.oneWordALine, subtitle.oneWordALine)
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    texts(title, subtitle)
+                }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                timeText
+                if trailing != nil { trailingText }
+            }
+        }
+    }
+
+    /// The time on a line of its own under the texts, which take the row's
+    /// whole width and break between words like prose.
+    var under: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            badge
+            VStack(alignment: .leading, spacing: 2) {
+                texts(title, subtitle)
+                (timeText + Text(verbatim: "  ") + trailingText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var badge: some View {
+        ZStack {
+            Circle()
+                .fill(iconColor.opacity(0.22))
+                .frame(width: 44, height: 44)
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(iconColor)
+        }
+    }
+
+    // Verbatim: every caller passes text already localized, and a note or a
+    // medication name is shown as typed, never looked up. The second line and
+    // the time scale too, so a name and dose do not stay small under a grown
+    // title.
+    @ViewBuilder
+    private func texts(_ title: String, _ subtitle: String) -> some View {
+        Text(verbatim: title)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+        if !subtitle.isEmpty {
+            Text(verbatim: subtitle)
+                .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+        }
+    }
+
+    private var timeText: Text {
+        Text(verbatim: time)
+            .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
+
+    private var trailingText: Text {
+        Text(verbatim: trailing ?? "")
+            .font(BBTheme.Typography.scaled(12, relativeTo: .caption1, weight: .regular, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
 }
 
 // MARK: - Progress Card
+/// A count against its target, in the category's colour at every count. There
+/// is no over-the-target state: a count above its reference is never styled
+/// as an alarm (DECISIONS 2026-09-05), and red stays on deletes.
 struct BBProgressCard: View {
     let title: String
     let current: Double
     let target: Double
-    let unit: String
+    var measure: Measure = .count
     let color: Color
     let icon: String
-    var overLimit: Bool = false
+
+    /// A count reads «0 of 6». Hours are a span of time, so both sides go
+    /// through the duration writer: «2 h 55 min of 14 h», the same total the
+    /// Sleep tile shows, where whole hours read «2 of 14 h».
+    enum Measure { case count, hours }
 
     private var progress: Double { min(current / max(target, 1), 1.0) }
-    private var displayColor: Color { overLimit ? .red.opacity(0.75) : color }
+
+    /// Not glued between the two sides: each duration keeps the writer's glue,
+    /// and the word between them may wrap at the accessibility sizes.
+    static func valueText(current: Double, target: Double, measure: Measure) -> String {
+        switch measure {
+        case .count:
+            return String(format: "progress.of_fmt".l, Int(current), Int(target))
+        case .hours:
+            // Seconds rounded first, then floored to the minute, as the Sleep
+            // tile does, so 2.9999… h reads «3 h» on both.
+            let done = DurationText.minutes(Int((current * 3600).rounded()) / 60)
+            return String(format: "progress.of_duration_fmt".l, done, DurationText.minutes(Int(target) * 60))
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(displayColor)
-                Text(title.l)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                Text("\(Int(current))/\(Int(target)) \(unit.l)")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(overLimit ? .red.opacity(0.75) : BBTheme.Colors.textSecondary)
-                if overLimit {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.red.opacity(0.75))
+            // The glyph and the title make the title side; at the
+            // accessibility sizes the figure goes under the title's text.
+            BBValueRow {
+                HStack {
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(color)
+                    Text(title.l)
+                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .alignmentGuide(.bbValueRowTitle) { $0[.leading] }
                 }
+            } value: {
+                Text(Self.valueText(current: current, target: target, measure: measure))
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(displayColor.opacity(0.22))
+                        .fill(color.opacity(0.22))
                         .frame(height: 8)
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             LinearGradient(
-                                colors: [displayColor, displayColor.opacity(0.7)],
+                                colors: [color, color.opacity(0.7)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -190,34 +414,23 @@ struct BBProgressCard: View {
             .frame(height: 8)
         }
         .padding(BBTheme.Spacing.md)
-        .background(overLimit ? Color.red.opacity(0.06) : BBTheme.Colors.surface)
+        .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
-        .overlay(
-            RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                .stroke(overLimit ? Color.red.opacity(0.25) : Color.clear, lineWidth: 1.5)
-        )
     }
 }
 
 // MARK: - Section Header
+// A title alone: a screen's add lives in its bar, so no header carries a
+// second door to the same sheet.
 struct BBSectionHeader: View {
     let title: String
-    var action: (() -> Void)? = nil
-    var actionTitle: String = "button.all"
 
     var body: some View {
         HStack {
             BBTheme.Typography.title3(title.l)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Spacer()
-            if let action {
-                Button(action: action) {
-                    Text(actionTitle.l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                }
-            }
         }
     }
 }
@@ -225,6 +438,11 @@ struct BBSectionHeader: View {
 // MARK: - Swipe to Delete Row
 struct SwipeToDeleteRow<Content: View>: View {
     let onDelete: () -> Void
+    // Defaults keep every history list as it was; the doctor report reuses
+    // the row with its own action («Back to the list»).
+    var title: String = "button.delete"
+    var systemImage: String = "trash.fill"
+    var tint: Color = .red
     @ViewBuilder let content: () -> Content
 
     @State private var offset: CGFloat = 0
@@ -239,10 +457,15 @@ struct SwipeToDeleteRow<Content: View>: View {
                 }
             } label: {
                 VStack(spacing: 4) {
-                    Image(systemName: "trash.fill")
+                    Image(systemName: systemImage)
                         .font(.system(size: 16, weight: .semibold))
-                    Text("button.delete".l)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                    // Scales with Dynamic Type inside the fixed-width button; a
+                    // long label («Back to the list») shrinks before it clips.
+                    Text(title.l)
+                        .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.7)
                 }
                 .foregroundStyle(.white)
                 .frame(width: deleteWidth)
@@ -250,7 +473,7 @@ struct SwipeToDeleteRow<Content: View>: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                    .fill(Color.red)
+                    .fill(tint)
             )
             .opacity(offset < -12 ? 1 : 0)
 

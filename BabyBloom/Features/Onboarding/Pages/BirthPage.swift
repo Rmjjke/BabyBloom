@@ -12,6 +12,7 @@ struct BirthPage: View {
     @Binding var gestationalWeeks: Double
     @Binding var wasBornEarly: Bool
     let onBack: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,31 +34,18 @@ struct BirthPage: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    // Gender
-                    HStack(spacing: BBTheme.Spacing.md) {
-                        ForEach(Baby.Gender.allCases, id: \.self) { g in
-                            Button {
-                                withAnimation(.spring(response: 0.3)) { gender = g }
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: g == .female ? "figure.stand.dress" : "figure.stand")
-                                        .font(.system(size: 34))
-                                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
-                                    Text(g.displayName.l)
-                                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, BBTheme.Spacing.md)
-                                .background(gender == g ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.md)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                        .strokeBorder(gender == g ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                )
-                                .bbShadow(BBTheme.Shadow.card)
-                            }
-                            .buttonStyle(BBScaleButtonStyle())
+                    // Gender: one column at accessibility sizes. On a 320-pt
+                    // screen half the row keeps «Мальчик» 13.5 pt at AX2 and
+                    // 4.6 with Bold Text, under the 8-pt spare; below them two
+                    // hold, with 38 pt to spare at xxxLarge in Bold.
+                    let genderColumns = BBTileColumns(large: 2, xLarge: 2, xxLarge: 2, xxxLarge: 2, accessibility: 1)
+                    if genderColumns.count(at: dynamicTypeSize) == 1 {
+                        VStack(spacing: BBTheme.Spacing.md) {
+                            genderTiles
+                        }
+                    } else {
+                        HStack(spacing: BBTheme.Spacing.md) {
+                            genderTiles
                         }
                     }
 
@@ -85,9 +73,9 @@ struct BirthPage: View {
                         isOn: $wasBornEarly,
                         value: $gestationalWeeks,
                         range: 22...36, step: 1,
-                        display: "\(Int(gestationalWeeks)) \("unit.weeks_short".l)",
-                        minLabel: "22 \("unit.weeks_short".l)",
-                        maxLabel: "36 \("unit.weeks_short".l)",
+                        display: "\(Int(gestationalWeeks))\u{00A0}\("unit.weeks_short".l)",
+                        minLabel: "22\u{00A0}\("unit.weeks_short".l)",
+                        maxLabel: "36\u{00A0}\("unit.weeks_short".l)",
                         color: BBTheme.Colors.accent
                     )
 
@@ -96,6 +84,32 @@ struct BirthPage: View {
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, 20)
             }
+        }
+    }
+
+    private var genderTiles: some View {
+        ForEach(Baby.Gender.allCases, id: \.self) { g in
+            Button {
+                withAnimation(.spring(response: 0.3)) { gender = g }
+            } label: {
+                VStack(spacing: 8) {
+                    // The figure grows with its word: it stands over it, not
+                    // in a plate.
+                    Image(systemName: g == .female ? "figure.stand.dress" : "figure.stand")
+                        .font(BBTheme.Typography.scaled(34, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
+                    Text(g.displayName.l)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+                        .foregroundStyle(gender == g ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, BBTheme.Spacing.md)
+                .background(gender == g ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .bbShadow(BBTheme.Shadow.card)
+                .bbSelectedBorder(gender == g)
+            }
+            .buttonStyle(BBScaleButtonStyle())
         }
     }
 }

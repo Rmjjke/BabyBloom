@@ -36,16 +36,173 @@ structure below.
 
 ## Domain model
 
-Six `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`.
+Nine `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, the 1.2.0 pair
+`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`) and the 1.3.0
+`Medicine` (`Medicine.swift`). They are listed ONCE,
+in `AppSchema.models`, and every container — app, widget, tests — opens the
+store through `AppSchema.schema`; `AppSchemaTests` pins the list.
+
+**A persisted enum is closed.** Enum properties (`CustomEvent.type`,
+`FeedingEntry.side`, …) are stored as their raw value. A build that reads a
+value it does not know — one written by a newer version and delivered by
+CloudKit — crashes in SwiftData's decoder, on every launch. A new kind of
+record is therefore a new model or a new optional attribute, never a new
+case; `FrozenPersistedEnumTests` fails on a new case with that explanation
+(DECISIONS 2026-11-01).
 
 **Every stored property has a default value and every relationship is
 optional.** That is not style — it is what CloudKit requires of a mirrored
 SwiftData schema. A new non-optional property without a default will compile
 and then fail at container creation, at launch, in `fatalError`.
 
-`Baby` owns the five entry types with `deleteRule: .cascade` and an explicit
-`inverse:`. Deleting the baby deletes its history.
+`Baby` owns the five entry types, the visits, the questions and the medicines
+with `deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
+its history.
+
+**Visits and questions change only through `DoctorVisitActions`**
+(`Services/`), the same idea as `TimerActions`. A visit stamps the questions
+asked at it (`askedAt` + `visit`) in the same save that writes it, and
+deleting a visit returns those questions to open before it goes; the
+visit→questions relationship is `.nullify`, which alone would leave them
+"asked" at nothing. A question is open when it has no `askedAt` OR no
+`visit` — the link is the truth, so a cross-device merge that leaves a stray
+stamp brings the question back instead of losing it. A visit's `date` is held
+at NOON of its day (`DoctorVisitActions.visitDay`), so it reads as the same
+day in any time zone a synced device sits in; readers take `startOfDay`. Every
+action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
+report's period starts: 00:00 of the latest visit's date (same date → the one
+logged last), else the birth day.
+
+**A medicine and its doses** (`Medicine`, 1.3.0). A medicine holds a name,
+the minimum interval between doses in minutes, an optional dose text, note
+and 24-hour maximum, and `endedAt` once its course is ended. A dose is NOT a
+model: it is a `.medication` `CustomEvent` made by `CustomEvent.dose(of:at:)`,
+which links it (`CustomEvent.medicine`) and copies the medicine's name and
+dose text onto it. The copy is the record of what was given: a rename leaves
+past doses as logged, a deleted medicine (`.nullify`) leaves them as
+medication events that keep the name, and an older version, which imports no
+`Medicine` and ignores the link, still lists each dose as the medication
+event it is. The medication screens, the Events rows, the events CSV (columns
+Medication and Dose) and the export PDF's events table (name · dose · note in
+its notes cell, `ExportGenerator.eventNote`) read the two copies, never the
+medicine's current name. Events from before medicines, and free-text ones, have no link
+(`CustomEvent.isDose` is false) and count for no medicine.
+
+The rules every medicine surface reads are `MedicineSchedule`
+(`Core/Medicine/`; app target only, since the widget compiles `Core/Models`
+but not this folder). Only linked `.medication` events are doses, and a dose
+later than now is ignored. The next allowed time is the last dose plus the
+interval and, once the last `max` doses fall within 24 hours, no earlier than
+the oldest of them plus 24 hours. `check(t)` flags a dose closer than the
+interval on EITHER side of `t` (exactly the interval is on time). It names
+the nearest close later dose first, and only without one the latest close
+earlier dose with its interval's end, so the time it gives is always a true
+«not before». It also flags the fullest window `[s, s + 24 h)` holding `t`
+when that is over the maximum. `showsDaily` says which of the two the one
+confirmation states: the maximum only when, with the dose counted, it holds
+the next dose back past the interval's end. `nextAllowed(adding:)` is the
+«not before» once a dose at `t` is logged too, never earlier than
+`nextAllowed`. `dosesInLast24Hours` is the count shown against the
+maximum. It is all elapsed time, never calendar arithmetic.
+`Medicine.status(now:excluding:)` reads `.ended`, `.noDose`, `.waiting` or
+`.allowed`; `excluding` and `Medicine.check(_:now:editing:)` leave the dose
+being edited out. A dose deleted from the context counts for nothing even
+before the save removes it from the relationship. Nothing
+about a medicine is sent to analytics; a dose sits in the daily activity
+count's `event` figure like every event.
+
+**The medication screens** (`Features/Medications/`, More › Medications).
+The list shows running courses sorted by name and ended ones under a collapsed
+`DisclosureGroup`; the detail shows the status card, what was set, the doses
+newest first, End/Resume Course, and Log Dose pinned under the scroll (an
+ended course has no footer). Every word comes from `MedicationFormat`, which
+builds lines A, B and C from `MedicineStatus` and the copy keys: each time
+slot takes a when-string (today's clock, or yesterday / tomorrow / a date),
+ages count hours and minutes up to 48 h and then days. The screens read
+`AppClock.now` and redraw once a minute (`TimelineView(.everyMinute)`).
+`MedicationFormInput` holds the form and its Save rule: a name, and an
+interval in `Medicine.intervalMinutesRange` (15 min … 48 h) from a chip or
+the Other wheels (at 48 h the minutes wheel offers only 0); the maximum field
+keeps two digits and may be empty, but 0 or over 24 keeps Save off and shows
+the range hint under the field. Lines the code joins with a middle dot use
+`MedicationFormat.separator`, which puts a no-break space before the dot, so
+a wrapped line never opens with it; a dot inside a copy key is the key's.
+The name and dose fields wrap (`axis: .vertical`) but stay one paragraph
+(`View.oneParagraph`): Return ends editing and a pasted line break becomes
+a space, since the copies travel into every row, the alert and the export.
+`DoseSheet`
+logs a dose (`CustomEvent.dose(of:at:)`, the dose text as edited) or edits
+one (time, dose text, note; never the copied name); its picker ends at now
+and save clamps to now as well, since the picker clamps only its display. It
+is a plain `.sheet` and never calls `entrySaved`. The dose list applies
+`HistoryWindow` like every history list, with `BBLockedHistoryFooter(surface:
+nil)`, which draws the footer without its lock event. The detail lists the
+doses from a `@Query` of events, and the list reads one too: a dose linked or
+deleted on the event's side does not always reach observers of
+`medicine.doses`, and a stale row would open a deleted dose. Deleting is
+ordered so no view reads a deleted model: the form only asks, and the detail
+pops itself and deletes the medicine once it has disappeared; Delete Dose
+hands the dose back and the detail deletes it in the dose sheet's
+`onDismiss`. The detail and the dose sheet draw nothing for a model with no
+context or `isDeleted` (one deleted on another device). Nothing in the feature is
+gated. The reminder is under Notifications.
+
+**The Home card** (`MedicationHomeCard.swift`). While a course runs and its
+last dose is under 24 hours old (`Medicine.onHome`), the Dashboard shows one
+plain card under the running timers and above the weekly card: a line per
+medication (name and line A, by name), the whole card one link, to the
+detail with one medication and to the list with two or more. A course with
+no dose does not show, and one nobody ends leaves Home a day after its last
+dose. `MedicationHomeSection` reads its own queries (a dose saved anywhere
+redraws it) and ticks each minute while the card shows. It is a plain view
+that draws nothing when empty, not a `TimelineView`: an empty
+`TimelineView` still takes a place in the Dashboard's stack, and the stack's
+32 pt spacing with it.
+
+**The confirmation** (`DoseConfirmation.swift`). Save in the dose sheet, and
+in the Add Event form with a medication chosen, first asks
+`Medicine.confirmation(for:now:editing:loggedTime:)` about the time it will
+store. It reads `check` and returns the words of one variant, or nil when
+the dose is on time: «before» (a close earlier dose and the next time; when
+a later dose is logged too, `laterDoseLogged`, the neutral «between» words
+name it a logged dose, since «last dose» names only the newest),
+«after» (a close later dose and the interval), or «24 h» (the count with
+this dose, the maximum and the next time), the last only when `showsDaily`
+holds. The next time is `nextAllowed(adding:)`: what the screen shows once
+this dose is saved, which is the answer the alert waits for. It is each
+message's last line and is dropped when it is not after now (a dose logged
+after the fact), so the alert never names a time that has passed. A
+non-nil answer raises a system alert (`View.doseConfirmation`) and keeps a
+`ConfirmedDose` (the medication's id and the time): Cancel returns to the
+sheet with every field kept; Save stores exactly that dose, or nothing when
+the choice has changed meanwhile. There is no alert for an ended course, or
+for an edited dose saved at the time the sheet read when it opened; a
+free-text event is never checked.
+
+**Medicines on Events.** One `MedicationStatusLine` per running medication
+sits above Quick input and pushes its detail. While a medication runs, the
+Medication tile opens `DoseSheet(choosingFrom:)` free and with no padlock: one
+running medication is preselected, with two or more the «Medication» menu
+shows «Choose» and Save waits. With none, the tile is the old one-tap entry
+behind the gate. The Add Event form, type Medication, shows the same menu
+(`MedicationMenuField`) of running medications plus «Not in the list»: a
+chosen one logs a linked dose (`CustomEvent.dose(of:at:)`) with the status
+box (`MedicationStatusBox`) and no name or dose fields; «Not in the list», or
+no running medication, keeps the two free-text fields. The form's time
+starts at `AppClock.now`; for the Medication type, linked or not, its picker
+ends at now and the save clamps to now. The bound follows the type, not the
+choice in the menu: a compact picker whose bound moves under its selection
+redraws its date in the short style. No medication
+save from any path calls `entrySaved`. A medication row's text is
+`MedicationFormat.eventRow`: a dose titled by its copied name, then dose ·
+note; an older one by the type word, then name · dose · note. `BBEventRow`
+shows every string verbatim (its callers localize, so a typed note or name is
+never looked up as a key), scales its second line and time, and moves the time
+under the text at accessibility sizes, where a long word beside it broke
+mid-word, and below them wherever a word of its title or subtitle misses its
+column beside the time: ru «вскармливание» on a 320-pt screen at Large, en
+«Breastfeeding» there at xLarge with Bold Text.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -96,8 +253,16 @@ in this repo, CloudKit mirrors the store.
 
 The widget opens **the same store with `cloudKitDatabase: .none`**. A widget
 extension must not drive sync — the app target owns it. Because the models
-are CloudKit-compatible, `.none` reads the identical store with no schema
-mismatch.
+are CloudKit-compatible and the widget uses the app's own `AppSchema`, `.none`
+reads the identical store with no schema mismatch. A widget list that lacked
+a model would open the store as another model version, and a lightweight
+migration may drop the tables it does not know.
+
+**A new model needs the CloudKit schema deployed to Production** (CloudKit
+Console → Deploy Schema Changes) before the build that adds it ships.
+TestFlight and App Store builds sync against Production, where the new record
+types do not exist until deployed; without that the new records never sync,
+and nothing reports it. It is an owner step on the release card.
 
 Two consequences worth knowing before you debug something:
 
@@ -146,22 +311,409 @@ change — iOS reuses the extension process — so the provider calls
 reload when the language changes rather than leaving the widget stale for up
 to 15 minutes.
 
+**A span of time has one writer.** `DurationText.minutes`
+(`Core/Localization/DurationText.swift`) writes whole minutes as «45 мин»,
+«1 ч», «1 ч 15 мин» for every screen, the widget, the weekly card, medications
+and the export. Each caller turns seconds into minutes its own way: a clock
+floors, a countdown rounds up. Seconds show only under a minute and on a
+running timer. A count carries no unit word: a stat tile shows the figure
+alone, and a progress card reads «0 из 6» (`progress.of_fmt`). Home's sleep
+card is a span of time, so both sides go through the writer: «2 ч 55 мин из
+14 ч» (`progress.of_duration_fmt`, `BBProgressCard.Measure.hours`), the same
+total the Sleep tile shows. A duration tile keeps its unit words inside the
+value, drawn smaller than the figures.
+
 ## Theming and typography
 
 The palette is **entirely** in the Asset Catalog
 (`Resources/Assets.xcassets/Colors/`), reached through `BBTheme.Colors`.
-Never hardcode a colour in a view. Re-theming the app is: colorset edits, the
-two splash PNGs, and the hex constants in `ExportGenerator` — the PDF renderer
-cannot read the Asset Catalog, so it is the one place a colour is duplicated.
+Never hardcode a colour in a view. Re-theming the app is: colorset edits (a
+colorset the widget uses also has its copy in `WidgetResources/Colors.xcassets`,
+which the pre-build check keeps byte-identical), the
+two splash PNGs (a new `BBSplashBg` also means measuring its figure's box
+again, `SplashLayout.figure`), and the hex constants in `ExportGenerator` and
+`DoctorReportPDF` — the PDF renderer cannot read the Asset Catalog, so those
+two are the only places a colour is duplicated (both mirror the LIGHT
+colorsets: a PDF page is always white).
 
-`BBTheme.Typography` is the D1 type scale. **Every Dynamic Type scale in the
-app goes through `Typography.scaledPointSize`**, including layout metrics that
+**On the growth surfaces a tier tint (`BBSuccess`, `BBAccent`, `BBAlert`) is
+a mark, never text ink**: in light the green and the peach read under 2:1 on
+the surface. The verdicts put their words and figures in `textPrimary`
+(`textSecondary` for «not enough data» and «first weeks») and the tier on a
+mark beside them: the percentile ring, the newborn card's tick, the flag
+row's icon, and the dot `BBTierValue` draws before a value (within green,
+below peach, none above). `StatusWord.ink` / `.dot` are the mapping for the
+Nutrition rows, Home's gain row (`GrowthSummaryRow`) and the weight gain
+card's band word. The dot is part of the value's text run, so it wraps with
+the first word, and the value carries its words as its VoiceOver label
+(DECISIONS 2026-11-04 "A growth verdict's tier is a dot, never the colour of
+its words").
+
+**A category tint (`BBFeeding`, `BBSleep`, `BBDiaper`) is a mark too**: the
+running-timer cards' wash, stroke and Home's glyph disc, the week chart's
+bars, the bottle slider. The words and figures beside them are text ink: the
+timer's label and digits (`BBElapsedTimer.face` and `BBTimerCardHeader` take
+no colour), the chart's day labels and values, and the bottle volume. As ink
+in light a tint read at 1.6–2.1:1 on its wash or the surface, under the 3:1 a
+large figure needs; the same digits are `textPrimary` on the Lock Screen too.
+The week chart has no axis numbers: every day up to today states its value
+over its bar, today's in `textPrimary`, the others in `textSecondary`, hidden
+from VoiceOver, which reads each bar's day and value. Swift Charts speaks the
+plotted number, right for a count; Sleep plots hours, so it passes
+`voiceOverValue`, and each day up to today reads in the duration words
+(«2 h 5 min»), floored to the minute like the Total tile. A future day shows
+no bar and no number, and its bar is hidden from VoiceOver: it would read «0».
+
+`textSecondary` holds 4.5:1 on every fill it sits on in light: 5.12 on the
+background, 5.62 on the surface, at least 4.62 on the stat cards', timer
+cards' and pickers' washes. A primary wash under `BBPrimary` words (a selected
+tile, a pill or chip, the secondary button) is laid over `surface`
+(`.background(selected ? primary.opacity(0.12) : .clear).background(surface)`),
+so the words read 4.78 on any ground, a timer card's wash or an onboarding
+blob included; over the bare background they were 4.38. Onboarding's two
+primary blobs stay at 0.08 for the same reason (DECISIONS 2026-11-05).
+
+A selected tile's or chip's 1.5 pt `BBPrimary` border lies outside its fill:
+`bbSelectedBorder(_:shape:)` puts the stroke's inner edge on the fill's edge,
+with corners `Radius.md + 1.5` concentric with the fill's (`.capsule` for the
+feeding timer's side pills). Drawn inside, it covered the fill's outer 1.5 pt,
+and with Bold Text a word that fills its tile on a 320-pt phone («Izquierdo»
+with its glyph, «Смешанное») ran under it. As an overlay it takes no room: a
+tile is laid out the same selected or not, and a gap beside a selected tile
+reads 1.5 pt less (8 → 6.5). VoiceOver's frame of a selected tile takes the
+border in, 1.5 pt a side. It goes after `bbShadow`, so the shadow keeps the
+fill's outline. The Export format tiles and the plan rows draw their own
+outline.
+
+A delete draws the system red: from `role: .destructive` where the button has
+a role (the sheets' Delete, the confirmations), from `Color.red` where it has
+none (the delete-history button, the swipe action, remove photo). Never
+`BBAlert` on a delete's label, which overrides the role: `BBAlert` means a
+growth flag or a percentile tail (DECISIONS 2026-09-05 "A count above its
+reference is never styled as an alarm"). Red stays on deletes and marks: the
+delete-history button has a red stroke and no red wash, the purchase error's
+words are `textPrimary` beside a red glyph, and no card has an over-limit red
+state.
+
+**The brand gradient (`BBGradientStart` → `BBGradientEnd`, `premiumGradient`
+and the widget's `WidgetBackground`) has one value in light and dark**, and
+every word and glyph on it is white at full strength: white reads 4.67:1 at
+its lighter end and more everywhere else, so a word passes wherever it lands.
+On the widget and the paywall hero the hierarchy is size and weight, never a
+white at an opacity; the widget's one tap target is a `BBSurface` capsule
+with `BBPrimary` words. An unselected or unchecked mark (the Export screen's
+range circle and category square, the visit sheet's questions, the plan
+picker) is `textSecondary` at full strength, 5.62 light and 6.11 dark on the
+surface; the checked one is `BBPrimary`. The splash words are `BBSplashText`
+#4A357E in both modes, because the art does not change with the mode; in
+portrait they sit on its lavender field, the tagline at 4.61 or more
+(DECISIONS 2026-11-05 "One brand gradient for both modes").
+
+**The splash places its words by the art's figure** (`SplashLayout`, in
+`SplashView.swift`). `BBSplashBg` fills the window and the words stand centred
+at 82 % of its height wherever they clear the figure's box (the crescent, the
+baby, the sprout and their shadow) and the safe bottom: every portrait window,
+and iPad Split View 1/2 and 1/3. In a wider window that place is on the figure
+(a phone or a full iPad in landscape, iPad Split View 2/3), so there the
+figure and the words stand side by side, the figure leading and 32 pt before
+the words, centred as one group in the safe area and 24 pt inside it. The art
+is drawn at the largest scale that fits, never above the fill, and a side of it
+that ends inside the window fades into `BBLaunchBackground` on a smoothstep
+that starts at the figure's edge, so the figure is never faded and no line
+shows. The box is measured on the art in its pixels, so a new art means
+measuring it again. In a right-to-left language the group is mirrored and the
+art is not. The insets come from a `GeometryReader` inside the safe area,
+wrapped around the one that ignores it for the full size: a reader under
+`.ignoresSafeArea()` reports zero insets. The layout is a function of the
+window and the words' size alone, so a rotation puts everything in its new
+place in one pass and the reveal goes on (DECISIONS 2026-11-05 "In a wide
+window the splash puts the figure and the words side by side"). The art and
+the tagline's two leaves are decorative and hidden from VoiceOver, which reads
+the app's name and the tagline only, in every layout.
+
+`BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
+Rounded body, rounded monospaced digits for metrics and timers). **Every
+Dynamic Type scale in the app goes through `Typography.scaledPointSize`**,
+including layout metrics that
 must track text size. A bare `UIFontMetrics.scaledValue(for:)` is a defect:
 that form reads the *device* content size and ignores the SwiftUI environment,
 so the app's ceiling walks straight past it. The ceiling itself
 (`Typography.maxContentSizeCategory`, AX2) lives in exactly one constant, from
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
+
+Two field layouts have one helper each in
+`DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
+or time picker's label above it at every size (beside the buttons it broke
+mid-word as the text grew, and at Large on a 320-pt screen it had no room
+beside the widest date) and hides that visible label from VoiceOver, so the
+picker's own label is read once; the entry sheets' date and time rows use it.
+The profile edit sheet's birth date keeps that form's smaller caption above
+the picker, so it takes the same two halves without the helper: the caption
+is hidden from VoiceOver and the picker carries the name. `bbPlaceholderLabel`
+is for a vertical `TextField` whose placeholder is its only visible label (the
+medication name, dose and note, the Diaper note, the doctor question; also
+the medication maximum, whose example placeholder needs two lines in es): it
+keeps two lines at accessibility sizes and takes the body size from
+`Typography.scaled`. Both halves matter: on iOS 26 a placeholder wraps only into lines the field already
+has, and with a text-style font such as `.body` it stays on one line and ends
+in «…» however many lines the field keeps.
+
+Words that had a fixed point size grow the same way: `Typography.scaled(<size>,
+relativeTo: .body, …)` keeps their size, weight and design at Large and then
+follows the text size as body text does: smaller below Large, larger above
+it, most at accessibility sizes. The entry sheets' tile words (with their
+glyphs), the Diaper and Events quick tiles' glyphs, the Sleep start tiles'
+glyph and caption, the Feeding quick tiles' words and captions, the Home
+quick actions' words, the Feeding and Sleep timer cards' labels and the Home
+timer card's subtitle, the Diaper screen's norm chip (word and glyph),
+onboarding's gender tiles (figure and word), stool colour names, slider
+ends and hints use it, and so do the stat card's title, unit and trend chip
+and the Growth gain card's interval, band label and reference line.
+Some screens outside the entry sheets still set fixed sizes. A glyph that
+stands over or beside its word grows with it; colour samples, icon plates
+(with the glyph inside them) and decoration keep their size, and the Growth
+sheet leaves its ruler out at accessibility sizes. The stool warning and the
+profile photo hint keep their wrapped alignment at every size, Large
+included: the warning's triangle sits on its first line and the hint is
+centred, because in ru both wrap at Large on a 320-pt screen.
+
+A row of tiles keeps a column count only while its widest en, ru or es word
+fits the column (the tile less its side padding) at a 320-pt width with 8 pt
+to spare; the spare covers a measuring error, a later word and Bold Text.
+320 pt is Display Zoom on the smaller phones and iPad Slide Over. The rule is
+checked at every text size, with the row's count there: at Large, which every
+smaller size follows, at xLarge, xxLarge and xxxLarge, and at AX2, where scaled
+type stops growing. A row takes fewer columns from the first size where its
+widest word misses, and each text size has one shape at every width; no count
+follows the width, except on Home's quick actions (below). The rows below
+state their counts once, in a `BBTileColumns` (beside `BBStatGrid` in
+`DesignSystem/Components/BBCard.swift`): Large, which stands for every smaller
+size too, xLarge, xxLarge, xxxLarge and accessibility. A row that is an
+`HStack` at Large stays that `HStack` wherever its count is unchanged (a grid
+sets it a third of a point lower), becomes a grid where the count drops and a
+`VStack` where it reaches one; a row that is a grid at Large takes the count.
+The counts, Large to accessibility:
+- Diaper and Feeding screens' quick-add 3/2/2/2/1; Sleep screen start tiles
+  2/2/2/1/1; Events quick row and `BBStatGrid` (five screens) 2/2/1/1/1.
+- Stool colours 4/3/3/3/2; Feeding sheet types 3/3/3/2/2 and breast sides
+  3/2/2/2/1; Diaper sheet types and Sleep sheet locations 3/3/3/3/2; Add Event
+  types and moods 3/3/2/2/2; Sleep sheet types two at every size.
+- Profile sheet feeding 3/2/2/2/1; profile sheet and onboarding gender
+  2/2/2/2/1.
+
+Four rows keep a count with less than the 8-pt spare, each measured with and
+without Bold Text, and measured again whenever its words change in any locale.
+The stool row at Large: «Коричневый» fits a quarter of 320 pt; three columns
+would set the default Diaper sheet's seven swatches 3 + 3 + 1 on every phone.
+The profile edit sheet's feeding row at Medium and Large: «Смешанное» fits a
+third of the sheet at 320 pt, and is the same word at the same size it always
+was. The Feeding screen's quick-add row at Large («Сцеженное», 5.4 pt with
+Bold Text) and the Feeding sheet's breast sides at Medium and Large
+(«Izquierdo», 4.0 and 0.7 pt with Bold Text) keep three, because fewer columns
+would change the default screen on every phone. Side padding is what keeps
+three quick tiles at Large on 320 pt: 8 pt on the Diaper tile (16 above and
+below), where 16 broke «Грязный», and none on the Feeding tile, where 8 broke
+«Сцеженное». The Feeding tile's caption keeps 4 pt a side of its own, so a
+caption on one line keeps clear of the tile's border; es «Agregar manualmente»
+on 402 pt and ru «Добавить вручную» on 375 pt set on two lines.
+The breast-side chip sets its glyph 4 pt from its word, not the default 8. In
+one column a quick or start tile keeps its shape: glyph above word, centred,
+full width. The profile edit sheet's gender and feeding rows and onboarding's
+gender row, measured at a 320-pt width, drop to one at accessibility sizes;
+the profile feeding row already takes two from xLarge, where «Смешанное» no
+longer fits a third of that width. Home's quick actions are the one
+equal-column row whose count follows the width (`QuickActionsLayout` in
+`DashboardView.swift`): below the accessibility sizes they stand four in a row
+while every action's word fits a quarter of the card as drawn, measured live
+in the app's language, at the text size and with Bold Text, else two by two;
+one column at accessibility sizes. A tile is as wide as its word or its 60-pt
+plate, whichever is wider. At Large that is four on 375 pt and wider; on
+320 pt ru goes two by two, where «Подгузники» (71.1 pt) misses a quarter (64),
+and en and es, whose widest tile is the plate, stay four.
+
+A title with one trailing value is a `BBValueRow`
+(`DesignSystem/Components/BBValueRow.swift`): Settings' Premium row and its
+badge, the measure sliders' and the bottle volume's figure, `BBProgressCard`'s
+count, Export's category «0», a plan row's badge and the iCloud Sync state.
+The value keeps its one-line width and the title wraps beside it, between
+words only; at accessibility sizes the value stands under the title, lined up
+with the title's text: where a glyph leads the title (`BBProgressCard`), the
+`bbValueRowTitle` alignment guide marks the text, so the figure starts past it.
+`.byFit` keeps the value beside only while the title fits one line next to it,
+else under it at any size: on a 320-pt screen at Large the ru and es iCloud
+Sync titles miss that line, and beside the value «Синхронизация» broke inside
+the word. That row is one Label around the title, the state and the hint, as
+the switch rows hold theirs, so the state and the hint start at the title's x,
+and it stays one VoiceOver element. The medication menu's label stands above
+its menu at every size, not beside it below the accessibility sizes: a long
+running name squeezed it. The Export format tiles keep 8 pt a side inside the
+outline and take the taller tile's height, so the two stay one row. The
+caption under them names where the doctor's PDF is from the tab's and the
+row's own keys (`ExportDoctorHint`), so it follows a rename of either.
+
+A Settings switch with a line under its title (`SettingsSwitchRow`, in
+`Features/Profile/SettingsRows.swift`) is the system switch row while every
+word of its title and its line keeps whole beside the switch, else the switch
+stands under the line at the title's x, sm 8 under it, and under at every
+accessibility size: ru «Статистика использования» misses beside it from
+xxxLarge on 320 pt. Under, the visible texts are hidden from VoiceOver and the
+switch carries them as its label, so it still reads as one switch with both.
+At the accessibility sizes the system Label in a List starts the first line
+of every text it holds past its icon's column (53 pt at AX1 and 59.7 at AX2,
+of a 256-pt row on 320 pt), so a first word wider than that line's room breaks
+inside itself. A row whose first words miss it (`SettingsRowLabel`: the iCloud
+Sync row and the switch rows under their texts) sets the icon on its own line
+above the texts, xs 4 apart; ru and es iCloud Sync do so at AX2 on 320 pt, and
+ru at AX1 with Bold Text. Neither can measure the system row it draws: at those
+sizes a Label's ideal width is its icon's column alone, and a switch whose
+label answered a custom ideal stood its List row as tall as that label's
+ideal. So each draws the plain system row and answers `ViewThatFits` from
+hidden copies (`ProbedIdealWidth`): the same switch row one word a line, or
+the icon's column plus each text's first word in the body font the Label sets
+on its title. Settings' baby row (`SettingsBabyRowLabel`) goes the same way at
+the accessibility sizes: the avatar beside the name and the age while a hidden
+copy of the row one word a line fits, else the avatar and the chevron on a
+line above them, sm 8 apart. The age's no-break space keeps «11 месяцев» one
+word in that copy, but a glued phrase wider than its line is broken at the
+no-break space, so it is the row's room, not the glue, that keeps it whole
+beside the 56-pt avatar.
+
+A row of content-sized parts whose fit changes with the width or the running
+time takes its shape from the fit instead, with `ViewThatFits`: the row while
+it fits, else stacked. The Feeding timer's side pills stand three in a row while the row
+fits the card, else one per row; in es the row is wider than the card on a
+320-pt screen from Medium up. Every timer card in the app takes its shape from
+`BBTimerFit` (in `DesignSystem/Components/BBElapsedTimer.swift`): the
+Feeding and Sleep cards' `BBTimerCardHeader` (label over title) and Home's
+`ActiveTimerCard` (title over subtitle, its icon plate beside) set what is
+running beside the timer while the two fit one line, else above it. The
+timer's width follows the elapsed time (hours past an hour of sleep on the
+Sleep card and Home's sleep card, three-digit minutes past 100 minutes of
+feeding), so `BBTimerFit`
+draws both shapes from one `TimelineView` clock, and each fit check reads the
+digits on screen. Home's card, whose title and subtitle stand in one column,
+stacks at Large on a 320-pt screen whatever the time. The pills and the timer
+rows stack at accessibility sizes on any width, so the running cards keep one
+shape at the largest text. The Diaper
+screen's Today row puts the norm chip under the title at accessibility sizes
+by the text size: its words hold at 320 pt at every size below, so no width
+changes the answer. The Growth gain card sets its number («+210 g/week») and
+the interval («over 9 days») on one row while both fit whole, else the
+interval under the number. Squeezed beside the interval, the number broke at
+its slash. Alone, it still breaks there, its only break, where it outgrows
+the line: at AX2 on a 320-pt screen in en and es. Home's Today feeding card
+sets the time since the last feed («59 мин назад») beside its plate while
+each word of it fits the room there, wrapping between words, else on its
+own line under the plate. In two columns on a 320-pt screen that room is
+about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
+`ViewThatFits` the widest word as the text's ideal width, so the check is
+about words, not the whole line. `BBEventRow`'s title and subtitle are
+measured the same way. `SideBySideIdeal` (in
+`DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
+| value row: its ideal width is the least at which the stack's own split (the
+less flexible text offered half the room, the other the rest) leaves each
+text its widest word, and a concrete width passes through untouched, so a row
+that fits lays out as the plain stack. The Nutrition card's three rows take
+one shape together through it: all beside while every row keeps its words
+whole, else all stacked as at the accessibility sizes (ru at xxxLarge on
+320 pt, and at xxLarge with Bold Text). Its hidden measuring copies take the
+drawn `multilineTextAlignment`: wrapped flush right, a text reports about a
+space more width. Home's growth card takes one shape for its rows the same
+way (`GrowthSummaryRow`): all beside while every row keeps its words whole,
+else every value under its label, as at the accessibility sizes; the line
+asking for a second weighing is prose and does not count. Growth's history
+row (`GrowthEntryRow`) sets its date as `BBEventRow` sets its time: beside the
+values while every value and word keeps whole there, else on a line of its
+own under them, and under at the accessibility sizes. The weight and the
+length stand side by side while both fit whole, else one under the other; a
+value is never shrunk or cut, and the row's shape makes the room for it. The
+diaper norm editor's stepper card
+(− digits +) keeps the column's xl inset, as Save: with xl between each
+symbol and the digits and inside the card it needs 313 pt with «12», 2 more
+than a 375-pt column leaves. Where that misses, the card takes the column's
+width, and its four gaps, the two inner sides and the two beside the digits,
+share what the symbols and the digits leave, equal and md at least: 31.4 pt
+each on 375 pt and 17.7 on 320 at Large. Below md the digits shrink.
+The digits are sized before the gaps (`layoutPriority`): the stack's equal
+offer would shrink them above Large while the gaps still had room. The
+editor scrolls once its content is taller than the sheet (above Large on a
+320-pt phone) and does not bounce where it fits. The weekly card's
+three value rows (feeds, sleep, gain) take one shape together: each on one
+line, its delta at the row's end, while every shown row fits there at full
+size, else all three with the delta under the value, as at the accessibility
+sizes, where they always stack. A shape per row would break the deltas'
+column, and nothing shrinks. The lines that wrap (the expanded details, the
+gain line without a figure, the first-week and days lines) sit in
+`WrapsToWidth`, which asks for no width when measured for its ideal width,
+so only the value lines decide. At Large, with
+sleep «14 h 20 min» and a delta of «1 h 45 min», the rows stack on 320 pt in
+every language and take one line in en and es from 375 pt, in ru from 402;
+on 375 ru takes one line while the sleep delta is under an hour.
+
+Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
+in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.
+With the default, `.barUpToLarge`, used by the five add sheets, the question,
+visit and medication form sheets and the profile edit sheet, the title sits in
+the bar up to Large, on one line, shrinking to fit between the bar's buttons
+down to 13/17 of its size (13 pt at Large, the sheets' caption size). Above
+Large, where it would stay at its Large size while the sheet's text grows,
+the bar shows no title; the sheet's first content line, `BBSheetHeading`,
+shows it at the sheet's text size and carries the header trait, so VoiceOver
+reads it once. The dose sheet passes `.content`: its title is the
+medication's name, which the parent wrote and no length holds, so it heads
+the content at every size and wraps. The modifier and the heading go together
+with the same placement: the modifier alone leaves no title where the bar has
+none, the heading alone shows it twice. The diaper norm editor, with Close
+alone in its bar, does the same without the helper: above Large its bar shows
+no title, and its first heading, «Норма в день», takes the header trait.
+
+Screen titles go by fit. The nine scrolling screens with a large title
+(Feeding, Sleep, Diapers, Events, Growth, Medications, Recent activity,
+Export, the report) set it through `bbScreenTitle(_:)` and put
+`BBScreenHeading` first in their content stack
+(`DesignSystem/Components/BBScreenTitle.swift`). The bar sets a large title
+on one line and cuts its tail, so `BBScreenTitleFit` measures the title's
+line at the bar's face (largeTitle bold at the current size, capped at AX2)
+against the bar's room, W − 32 below 414 pt and W − 40 from 414. The width
+comes from a `GeometryReader` around the content, in the same layout pass,
+so no frame shows one shape and then the other. Where the title fits, the
+bar keeps its large title and the heading draws nothing, not even stack
+spacing. Where it misses, the bar goes inline and the heading shows the
+title: largeTitle bold, wrapping between words, stepping to title1 and
+title2 while its widest word misses the width with sm 8 to spare
+(`WidestWordIdeal`'s `spare`). The bar's principal item then holds a 17-pt
+title, hidden (opacity 0, out of VoiceOver) until the heading's last line
+has passed under the bar; the heading reports that through an environment
+closure, from `onGeometryChange` in the modifier's named coordinate space,
+whose y = 0 is the bar's bottom. The principal item stays in the bar while
+hidden because an empty one lets the system draw its own inline title, cut.
+`navigationTitle` is set in both shapes, for the next screen's back button
+and the app switcher. CoreText measures a title about 3 % wider than the
+bar draws it, so a few titles leave the bar a size before the bar would cut
+them, never after.
+
+The sheet bars' buttons are glyphs, through `BBBarButton`
+(`DesignSystem/Components/BBBarButton.swift`): × for Cancel and Close in the
+secondary ink, ✓ for Save, a pencil for Edit (the visit sheet's, and the
+pushed medication screen's, which takes the same button). The New Feeding
+sheet's confirm is ▶ (`.startFeeding`) while Start Timer is on, the same act
+as its bottom button «Start Feeding», and ✓ when it is off; both follow the
+toggle. On iOS 26 the bar draws each glyph in a glass circle and the confirm
+(✓ or ▶) is the prominent one, a primary fill with an on-primary glyph,
+dimmed by the system when disabled. Before iOS 26 the glyphs stand bare, the
+confirm and Edit in the primary ink and a disabled Save in the secondary one.
+Each button's VoiceOver name is the app's word (`button.cancel`,
+`button.save`, `button.start_feeding`, `button.close`, `button.edit`), set
+explicitly: a glyph's or a role's default name is read in the device's
+language. Every other icon-only button in a bar names itself the same way:
+the Feeding, Sleep, Growth and Events add buttons take their add sheet's
+title, the Diaper one `diaper.add`. The norm editor's × is Close, because its
+− and + write the goal at once; they carry `diaper.norm.a11y_decrease` and
+`diaper.norm.a11y_increase` with the goal as their value, so VoiceOver reads
+the new number after a tap. With a glyph on each side the title has 174 pt at Large on a
+320-pt phone in every language, so a title of at most 166 pt at 17 pt
+semibold stays whole there.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
@@ -179,7 +731,7 @@ question, and each carries its source in its header:
 
 | File | Question |
 |---|---|
-| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo). |
+| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo); length-for-age in `WHOGrowthStandard+Length` (same LMS code path, its own denser grid), read by the pediatrician report (`DoctorReportSummary`). |
 | `WeightVelocity` | Is enough going on? Gain against WHO 1-month weight-velocity increments. |
 | `GrowthTrend` | Is the baby holding its centile channel? Centile-space movement in EITHER direction — NICE faltering-growth thresholds for a fall, a flat two spaces for a rise. |
 | `NewbornWeightLoss` | The first two weeks, measured against birth weight — where a percentile is the wrong and actively frightening instrument. |
@@ -295,7 +847,13 @@ out-of-range state), gain, centile trend, nutrition — carries a "?" badge and 
 explainer sheet behind it. All five are one mechanism, in
 `GrowthInsightCards.swift`: `GrowthExplainer` names the subject and resolves its
 icon, tint and copy keys (`<card's own key family>.info_title` / `.info_body`),
-and `ExplainerSheet` renders any of them.
+and `ExplainerSheet` renders any of them. Every insight card's header is
+`InsightCardHeader` (the percentile card's hand-built one too). A title wraps
+at the larger text sizes on a narrow screen, and the badge stays on its first
+line, as a glyph beside wrapping text does everywhere in the app: a hidden
+one-line box in the title's face carries that line's baseline, and the badge
+is centred in it. Beside a one-line title that is where the centred badge
+always sat.
 
 How a card opens its explainer depends on what its own tap already does:
 
@@ -368,7 +926,23 @@ beneath them, the drawing face of `correctedAgeDaysIfBorn` returning nil — and
 window spans the baby's weights *and* the band, so neither is clipped. One
 weighing is enough to draw (the chart widens to a 28-day window around it),
 which is what every fresh install has, and the corridor is free for everyone —
-the showcase page promises it before anyone has paid.
+the showcase page promises it before anyone has paid. The x window — whole
+days of age, widened to the first and the last weighing — is
+`WeightChartWindow` (`Core/Growth/`), and the pediatrician report's chart
+draws from it too, so the PDF shows the stretch of the corridor the parent
+sees on the screen.
+
+VoiceOver reads the weighings, not the marks. Each weighing has an invisible
+24-pt element on its dot, placed in the chart's overlay through the
+`ChartProxy` (`spokenWeighings`), that reads the readout's words: the date and
+age as its label («Nov 25 · 1 week»), the weight as its value («3.45 kg»),
+oldest first, two weighings on one day in the list's order. The point marks,
+the band, the median, the line and the rule are all hidden: Swift Charts merges
+marks that stand closer than its element width into one element it words
+itself, in the device's locale («13 Nov 2023 at 00 to 20 Nov 2023 at 00»,
+«3,4 to 3,18, 2 values»), and no API turns that off. With every mark hidden
+the chart has no Audio Graph (DECISIONS 2026-11-06). The elements sit under the
+tap layer, so a tap still selects.
 
 `showsWHOCorridor` exists for a caller that ever reuses this shell for height
 or head circumference: those are different tables, and a weight corridor under
@@ -378,11 +952,16 @@ a length is the wrong standard, not an approximation.
 shared with onboarding.** `GrowthView` wraps it in the `ExplainerCard` above —
 that wrapper is what injects the "?" — and passes two caption lines; the
 onboarding showcase page renders it bare, with one caption line and
-`tone: .neutralOnly`. The tone is the only behavioural difference: below the
-3rd centile or above the 97th the tail takes the neutral `textPrimary` instead
-of `BBAlert`, while the band LABEL is unchanged (DECISIONS 2026-09-21). It is
-one view rather than two because a hand-copied card stating a clinical figure
-is a drift this project has already paid for.
+`tone: .neutralOnly`. Its figure is the percentile itself,
+`PercentileReading.badge` («61», «> 97», «< 3»), in `textPrimary` under
+«Weight Percentile», and the two are one VoiceOver element; there is no band
+word. The ring beside it draws the reading in its tier tint (`percentileTint`),
+carries no number and is hidden from VoiceOver, because the figure states what
+it pictures. The tone is the only behavioural difference: below the 3rd
+centile or above the 97th the ring takes the neutral `textPrimary` instead of
+`BBAlert`, while the figure is unchanged (DECISIONS 2026-09-21). It is one view
+rather than two because a hand-copied card stating a clinical figure is a
+drift this project has already paid for.
 
 ## Onboarding
 
@@ -490,8 +1069,14 @@ back to a `LockedInsightCard` of its own. And **creating** an event: the
 Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
+The one exception is a dose: while a medication runs, the Medication tile
+branches in `addEvent(_:)` to the dose sheet before the gate and wears no
+badge, because a dose given to a sick baby is never sold.
 And **how far back the five activity lists read** — the free history window
-below, the only gate that bounds something already recorded.
+below, the only gate that bounds something already recorded. The
+pediatrician report's PDF is an export like any other: its share button wears
+the badge and opens `PaywallView(source: .doctorReport)` for a free parent,
+while the screen itself and visits stay free.
 
 That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
@@ -506,7 +1091,17 @@ also spelled out in six JSON strings, see the comment on the constant — and
 `cutoff()`, `startOfDay(now − 14 days)`.
 
 `HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
-surfaces use. It returns three things: `visible` (windowed, then capped),
+surfaces use. Pediatrician visits never go through it: Events
+(`EventsHistory`) and Recent activity merge them in AFTER the window and the
+cap (`Core/History/HistoryMerge`), so they are free and always listed, the
+locked footer still means "entries older than 15 days", and Events' delete-all
+reaches events only (its confirm says the visits are kept). Visit rows have no
+swipe. A medicine's doses go through the window and have twenty rows of their
+own: `EventsHistory` lists them apart and merges them back by time, so four a
+day cannot push every bath and walk out of the shared twenty, and a year of
+daily drops still draws a bounded list (the medication's screen lists every
+dose). Each half decides its footer the usual way; delete-all still reaches
+them, as events. It returns three things: `visible` (windowed, then capped),
 `showsLockedFooter`, and `deletable` — the **untouched input**, which is what
 makes the no-hostage rule a property of the type instead of a discipline at
 five call sites.
@@ -571,26 +1166,78 @@ in step with the code.
 
 Permission is requested from onboarding's own notifications page (page 8 of
 11, before the Generating loader whose last step promises reminders) — never
-at launch and never over the Dashboard. That page is the single call site of
-`requestPermission`.
+at launch and never over the Dashboard. A medication's reminder switch asks
+through the same `requestPermission` when iOS has not been asked yet; there
+is no other call site.
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
 `onAppBackgrounded()` on every `.background`.
 
-**Weekly summary (#15).** Last calendar week, Monday to Sunday whatever the
+**Weekly summary.** Last calendar week, Monday to Sunday whatever the
 locale, is `Core/Weekly/WeeklySummary` — pure, fed by
 `WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
-notification). Averages divide by the days that have any entry (D19). The gain
-is the `WeightVelocity` pair whose later weighing falls in the week, and the
-newborn gate (`NewbornWeightLoss.gainDeferral`) withholds the number (D17,
-D27). The Dashboard shows `WeeklySummaryCard` under the running timers. It is
-hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
-and sends `weekly_summary_viewed` once a week. The Monday notification is a
+notification). Averages divide by the days that have any entry: a day with
+nothing logged is a gap in the log, not a day without feeds or sleep. The
+card's days line says so on every week, a full one too («Averages over the
+days with entries: 7 of 7»). The gain is a rate in g/week, the
+`WeightVelocity` pair whose later weighing falls in the week, so it is the
+number Growth shows. Without such a pair the line says what is missing
+(`WeeklySummary.missingPair`), judged on every weighing up to now and in this
+order: a pair ending after the week shows next Monday, so the line offers
+nothing; a pair that ended before the week, weighings with no pair, and no
+weighing at all each have their own line and the «Add a weighing» button. A
+pair ending after the week but inside the newborn window takes the older
+pair's line and button, since next Monday's card withholds it too.
+The newborn gate (`NewbornWeightLoss.gainDeferral`)
+withholds it (DECISIONS 2026-09-05, «During the newborn window, no surface
+reports a weight-gain verdict»). The Dashboard shows `WeeklySummaryCard` under
+the running timers. It is hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
+and sends `weekly_summary_viewed` once a week. × fades the card, in 0.2 s (no
+fade with Reduce Motion), to `WeeklyHiddenLine` on the card's own surface: the summary is hidden until next
+Monday, and «Undo», which clears the hide and brings the card back collapsed.
+Each week's card opens collapsed: the open state is the Monday it was opened
+in (view state), so the same card handed the next week's summary, by an app
+left running across Monday 00:00, shows that week collapsed, a card hidden
+while open too. The line is view state, never stored, with no timer: it lasts while the
+Dashboard stays on screen and is gone after another tab, a pushed screen or
+the app in the background, while the card stays hidden until Monday. When an
+arrow shows, one legend line under the rows says the arrows compare with the
+week before; VoiceOver skips it, since each row speaks its comparison in
+words. The Monday notification is a
 ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
 foreground and background, and after the Lock Screen and widget intents' own
 writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has
-entries and the Settings switch (`notify.weeklySummary`, D26) is on. A
-repeating trigger cannot skip an empty week. `AppClock.now` is the clock for
+entries and the Settings switch (`notify.weeklySummary`, on by default) is on.
+Off stops the notification only; the card still shows. A repeating trigger
+cannot skip an empty week. `AppClock.now` is the clock for
 this path only, so `-BBNow` can move it.
+
+**Medication reminders.** One pending request per medication,
+`bb.med.<uuid>`, while this device's switch for it is on
+(`notify.medication.<uuid>` in `UserDefaults`, off when absent, never
+synced). `MedicationReminderPlan` (pure, `Core/Medicine`) wants it at the
+schedule's `nextAllowed`, the 24-hour maximum included, only while that is
+ahead and the course runs. `MedicationReminderSync` (`Services`) makes the
+centre agree: it removes every `bb.med.*` the plan does not want (a switch
+off, a course ended or past its time, a medication deleted here or on
+another device) and adds each wanted one again, which replaces it. A pass
+runs at once after every local store save (`ModelContext.didSave`), so no
+surface that logs, moves or deletes a dose calls it, and after every
+`NSPersistentStoreRemoteChange`, debounced 0.5 s for CloudKit's bursts; also
+on every foregrounding, on backgrounding (holding a background task until it
+lands), after a switch changes, and when notifications are allowed.
+Passes are serialized, so the last one, read from the freshest store, lands.
+The trigger is a time interval (elapsed time, like the interval itself); the
+content has the default sound, no badge and the plain interruption level.
+The title is the name; the body (`MedicationFormat.reminder`) is the time
+since the dose it counts from, with that dose's time and its day word
+counted against the moment it fires. `NotificationPermission` holds iOS's
+answer (not asked, allowed, denied) for the switches: denied draws the
+switch off and disabled with «Open Settings», like the Live Activity
+switch. The switch sits in the medication form (stored on Save) and in a
+card on the detail (at once); the list row shows a bell while it is on,
+except on an ended course and while iOS has notifications off. With no
+`UNUserNotificationCenter` delegate in the app, a reminder that comes while
+the app is open is not shown; the medication's screen states the same fact.
 
 ## Timers and the Live Activity
 
@@ -633,8 +1280,8 @@ launch right after.
 It runs after every mutation, on launch, on every foregrounding, on
 `NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
 changes. With no push (no aps-environment, no server), a stop made on another
-device reaches this Lock Screen when the app next runs here. The owner accepted
-that limit for M1.
+device reaches this Lock Screen when the app next runs here. That limit was
+accepted for 1.1.0.
 
 **Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
 into both targets because the extension's `Button(intent:)` needs the type.
@@ -810,7 +1457,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` \| `doctor_report` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
@@ -819,7 +1466,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `daily_activity` | `feeding`, `sleep`, `diaper`, `growth`, `event`: Bool (logged at all); `total`: `0` \| `1-5` \| `6-15` \| `16+` | `Analytics.appBecameActive` (and `start`) at the first foregrounding of a new local day, for the PREVIOUS day only, once (`analytics.dailyActivityDay`). `DailyActivityCounter` counts that day with one `fetchCount` per kind; the facade reduces the counts to presence plus one total bucket — no per-kind count, and edges clear of the clinical 8–12 feeds a day. Sent with the event time set to NOON of the reported day (local) and `sessionId -1`, so neither the time nor a session id gives away the first open after midnight. Nothing for a store with no baby; the first launch only sets the marker. The store is CloudKit-synced, so this is the baby's logged day across the family's devices, not this install's own usage. A time-zone change can make two consecutive reports cover overlapping hours — acceptable noise for a bucketed aggregate. There is deliberately no per-entry event (DECISIONS 2026-09-23) |
 | `notification_permission` | `granted` | `NotificationsPage`, the system dialog's answer only |
 | `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
-| `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll |
+| `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll; a footer built with no `surface` (a medicine's doses) sends none |
 | `review_prompt_requested` | — | `ReviewPromptService.consumePendingSave`, when a request is made |
 | `live_activity_started` | — | `LiveActivitySync.reconcile`, only when `Activity.request` succeeds (not on a reconcile that finds it running) |
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
@@ -835,7 +1482,8 @@ the App Store Connect answers in step.
 ## Navigation
 
 `MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth,
-Recent activity, Events and Profile live under More rather than in the bar;
+«For the pediatrician», Recent activity, Events and Profile live under More
+rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
 stats → growth → progress. Its Growth header AND the data card under it are one
@@ -851,6 +1499,82 @@ Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
 
+**«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, 1.2.0)
+comes right after Growth in More. Top to bottom: the name ①, the period line
+(②, tap → the visit detail), the age ③, the questions card (④ open
+questions, add, log the visit; ⑥ the questions asked at the latest visit,
+«Back to the list»), the data cards ⑦ and the footnote ⑧. The numbers
+come from `DoctorReportSummary` (`Core/DoctorReport/`), pure and built from
+plain values through its store bridge, over `[periodStart, AppClock.now)`.
+It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
+card also runs on, with the REPORT's input: running timers out and a sleep
+that began before the period clipped to it — the weekly card counts a running
+feed and files a sleep whole on its start day, so those rules live in what
+each caller passes in, never in the core. The share button ⑩ (Premium) makes
+`DoctorReportPDF`: an HTML page over the SAME `DoctorReportSummary` and the
+same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
+the export and the weekly card), so the PDF cannot print a number
+the screen does not; the screen's period length and dates are the PDF's
+`ReportFormat.periodLength` and `dayMonth`, glued by a no-break space, and the
+age is `Baby.describeAge`'s, glued where it is made. `DoctorReportPDFTests`
+pins that as strings, and scans
+the page for a closed list of verdict words. Medications given in the
+period (`summary.medications`: a medicine's doses together, older events by
+their trimmed, case-insensitive name beside them, nameless ones in one line;
+each line's doses grouped again by dose text in order of first use, so a
+changed dose shows one caption, and in the PDF one row, per text) are a card
+after Diapers and a fixed-column table after the PDF's diapers section. Both
+are absent when no dose falls in the period. A dose counts as an entry
+for the new-period card, and the table moves to the next page whole when
+it fits on one. When the weight percentile shows a figure and two weighings
+or more are known, the PDF closes with a weight-for-age section after the
+questions, before the closing line. `WeightForAgeChart`
+(`Core/DoctorReport/`, in `summary.growth`) is what it draws, with no drawing
+in it: the screen's window, the weighings, WHO 3rd, 50th and 97th sampled
+daily, a whole-kg y axis and the dates the x axis may be labelled at.
+`DoctorReportPDF` writes it as an inline `<svg>`, which the formatter draws
+as vectors with every label left as text in Helvetica Neue; the 523.2 pt
+printable width lays out as 612 CSS px, so the svg spans it with a 523.2-wide
+viewBox and one user unit is one page point. The x labels are placed by the
+renderer, which knows the font: each centred on its tick and kept inside the
+plot, and labels that would touch go with their ticks — first the months on
+the start's label, then every second one — so every tick drawn carries its
+date (DECISIONS 2026-11-06). The section is one block: a month's report takes
+it and the closing line to page 2 and leaves page 1 as it was, and a short
+period keeps its one page. On the screen, a weighing with a head value shows
+it on a line of its own under the date and values, as the PDF's table gives
+it a column, and the row stays one VoiceOver element. It renders through `PagedPDF`
+(`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
+slices its layout at the page height and ignores the CSS break rules, so a
+document hands over its blocks and rows, every page is composed as its own
+small HTML document with its own formatter, and the engine's page count says
+what fits: rows move whole, a table prints its head on every page it reaches,
+and a document that fits one page is laid out once, as it is. Each page's table
+would size its own columns, so their widths are fixed in advance: the export's
+from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
+`UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
+N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
+list and no colour emoji, the footer included (DECISIONS 2026-11-02).
+`PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
+The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
+fetches with `Input.window(periodStart:)`, the same window
+`ReportDataSection`'s queries use. Every PDF prints numbers in the app
+language; every CSV stays dot-decimal with units in its headers (DECISIONS
+2026-11-02). A file name cleans and caps the baby's name alone
+(`ExportGenerator.fileNamePart`), and `ExportGenerator.fileName(fitting:_:)`
+lets that name give way, a whole character at a time, until the whole fits
+the 255 UTF-8 bytes a file name may take: the day and the extension always
+stay. The Export PDF is «All entries – Mia – 2026-11-05.pdf», the report
+«Pediatrician report – Mia – 2026-11-05.pdf» (DECISIONS 2026-11-06). A
+visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
+through `.visitDetailSheet(item:)` — from the period line, Events and Recent
+activity. That modifier deletes in the sheet's `onDismiss`, after the sheet
+is gone: deleting while a sheet still holds the model makes its body read a
+deleted model ("backing data could no longer be found"). The question sheet
+follows the same rule in the report screen. The doctor sheets are plain
+`.sheet`, never `.entrySheet` — no rating prompt over a question for the
+doctor (DECISIONS 2026-11-01).
+
 **Deep links.** `nenita://tab/<home|feeding|sleep|diapers>`
 (`Features/Widget/DeepLink.swift`, shared with the widget) selects a tab. The
 `onOpenURL` sits on the app root, not on `MainTabView`: a cold launch shows the
@@ -859,13 +1583,22 @@ root keeps the destination, and `MainTabView` takes it when it appears (or at
 once, when it is already up). Before onboarding is done a link just opens
 onboarding and is not kept. The widget's tap areas build these URLs. The
 scheme is registered in Info.plist only so that `xcrun simctl openurl booted
-nenita://tab/sleep` works for QA; a widget link would reach its app without it.
+nenita://tab/sleep` works for testing; a widget link would reach its app without it.
 
-**The widget's tap areas and button** (design note § 5, D16):
+**The widget's tap areas, and its one button, which starts a feeding timer**
+(`teamdocs/design/m1-live-activity.md` § 5):
 - **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
 - **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
 - **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
 - **The onboarding showcase** renders the same view with `isInteractive: false`, so a tap there starts nothing.
+
+The widget writes time since an event in whole days from 48 hours, rounded
+down, as Home's Today tile does (`WidgetCopy.elapsedText`): the medium's feed
+row, the hero past 12 months and the overdue line («Прошло ещё 4 дня»).
+«131 ч 5 мин» left the reader to divide. A duration keeps its hours and
+minutes (`WidgetCopy.minutesText`): a running feed in the capsule, a running
+or finished sleep, the countdown to the next feed and the Live Activity's
+ended timer.
 
 The splash plays on **every** cold launch (~5s) — it is `@State`, not
 persisted, and there is no `hasShownSplash` flag.
@@ -930,10 +1663,11 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; and four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification and the weekly seeds read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
-| `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
+| `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
+| `-BBMedicationNotifyIn <seconds>` | **Simulator only.** Every pending medication reminder fires in N seconds instead of at its time, with the words of its real time, so the banner can be looked at. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |

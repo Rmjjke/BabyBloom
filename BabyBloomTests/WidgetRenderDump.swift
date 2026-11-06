@@ -75,6 +75,17 @@ final class WidgetRenderDump: XCTestCase {
                                        lastSleepDuration: napLength,
                                        todayFeedingCount: 4, isAsleep: false,
                                        nextFeedingTime: nil)),
+            // Nothing logged for five days: the time since reads whole days.
+            ("stale", BabyBloomEntry(date: now, babyName: "Vlad",
+                                     lastFeedingTime: now.addingTimeInterval(-5 * 86_400),
+                                     sleepStartTime: sleepStart, lastSleepDuration: napLength,
+                                     todayFeedingCount: 0, isAsleep: false,
+                                     nextFeedingTime: now.addingTimeInterval(-5 * 86_400 + 10_800))),
+            ("toddler-stale", BabyBloomEntry(date: now, babyName: "Vlad",
+                                             lastFeedingTime: now.addingTimeInterval(-5 * 86_400),
+                                             sleepStartTime: sleepStart, lastSleepDuration: napLength,
+                                             todayFeedingCount: 0, isAsleep: false,
+                                             nextFeedingTime: nil)),
         ]
     }
 
@@ -126,22 +137,23 @@ final class WidgetRenderDump: XCTestCase {
 
     /// The regression this task fixes: every widget-rendered key must resolve
     /// in every language. A missing key falls back to the key itself, so a
-    /// dotted "widget.today_count" in the output means a broken translation.
+    /// dotted "widget.last_feed" in the output means a broken translation.
+    /// The list is the keys the widget's code reads, and nothing else.
     func testEveryWidgetKeyResolvesInEveryLanguage() {
         let keys = [
             "brand.name", "baby.default_name", "tab.feeding", "tab.sleep",
-            "status.sleeping_now", "stats.min_ago", "stats.h_ago",
             "duration.min_only", "duration.h_min", "duration.h_only",
+            // Whole days since the last feed, from 48 hours.
+            "age.day.one", "age.day.few", "age.day.many",
             "status.feeding_going",
-            "widget.today_count", "widget.feedings_count",
             "widget.description_small", "widget.name_medium",
             "widget.description_medium",
             // The countdown redesign's keys — the widget's whole reason for
             // being now lives in these, so this guard is pointless without them.
             "widget.feeding_in", "widget.time_to_feed", "widget.last_feed",
             "widget.overdue_by",
-            "widget.log_first_feeding", "widget.sleeping", "widget.today_short",
-            // The start-feeding capsule's label and its VoiceOver label (D16).
+            "widget.log_first_feeding", "widget.sleeping",
+            // The start-feeding capsule's label and its VoiceOver label.
             "button.start_feeding",
         ]
         for locale in ["en", "ru", "es"] {
@@ -211,8 +223,12 @@ final class WidgetRenderDump: XCTestCase {
 
         for (language, identifier) in [("en", "en_US"), ("ru", "ru_RU"), ("es", "es_419")] {
             LocalizationManager.shared.setLanguage(language)
-            XCTAssertEqual(WidgetCopy.formattingLocale.identifier, identifier,
-                           "\(language) formats system output through the wrong locale")
+            // The language's region with the device's hour cycle on top.
+            let pinned = WidgetCopy.formattingLocale
+            XCTAssertEqual(Locale.Components(locale: pinned).languageComponents.languageCode?.identifier,
+                           String(identifier.prefix(2)), "\(language) formats system output through the wrong locale")
+            XCTAssertEqual(pinned.region?.identifier, String(identifier.dropFirst(3)), "\(language)")
+            XCTAssertEqual(pinned.hourCycle, Locale.current.hourCycle, "\(language): not the device's clock")
 
             let views: [(String, AnyView, CGSize)] = [
                 ("small", AnyView(BabyBloomSmallWidgetView(entry: entry)), Self.smallSize),

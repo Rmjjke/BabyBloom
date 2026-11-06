@@ -28,6 +28,9 @@ final class Baby {
     @Relationship(deleteRule: .cascade, inverse: \DiaperEntry.baby) var diaperEntries: [DiaperEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \GrowthEntry.baby) var growthEntries: [GrowthEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \CustomEvent.baby) var customEvents: [CustomEvent]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorVisit.baby) var doctorVisits: [DoctorVisit]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorQuestion.baby) var doctorQuestions: [DoctorQuestion]? = []
+    @Relationship(deleteRule: .cascade, inverse: \Medicine.baby) var medicines: [Medicine]? = []
 
     init(name: String, birthDate: Date, gender: Gender, feedingType: FeedingType) {
         self.id = UUID()
@@ -133,20 +136,23 @@ final class Baby {
         Calendar.current.dateComponents([.month], from: date, to: end).month ?? 0
     }
 
+    /// The number and its word are joined by a no-break space, so a wrapped
+    /// line never starts with «месяца» alone (DECISIONS 2026-11-06); every
+    /// caller gets the glue from here.
     /// - Parameter end: the moment the age is read at — today by default; the
     ///   weight chart passes a weighing's date to say how old the baby was then.
     static func describeAge(from date: Date, to end: Date = Date()) -> String {
         let days = max(0, self.days(from: date, to: end))
         let months = max(0, self.months(from: date, to: end))
         if days < 7 {
-            return "\(days) \(days.dayWord)"
+            return "\(days)\u{00A0}\(days.dayWord)"
         } else if days < 30 || months == 0 {
             // Day 30 of a 31-day month is not yet a calendar month: without the
             // second condition it read "0 months".
             let weeks = days / 7
-            return "\(weeks) \(weeks.weekWord)"
+            return "\(weeks)\u{00A0}\(weeks.weekWord)"
         } else {
-            return "\(months) \(months.monthWord)"
+            return "\(months)\u{00A0}\(months.monthWord)"
         }
     }
 
@@ -196,11 +202,13 @@ final class Baby {
 
 // MARK: - Int word forms (language-aware)
 extension Int {
-    var dayWord: String   { ageWord(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
-    var weekWord: String  { ageWord(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
-    var monthWord: String { ageWord(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
+    var dayWord: String   { plural(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
+    var weekWord: String  { plural(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
+    var monthWord: String { plural(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
 
-    private func ageWord(one: String, few: String, many: String) -> String {
+    /// The localized form of three keys that fits this number in the app
+    /// language: one/few/many for Russian, one/other (`few`) for en/es.
+    func plural(one: String, few: String, many: String) -> String {
         switch LocalizationManager.shared.language.pluralRule {
         case .singularPlural:
             // English/Spanish: "1 day" / "21 days", "1 día" / "21 días".

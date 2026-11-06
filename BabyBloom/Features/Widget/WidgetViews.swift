@@ -75,11 +75,12 @@ enum WidgetCopy {
     /// renders no live text: a Russian widget once read "1 hr, 11 min"
     /// because nothing set this, and the pin is what stops a reintroduced
     /// `Text(style:)` from regressing silently (the render-dump guard test
-    /// leans on it too).
-    static var formattingLocale: Locale { LocalizationManager.shared.language.locale }
+    /// leans on it too). The environment locale, so a future clock time
+    /// keeps the device's 12/24-hour cycle like the app's own.
+    static var formattingLocale: Locale { LocalizationManager.shared.language.environmentLocale }
 
     /// A duration as the widget speaks it: whole minutes through the app's
-    /// JSON strings, never seconds. Owner ruling on build 5 — "2 мин 0 с"
+    /// JSON strings, never seconds: "2 мин 0 с"
     /// implies a precision no glanceable widget should claim. `Text(_:style:)`
     /// cannot do this (its units are not configurable), which is why the
     /// timeline carries one entry per minute instead and every duration is
@@ -88,12 +89,19 @@ enum WidgetCopy {
     /// Countdowns round UP so the widget never promises "0 мин" while time
     /// remains; elapsed values round down, as clocks do.
     static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
-        let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
-        if total < 60 { return String(format: "duration.min_only".l, total) }
-        // Whole hours drop the minutes: "1 ч", never "1 ч 0 мин".
-        return total % 60 == 0
-            ? String(format: "duration.h_only".l, total / 60)
-            : String(format: "duration.h_min".l, total / 60, total % 60)
+        DurationText.minutes(countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
+    }
+
+    /// Time since something happened (the last feed, the moment a feed was
+    /// due): from 48 hours whole days, rounded down, as Home writes them
+    /// («5 дней»), where «131 ч 5 мин» left the reader to divide. A duration
+    /// that is not time since an event, such as a running or ended timer or
+    /// a sleep's length, stays in `minutesText`.
+    static func elapsedText(_ interval: TimeInterval) -> String {
+        let hours = Int(max(0, interval) / 3600)
+        guard hours >= 48 else { return minutesText(interval) }
+        let days = hours / 24
+        return "\(days)\u{00A0}\(days.dayWord)"
     }
 
     /// `nil` in the due state on purpose: the hero there is already a whole
@@ -128,12 +136,12 @@ enum WidgetCopy {
             }
         } else if let last = entry.lastFeedingTime {
             // 12+ months: the app does not predict here, so neither do we.
-            Text(minutesText(entry.date.timeIntervalSince(last)))
+            Text(elapsedText(entry.date.timeIntervalSince(last)))
         }
     }
 }
 
-// MARK: - Start-feeding control (D16, design note § 5)
+// MARK: - Start-feeding control
 
 /// What the capsule does. Idle, it starts a feed through `StartFeedingIntent`.
 /// While a feed runs, it is a link to the Feeding tab, so a second tap can
@@ -150,9 +158,9 @@ enum WidgetControl: Equatable {
     }
 }
 
-/// A BBSurface capsule: white on the gradient's light end measures 2.64:1,
-/// BBPrimary on BBSurface 5.6 / 6.2 (note § 5). Visually 36 pt high, with a
-/// 44 pt hit area.
+/// A BBSurface capsule with BBPrimary words (5.6 / 6.2): the one tap target
+/// stands apart from the white words around it, which read 4.67:1 at the
+/// gradient's lighter end. Visually 36 pt high, with a 44 pt hit area.
 struct WidgetFeedControl: View {
     let entry: BabyBloomEntry
     /// `tab.feeding` on the small widget, `button.start_feeding` on the medium.
@@ -211,7 +219,7 @@ struct WidgetFeedControl: View {
         }
     }
 
-    /// No words, only the glyph and the minutes (note § 5, owner #25: whole
+    /// No words, only the glyph and the minutes (whole
     /// minutes, never seconds). VoiceOver gets the words the glyph stands for,
     /// as on the Live Activity.
     private func running(_ since: Date) -> some View {
@@ -258,25 +266,25 @@ struct BabyBloomSmallWidgetView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 // A state, not a number: an empty middle read as a widget that
-                // failed to load (design note § 5). The minutes stay in the capsule.
+                // failed to load. The minutes stay in the capsule.
                 Text("status.feeding_going".l)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
             } else if entry.hasLoggedAFeeding {
                 if let headline = WidgetCopy.headline(for: entry) {
                     Text(headline)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.75))
+                        .foregroundStyle(.white)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
 
                 // White in every state, the due one included: BBAccent over
-                // BBGradientEnd measures 1.44:1, and the hero can scale down
-                // far enough that the 4.5:1 threshold applies. The changed
-                // wording carries the state instead — the same word-not-colour
-                // rule DECISIONS.md sets for FeedingAdequacy.
+                // BBGradientEnd measures 2.54:1 (2.82 in dark), and the hero
+                // can scale down far enough that the 4.5:1 threshold applies.
+                // The changed wording carries the state instead — the same
+                // word-not-colour rule DECISIONS.md sets for FeedingAdequacy.
                 WidgetCopy.hero(for: entry)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
@@ -290,14 +298,14 @@ struct BabyBloomSmallWidgetView: View {
                     .foregroundStyle(.white)
                 Text("widget.log_first_feeding".l)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(.white)
                     .minimumScaleFactor(0.7)
             }
 
             Spacer(minLength: 0)
 
             // Today's count left this size to make room for the control; it
-            // stays on the medium widget (note § 5).
+            // stays on the medium widget.
             WidgetFeedControl(entry: entry, label: "tab.feeding".l,
                               isInteractive: isInteractive, linksToFeeding: false)
         }
@@ -325,7 +333,7 @@ struct BabyBloomMediumWidgetView: View {
                                 if let headline = WidgetCopy.headline(for: entry) {
                                     Text(headline)
                                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white.opacity(0.75))
+                                        .foregroundStyle(.white)
                                 }
                                 // See the small widget: the due state is carried by
                                 // the wording, not by a tint that fails contrast.
@@ -339,7 +347,7 @@ struct BabyBloomMediumWidgetView: View {
                                 }
                             } else {
                                 // The hero's place holds the state, never a
-                                // number: the capsule carries the minutes (§ 5).
+                                // number: the capsule carries the minutes.
                                 Text("status.feeding_going".l)
                                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                                     .foregroundStyle(.white)
@@ -349,7 +357,7 @@ struct BabyBloomMediumWidgetView: View {
                             Spacer(minLength: 0)
                             Text(entry.babyName)
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.white.opacity(0.9))
+                                .foregroundStyle(.white)
                                 .lineLimit(1)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -360,12 +368,12 @@ struct BabyBloomMediumWidgetView: View {
                         // this row would print the same fact twice in two
                         // different formats. Sleep is the column's content there.
                         // Hidden too while a feed runs: the capsule already
-                        // shows its minutes (note § 5, "one fact once").
+                        // shows its minutes (one fact, once).
                         if entry.nextFeedingTime != nil, entry.runningFeedStart == nil,
                            let last = entry.lastFeedingTime {
                             link(.feeding) {
                                 statRow(icon: "heart.fill", title: "widget.last_feed".l) {
-                                    Text(WidgetCopy.minutesText(entry.date.timeIntervalSince(last)))
+                                    Text(WidgetCopy.elapsedText(entry.date.timeIntervalSince(last)))
                                 }
                             }
                             .layoutPriority(1)
@@ -390,7 +398,6 @@ struct BabyBloomMediumWidgetView: View {
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                     Text("widget.log_first_feeding".l)
                         .font(.system(size: 15, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.85))
                     Spacer(minLength: 0)
                     control
                         .frame(maxWidth: 190)
@@ -410,7 +417,7 @@ struct BabyBloomMediumWidgetView: View {
         WidgetFeedControl(entry: entry, label: "button.start_feeding".l, isInteractive: isInteractive)
     }
 
-    /// A tap area per section (note § 5). Off on the onboarding showcase,
+    /// A tap area per section. Off on the onboarding showcase,
     /// where a link would leave onboarding for a tab that is not there yet.
     @ViewBuilder
     private func link<Content: View>(_ destination: DeepLink.Destination,
@@ -422,7 +429,8 @@ struct BabyBloomMediumWidgetView: View {
         }
     }
 
-    /// The spec's "same, plus how long overdue", in whole minutes. Hidden for
+    /// The overdue state: the same, plus how long overdue, in whole minutes
+    /// (whole days from 48 hours). Hidden for
     /// the first partial minute — "Просрочено на 0 мин" would undercut the
     /// hero that just said it is time.
     @ViewBuilder
@@ -431,10 +439,10 @@ struct BabyBloomMediumWidgetView: View {
         if overdue >= 60 {
             HStack(spacing: 4) {
                 Text("widget.overdue_by".l)
-                Text(WidgetCopy.minutesText(overdue))
+                Text(WidgetCopy.elapsedText(overdue))
             }
             .font(.system(size: 12, weight: .medium, design: .rounded))
-            .foregroundStyle(.white.opacity(0.75))
+            .foregroundStyle(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
         }
@@ -460,11 +468,11 @@ struct BabyBloomMediumWidgetView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(.white)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.7))
+                    .foregroundStyle(.white)
                 value()
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white)

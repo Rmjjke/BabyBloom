@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Extracted for the same reason `PlanPickerSection` was: two hand-written
 /// copies of the same header had already drifted (different heights, different
-/// headline sizes), and the owner's build-9 review asked for one visual
+/// headline sizes), and the build-9 review asked for one visual
 /// language across both entry points.
 ///
 /// It sizes itself from its content instead of carrying a fixed height. The
@@ -32,7 +32,7 @@ struct PremiumHero: View {
 
                 Text("onboarding.premium.headline".l)
                     .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.82))
+                    .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
             }
             .padding(.horizontal, BBTheme.Spacing.lg)

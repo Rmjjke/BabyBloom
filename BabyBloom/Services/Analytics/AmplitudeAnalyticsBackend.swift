@@ -93,7 +93,7 @@ final class AmplitudeAnalyticsBackend: AnalyticsBackend {
             // The device id becomes a random per-install UUID instead of the
             // IDFV, which is shared by every app from the same developer
             // account and would let this app's events be joined with the
-            // owner's other Amplitude project.
+            // developer's other Amplitude project.
             .disableTrackIDFV()
 
         let configuration = Configuration(

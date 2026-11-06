@@ -244,7 +244,7 @@ struct PremiumFeatureRow: View {
         .padding(.vertical, 10)
         .padding(.horizontal, BBTheme.Spacing.md)
         // One VoiceOver stop with the feature's words only: the bare symbols
-        // would be read by their SF names (the Q-011 rule).
+        // would be read by their SF names.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
     }

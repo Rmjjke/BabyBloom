@@ -37,7 +37,7 @@ struct StopTimerIntent: LiveActivityIntent {
             let stopped = TimerActions.stop(entryID: id, kind: timerKind,
                                             in: SharedStore.container.mainContext)
             if stopped {
-                // Counted like any finished entry, but no review prompt (R2.2):
+                // Counted like any finished entry, but no review prompt:
                 // the app is in the background and the parent is at the Lock Screen.
                 Analytics.shared.noteEntrySaved(timerKind == .feeding ? .feeding : .sleep)
                 _ = Analytics.shared.track(.liveActivityStoppedFromLockScreen)
@@ -45,7 +45,7 @@ struct StopTimerIntent: LiveActivityIntent {
                 NotificationManager.shared.rescheduleWeeklySummary()
             } else {
                 // Already stopped or deleted (a second tap, or the app won the
-                // race): nothing to write, but the activity must still go (R2.3).
+                // race): nothing to write, but the activity must still go.
                 TimerActions.afterChange()
             }
         }

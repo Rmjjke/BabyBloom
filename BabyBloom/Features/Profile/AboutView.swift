@@ -1,35 +1,45 @@
 import SwiftUI
 import CloudKit
 
-/// Settings' read-only iCloud Sync line (Q-003, D21). Asks CloudKit itself:
+/// Settings' read-only iCloud Sync line. Asks CloudKit itself:
 /// the store syncs through CloudKit only, and the ubiquity token can be nil
 /// for a signed-in account with iCloud Drive off, which would read as "Off"
 /// while sync works.
 struct ICloudStatusRow: View {
     /// nil until CloudKit answers: no value rather than a guessed one.
     @State private var isOn: Bool?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            // Value under the label at accessibility sizes: side by side, ru
-            // AX2 broke «Синхро / низация» and «Выключен / а» (Q-013).
-            let row = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
-                : AnyLayout(HStackLayout())
-            row {
-                Label("settings.icloud".l, systemImage: "icloud.fill")
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                if !dynamicTypeSize.isAccessibilitySize { Spacer() }
-                if let isOn {
-                    Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
+        // One label around the title, the value and the hint, as the switch
+        // rows hold theirs: the value and the hint start at the title's x.
+        SettingsRowLabel(systemImage: "icloud.fill") {
+            VStack(alignment: .leading, spacing: 2) {
+                // By fit: on a 320 pt window the ru and es titles miss one line
+                // beside the value at Large, and side by side the title broke
+                // inside its words («Синхро / низация»).
+                BBValueRow(shape: .byFit, underSpacing: 2) {
+                    Text("settings.icloud".l)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                } value: {
+                    if let isOn {
+                        Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
+                }
+                if isOn == false {
+                    Text("settings.icloud_off_hint".l)
+                        .font(.footnote)
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
+        } firstWords: {
+            Text("settings.icloud".l.firstWord)
+            if let isOn {
+                Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l.firstWord)
+            }
             if isOn == false {
-                Text("settings.icloud_off_hint".l)
+                Text("settings.icloud_off_hint".l.firstWord)
                     .font(.footnote)
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)

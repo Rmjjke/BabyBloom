@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The WHO percentile card: the band label, the ring with its badge, and the
-/// lines saying what the figure describes.
+/// The WHO percentile card: the percentile as its figure, the ring that shows
+/// where it sits, and the lines saying what the figure describes.
 ///
 /// Lifted out of `GrowthView` so onboarding's showcase page can render the REAL
 /// card instead of a lookalike — the same reason `WidgetShowcasePage` renders
@@ -14,9 +14,10 @@ import SwiftUI
 /// cannot advertise an explanation that nothing there would open.
 struct PercentileCard: View {
     /// Clamped 1–99, as `PercentileReading.percentile` gives it — the ring's
-    /// fill and the band label both read this.
+    /// fill and its tint read this.
     let percentile: Double
-    /// `PercentileReading.badge`: "> 97", "< 3", or the number.
+    /// `PercentileReading.badge`: "> 97", "< 3", or the number — the card's
+    /// figure.
     let badge: String
     /// What the figure describes, one line per entry. The Growth screen names
     /// the age it was scored at and the weighing's date; onboarding names the
@@ -33,20 +34,20 @@ struct PercentileCard: View {
         /// neutral tint instead of `BBAlert`.
         ///
         /// **Why the tails lose their red here and keep it on the Growth
-        /// screen.** Nothing is hidden: the band LABEL still reads "< 3rd" in
-        /// full, and the badge still says which side of the chart. What changes
-        /// is the alarm. On the Growth screen a red reading sits beside its
+        /// screen.** Nothing is hidden: the figure still states the percentile
+        /// («2», or «< 3» past the chart's edge). What changes is the alarm on
+        /// the ring. On the Growth screen a red reading sits beside its
         /// explainer, the chart, the history and the "raise this with someone
         /// qualified" copy that make it actionable. Three minutes into
-        /// onboarding there is none of that — no history, no context, nobody to
-        /// ask — and a parent who has just typed their newborn's discharge
-        /// weight is the last person who should meet a red number. The tint is
+        /// onboarding there is none of that — no history, no context, nobody
+        /// to ask — and a parent who has just typed their newborn's discharge
+        /// weight is the last person who should meet a red mark. The tint is
         /// the same neutral `WeightVelocity.Band.above` already takes for the
         /// other "true, and not a worry" reading in this card family.
         case neutralOnly
     }
 
-    private var color: Color {
+    private var ringColor: Color {
         let tint = WHOGrowthStandard.percentileTint(percentile)
         if tone == .neutralOnly, tint == .beyond { return BBTheme.Colors.textPrimary }
         return tint.color
@@ -54,38 +55,38 @@ struct PercentileCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            HStack {
-                // The same title view every `InsightCard` header uses, so
-                // this hand-built header carries the explainer to VoiceOver
-                // exactly as the others do.
-                InsightCardTitle("section.who_percentiles".l)
-                Spacer()
-                InfoBadge()
-            }
+            // The header every `InsightCard` uses, so this hand-built card
+            // carries the explainer to VoiceOver and sets its badge as the
+            // others do.
+            InsightCardHeader(title: "section.who_percentiles".l)
 
             VStack(spacing: BBTheme.Spacing.md) {
                 HStack {
+                    // The percentile itself, as the report prints it: a
+                    // position on the chart, in the text colour, with no band
+                    // word. One VoiceOver stop: «Weight Percentile, 61».
                     VStack(alignment: .leading, spacing: 4) {
                         Text("percentile.weight".l)
                             .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
-                        BBTheme.Typography.metric(WHOGrowthStandard.percentileLabel(percentile))
-                            .foregroundStyle(color)
+                        BBTheme.Typography.metric(badge)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
+                    .accessibilityElement(children: .combine)
                     Spacer()
+                    // The tier tint pictures where the reading sits; the figure
+                    // beside it states it, so the ring is silent and needs no
+                    // number of its own.
                     ZStack {
                         Circle()
-                            .stroke(color.opacity(0.2), lineWidth: 6)
-                            .frame(width: 64, height: 64)
+                            .stroke(ringColor.opacity(0.2), lineWidth: 6)
                         Circle()
                             .trim(from: 0, to: percentile / 100)
-                            .stroke(color, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                            .frame(width: 64, height: 64)
+                            .stroke(ringColor, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                             .rotationEffect(.degrees(-90))
-                        Text(badge)
-                            .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit())
-                            .foregroundStyle(color)
                     }
+                    .frame(width: 64, height: 64)
+                    .accessibilityHidden(true)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {

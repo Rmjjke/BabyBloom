@@ -27,13 +27,27 @@ struct ExportView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
+                // The stack's own padding stands between the bar and the heading.
+                BBScreenHeading(title: "settings.export".l, topPadding: 0)
 
                 // ── Format ──────────────────────────────────────────────
                 sectionCard(title: "export.format".l) {
-                    HStack(spacing: BBTheme.Spacing.sm) {
-                        ForEach(ExportFormat.allCases, id: \.self) { fmt in
-                            formatButton(fmt)
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        HStack(spacing: BBTheme.Spacing.sm) {
+                            ForEach(ExportFormat.allCases, id: \.self) { fmt in
+                                formatButton(fmt)
+                            }
                         }
+                        // Both tiles take the taller one's height.
+                        .fixedSize(horizontal: false, vertical: true)
+
+                        // Under either format: a parent on CSV may be looking for
+                        // the same file. Plain text, not a link: a link would jump
+                        // to another tab, which the app does nowhere else.
+                        BBTheme.Typography.caption(ExportDoctorHint.text)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityLabel(ExportDoctorHint.spokenText)
                     }
                 }
 
@@ -49,8 +63,8 @@ struct ExportView: View {
                 // ── Categories ──────────────────────────────────────────
                 sectionCard(title: "export.categories".l) {
                     VStack(spacing: 0) {
-                        ForEach(Array(ExportCategory.allCases.enumerated()), id: \.offset) { i, cat in
-                            categoryToggle(cat, isLast: i == ExportCategory.allCases.count - 1)
+                        ForEach(ExportCategory.allCases, id: \.self) { cat in
+                            categoryToggle(cat)
                         }
                     }
                 }
@@ -63,14 +77,16 @@ struct ExportView: View {
                 ) {
                     generateExport()
                 }
-                .disabled(isExporting || categories.isEmpty)
+                .disabled(isExporting || exportable.isEmpty)
+                // The primary button does not dim itself; without this a
+                // disabled Export looks live and a tap silently does nothing.
+                .opacity(exportable.isEmpty ? 0.5 : 1)
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .padding(BBTheme.Spacing.md)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("settings.export".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("settings.export".l)
         .sheet(item: $shareRequest) { request in
             ShareSheet(items: request.items)
         }
@@ -105,7 +121,13 @@ struct ExportView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity)
+            // sm a side inside the outline: the description's lines ran into it.
+            .padding(.horizontal, BBTheme.Spacing.sm)
+            // The row's full height (the HStack's fixedSize), the glyph on top.
+            // minWidth 0 holds the tile to its share: a wrapped line can measure
+            // a third of a point past its width, and without it the whole column
+            // widened by that.
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding(.vertical, 16)
             .background(selected ? BBTheme.Colors.primary.opacity(0.08) : BBTheme.Colors.background)
             .cornerRadius(BBTheme.Radius.md)
@@ -135,18 +157,21 @@ struct ExportView: View {
                         .foregroundStyle(BBTheme.Colors.primary)
                 } else {
                     Circle()
-                        .stroke(BBTheme.Colors.textSecondary.opacity(0.3), lineWidth: 1.5)
+                        .stroke(BBTheme.Colors.textSecondary, lineWidth: 1.5)
                         .frame(width: 20, height: 20)
                 }
             }
             .padding(.vertical, 10)
+            // A plain button takes taps only where it draws: without a shape the
+            // Spacer's gap is dead, and a tap there silently keeps the old range.
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
     // MARK: - Category toggle
 
-    private func categoryToggle(_ cat: ExportCategory, isLast: Bool) -> some View {
+    private func categoryToggle(_ cat: ExportCategory) -> some View {
         let isOn = categories.contains(cat)
         let count = recordCount(cat)
         let isEmpty = count == 0
@@ -160,27 +185,28 @@ struct ExportView: View {
                     .frame(width: 30, height: 30)
                     .background(BBTheme.Colors.primary.opacity(0.1))
                     .cornerRadius(8)
-                Text(cat.rawValue.l)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                if isEmpty {
-                    Text("0")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                // At the accessibility sizes the «0» goes under the title.
+                BBValueRow {
+                    Text(cat.rawValue.l)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                } value: {
+                    if isEmpty {
+                        Text("0")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
                 }
                 Image(systemName: isOn && !isEmpty ? "checkmark.square.fill" : "square")
                     .font(.system(size: 20))
-                    .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.4))
+                    .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
             }
             .padding(.vertical, 10)
+            .contentShape(Rectangle())
             .opacity(isEmpty ? 0.4 : 1)
         }
         .buttonStyle(.plain)
         .disabled(isEmpty)
-        if !isLast {
-            Divider()
-        }
     }
 
     /// Number of records for a category within the currently selected range.
@@ -197,6 +223,10 @@ struct ExportView: View {
         case .growth:  return cnt(allGrowths)  { $0.date }
         case .events:  return cnt(allEvents)   { $0.time }
         }
+    }
+
+    private var exportable: Set<ExportCategory> {
+        ExportSelection.exportable(ticked: categories, recordCount: recordCount)
     }
 
     private func categoryIcon(_ cat: ExportCategory) -> String {
@@ -245,21 +275,24 @@ struct ExportView: View {
                       !diapers.isEmpty  || !growths.isEmpty || !events.isEmpty
         guard hasData else { showEmptyAlert = true; return }
 
-        // Only export categories that actually have records in this range.
-        let cats = categories.filter { recordCount($0) > 0 }
+        let cats = exportable
         guard !cats.isEmpty else { showEmptyAlert = true; return }
 
         // Capture all values before leaving main actor
         let fmt        = selectedFormat
         let range      = selectedRange
         let babySnap   = baby
-        let slug       = "\(babySlug())_\(rangeSlug())"
+        let babyName   = baby?.name ?? ""
+        let now        = Date()
 
         // Wipe stale exports so we never re-share a previous file.
         ExportGenerator.cleanupExports()
 
         isExporting = true
         Task { @MainActor in
+            // The render holds the main thread for seconds on a long export, and a
+            // main-queue task can run before the button's new state reaches the screen.
+            try? await Task.sleep(for: .milliseconds(100))
             var items: [Any] = []
 
             if fmt == .pdf {
@@ -269,7 +302,8 @@ struct ExportView: View {
                     diapers: diapers, growths: growths, events: events,
                     categories: cats, range: range
                 )
-                if let url = ExportGenerator.writeTempFile(name: "\("brand.name".l)_\(slug).pdf", data: data) {
+                let name = ExportGenerator.pdfFileName(babyName: babyName, date: now)
+                if let url = ExportGenerator.writeTempFile(name: name, data: data) {
                     items.append(url)
                 }
             } else {
@@ -278,8 +312,9 @@ struct ExportView: View {
                     diapers: diapers, growths: growths, events: events,
                     categories: cats
                 )
-                for (name, content) in files {
-                    if let url = ExportGenerator.writeTempCSV(name: "\(slug)_\(name)", content: content) {
+                for (file, content) in files {
+                    let name = ExportGenerator.csvFileName(babyName: babyName, date: now, file: file)
+                    if let url = ExportGenerator.writeTempCSV(name: name, content: content) {
                         items.append(url)
                     }
                 }
@@ -294,19 +329,34 @@ struct ExportView: View {
             }
         }
     }
+}
 
-    private func babySlug() -> String {
-        (baby?.name ?? "baby").lowercased().replacingOccurrences(of: " ", with: "_")
+// MARK: - Where the doctor's PDF is
+
+/// The caption under the format tiles, «For the doctor's visit: More › For the
+/// pediatrician». The path is built from the tab's and the row's own names, so
+/// it can never drift from what it points to.
+enum ExportDoctorHint {
+    /// A no-break space holds « › » to the word before it: no line starts with the sign.
+    static var text: String { line(joinedBy: "\u{00A0}\u{203A} ") }
+    /// « › » has no spoken name in the three languages; a comma reads as a pause.
+    static var spokenText: String { line(joinedBy: ", ") }
+
+    private static func line(joinedBy separator: String) -> String {
+        String(format: "export.pdf_doctor_hint_fmt".l, "tab.more".l + separator + "report.title".l)
     }
+}
 
-    private func rangeSlug() -> String {
-        // Part of a FILENAME, so it is pinned to en_US_POSIX like the CSV
-        // columns: a device on a non-Gregorian calendar would otherwise stamp
-        // an unrecognisable year onto the exported file.
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.dateFormat = "yyyy-MM-dd"
-        return f.string(from: Date())
+// MARK: - What Export writes
+
+/// The ticked categories that have records in the range: what the file holds,
+/// and the one rule for the Export button. A 0-record category stays in the
+/// set (its box draws empty and its row takes no tap), so "anything ticked"
+/// alone would leave the button on with nothing to write.
+enum ExportSelection {
+    static func exportable(ticked: Set<ExportCategory>,
+                           recordCount: (ExportCategory) -> Int) -> Set<ExportCategory> {
+        ticked.filter { recordCount($0) > 0 }
     }
 }
 
@@ -314,7 +364,7 @@ struct ExportView: View {
 
 /// Identifiable payload for `.sheet(item:)` — a fresh `id` per export guarantees the
 /// share sheet is rebuilt with the newly-generated files.
-private struct ShareRequest: Identifiable {
+struct ShareRequest: Identifiable {
     let id = UUID()
     let items: [Any]
 }

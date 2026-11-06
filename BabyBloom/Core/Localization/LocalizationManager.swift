@@ -47,6 +47,28 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// For SwiftUI's environment (date pickers) and every clock time the app
+    /// formats: the language's month names and formats, but the user's own
+    /// 12/24-hour choice, which a fixed identifier would replace with the
+    /// pinned region's. One locale for both, so a sheet's picker and its
+    /// status line never show two clocks.
+    var environmentLocale: Locale { environmentLocale(hourCycle: Locale.current.hourCycle) }
+
+    func environmentLocale(hourCycle: Locale.HourCycle) -> Locale {
+        var components = Locale.Components(locale: locale)
+        components.hourCycle = hourCycle
+        return Locale(components: components)
+    }
+
+    /// The device's calendar, speaking the app language: weekday names and the
+    /// first weekday follow the language's region, as the month names do.
+    var environmentCalendar: Calendar {
+        var calendar = Calendar(identifier: Calendar.current.identifier)
+        calendar.locale = environmentLocale
+        calendar.timeZone = .current
+        return calendar
+    }
+
     /// How the language builds the age words ("3 days" / "3 дня" / "3 días").
     var pluralRule: PluralRule {
         switch self {

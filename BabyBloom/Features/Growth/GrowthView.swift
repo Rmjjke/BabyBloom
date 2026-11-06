@@ -21,7 +21,7 @@ struct GrowthView: View {
     private var measurements: [WeightMeasurement] { entries.weightMeasurements }
 
     // GrowthView is only ever a push destination, and there are now two routes
-    // into it: the More tab's Growth row (D6 IA change) and the Dashboard's
+    // into it: the More tab's Growth row and the Dashboard's
     // Growth section header. Both callers own the NavigationStack, so this view
     // must NOT wrap one of its own — that would nest a stack inside a stack
     // (double nav bar) on either route. Title/toolbar attach to whichever
@@ -30,6 +30,7 @@ struct GrowthView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
+                BBScreenHeading(title: "tab.growth".l, horizontalPadding: BBTheme.Spacing.md)
 
                 // Latest measurements
                 latestSection
@@ -88,21 +89,14 @@ struct GrowthView: View {
                 WHOFootnote()
                     .padding(.horizontal, BBTheme.Spacing.md)
             }
-            // Bottom clearance so the FAB never permanently covers the last row.
-            .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
+            .padding(.bottom, BBTheme.Spacing.xl)
         }
         // Every "not enough data" card on this screen offers the one action that
         // resolves it, and they all open the sheet the "+" opens — one
         // presentation, injected once, rather than a sheet per card.
         .environment(\.addWeighingAction, { showAddSheet = true })
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .overlay(alignment: .bottomTrailing) {
-            BBFab { showAddSheet = true }
-                .padding(.trailing, BBTheme.Spacing.md)
-                .padding(.bottom, BBTheme.Spacing.md)
-        }
-        .navigationTitle("tab.growth".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("tab.growth".l)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -112,6 +106,9 @@ struct GrowthView: View {
                         .font(.system(size: 22))
                         .foregroundStyle(BBTheme.Colors.primary)
                 }
+                // Icon only: unnamed, VoiceOver reads the symbol in the
+                // device's language, not the app's.
+                .accessibilityLabel(Text("sheet.new_measurement".l))
             }
         }
         .entrySheet(isPresented: $showAddSheet) {
@@ -128,17 +125,16 @@ struct GrowthView: View {
     // MARK: - Latest
     private var latestSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.current_stats") {
-                showAddSheet = true
-            }
+            BBSectionHeader(title: "section.current_stats")
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 // Weight comes from `measurements`, not from `latest`: that
                 // accessor drops future-dated rows, and this card sits two
                 // cards above the percentile — which already reads them — so a
                 // raw newest entry printed 4.50 kg over a percentile scored on
-                // 4.30. Height and head stay on `latest`: no filter applies to
-                // them, and their "—" already covers a missing figure.
+                // 4.30. Height and head read the newest entry that HAS them:
+                // most weighings carry no height now (the form's toggle is off
+                // by default), so the newest entry would print «—».
                 BBStatCard(
                     title: "stat.weight",
                     value: measurements.last.map { $0.weightKg.appDecimal(2) } ?? "—",
@@ -149,7 +145,7 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.height",
-                    value: latest.flatMap { $0.heightCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.heightCm != nil })?.heightCm.map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary,
@@ -157,7 +153,8 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.head",
-                    value: latest.flatMap { $0.headCircumferenceCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm
+                        .map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent,
@@ -166,7 +163,6 @@ struct GrowthView: View {
                 BBStatCard(
                     title: "stat.measurements",
                     value: "\(entries.count)",
-                    unit: "unit.times",
                     icon: "calendar",
                     color: BBTheme.Colors.diaper,
                     action: { showAddSheet = true }
@@ -507,40 +503,12 @@ struct WeightChartView: View {
         let sample: WHOCorridor.Sample
     }
 
-    /// The narrowest window the chart will draw. A single weighing — which is
-    /// every fresh install that answered the measurements page — would
-    /// otherwise be a zero-width axis; four weeks around it shows the point
-    /// sitting in the corridor, which is the whole reason one point is now
-    /// worth charting at all.
-    private static let minimumSpanDays = 28
-
-    private func date(atAgeDays days: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: days, to: correctedBirthDate) ?? correctedBirthDate
-    }
-
     private func layout() -> Frame? {
-        guard let first = measurements.first, let last = measurements.last else { return nil }
-        let ages = measurements.map {
-            Calendar.current.dateComponents([.day], from: correctedBirthDate, to: $0.date).day ?? 0
-        }
-        var low = ages.min() ?? 0
-        var high = ages.max() ?? 0
-        // Whole days floor the time of day away; without the extra day the band
-        // would stop short of an afternoon weighing on the last day.
-        if date(atAgeDays: high) < last.date { high += 1 }
-        if high - low < Self.minimumSpanDays {
-            // Centred on the data, then pulled back so the window never opens
-            // empty space BEFORE the due date: no band can be drawn there and
-            // no weighing sits there, so a fresh install's single birth point
-            // would otherwise be pinned to the middle of a half-blank chart.
-            // The floor is `min(low, 0)`, not 0 — a preterm baby's pre-due-date
-            // weighings carry negative ages and must stay on the axis.
-            let middle = (low + high) / 2
-            low = max(middle - Self.minimumSpanDays / 2, min(low, 0))
-            high = low + Self.minimumSpanDays
-        }
+        // The x window is the report chart's too, so the two show one stretch.
+        guard let window = WeightChartWindow(measurements: measurements, correctedBirthDate: correctedBirthDate),
+              let first = measurements.first else { return nil }
         let samples = showsWHOCorridor
-            ? WHOCorridor.samples(fromAgeDays: low, toAgeDays: high, isMale: isMale)
+            ? WHOCorridor.samples(fromAgeDays: window.lowAgeDays, toAgeDays: window.highAgeDays, isMale: isMale)
             : []
 
         // The y window spans the baby AND the band, so the corridor is never
@@ -559,10 +527,10 @@ struct WeightChartView: View {
             maxKg = middle + 0.25
         }
         let pad = max((maxKg - minKg) * 0.08, 0.05)
-        return Frame(xDomain: min(date(atAgeDays: low), first.date)...max(date(atAgeDays: high), last.date),
-                     spanDays: high - low,
+        return Frame(xDomain: window.domain,
+                     spanDays: window.spanDays,
                      weightRange: (minKg - pad)...(maxKg + pad),
-                     band: samples.map { BandPoint(date: date(atAgeDays: $0.ageDays), sample: $0) })
+                     band: samples.map { BandPoint(date: window.date(atAgeDays: $0.ageDays), sample: $0) })
     }
 
     private var shownIndex: Int? {
@@ -599,7 +567,7 @@ struct WeightChartView: View {
 
     private func readout(_ weighing: WeightMeasurement) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
+            Text("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
                 .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .bold))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(caption(weighing))
@@ -653,8 +621,11 @@ struct WeightChartView: View {
                             .overlay(Circle().stroke(BBTheme.Colors.surface, lineWidth: 2))
                             .frame(width: isSelected ? 14 : 9, height: isSelected ? 14 : 9)
                     }
-                    .accessibilityLabel(caption(weighing))
-                    .accessibilityValue("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
+                    // Swift Charts merges marks that stand closer than its
+                    // element width into one element it words itself («13 Nov
+                    // 2023 at 00 to 20 Nov 2023 at 00, 2 values»), and no API
+                    // turns that off: the weighings speak from the overlay.
+                    .accessibilityHidden(true)
             }
         }
         .chartLegend(.hidden)
@@ -667,7 +638,7 @@ struct WeightChartView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.12))
                 AxisValueLabel {
                     if let kg = value.as(Double.self) {
-                        Text("\(Self.axisWeight(kg)) \("unit.kg".l)")
+                        Text("\(Self.axisWeight(kg))\u{00A0}\("unit.kg".l)")
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                     }
@@ -692,19 +663,51 @@ struct WeightChartView: View {
         }
         .chartOverlay { proxy in
             GeometryReader { geometry in
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .onTapGesture { location in
-                        select(nearest: location, shown: shown, proxy: proxy, geometry: geometry)
-                    }
-                    .accessibilityHidden(true)
+                ZStack(alignment: .topLeading) {
+                    spokenWeighings(proxy: proxy, geometry: geometry)
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .onTapGesture { location in
+                            select(nearest: location, shown: shown, proxy: proxy, geometry: geometry)
+                        }
+                        .accessibilityHidden(true)
+                }
             }
         }
         // Only a tap that moves the readout ticks — not the reset after a save.
         .sensoryFeedback(.selection, trigger: selectedIndex) { _, new in new != nil }
         .frame(height: 190)
         .accessibilityIdentifier("growth.weight_chart")
+    }
+
+    /// One VoiceOver element per weighing, on its dot, oldest first: every
+    /// weighing reads its own date and weight, however close the dots stand.
+    /// Below the tap layer, so a tap still reaches the readout's selection.
+    @ViewBuilder
+    private func spokenWeighings(proxy: ChartProxy, geometry: GeometryProxy) -> some View {
+        if let plotFrame = proxy.plotFrame {
+            let origin = geometry[plotFrame].origin
+            ZStack(alignment: .topLeading) {
+                ForEach(measurements.indices, id: \.self) { index in
+                    let weighing = measurements[index]
+                    if let x = proxy.position(forX: weighing.date),
+                       let y = proxy.position(forY: weighing.weightKg) {
+                        Color.clear
+                            .frame(width: 24, height: 24)
+                            .position(x: origin.x + x, y: origin.y + y)
+                            .accessibilityElement()
+                            .accessibilityLabel(caption(weighing))
+                            .accessibilityValue("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
+                            // Screen order would put a later weighing first
+                            // where two share a day; the list's order holds.
+                            .accessibilitySortPriority(Double(measurements.count - index))
+                    }
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+            .accessibilityElement(children: .contain)
+        }
     }
 
     /// Nearest in SCREEN space, not by date alone: two weighings on one day
@@ -769,95 +772,152 @@ struct WHOCorridorLegend: View {
 }
 
 // MARK: - Growth Entry Row
+/// A weighing in the history, laid out as `BBEventRow`: the date beside the
+/// texts while every value and word keeps whole there, else on a line of its
+/// own under them, and under at every accessibility size. A fixed date once
+/// took the values' room first and cut «4,29 кг» to «4…» on a 320-pt screen.
 struct GrowthEntryRow: View {
     let entry: GrowthEntry
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(BBTheme.Colors.growth.opacity(0.22))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "scalemass.fill")
-                    .font(.system(size: 18))
-                    .foregroundStyle(BBTheme.Colors.growth)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                // Weight above height at accessibility sizes, and each value
-                // one unbreakable line: side by side, ru AX2 broke «4,0 / 0 кг»
-                // (Q-014; a number never splits from its unit).
-                let values = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                    : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.md))
-                values {
-                    if let w = entry.weightKg {
-                        Label("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", systemImage: "scalemass")
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                    if let h = entry.heightCm {
-                        Label(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), systemImage: "ruler")
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                }
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-
-                if let head = entry.headCircumferenceCm {
-                    Label(String(format: "growth.head_fmt".l, head.appDecimal(1)), systemImage: "circle.dotted")
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                under
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    beside
+                    under
                 }
             }
-
-            Spacer()
-
-            Text(entry.date.appDayMonth)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textSecondary)
         }
         .padding(BBTheme.Spacing.md)
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
     }
+
+    /// The date on the right. The texts' ideal width is their widest value or
+    /// word, so `ViewThatFits` keeps the date here only while none breaks.
+    private var beside: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            tile
+            WidestWordIdeal {
+                VStack(alignment: .leading, spacing: 4) {
+                    weightLabel
+                    lengthLabel
+                    if let head = headText { headLabel(head.oneWordALine) }
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                texts
+            }
+            Spacer()
+            dateText.fixedSize()
+        }
+    }
+
+    /// The date on a line of its own under the texts, which take the row's
+    /// whole width.
+    private var under: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            tile
+            VStack(alignment: .leading, spacing: 4) {
+                texts
+                dateText
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var tile: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(BBTheme.Colors.growth.opacity(0.22))
+                .frame(width: 44, height: 44)
+            Image(systemName: "scalemass.fill")
+                .font(.system(size: 18))
+                .foregroundStyle(BBTheme.Colors.growth)
+        }
+    }
+
+    /// The values side by side while both fit whole, else one under the other.
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    weightLabel
+                    lengthLabel
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    weightLabel
+                    lengthLabel
+                }
+            }
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            if let head = headText { headLabel(head) }
+        }
+    }
+
+    @ViewBuilder private var weightLabel: some View {
+        if let w = entry.weightKg {
+            valueLabel("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", icon: "scalemass")
+        }
+    }
+
+    @ViewBuilder private var lengthLabel: some View {
+        if let h = entry.heightCm {
+            valueLabel(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), icon: "ruler")
+        }
+    }
+
+    /// One line at full size: a value is the fact the row is for, so it is
+    /// never shrunk or cut, and a number never parts from its unit (ru AX2
+    /// once broke «4,0 / 0 кг»). The row's shape makes the room for it.
+    private func valueLabel(_ text: String, icon: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+            .fixedSize()
+    }
+
+    private var headText: String? {
+        entry.headCircumferenceCm.map { String(format: "growth.head_fmt".l, $0.appDecimal(1)) }
+    }
+
+    private func headLabel(_ text: String) -> some View {
+        Label(text, systemImage: "circle.dotted")
+            .font(BBTheme.Typography.scaled(12, relativeTo: .caption1, weight: .regular, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
+
+    private var dateText: some View {
+        Text(entry.date.appDayMonth)
+            .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
 }
 
 // MARK: - Add Growth Sheet
 struct AddGrowthSheet: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @Environment(SubscriptionManager.self) private var store
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var weightKg: Double = 3.5
     @State private var heightCm: Double = 50.0
     @State private var headCm: Double = 34.0
     @State private var includeHead: Bool = false
+    /// Off by default: most weighings at home have no length, and a required
+    /// slider saved last time's height again as a new measurement.
+    @State private var includeHeight: Bool = false
     @State private var date = Date()
 
-    /// The label above the picker at accessibility sizes: beside it, the
-    /// label broke "Mea- / sure- / ment Date" (Q-013).
-    @ViewBuilder private var measurementDatePicker: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                // The picker keeps its own label for VoiceOver.
-                Text("form.measurement_date".l)
-                    .accessibilityHidden(true)
-                DatePicker("form.measurement_date".l, selection: $date,
-                           in: dateRange, displayedComponents: .date)
-                    .labelsHidden()
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } else {
-            DatePicker("form.measurement_date".l, selection: $date,
-                       in: dateRange, displayedComponents: .date)
+    private var measurementDatePicker: some View {
+        BBLabeledPicker("form.measurement_date".l) { label in
+            DatePicker(label, selection: $date, in: dateRange, displayedComponents: .date)
         }
     }
 
@@ -865,9 +925,16 @@ struct AddGrowthSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    Image(systemName: "ruler.fill")
-                        .font(.system(size: 48))
-                        .foregroundStyle(BBTheme.Colors.growth)
+                    BBSheetHeading(title: "sheet.new_measurement".l)
+                    // Decoration, under the heading from xLarge. At
+                    // accessibility sizes it is left out: the figure would
+                    // cost about 70 pt of a sheet that already scrolls.
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "ruler.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(BBTheme.Colors.growth)
+                            .accessibilityHidden(true)
+                    }
 
                     BBMeasureSlider(
                         title: "form.weight_kg".l,
@@ -875,18 +942,22 @@ struct AddGrowthSheet: View {
                         range: 1.0...20.0, step: 0.1,
                         display: "\(weightKg.appDecimal(1))\u{00A0}\("unit.kg".l)",
                         color: BBTheme.Colors.growth,
-                        minLabel: "1 \("unit.kg".l)",
-                        maxLabel: "20 \("unit.kg".l)"
+                        minLabel: "1\u{00A0}\("unit.kg".l)",
+                        maxLabel: "20\u{00A0}\("unit.kg".l)"
                     )
 
-                    BBMeasureSlider(
+                    BBOptionalMeasureToggle(
                         title: "form.height_cm".l,
+                        // The hint key reads «(optional)» in every language.
+                        hint: "form.head_optional_hint".l,
+                        isOn: $includeHeight,
                         value: $heightCm,
                         range: 30.0...130.0, step: 0.5,
-                        display: String(format: "%.0f\u{00A0}\("unit.cm".l)", heightCm),
-                        color: BBTheme.Colors.primary,
-                        minLabel: "30 \("unit.cm".l)",
-                        maxLabel: "130 \("unit.cm".l)"
+                        // One decimal: the step is 0.5, and «50 cm» hid a saved 50.5.
+                        display: "\(heightCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
+                        minLabel: "30\u{00A0}\("unit.cm".l)",
+                        maxLabel: "130\u{00A0}\("unit.cm".l)",
+                        color: BBTheme.Colors.primary
                     )
 
                     BBOptionalMeasureToggle(
@@ -896,8 +967,8 @@ struct AddGrowthSheet: View {
                         value: $headCm,
                         range: 25.0...55.0, step: 0.5,
                         display: "\(headCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
-                        minLabel: "25 \("unit.cm".l)",
-                        maxLabel: "55 \("unit.cm".l)",
+                        minLabel: "25\u{00A0}\("unit.cm".l)",
+                        maxLabel: "55\u{00A0}\("unit.cm".l)",
                         color: BBTheme.Colors.accent
                     )
 
@@ -928,19 +999,22 @@ struct AddGrowthSheet: View {
                 // must not reset the weight back to factory. Clamped for the
                 // same reason as the date above: a value outside the slider's
                 // range must never be the value the slider shows.
-                if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg {
-                    weightKg = min(max(w, 1.0), 20.0)
+                // With no weighing yet, the first one starts from the birth weight.
+                if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg
+                    ?? babies.first?.birthWeightKg {
+                    // Snapped to the slider's 0.1 step: «5,3» shown must be 5.3 saved.
+                    weightKg = min(max((w * 10).rounded() / 10, 1.0), 20.0)
                 }
                 if let h = growthEntries.first(where: { $0.heightCm != nil })?.heightCm {
-                    heightCm = min(max(h, 30.0), 130.0)
+                    heightCm = min(max((h * 2).rounded() / 2, 30.0), 130.0)
                 }
                 if let hc = growthEntries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm {
-                    headCm = min(max(hc, 25.0), 55.0)
+                    headCm = min(max((hc * 2).rounded() / 2, 25.0), 55.0)
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)
+                    BBBarButton(.cancel) { dismiss() }
                 }
             }
         }
@@ -967,7 +1041,7 @@ struct AddGrowthSheet: View {
         let entry = GrowthEntry(
             date: date,
             weightKg: weightKg,
-            heightCm: heightCm,
+            heightCm: includeHeight ? heightCm : nil,
             headCircumferenceCm: includeHead ? headCm : nil
         )
         entry.baby = babies.first

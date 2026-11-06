@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - BBFab
-// Floating action button (D6). Reachable in the thumb zone (bottom-trailing)
+// Floating action button. Reachable in the thumb zone (bottom-trailing)
 // for one-handed "add" during night feeds. Mirrors the toolbar "+" action —
 // both entry points open the same Add sheet, so the toolbar button stays.
 //
@@ -17,7 +17,7 @@ struct BBFab: View {
         Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(BBTheme.Colors.onPrimary)
                 .frame(width: 56, height: 56)
                 .background(BBTheme.Colors.primary)
                 .clipShape(Circle())

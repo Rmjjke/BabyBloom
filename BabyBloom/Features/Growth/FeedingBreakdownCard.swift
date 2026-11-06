@@ -68,7 +68,7 @@ struct FeedingBreakdownCard: View {
                       reading.intervalDays,
                       reading.intervalDays.dayWord,
                       Int(expected.lowerBound.rounded()),
-                      Int(expected.upperBound.rounded()))
+                      Int(expected.upperBound.rounded())).gluingNumbersToUnits
     }
 
     private var feedsLine: String? {
@@ -86,13 +86,13 @@ struct FeedingBreakdownCard: View {
         return String(format: "breakdown.feeds_fmt".l,
                       perDay.appRate,
                       Int(reference.lowerBound.rounded()),
-                      Int(reference.upperBound.rounded()))
+                      Int(reference.upperBound.rounded())).gluingNumbersToUnits
     }
 
     private var nappiesLine: String? {
         guard let perDay = assessment.wetNappiesPerDay,
               let minimum = assessment.wetNappyMinimum else { return nil }
         return String(format: "breakdown.nappies_fmt".l,
-                      perDay.appRate, Int(minimum.rounded()))
+                      perDay.appRate, Int(minimum.rounded())).gluingNumbersToUnits
     }
 }

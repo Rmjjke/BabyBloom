@@ -5,15 +5,15 @@ import SwiftUI
 /// Not an assertion suite — a visual dump, like `GrowthCardRenderDump`.
 ///
 /// It renders `PercentileCard` in BOTH tones side by side, which is the only
-/// way to see the one thing the onboarding tone is for: at the tails the band
-/// label and the badge are identical and only the colour differs, so the
+/// way to see the one thing the onboarding tone is for: at the tails the
+/// figure is identical and only the ring's colour differs, so the
 /// `-standard` and `-onboarding` pairs at p1 and p99 are the check that the
-/// showcase page withholds the alarm without withholding the word.
+/// showcase page withholds the alarm without withholding the figure.
 ///
 /// The `-standard` files are also the extraction's evidence: they were produced
 /// by a verbatim copy of `GrowthView`'s private card markup before the split
 /// and by this shared view after it, and the PNGs compared byte-identical
-/// (2026-09-21, `.desk/tasks/growth-showcase-page/docs/evidence/`).
+/// (checked on 2026-09-21).
 ///
 /// Run it, read `PERCENTILE_DIR` from the test log, open the files.
 @MainActor

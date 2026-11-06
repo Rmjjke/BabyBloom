@@ -37,7 +37,7 @@ struct BBHistoryFilterPicker: View {
                 } label: {
                     Text(filter.rawValue.l)
                         .font(.system(size: 13, weight: selected == filter ? .semibold : .medium, design: .rounded))
-                        .foregroundStyle(selected == filter ? .white : BBTheme.Colors.textSecondary)
+                        .foregroundStyle(selected == filter ? BBTheme.Colors.onPrimary : BBTheme.Colors.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 7)
                         .background(
@@ -71,8 +71,8 @@ struct BBHistoryFilterPicker: View {
 /// `maxVal` re-derived `days` in turn — so `valueFor` (an O(N) filter over all
 /// entries) ran 7 × (several evaluations) = several passes of O(7·N) per render.
 /// Now the 7-day dataset is materialised **once** at the top of `body`
-/// (`let week = makeDays()`), and `maxVal` / the max-bar index are derived from
-/// that single array — one O(7·N) pass per render.
+/// (`let week = makeDays()`), and `maxVal` is derived from that single array —
+/// one O(7·N) pass per render.
 struct BBWeeklyBarChart: View {
 
     private struct Day: Identifiable {
@@ -90,6 +90,10 @@ struct BBWeeklyBarChart: View {
     var formatValue: (Double) -> String = { v in
         v == floor(v) ? "\(Int(v))" : v.appDecimal(1)
     }
+    /// What VoiceOver reads as a bar's value up to today. nil leaves Swift
+    /// Charts reading the plotted number, which for a count is its own words;
+    /// a duration plotted in hours would read as «2,08».
+    var voiceOverValue: ((Double) -> String)? = nil
 
     @State private var weekOffset = 0   // 0 = current week, -1 = last week, …
 
@@ -166,8 +170,7 @@ struct BBWeeklyBarChart: View {
         // Compute the 7-day dataset ONCE per render (see doc comment above).
         let week    = makeDays()
         let maxVal  = week.map(\.value).max() ?? 0
-        let maxID   = maxVal > 0 ? week.first(where: { $0.value == maxVal })?.id : nil
-        let yUpper  = max(maxVal * 1.18, 1)              // headroom for the annotation
+        let yUpper  = max(maxVal * 1.18, 1)              // headroom for the tallest bar's value
         let todayLabel = week.first(where: { $0.isToday })?.shortLabel
 
         VStack(spacing: BBTheme.Spacing.sm) {
@@ -224,31 +227,29 @@ struct BBWeeklyBarChart: View {
                 )
                 .cornerRadius(4)
                 .foregroundStyle(barGradient(for: day))
+                .spokenValue(day.isFuture ? nil : voiceOverValue?(day.value))
+                // A future day shows no bar and no number; it would read «0».
+                .accessibilityHidden(day.isFuture)
                 .annotation(position: .top, spacing: 4) {
-                    // Value label ONLY over the tallest bar of the week.
-                    if day.id == maxID {
+                    // Each day up to today states its value, «0» included, so
+                    // the chart needs no axis numbers; a future day has none
+                    // yet. Hidden from VoiceOver: the bar already speaks its
+                    // day and value, and the label would say the value twice.
+                    if !day.isFuture {
                         Text(formatValue(day.value))
                             .font(.system(size: 11, weight: .semibold, design: .rounded))
-                            .foregroundStyle(color)
+                            .foregroundStyle(day.isToday ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
+                            .accessibilityHidden(true)
                     }
                 }
             }
             .chartXScale(domain: week.map(\.shortLabel))     // preserve Mon→Sun order
             .chartYScale(domain: 0...yUpper)
             .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                // Grid lines only: every bar carries its value above it.
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { _ in
                     AxisGridLine()
                         .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.06))
-                    // Whole values only: on a 0…1 domain the marks fall at 0,
-                    // 0.5 and 1, and an Int label printed the middle one as a
-                    // second "0" (Q-012). Its grid line stays, unlabelled.
-                    AxisValueLabel {
-                        if let v = value.as(Double.self), v == v.rounded() {
-                            Text("\(Int(v))")
-                                .font(.system(size: 11, weight: .medium, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                        }
-                    }
                 }
             }
             .chartXAxis {
@@ -258,7 +259,7 @@ struct BBWeeklyBarChart: View {
                             let isToday = (label == todayLabel)
                             Text(label)
                                 .font(.system(size: 11, weight: isToday ? .bold : .medium, design: .rounded))
-                                .foregroundStyle(isToday ? color : BBTheme.Colors.textSecondary)
+                                .foregroundStyle(isToday ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
                         }
                     }
                 }
@@ -284,6 +285,18 @@ struct BBWeeklyBarChart: View {
     }
 }
 
+private extension ChartContent {
+    /// The mark's VoiceOver value when one is given; else Swift Charts' own.
+    @ChartContentBuilder
+    func spokenValue(_ text: String?) -> some ChartContent {
+        if let text {
+            accessibilityValue(Text(text))
+        } else {
+            self
+        }
+    }
+}
+
 // MARK: - Delete History Button
 
 struct BBDeleteHistoryButton: View {
@@ -303,11 +316,17 @@ struct BBDeleteHistoryButton: View {
     /// confirmation would be a half-truth then: a parent who cannot see those
     /// rows has no way to know the button reaches them.
     var deletesHiddenRows = false
+    /// For a list that shows rows this button does not delete (Events lists
+    /// pediatrician visits it keeps): "All records" would overstate the wipe.
+    /// nil keeps the shared texts every other screen uses.
+    var messageKey: String? = nil
+    var hiddenMessageKey: String? = nil
     let onDelete: () -> Void
     @State private var showConfirm = false
 
     private var confirmationMessage: String {
-        guard deletesHiddenRows else { return "confirm.delete_message".l }
+        guard deletesHiddenRows else { return (messageKey ?? "confirm.delete_message").l }
+        if let hiddenMessageKey { return hiddenMessageKey.l }
         switch scope {
         case .selectedPeriod: return "confirm.delete_message_hidden".l
         case .everything:     return "confirm.delete_message_all".l
@@ -318,17 +337,19 @@ struct BBDeleteHistoryButton: View {
         Button {
             showConfirm = true
         } label: {
+            // No red wash under the red words: it took them from 3.25:1 to
+            // 3.01:1. The stroke alone draws the button, and the content shape
+            // keeps all of it tappable now that nothing fills it.
             Label("button.delete_history".l, systemImage: "trash")
                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
                 .foregroundStyle(.red)
                 .frame(maxWidth: .infinity)
                 .padding(BBTheme.Spacing.md)
-                .background(Color.red.opacity(0.06))
-                .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)
                         .stroke(Color.red.opacity(0.2), lineWidth: 1)
                 )
+                .contentShape(RoundedRectangle(cornerRadius: BBTheme.Radius.md))
         }
         .alert("button.delete_history".l, isPresented: $showConfirm) {
             Button("button.delete".l, role: .destructive) { onDelete() }

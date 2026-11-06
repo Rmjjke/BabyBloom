@@ -18,7 +18,7 @@ final class TypographyCapTests: XCTestCase {
 
     private typealias Typography = BBTheme.Typography
 
-    /// Every size on the D1 scale, with the text style each one is declared
+    /// Every size on the type scale, with the text style each one is declared
     /// relative to. Kept in step with `BBTheme.Typography` by hand — a new
     /// entry there wants a line here.
     private static let scale: [(name: String, size: CGFloat, style: UIFont.TextStyle)] = [
@@ -93,7 +93,7 @@ final class TypographyCapTests: XCTestCase {
         }
     }
 
-    /// At the default "Large" setting the D1 scale must render at its literal
+    /// At the default "Large" setting the type scale must render at its literal
     /// values — that property predates the cap and is what makes the design
     /// mockups match the app.
     func testDefaultSettingRendersTheLiteralScale() {

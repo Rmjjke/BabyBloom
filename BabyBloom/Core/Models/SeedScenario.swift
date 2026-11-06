@@ -13,7 +13,7 @@ import SwiftData
 ///       -BBSeedScenario lowGain
 ///
 /// Gated on `targetEnvironment(simulator)`, deliberately NOT on `DEBUG`: a
-/// release-optimized QA build has `DEBUG` false but is still a real build for a
+/// release-optimized test build has `DEBUG` false but is still a real build for a
 /// real device, and no shipped binary may carry a path that wipes a parent's
 /// data. On device the whole seeding body — including `wipe` — does not exist.
 ///
@@ -32,9 +32,8 @@ import SwiftData
 /// a simulator that was never signed in. A simulator with no account does not
 /// sync at all, which is the normal state for a test run.
 ///
-/// Permanent scaffolding per `.desk/project.md` (`scaffolding: keep`): it lets
-/// every later growth feature be verified in the real app instead of only in
-/// unit tests.
+/// Permanent test scaffolding, kept on purpose: it lets every later growth
+/// feature be verified in the real app instead of only in unit tests.
 enum SeedScenario: String, CaseIterable {
     /// Gain below reference, feeds and nappies below theirs — the breakdown case.
     case lowGain
@@ -76,21 +75,53 @@ enum SeedScenario: String, CaseIterable {
     /// `healthy`, plus a left breastfeed started 7 h 58 min ago and a nap
     /// started 40 min ago, both still RUNNING. Two minutes after launch the
     /// feed crosses the 8 h line: the Live Activity's stale look (no digits)
-    /// without waiting a night, next to a fresh sleep activity (QA Q1, Q5).
+    /// without waiting a night, next to a fresh sleep activity.
     case runningLongFeed
     /// `healthy`, plus a formula feed started 12 min ago and still running: the
-    /// bottle title on the Lock Screen (D28).
+    /// bottle title on the Lock Screen.
     case runningBottle
-    /// L3, weekly summary (relative to `AppClock.now`, so `-BBNow` picks the
+    /// Weekly summary (relative to `AppClock.now`, so `-BBNow` picks the
     /// week): last week and the one before fully logged, with a weighing pair
-    /// ending last week (S1).
+    /// ending last week.
     case weeklyNormal
-    /// Last week logged, nothing before it, no weighings (S2 + S6).
+    /// Last week logged, nothing before it, no weighings.
     case weeklyFirstWeek
-    /// Last week with entries on four days only (S3/S4: "4 of 7", stubs).
+    /// Last week with entries on four days only ("4 of 7", stubs).
     case weeklyGaps
-    /// A baby born ten days before last week ended: no gain number (S5, D17).
+    /// A baby born ten days before last week ended: no gain number.
     case weeklyNewborn
+    /// As `weeklyNormal`, with one weighing, in last week: no pair yet.
+    case weeklyOneWeighing
+    /// As `weeklyNormal`, with last week's one weighing and one this week
+    /// (an hour before now, or at the week's end in Monday's first hour):
+    /// the pair ends after the week.
+    case weeklyWeighedThisWeek
+    /// As `weeklyNormal`, with a weighing pair in the week before only.
+    case weeklyOlderPair
+    /// Pediatrician screen, one visit 20 days ago: two questions asked at it,
+    /// three open, eight weighings and a month of logs since (relative to
+    /// `AppClock.now`, so `-BBNow` moves the whole picture).
+    case doctorMonth
+    /// Same logs, no visit and five open questions: the period starts at birth
+    /// and the screen shows its no-visit hint.
+    case doctorNoVisit
+    /// `doctorMonth` plus a visit logged today with two more questions asked at
+    /// it: the period is empty ("today") and one question is left open.
+    case doctorVisitToday
+    /// Two visits on one day (the later-logged one wins) and an older visit
+    /// logged late, so the period start, the row order and a question asked
+    /// before it was written are all exercised.
+    case doctorTwoVisits
+    /// `doctorMonth` plus 24 events inside the free window and a second visit
+    /// on day 4: more than the free list's 20-row cap, so the visits are seen
+    /// bypassing the cap as well as the window.
+    case doctorEventsCap
+    /// Two medicines across several days (relative to `AppClock.now`):
+    /// paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two
+    /// hours ago (waiting); vitamin D once a day, its latest 26 hours ago
+    /// (allowed now). Plus two medication events from before medicines, one
+    /// named and one bare.
+    case medsTwoCourses
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -181,6 +212,9 @@ enum SeedScenario: String, CaseIterable {
         for entry in (try? context.fetch(FetchDescriptor<DiaperEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<GrowthEntry>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<CustomEvent>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorQuestion>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<DoctorVisit>())) ?? [] { context.delete(entry) }
+        for entry in (try? context.fetch(FetchDescriptor<Medicine>())) ?? [] { context.delete(entry) }
         for baby in (try? context.fetch(FetchDescriptor<Baby>())) ?? [] { context.delete(baby) }
     }
 
@@ -196,8 +230,15 @@ enum SeedScenario: String, CaseIterable {
 
     private func seed(into context: ModelContext) {
         guard self != .showcase else { return Self.seedShowcase(into: context) }
-        if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn].contains(self) {
+        if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn,
+            .weeklyOneWeighing, .weeklyWeighedThisWeek, .weeklyOlderPair].contains(self) {
             return seedWeekly(into: context)
+        }
+        if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits, .doctorEventsCap].contains(self) {
+            return seedDoctor(into: context)
+        }
+        if self == .medsTwoCourses {
+            return seedMedicines(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)
@@ -274,7 +315,7 @@ enum SeedScenario: String, CaseIterable {
             }
         }
 
-        // RUNNING timers (endTime nil) for the Live Activity, QA lever L1.
+        // RUNNING timers (endTime nil) for the Live Activity.
         switch self {
         case .runningLongFeed:
             let feed = FeedingEntry(startTime: now.addingTimeInterval(-(7 * 3600 + 58 * 60)),
@@ -367,7 +408,7 @@ enum SeedScenario: String, CaseIterable {
 
     /// The fixture baby's age on the day of the capture.
     ///
-    /// Two months is what the capture brief asks for, and it is also safely past
+    /// Two months is what a screenshot capture wants, and it is also safely past
     /// `NewbornWeightLoss.observationWindowDays` — so `NewbornProgressCard`, the
     /// one place the Growth screen draws red flag rows, does not render at all.
     static let showcaseAgeDays = 62
@@ -379,7 +420,7 @@ enum SeedScenario: String, CaseIterable {
     ///
     /// `BBWeeklyBarChart` opens on the current CALENDAR week, so a capture taken
     /// on a Wednesday would show three bars and four empty slots — the exact
-    /// emptiness the capture brief exists to fix. Any span over a fortnight
+    /// emptiness the showcase fixture exists to fix. Any span over a fortnight
     /// guarantees a complete previous week whatever day the captures are taken,
     /// and the chart's back arrow reaches it in one tap.
     ///
@@ -393,7 +434,7 @@ enum SeedScenario: String, CaseIterable {
     /// the whole window with room at both edges.
     static let showcaseHistoryDays = 21
 
-    /// A girl: the three names the capture brief picks per locale are all
+    /// A girl: the three names the captures use per locale are all
     /// feminine, and the WHO reference used for every figure below is the girls'
     /// table.
     static let showcaseIsMale = false
@@ -404,8 +445,8 @@ enum SeedScenario: String, CaseIterable {
     /// back past birth weight by day 10, then a steady climb. A flat line would
     /// not be worth putting on a chart.
     ///
-    /// The 6-week weight is **4.70 kg where the capture brief proposed 4.80**,
-    /// because the brief's own pair fails the brief's own hard requirement:
+    /// The 6-week weight is **4.70 kg, not the 4.80 first proposed**,
+    /// because the proposed pair fails the capture's own hard requirement:
     /// 4.80 → 5.20 over those 18 days is 22.2 g/day, and `WeightVelocity`'s
     /// 15th-centile edge for a girl at the interval's midpoint (day 51) is
     /// 22.33 g/day. `WeightGainCard` would have rendered `.below`. 4.70 gives
@@ -473,7 +514,7 @@ enum SeedScenario: String, CaseIterable {
     /// `nil` keeps all eight.
     ///
     /// Eight feeds every single day is the same tell as seven identical sleep
-    /// bars — the brief's own figure is "7–8 a day", and a chart of seven equal
+    /// bars — the target figure is "7–8 a day", and a chart of seven equal
     /// columns reads as generated rather than logged. Today keeps its full
     /// schedule so the Dashboard's progress card is not short for no reason.
     private static let showcaseFeedOmission: [Int?] = [nil, 2, nil, nil, 5, nil, 3]
@@ -626,7 +667,7 @@ enum SeedScenario: String, CaseIterable {
 
     #else
     /// Device builds carry no seeding path at all. The gate is the simulator,
-    /// not the configuration: a release-optimized QA build still runs on a
+    /// not the configuration: a release-optimized test build still runs on a
     /// simulator and still needs to seed.
     @MainActor
     static func seedIfRequested(in context: ModelContext) {}

@@ -1,41 +1,63 @@
 import SwiftUI
 
-/// Last week on the Dashboard (design note m1-weekly-summary; D8, D17–D19).
+/// Last week on the Dashboard (design: teamdocs/design/m1-weekly-summary.md).
 /// Collapsed: three value rows; the header row expands it to the week before,
-/// the per-day bars and the longest sleep. × hides it until next Monday.
+/// the per-day bars and the longest sleep. × hides it until next Monday and,
+/// for the rest of that Dashboard visit, leaves a line with an undo in its
+/// place.
 struct WeeklySummaryCard: View {
     let summary: WeeklySummary
     let onAddWeighing: () -> Void
 
     /// The Monday of the week the parent hid, "2026-10-19"; local to this
-    /// device on purpose (note § 6), so it needs no sync.
+    /// device on purpose, so it needs no sync.
     @AppStorage("weekly.hiddenWeek") private var hiddenWeek = ""
     /// The week `weekly_summary_viewed` was last sent for: once a week, not
     /// once per Dashboard visit.
     @AppStorage("weekly.viewedWeek") private var viewedWeek = ""
-    @State private var expanded: Bool
+    /// The Monday the card was opened in, "" when closed: the open state
+    /// belongs to its week. The Dashboard keeps one card across Monday 00:00
+    /// (an app left open, a notification tap into a running app), so a plain
+    /// flag would open the new week as the last one was left. Derived rather
+    /// than reset on a change, so a card hidden while open comes back closed
+    /// with the new week too.
+    @State private var openWeek: String
+    private var expanded: Bool {
+        get { openWeek == weekKey }
+        nonmutating set { openWeek = newValue ? weekKey : "" }
+    }
+    /// Set by × and cleared when the Dashboard is left: the hidden line shows
+    /// only in the visit the card was hidden in. Not stored, and no timer, so
+    /// a slow reader or VoiceOver never misses it.
+    @State private var justHidden = false
+    /// After an undo the card comes back and VoiceOver moves to its header.
+    @State private var focusHeaderOnAppear = false
+    @AccessibilityFocusState private var headerFocused: Bool
+    @Environment(\.scenePhase) private var scenePhase
 
     /// `startExpanded` is for the render dump; the Dashboard opens it collapsed
-    /// (DECISION 2026-10-29: a notification tap lands collapsed too).
+    /// (a notification tap lands collapsed too).
     init(summary: WeeklySummary, startExpanded: Bool = false, onAddWeighing: @escaping () -> Void) {
         self.summary = summary
         self.onAddWeighing = onAddWeighing
-        _expanded = State(initialValue: startExpanded)
+        _openWeek = State(initialValue: startExpanded ? Self.key(of: summary.week) : "")
     }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
-    /// The row glyphs and the chevron grow with the text (design review m1);
+    /// The row glyphs and the chevron grow with the text;
     /// the indent under a row follows its glyph. The × stays fixed.
     @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
     @ScaledMetric(relativeTo: .footnote) private var chevron: CGFloat = 13
-    /// The delta arrow grows with its caption (Designer's AX2 look after #85).
+    /// The delta arrow grows with its caption so it stays in proportion at AX2.
     @ScaledMetric(relativeTo: .caption) private var arrow: CGFloat = 10
     private var indent: CGFloat { glyph + 8 }
 
+    private var weekKey: String { Self.key(of: summary.week) }
+
     /// The Monday as a calendar date, not an instant: an instant shifts with
     /// the time zone, and a hidden card would come back after a flight.
-    private var weekKey: String {
-        let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: summary.week.start)
+    private static func key(of week: WeeklySummary.Week) -> String {
+        let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: week.start)
         return String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
     }
 
@@ -43,35 +65,68 @@ struct WeeklySummaryCard: View {
         if hiddenWeek != weekKey {
             card
                 .transition(.opacity)
+                .task {
+                    guard focusHeaderOnAppear else { return }
+                    focusHeaderOnAppear = false
+                    await focusAfterSwap { headerFocused = true }
+                }
                 .onAppear {
                     // Marked only when the event went out: opting in mid-week
                     // still counts this week's view.
                     guard viewedWeek != weekKey, Analytics.shared.track(.weeklySummaryViewed) else { return }
                     viewedWeek = weekKey
                 }
+        } else if justHidden {
+            WeeklyHiddenLine(onUndo: undo)
+                .transition(.opacity)
+                // Another tab or a pushed screen: the next Dashboard has no
+                // line, and the card stays hidden until Monday.
+                .onDisappear { justHidden = false }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .background { justHidden = false }
+                }
         }
+    }
+
+    private func hide() {
+        change {
+            hiddenWeek = weekKey
+            justHidden = true
+        }
+    }
+
+    /// An empty key matches no Monday, so the hide is gone, not moved.
+    private func undo() {
+        change {
+            hiddenWeek = ""
+            justHidden = false
+            expanded = false
+            focusHeaderOnAppear = true
+        }
+    }
+
+    private func change(_ update: () -> Void) {
+        if reduceMotion {
+            update()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2), update)
+        }
+    }
+
+    /// The legend shows when an arrow does: a week before to compare with,
+    /// and a row whose figure moved.
+    private var showsLegend: Bool {
+        guard let previous = summary.previous else { return false }
+        return WeeklyFormat.feedsDelta(summary.current.feedsPerDay, previous.feedsPerDay) != nil
+            || WeeklyFormat.sleepDelta(summary.current.sleepPerDay, previous.sleepPerDay) != nil
     }
 
     private var card: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             header
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                feedsRow
-                sleepRow
-                gainRow
-                if summary.previous == nil {
-                    BBTheme.Typography.caption("weekly.first_week".l)
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if summary.current.daysWithEntries < 7 {
-                    BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
-                                                      summary.current.daysWithEntries))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                }
-            }
-            // iPad: the delta stays near its value (note § 4).
-            .frame(maxWidth: 480, alignment: .leading)
+            valueRows
+                // iPad: the delta stays near its value.
+                .frame(maxWidth: 480, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .bbCard()
@@ -79,6 +134,54 @@ struct WeeklySummaryCard: View {
         // (`weekly.expand`, `weekly.hide`) in the accessibility tree.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("weekly.card")
+    }
+
+    /// One shape for the three rows, by fit: each on one line while every row
+    /// fits there at full size, else all stacked with the delta under the
+    /// value, as at the accessibility sizes. A shape per row would break the
+    /// deltas' column; shrinking the text cut the sleep row on 320 pt.
+    @ViewBuilder
+    private var valueRows: some View {
+        if typeSize >= .accessibility1 {
+            rows(oneLine: false)
+        } else {
+            ViewThatFits(in: .horizontal) {
+                rows(oneLine: true)
+                rows(oneLine: false)
+            }
+        }
+    }
+
+    /// The rows and the lines under them. Everything that wraps sits in
+    /// `WrapsToWidth`, so only the rows' value lines decide the fit.
+    private func rows(oneLine: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            feedsRow(oneLine: oneLine)
+            sleepRow(oneLine: oneLine)
+            gainRow(oneLine: oneLine)
+            WrapsToWidth {
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    if summary.previous == nil {
+                        BBTheme.Typography.caption("weekly.first_week".l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else if showsLegend {
+                        // Says once what every arrow compares with, since no
+                        // word fits beside one on a 320-pt phone. For sight
+                        // only: each row already speaks its comparison.
+                        BBTheme.Typography.caption("weekly.legend".l)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityHidden(true)
+                    }
+                    // Every week, a full one too: each per-day row is an average
+                    // over the days with entries, and this line says so.
+                    BBTheme.Typography.caption(String(format: "weekly.days_logged_fmt".l,
+                                                      summary.current.daysWithEntries))
+                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                }
+            }
+        }
     }
 
     // MARK: Header
@@ -115,15 +218,9 @@ struct WeeklySummaryCard: View {
             .accessibilityValue(expanded ? "weekly.a11y_expanded".l : "weekly.a11y_collapsed".l)
             .accessibilityHint(expanded ? "weekly.a11y_collapse".l : "weekly.a11y_expand".l)
             .accessibilityIdentifier("weekly.expand")
+            .accessibilityFocused($headerFocused)
 
-            Button {
-                // Reduce Motion: the card goes without a fade (review m2).
-                if reduceMotion {
-                    hiddenWeek = weekKey
-                } else {
-                    withAnimation(.easeInOut(duration: 0.2)) { hiddenWeek = weekKey }
-                }
-            } label: {
+            Button(action: hide) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -142,20 +239,20 @@ struct WeeklySummaryCard: View {
 
     // MARK: Rows
 
-    private var feedsRow: some View {
+    private func feedsRow(oneLine: Bool) -> some View {
         let current = summary.current.feedsPerDay
         let previous = summary.previous?.feedsPerDay
-        return row(icon: "heart.fill", tint: BBTheme.Colors.feeding,
+        return row(oneLine: oneLine, icon: "heart.fill", tint: BBTheme.Colors.feeding,
                    format: "weekly.feeds_fmt", value: current.map(WeeklyFormat.perDay),
                    delta: WeeklyFormat.feedsDelta(current, previous),
                    previous: previous.map(WeeklyFormat.perDay),
                    bars: summary.current.feedsByDay.map(Double.init))
     }
 
-    private var sleepRow: some View {
+    private func sleepRow(oneLine: Bool) -> some View {
         let current = summary.current.sleepPerDay
         let previous = summary.previous?.sleepPerDay
-        return row(icon: "moon.fill", tint: BBTheme.Colors.sleep,
+        return row(oneLine: oneLine, icon: "moon.fill", tint: BBTheme.Colors.sleep,
                    format: "weekly.sleep_fmt", value: current.map(WeeklyFormat.duration),
                    delta: WeeklyFormat.sleepDelta(current, previous),
                    previous: previous.map(WeeklyFormat.duration),
@@ -166,10 +263,10 @@ struct WeeklySummaryCard: View {
     }
 
     @ViewBuilder
-    private var gainRow: some View {
+    private func gainRow(oneLine: Bool) -> some View {
         switch summary.gain {
         case .perWeek(let grams):
-            row(icon: "scalemass.fill", tint: BBTheme.Colors.growth,
+            row(oneLine: oneLine, icon: "scalemass.fill", tint: BBTheme.Colors.growth,
                 format: "weekly.gain_fmt", value: WeeklySummary.signed(grams),
                 delta: nil,
                 previous: summary.previousGain.map {
@@ -177,19 +274,36 @@ struct WeeklySummaryCard: View {
                 },
                 bars: nil)
         case .newborn:
-            note(icon: "scalemass.fill", text: "weekly.gain_newborn".l)
+            gainNote("weekly.gain_newborn".l)
+        // Next Monday's card shows the gain on its own: nothing to add.
+        case .nextMonday:
+            gainNote("weekly.gain_next_monday".l)
         case .needsWeighing:
+            gainNote("weekly.gain_needs_weighing".l, asksForWeighing: true)
+        case .needsSecond:
+            gainNote("weekly.gain_needs_second".l, asksForWeighing: true)
+        case .needsTwo:
+            gainNote("weekly.gain_needs_two".l, asksForWeighing: true)
+        }
+    }
+
+    /// The gain line without a figure, with the weighing button where the next
+    /// step is a weighing. It wraps, so it never decides the rows' shape.
+    private func gainNote(_ text: String, asksForWeighing: Bool = false) -> some View {
+        WrapsToWidth {
             VStack(alignment: .leading, spacing: 2) {
-                note(icon: "scalemass.fill", text: "weekly.gain_needs_weighing".l)
-                Button(action: onAddWeighing) {
-                    Text("growth.add_weighing".l)
-                        .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .frame(minHeight: 44)
+                note(icon: "scalemass.fill", text: text)
+                if asksForWeighing {
+                    Button(action: onAddWeighing) {
+                        Text("growth.add_weighing".l)
+                            .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
+                            .foregroundStyle(BBTheme.Colors.primary)
+                            .frame(minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, indent)
+                    .accessibilityIdentifier("weekly.add_weighing")
                 }
-                .buttonStyle(.plain)
-                .padding(.leading, indent)
-                .accessibilityIdentifier("weekly.add_weighing")
             }
         }
     }
@@ -197,27 +311,28 @@ struct WeeklySummaryCard: View {
     /// A value row. A nil value (nothing of that kind logged) leaves the row
     /// out rather than printing a zero that reads as a verdict.
     @ViewBuilder
-    private func row(icon: String, tint: Color, format: String, value: String?,
+    private func row(oneLine: Bool, icon: String, tint: Color, format: String, value: String?,
                      delta: (up: Bool, text: String)?, previous: String?,
                      bars: [Double]?, extra: String? = nil) -> some View {
         if let value {
             VStack(alignment: .leading, spacing: 4) {
-                let stacked = typeSize >= .accessibility1
-                let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
-                                     : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+                let layout = oneLine ? AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+                                     : AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: icon)
                         .font(.system(size: glyph))
                         .foregroundStyle(tint)
                         .accessibilityHidden(true)
                     layout {
+                        // One line, never cut: that shape is chosen only when
+                        // the whole line fits at full size.
                         WeeklyFormat.labelled(format.l, value: value)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
-                            .lineLimit(stacked ? nil : 1)
-                            .minimumScaleFactor(0.85)
-                        if !stacked { Spacer(minLength: 0) }
+                            .fixedSize(horizontal: oneLine, vertical: !oneLine)
+                        if oneLine { Spacer(minLength: 0) }
                         if summary.previous != nil, let delta {
                             deltaView(delta)
+                                .fixedSize(horizontal: oneLine, vertical: false)
                         }
                     }
                 }
@@ -225,18 +340,20 @@ struct WeeklySummaryCard: View {
                 // value it belongs to.
                 .accessibilityElement(children: .combine)
                 if expanded {
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let previous, summary.previous != nil || bars == nil {
-                            BBTheme.Typography.caption(String(format: "weekly.previous_fmt".l, previous))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
+                    WrapsToWidth {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let previous, summary.previous != nil || bars == nil {
+                                BBTheme.Typography.caption(String(format: "weekly.previous_fmt".l, previous))
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
+                            if let bars { barsView(bars) }
+                            if let extra {
+                                BBTheme.Typography.caption(extra)
+                                    .foregroundStyle(BBTheme.Colors.textSecondary)
+                            }
                         }
-                        if let bars { barsView(bars) }
-                        if let extra {
-                            BBTheme.Typography.caption(extra)
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                        }
+                        .padding(.leading, indent)
                     }
-                    .padding(.leading, indent)
                     .transition(.opacity)
                 }
             }
@@ -255,7 +372,7 @@ struct WeeklySummaryCard: View {
         }
     }
 
-    /// Neutral by rule (P1, plan v2 review): never green or red.
+    /// Neutral by rule: never green or red.
     private func deltaView(_ delta: (up: Bool, text: String)) -> some View {
         HStack(spacing: 2) {
             Image(systemName: delta.up ? "arrow.up" : "arrow.down")
@@ -264,7 +381,7 @@ struct WeeklySummaryCard: View {
                 .monospacedDigit()
         }
         .foregroundStyle(BBTheme.Colors.textSecondary)
-        // The arrow alone is not spoken; the direction has to be words (M1, AA).
+        // The arrow alone is not spoken; the direction has to be words.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(format: (delta.up ? "weekly.a11y_delta_up_fmt" : "weekly.a11y_delta_down_fmt").l,
                                    delta.text))
@@ -279,7 +396,7 @@ struct WeeklySummaryCard: View {
                 VStack(spacing: 2) {
                     let has = summary.current.dayHasEntries[day] && values[day] > 0
                     // A day before the birth is not a day "without entries":
-                    // no stub at all (review m3).
+                    // no stub at all.
                     let born = day >= summary.daysBeforeBirth
                     RoundedRectangle(cornerRadius: 2)
                         .fill(has ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(born ? 0.15 : 0))
@@ -295,55 +412,102 @@ struct WeeklySummaryCard: View {
     }
 }
 
-/// The card's number formats, all in the app's language.
-enum WeeklyFormat {
-    private static var locale: Locale { LocalizationManager.shared.language.locale }
+/// What × leaves in the card's place for the rest of the Dashboard visit: the
+/// summary is hidden until next Monday, and an undo. It sits on the card's own
+/// surface because on the bare background the secondary text is under AA.
+struct WeeklyHiddenLine: View {
+    let onUndo: () -> Void
 
-    /// "20 – 26 Oct": the month once when both ends share it.
-    static func range(_ week: WeeklySummary.Week) -> String {
-        let calendar = WeeklySummary.calendar
-        let last = calendar.date(byAdding: .day, value: -1, to: week.end)!
-        let sameMonth = calendar.component(.month, from: week.start) == calendar.component(.month, from: last)
-        guard sameMonth else {
-            return String(format: "weekly.range_fmt".l, week.start.appDayMonth, last.appDayMonth)
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @AccessibilityFocusState private var textFocused: Bool
+
+    var body: some View {
+        Group {
+            if typeSize >= .accessibility1 {
+                stacked
+            } else {
+                // One line while the sentence and the button both fit whole,
+                // else the sentence over the button, as the gain line's
+                // weighing button.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                        sentence.fixedSize()
+                        Spacer(minLength: BBTheme.Spacing.md)
+                        undo.fixedSize()
+                    }
+                    stacked
+                }
+            }
         }
-        // The month is written once, on the side the language puts it:
-        // "Oct 19 – 25" in English, "19 – 25 окт." in Russian.
-        let dayOnly = { (date: Date) in date.formatted(.dateTime.day().locale(locale)) }
-        let monthFirst = !(last.appDayMonth.first?.isNumber ?? true)
-        return monthFirst
-            ? String(format: "weekly.range_fmt".l, week.start.appDayMonth, dayOnly(last))
-            : String(format: "weekly.range_fmt".l, dayOnly(week.start), last.appDayMonth)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bbCard()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("weekly.hidden_line")
+        // The card VoiceOver was on is gone: its focus moves here.
+        .task { await focusAfterSwap { textFocused = true } }
     }
 
-    static func perDay(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0...1)).locale(locale))
+    private var stacked: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            sentence.fixedSize(horizontal: false, vertical: true)
+            undo
+        }
     }
 
-    static func duration(_ seconds: TimeInterval) -> String {
-        let minutes = Int((seconds / 60).rounded())
-        if minutes < 60 { return String(format: "duration.min_only".l, minutes) }
-        // "1h", not "1h 0min".
-        return minutes % 60 == 0
-            ? String(format: "duration.h_only".l, minutes / 60)
-            : String(format: "duration.h_min".l, minutes / 60, minutes % 60)
+    private var sentence: some View {
+        BBTheme.Typography.callout("weekly.hidden".l)
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+            .accessibilityFocused($textFocused)
     }
 
-    /// nil when there is nothing to compare or the shown values are equal.
-    static func feedsDelta(_ current: Double?, _ previous: Double?) -> (up: Bool, text: String)? {
-        guard let current, let previous else { return nil }
-        let difference = (current * 10).rounded() / 10 - (previous * 10).rounded() / 10
-        guard abs(difference) >= 0.05 else { return nil }
-        return (difference > 0, perDay(abs(difference)))
+    private var undo: some View {
+        Button(action: onUndo) {
+            Text("weekly.undo".l)
+                .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
+                .foregroundStyle(BBTheme.Colors.primary)
+                // «Undo» alone is 40 pt wide. The shape gives VoiceOver the
+                // whole 44-pt frame rather than the text's 19 pt.
+                .frame(minWidth: 44, minHeight: 44, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("weekly.undo")
+    }
+}
+
+/// Wraps to the width it is given, and asks for none when measured for its
+/// ideal width: a line that wraps never decides whether the value rows fit on
+/// one line.
+private struct WrapsToWidth: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        guard proposal.width != nil else {
+            return CGSize(width: 0, height: content.sizeThatFits(proposal).height)
+        }
+        return content.sizeThatFits(proposal)
     }
 
-    static func sleepDelta(_ current: TimeInterval?, _ previous: TimeInterval?) -> (up: Bool, text: String)? {
-        guard let current, let previous else { return nil }
-        let difference = (current / 60).rounded() - (previous / 60).rounded()
-        guard difference != 0 else { return nil }
-        return (difference > 0, duration(abs(difference) * 60))
+    /// Laid out at its ideal size (a `fixedSize` ancestor), the content keeps
+    /// its own line rather than being crushed into the zero width it asked for.
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin,
+                              proposal: ProposedViewSize(width: proposal.width == nil ? nil : bounds.width,
+                                                         height: bounds.height))
     }
+}
 
+/// Moves VoiceOver focus a beat after the card and the line swap: the button
+/// that had focus has just gone, and VoiceOver's own move to another element
+/// can override a write made in the same pass.
+@MainActor
+private func focusAfterSwap(_ focus: () -> Void) async {
+    try? await Task.sleep(for: .milliseconds(250))
+    guard !Task.isCancelled else { return }
+    focus()
+}
+
+/// The SwiftUI half of `WeeklyFormat` (Core/Formatting): it builds a `Text`.
+extension WeeklyFormat {
     /// "Feeds a day: 7.4" as one Text, the value in the metric style: the
     /// format is split at its `%@`, so word order stays the translator's.
     static func labelled(_ format: String, value: String) -> Text {
@@ -357,13 +521,5 @@ enum WeeklyFormat {
             text = text + Text(" ") + BBTheme.Typography.metricSmall(value)
         }
         return text
-    }
-
-    /// M T W T F S S in the app's language, Monday first.
-    static var weekdayLetters: [String] {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = locale
-        let symbols = calendar.veryShortStandaloneWeekdaySymbols   // Sunday first
-        return Array(symbols[1...]) + [symbols[0]]
     }
 }

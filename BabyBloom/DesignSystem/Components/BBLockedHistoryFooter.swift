@@ -11,8 +11,10 @@ import SwiftUI
 /// Red is this app's colour for "your data is about to go away", and the
 /// delete button two rows below is using it.
 struct BBLockedHistoryFooter: View {
-    /// Which list is drawing it, for `history_lock_shown`.
-    let surface: AnalyticsEvent.HistorySurface
+    /// Which list is drawing it, for `history_lock_shown`. nil sends nothing:
+    /// a medication's dose list keeps the window, but medicines send no
+    /// analytics, and a lock event from that list would say the baby had one.
+    let surface: AnalyticsEvent.HistorySurface?
     let onUnlock: () -> Void
 
     var body: some View {
@@ -61,6 +63,8 @@ struct BBLockedHistoryFooter: View {
         // this reads "a day on which a capped list was opened", whether or not
         // the parent scrolled down to the row. The facade sends it at most
         // once per surface per local day.
-        .onAppear { Analytics.shared.noteHistoryLockShown(surface) }
+        .onAppear {
+            if let surface { Analytics.shared.noteHistoryLockShown(surface) }
+        }
     }
 }

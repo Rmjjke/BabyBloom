@@ -6,7 +6,7 @@ final class BabyBloomTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Pin the language so localized formatters (units, percentile bands) are
+        // Pin the language so localized formatters (units, percentile tails) are
         // deterministic regardless of the host's saved preference.
         LocalizationManager.shared.setLanguage("ru")
     }
@@ -67,16 +67,17 @@ final class BabyBloomTests: XCTestCase {
     // MARK: - Growth Entry Tests
     func testGrowthEntryFormatting() {
         let entry = GrowthEntry(weightKg: 4.25, heightCm: 56.5, headCircumferenceCm: 38.0)
-        // The test host runs in Russian: the comma is the fix (Q-001), the
-        // dot this test used to pin was the bug.
-        XCTAssertEqual(entry.weightFormatted, "4,25 кг")
-        XCTAssertEqual(entry.heightFormatted, "56,5 см")
-        XCTAssertEqual(entry.headFormatted, "38,0 см")
+        // The test host runs in Russian: the comma is the fix, the
+        // dot this test used to pin was the bug. A no-break space glues the
+        // unit to its number.
+        XCTAssertEqual(entry.weightFormatted, "4,25\u{00A0}кг")
+        XCTAssertEqual(entry.heightFormatted, "56,5\u{00A0}см")
+        XCTAssertEqual(entry.headFormatted, "38,0\u{00A0}см")
     }
 
     func testGrowthEntrySmallWeight() {
         let entry = GrowthEntry(weightKg: 0.8)
-        XCTAssertEqual(entry.weightFormatted, "800 г")
+        XCTAssertEqual(entry.weightFormatted, "800\u{00A0}г")
     }
 
     // MARK: - Feeding Entry Tests
@@ -120,10 +121,20 @@ final class BabyBloomTests: XCTestCase {
         XCTAssertEqual(percentile, 50, accuracy: 2)
     }
 
-    func testWHOPercentileLabel() {
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "15–50")
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(1), "< 3-й")
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(98), "> 97-го")
+    /// The card's figure is the number inside the chart, its tails included,
+    /// and the side past its edge; a sentence names that side in words.
+    func testWHOPercentileFigureAndTailWords() {
+        let inside = WHOGrowthStandard.PercentileReading(percentile: 50, isBeyondChart: false)
+        XCTAssertEqual(inside.badge, "50")
+        // The ordinal's hyphen is U+2011, so a narrow row never breaks «50-й» apart.
+        XCTAssertEqual(inside.rowText(format: "dashboard.growth.percentile_fmt".l), "50\u{2011}й перцентиль")
+        XCTAssertEqual(WHOGrowthStandard.PercentileReading(percentile: 2, isBeyondChart: false).badge, "2")
+        let below = WHOGrowthStandard.PercentileReading(percentile: 1, isBeyondChart: true)
+        XCTAssertEqual(below.badge, "< 3")
+        XCTAssertEqual(below.rowText(format: "%d"), "< 3\u{2011}й")
+        let above = WHOGrowthStandard.PercentileReading(percentile: 99, isBeyondChart: true)
+        XCTAssertEqual(above.badge, "> 97")
+        XCTAssertEqual(above.rowText(format: "%d"), "> 97\u{2011}го")
     }
 
     // MARK: - Schema Validity
@@ -131,14 +142,7 @@ final class BabyBloomTests: XCTestCase {
     // properties, optional inverse relationships): a regression here would
     // otherwise only surface as a fatalError at app launch.
     func testModelContainerSchemaIsValid() throws {
-        let schema = Schema([
-            Baby.self,
-            FeedingEntry.self,
-            SleepEntry.self,
-            DiaperEntry.self,
-            GrowthEntry.self,
-            CustomEvent.self
-        ])
+        let schema = AppSchema.schema
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = ModelContext(container)

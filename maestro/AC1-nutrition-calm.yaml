@@ -69,8 +69,9 @@ tags: [regression]
 # The paid branch is live: only the real WeightGainCard prints a reference range,
 # and the pattern carries no figure of its own, so a DST-shifted window cannot
 # move it. A free user gets "See how many grams a week your baby gains…" here —
-# no colon, no "g/week", no match.
-- assertVisible: ".*Reference: .*g/week.*"
+# no colon, no "g/week", no match. '.?' after the slash: a word joiner there
+# keeps the unit on one line, and the pattern holds with it or without.
+- assertVisible: ".*Reference: .*g/.?week.*"
 # The free section states the calm verdict for everyone.
 - assertVisible: ".*within the reference.*"
 
