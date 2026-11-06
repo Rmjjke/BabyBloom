@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — The weekly card's rows take one shape together, by fit
+
+The weekly card's three value rows stand on one line each, the delta at the row's end, while all of them fit there at full size. Otherwise all three stack with the delta under the value, as they already did at the accessibility sizes. The text no longer shrinks.
+
+**Why.** On one line with a 0.85 shrink floor, the sleep row did not fit a 320-pt phone at Large: 23.8 to 57.7 pt short, so it shrank past the floor and was cut («14 h 2…»). The deltas read down as one column; a fit per row would set one delta at the row's end and the next under its value. The fit is measured live, so no width table goes stale: at Large the rows stack on 320 pt in en, ru and es, and take one line in en and es from 375 pt and in ru from 402 (on 375 while the sleep delta is under an hour). Where the rows fitted before, the card is the same to the pixel; where they stack, it is about 35 pt taller. Not taken: the delta under the value on every phone (a line more per row where one fits); shorter labels or units (words stay whole, and the days line already says what the rows average over).
+
 ## 2026-11-04 — A sheet bar's confirm shows ▶ while the sheet starts a timer
 
 With Start Timer on, the New Feeding sheet's bar confirm shows `play.fill` in Save's style, and VoiceOver names it «Start Feeding», the bottom button's word. With the toggle off it is ✓ «Save» again. Both buttons follow the toggle in the same frame. It is the app's one sheet that starts a timer.

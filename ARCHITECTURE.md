@@ -454,7 +454,18 @@ about words, not the whole line. The diaper norm editor's stepper card
 digits and inside the card it needs 312 pt, more than the 256 a 320-pt
 column leaves and a point more than 375 pt's, so there md takes their place
 (248 pt). The editor scrolls once its content is taller than the sheet (above
-Large on a 320-pt phone) and does not bounce where it fits.
+Large on a 320-pt phone) and does not bounce where it fits. The weekly card's
+three value rows (feeds, sleep, gain) take one shape together: each on one
+line, its delta at the row's end, while every shown row fits there at full
+size, else all three with the delta under the value, as at the accessibility
+sizes, where they always stack. A shape per row would break the deltas'
+column, and nothing shrinks. The lines that wrap (the expanded details, the
+gain line without a figure, the first-week and days lines) sit in
+`WrapsToWidth`, which asks for no width when measured for its ideal width,
+so only the value lines decide. At Large, with
+sleep «14 h 20 min» and a delta of «1 h 45 min», the rows stack on 320 pt in
+every language and take one line in en and es from 375 pt, in ru from 402;
+on 375 ru takes one line while the sleep delta is under an hour.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.
