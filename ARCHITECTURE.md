@@ -449,7 +449,12 @@ each word of it fits the room there, wrapping between words, else on its
 own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
-about words, not the whole line.
+about words, not the whole line. The diaper norm editor's stepper card
+(− digits +) keeps the column's xl inset: with xl between each symbol and the
+digits and inside the card it needs 312 pt, more than the 256 a 320-pt
+column leaves and a point more than 375 pt's, so there md takes their place
+(248 pt). The editor scrolls once its content is taller than the sheet (above
+Large on a 320-pt phone) and does not bounce where it fits.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.

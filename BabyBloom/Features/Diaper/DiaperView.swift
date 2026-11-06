@@ -294,70 +294,47 @@ struct DiaperNormEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: BBTheme.Spacing.xl) {
-                // A decoration; VoiceOver would read the symbol's name.
-                Image(systemName: "drop.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(BBTheme.Colors.diaper)
-                    .padding(.top, BBTheme.Spacing.xl)
-                    .accessibilityHidden(true)
+            // Scrolls only when the content is taller than the sheet: above
+            // Large on a 320-pt phone the title, hint and digits grow past
+            // its height, and a fixed stack cut the hint to one line and
+            // shrank the digits. Where it fits, nothing moves or bounces.
+            ScrollView {
+                VStack(spacing: BBTheme.Spacing.xl) {
+                    // A decoration; VoiceOver would read the symbol's name.
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 56))
+                        .foregroundStyle(BBTheme.Colors.diaper)
+                        .padding(.top, BBTheme.Spacing.xl)
+                        .accessibilityHidden(true)
 
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    // Above Large it names the sheet: the bar has no title.
-                    BBTheme.Typography.title2("diaper.norm.label".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                        .accessibilityAddTraits(dynamicTypeSize > .large ? .isHeader : [])
-                    Text("diaper.norm.hint".l)
-                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-
-                HStack(spacing: BBTheme.Spacing.xl) {
-                    Button {
-                        if dailyNorm > 1 { dailyNorm -= 1 }
-                    } label: {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
+                    VStack(spacing: BBTheme.Spacing.sm) {
+                        // Above Large it names the sheet: the bar has no title.
+                        BBTheme.Typography.title2("diaper.norm.label".l)
+                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                            .accessibilityAddTraits(dynamicTypeSize > .large ? .isHeader : [])
+                        Text("diaper.norm.hint".l)
+                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
                     }
-                    .disabled(dailyNorm <= 1)
-                    // The goal as each button's value: VoiceOver speaks the new
-                    // number after a tap, as it does on a stepper.
-                    .accessibilityLabel(Text("diaper.norm.a11y_decrease".l))
-                    .accessibilityValue(Text("\(dailyNorm)"))
 
-                    Text("\(dailyNorm)")
-                        .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                        .frame(minWidth: 80)
-
-                    Button {
-                        if dailyNorm < 20 { dailyNorm += 1 }
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
+                    // The card keeps the column's inset. With xl around the
+                    // digits and inside it, it needs 312 pt, more than the 256
+                    // a 320-pt column leaves; there md takes their place.
+                    ViewThatFits(in: .horizontal) {
+                        stepper(spacing: BBTheme.Spacing.xl)
+                        stepper(spacing: BBTheme.Spacing.md)
                     }
-                    .disabled(dailyNorm >= 20)
-                    .accessibilityLabel(Text("diaper.norm.a11y_increase".l))
-                    .accessibilityValue(Text("\(dailyNorm)"))
-                }
-                .padding(.vertical, BBTheme.Spacing.lg)
-                .padding(.horizontal, BBTheme.Spacing.xl)
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.lg)
-                .bbShadow(BBTheme.Shadow.card)
-                .padding(.horizontal, BBTheme.Spacing.xl)
-
-                BBPrimaryButton("button.save".l, icon: "checkmark") { dismiss() }
                     .padding(.horizontal, BBTheme.Spacing.xl)
 
-                Spacer()
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { dismiss() }
+                        .padding(.horizontal, BBTheme.Spacing.xl)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, BBTheme.Spacing.md)
             }
+            .scrollBounceBehavior(.basedOnSize)
             .background(BBTheme.Colors.background.ignoresSafeArea())
             // Above Large the heading in the content names the sheet, as on
             // every other sheet: the system title right of Cancel grows with
@@ -372,6 +349,48 @@ struct DiaperNormEditorSheet: View {
                 }
             }
         }
+    }
+
+    /// − digits +, `spacing` between each symbol and the digits and inside
+    /// the card's sides.
+    private func stepper(spacing: CGFloat) -> some View {
+        HStack(spacing: spacing) {
+            Button {
+                if dailyNorm > 1 { dailyNorm -= 1 }
+            } label: {
+                Image(systemName: "minus.circle.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
+            }
+            .disabled(dailyNorm <= 1)
+            // The goal as each button's value: VoiceOver speaks the new
+            // number after a tap, as it does on a stepper.
+            .accessibilityLabel(Text("diaper.norm.a11y_decrease".l))
+            .accessibilityValue(Text("\(dailyNorm)"))
+
+            Text("\(dailyNorm)")
+                .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(minWidth: 80)
+
+            Button {
+                if dailyNorm < 20 { dailyNorm += 1 }
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 44))
+                    .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
+            }
+            .disabled(dailyNorm >= 20)
+            .accessibilityLabel(Text("diaper.norm.a11y_increase".l))
+            .accessibilityValue(Text("\(dailyNorm)"))
+        }
+        .padding(.vertical, BBTheme.Spacing.lg)
+        .padding(.horizontal, spacing)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.lg)
+        .bbShadow(BBTheme.Shadow.card)
     }
 }
 
