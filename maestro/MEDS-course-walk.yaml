@@ -14,9 +14,10 @@
 # boolean: a plain YES arrives as a string and is ignored.
 #
 # The hour wheel is driven by a point: the selected row sits mid-wheel and a
-# tap two rows above it selects the hour two earlier. Measured on iPhone 17
-# on the 24-hour clock (hour and minute wheels only); a 12-hour clock adds an
-# AM/PM wheel and moves the hour wheel left.
+# tap two rows above it selects the hour two earlier. The wheel opens under
+# the time button, which sits under its "Time" label at the row's leading
+# edge. Measured on iPhone 17 on the 24-hour clock (hour and minute wheels
+# only); a 12-hour clock adds an AM/PM wheel and moves the hour wheel.
 #
 # Launch-argument mechanics (dash in the key, stopApp beside clearState) are
 # explained in SMOKE-main-tabs.yaml and the platform-run skill.
@@ -118,12 +119,14 @@ tags: [regression]
     visible: "10 o’clock"
     timeout: 5000
 - tapOn:
-    point: "56%,28%"
+    point: "26%,32%"
 - extendedWaitUntil:
     visible: "08 o’clock"
     timeout: 5000
+# Close the wheel by a tap outside it: the dismiss region spans the screen,
+# and its centre falls on the wheel's bottom edge.
 - tapOn:
-    id: "PopoverDismissRegion"
+    point: "75%,70%"
 - tapOn:
     id: "dose.save"
 - extendedWaitUntil:

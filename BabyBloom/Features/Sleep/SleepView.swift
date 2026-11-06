@@ -386,7 +386,7 @@ struct AddSleepSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.add_sleep".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("sheet.add_sleep".l, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

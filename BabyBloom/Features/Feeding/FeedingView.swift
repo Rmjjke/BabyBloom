@@ -565,7 +565,7 @@ struct AddFeedingSheet: View {
                 .padding(.bottom, BBTheme.Spacing.xs)
                 .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.new_feeding".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("sheet.new_feeding".l, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }

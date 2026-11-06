@@ -433,7 +433,7 @@ struct AddEventSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.new_event".l, movesIntoContentAtAX: true)
+            .bbSheetTitle("sheet.new_event".l, movesIntoContentAboveLarge: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

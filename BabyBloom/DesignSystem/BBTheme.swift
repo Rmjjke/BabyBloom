@@ -320,26 +320,28 @@ extension View {
     /// Capped at `.large`, and one line: the bar never grows, and the principal
     /// slot gives a second line no room. Shrinking to 0.6 keeps the whole title.
     ///
-    /// `movesIntoContentAtAX`: at AX sizes any title, short or long, shrank to
-    /// 11–13 pt beside the grown Cancel and Save, so every entry sheet and
-    /// the profile edit sheet pass it. The sheet puts `BBSheetHeading` first
-    /// in its content, and at AX sizes the bar shows no title at all: an
-    /// empty principal item alone let the system draw the navigation title,
-    /// cut («Приём…»). The heading in the content carries the header trait
-    /// for VoiceOver. The two go together: the flag alone leaves no title,
-    /// the heading alone two.
-    func bbSheetTitle(_ title: String, movesIntoContentAtAX: Bool = false) -> some View {
-        modifier(BBSheetTitle(title: title, movesIntoContentAtAX: movesIntoContentAtAX))
+    /// `movesIntoContentAboveLarge`: above Large the bar title keeps its Large
+    /// size while Cancel and Save grow, so it shrank and was cut: from xLarge
+    /// «Новое кормление» on a 375-pt phone, and at xxxLarge four titles sat at
+    /// 10–11 pt on a 402-pt one, smaller than the sheet's captions. Every
+    /// entry sheet and the profile edit sheet pass it. The sheet puts
+    /// `BBSheetHeading` first in its content, and above Large the bar shows
+    /// no title at all: an empty principal item alone let the system draw
+    /// the navigation title, cut («Приём…»). The heading in the content
+    /// carries the header trait for VoiceOver. The two go together: the flag
+    /// alone leaves no title, the heading alone two.
+    func bbSheetTitle(_ title: String, movesIntoContentAboveLarge: Bool = false) -> some View {
+        modifier(BBSheetTitle(title: title, movesIntoContentAboveLarge: movesIntoContentAboveLarge))
     }
 }
 
 private struct BBSheetTitle: ViewModifier {
     let title: String
-    let movesIntoContentAtAX: Bool
+    let movesIntoContentAboveLarge: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     func body(content: Content) -> some View {
-        let inBar = !(movesIntoContentAtAX && dynamicTypeSize.isAccessibilitySize)
+        let inBar = !(movesIntoContentAboveLarge && dynamicTypeSize > .large)
         content
             .navigationTitle(inBar ? title : "")
             .navigationBarTitleDisplayMode(.inline)
@@ -359,14 +361,14 @@ private struct BBSheetTitle: ViewModifier {
     }
 }
 
-/// The sheet's title as the content's first line, at AX sizes only; pairs with
-/// `bbSheetTitle(_:movesIntoContentAtAX: true)`.
+/// The sheet's title as the content's first line, above Large only; pairs
+/// with `bbSheetTitle(_:movesIntoContentAboveLarge: true)`.
 struct BBSheetHeading: View {
     let title: String
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        if dynamicTypeSize.isAccessibilitySize {
+        if dynamicTypeSize > .large {
             BBTheme.Typography.title3(title)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)

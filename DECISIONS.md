@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — Above Large a sheet's title moves into its content, a date picker's label sits above it at every size, and two notes that wrap keep their wrapped alignment at Large
+
+**Sheet titles.** The bar never grows, so its title keeps its Large size while Cancel and Save grow with the text. From xLarge four ru titles were cut on a 375-pt phone («Новое кормление», «Новое измерение», «Приём у педиатра» and the profile title), and at xxxLarge on a 402-pt phone four shrank to 10–11 pt, smaller than the sheet's captions. So above Large the title is the content's first line at the sheet's text size, as it already was at accessibility sizes. The diaper norm editor, with Cancel alone in its bar, follows: its system title grows with the text, but at AX2 on a 320-pt screen it reaches the screen's edge, and with it every sheet keeps its title in one place at each size. Its first heading takes the header trait there, so VoiceOver hears one heading per sheet at every size. At Large the bars stay as they were.
+
+**Date picker labels.** Beside the date and time buttons the label broke inside its word («Врем / я» at xxxLarge on a 402-pt phone), and at Large on a 320-pt screen ru «Время», «Начало», «Конец» and en «Time» had no room beside the widest date. The label sits above its picker at every size, as the sheets' other captions do; each date row is one line taller. Not a fit with `ViewThatFits`: a row whose shape follows the date would jump while the parent picks one.
+
+**Wrapped alignment.** The ru stool warning and the ru profile photo hint wrap at Large on a 320-pt screen, so the warning's triangle sits on its first line and the hint is centred at every size, Large included. The price: with a warning colour picked, the warning and the fields below sit a pixel lower at Large.
+
 ## 2026-11-04 — Home's quick actions stand two by two below the accessibility sizes
 
 Four in a row give each word a quarter of the quick-actions card: 64 pt on a 320-pt screen. ru «Подгузники» is 71.1 pt at Large, so it broke in the middle on every 320-pt screen, from Medium up. On 375 pt it keeps 6.7 pt, under the 8-pt spare (2.8 with Bold Text). No padding saves it: without the card's padding a quarter is 72 pt, and Bold Text still breaks the word. So the row takes two columns at every size below the accessibility sizes, one shape on every phone, and one column at accessibility sizes, where half a card keeps 5.9 pt and Bold Text breaks the word. Three would hold at Large, but they would set the four actions 3 + 1, one alone under the first; two by two keeps them in one block. The price: the default Home's quick-actions card is two rows tall on every phone.
