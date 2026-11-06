@@ -62,6 +62,10 @@ final class Medicine {
 }
 
 extension CustomEvent {
+    /// A medicine's dose: a medication event linked to one. Older and
+    /// free-text medication events are not doses and count for no medicine.
+    var isDose: Bool { type == .medication && medicine != nil }
+
     /// A dose of `medicine` at `time`: a `.medication` event linked to it,
     /// carrying the medicine's name and dose text as they are now.
     static func dose(of medicine: Medicine, at time: Date) -> CustomEvent {

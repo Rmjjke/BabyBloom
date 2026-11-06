@@ -148,6 +148,20 @@ enum MedicationFormat {
         parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ". ")
     }
 
+    /// A medication event's row on Events. A dose takes its medicine's name,
+    /// as copied when it was logged, for the title, then dose · note. An older
+    /// or free-text event keeps the type word, then name · dose · note; one
+    /// with neither reads as before. Text as typed, never translated.
+    static func eventRow(typeWord: String, isDose: Bool,
+                         name: String?, dose: String?, note: String?) -> (title: String, subtitle: String) {
+        let name = name.flatMap(MedicationFormInput.optional)
+        let dose = dose.flatMap(MedicationFormInput.optional)
+        let note = note.flatMap(MedicationFormInput.optional)
+        func joined(_ parts: [String?]) -> String { parts.compactMap { $0 }.joined(separator: " · ") }
+        if isDose, let name { return (name, joined([dose, note])) }
+        return (typeWord, joined([name, dose, note]))
+    }
+
     private static func dayOffset(of date: Date, from now: Date, calendar: Calendar) -> Int {
         calendar.dateComponents([.day], from: calendar.startOfDay(for: now),
                                 to: calendar.startOfDay(for: date)).day ?? 0

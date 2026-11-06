@@ -7,55 +7,66 @@ struct EventsView: View {
                   SortDescriptor(\DoctorVisit.createdAt, order: .reverse)])
     private var visits: [DoctorVisit]
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
+    @Query private var medicines: [Medicine]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
     @Environment(SubscriptionManager.self) private var store
     @State private var showAddSheet = false
+    @State private var showDoseSheet = false
     /// The create gate and the history footer both sell; the source says which.
     @State private var paywallSource: AnalyticsEvent.PaywallSource?
     @State private var detailVisit: DoctorVisit?
 
+    // No NavigationStack of its own: the screen is pushed from More's, and a
+    // second stack would hold the medication detail's push.
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: BBTheme.Spacing.lg) {
+        ScrollView {
+            VStack(spacing: BBTheme.Spacing.lg) {
+                VStack(spacing: BBTheme.Spacing.md) {
+                    if !activeMedicines.isEmpty {
+                        medicationLines
+                    }
                     quickAddSection
-                        .padding(.horizontal, BBTheme.Spacing.md)
-
-                    historySection
-                        .padding(.horizontal, BBTheme.Spacing.md)
                 }
-                .padding(.bottom, BBTheme.Spacing.xl)
+                .padding(.horizontal, BBTheme.Spacing.md)
+
+                historySection
+                    .padding(.horizontal, BBTheme.Spacing.md)
             }
-            .background(BBTheme.Colors.background.ignoresSafeArea())
-            .navigationTitle("nav.events".l)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { addEvent() } label: {
-                        // A badge, not a substitution: replacing the plus with
-                        // a padlock loses the "this adds something" affordance,
-                        // and the gate reads just as clearly beside it.
-                        ZStack(alignment: .bottomTrailing) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundStyle(BBTheme.Colors.primary)
-                            if !store.isPremium {
-                                // Offset outwards: the disc is nearly as wide as
-                                // the 22pt plus, so a flush badge would hide it.
-                                LockBadge().offset(x: 8, y: 6)
-                            }
+            .padding(.bottom, BBTheme.Spacing.xl)
+        }
+        .background(BBTheme.Colors.background.ignoresSafeArea())
+        .navigationTitle("nav.events".l)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { addEvent() } label: {
+                    // A badge, not a substitution: replacing the plus with
+                    // a padlock loses the "this adds something" affordance,
+                    // and the gate reads just as clearly beside it.
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundStyle(BBTheme.Colors.primary)
+                        if !store.isPremium {
+                            // Offset outwards: the disc is nearly as wide as
+                            // the 22pt plus, so a flush badge would hide it.
+                            LockBadge().offset(x: 8, y: 6)
                         }
                     }
-                    // The plus is an icon-only control, so it needs its label
-                    // spelled out before the gate can be appended to it.
-                    .accessibilityLabel(Text("sheet.new_event".l))
-                    .bbLockedAccessibility(!store.isPremium)
                 }
+                // The plus is an icon-only control, so it needs its label
+                // spelled out before the gate can be appended to it.
+                .accessibilityLabel(Text("sheet.new_event".l))
+                .bbLockedAccessibility(!store.isPremium)
             }
         }
         .entrySheet(isPresented: $showAddSheet) {
             AddEventSheet()
+        }
+        // A plain sheet: no rating prompt after a dose.
+        .sheet(isPresented: $showDoseSheet) {
+            DoseSheet(choosingFrom: activeMedicines)
         }
         .sheet(item: $paywallSource) { source in
             PaywallView(source: source)
@@ -67,6 +78,13 @@ struct EventsView: View {
     /// paths — the toolbar sheet and the quick-add tiles — go through it, so
     /// the padlock cannot promise a gate that a tile below it walks around.
     private func addEvent(_ type: CustomEvent.EventType? = nil) {
+        // A dose of a running medication logs free from the tile, as from its
+        // own screen: a one-tap dose with no name could not be linked, so it
+        // would walk around the medication's interval.
+        if type == .medication, !activeMedicines.isEmpty {
+            showDoseSheet = true
+            return
+        }
         guard store.isPremium else {
             paywallSource = .events
             return
@@ -83,6 +101,7 @@ struct EventsView: View {
             BBSectionHeader(title: "section.quick_input")
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
+                    let locked = isLocked(type)
                     Button {
                         addEvent(type)
                     } label: {
@@ -91,7 +110,7 @@ struct EventsView: View {
                                 Image(systemName: type.icon)
                                     .font(.system(size: 26))
                                     .foregroundStyle(Color(hex: type.colorHex))
-                                if !store.isPremium {
+                                if locked {
                                     LockBadge().offset(x: 8, y: 4)
                                 }
                             }
@@ -103,10 +122,44 @@ struct EventsView: View {
                         .bbCardTonal(Color(hex: type.colorHex))
                     }
                     .buttonStyle(BBScaleButtonStyle())
-                    .bbLockedAccessibility(!store.isPremium)
+                    .bbLockedAccessibility(locked)
+                    .accessibilityIdentifier("events.quick.\(type.rawValue)")
                 }
             }
         }
+    }
+
+    /// The running medications, by name; ended ones never show here.
+    private var activeMedicines: [Medicine] {
+        MedicationFormat.byName(medicines.filter { !$0.isEnded })
+    }
+
+    private func isLocked(_ type: CustomEvent.EventType) -> Bool {
+        !store.isPremium && !(type == .medication && !activeMedicines.isEmpty)
+    }
+
+    /// One line per running medication, to its detail. Redrawn each minute,
+    /// so "Next dose not before" turns into "has passed" on its own.
+    private var medicationLines: some View {
+        TimelineView(.everyMinute) { _ in
+            VStack(spacing: BBTheme.Spacing.sm) {
+                ForEach(activeMedicines) { medicine in
+                    MedicationStatusLine(medicine: medicine, now: AppClock.now)
+                }
+            }
+        }
+    }
+
+    /// A medication shows its name and dose as typed; every other type its
+    /// note, or its mood.
+    private func rowText(_ event: CustomEvent) -> (title: String, subtitle: String) {
+        let typeWord = event.type.displayName.l
+        guard event.type == .medication else {
+            return (typeWord, event.notes ?? (event.mood?.displayName.l ?? ""))
+        }
+        return MedicationFormat.eventRow(typeWord: typeWord, isDose: event.isDose,
+                                         name: event.medicationName,
+                                         dose: event.medicationDose, note: event.notes)
     }
 
     /// The free history window, applied BEFORE the twenty-row cap.
@@ -140,12 +193,13 @@ struct EventsView: View {
                     ForEach(model.rows) { row in
                         switch row {
                         case .event(let event):
+                            let text = rowText(event)
                             SwipeToDeleteRow(onDelete: { delete(event) }) {
                                 BBEventRow(
                                     icon: event.type.icon,
                                     iconColor: Color(hex: event.type.colorHex),
-                                    title: event.type.displayName.l,
-                                    subtitle: event.notes ?? (event.mood?.displayName.l ?? ""),
+                                    title: text.title,
+                                    subtitle: text.subtitle,
                                     time: event.time.appTimeOfDay,
                                     trailing: event.time.appDayMonth
                                 )
@@ -212,7 +266,9 @@ struct EventsView: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
-        reviewPrompt.entrySaved(.event)
+        // No rating prompt after a medication, from any path; the first-entry
+        // count still hears it.
+        if type != .medication { reviewPrompt.entrySaved(.event) } else { reviewPrompt.logged(.event) }
     }
 
     private func delete(_ event: CustomEvent) {
@@ -240,6 +296,8 @@ struct AddEventSheet: View {
     @State private var selectedMood: CustomEvent.MoodLevel = .calm
     @State private var medicationName = ""
     @State private var medicationDose = ""
+    @Query private var medicines: [Medicine]
+    @State private var medicationChoice: MedicationChoice = .unchosen
     /// Start at `.large` so all fields are visible without a manual drag.
     @State private var selectedDetent: PresentationDetent = .large
 
@@ -267,6 +325,7 @@ struct AddEventSheet: View {
                                 .bbShadow(BBTheme.Shadow.card)
                             }
                             .buttonStyle(BBScaleButtonStyle())
+                            .accessibilityIdentifier("event.type.\(type.rawValue)")
                         }
                     }
 
@@ -298,15 +357,27 @@ struct AddEventSheet: View {
                         }
                     }
 
-                    // Medication fields
+                    // Medication fields: a running medication from the menu
+                    // logs a linked dose; "Not in the list", or no running
+                    // medication, keeps the two free-text fields.
                     if selectedType == .medication {
                         VStack(spacing: BBTheme.Spacing.sm) {
-                            TextField("form.medication_name".l, text: $medicationName)
-                                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
-                            TextField("form.dose".l, text: $medicationDose)
-                                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                            if !activeMedicines.isEmpty {
+                                MedicationMenuField(value: choiceLabel) {
+                                    ForEach(activeMedicines) { medicine in
+                                        Button(medicine.name) { medicationChoice = .medicine(medicine) }
+                                    }
+                                    Button("medication.picker_not_listed".l) { medicationChoice = .notListed }
+                                }
+                            }
+                            switch effectiveChoice {
+                            case .medicine(let medicine):
+                                MedicationStatusBox(lines: medicine.lines(now: AppClock.now))
+                            case .notListed:
+                                freeTextMedicationFields
+                            case .unchosen:
+                                EmptyView()
+                            }
                         }
                     }
 
@@ -316,7 +387,7 @@ struct AddEventSheet: View {
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
                     // Time
-                    DatePicker("form.time".l, selection: $time, displayedComponents: [.date, .hourAndMinute])
+                    timePicker
                         .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
@@ -325,7 +396,10 @@ struct AddEventSheet: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) {
+                // BBPrimaryButton has no disabled look of its own.
                 BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.4)
                     .padding(.horizontal, BBTheme.Spacing.md)
                     .padding(.top, BBTheme.Spacing.sm)
                     .padding(.bottom, BBTheme.Spacing.xs)
@@ -339,7 +413,8 @@ struct AddEventSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("button.save".l) { save() }
                         .fontWeight(.semibold)
-                        .foregroundStyle(BBTheme.Colors.primary)
+                        .foregroundStyle(canSave ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
+                        .disabled(!canSave)
                 }
             }
         }
@@ -347,7 +422,86 @@ struct AddEventSheet: View {
         .presentationDetents([.medium, .large], selection: $selectedDetent)
     }
 
+    enum MedicationChoice: Equatable {
+        case unchosen
+        case medicine(Medicine)
+        case notListed
+    }
+
+    private var activeMedicines: [Medicine] {
+        MedicationFormat.byName(medicines.filter { !$0.isEnded })
+    }
+
+    /// One running medication is preselected; with two or more nothing is,
+    /// and Save waits: a wrong preselection would file the dose under another
+    /// medication and time the wrong interval. With none, the free text.
+    private var effectiveChoice: MedicationChoice {
+        if activeMedicines.isEmpty { return .notListed }
+        // A pick that has since ended or gone (another device) no longer
+        // counts; reading it would touch a deleted model.
+        if case .medicine(let picked) = medicationChoice,
+           !activeMedicines.contains(where: { $0.persistentModelID == picked.persistentModelID }) {
+            return activeMedicines.count == 1 ? .medicine(activeMedicines[0]) : .unchosen
+        }
+        if medicationChoice == .unchosen, activeMedicines.count == 1, let only = activeMedicines.first {
+            return .medicine(only)
+        }
+        return medicationChoice
+    }
+
+    private var choiceLabel: String {
+        switch effectiveChoice {
+        case .medicine(let medicine): return medicine.name
+        case .notListed: return "medication.picker_not_listed".l
+        case .unchosen: return "medication.picker_choose".l
+        }
+    }
+
+    private var canSave: Bool {
+        selectedType != .medication || effectiveChoice != .unchosen
+    }
+
+    private var isDose: Bool {
+        if selectedType == .medication, case .medicine = effectiveChoice { return true }
+        return false
+    }
+
+    /// A dose ends at now, as in the dose sheet; other events keep any time.
+    /// One picker with a moving bound, so switching the choice keeps its
+    /// identity and VoiceOver focus.
+    private var timePicker: some View {
+        DatePicker("form.time".l, selection: $time,
+                   in: Date.distantPast...(isDose ? AppClock.now : Date.distantFuture),
+                   displayedComponents: [.date, .hourAndMinute])
+    }
+
+    private var freeTextMedicationFields: some View {
+        VStack(spacing: BBTheme.Spacing.sm) {
+            // Vertical, so a long name wraps at large text instead of shrinking.
+            TextField("form.medication_name".l, text: $medicationName, axis: .vertical)
+                .lineLimit(1...3)
+                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+            TextField("form.dose".l, text: $medicationDose, axis: .vertical)
+                .lineLimit(1...3)
+                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+        }
+    }
+
     private func save() {
+        guard canSave else { return }
+        if selectedType == .medication, case .medicine(let medicine) = effectiveChoice {
+            // Linked, with the name and dose copied; the picker clamps only
+            // its display, so the save clamps to now as well.
+            let event = CustomEvent.dose(of: medicine, at: min(time, AppClock.now))
+            event.notes = MedicationFormInput.optional(notes)
+            if event.baby == nil { event.baby = babies.first }
+            modelContext.insert(event)
+            try? modelContext.save()
+            dismiss()
+            return
+        }
         let event = CustomEvent(time: time, type: selectedType)
         if selectedType == .mood { event.mood = selectedMood }
         if selectedType == .medication {
@@ -358,7 +512,9 @@ struct AddEventSheet: View {
         event.baby = babies.first
         modelContext.insert(event)
         try? modelContext.save()
-        reviewPrompt.entrySaved(.event)
+        // No rating prompt after a medication, from any path; the first-entry
+        // count still hears a free-text one, as before.
+        if selectedType != .medication { reviewPrompt.entrySaved(.event) } else { reviewPrompt.logged(.event) }
         dismiss()
     }
 }

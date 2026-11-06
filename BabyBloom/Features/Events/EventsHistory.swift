@@ -34,11 +34,20 @@ struct EventsHistory {
     /// Delete-all reaches events only, so it has nothing to offer without them.
     var showsDeleteAll: Bool { !events.deletable.isEmpty }
 
+    /// A medicine's doses keep the window and have twenty rows of their own:
+    /// at four a day they would fill the shared twenty in five days and push
+    /// every bath and walk out, and uncapped a year of daily drops would draw
+    /// hundreds of rows. The medication's own screen lists every dose. Each
+    /// half decides its footer the usual way; delete-all reaches every event.
     init(events: [CustomEvent], visits: [DoctorVisit], cutoff: Date?, cap: Int = 20) {
-        let list = HistoryWindow.list(events, date: { $0.time }, cutoff: cutoff, cap: cap)
-        self.events = list
+        let others = HistoryWindow.list(events.filter { !$0.isDose }, date: { $0.time }, cutoff: cutoff, cap: cap)
+        let doses = HistoryWindow.list(events.filter(\.isDose), date: { $0.time }, cutoff: cutoff, cap: cap)
+        let visible = HistoryMerge.merge(others.visible, exempt: doses.visible, date: { $0.time })
+        self.events = HistoryWindow.List(deletable: events,
+                                         visible: visible,
+                                         showsLockedFooter: others.showsLockedFooter || doses.showsLockedFooter)
         self.rows = HistoryMerge.merge(
-            list.visible.map(EventsHistoryRow.event),
+            visible.map(EventsHistoryRow.event),
             exempt: DoctorPeriod.newestFirst(visits).map(EventsHistoryRow.visit),
             date: \.date
         )

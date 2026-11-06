@@ -94,6 +94,7 @@ struct BBEventRow: View {
     let subtitle: String
     let time: String
     var trailing: String? = nil
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         HStack(spacing: BBTheme.Spacing.md) {
@@ -106,27 +107,23 @@ struct BBEventRow: View {
                     .foregroundStyle(iconColor)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title.l)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                if !subtitle.isEmpty {
-                    Text(subtitle.l)
-                        .font(.system(size: 13, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+            if dynamicTypeSize.isAccessibilitySize {
+                // The time goes under the text: beside the grown time a long
+                // word (a medication's name) had room for a few letters and
+                // broke mid-word.
+                VStack(alignment: .leading, spacing: 2) {
+                    texts
+                    (timeText + Text(verbatim: "  ") + trailingText)
                 }
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(time)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                if let trailing {
-                    Text(trailing)
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    texts
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 2) {
+                    timeText
+                    if trailing != nil { trailingText }
                 }
             }
         }
@@ -134,6 +131,34 @@ struct BBEventRow: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
+    }
+
+    // Verbatim: every caller passes text already localized, and a note or a
+    // medication name is shown as typed, never looked up. The second line and
+    // the time scale too, so a name and dose do not stay small under a grown
+    // title.
+    @ViewBuilder
+    private var texts: some View {
+        Text(verbatim: title)
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+        if !subtitle.isEmpty {
+            Text(verbatim: subtitle)
+                .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+        }
+    }
+
+    private var timeText: Text {
+        Text(verbatim: time)
+            .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
+
+    private var trailingText: Text {
+        Text(verbatim: trailing ?? "")
+            .font(BBTheme.Typography.scaled(12, relativeTo: .caption1, weight: .regular, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
     }
 }
 

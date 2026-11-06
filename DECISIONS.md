@@ -14,6 +14,18 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — On Events a dose is free, outside the cap, and titled by its medicine
+
+**Doses have twenty rows of their own on Events, and keep the 15-day window.** In the shared twenty, four a day would fill the list in five days and push every bath and walk off it. Uncapped like a visit, a year of daily drops on a subscriber's list would draw hundreds of rows in one stack. The medication's own screen lists every dose, so Events shows the latest. The window stays because it is the rule for every history list. Each half decides its own locked footer: a free account's footer under old doses sells rows a subscriber does see. Older and free-text medication events are not doses and count in the shared twenty as before.
+
+**The Medication tile logs a dose free while a medication runs.** Creating events stays Premium, so the toolbar plus and the Bath, Walk and Mood tiles keep their padlock on a free account. The Medication tile opens the dose sheet instead, with no padlock. With no running medication it stays the one-tap entry behind the gate: a nameless dose cannot be linked, so it would time no interval.
+
+**With two or more running medications nothing is preselected,** in the dose sheet and in the Add Event form, and Save waits for the choice. A wrong preselection would file the dose under another medication and time the wrong interval.
+
+**A medication row reads the name and dose copied onto the event,** never the medicine's current name, so a rename leaves the record as it was given. The events CSV carries the same two fields as columns.
+
+**`BBEventRow` shows its text verbatim.** Its callers pass text already localized; looking a typed note or a medication name up as a copy key could translate it.
+
 ## 2026-11-03 — The medication screens are free, state facts, and preset nothing
 
 **Free, with no padlock anywhere in the feature.** Adding, ending and deleting a medication, and logging, editing and deleting a dose, never meet a gate. The night dose of a feverish baby is the moment the app is for, and a paywall in front of it would charge for safety. The dose list still keeps the app's 15-day history window with its usual footer: that window is the rule for every history list, and the status reads every dose whatever the list shows.
