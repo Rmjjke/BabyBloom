@@ -545,7 +545,11 @@ else under it at any size: on a 320-pt screen at Large the ru and es iCloud
 Sync titles miss that line, and beside the value «Синхронизация» broke inside
 the word. That row is one Label around the title, the state and the hint, as
 the switch rows hold theirs, so the state and the hint start at the title's x,
-and it stays one VoiceOver element. `.byWords` keeps the value beside while
+and it stays one VoiceOver element. The paywall's plan rows take `.byFit`
+too, so a price keeps one line with its period: at xxxLarge the savings badge
+left the yearly price room for «$39.99 /» alone (en on 320 pt, ru on 375 pt),
+and on 320 pt in ru the price broke inside the number; there the badge now
+stands under the price. `.byWords` keeps the value beside while
 every word of the title stays whole next to it, the title wrapping between
 them, else under it: `BBProgressCard`'s figure and glyph grow with the text
 (`BBProgressCard.Face`, all relative to `.body`, the figure 13 : 14 with its
@@ -620,7 +624,12 @@ own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
 about words, not the whole line. `BBEventRow`'s title and subtitle are
-measured the same way. `SideBySideIdeal` (in
+measured the same way, and so is the paywalls' feature row
+(`PremiumFeatureRow`): its text stands beside the 34-pt icon while every word
+fits there, else under the icon and the check, as at every accessibility size.
+At xxxLarge on 320 pt the ru «Неограниченная история записей» and «Расширенная
+аналитика и графики» go under; the other two rows, and all four on 375 pt,
+stay beside. `SideBySideIdeal` (in
 `DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
 | value row: its ideal width is the least at which the stack's own split (the
 less flexible text offered half the room, the other the rest) leaves each
