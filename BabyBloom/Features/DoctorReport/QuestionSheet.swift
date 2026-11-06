@@ -27,8 +27,10 @@ struct QuestionSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    // Unbounded: a question may run long, and the field grows
+                    // with it.
                     TextField("question.placeholder".l, text: $text, axis: .vertical)
-                        .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular))
+                        .bbPlaceholderLabel(maxLines: nil)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .focused($focused)
                         .accessibilityIdentifier("doctor.question_sheet.field")

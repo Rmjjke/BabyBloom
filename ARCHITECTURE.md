@@ -328,12 +328,19 @@ that form reads the *device* content size and ignores the SwiftUI environment,
 so the app's ceiling walks straight past it. The ceiling itself
 (`Typography.maxContentSizeCategory`, AX2) lives in exactly one constant, from
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
-drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28. A vertical
-`TextField` whose placeholder is its only visible label and can outgrow one
-line at accessibility sizes keeps two lines there and takes a point-size font
-from `Typography.scaled` (the medication form, the Add Event form's medication
-name): on iOS 26, with a text-style font such as `.body`, the placeholder stays
-on one line and ends in «…» however many lines the field keeps.
+drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
+
+Two layouts recur at accessibility sizes, and each has one helper in
+`DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
+or time picker's label above it there (beside the buttons it broke mid-word)
+and hides that visible label from VoiceOver, so the picker's own label is read
+once; the entry sheets' date and time rows use it. `bbPlaceholderLabel` is
+for a vertical `TextField` whose placeholder is its only visible label (the
+medication name, dose and note, the Diaper note, the doctor question): it
+keeps two lines at accessibility sizes and takes the body size from
+`Typography.scaled`. Both halves matter: on iOS 26 a placeholder wraps only into lines the field already
+has, and with a text-style font such as `.body` it stays on one line and ends
+in «…» however many lines the field keeps.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
