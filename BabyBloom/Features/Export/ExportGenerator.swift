@@ -282,9 +282,11 @@ struct ExportGenerator {
           <h2>\("export.summary".l)</h2>
           <div class="stats-grid">
         """
+        // A count tile names what it counts, as the app's own tiles do: the
+        // section's name beside a number read as one item or an amount.
         if categories.contains(.feeding) {
             sections += """
-            <div class="stat"><span class="val">\(finishedFeeds)</span><span class="lbl">\("export.cat.feeding".l)</span></div>
+            <div class="stat"><span class="val">\(finishedFeeds)</span><span class="lbl">\("stat.feedings".l)</span></div>
             <div class="stat"><span class="val">\(minutesText(totalFeedMin))</span><span class="lbl">\("export.summary.total_time".l)</span></div>
             """
             // No finished day, no rate: a half-lived today would print a figure
@@ -297,15 +299,15 @@ struct ExportGenerator {
         }
         if categories.contains(.sleep) {
             sections += """
-            <div class="stat"><span class="val">\(sleeps.count)</span><span class="lbl">\("export.cat.sleep".l)</span></div>
+            <div class="stat"><span class="val">\(sleeps.count)</span><span class="lbl">\("stat.sleep_episodes".l)</span></div>
             <div class="stat"><span class="val">\(minutesText(totalSleepMin))</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
             """
         }
         if categories.contains(.diapers) {
-            sections += "<div class=\"stat\"><span class=\"val\">\(diapers.count)</span><span class=\"lbl\">\("export.cat.diapers".l)</span></div>"
+            sections += "<div class=\"stat\"><span class=\"val\">\(diapers.count)</span><span class=\"lbl\">\("stat.diapers".l)</span></div>"
         }
         if categories.contains(.growth) {
-            sections += "<div class=\"stat\"><span class=\"val\">\(growths.count)</span><span class=\"lbl\">\("export.cat.growth".l)</span></div>"
+            sections += "<div class=\"stat\"><span class=\"val\">\(growths.count)</span><span class=\"lbl\">\("stat.measurements".l)</span></div>"
         }
         sections += "</div></div>"
 

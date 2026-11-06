@@ -232,7 +232,7 @@ final class ExportGeneratorTests: XCTestCase {
         let running = FeedingEntry(startTime: fixedNow.addingTimeInterval(-600), type: .breast)
         XCTAssertTrue(running.isActive)
         let page = html(feeding: running)
-        XCTAssertTrue(page.contains("<span class=\"val\">0</span><span class=\"lbl\">\("export.cat.feeding".l)</span>"))
+        XCTAssertTrue(page.contains("<span class=\"val\">0</span><span class=\"lbl\">\("stat.feedings".l)</span>"))
     }
 
     func testTheExportFooterSpeaksTheAppLanguage() {
