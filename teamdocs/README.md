@@ -7,7 +7,7 @@ to their owners; this file only points at them.
 
 | Section | Owner | Path | Last check | Status |
 |---|---|---|---|---|
-| Design system (baseline, gaps § 10) | design | design/design-system.md | 2026-10-28 | fresh |
+| Design system (baseline, gaps § 10) | design | design/design-system.md | 2026-11-06 | fresh |
 | Live Activity + widget controls | design | design/m1-live-activity.md | 2026-10-29 | fresh |
 | Weekly summary card | design | design/m1-weekly-summary.md | 2026-10-28 | fresh |
 | Doctor-visit report | design | design/m2-doctor-report.md | — | unchecked |

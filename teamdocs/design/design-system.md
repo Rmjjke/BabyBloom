@@ -88,10 +88,10 @@ force, the system's row); and a dash never starting a line (§ 3, planned).
 Decided on 2026-11-06, from 1.3.0: an age, a report's period length and its
 day and month glued at their writers (§ 3), with Settings' baby row by fit
 at the accessibility sizes (§ 7), in code at 92c70db; Home's sleep card read
-as two durations (§ 3, § 7), in code at c67ab7c. Proposed on 2026-11-06: the
-progress card's figure and icon scaling, its row by fit (§ 7, G36), and
-Home's header name under the greeting's row where it misses beside the
-avatar (§ 7, G37).
+as two durations (§ 3, § 7), in code at c67ab7c; the progress card's figure
+and glyph scaling with its title, its row by words (§ 7, G36), in code at
+1fb7ece. Proposed on 2026-11-06: Home's header name under the greeting's row
+where it misses beside the avatar (§ 7, G37).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -880,7 +880,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
 | BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6). At the accessibility sizes the time and its date go on one line under the texts, so the title takes the row less the disc and paddings (196 pt on 320; in code at fa7de91, `BBCard.swift:214`). Below the accessibility sizes the row goes by fit (decided 2026-11-05, § 3; in code at 42a74fe): the time column beside while every word of the title and the second line fits, else the time line under the texts as at the accessibility sizes. The fit is `SideBySideIdeal` (`DesignSystem/Components/SideBySideIdeal.swift:13`): the least width at which both texts keep every word whole, measured on each text as set and with one word a line, words parted at plain spaces only, so a no-break space keeps a run one word; `ViewThatFits` takes beside only from that width. Beside the time on 320 pt, titles broke inside a word from Large in ru («Грудное вскармливание» −10 pt in the history row, +3 on Home) and from xLarge in en («Breastfeeding» −12), and at xxxLarge in 11 of the event titles; on 375 pt only ru «вскармливание» at xxxLarge in the history row (−5). By fit cures every case but ru «вскармливание» at AX2 on 320 (−8 under the texts), which breaks once and is kept | Feeding, Sleep, Diaper, Events, RecentActivity |
-| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target (`BBCard.swift:348`); the title and its value through `BBValueRow` (in code at c090a8e), the value under the title at the accessibility sizes. The value by `measure` (from 1.3.0, decided 2026-11-06; in code at c67ab7c): `.count` «3 из 7» from `progress.of_fmt`; `.hours`, Home's sleep card, «2 ч 55 мин из 14 ч» from `progress.of_duration_fmt` («%@ из %@» / "%@ of %@" / «%@ de %@»), both sides from `DurationText.minutes`, each number glued to its unit and the two sides joined by plain spaces around the word between (§ 3); the current side rounds the seconds, then floors the minute, as the Sleep tile counts, and the target is whole hours. Past the target the line reads as it is, no alarm style. On 320 pt the sleep line stands beside «Сон» at Large and xxxLarge (113 pt wide) and under it at the accessibility sizes, «Мокрые / подгузники» wrapping between its words at AX-L. The title 14 semibold rounded relative to `.body`; the figure 13 medium rounded and the icon 14 semibold, fixed (G2; scaled, with the row by fit, proposed: G36); no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5). `progress.of_unit_fmt` («10 из 14 ч», whole hours) has no reader from c67ab7c. Why one writer on both sides: the Sleep tile beside the card shows the total to the minute, and whole hours on the card disagreed with it | Dashboard (feeding, sleep, wet nappies, `DashboardView.swift:490`), Diaper (the daily norm, `DiaperView.swift:182`) |
+| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target (`BBCard.swift:348`); the title and its value through `BBValueRow` (in code at c090a8e), by words from 1.3.0 (`BBProgressCard.Row`, `shape: .byWords`; decided 2026-11-06, in code at 1fb7ece, G36): below the accessibility sizes the figure stands beside while every word of the title keeps whole next to it, the title wrapping between its words («Мокрые / подгузники» beside «9 из 6» at xxxLarge on 320 pt), else under the title, as at the accessibility sizes. Under, the figure starts at the title's text past the glyph (`bbValueRowTitle`) and is offered only the width from there, so a long line wraps between its words short of the card's edge (ru «20 ч 40 мин из / 14 ч» at AX2 with Bold Text). The value by `measure` (from 1.3.0, decided 2026-11-06; in code at c67ab7c): `.count` «3 из 7» from `progress.of_fmt`; `.hours`, Home's sleep card, «2 ч 55 мин из 14 ч» from `progress.of_duration_fmt` («%@ из %@» / "%@ of %@" / «%@ de %@»), both sides from `DurationText.minutes`, each number glued to its unit and the two sides joined by plain spaces around the word between (§ 3); the current side rounds the seconds, then floors the minute, as the Sleep tile counts, and the target is whole hours. Past the target the line reads as it is, no alarm style. On 320 pt the sleep line stands beside «Сон» at Large (113 pt wide) and xxxLarge and under it at the accessibility sizes, «Мокрые / подгузники» wrapping between its words at AX-L. The faces relative to `.body` (`BBProgressCard.Face`; in code at 1fb7ece, G36): the title 14 semibold rounded, the figure 13 medium rounded, the glyph 14 semibold in the symbol's own design, so the figure keeps 13 : 14 with its title at every size (title / figure / glyph: Large 14 / 13 / 14, xxxLarge 18.33 / 17 / 18.33, AX1 21.67 / 20 / 21.67, AX2 25.33 / 23.67 / 25.33 pt), capped at AX2 with the type scale; no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5). `progress.of_unit_fmt` («10 из 14 ч», whole hours) has no reader from c67ab7c. Why one writer on both sides: the Sleep tile beside the card shows the total to the minute, and whole hours on the card disagreed with it | Dashboard (feeding, sleep, wet nappies, `DashboardView.swift:490`), Diaper (the daily norm, `DiaperView.swift:182`) |
 | BBSectionHeader | BBCard | **from 1.3.0** (decided 2026-11-06; in code at a298c62, `BBCard.swift:416`) — a section's title alone: title3, BBTextPrimary, leading, a `Spacer` after it. Its one action, Growth's «All» over the current measurements, opened the add sheet and went with `action` and `actionTitle`: once the floating + left Growth (G32) the bar's + is the screen's add, a second add in a header was a second door to the same sheet under a weaker word, and a scroll to the history reaches the section right under it | Dashboard, Feeding, Sleep, Diaper, Events, Growth, Medications (the list, a medication's doses), BBHistorySection |
 | BBValueRow | — | **in code at c090a8e** (decided 2026-11-04; § 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: underSpacing)`: xs 4 by default, 2 in the Settings rows, as their hints; the value on the title's text's leading edge by the `bbValueRowTitle` alignment guide); `shape` `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its `SettingsRowLabel`'s texts as a switch row's hint does. The medication menu is not on it: its label stands above it at every size (§ 3) | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
 | BBTierValue | BBTierValue | **from 1.3.0** (G23, § 2) — a value whose tier a dot carries: the words semibold at the caller's size relative to its text style (13 / `caption1` on Home and the Nutrition card, 14 / `body` on the Growth cards), in BBTextPrimary or the caller's text ink, led by a dot in the tier tint drawn into the words' own run of text: 7/13 of the size across (7 pt at 13, 7.5 at 14) and a 5/13 gap, both scaled with the style, on the baseline, its centre within 0.2 pt of the x-height's middle, glued to the first word by a word joiner (U+2060). A wrapped second line starts at the dot's x, the text's leading edge; the dot stays on the first line. The tint is resolved from the environment, so it follows a switch between light and dark; the tints are under 3:1 on the light surfaces and stand as marks beside words that say the verdict. VoiceOver reads the words, the dot is silent. In code at 855227f | Dashboard (`DashboardView.swift:598`), the Growth cards (`GrowthInsightCards.swift:628`), the Nutrition card (`NutritionSection.swift:156`) |
@@ -1093,8 +1093,8 @@ Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
 Home's quick actions and the weight gain card, G22 is fixed for its reach,
-and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26 and G30 to G35 are fixed
-for 1.3.0; G36 and G37 are proposed.
+and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26 and G30 to G36 are fixed
+for 1.3.0; G37 is proposed.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -1159,8 +1159,8 @@ for 1.3.0; G36 and G37 are proposed.
   grids and tile rows take the counts of § 3 at every text size. The rest of
   the app's fixed words follow the same rule, screen by screen: among them the
   Growth insight cards and screen (GrowthInsightCards 17 at e8abca8, GrowthView 8), the
-  charts, the Home cards' 13 pt words (`BBProgressCard`'s figure,
-  `BBCard.swift:393`, G36; the growth hint, `GrowthInsightCards.swift:458`;
+  charts, the Home cards' 13 pt words (`BBProgressCard`'s figure and glyph,
+  in code at 1fb7ece, G36; the growth hint, `GrowthInsightCards.swift:458`;
   `LockedInsightCard`, `:785`, `:790`), the weekly card, the paywall and
   onboarding's other pages. Onboarding's feeding rows also miss the column
   room at accessibility sizes on 320 pt (§ 3).
@@ -1687,32 +1687,38 @@ for 1.3.0; G36 and G37 are proposed.
   year carries the year («May 28, 2026»), and its line wraps between words at
   Large on 320 pt (en by 7 pt with a wide value, ru by 17, es by 3); nothing
   is cut.
-- **G36 · The progress card's figure stays 13 pt at every size; proposed,
-  for 1.3.0** (found 2026-11-06 at c67ab7c). `BBProgressCard`'s figure is
-  `.system(size: 13, weight: .medium, design: .rounded)` (`BBCard.swift:393`)
-  and its icon `.system(size: 14, weight: .semibold)` (`:384`); only the
-  title scales (`:387`). At AX2 the figure is 13 pt under a 27.2 pt title
-  (0.48), on every progress card: Home's feeding, sleep and wet nappies
-  (`DashboardView.swift:490`) and the Diaper screen's daily norm
-  (`DiaperView.swift:182`). Breaks P6 and WCAG 1.4.4 (G2): the figure is the
-  card's read-at-a-glance value. Proposed fix: the figure
-  `scaled(13, relativeTo: .body, weight: .medium, design: .rounded)`,
-  `BBStatCard`'s unit (`BBCard.swift:114`), so it keeps 13 : 14 with its
-  title at every size (17.59 : 18.94 at xxxLarge, 25.24 : 27.18 at AX2); the
-  icon `scaled(14, relativeTo: .body, weight: .semibold)`, a glyph beside its
-  word (§ 3); below the accessibility sizes the row beside only while every
-  word of the title keeps whole beside the figure (`SideBySideIdeal`, as
-  `BBEventRow` and Home's growth rows), else the figure under the title as at
-  the accessibility sizes. Measured on 320 pt (the card 256 inside), the
-  title's room against its widest word: beside holds in ru, en and es at
-  every size below the accessibility sizes, except at xxxLarge with Bold
-  Text, where es «Sueño» beside the widest sleep line «20 h 40 min de 14 h»
-  (163.0 pt) keeps +2.1 with the moon's advance and −0.2 with the heart's;
-  every other case keeps +7.3 or more, the counts +34.3 or more. A branch on
-  the text size cannot see that edge; the fit can. Under the title at AX2
-  the line keeps one line in 256 (230.4 / 220.1 / 225.7 pt, ru / en / es,
-  Bold Text). Not taken: relative to `.footnote`, as `BBEventRow`'s
-  subtitle, which outgrows the title at xxxLarge (19 against 18.94) and
+- **G36 · The progress card's figure stayed 13 pt at every size; fixed for
+  1.3.0** (found 2026-11-06 at c67ab7c). `BBProgressCard`'s figure was
+  `.system(size: 13, weight: .medium, design: .rounded)` (`BBCard.swift:393`
+  at c67ab7c) and its icon `.system(size: 14, weight: .semibold)` (`:384`);
+  only the title scaled (`:387`). At AX2 the figure stood 13 pt under a
+  25.33 pt title (0.51), on every progress card: Home's feeding, sleep and
+  wet nappies (`DashboardView.swift:490`) and the Diaper screen's daily norm
+  (`DiaperView.swift:182`). Broke P6 and WCAG 1.4.4 (G2): the figure is the
+  card's read-at-a-glance value. Fix (decided 2026-11-06, in code at
+  1fb7ece; § 7 BBProgressCard): the figure 13 medium rounded and the glyph
+  14 semibold relative to `.body`, as the 14 pt title
+  (`BBProgressCard.Face`), so the figure keeps 13 : 14 with its title at
+  every size (17 : 18.33 at xxxLarge, 23.67 : 25.33 at AX2), capped at AX2
+  with the type scale; the glyph grows with the word it stands beside (§ 3).
+  Below the accessibility sizes the row stands beside only while every word
+  of the title keeps whole next to the figure (`BBValueRow`'s `.byWords`),
+  else the figure goes under the title, as at the accessibility sizes. Not
+  `SideBySideIdeal`: it splits a row between two wrapping texts, and the
+  figure here is one line. Measured on 320 pt before the build (CoreText,
+  the card 256 inside), beside held in ru, en and es at every size below the
+  accessibility sizes but at xxxLarge with Bold Text, where es «Sueño»
+  beside the widest sleep line «20 h 40 min de 14 h» kept +2.1 with the
+  moon's advance and −0.2 with the heart's; every other case kept +7.3 or
+  more, the counts +34.3 or more. A branch on the text size cannot see that
+  edge; the fit can. Measured at 1fb7ece, that edge keeps +2.3, so with
+  today's words no row goes under below the accessibility sizes. Under the
+  title the figure starts past the glyph and is offered only the width from
+  there: at AX2 with Bold Text ru «20 ч 40 мин из 14 ч» needs about 221 of
+  about 219 and wraps between its words onto two lines, where a stack offered
+  the row's whole width ran it to 289.7, past the card's inner edge at 288.
+  Not taken: relative to `.footnote`, as `BBEventRow`'s
+  subtitle, which outgrows the title at xxxLarge (19 against 18.33) and
   breaks es «Sueño» beside «16 h 20 min de 16 h» (−1.3 Regular, −9.1 Bold);
   left fixed, which keeps the one number the card is for at its smallest.
 - **G37 · Home's header name cut at AX2 on 320 pt; proposed, after 1.2.0**
