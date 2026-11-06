@@ -16,6 +16,7 @@
   "progress.wet_nappies": "Мокрые подгузники",
   "progress.of_fmt": "%d из %d",
   "progress.of_unit_fmt": "%d из %d %@",
+  "progress.of_duration_fmt": "%@ из %@",
   "nav.diapers": "Подгузники",
   "nav.growth": "Рост",
   "nav.events": "События",
