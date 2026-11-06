@@ -189,10 +189,13 @@ struct PaywallView: View {
 
 // MARK: - Feature Row
 
-/// One row for both paywalls and the subscribed screen. At accessibility sizes
-/// the icon column leaves the line: a Text only breaks inside a word when the
-/// word alone is wider than its space, and beside a 34pt icon, a checkmark and
-/// the padding, a long Russian word («Неограниченная») was exactly that.
+/// One row for both paywalls and the subscribed screen. A Text only breaks
+/// inside a word when the word alone is wider than its space, and beside a
+/// 34pt icon, a checkmark and the padding, a long Russian word
+/// («Неограниченная») was exactly that at the accessibility sizes and at
+/// xxxLarge on a 320-pt screen. So the text stands beside the icon only while
+/// every word of it fits the room there, wrapping between words; otherwise,
+/// and at every accessibility size, it goes under the icon and the check.
 struct PremiumFeatureRow: View {
     let icon: String
     let text: String
@@ -213,31 +216,43 @@ struct PremiumFeatureRow: View {
             .foregroundStyle(BBTheme.Colors.success)
     }
 
+    /// Its ideal width is its widest word, the width `ViewThatFits` compares.
     private var label: some View {
-        Text(text)
+        WordWrappingText(text: text)
             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
+    var beside: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            iconBadge
+            label
+            Spacer()
+            check
+        }
+    }
+
+    var stacked: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            HStack {
+                iconBadge
+                Spacer()
+                check
+            }
+            label
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     var body: some View {
         Group {
             if typeSize >= .accessibility1 {
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                    HStack {
-                        iconBadge
-                        Spacer()
-                        check
-                    }
-                    label
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                stacked
             } else {
-                HStack(spacing: BBTheme.Spacing.md) {
-                    iconBadge
-                    label
-                    Spacer()
-                    check
+                ViewThatFits(in: .horizontal) {
+                    beside
+                    stacked
                 }
             }
         }

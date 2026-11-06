@@ -277,6 +277,22 @@ final class SideBySideIdealTests: XCTestCase {
                    title: title, subtitle: "15 мин", time: "09:40", trailing: trailing)
     }
 
+    // MARK: - The paywall's feature row
+
+    /// One-word texts, so a break inside the word is the only way the text
+    /// grows a line and the row grows past its icon.
+    func testTheFeatureRowsIdealIsWhereItsLongestWordStopsBreaking() throws {
+        try requireLarge()
+        for text in ["Неограниченная", "Расширенная", "Unlimited"] {
+            let row = PremiumFeatureRow(icon: "infinity", text: text).beside
+            let ideal = idealWidth(row)
+            let wide = height(row, width: ideal + 100)
+            let name = "«\(text)» ideal \(ideal)"
+            XCTAssertEqual(height(row, width: ideal), wide, accuracy: 0.5, "\(name): one line at its ideal")
+            XCTAssertGreaterThan(height(row, width: ideal - 1), wide + 1, "\(name): the word breaks a point under it")
+        }
+    }
+
     // MARK: - Rows built at a content size
 
     private struct Style {

@@ -152,7 +152,7 @@ struct BBStatCard: View {
 /// it wraps as any text does, and `ViewThatFits` keeps a row only while every
 /// word fits it, so the text breaks between words and never inside one. Words
 /// part at plain spaces; a no-break space keeps a number with its unit.
-private struct WordWrappingText: View {
+struct WordWrappingText: View {
     let text: String
 
     var body: some View {
