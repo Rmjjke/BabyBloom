@@ -6,7 +6,7 @@ final class BabyBloomTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Pin the language so localized formatters (units, percentile bands) are
+        // Pin the language so localized formatters (units, percentile tails) are
         // deterministic regardless of the host's saved preference.
         LocalizationManager.shared.setLanguage("ru")
     }
@@ -121,10 +121,19 @@ final class BabyBloomTests: XCTestCase {
         XCTAssertEqual(percentile, 50, accuracy: 2)
     }
 
-    func testWHOPercentileLabel() {
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(50), "15–50")
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(1), "< 3-й")
-        XCTAssertEqual(WHOGrowthStandard.percentileLabel(98), "> 97-го")
+    /// The card's figure is the number inside the chart, its tails included,
+    /// and the side past its edge; a sentence names that side in words.
+    func testWHOPercentileFigureAndTailWords() {
+        let inside = WHOGrowthStandard.PercentileReading(percentile: 50, isBeyondChart: false)
+        XCTAssertEqual(inside.badge, "50")
+        XCTAssertEqual(inside.rowText(format: "dashboard.growth.percentile_fmt".l), "50-й перцентиль")
+        XCTAssertEqual(WHOGrowthStandard.PercentileReading(percentile: 2, isBeyondChart: false).badge, "2")
+        let below = WHOGrowthStandard.PercentileReading(percentile: 1, isBeyondChart: true)
+        XCTAssertEqual(below.badge, "< 3")
+        XCTAssertEqual(below.rowText(format: "%d"), "< 3-й")
+        let above = WHOGrowthStandard.PercentileReading(percentile: 99, isBeyondChart: true)
+        XCTAssertEqual(above.badge, "> 97")
+        XCTAssertEqual(above.rowText(format: "%d"), "> 97-го")
     }
 
     // MARK: - Schema Validity

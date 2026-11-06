@@ -213,8 +213,7 @@ final class DoctorReportPDFTests: XCTestCase {
 
     private static let closedKeys = [
         "percentile.normal", "percentile.below_normal", "percentile.above_normal", "percentile.very_low",
-        "percentile.very_high", "percentile.below3", "percentile.3_15", "percentile.15_50",
-        "percentile.50_85", "percentile.85_97", "percentile.above97",
+        "percentile.very_high", "percentile.below3", "percentile.above97",
         "velocity.below", "velocity.within", "velocity.above", "velocity.expected_fmt",
         "nutrition.status_below", "nutrition.status_within", "nutrition.status_above",
         "breakdown.title", "breakdown.gain_fmt", "breakdown.feeds_fmt", "breakdown.nappies_fmt",

@@ -97,8 +97,8 @@ struct GrowthShowcasePage: View {
     private var liveCard: some View {
         switch preview {
         case let .reading(reading, birthWeightKg):
-            // `tone: .neutralOnly` — see `PercentileCard.Tone`. The band label
-            // still names the tail in full; only the alarm colour is withheld.
+            // `tone: .neutralOnly` — see `PercentileCard.Tone`. The figure
+            // still names the tail; only the ring's alarm colour is withheld.
             PercentileCard(
                 percentile: reading.percentile,
                 badge: reading.badge,

@@ -727,11 +727,16 @@ a length is the wrong standard, not an approximation.
 shared with onboarding.** `GrowthView` wraps it in the `ExplainerCard` above —
 that wrapper is what injects the "?" — and passes two caption lines; the
 onboarding showcase page renders it bare, with one caption line and
-`tone: .neutralOnly`. The tone is the only behavioural difference: below the
-3rd centile or above the 97th the tail takes the neutral `textPrimary` instead
-of `BBAlert`, while the band LABEL is unchanged (DECISIONS 2026-09-21). It is
-one view rather than two because a hand-copied card stating a clinical figure
-is a drift this project has already paid for.
+`tone: .neutralOnly`. Its figure is the percentile itself,
+`PercentileReading.badge` («61», «> 97», «< 3»), in `textPrimary` under
+«Weight Percentile», and the two are one VoiceOver element; there is no band
+word. The ring beside it draws the reading in its tier tint (`percentileTint`),
+carries no number and is hidden from VoiceOver, because the figure states what
+it pictures. The tone is the only behavioural difference: below the 3rd
+centile or above the 97th the ring takes the neutral `textPrimary` instead of
+`BBAlert`, while the figure is unchanged (DECISIONS 2026-09-21). It is one view
+rather than two because a hand-copied card stating a clinical figure is a
+drift this project has already paid for.
 
 ## Onboarding
 
