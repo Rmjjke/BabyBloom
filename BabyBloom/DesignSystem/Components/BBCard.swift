@@ -98,7 +98,8 @@ struct BBStatCard: View {
 ///
 /// One shape per text size at every width, never a count that follows the
 /// width: `ViewThatFits` compares a row's whole width, not its narrowest
-/// column, and one sheet would take two shapes at one text size.
+/// column, and one sheet would take two shapes at one text size. Home's
+/// quick actions, the one exception, measure theirs in `DashboardView`.
 struct BBTileColumns {
     /// `.large` and every smaller size.
     let large: Int
