@@ -297,11 +297,19 @@ final class SideBySideIdealTests: XCTestCase {
             chrome.append(idealWidth(row) - ideal)
         }
         XCTAssertEqual(chrome.max()! - chrome.min()!, 0, accuracy: 0.5, "the row around its label: \(chrome)")
+
+        // Two words, so the label (two lines at its ideal) is taller than the
+        // icon: at its ideal the row has to hand the label its widest word,
+        // whatever else stands beside it, not only add the same chrome.
+        let row = PremiumFeatureRow(icon: "infinity", text: "Неограниченная Неограниченная", shape: .beside)
+        let label = height(row.besideLabel, width: idealWidth(row.besideLabel))
+        XCTAssertEqual(height(row, width: idealWidth(row)), label + 2 * 10, accuracy: 0.5,
+                       "the row leaves its label the widest word at its ideal (10 pt above and below)")
     }
 
     /// At Large on a 320-pt screen every ru text stays beside its icon,
-    /// wrapping between words: on one line «Неограниченная история записей»
-    /// alone is wider than the card.
+    /// wrapping between words: on one line the «Неограниченная история
+    /// записей» row is wider than the card.
     func testTheFeatureRowsStayBesideAtLargeOn320InRussian() throws {
         try requireLarge()
         let card = 320 - 2 * BBTheme.Spacing.lg
