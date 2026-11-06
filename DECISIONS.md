@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — The weekly card's × leaves a line with an undo; one legend says what the arrows compare
+
+× still hides the weekly card until next Monday. For the rest of that Dashboard visit the card's surface stays in its place with one line, «The weekly summary is hidden until next Monday.», and «Undo», which brings the card back. The line has no timer and is not stored; another tab, a pushed screen or the app in the background ends it. Under the rows, when an arrow shows, one caption says the arrows show the change from the week before. VoiceOver skips it, since each row already speaks its comparison in words.
+
+**Why.** The card used to fade out with nothing said, so a parent did not learn where it went or when it comes back, and a mistaken tap could not be taken back. A confirmation before hiding would cost a step every week for an act an undo already covers; a toast with an undo leaves on a timer, which a slow reader or VoiceOver can miss (WCAG 2.2.1), and the app has no toasts. The line stays on the card's surface because on the bare background the secondary text is 4.48:1, under AA. The legend exists because no word fits beside an arrow at Large on a 320-pt phone (the shortest, "↓ 25 min vs the week before", takes 168.6 pt with 44 pt left), so the comparison is said once for all rows.
+
 ## 2026-11-04 — The Growth percentile card states the percentile; the band label goes
 
 The WHO percentile card's figure is the percentile itself, «61», or «> 97» / «< 3» past the chart's edge, in the text colour under «Weight Percentile», as the report prints it. The band label («50–85») is gone. The ring keeps the tier tint as a picture of where the reading sits, without a number, and VoiceOver skips it: the figure is read once, with its caption.

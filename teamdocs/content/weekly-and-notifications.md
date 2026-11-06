@@ -8,6 +8,20 @@ are `teamdocs/design/m1-weekly-summary.md`.
 
 - Shown Monday to Sunday for the calendar week before; × hides it until next
   Monday (`weekly.a11y_hide`).
+  - After ×, the card folds to one line in its place while the Dashboard stays
+    on screen: `weekly.hidden` "The weekly summary is hidden until next
+    Monday." / «Недельная сводка скрыта до следующего понедельника.» / «El
+    resumen semanal está oculto hasta el próximo lunes.», and a button,
+    `weekly.undo` "Undo" / «Вернуть» / «Deshacer», that brings the card back.
+  - "Next Monday", as `weekly.gain_next_monday` says it. "Until Monday" would
+    read as today to a parent who hides the card on a Monday. "Weekly
+    summary" is the name the Settings switch and the notification use; the
+    card's own title, "Last week", would read as if the week itself were
+    hidden.
+  - The line says "hidden until", not "comes back on": a week with no entries
+    shows no card next Monday either.
+  - Russian «Вернуть», not «Отменить», which sits too close to «Отмена»
+    (Cancel). Russian glues «до» to the word after it.
 - Lines are **label: value** (`Кормлений в день: 7,4`), so a decimal never
   meets a Russian plural form, and they stack cleanly at accessibility sizes.
 - Averages are per day **over the days with entries**, and the card says so
@@ -23,6 +37,17 @@ are `teamdocs/design/m1-weekly-summary.md`.
 - Comparison is two plain numbers: the delta is an arrow and a number in a
   neutral colour, and `weekly.previous_fmt` gives the week before. No word
   grades the change.
+  - No word fits beside the arrow on a 320 pt screen, so one line under the
+    rows says what the arrows compare, once for every row:
+    `weekly.legend` "Arrows show the change from the week before." /
+    «Стрелки показывают, на сколько больше или меньше, чем неделей раньше.» /
+    «Las flechas muestran el cambio respecto a la semana anterior.» It shows
+    when at least one arrow does; a first week has the first-week line in
+    its place.
+  - It names the week before as the card's other lines do: «неделей раньше»,
+    as `weekly.previous_fmt` and the spoken deltas. «Прошлая неделя» is the
+    card's title, the week shown, so «разница с прошлой неделей» would name
+    the wrong week. Russian glues «на сколько».
 - **Gain is a rate**: the weight-velocity pair whose later weighing falls in
   the week (the earlier one may be before it).
   - It is the same number Growth shows. A pair of weighings inside one Monday
@@ -77,6 +102,11 @@ are `teamdocs/design/m1-weekly-summary.md`.
   before"). `%@` is the unsigned delta as shown. "More / less" states the
   fact; it never says better or worse. No delta, no phrase (equal values
   show no arrow).
+- The arrows' legend `weekly.legend` is for sight only and is hidden from
+  VoiceOver. Each row with an arrow already speaks its comparison in words,
+  so read aloud the legend would only repeat it.
+- The hidden line and its button are read in that order: `weekly.hidden`,
+  then `weekly.undo`.
 - Header button: label = title + range; hint `weekly.a11y_expand` /
   `weekly.a11y_collapse` (the action); value `weekly.a11y_expanded` /
   `weekly.a11y_collapsed` (the state).
@@ -139,3 +169,5 @@ hint.
   as if nothing were logged.
 - 2026-11-04 — `settings.notify_weekly_hint`, the line under Settings ›
   Notifications › Weekly summary: when the notification comes.
+- 2026-11-04 — `weekly.hidden` and `weekly.undo`, the line the card folds to
+  after ×, and `weekly.legend`, one line under the rows for the arrows.
