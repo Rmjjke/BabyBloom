@@ -2,13 +2,12 @@ import Foundation
 
 /// Everything the pediatrician report's data cards show, for one period
 /// `[periodStart, now)`. Pure: plain values in (see `Input`), numbers and dates
-/// out; the views format them. Every rule of requirements.md R2–R5 lives here
+/// out; the views format them. Every rule of the report's counting lives here
 /// and is pinned by `DoctorReportSummaryTests`.
 ///
 /// It builds on `PeriodSummary`, but feeds it the REPORT's input: running
 /// timers are left out and a sleep that began before the period counts by its
-/// part inside — the weekly card decides both the other way (plan v2
-/// decision 6, DECISION m2-report-screen 1).
+/// part inside — the weekly card decides both the other way.
 struct DoctorReportSummary: Equatable {
 
     // MARK: Input (no SwiftData)
@@ -77,15 +76,15 @@ struct DoctorReportSummary: Equatable {
     }
 
     struct Growth: Equatable {
-        /// The latest weighing at or before now, of ANY date (R4.1).
+        /// The latest weighing at or before now, of ANY date.
         let latestWeight: Measure?
         let weightPercentile: PercentileRow
         let latestHeight: Measure?
         let heightPercentile: PercentileRow
         let latestHead: Measure?
-        /// «Since <baseDate>: ±grams» (R4.5); nil when hidden.
+        /// «Since <baseDate>: ±grams»; nil when hidden.
         let change: (baseDate: Date, grams: Int)?
-        /// The period's weighings, newest first (R4.6). The view shows 6, then «Show all N».
+        /// The period's weighings, newest first. The view shows 6, then «Show all N».
         let weighings: [Weighing]
         let atBirthWeightKg: Double?
         let atBirthHeightCm: Double?
@@ -112,7 +111,7 @@ struct DoctorReportSummary: Equatable {
         }
     }
 
-    /// «Days with entries: N of M» — shown only when `withEntries < counted` (R3.2).
+    /// «Days with entries: N of M» — shown only when `withEntries < counted`.
     struct Days: Equatable {
         let withEntries: Int
         /// Full days since the period start, plus today only if today has an entry of this kind.
@@ -122,13 +121,13 @@ struct DoctorReportSummary: Equatable {
 
     struct Feeding: Equatable {
         let totalFeeds: Int
-        /// nil in a short period (R3.3) — the view prints `report.feeds_count_fmt` then.
+        /// nil in a short period — the view prints `report.feeds_count_fmt` then.
         let feedsPerDay: Double?
-        /// Only when more than one type was logged (R5.1); most frequent first.
+        /// Only when more than one type was logged; most frequent first.
         let byType: [TypeCount]
         /// Formula + expressed ml a day, over days with a bottle that has a volume.
         let bottleMLPerDay: Double?
-        /// Median length of finished breastfeeds (design review, 2026-11-02): one
+        /// Median length of finished breastfeeds: one
         /// forgotten 3-hour timer moved a mean by minutes; the typical feed is
         /// what the doctor asks about. An even count takes the mean of the two
         /// middle lengths.
@@ -151,7 +150,7 @@ struct DoctorReportSummary: Equatable {
     }
 
     struct Diapers: Equatable {
-        /// `both` counts in wet AND dirty (R5.3).
+        /// `both` counts in wet AND dirty.
         let wetCount: Int
         let dirtyCount: Int
         /// nil in a short period — the view prints the counts.
@@ -171,16 +170,16 @@ struct DoctorReportSummary: Equatable {
     let now: Date
     /// Whole calendar days from the period start's day to today's (`DoctorPeriod.periodDays`).
     let periodDays: Int
-    /// Fewer than 3 days: raw counts, no averages, no days lines (R3.3).
+    /// Fewer than 3 days: raw counts, no averages, no days lines.
     var isShort: Bool { periodDays < 3 }
 
     let growth: Growth
-    /// nil = no finished entry of that kind in the period → «No … logged since» (R5.4).
+    /// nil = no finished entry of that kind in the period → «No … logged since».
     let feeding: Feeding?
     let sleep: Sleep?
     let diapers: Diapers?
     /// A visit starts the period and nothing was logged since: ONE «new period»
-    /// card replaces the three empty ones (R5.5). Never for «since birth».
+    /// card replaces the three empty ones. Never for «since birth».
     let showsNewPeriodCard: Bool
 
     // MARK: Building — implemented in DoctorReportSummary+Make.swift

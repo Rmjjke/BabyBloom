@@ -2,9 +2,9 @@ import XCTest
 import SwiftUI
 @testable import BabyBloom
 
-/// Not an assertion suite — a visual dump for the design review, like
+/// Not an assertion suite — a visual dump for visual review, like
 /// WidgetRenderDump. Renders the Live Activity's Lock Screen view and Dynamic
-/// Island pieces in every state the design note draws (running per title,
+/// Island pieces in every state the activity has (running per title,
 /// Saved, stale), in every language, light and dark, at the default and the
 /// largest text size.
 ///

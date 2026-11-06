@@ -1,8 +1,8 @@
 import Foundation
 
-/// The rules of requirements.md R2–R5, applied to the plain `Input`. Each
+/// The report's counting rules, applied to the plain `Input`. Each
 /// section is bucketed by its OWN `PeriodSummary`, so "days with entries"
-/// means days with a feed for feeding, days with a sleep for sleep (R3.1),
+/// means days with a feed for feeding, days with a sleep for sleep,
 /// never the any-entry count the weekly card divides by.
 extension DoctorReportSummary {
 
@@ -11,7 +11,7 @@ extension DoctorReportSummary {
         let frame = Frame(start: periodStart, now: now, calendar: calendar,
                           periodDays: DoctorPeriod.periodDays(from: periodStart, to: now,
                                                               calendar: calendar))
-        // R2.1: a running timer has no end, so it is not a feed or a sleep yet.
+        // A running timer has no end, so it is not a feed or a sleep yet.
         let feeds = input.feeds.filter { $0.end != nil && frame.contains($0.start) }
         let sleeps = input.sleeps.compactMap { frame.clipped($0) }
         let diapers = input.diapers.filter { frame.contains($0.time) }
@@ -56,7 +56,7 @@ extension DoctorReportSummary {
         /// and the days line come from here: the report is opened at the
         /// visit, mid-morning, and a half-lived today divided like a whole day
         /// pulled «feeds a day» from 8 to 6.5 — and «wet a day» down with it,
-        /// the one number a doctor reads for hydration (final review, M2).
+        /// the one number a doctor reads for hydration.
         /// Today stays in every count; it just does not average.
         func bucketFinished(_ input: PeriodSummary.Input) -> PeriodSummary {
             PeriodSummary.make(start: start, end: todayStart, input: input, calendar: calendar)
@@ -72,7 +72,7 @@ extension DoctorReportSummary {
             PeriodSummary.make(start: start, end: now, input: input, calendar: calendar)
         }
 
-        /// R2.2: a finished sleep counted by its part inside the period. The
+        /// A finished sleep counted by its part inside the period. The
         /// clipped start lands on day 0, which is where the night belongs. The
         /// end is held at `now` too, so a `-BBNow` behind the real clock cannot
         /// count sleep that has not happened in its world.
@@ -84,7 +84,7 @@ extension DoctorReportSummary {
         }
     }
 
-    // MARK: Feeding, sleep, diapers (R5.1–R5.4)
+    // MARK: Feeding, sleep, diapers
 
     private static func feedingSection(_ feeds: [Input.Feed], frame: Frame) -> Feeding? {
         guard !feeds.isEmpty else { return nil }
@@ -134,7 +134,7 @@ extension DoctorReportSummary {
         guard !diapers.isEmpty else { return nil }
         let finishedDiapers = diapers.filter { frame.isFinishedDay($0.time) }
         let finished = frame.bucketFinished(.init(otherEntries: finishedDiapers.map(\.time)))
-        // R5.3: `both` is one diaper that is wet AND dirty, so it counts in each.
+        // `both` is one diaper that is wet AND dirty, so it counts in each.
         let wet = diapers.filter { $0.type != .dirty }.count
         let dirty = diapers.filter { $0.type != .wet }.count
         let finishedWet = finishedDiapers.filter { $0.type != .dirty }.count
@@ -166,7 +166,7 @@ extension DoctorReportSummary {
             .map { (value: $0.value, count: $0.count) }
     }
 
-    // MARK: Growth (R4.1–R4.7)
+    // MARK: Growth
 
     private static func growthSection(input: Input, frame: Frame) -> Growth {
         // The same horizon as `weightMeasurements(asOf:)`: a row a few hours
@@ -222,7 +222,7 @@ extension DoctorReportSummary {
             .max { $0.date < $1.date }
     }
 
-    /// R4.2/R4.3: why a row has no number matters to the parent, so the two
+    /// Why a row has no number matters to the parent, so the two
     /// nil cases of a reading are told apart here, by the measurement's own
     /// date and the corrected age the WHO functions use.
     private static func percentileRow(at date: Date?, input: Input,
@@ -236,7 +236,7 @@ extension DoctorReportSummary {
         return .none
     }
 
-    /// R4.5. The newborn gate is `gainDeferral` itself (D17), never a copy:
+    /// The newborn gate is `gainDeferral` itself, never a copy:
     /// a change measured across the physiological dip reads as a loss.
     private static func change(weighings: [WeightMeasurement], input: Input,
                                frame: Frame) -> (baseDate: Date, grams: Int)? {
@@ -254,11 +254,11 @@ extension DoctorReportSummary {
         else { return nil }
         let base = weighings[baseIndex]
         let kg = weighings[weighings.count - 1].weightKg - base.weightKg
-        // To 10 g, as the weekly card's gain (D27): scales differ by more.
+        // To 10 g, as the weekly card's gain: scales differ by more.
         return (baseDate: base.date, grams: Int((kg * 1000 / 10).rounded()) * 10)
     }
 
-    /// R4.6: newest first, each with a height and a head logged the same day —
+    /// Newest first, each with a height and a head logged the same day —
     /// on the weighing's own row, else on another row of that day (the parent
     /// may enter them one at a time).
     private static func periodWeighings(_ known: [Input.Growth], frame: Frame) -> [Weighing] {

@@ -74,7 +74,7 @@ struct QuestionsCard: View {
                     .frame(minHeight: 44)
                     .contentShape(Rectangle())
                     // A tap gesture, not a Button: a Button still fires on
-                    // release after a drag, so the row's swipe never won (Q-016).
+                    // release after a drag, so the row's swipe never won.
                     // A tap fails once the finger moves; the parent's drag wins.
                     .onTapGesture { onEdit(q) }
                     .accessibilityElement(children: .combine)

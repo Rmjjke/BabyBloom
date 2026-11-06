@@ -62,7 +62,7 @@ enum LiveActivityPlanner {
 
     /// Which entries have used up their one start. A closed gate ends every
     /// activity, so it also forgets them all: the switch or iOS turning Live
-    /// Activities back on shows the running timer again (QA Q4), while an
+    /// Activities back on shows the running timer again, while an
     /// activity the user swiped away stays away.
     static func remembered(_ started: Set<UUID>, running: [RunningTimer],
                            gate: LiveActivityGate) -> Set<UUID> {

@@ -7,7 +7,8 @@ private typealias Diaper = DoctorReportSummary.Input.Diaper
 private typealias Growth = DoctorReportSummary.Input.Growth
 
 /// The report PDF's HTML against the screen's own formatters, and against
-/// Content's closed no-verdict list (teamdocs/content/doctor-report.md).
+/// the closed list of verdict words the report must never print
+/// (teamdocs/content/doctor-report.md).
 final class DoctorReportPDFTests: XCTestCase {
 
     /// Europe/Berlin, as `DoctorReportSummaryTests`: the clocks go back on 25 Oct.
@@ -89,7 +90,7 @@ final class DoctorReportPDFTests: XCTestCase {
     private func makeNewPeriodSummary() -> DoctorReportSummary {
         let input = DoctorReportSummary.Input(
             // Weighed before the visit: a weighing today would be the period's
-            // first entry, and the new-period card would not show (R5).
+            // first entry, and the new-period card would not show.
             growth: [Growth(date: at(28, 12), weightKg: 5.5, heightCm: nil, headCm: nil)],
             birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
             birthWeightKg: nil, isMale: false)
@@ -175,7 +176,8 @@ final class DoctorReportPDFTests: XCTestCase {
             let first = try XCTUnwrap(page.range(of: rows[0]))
             let second = try XCTUnwrap(page.range(of: rows[1], range: first.upperBound..<page.endIndex))
             XCTAssertLessThan(first.lowerBound, second.lowerBound)
-            XCTAssertTrue(page.contains("thead { display: table-header-group; }"))
+            // Its head on every page is pinned on the rendered file: PDFPagesTests.
+            XCTAssertTrue(page.contains("<table class=\"weighings\"><thead>"))
         }
     }
 

@@ -8,7 +8,7 @@ private typealias Growth = DoctorReportSummary.Input.Growth
 private typealias Days = DoctorReportSummary.Days
 private typealias Measure = DoctorReportSummary.Measure
 
-/// The report's rules (requirements.md R2–R5) on plain values with a fixed
+/// The report's counting rules on plain values with a fixed
 /// clock. The day bucketing itself is pinned by `PeriodSummaryTests`.
 ///
 /// The WHO and newborn functions count ages through `Calendar.current`, so
@@ -58,7 +58,7 @@ final class DoctorReportSummaryTests: XCTestCase {
     /// One feed at 10:00 on each day of October listed.
     private func dailyFeeds(_ days: [Int]) -> [Feed] { days.map { feed(at($0, 10)) } }
 
-    // MARK: R2 — what counts
+    // MARK: What counts
 
     func testRunningFeedsAndSleepsAreNotCountedAnywhere() {
         let running = input(feeds: [Feed(start: at(1, 8, month: 11), type: .formula)],
@@ -107,7 +107,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertEqual(summary.sleep?.total, 6 * 3600, "01:00–06:00 on 25 Oct is six hours")
     }
 
-    // MARK: R3 — averages and the days line
+    // MARK: Averages and the days line
 
     func testEachSectionAveragesOverItsOwnDays() {
         let feeds = (12...21).flatMap { day in [feed(at(day, 6)), feed(at(day, 12)), feed(at(day, 18))] }
@@ -184,7 +184,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertFalse(make(input(), start: at(29, 0)).isShort, "three full days is not short")
     }
 
-    // MARK: R4 — growth
+    // MARK: Growth
 
     func testTheLatestWeightIsOfAnyDateAndAFutureRowBeyondADayIsIgnored() {
         let before = make(input(growth: [Growth(date: at(1, 12, month: 9), weightKg: 5.0),
@@ -207,7 +207,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertNil(newborn.growth.change)
         XCTAssertEqual(newborn.growth.latestWeight?.value, 3.5, "only the change is withheld")
 
-        // Without a birth weight there is no newborn instrument, so no gate (D17).
+        // Without a birth weight there is no newborn instrument, so no gate.
         let ungated = make(input(growth: weighings, birth: birth), start: at(20, 0)).growth.change
         XCTAssertEqual(ungated?.grams, 300)
     }
@@ -242,7 +242,7 @@ final class DoctorReportSummaryTests: XCTestCase {
     }
 
     /// The visit's own weighing, stamped at 11:00 on the visit day, is the
-    /// base — not the one a month before (design § 2.1).
+    /// base — not the one a month before.
     func testTheVisitDaysWeighingIsTheBase() {
         let change = make(input(growth: [Growth(date: at(12, 11, month: 9), weightKg: 4.2),
                                          Growth(date: at(12, 11), weightKg: 5.0),
@@ -344,7 +344,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertFalse(heightOnly.isEmpty)
     }
 
-    // MARK: R5 — feeding, sleep, diapers
+    // MARK: Feeding, sleep, diapers
 
     func testByTypeIsHiddenWithOneTypeAndMostFrequentFirstWithMore() {
         let breastOnly = make(input(feeds: [feed(at(13, 8)), feed(at(13, 12))])).feeding

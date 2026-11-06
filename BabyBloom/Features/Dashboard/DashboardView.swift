@@ -4,7 +4,7 @@ import SwiftData
 struct DashboardView: View {
     /// The tab selection, owned by MainTabView. The active-timer cards use it
     /// to jump to the screen that owns the timer — a card that shows a running
-    /// timer but cannot take you to it reads as broken (owner report, build 5).
+    /// timer but cannot take you to it reads as broken.
     @Binding var selectedTab: MainTabView.Tab
 
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
@@ -52,7 +52,7 @@ struct DashboardView: View {
         todaySleeps.filter { !$0.isActive }.reduce(0) { $0 + $1.duration / 3600 }
     }
 
-    /// Free for everyone (D10). `AppClock` so the L3 lever can stand on any week.
+    /// Free for everyone. `AppClock` so a test run can stand on any week.
     private var weeklySummary: WeeklySummary? {
         guard let baby else { return nil }
         return WeeklySummary.make(
@@ -78,7 +78,7 @@ struct DashboardView: View {
                         activeTimersSection
                     }
                     // Under the timers: a running timer outranks last week at
-                    // 3 a.m. (design note § 1). nil = nothing logged last week.
+                    // 3 a.m. nil = nothing logged last week.
                     if let weeklySummary {
                         WeeklySummaryCard(summary: weeklySummary,
                                           onAddWeighing: { showQuickGrowthSheet = true })
@@ -93,7 +93,7 @@ struct DashboardView: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             // No navigation bar here, so nothing backs the status bar: scrolled
-            // text drew under the clock (CHECK 4). A strip as tall as the top
+            // text drew under the clock. A strip as tall as the top
             // inset, shifted up by it, covers exactly that band (a zero-height
             // strip with ignoresSafeArea did not, live).
             .overlay(alignment: .top) {
@@ -318,7 +318,7 @@ struct DashboardView: View {
 
             // A permanent teaser, not a free-first-days window: a section that
             // vanished after two days would read as breakage, in the one domain
-            // where the app must never frighten (owner decision 2026-09-01).
+            // where the app must never frighten (DECISIONS 2026-09-01).
             if !store.isPremium {
                 LockedInsightCard(
                     title: "dashboard.growth.locked_title".l,
@@ -337,7 +337,7 @@ struct DashboardView: View {
                 HintText(text: "dashboard.growth.empty".l)
             case let .summary(weightKg, gain):
                 growthRow(label: "stat.weight".l,
-                          value: weightKg.appDecimal(2) + " " + "unit.kg".l,
+                          value: ReportFormat.kg(weightKg),
                           color: BBTheme.Colors.textPrimary)
                 gainRow(gain)
                 if store.isPremium, let reading = latestPercentile {

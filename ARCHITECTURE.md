@@ -37,7 +37,7 @@ structure below.
 ## Domain model
 
 Eight `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the M2 pair
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the 1.2.0 pair
 `DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`). They are listed ONCE,
 in `AppSchema.models`, and every container — app, widget, tests — opens the
 store through `AppSchema.schema`; `AppSchemaTests` pins the list.
@@ -190,8 +190,10 @@ two splash PNGs, and the hex constants in `ExportGenerator` and
 two are the only places a colour is duplicated (both mirror the LIGHT
 colorsets: a PDF page is always white).
 
-`BBTheme.Typography` is the D1 type scale. **Every Dynamic Type scale in the
-app goes through `Typography.scaledPointSize`**, including layout metrics that
+`BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
+Rounded body, rounded monospaced digits for metrics and timers). **Every
+Dynamic Type scale in the app goes through `Typography.scaledPointSize`**,
+including layout metrics that
 must track text size. A bare `UIFontMetrics.scaledValue(for:)` is a defect:
 that form reads the *device* content size and ignores the SwiftUI environment,
 so the app's ceiling walks straight past it. The ceiling itself
@@ -620,20 +622,24 @@ at launch and never over the Dashboard. That page is the single call site of
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
 `onAppBackgrounded()` on every `.background`.
 
-**Weekly summary (#15).** Last calendar week, Monday to Sunday whatever the
+**Weekly summary.** Last calendar week, Monday to Sunday whatever the
 locale, is `Core/Weekly/WeeklySummary` — pure, fed by
 `WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
-notification). Averages divide by the days that have any entry (D19). The gain
-is the `WeightVelocity` pair whose later weighing falls in the week, and the
-newborn gate (`NewbornWeightLoss.gainDeferral`) withholds the number (D17,
-D27). The Dashboard shows `WeeklySummaryCard` under the running timers. It is
-hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
+notification). Averages divide by the days that have any entry: a day with
+nothing logged is a gap in the log, not a day without feeds or sleep, and the
+card says «N of 7» when days are missing. The gain is a rate in g/week, the
+`WeightVelocity` pair whose later weighing falls in the week, so it is the
+number Growth shows. The newborn gate (`NewbornWeightLoss.gainDeferral`)
+withholds it (DECISIONS 2026-09-05, «During the newborn window, no surface
+reports a weight-gain verdict»). The Dashboard shows `WeeklySummaryCard` under
+the running timers. It is hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
 and sends `weekly_summary_viewed` once a week. The Monday notification is a
 ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
 foreground and background, and after the Lock Screen and widget intents' own
 writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has
-entries and the Settings switch (`notify.weeklySummary`, D26) is on. A
-repeating trigger cannot skip an empty week. `AppClock.now` is the clock for
+entries and the Settings switch (`notify.weeklySummary`, on by default) is on.
+Off stops the notification only; the card still shows. A repeating trigger
+cannot skip an empty week. `AppClock.now` is the clock for
 this path only, so `-BBNow` can move it.
 
 ## Timers and the Live Activity
@@ -677,8 +683,8 @@ launch right after.
 It runs after every mutation, on launch, on every foregrounding, on
 `NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
 changes. With no push (no aps-environment, no server), a stop made on another
-device reaches this Lock Screen when the app next runs here. The owner accepted
-that limit for M1.
+device reaches this Lock Screen when the app next runs here. That limit was
+accepted for 1.1.0.
 
 **Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
 into both targets because the extension's `Button(intent:)` needs the type.
@@ -896,7 +902,7 @@ Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
 
-**«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, M2)
+**«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, 1.2.0)
 comes right after Growth in More. Top to bottom: the name ①, the period line
 (②, tap → the visit detail), the age ③, the questions card (④ open
 questions, add, log the visit; ⑥ the questions asked at the latest visit,
@@ -912,9 +918,19 @@ each caller passes in, never in the core. The share button ⑩ (Premium) makes
 same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
 the export and the weekly card), so the PDF cannot print a number
 the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
-the page for Content's closed verdict list. It renders through
-`UIMarkupTextPrintFormatter` with its own `UIPrintPageRenderer` subclass,
-which draws the footer (brand · name · period, «Page N of M») on every page.
+the page for a closed list of verdict words. It renders through `PagedPDF`
+(`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
+slices its layout at the page height and ignores the CSS break rules, so a
+document hands over its blocks and rows, every page is composed as its own
+small HTML document with its own formatter, and the engine's page count says
+what fits: rows move whole, a table prints its head on every page it reaches,
+and a document that fits one page is laid out once, as it is. Each page's table
+would size its own columns, so their widths are fixed in advance: the export's
+from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
+`UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
+N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
+list and no colour emoji, the footer included (DECISIONS 2026-11-02).
+`PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
 The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
 fetches with `Input.window(periodStart:)`, the same window
 `ReportDataSection`'s queries use. Every PDF prints numbers in the app
@@ -937,9 +953,10 @@ root keeps the destination, and `MainTabView` takes it when it appears (or at
 once, when it is already up). Before onboarding is done a link just opens
 onboarding and is not kept. The widget's tap areas build these URLs. The
 scheme is registered in Info.plist only so that `xcrun simctl openurl booted
-nenita://tab/sleep` works for QA; a widget link would reach its app without it.
+nenita://tab/sleep` works for testing; a widget link would reach its app without it.
 
-**The widget's tap areas and button** (design note § 5, D16):
+**The widget's tap areas, and its one button, which starts a feeding timer**
+(`teamdocs/design/m1-live-activity.md` § 5):
 - **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
 - **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
 - **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.

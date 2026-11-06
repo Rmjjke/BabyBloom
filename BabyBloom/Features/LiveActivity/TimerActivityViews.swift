@@ -38,7 +38,7 @@ struct TimerElapsedText: View {
     }
 }
 
-/// One spec for both surfaces (§ 4): capsule, BBPrimary fill, BBOnPrimary label,
+/// One spec for both surfaces: capsule, BBPrimary fill, BBOnPrimary label,
 /// the same glyph and word as the in-app stop for that timer.
 struct TimerStopButton: View {
     let attributes: TimerActivityAttributes
@@ -75,14 +75,14 @@ struct TimerLockScreenView: View {
     let attributes: TimerActivityAttributes
     let state: TimerActivityAttributes.ContentState
     /// Past `staleDate` (start + 8 h) or ended by the system: the digits would
-    /// be wrong or frozen, so none are shown (R4.2).
+    /// be wrong or frozen, so none are shown.
     let isStale: Bool
 
     private var startedLine: String {
         String(format: "live_activity.started_fmt".l, attributes.startTime.appTimeOfDay)
     }
 
-    /// "Saved" must read as done at a glance (note § 2, CHECK 2): a neutral
+    /// "Saved" must read as done at a glance: a neutral
     /// disc, grey text, no big number, no button — weight, not a detail.
     private var isSaved: Bool { state.endedAt != nil }
 
@@ -105,7 +105,7 @@ struct TimerLockScreenView: View {
             }
             // Glyph and title as ONE element read as the title. The Lock Screen
             // host ignores `.accessibilityHidden` on the glyph and read it by its
-            // SF name ("Love", "Selected"); the Island's group + label holds (Q-011).
+            // SF name ("Love", "Selected"); the Island's group + label holds.
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(state.title.key.l)
 
@@ -146,7 +146,7 @@ struct TimerLockScreenView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
         } else {
-            // Never `.fixedSize()` here (Q-009): a timer-interval text has no
+            // Never `.fixedSize()` here: a timer-interval text has no
             // finite ideal width, and the Lock Screen host then laid out
             // nothing in the row, Stop included. It takes the row's width
             // instead, as the Island's expanded trailing text does, and
@@ -265,7 +265,7 @@ struct TimerIslandExpandedBottom: View {
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundStyle(Color("BBTextSecondary"))
                 // Two lines fit the 44 pt Stop row; one cut the ru side at the
-                // default size («Кормление грудью · л…»). Design review M1.
+                // default size («Кормление грудью · л…»).
                 .lineLimit(2)
                 .truncationMode(.tail)
             Spacer(minLength: 0)

@@ -134,7 +134,7 @@ final class NewbornWeightLossTests: XCTestCase {
         XCTAssertEqual(status.flags, [.lossExceeds10Percent])
     }
 
-    // MARK: - The regain line (Q-002)
+    // MARK: - The regain line
 
     /// "Not reached yet" never sits beside a share that reads 100%: the birth
     /// weighing still being the latest on day 5, or 99.7% rounding up.

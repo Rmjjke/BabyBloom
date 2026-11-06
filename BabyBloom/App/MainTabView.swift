@@ -57,7 +57,7 @@ struct MainTabView: View {
         // that comes while the tabs are already up.
         .onAppear(perform: openPendingDestination)
         .onChange(of: pendingDestination) { openPendingDestination() }
-        // Tab bar appearance is left to the system (D6): the default translucent
+        // Tab bar appearance is left to the system: the default translucent
         // bar reads correctly in light/dark and is ready for Liquid Glass. No
         // UITabBarAppearance opaque override.
     }
@@ -119,7 +119,7 @@ struct MoreView: View {
                             .foregroundStyle(BBTheme.Colors.growth)
                     }
                 }
-                // Right after Growth: the report reads growth first (design § 1).
+                // Right after Growth: the report reads growth first.
                 NavigationLink(destination: DoctorReportView()) {
                     Label {
                         Text("report.title".l)
@@ -168,7 +168,7 @@ struct ProfileView: View {
     /// The user's choice only. iOS can veto it (`systemEnabled`), and that veto
     /// is shown, never written into this key.
     @AppStorage(LiveActivitySettings.enabledKey) private var liveActivityEnabled = true
-    /// D26: mutes the Monday notification only; the Dashboard card stays.
+    /// Mutes the Monday notification only; the Dashboard card stays.
     @AppStorage(WeeklyNotificationPlan.enabledKey) private var weeklyNotificationEnabled = true
     @State private var liveActivity = LiveActivitySync.shared
     @Environment(SubscriptionManager.self) private var store

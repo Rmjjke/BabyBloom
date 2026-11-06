@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Sleep facts for the report period (design § 2.1).
+/// Sleep facts for the report period.
 struct SleepReportCard: View {
     /// nil = no finished sleep in the period.
     let sleep: DoctorReportSummary.Sleep?

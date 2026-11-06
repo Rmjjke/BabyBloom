@@ -26,7 +26,7 @@ extension DoctorReportSummary.Input {
 
     /// The rows a period reads, for `ReportDataSection`'s queries and `load`
     /// alike: feeds and diapers from the start, sleeps from 36 h before it (a
-    /// night that crosses the start counts by its part inside, R2.2, and no
+    /// night that crosses the start counts by its part inside, and no
     /// sleep is longer than a day and a half). Growth is read whole.
     static func window(periodStart: Date) -> (from: Date, sleepsFrom: Date) {
         (periodStart, periodStart.addingTimeInterval(-36 * 3600))

@@ -16,7 +16,7 @@ struct ReportNameLine: View {
 }
 
 /// ③ today's age (plus the corrected age for a preterm baby), under ②: ②
-/// counts the period, ③ describes the child (design § 2).
+/// counts the period, ③ describes the child.
 struct ReportAgeLine: View {
     let baby: Baby
 

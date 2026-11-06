@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Feeding facts for the report period (design § 2.1).
+/// Feeding facts for the report period.
 struct FeedingReportCard: View {
     /// nil = nothing finished in the period.
     let feeding: DoctorReportSummary.Feeding?

@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 /// The one place a pediatrician visit or a question is created, changed or
-/// deleted — the `TimerActions` idea (DECISIONS 2026-10-29) for M2.
+/// deleted — the `TimerActions` idea (DECISIONS 2026-10-29) for the pediatrician visit.
 ///
 /// The rule this exists to hold: a visit and the questions it stamped never
 /// part. Logging writes the visit and the stamps in ONE save; deleting clears
@@ -13,9 +13,9 @@ import SwiftData
 enum DoctorVisitActions {
 
     /// Long enough for any real question, short enough to stay a question
-    /// (Manager's decision; the field grows, no counter).
+    /// (the field grows, no counter).
     static let questionMaxLength = 500
-    /// The design note leaves the note unbounded on screen; this is a storage
+    /// The note is unbounded on screen; this is a storage
     /// guard, not a limit a parent is expected to meet.
     static let noteMaxLength = 2000
 
@@ -63,8 +63,8 @@ enum DoctorVisitActions {
     // MARK: Visits
 
     /// Writes the visit and stamps every question in `asking` as asked at it,
-    /// in one save (R2.1). Questions that are not passed stay as they are:
-    /// logging never deletes or re-parents an unchecked question (R2.4).
+    /// in one save. Questions that are not passed stay as they are:
+    /// logging never deletes or re-parents an unchecked question.
     /// Already-asked questions in `asking` are ignored — a question belongs to
     /// the visit it was first asked at.
     @discardableResult
@@ -86,7 +86,7 @@ enum DoctorVisitActions {
         return visit
     }
 
-    /// Date and note only (R2.6). The questions are not touched: "asked at
+    /// Date and note only. The questions are not touched: "asked at
     /// the visit on …" reads the visit's date, and rewriting their `askedAt`
     /// here could race a delete of the same visit on another device into a
     /// question stamped "asked" at no visit.
@@ -100,7 +100,7 @@ enum DoctorVisitActions {
         try commit(context)
     }
 
-    /// Returns the visit's questions to open, then deletes it (R2.7). Returns
+    /// Returns the visit's questions to open, then deletes it. Returns
     /// how many questions went back, for the analytics payload.
     @discardableResult
     static func delete(_ visit: DoctorVisit, in context: ModelContext) throws -> Int {
@@ -144,7 +144,7 @@ enum DoctorVisitActions {
         try commit(context)
     }
 
-    /// "Back to open" (R3.4).
+    /// "Back to open".
     static func reopen(_ question: DoctorQuestion, in context: ModelContext) throws {
         question.askedAt = nil
         question.visit = nil

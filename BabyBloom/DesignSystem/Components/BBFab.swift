@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - BBFab
-// Floating action button (D6). Reachable in the thumb zone (bottom-trailing)
+// Floating action button. Reachable in the thumb zone (bottom-trailing)
 // for one-handed "add" during night feeds. Mirrors the toolbar "+" action —
 // both entry points open the same Add sheet, so the toolbar button stays.
 //

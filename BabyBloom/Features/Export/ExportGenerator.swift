@@ -197,10 +197,9 @@ struct ExportGenerator {
         categories: Set<ExportCategory>,
         range: ExportDateRange
     ) -> Data {
-        let html = buildHTML(baby: baby, feedings: feedings, sleeps: sleeps,
+        PagedPDF.data(document(baby: baby, feedings: feedings, sleeps: sleeps,
                              diapers: diapers, growths: growths, events: events,
-                             categories: categories, range: range)
-        return renderPDF(from: html)
+                             categories: categories, range: range))
     }
 
     // MARK: - HTML Builder
@@ -216,10 +215,27 @@ struct ExportGenerator {
         categories: Set<ExportCategory>,
         range: ExportDateRange
     ) -> String {
+        document(baby: baby, feedings: feedings, sleeps: sleeps,
+                             diapers: diapers, growths: growths, events: events,
+                             categories: categories, range: range).html
+    }
+
+    private static func document(
+        baby: Baby?,
+        feedings: [FeedingEntry],
+        sleeps: [SleepEntry],
+        diapers: [DiaperEntry],
+        growths: [GrowthEntry],
+        events: [CustomEvent],
+        categories: Set<ExportCategory>,
+        range: ExportDateRange
+    ) -> PagedPDF.Document {
         let dateFmt = documentFormatter { $0.dateStyle = .medium; $0.timeStyle = .none }
         let timeFmt = documentFormatter { $0.timeStyle = .short; $0.dateStyle = .none }
 
-        let babyName = baby?.name ?? "baby.default_name".l
+        // A name of emoji alone prints nothing, and the title still needs one.
+        let printedName = PagedPDF.withoutEmoji(baby?.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let babyName = PagedPDF.isBlank(printedName) ? "baby.default_name".l : printedName
         let ageDesc  = baby?.ageDescription ?? ""
         let rangeLabel = range.rawValue.l
         let generatedDate = dateFmt.string(from: Date())
@@ -273,9 +289,11 @@ struct ExportGenerator {
         }
         sections += "</div></div>"
 
+        var tables: [PagedPDF.Item] = []
+
         // Feeding table
         if categories.contains(.feeding) && !feedings.isEmpty {
-            sections += tableSection(
+            tables.append(tableSection(
                 title: "\("export.cat.feeding".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.side".l, "export.col.volume".l, "export.col.duration".l],
                 rows: feedings.map { e in
@@ -286,12 +304,12 @@ struct ExportGenerator {
                      e.volumeML.map { ReportFormat.ml($0) } ?? "—",
                      minutesText(Int(e.duration / 60))]
                 }
-            )
+            ))
         }
 
         // Sleep table
         if categories.contains(.sleep) && !sleeps.isEmpty {
-            sections += tableSection(
+            tables.append(tableSection(
                 title: "\("export.cat.sleep".l)",
                 headers: ["export.col.date".l, "export.col.start".l, "export.col.end".l, "export.col.type".l, "export.col.duration".l],
                 rows: sleeps.map { e in
@@ -301,12 +319,12 @@ struct ExportGenerator {
                      e.type.displayName.l,
                      e.durationFormatted]
                 }
-            )
+            ))
         }
 
         // Diapers table
         if categories.contains(.diapers) && !diapers.isEmpty {
-            sections += tableSection(
+            tables.append(tableSection(
                 title: "\("export.cat.diapers".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.color".l, "export.col.notes".l],
                 rows: diapers.map { e in
@@ -314,14 +332,14 @@ struct ExportGenerator {
                      timeFmt.string(from: e.time),
                      e.type.displayName.l,
                      e.color?.displayName.l ?? "—",
-                     e.notes ?? "—"]
+                     noteCell(e.notes)]
                 }
-            )
+            ))
         }
 
         // Growth table
         if categories.contains(.growth) && !growths.isEmpty {
-            sections += tableSection(
+            tables.append(tableSection(
                 title: "\("export.cat.growth".l)",
                 headers: ["export.col.date".l, "export.col.weight".l, "export.col.height".l, "export.col.head".l],
                 rows: growths.map { e in
@@ -330,24 +348,24 @@ struct ExportGenerator {
                      e.heightCm.map { ReportFormat.cm($0) } ?? "—",
                      e.headCircumferenceCm.map { ReportFormat.cm($0) } ?? "—"]
                 }
-            )
+            ))
         }
 
         // Events table
         if categories.contains(.events) && !events.isEmpty {
-            sections += tableSection(
+            tables.append(tableSection(
                 title: "\("export.cat.events".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.notes".l],
                 rows: events.map { e in
                     [dateFmt.string(from: e.time),
                      timeFmt.string(from: e.time),
                      e.type.displayName.l,
-                     e.notes ?? "—"]
+                     noteCell(e.notes)]
                 }
-            )
+            ))
         }
 
-        return """
+        let head = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -356,7 +374,7 @@ struct ExportGenerator {
           /* A record, not a poster: one solid header (white on the gradient's
              light end was under 3:1), no emoji in headings, and the secondary
              grey is BBTextSecondary (#8E8E93 on white was 3.3:1). */
-          body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; color: #1C1C1E; font-size: 12px; }
+          body { \(PagedPDF.cssType) margin: 0; padding: 24px; color: #1C1C1E; font-size: 12px; }
           .header { background: #6F5BA8; color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
           .header h1 { margin: 0 0 4px; font-size: 22px; }
           .header p  { margin: 0; font-size: 13px; }
@@ -368,17 +386,19 @@ struct ExportGenerator {
           .stat { background: white; border-radius: 8px; padding: 10px 14px; min-width: 80px; }
           .stat .val { display: block; font-size: 18px; font-weight: 700; color: #1C1C1E; }
           .stat .lbl { display: block; font-size: 10px; color: #746D85; margin-top: 2px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+          table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: 4px; }
           th { background: #6F5BA8; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
           th:first-child { border-radius: 6px 0 0 0; }
           th:last-child  { border-radius: 0 6px 0 0; }
-          td { padding: 6px 10px; border-bottom: 1px solid #E5E5EA; font-size: 11px; }
+          td { padding: 6px 10px; border-bottom: 1px solid #E5E5EA; font-size: 11px; word-wrap: break-word; }
           tr:last-child td { border-bottom: none; }
           tr:nth-child(even) td { background: #F9F9FB; }
           .footer { text-align: center; color: #746D85; font-size: 10px; margin-top: 24px; }
         </style>
         </head>
         <body>
+        """
+        let header = """
           <div class="header">
             <h1>\(htmlEscape("brand.name".l)) — \(htmlEscape(babyName))</h1>
             <p>\("export.pdf.subtitle".l)</p>
@@ -388,17 +408,17 @@ struct ExportGenerator {
               <span>\(generatedDate)</span>
             </div>
           </div>
-          \(sections)
-          <div class="footer">\(htmlEscape(String(format: "export.generated_by_fmt".l, "brand.name".l, generatedDate)))</div>
-        </body>
-        </html>
         """
+        let footer = "<div class=\"footer\">\(htmlEscape(String(format: "export.generated_by_fmt".l, "brand.name".l, generatedDate)))</div>"
+        return PagedPDF.Document(head: head, items: [.block(header), .block(sections)] + tables + [.block(footer)])
     }
 
-    /// Escapes HTML-significant characters in user-supplied values. `&` must
-    /// be replaced first so already-escaped entities aren't double-encoded.
+    /// A user-supplied value ready for the PDF's HTML: HTML-significant characters
+    /// escaped and no emoji (`PagedPDF.withoutEmoji`). `&` must be replaced first
+    /// so already-escaped entities aren't double-encoded.
     static func htmlEscape(_ raw: String) -> String {
-        raw.replacingOccurrences(of: "&", with: "&amp;")
+        PagedPDF.withoutEmoji(raw)
+           .replacingOccurrences(of: "&", with: "&amp;")
            .replacingOccurrences(of: "<", with: "&lt;")
            .replacingOccurrences(of: ">", with: "&gt;")
     }
@@ -445,47 +465,33 @@ struct ExportGenerator {
         return Double(period.totalFeeds) / Double(period.daysWithEntries)
     }
 
-    private static func tableSection(title: String, headers: [String], rows: [[String]]) -> String {
-        let ths = headers.map { "<th>\(htmlEscape($0))</th>" }.joined()
-        let trs = rows.map { row in
-            "<tr>" + row.map { "<td>\(htmlEscape($0))</td>" }.joined() + "</tr>"
-        }.joined()
-        return """
-        <div class="card">
-          <h2>\(title)</h2>
-          <table><thead><tr>\(ths)</tr></thead><tbody>\(trs)</tbody></table>
-        </div>
-        """
+    /// A note the page can print, or the dash an absent one gets.
+    private static func noteCell(_ notes: String?) -> String {
+        guard let notes, !PagedPDF.isBlank(PagedPDF.withoutEmoji(notes)) else { return "—" }
+        return notes
     }
 
-    // MARK: - PDF Renderer
+    /// A card per table; a page the table continues on opens the card again, with the head.
+    private static func tableSection(title: String, headers: [String], rows: [[String]]) -> PagedPDF.Item {
+        let ths = headers.map { "<th>\(htmlEscape($0))</th>" }.joined()
+        let table = "<table>\(columnWidths(headers: headers, rows: rows))<thead><tr>\(ths)</tr></thead><tbody>"
+        return .rows(.init(
+            opening: "<div class=\"card\"><h2>\(title)</h2>\(table)",
+            continuation: { _ in "<div class=\"card\">\(table)" },
+            closing: "</tbody></table></div>",
+            rows: rows.map { row in "<tr>" + row.map { "<td>\(htmlEscape($0))</td>" }.joined() + "</tr>" }))
+    }
 
-    private static func renderPDF(from html: String) -> Data {
-        let formatter = UIMarkupTextPrintFormatter(markupText: html)
-        let renderer  = UIPrintPageRenderer()
-        renderer.addPrintFormatter(formatter, startingAtPageAt: 0)
-
-        let pageSize     = CGSize(width: 595.2, height: 841.8)   // A4
-        let margin: CGFloat = 36
-        let printable    = CGRect(x: margin, y: margin,
-                                  width: pageSize.width - margin * 2,
-                                  height: pageSize.height - margin * 2)
-        renderer.setValue(NSValue(cgRect: CGRect(origin: .zero, size: pageSize)), forKey: "paperRect")
-        renderer.setValue(NSValue(cgRect: printable), forKey: "printableRect")
-
-        let data = NSMutableData()
-        UIGraphicsBeginPDFContextToData(data, CGRect(origin: .zero, size: pageSize), nil)
-        renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
-        for i in 0..<renderer.numberOfPages {
-            UIGraphicsBeginPDFPage()
-            // A white page, margins and footer included: a PDF page is
-            // transparent, and dark viewers drew the frame black (design review m5).
-            UIColor.white.setFill()
-            UIRectFill(UIGraphicsGetPDFContextBounds())
-            renderer.drawPage(at: i, in: UIGraphicsGetPDFContextBounds())
+    /// Every page prints its own table and would size its own columns, so the widths
+    /// come from all the rows: each column's share follows its longest text. The cap
+    /// keeps one long note from squeezing the rest; the note wraps instead.
+    static func columnWidths(headers: [String], rows: [[String]]) -> String {
+        let lengths = headers.indices.map { column in
+            min(32, rows.map { $0[column].count }.reduce(headers[column].count, max)) + 3
         }
-        UIGraphicsEndPDFContext()
-        return data as Data
+        let total = lengths.reduce(0, +)
+        let columns = lengths.map { "<col style=\"width: \(String(format: "%.1f", Double($0) * 100 / Double(total)))%\">" }
+        return "<colgroup>\(columns.joined())</colgroup>"
     }
 
     // MARK: - Temp file helpers

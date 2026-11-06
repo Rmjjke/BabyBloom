@@ -1,8 +1,8 @@
 import Foundation
 
 /// The app's URLs: `nenita://tab/<destination>`. The widget's tap areas build
-/// them, `MainTabView` follows them, and QA opens them with `simctl openurl`
-/// (lever L4). The scheme is registered in Info.plist only for that last use:
+/// them, `MainTabView` follows them, and test runs open them with `simctl openurl`.
+/// The scheme is registered in Info.plist only for that last use:
 /// a widget link reaches its own app without one.
 enum DeepLink {
     static let scheme = "nenita"

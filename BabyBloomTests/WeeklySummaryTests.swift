@@ -1,8 +1,8 @@
 import XCTest
 @testable import BabyBloom
 
-/// The weekly card's rules with a fixed clock: Monday weeks (D8), averages over
-/// days with entries (D19), the gain pair (D27) and the newborn gate (D17).
+/// The weekly card's rules with a fixed clock: Monday weeks, averages over
+/// days with entries, the gain pair and the newborn gate.
 final class WeeklySummaryTests: XCTestCase {
 
     private let calendar = WeeklySummary.calendar
@@ -35,7 +35,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertEqual(calendar.component(.weekday, from: week.start), 2, "a Monday")
     }
 
-    /// The boundary QA seeds (L3): at Sunday 23:59 "last week" is still the
+    /// The boundary the seeds pin: at Sunday 23:59 "last week" is still the
     /// one before; one minute later it is the week that just ended.
     func testSundayMidnightTurnsTheWeek() {
         let sunday = date(2026, 10, 25, 23, 59)
@@ -49,7 +49,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertNil(WeeklySummary.make(now: now, input: only))
     }
 
-    /// D19: 12 feeds over the 3 days that have entries is 4 a day, not 12/7.
+    /// 12 feeds over the 3 days that have entries is 4 a day, not 12/7.
     func testAveragesDivideByDaysWithEntries() throws {
         let feeds = (0..<4).flatMap { hour in
             [date(2026, 10, 19, 8 + hour), date(2026, 10, 21, 8 + hour), date(2026, 10, 25, 8 + hour)]
@@ -80,7 +80,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertEqual(summary.current.sleepPerDay, (8 * 3600 + 90 * 60) / 2)
     }
 
-    /// S2: nothing in the week before, so nothing to compare with.
+    /// Nothing in the week before, so nothing to compare with.
     func testTheFirstWeekHasNoPrevious() throws {
         let first = try XCTUnwrap(WeeklySummary.make(now: now, input: input(feeds: [date(2026, 10, 22)])))
         XCTAssertNil(first.previous)
@@ -89,7 +89,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertEqual(second.previous?.daysWithEntries, 1)
     }
 
-    /// D27: the pair whose LATER weighing is inside the week, ≥ 3 days apart,
+    /// The pair whose LATER weighing is inside the week, ≥ 3 days apart,
     /// rounded to 10 g. 4.000 → 4.209 kg over 7 days is 209 g/week → 210.
     func testGainIsThePairEndingInTheWeek() throws {
         let weights = [(date(2026, 10, 15), 4.0), (date(2026, 10, 22), 4.209)]
@@ -116,7 +116,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertEqual(summary.gain, .perWeek(200))
     }
 
-    /// D17: inside the newborn window there is no number, whatever the pair.
+    /// Inside the newborn window there is no number, whatever the pair.
     func testNoNumberInTheNewbornWindow() throws {
         let birth = date(2026, 10, 12)
         let weights = [(date(2026, 10, 15), 3.3), (date(2026, 10, 22), 3.5)]
@@ -126,7 +126,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertEqual(summary.gain, .newborn)
     }
 
-    /// D17 on the week-before line too (review, 2026-10-29). Born 25 Sep: last
+    /// The newborn gate holds on the week-before line too. Born 25 Sep: last
     /// week's pair ends on day 28 and shows a number, but the week before's
     /// ends on day 21, inside the dip, and must not.
     func testTheWeekBeforeLineHasTheNewbornGateToo() throws {
@@ -143,7 +143,7 @@ final class WeeklySummaryTests: XCTestCase {
         XCTAssertNotNil(ungated.previousGain)
     }
 
-    /// Born on Thursday 22 Oct: Mon–Wed of last week were not lived (review m3).
+    /// Born on Thursday 22 Oct: Mon–Wed of last week were not lived.
     func testDaysBeforeBirth() throws {
         let born = try XCTUnwrap(WeeklySummary.make(now: now, input: input(
             feeds: [date(2026, 10, 23)], birth: date(2026, 10, 22, 3))))

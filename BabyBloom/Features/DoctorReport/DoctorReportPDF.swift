@@ -1,19 +1,19 @@
 import UIKit
 
-/// The pediatrician report as a PDF (design m2-doctor-report § 5). A pure HTML
+/// The pediatrician report as a PDF. A pure HTML
 /// build over the SAME `DoctorReportSummary` and the SAME `ReportFormat` /
 /// `WeeklyFormat` helpers and keys the screen's cards use, so the PDF cannot
 /// disagree with the screen; `DoctorReportPDFTests` pins that as strings.
 ///
-/// Its own template and renderer: the existing export keeps its layout (gradient
-/// header, tints), none of which the report may carry.
+/// Its own template: the existing export keeps its layout (gradient header,
+/// tints), none of which the report may carry. `PagedPDF` makes the pages.
 enum DoctorReportPDF {
 
     // MARK: Colours
 
     // The PDF renderer cannot read the Asset Catalog, so these mirror the LIGHT
     // colorsets (CLAUDE.md theming). The page is always light, whatever the
-    // phone's appearance. Contrast figures are in design § 5.
+    // phone's appearance.
     private static let text = "#2D2837"        // BBTextPrimary
     private static let secondary = "#746D85"   // BBTextSecondary
     private static let primary = "#6F5BA8"     // BBPrimary: headings and the rule
@@ -24,22 +24,29 @@ enum DoctorReportPDF {
 
     // MARK: HTML
 
+    /// The whole report as one document, unbroken.
     static func html(summary: DoctorReportSummary, baby: Baby, openQuestions: [String],
                      periodStart: Date, now: Date) -> String {
-        var body = header(summary: summary, baby: baby, periodStart: periodStart, now: now)
-        body += growth(summary: summary, periodStart: periodStart, now: now)
-        if summary.showsNewPeriodCard {
-            // One line in place of three empty sections (design § 5, «visit today»).
-            body += "<p class=\"muted\">\(esc("report.pdf.no_entries".l))</p>"
-        } else {
-            body += feeding(summary.feeding, periodStart: periodStart, isShort: summary.isShort)
-            body += sleep(summary.sleep, periodStart: periodStart, isShort: summary.isShort, now: now)
-            body += diapers(summary.diapers, periodStart: periodStart, isShort: summary.isShort)
-        }
-        body += questions(openQuestions)
-        body += "<p class=\"foot\">\(esc("report.footnote".l))</p>"
+        document(summary: summary, baby: baby, openQuestions: openQuestions, periodStart: periodStart, now: now).html
+    }
 
-        return """
+    private static func document(summary: DoctorReportSummary, baby: Baby, openQuestions: [String],
+                                 periodStart: Date, now: Date) -> PagedPDF.Document {
+        var items: [PagedPDF.Item] = [.block(header(summary: summary, baby: baby, periodStart: periodStart, now: now))]
+        items += growth(summary: summary, periodStart: periodStart, now: now)
+        if summary.showsNewPeriodCard {
+            // One line in place of three empty sections: a visit started the
+            // period and nothing was logged since.
+            items.append(.block("<p class=\"muted\">\(esc("report.pdf.no_entries".l))</p>"))
+        } else {
+            items.append(.block(feeding(summary.feeding, periodStart: periodStart, isShort: summary.isShort)))
+            items.append(.block(sleep(summary.sleep, periodStart: periodStart, isShort: summary.isShort, now: now)))
+            items.append(.block(diapers(summary.diapers, periodStart: periodStart, isShort: summary.isShort)))
+        }
+        if let questions = questions(openQuestions) { items.append(questions) }
+        items.append(.block("<p class=\"foot\">\(esc("report.footnote".l))</p>"))
+
+        let head = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -49,33 +56,28 @@ enum DoctorReportPDF {
         </style>
         </head>
         <body>
-        \(body)
-        </body>
-        </html>
         """
+        return PagedPDF.Document(head: head, items: items)
     }
 
     // CSS sizes are px like the existing export; whether UIMarkupTextPrintFormatter
-    // renders them at the design's point sizes is checked on the first real render
-    // (design § 5), and the CSS is scaled, not the targets.
+    // renders them at the design's point sizes is checked on the first real render,
+    // and the CSS is scaled, not the targets.
     private static var css: String {
         """
-        body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; color: \(text); font-size: 11px; line-height: 1.45; background: #FFFFFF; }
+        body { \(PagedPDF.cssType) margin: 0; color: \(text); font-size: 11px; line-height: 1.45; background: #FFFFFF; }
         h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px; color: \(text); }
-        h2 { font-size: 13px; font-weight: 600; margin: 16px 0 6px; color: \(primary); page-break-after: avoid; }
+        h2 { font-size: 13px; font-weight: 600; margin: 16px 0 6px; color: \(primary); }
         .name { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
         .rule { border: 0; border-top: 1px solid \(primary); margin: 10px 0 0; }
-        .sec { page-break-inside: avoid; }
         table.facts { width: 100%; border-collapse: collapse; }
         table.facts td { width: 50%; padding: 1px 12px 1px 0; vertical-align: top; }
         p { margin: 3px 0; }
         .muted, .sub { color: \(secondary); }
         b { font-weight: 600; }
-        table.weighings { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        table.weighings thead { display: table-header-group; }
+        table.weighings { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 6px; }
         table.weighings th { background: \(tableFill); color: \(text); text-align: left; font-weight: 600; padding: 4px 8px; }
         table.weighings td { padding: 4px 8px; border-bottom: 1px solid \(rowRule); }
-        table.weighings tr { page-break-inside: avoid; }
         ol { margin: 3px 0; padding-left: 20px; }
         li { margin: 2px 0; }
         .foot { font-size: 10px; color: \(secondary); margin-top: 18px; }
@@ -97,7 +99,7 @@ enum DoctorReportPDF {
         }
 
         var html = "<h1>\(esc("report.pdf.title".l))</h1>"
-        if !baby.name.isEmpty { html += "<p class=\"name\">\(esc(baby.name))</p>" }
+        if !PagedPDF.isBlank(esc(baby.name)) { html += "<p class=\"name\">\(esc(baby.name))</p>" }
         html += twoColumns(cells.map { esc($0) })
         html += "<p>\(esc(String(format: "report.pdf.period_fmt".l, periodRange(periodStart, now: now), periodLength(summary))))</p>"
         html += "<p>\(esc(String(format: "report.pdf.date_fmt".l, fullDate(now))))</p>"
@@ -130,9 +132,9 @@ enum DoctorReportPDF {
 
     // MARK: Growth
 
-    private static func growth(summary: DoctorReportSummary, periodStart: Date, now: Date) -> String {
+    private static func growth(summary: DoctorReportSummary, periodStart: Date, now: Date) -> [PagedPDF.Item] {
         let growth = summary.growth
-        var html = "<div class=\"sec\"><h2>\(esc("export.cat.growth".l))</h2>"
+        var html = "<div><h2>\(esc("export.cat.growth".l))</h2>"
         if growth.latestWeight == nil {
             html += "<p class=\"muted\">\(esc("report.empty_growth".l))</p>"
         }
@@ -164,10 +166,11 @@ enum DoctorReportPDF {
         if let birth = atBirth(growth) { html += "<p class=\"sub\">\(esc(birth))</p>" }
         html += "</div>"
 
+        var items: [PagedPDF.Item] = [.block(html)]
         if !summary.showsNewPeriodCard && !growth.weighings.isEmpty {
-            html += weighingsTable(growth.weighings, now: now)
+            items.append(weighingsTable(growth.weighings, now: now))
         }
-        return html
+        return items
     }
 
     private static func percentile(_ rowKind: DoctorReportSummary.PercentileRow, format: String) -> [String] {
@@ -192,16 +195,19 @@ enum DoctorReportPDF {
         return String(format: "report.at_birth_fmt".l, parts.joined(separator: ReportFormat.joiner))
     }
 
-    /// Newest first, as the summary hands them. `thead` repeats on a page break.
-    private static func weighingsTable(_ weighings: [DoctorReportSummary.Weighing], now: Date) -> String {
+    /// Newest first, as the summary hands them; every page the table reaches prints
+    /// its head. The columns are fixed, or each page would size its own.
+    private static func weighingsTable(_ weighings: [DoctorReportSummary.Weighing], now: Date) -> PagedPDF.Item {
         let heads = ["export.col.date", "export.col.weight", "export.col.height", "export.col.head"]
             .map { "<th>\(esc($0.l))</th>" }.joined()
         let rows = weighings.map { weighing in
             let cells = [ReportFormat.date(weighing.date, now: now), ReportFormat.kg(weighing.weightKg),
                          weighing.heightCm.map(ReportFormat.cm) ?? "", weighing.headCm.map(ReportFormat.cm) ?? ""]
             return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
-        }.joined()
-        return "<p class=\"sub\">\(esc("report.weighings".l))</p><table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>\(rows)</tbody></table>"
+        }
+        let table = "<table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>"
+        return .rows(.init(opening: "<p class=\"sub\">\(esc("report.weighings".l))</p>" + table,
+                           continuation: { _ in table }, closing: "</tbody></table>", rows: rows))
     }
 
     // MARK: Feeding, sleep, diapers
@@ -253,7 +259,7 @@ enum DoctorReportPDF {
             if let wet = diapers.wetPerDay { cells.append(row("report.wet_a_day_fmt", WeeklyFormat.perDay(wet))) }
             if let dirty = diapers.dirtyPerDay { cells.append(row("report.dirty_a_day_fmt", WeeklyFormat.perDay(dirty))) }
         }
-        // Names and counts only: no swatch, no warning (plan v2 decision 9).
+        // Names and counts only: no swatch, no warning.
         if !diapers.colors.isEmpty {
             cells.append(row("report.stool_colors_fmt", ReportFormat.countList(diapers.colors.map {
                 ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
@@ -264,8 +270,8 @@ enum DoctorReportPDF {
 
     private static func section(_ titleKey: String, _ cells: [String],
                                 days: DoctorReportSummary.Days, isShort: Bool) -> String {
-        var html = "<div class=\"sec\"><h2>\(esc(titleKey.l))</h2>" + twoColumns(cells)
-        // Short periods print raw counts and no days line (R3.3).
+        var html = "<div><h2>\(esc(titleKey.l))</h2>" + twoColumns(cells)
+        // Short periods print raw counts and no days line.
         if days.showsLine && !isShort {
             html += "<p class=\"sub\">\(esc(String(format: "report.days_logged_fmt".l, days.withEntries, days.counted)))</p>"
         }
@@ -273,18 +279,23 @@ enum DoctorReportPDF {
     }
 
     private static func emptySection(_ titleKey: String, _ emptyKey: String, _ periodStart: Date) -> String {
-        "<div class=\"sec\"><h2>\(esc(titleKey.l))</h2><p class=\"muted\">"
+        "<div><h2>\(esc(titleKey.l))</h2><p class=\"muted\">"
             + "\(esc(String(format: emptyKey.l, fullDate(periodStart))))</p></div>"
     }
 
     // MARK: Questions
 
-    /// The OPEN questions at the moment of making the PDF, verbatim and numbered.
-    /// Absent when none; asked questions and visit notes belong to a past visit.
-    private static func questions(_ open: [String]) -> String {
-        guard !open.isEmpty else { return "" }
-        let items = open.map { "<li>\(esc($0))</li>" }.joined()
-        return "<div class=\"sec\"><h2>\(esc("report.pdf.questions".l))</h2><ol>\(items)</ol></div>"
+    /// The OPEN questions at the moment of making the PDF, numbered, verbatim but for
+    /// their emoji. Absent when none; asked questions and visit notes belong to a past
+    /// visit. A section moves to the next page whole; only a list longer
+    /// than a page breaks, between two questions, and the numbers carry on.
+    private static func questions(_ open: [String]) -> PagedPDF.Item? {
+        // A question of emoji alone has nothing the page can print.
+        let printable = open.map(esc).filter { !PagedPDF.isBlank($0) }
+        guard !printable.isEmpty else { return nil }
+        return .rows(.init(opening: "<div><h2>\(esc("report.pdf.questions".l))</h2><ol>",
+                           continuation: { "<div><ol start=\"\($0 + 1)\">" }, closing: "</ol></div>",
+                           rows: printable.map { "<li>\($0)</li>" }, keepsTogether: true))
     }
 
     // MARK: Row building
@@ -321,11 +332,13 @@ enum DoctorReportPDF {
 
     static func data(summary: DoctorReportSummary, baby: Baby, openQuestions: [String],
                      periodStart: Date, now: Date) -> Data {
-        let html = html(summary: summary, baby: baby, openQuestions: openQuestions,
-                        periodStart: periodStart, now: now)
-        let footer = [ "brand.name".l, baby.name, periodRange(periodStart, now: now) ]
-            .filter { !$0.isEmpty }.joined(separator: " · ")
-        return render(html: html, footerLeft: footer)
+        let document = document(summary: summary, baby: baby, openQuestions: openQuestions,
+                                periodStart: periodStart, now: now)
+        // UIKit draws this line, and in a PDF context it prints an emoji as a box too.
+        let name = PagedPDF.withoutEmoji(baby.name).trimmingCharacters(in: .whitespaces)
+        let footer = [ "brand.name".l, name, periodRange(periodStart, now: now) ]
+            .filter { !PagedPDF.isBlank($0) }.joined(separator: " · ")
+        return PagedPDF.data(document, renderer: ReportPageRenderer(footerLeft: footer))
     }
 
     /// «<report.pdf.file_fmt>.pdf», the name cleaned as every export's is.
@@ -340,37 +353,11 @@ enum DoctorReportPDF {
         return ExportGenerator.fileNamePart(base) + ".pdf"
     }
 
-    /// Same page setup as `ExportGenerator.renderPDF` (A4, margins 36); its own
-    /// renderer because the report needs a footer on every page.
-    private static func render(html: String, footerLeft: String) -> Data {
-        let renderer = ReportPageRenderer(footerLeft: footerLeft)
-        renderer.addPrintFormatter(UIMarkupTextPrintFormatter(markupText: html), startingAtPageAt: 0)
-
-        let pageSize = CGSize(width: 595.2, height: 841.8)
-        let margin: CGFloat = 36
-        let printable = CGRect(x: margin, y: margin,
-                               width: pageSize.width - margin * 2, height: pageSize.height - margin * 2)
-        renderer.setValue(NSValue(cgRect: CGRect(origin: .zero, size: pageSize)), forKey: "paperRect")
-        renderer.setValue(NSValue(cgRect: printable), forKey: "printableRect")
-
-        let data = NSMutableData()
-        UIGraphicsBeginPDFContextToData(data, CGRect(origin: .zero, size: pageSize), nil)
-        renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
-        for page in 0..<renderer.numberOfPages {
-            UIGraphicsBeginPDFPage()
-            // A white page, margins and footer included: a PDF page is
-            // transparent, and dark viewers drew the frame black (design review m5).
-            UIColor.white.setFill()
-            UIRectFill(UIGraphicsGetPDFContextBounds())
-            renderer.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())
-        }
-        UIGraphicsEndPDFContext()
-        return data as Data
-    }
-
     /// Draws «<brand> · <name> · <period>» left and «Page N of M» right on every page.
     private final class ReportPageRenderer: UIPrintPageRenderer {
         private let footerLeft: String
+        /// Once per render, not per page: it carries the whole fallback list.
+        private let font = PagedPDF.font(ofSize: 9)
 
         init(footerLeft: String) {
             self.footerLeft = footerLeft
@@ -380,8 +367,7 @@ enum DoctorReportPDF {
         }
 
         override func drawFooterForPage(at pageIndex: Int, in footerRect: CGRect) {
-            // 9 pt page furniture in the secondary colour (design § 5).
-            let font = UIFont.systemFont(ofSize: 9)
+            // 9 pt page furniture in the secondary colour.
             let color = UIColor(hex: DoctorReportPDF.secondary)
             let left = NSMutableParagraphStyle()
             left.lineBreakMode = .byTruncatingTail

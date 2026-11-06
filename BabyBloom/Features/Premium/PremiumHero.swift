@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Extracted for the same reason `PlanPickerSection` was: two hand-written
 /// copies of the same header had already drifted (different heights, different
-/// headline sizes), and the owner's build-9 review asked for one visual
+/// headline sizes), and the build-9 review asked for one visual
 /// language across both entry points.
 ///
 /// It sizes itself from its content instead of carrying a fixed height. The

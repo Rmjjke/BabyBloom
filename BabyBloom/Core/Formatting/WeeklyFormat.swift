@@ -37,7 +37,7 @@ enum WeeklyFormat {
                 : String(format: "duration.h_min".l, minutes / 60, minutes % 60)
         }
         // The break between the parts stays: the value may still wrap there at
-        // AX sizes (design m1-weekly-summary § AX2).
+        // AX sizes (teamdocs/design/m1-weekly-summary.md, § AX2).
         return text.gluingNumbersToUnits
     }
 

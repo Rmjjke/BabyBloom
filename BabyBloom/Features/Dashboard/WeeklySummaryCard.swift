@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Last week on the Dashboard (design note m1-weekly-summary; D8, D17–D19).
+/// Last week on the Dashboard (design: teamdocs/design/m1-weekly-summary.md).
 /// Collapsed: three value rows; the header row expands it to the week before,
 /// the per-day bars and the longest sleep. × hides it until next Monday.
 struct WeeklySummaryCard: View {
@@ -8,7 +8,7 @@ struct WeeklySummaryCard: View {
     let onAddWeighing: () -> Void
 
     /// The Monday of the week the parent hid, "2026-10-19"; local to this
-    /// device on purpose (note § 6), so it needs no sync.
+    /// device on purpose, so it needs no sync.
     @AppStorage("weekly.hiddenWeek") private var hiddenWeek = ""
     /// The week `weekly_summary_viewed` was last sent for: once a week, not
     /// once per Dashboard visit.
@@ -16,7 +16,7 @@ struct WeeklySummaryCard: View {
     @State private var expanded: Bool
 
     /// `startExpanded` is for the render dump; the Dashboard opens it collapsed
-    /// (DECISION 2026-10-29: a notification tap lands collapsed too).
+    /// (a notification tap lands collapsed too).
     init(summary: WeeklySummary, startExpanded: Bool = false, onAddWeighing: @escaping () -> Void) {
         self.summary = summary
         self.onAddWeighing = onAddWeighing
@@ -24,11 +24,11 @@ struct WeeklySummaryCard: View {
     }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
-    /// The row glyphs and the chevron grow with the text (design review m1);
+    /// The row glyphs and the chevron grow with the text;
     /// the indent under a row follows its glyph. The × stays fixed.
     @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
     @ScaledMetric(relativeTo: .footnote) private var chevron: CGFloat = 13
-    /// The delta arrow grows with its caption (Designer's AX2 look after #85).
+    /// The delta arrow grows with its caption so it stays in proportion at AX2.
     @ScaledMetric(relativeTo: .caption) private var arrow: CGFloat = 10
     private var indent: CGFloat { glyph + 8 }
 
@@ -70,7 +70,7 @@ struct WeeklySummaryCard: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
-            // iPad: the delta stays near its value (note § 4).
+            // iPad: the delta stays near its value.
             .frame(maxWidth: 480, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -117,7 +117,7 @@ struct WeeklySummaryCard: View {
             .accessibilityIdentifier("weekly.expand")
 
             Button {
-                // Reduce Motion: the card goes without a fade (review m2).
+                // Reduce Motion: the card goes without a fade.
                 if reduceMotion {
                     hiddenWeek = weekKey
                 } else {
@@ -255,7 +255,7 @@ struct WeeklySummaryCard: View {
         }
     }
 
-    /// Neutral by rule (P1, plan v2 review): never green or red.
+    /// Neutral by rule: never green or red.
     private func deltaView(_ delta: (up: Bool, text: String)) -> some View {
         HStack(spacing: 2) {
             Image(systemName: delta.up ? "arrow.up" : "arrow.down")
@@ -264,7 +264,7 @@ struct WeeklySummaryCard: View {
                 .monospacedDigit()
         }
         .foregroundStyle(BBTheme.Colors.textSecondary)
-        // The arrow alone is not spoken; the direction has to be words (M1, AA).
+        // The arrow alone is not spoken; the direction has to be words.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(format: (delta.up ? "weekly.a11y_delta_up_fmt" : "weekly.a11y_delta_down_fmt").l,
                                    delta.text))
@@ -279,7 +279,7 @@ struct WeeklySummaryCard: View {
                 VStack(spacing: 2) {
                     let has = summary.current.dayHasEntries[day] && values[day] > 0
                     // A day before the birth is not a day "without entries":
-                    // no stub at all (review m3).
+                    // no stub at all.
                     let born = day >= summary.daysBeforeBirth
                     RoundedRectangle(cornerRadius: 2)
                         .fill(has ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(born ? 0.15 : 0))

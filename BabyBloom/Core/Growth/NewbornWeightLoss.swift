@@ -50,8 +50,8 @@ enum NewbornWeightLoss {
 
         var hasRegained: Bool { regainedOn != nil }
 
-        /// Whether "regained / not reached yet" belongs beside the shown share
-        /// (Q-002). Not when that share READS 100% without a regain: the birth
+        /// Whether "regained / not reached yet" belongs beside the shown share.
+        /// Not when that share READS 100% without a regain: the birth
         /// weighing itself (day 0, or still the latest on day 5) and a 99.7%
         /// that rounds up would put "not reached yet" beside "100%".
         var showsRegainLine: Bool {
