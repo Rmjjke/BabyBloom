@@ -178,4 +178,31 @@ final class MedicationFormInputTests: XCTestCase {
         XCTAssertEqual(MedicationFormInput.otherHours, Array(0...48))
         XCTAssertEqual(MedicationFormInput.otherMinutes, [0, 15, 30, 45])
     }
+
+    // MARK: one paragraph
+
+    func testOneParagraphLeavesTextWithoutBreaksAlone() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph("Paracetamol 5 ml"), "Paracetamol 5 ml")
+    }
+
+    func testOneParagraphDropsATrailingBreak() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph("Paracetamol\n"), "Paracetamol")
+    }
+
+    func testOneParagraphTurnsABreakIntoASpace() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph("Para\ncetamol"), "Para cetamol")
+    }
+
+    func testOneParagraphCollapsesARunOfBreaks() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph("a\n\n\nb"), "a b")
+    }
+
+    func testOneParagraphHandlesWindowsBreaks() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph("a\r\nb"), "a b")
+        XCTAssertEqual(MedicationFormInput.oneParagraph("\r\n"), "")
+    }
+
+    func testOneParagraphOfNothingIsNothing() {
+        XCTAssertEqual(MedicationFormInput.oneParagraph(""), "")
+    }
 }

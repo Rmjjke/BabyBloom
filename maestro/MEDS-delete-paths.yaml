@@ -31,7 +31,7 @@ tags: [regression]
     id: "more.medications"
 - tapOn: "Paracetamol"
 - extendedWaitUntil:
-    visible: "Last dose at 8:00.AM · 2.h ago"
+    visible: "Last dose at 8:00.AM.· 2.h ago"
     timeout: 10000
 
 # Delete Dose in the sheet: the 8:00 AM dose goes, 2:00 AM is the last.
@@ -47,7 +47,7 @@ tags: [regression]
 - tapOn:
     id: "dose.delete"
 - extendedWaitUntil:
-    visible: "Last dose at 2:00.AM · the 6.h interval has passed"
+    visible: "Last dose at 2:00.AM.· the 6.h interval has passed"
     timeout: 10000
 - assertNotVisible:
     id: "dose.delete"
@@ -59,7 +59,7 @@ tags: [regression]
     direction: LEFT
 - tapOn: "Delete"
 - extendedWaitUntil:
-    visible: "Last dose at 8:00.PM yesterday · the 6.h interval has passed"
+    visible: "Last dose at 8:00.PM yesterday.· the 6.h interval has passed"
     timeout: 10000
 
 # The row that is now first opens its own dose, not a deleted one.

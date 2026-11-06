@@ -85,7 +85,7 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "Next dose not before 4:00.PM"
     timeout: 10000
-- assertVisible: "Last dose at 10:00.AM · just now"
+- assertVisible: "Last dose at 10:00.AM.· just now"
 
 # The list follows at once, with no wait for the minute tick.
 - tapOn:
@@ -123,7 +123,7 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "Next dose not before 2:00.PM"
     timeout: 10000
-- assertVisible: "Last dose at 8:00.AM · 2.h ago"
+- assertVisible: "Last dose at 8:00.AM.· 2.h ago"
 
 # End the course: no status, no Log Dose, the dose still listed.
 - scrollUntilVisible:

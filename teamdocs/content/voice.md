@@ -15,12 +15,16 @@ and the Live Activity read the byte-identical copies in
 - Russian addresses the parent as «вы». The brand is declined in Russian
   («в Ночку», «Откройте Ночку»), so a Russian string that names the brand
   writes the declined form, not `%@`.
-- Spanish addresses the parent as «tú».
+- Spanish addresses the parent as «tú». The app's Spanish is Latin American:
+  es is pinned to es_419 (`DECISIONS.md` 2026-10-30), and its words follow
+  iOS in that locale. The same text serves Spain, so a word that reads oddly
+  there is avoided.
 
 ## Terms
 
 | meaning | en | ru | es | note |
 |---|---|---|---|---|
+| add (a record, a weighing, a question, a medication) | Add | Добавить | Agregar | every form: «Agregar», «agregar», «Agrega», «agrega»; never «Añadir». iOS 26 says «Agregar» in es_419 (348 strings, no «Añadir») and «Añadir» in Spain's es; «agregar» is ordinary Spanish in Spain too |
 | breastfeeding (full) | Breastfeeding | Кормление грудью | Lactancia | Lock Screen, Dynamic Island |
 | breastfeeding (list shorthand) | BF | ГВ | LM | in-app lists only, never on the Lock Screen |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
@@ -93,3 +97,9 @@ and the Live Activity read the byte-identical copies in
   `trend.drop_fmt`, `report.change_since_fmt`, `report.empty_*_fmt`. es:
   `nutrition.per_day_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`.
   Text unchanged.
+- 2026-11-03 — es: one verb for "add", «agregar». Eleven values that said
+  «Añadir» / «añade» now say «Agregar» / «agrega»: `dashboard.growth.empty`,
+  `growth.add_weighing`, `newborn.needs_weighing`, `newborn.info_body`,
+  `velocity.info_body`, `nutrition.info_body`, `notification.weigh_in_body`,
+  `onboarding.showcase.invite`, `question.add`, `medication.add`,
+  `medication.empty_body`. No other word changed.

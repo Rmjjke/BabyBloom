@@ -122,7 +122,14 @@ ages count hours and minutes up to 48 h and then days. The screens read
 `MedicationFormInput` holds the form and its Save rule: a name, and an
 interval in `Medicine.intervalMinutesRange` (15 min … 48 h) from a chip or
 the Other wheels (at 48 h the minutes wheel offers only 0); the maximum field
-keeps two digits and may be empty, but 0 or over 24 keeps Save off. `DoseSheet`
+keeps two digits and may be empty, but 0 or over 24 keeps Save off and shows
+the range hint under the field. Lines the code joins with a middle dot use
+`MedicationFormat.separator`, which puts a no-break space before the dot, so
+a wrapped line never opens with it; a dot inside a copy key is the key's.
+The name and dose fields wrap (`axis: .vertical`) but stay one paragraph
+(`View.oneParagraph`): Return ends editing and a pasted line break becomes
+a space, since the copies travel into every row, the alert and the export.
+`DoseSheet`
 logs a dose (`CustomEvent.dose(of:at:)`, the dose text as edited) or edits
 one (time, dose text, note; never the copied name); its picker ends at now
 and save clamps to now as well, since the picker clamps only its display. It
@@ -137,7 +144,24 @@ pops itself and deletes the medicine once it has disappeared; Delete Dose
 hands the dose back and the detail deletes it in the dose sheet's
 `onDismiss`. The detail and the dose sheet draw nothing for a model with no
 context or `isDeleted` (one deleted on another device). Nothing in the feature is
-gated. The confirmation, the reminder and the Home card come later.
+gated. The reminder and the Home card come later.
+
+**The confirmation** (`DoseConfirmation.swift`). Save in the dose sheet, and
+in the Add Event form with a medication chosen, first asks
+`Medicine.confirmation(for:now:editing:loggedTime:)` about the time it will
+store. It reads `check` and returns the words of one variant, or nil when
+the dose is on time: «before» (a close earlier dose and its interval's end),
+«after» (a close later dose and the interval), or «24 h» (the count with
+this dose, the maximum, and the screen's `nextAllowed`), the last only when
+`showsDaily` holds. The «not before» is each message's last line and is
+dropped when it is not after now (a dose logged after the fact), so the
+alert never names a time that disagrees with the screen behind it. A
+non-nil answer raises a system alert (`View.doseConfirmation`) and keeps a
+`ConfirmedDose` (the medication's id and the time): Cancel returns to the
+sheet with every field kept; Save stores exactly that dose, or nothing when
+the choice has changed meanwhile. There is no alert for an ended course, or
+for an edited dose saved at the time the sheet read when it opened; a
+free-text event is never checked.
 
 **Medicines on Events.** One `MedicationStatusLine` per running medication
 sits above Quick input and pushes its detail. While a medication runs, the
@@ -146,9 +170,13 @@ running medication is preselected, with two or more the «Medication» menu
 shows «Choose» and Save waits. With none, the tile is the old one-tap entry
 behind the gate. The Add Event form, type Medication, shows the same menu
 (`MedicationMenuField`) of running medications plus «Not in the list»: a
-chosen one logs a linked dose (`CustomEvent.dose(of:at:)`, at most now) with
-the status box (`MedicationStatusBox`) and no name or dose fields; «Not in the
-list», or no running medication, keeps the two free-text fields. No medication
+chosen one logs a linked dose (`CustomEvent.dose(of:at:)`) with the status
+box (`MedicationStatusBox`) and no name or dose fields; «Not in the list», or
+no running medication, keeps the two free-text fields. The form's time
+starts at `AppClock.now`; for the Medication type, linked or not, its picker
+ends at now and the save clamps to now. The bound follows the type, not the
+choice in the menu: a compact picker whose bound moves under its selection
+redraws its date in the short style. No medication
 save from any path calls `entrySaved`. A medication row's text is
 `MedicationFormat.eventRow`: a dose titled by its copied name, then dose ·
 note; an older one by the type word, then name · dose · note. `BBEventRow`
@@ -1118,7 +1146,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date) read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |

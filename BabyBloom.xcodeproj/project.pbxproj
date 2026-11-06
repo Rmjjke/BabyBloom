@@ -232,6 +232,7 @@
 		E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 582657DC180DE03128A75629 /* NewbornWeightLoss.swift */; };
 		E341CA4DEC91DEACE0BC5629 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756CA42B2B02154C7E93929D /* DashboardView.swift */; };
 		E3D5F0838609C2C904796744 /* WidgetRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2594AE134D2C8D13E872E626 /* WidgetRefresh.swift */; };
+		E400214E32CF08704C1B49EA /* DoseConfirmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D960D0FD1B4ADE5E7066B1C /* DoseConfirmation.swift */; };
 		E4288B825DEDD42215BBD8EB /* BBFab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2DCA65186F68E00645DF02 /* BBFab.swift */; };
 		E494D515F729B4D9187DACC4 /* OnboardingBabyBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3754F958AF4AA93F2A1D575 /* OnboardingBabyBuilder.swift */; };
 		E5685B6848B12E30C5F93214 /* BBCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D8FD4BDCB5A01EA8CF278F /* BBCharts.swift */; };
@@ -252,6 +253,7 @@
 		F4E144E71AF99979859A9D33 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = D8768F1C61CA49F9DE3FFC1F /* es.json */; };
 		F59CA54698CBFD6B085649DA /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB92DC704136729F7426DA9 /* WidgetViews.swift */; };
 		F5C0D41C4C4071E24773021D /* HistoryWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F831A6B6B142A468D5E4902 /* HistoryWindow.swift */; };
+		F73F1E6B92594256E417941F /* MedicationConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCFB16F40BF516F2C8D002 /* MedicationConfirmationTests.swift */; };
 		F77E5D05ABD2A38C2129AABC /* DoctorReportLoadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */; };
 		F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
 		F81F235ECFC91D7AF223294D /* StartFeedingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624B29F59802C271608F6A4E /* StartFeedingIntent.swift */; };
@@ -405,6 +407,7 @@
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
 		624B29F59802C271608F6A4E /* StartFeedingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartFeedingIntent.swift; sourceTree = "<group>"; };
 		63224488CC245E6D9CAC116F /* MedicineModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineModelTests.swift; sourceTree = "<group>"; };
+		63BCFB16F40BF516F2C8D002 /* MedicationConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationConfirmationTests.swift; sourceTree = "<group>"; };
 		63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpyAnalyticsBackend.swift; sourceTree = "<group>"; };
 		64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChange.swift; sourceTree = "<group>"; };
 		6537C2E0FB228D64A4A9D7BA /* Nenita.storekit */ = {isa = PBXFileReference; path = Nenita.storekit; sourceTree = "<group>"; };
@@ -439,6 +442,7 @@
 		8B6AD2785BEA18792EBB7624 /* BBLockedHistoryFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBLockedHistoryFooter.swift; sourceTree = "<group>"; };
 		8B7F55CA505F1177A13FDB5D /* MedicationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationDetailView.swift; sourceTree = "<group>"; };
 		8CF2BF69F0069D31809BAD28 /* ReviewPromptPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptPolicy.swift; sourceTree = "<group>"; };
+		8D960D0FD1B4ADE5E7066B1C /* DoseConfirmation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseConfirmation.swift; sourceTree = "<group>"; };
 		8DA3D32F0D2D5261DD037F00 /* PeriodSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodSummary.swift; sourceTree = "<group>"; };
 		8DC61B36B29C0F41B11EE8C7 /* QuestionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionsCard.swift; sourceTree = "<group>"; };
 		9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryTests.swift; sourceTree = "<group>"; };
@@ -776,6 +780,7 @@
 				F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */,
 				4D98D87FDCBA2812CB46C65C /* LiveActivityPlannerTests.swift */,
 				ECC89795169A77B9054F5942 /* LiveActivityRenderDump.swift */,
+				63BCFB16F40BF516F2C8D002 /* MedicationConfirmationTests.swift */,
 				5B40F49A33B61B3BF475CBD5 /* MedicationCopyTests.swift */,
 				0A2C98BBDFF5F24BF5543402 /* MedicationEventsTests.swift */,
 				FD8B9A9A40688AC4D176E215 /* MedicationFormatTests.swift */,
@@ -941,6 +946,7 @@
 		846CE3B7AA271ACA9EC90398 /* Medications */ = {
 			isa = PBXGroup;
 			children = (
+				8D960D0FD1B4ADE5E7066B1C /* DoseConfirmation.swift */,
 				9EB8FBA5F4A2DD45BFFAABAE /* DoseSheet.swift */,
 				8B7F55CA505F1177A13FDB5D /* MedicationDetailView.swift */,
 				2C76B80590AB2A80E9FD7B87 /* MedicationFormat.swift */,
@@ -1442,6 +1448,7 @@
 				7200DB9CCD70C8DD32E552AF /* DoctorReportView.swift in Sources */,
 				0087DB96726777CE0E46D406 /* DoctorVisit.swift in Sources */,
 				CD209E71F9D39A0074A6FCC5 /* DoctorVisitActions.swift in Sources */,
+				E400214E32CF08704C1B49EA /* DoseConfirmation.swift in Sources */,
 				C1A1ABD8CC93695BAD828475 /* DoseSheet.swift in Sources */,
 				10445FD95183102DC87376E7 /* Double+AppRate.swift in Sources */,
 				BC0C8552EC0DE9CF90DB6423 /* EventsHistory.swift in Sources */,
@@ -1584,6 +1591,7 @@
 				D755C7DF7251C68F54558C31 /* HistoryWindowTests.swift in Sources */,
 				426F59D296FD17ABD3C5378D /* LiveActivityPlannerTests.swift in Sources */,
 				BE518771B478E9C1A657213F /* LiveActivityRenderDump.swift in Sources */,
+				F73F1E6B92594256E417941F /* MedicationConfirmationTests.swift in Sources */,
 				627BCE77B53BD869EE4C528E /* MedicationCopyTests.swift in Sources */,
 				BA316D7C54A6C8E8BBE5BE5E /* MedicationEventsTests.swift in Sources */,
 				92D69E3860B1946A1721B49E /* MedicationFormInputTests.swift in Sources */,

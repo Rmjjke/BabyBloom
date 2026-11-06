@@ -14,6 +14,20 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — The dose confirmation is a system alert that never blocks, and asks only about a time the parent set
+
+**A system alert, with Save and no "anyway".** The system scales it at large text, reads it to VoiceOver and colours nothing, so it cannot turn into a red warning. Cancel is the bold side because it keeps things as they were; Save has no role, since keeping a dose the parent gave is neither destructive nor wrong. The app states the time since a dose and never says whether to give one.
+
+**One alert per save, naming the limit that ends later.** Its time is then the «not before» the medication's screen shows; the interval variant cannot explain a time the maximum set. On a tie, the interval.
+
+**No alert for an edited dose saved at its logged time, or for an ended course.** An edit that changes only the dose text or the note would otherwise ask about a time the parent did not touch, which reads as a verdict on the edit. An ended course shows no next time, so the alert would name one for a course that is over. A dose moved to a new time asks like a new one.
+
+**A «not before» that has passed is left out of the alert.** For a dose logged after the fact the interval's end can lie in the past, or before a dose logged since. Read as current advice, «next dose not before 2:00 PM» at 5 PM would say a dose is fine while the screen behind says 10 PM. The alert then states the dose it is close to and stops; the 24-hour variant names the screen's own time.
+
+**The alert's Save stores exactly what it asked about, or nothing.** A medication can end or go on another device while the alert is up; saving whatever the menu then holds would file a dose nobody gave under another medication, unchecked.
+
+**A medication's name and dose stay one paragraph.** The fields wrap at large text, so Return would start a new line; the copies travel into every row, the alert's first line and the export, so Return ends editing instead.
+
 ## 2026-11-03 — On Events a dose is free, outside the cap, and titled by its medicine
 
 **Doses have twenty rows of their own on Events, and keep the 15-day window.** In the shared twenty, four a day would fill the list in five days and push every bath and walk off it. Uncapped like a visit, a year of daily drops on a subscriber's list would draw hundreds of rows in one stack. The medication's own screen lists every dose, so Events shows the latest. The window stays because it is the rule for every history list. Each half decides its own locked footer: a free account's footer under old doses sells rows a subscriber does see. Older and free-text medication events are not doses and count in the shared twenty as before.

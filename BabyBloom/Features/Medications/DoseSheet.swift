@@ -124,6 +124,7 @@ struct DoseSheet: View {
         .presentationDragIndicator(.visible)
         .presentationDetents([.medium, .large], selection: $selectedDetent)
         .onChange(of: choices.map(\.persistentModelID)) { reconcileChoice() }
+        .doseConfirmation(confirmation, isPresented: $confirming) { saveConfirmed() }
     }
 
     private var fields: some View {
@@ -144,11 +145,13 @@ struct DoseSheet: View {
             // Vertical, so a long dose wraps at large text instead of shrinking.
             TextField("form.dose".l, text: $doseText, axis: .vertical)
                 .lineLimit(1...3)
+                .oneParagraph($doseText)
                 .medicationField()
                 .accessibilityIdentifier("dose.dose")
             TextField("medication.detail_note".l, text: $note, axis: .vertical)
                 .lineLimit(3)
                 .medicationField()
+                .accessibilityIdentifier("dose.note")
             if let medicine, !medicine.isEnded {
                 // The state before this entry, so an edited dose does not
                 // measure against itself.
@@ -192,14 +195,41 @@ struct DoseSheet: View {
         }
     }
 
+    /// Kept while the alert is up and after it, so its title does not blank
+    /// during the dismiss animation.
+    @State private var confirmation: DoseConfirmation?
+    @State private var confirmed: ConfirmedDose?
+    @State private var confirming = false
+
+    /// The time a save stores: an edit that leaves the time alone keeps it;
+    /// anything else is clamped to now.
+    private var savedTime: Date {
+        if let loggedTime, time == loggedTime { return loggedTime }
+        return min(time, AppClock.now)
+    }
+
+    /// A dose inside the interval or over the maximum asks first.
     private func save() {
         guard canSave, let medicine else { return }
-        let at: Date
-        if let loggedTime, time == loggedTime {
-            at = loggedTime
-        } else {
-            at = min(time, AppClock.now)
+        let at = savedTime
+        if let asked = medicine.confirmation(for: at, now: AppClock.now, editing: dose, loggedTime: loggedTime) {
+            confirmation = asked
+            confirmed = ConfirmedDose(medicineID: medicine.persistentModelID, time: at)
+            confirming = true
+            return
         }
+        commit(medicine, at: at)
+    }
+
+    /// The alert's Save: the medication and time it asked about, or nothing
+    /// when the choice moved on while it was up, and the sheet stays open.
+    private func saveConfirmed() {
+        guard let confirmed, canSave, let medicine, !medicine.isEnded,
+              medicine.persistentModelID == confirmed.medicineID else { return }
+        commit(medicine, at: confirmed.time)
+    }
+
+    private func commit(_ medicine: Medicine, at: Date) {
         if let dose {
             // The name stays as logged; only the time, the dose and the note change.
             dose.time = at

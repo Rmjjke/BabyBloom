@@ -19,7 +19,8 @@ struct MedicationLines: Equatable {
 /// in front of it. Typed text (the name, the dose) is never a key and is never
 /// glued or reformatted.
 enum MedicationFormat {
-    static let separator = " · "
+    /// A no-break space before the dot, so a wrapped line never opens with it.
+    static let separator = "\u{00A0}· "
 
     /// "6 h", "1 h 30 min", "45 min". The duration keys carry their no-break
     /// spaces, so a number never leaves its unit.
@@ -157,7 +158,7 @@ enum MedicationFormat {
         let name = name.flatMap(MedicationFormInput.optional)
         let dose = dose.flatMap(MedicationFormInput.optional)
         let note = note.flatMap(MedicationFormInput.optional)
-        func joined(_ parts: [String?]) -> String { parts.compactMap { $0 }.joined(separator: " · ") }
+        func joined(_ parts: [String?]) -> String { parts.compactMap { $0 }.joined(separator: separator) }
         if isDose, let name { return (name, joined([dose, note])) }
         return (typeWord, joined([name, dose, note]))
     }

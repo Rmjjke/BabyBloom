@@ -52,12 +52,13 @@ struct MedicationDetailView: View {
             if !medicine.isEnded {
                 BBPrimaryButton("medication.log_dose".l, icon: "plus") { doseSheet = .new }
                     .accessibilityIdentifier("medication.log_dose")
-                    // The content's column on iPad, not the window's width.
-                    .frame(maxWidth: MedicationLayout.maxWidth)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, BBTheme.Spacing.md)
                     .padding(.top, BBTheme.Spacing.sm)
                     .padding(.bottom, BBTheme.Spacing.xs)
+                    // The content's column on iPad, padding inside it as the
+                    // cards have, so the button lines up with them.
+                    .frame(maxWidth: MedicationLayout.maxWidth)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .background(BBTheme.Colors.background)
             }
         }

@@ -12,6 +12,7 @@ struct MedicationFormSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var input: MedicationFormInput
     @State private var confirmDelete = false
@@ -95,7 +96,10 @@ struct MedicationFormSheet: View {
                 .foregroundStyle(BBTheme.Colors.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             divider
-            TextField("medication.field_name_placeholder".l, text: $input.name)
+            // Vertical, so a long name wraps at large text instead of shrinking.
+            TextField("medication.field_name_placeholder".l, text: $input.name, axis: .vertical)
+                .lineLimit(placeholderLines)
+                .oneParagraph($input.name)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .accessibilityLabel(Text("medication.field_name".l))
                 .accessibilityIdentifier("medication.name")
@@ -127,13 +131,17 @@ struct MedicationFormSheet: View {
 
     private var detailsGroup: some View {
         VStack(alignment: .leading, spacing: 0) {
-            TextField("medication.field_dose_placeholder".l, text: $input.doseText)
+            // The placeholders are long: single-line, they shrank at large text.
+            TextField("medication.field_dose_placeholder".l, text: $input.doseText, axis: .vertical)
+                .lineLimit(placeholderLines)
+                .oneParagraph($input.doseText)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .accessibilityLabel(Text("medication.field_dose".l))
                 .accessibilityIdentifier("medication.dose")
             divider
             fieldLabel("medication.field_max")
-            TextField("medication.field_max_placeholder".l, text: $input.maximumText)
+            TextField("medication.field_max_placeholder".l, text: $input.maximumText, axis: .vertical)
+                .lineLimit(1...3)
                 .keyboardType(.numberPad)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .padding(.top, BBTheme.Spacing.xs)
@@ -143,6 +151,13 @@ struct MedicationFormSheet: View {
                     let digits = MedicationFormInput.maximumDigits(text)
                     if digits != text { input.maximumText = digits }
                 }
+            if input.maximum == .invalid {
+                // Why Save is off, in the field's own grey: a range to type,
+                // not an error to fix.
+                fieldLabel("medication.field_max_range_hint")
+                    .padding(.top, BBTheme.Spacing.xs)
+                    .accessibilityIdentifier("medication.max_hint")
+            }
             divider
             TextField("form.notes_optional".l, text: $input.note, axis: .vertical)
                 .lineLimit(3)
@@ -152,6 +167,13 @@ struct MedicationFormSheet: View {
     }
 
     // MARK: Parts
+
+    /// A placeholder wraps only into lines the field already has, so at
+    /// accessibility sizes the name and dose fields keep two: with one, the
+    /// placeholder, the field's only visible label, ended in «…».
+    private var placeholderLines: ClosedRange<Int> {
+        dynamicTypeSize.isAccessibilitySize ? 2...4 : 1...3
+    }
 
     private var isOther: Bool {
         if case .other = input.interval { return true }
