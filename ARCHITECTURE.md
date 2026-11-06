@@ -200,7 +200,9 @@ note; an older one by the type word, then name · dose · note. `BBEventRow`
 shows every string verbatim (its callers localize, so a typed note or name is
 never looked up as a key), scales its second line and time, and moves the time
 under the text at accessibility sizes, where a long word beside it broke
-mid-word.
+mid-word, and below them wherever a word of its title or subtitle misses its
+column beside the time: ru «вскармливание» on a 320-pt screen at Large, en
+«Breastfeeding» there at xLarge with Bold Text.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -572,7 +574,18 @@ each word of it fits the room there, wrapping between words, else on its
 own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
-about words, not the whole line. The diaper norm editor's stepper card
+about words, not the whole line. `BBEventRow`'s title and subtitle are
+measured the same way. `SideBySideIdeal` (in
+`DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
+| value row: its ideal width is the least at which the stack's own split (the
+less flexible text offered half the room, the other the rest) leaves each
+text its widest word, and a concrete width passes through untouched, so a row
+that fits lays out as the plain stack. The Nutrition card's three rows take
+one shape together through it: all beside while every row keeps its words
+whole, else all stacked as at the accessibility sizes (ru at xxxLarge on
+320 pt, and at xxLarge with Bold Text). Its hidden measuring copies take the
+drawn `multilineTextAlignment`: wrapped flush right, a text reports about a
+space more width. The diaper norm editor's stepper card
 (− digits +) keeps the column's xl inset, as Save: with xl between each
 symbol and the digits and inside the card it needs 313 pt with «12», 2 more
 than a 375-pt column leaves. Where that misses, the card takes the column's
