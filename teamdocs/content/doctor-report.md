@@ -267,10 +267,15 @@ and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
   `percentile.85_97`) leave the closed list: their keys are deleted, because
   the growth card now states the percentile itself and nothing reads them.
 - 2026-11-05 — The app names a breast feed with the report's word, "Breast /
-  Грудь / Pecho", in place of the abbreviation BF / ГВ / LM, so the screen,
-  the export and the report say one word.
+  Грудь / Pecho" (`feeding.type.breast`), in place of the abbreviation
+  BF / ГВ / LM, so the screen, the export and the report say one word.
 - 2026-11-05 — "Report" names the pediatrician's PDF only (§ Names). The
   Export PDF's tile, first page and file name say "Every entry, day by day"
   and "All entries", and the Export screen points to this report with
   `export.pdf_doctor_hint_fmt`. New `report.pdf.chart_title` and
   `report.pdf.chart_curves` head the weight-for-age section.
+- 2026-11-06 — `report.type_breast` is deleted: the report's counts by type
+  read `feeding.type.breast`, the word the app uses. `duration.min_sec` is
+  gone too; the report's durations come from the app's one writer, in hours
+  and minutes. A spaced dash in the app now takes a no-break space before
+  it; no key on the closed list changed with it.

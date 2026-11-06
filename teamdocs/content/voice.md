@@ -112,6 +112,13 @@ and the Live Activity read the byte-identical copies in
     (`export.summary.avg`), the weekly card's words in the nominative, and
     its value is the bare figure: the label carries "a day", so the value
     takes no «/день».
+  - The export's count tiles take the app's tile labels: `stat.feedings`
+    "Feedings" / «Кормления» / «Tomas», `stat.sleep_episodes`,
+    `stat.diapers` and `stat.measurements` "Measurements" / «Измерения» /
+    «Medidas». The section names `export.cat.*` head the export's sections
+    and the report's cards, where no number stands beside them. Beside a
+    count they read wrong: «47 Кормление» names one feed, and «Сон» or
+    «Рост» beside a number reads as an amount of sleep or a height.
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -276,6 +283,32 @@ and the Live Activity read the byte-identical copies in
     375 pt one), the slash is the one place it can break. With a joiner it
     would break inside «week» instead. The same key also fills the Home
     growth row and the weekly summary's previous week, where it has room.
+  - A spaced dash never starts a line. An em dash with a space before it
+    takes a no-break space there, in every key and every language:
+    «ВОЗ — стандарты роста детей», "NHS — helping your baby to sleep",
+    "%@ — Detailed" (`widget.name_medium`). The space after the dash stays
+    plain, so the line may break after the dash. The file names `export.file_fmt` and
+    `report.pdf.file_fmt` keep plain spaces around their en dash: a file
+    name never wraps.
+  - The no-break space holds only while the word before the dash and the
+    dash fit on one line. When they do not, the line breaks at it anyway
+    and the dash leads the next line. The event row's feed titles had that
+    case: beside the icon and the time the title has about 111 pt on a
+    320 pt screen. «Сцеженное —» did not fit there at xL and xxL, nor at the
+    AX sizes on 375 and 402 pt screens; «Смесь —», "Formula —", "Pumped —",
+    «Fórmula —» and «Extraída —» did not fit at AX1 or AX2. A comma in the
+    dash's place broke before itself at AX2. So these titles put nothing
+    between the word and the amount: "Formula 120 ml" / «Смесь 120 мл» /
+    «Fórmula 120 ml», "Pumped 120 ml" / «Сцеженное 120 мл» / «Extraída
+    120 ml». No mark that belongs to the end of a line may start one.
+  - The Export screen's PDF tile glues its last words, "day by day" /
+    «día a día» (`export.format.pdf_desc`). On a 320 pt screen the line has
+    108 pt and breaks at the comma: "Every entry," / "day by day".
+  - Measured with the app's fonts on 320, 375 and 402 pt screens from Large
+    to AX2: the dash started a line 29 / 63 / 19 times in en / ru / es, and
+    now never does. No word breaks inside where it did not before, and
+    6 / 28 / 2 cases take one line more. A UI test that matches such a line
+    takes `.` for the no-break space.
   - In the JSON the no-break space and the word joiner are the raw
     characters U+00A0 and U+2060, not escapes. An editor and a diff show
     them as a plain space or as nothing, so a value is checked with a script
@@ -519,3 +552,22 @@ and the Live Activity read the byte-identical copies in
   line under the format tiles that names the way to the report; and
   `report.pdf.chart_title` · `report.pdf.chart_curves`, the heading of the
   report's weight-for-age section, with no list of percentile numbers.
+- 2026-11-06 — The unit words `unit.pcs`, `unit.times` and `unit.hours`,
+  `duration.min_sec` and `report.type_breast` are deleted: nothing reads
+  them. The report counts a breast feed by `feeding.type.breast`, and every
+  duration from a minute comes from one writer, in hours and minutes. The
+  export's feeds-a-day tile is "Feeds a day" / «Кормления в день» / «Tomas
+  al día» (`export.summary.avg`), with the bare figure for its value
+  (§ Counts on Home and the stat tiles).
+- 2026-11-06 — A spaced dash never starts a line (§ Line breaks around
+  numbers): a no-break space before every em dash that has a space before
+  it, in 32 en, 45 ru and 18 es values, with nothing else changed in them.
+  They are the onboarding pages and facts, the info sheets and their
+  sources (`source.*`), the growth, Nutrition and trend texts, the birth
+  weight hint and the widget's name (`widget.name_medium`); in Russian also
+  two notifications, the weekly card's gain line, the history unlock line
+  and the growth card's empty state. The event row's feed titles
+  `feeding.title.formula_ml` and `feeding.title.pumped_ml` drop the dash:
+  "Formula 120 ml", «Сцеженное 120 мл». `export.format.pdf_desc` glues "day
+  by day" / «día a día». The export's count tiles take the app's tile labels
+  (§ Counts on Home and the stat tiles).
