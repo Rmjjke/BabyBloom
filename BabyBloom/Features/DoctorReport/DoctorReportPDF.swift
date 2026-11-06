@@ -1,6 +1,6 @@
 import UIKit
 
-/// The pediatrician report as a PDF (design m2-doctor-report § 5). A pure HTML
+/// The pediatrician report as a PDF. A pure HTML
 /// build over the SAME `DoctorReportSummary` and the SAME `ReportFormat` /
 /// `WeeklyFormat` helpers and keys the screen's cards use, so the PDF cannot
 /// disagree with the screen; `DoctorReportPDFTests` pins that as strings.
@@ -13,7 +13,7 @@ enum DoctorReportPDF {
 
     // The PDF renderer cannot read the Asset Catalog, so these mirror the LIGHT
     // colorsets (CLAUDE.md theming). The page is always light, whatever the
-    // phone's appearance. Contrast figures are in design § 5.
+    // phone's appearance.
     private static let text = "#2D2837"        // BBTextPrimary
     private static let secondary = "#746D85"   // BBTextSecondary
     private static let primary = "#6F5BA8"     // BBPrimary: headings and the rule
@@ -35,7 +35,8 @@ enum DoctorReportPDF {
         var items: [PagedPDF.Item] = [.block(header(summary: summary, baby: baby, periodStart: periodStart, now: now))]
         items += growth(summary: summary, periodStart: periodStart, now: now)
         if summary.showsNewPeriodCard {
-            // One line in place of three empty sections (design § 5, «visit today»).
+            // One line in place of three empty sections: a visit started the
+            // period and nothing was logged since.
             items.append(.block("<p class=\"muted\">\(esc("report.pdf.no_entries".l))</p>"))
         } else {
             items.append(.block(feeding(summary.feeding, periodStart: periodStart, isShort: summary.isShort)))
@@ -60,8 +61,8 @@ enum DoctorReportPDF {
     }
 
     // CSS sizes are px like the existing export; whether UIMarkupTextPrintFormatter
-    // renders them at the design's point sizes is checked on the first real render
-    // (design § 5), and the CSS is scaled, not the targets.
+    // renders them at the design's point sizes is checked on the first real render,
+    // and the CSS is scaled, not the targets.
     private static var css: String {
         """
         body { \(PagedPDF.cssType) margin: 0; color: \(text); font-size: 11px; line-height: 1.45; background: #FFFFFF; }
@@ -258,7 +259,7 @@ enum DoctorReportPDF {
             if let wet = diapers.wetPerDay { cells.append(row("report.wet_a_day_fmt", WeeklyFormat.perDay(wet))) }
             if let dirty = diapers.dirtyPerDay { cells.append(row("report.dirty_a_day_fmt", WeeklyFormat.perDay(dirty))) }
         }
-        // Names and counts only: no swatch, no warning (plan v2 decision 9).
+        // Names and counts only: no swatch, no warning.
         if !diapers.colors.isEmpty {
             cells.append(row("report.stool_colors_fmt", ReportFormat.countList(diapers.colors.map {
                 ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
@@ -270,7 +271,7 @@ enum DoctorReportPDF {
     private static func section(_ titleKey: String, _ cells: [String],
                                 days: DoctorReportSummary.Days, isShort: Bool) -> String {
         var html = "<div><h2>\(esc(titleKey.l))</h2>" + twoColumns(cells)
-        // Short periods print raw counts and no days line (R3.3).
+        // Short periods print raw counts and no days line.
         if days.showsLine && !isShort {
             html += "<p class=\"sub\">\(esc(String(format: "report.days_logged_fmt".l, days.withEntries, days.counted)))</p>"
         }
@@ -286,7 +287,7 @@ enum DoctorReportPDF {
 
     /// The OPEN questions at the moment of making the PDF, numbered, verbatim but for
     /// their emoji. Absent when none; asked questions and visit notes belong to a past
-    /// visit. A section moves to the next page whole (design § 5); only a list longer
+    /// visit. A section moves to the next page whole; only a list longer
     /// than a page breaks, between two questions, and the numbers carry on.
     private static func questions(_ open: [String]) -> PagedPDF.Item? {
         // A question of emoji alone has nothing the page can print.
@@ -366,7 +367,7 @@ enum DoctorReportPDF {
         }
 
         override func drawFooterForPage(at pageIndex: Int, in footerRect: CGRect) {
-            // 9 pt page furniture in the secondary colour (design § 5).
+            // 9 pt page furniture in the secondary colour.
             let color = UIColor(hex: DoctorReportPDF.secondary)
             let left = NSMutableParagraphStyle()
             left.lineBreakMode = .byTruncatingTail

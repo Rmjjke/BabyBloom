@@ -477,7 +477,7 @@ final class NotificationManager: @unchecked Sendable {
              in:    3 * 24 * 3600)
     }
 
-    /// The Monday notification (D9, D26, content Q7): ONE pending request under
+    /// The Monday notification: ONE pending request under
     /// the old id, so the Sunday 20:00 repeating request of earlier builds is
     /// replaced on the first pass, never doubled. See `WeeklyNotificationPlan`.
     @MainActor
@@ -491,7 +491,7 @@ final class NotificationManager: @unchecked Sendable {
         content.sound    = .default
 
         #if targetEnvironment(simulator)
-        // L3: `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
+        // `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
         // the week holds, so its text can be looked at without waiting a week.
         let fireIn = UserDefaults.standard.integer(forKey: "BBWeeklyNotifyIn")
         if fireIn > 0 {
@@ -526,7 +526,7 @@ final class NotificationManager: @unchecked Sendable {
         }
     }
 
-    /// L3's clock lever for QA's reminder rows: `-BBLogPendingNotifications
+    /// A simulator lever for checking reminder rows: `-BBLogPendingNotifications
     /// true` logs every pending request and when it will fire, so a delivery
     /// time is read rather than waited for.
     @MainActor

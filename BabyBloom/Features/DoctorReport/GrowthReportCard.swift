@@ -1,12 +1,12 @@
 import SwiftUI
 
-/// Growth facts for the report (design § 2.1). Most of it does not depend on
+/// Growth facts for the report. Most of it does not depend on
 /// the period: the doctor wants the latest weighing even when it is older.
 struct GrowthReportCard: View {
     let growth: DoctorReportSummary.Growth
     let periodStart: Date
     /// A new period just began: the period rows (change, weighings) go, the
-    /// standing facts stay (design § 4).
+    /// standing facts stay.
     let hidesPeriodRows: Bool
     let onAddWeighing: () -> Void
 
@@ -19,7 +19,7 @@ struct GrowthReportCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             ReportCardHeader(icon: "scalemass.fill", tint: BBTheme.Colors.growth, title: "export.cat.growth".l)
-            // R4.8 is about weighings: a height-only history still offers one.
+            // The empty state is about weighings: a height-only history still offers one.
             if growth.latestWeight == nil { empty }
             if !growth.isEmpty {
                 facts

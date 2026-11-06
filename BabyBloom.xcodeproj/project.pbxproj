@@ -138,6 +138,7 @@
 		8DD4252D59E2B32BAFA41D92 /* DoctorPeriodTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D6F220B7D7E071A13261B6 /* DoctorPeriodTests.swift */; };
 		900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */; };
 		903BBA91510F94E84A770E2B /* AppSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248C810B3E83498B057C76D /* AppSchema.swift */; };
+		90FFF159DCBB9A999D5AB2D8 /* ExportSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4504212871C1399B76EC5403 /* ExportSelectionTests.swift */; };
 		92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */; };
 		949FFE0B196C5DD898EC866D /* AmplitudeAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43AD69E5FE44643CF24BD913 /* AmplitudeAnalyticsBackend.swift */; };
 		953AA3E254884BB7A7811BDC /* DoctorReportSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8848A60B812E23969302C7BF /* DoctorReportSummaryTests.swift */; };
@@ -348,6 +349,7 @@
 		3FB0B0B72E22C56CDAED10F5 /* WeightVelocity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocity.swift; sourceTree = "<group>"; };
 		43AD69E5FE44643CF24BD913 /* AmplitudeAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmplitudeAnalyticsBackend.swift; sourceTree = "<group>"; };
 		445916578FF3112912C0E02D /* GrowthEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthEntry.swift; sourceTree = "<group>"; };
+		4504212871C1399B76EC5403 /* ExportSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSelectionTests.swift; sourceTree = "<group>"; };
 		46CFF5A9567092348158A1F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChangeTests.swift; sourceTree = "<group>"; };
 		48898F260E6DF44F56AB2061 /* WeeklySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryCard.swift; sourceTree = "<group>"; };
@@ -711,6 +713,7 @@
 				713221C2C261FC44AD1C52C6 /* DoctorVisitActionsTests.swift */,
 				20A0892783BB428ABF45F03A /* DoubleAppRateTests.swift */,
 				73E80A407174E635CDB1F494 /* ExportGeneratorTests.swift */,
+				4504212871C1399B76EC5403 /* ExportSelectionTests.swift */,
 				B7091D16D67B2305DE88E4D4 /* FeedingAdequacyTests.swift */,
 				AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */,
 				2A99868F52DF430ACD72633A /* FormattingTests.swift */,
@@ -1482,6 +1485,7 @@
 				C2F842304599D97C08199F50 /* DoctorVisitActionsTests.swift in Sources */,
 				7C2998860ED243C2D9ED7A95 /* DoubleAppRateTests.swift in Sources */,
 				9844E1C0F255E0F05E832A88 /* ExportGeneratorTests.swift in Sources */,
+				90FFF159DCBB9A999D5AB2D8 /* ExportSelectionTests.swift in Sources */,
 				D8352D48524C1E4BF44ECAF2 /* FeedingAdequacyTests.swift in Sources */,
 				A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */,
 				26C2AF0C818E19D8A69B484F /* FormattingTests.swift in Sources */,

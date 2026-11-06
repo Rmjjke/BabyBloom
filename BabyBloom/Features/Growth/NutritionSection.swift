@@ -30,7 +30,7 @@ struct NutritionSection: View {
             if let assessment {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                     Text(String(format: "nutrition.window_fmt".l,
-                                assessment.windowDays, assessment.windowDays.dayWord))
+                                assessment.windowDays, assessment.windowDays.dayWord).gluingNumbersToUnits)
                         .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
                                                         weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -51,8 +51,8 @@ struct NutritionSection: View {
                 }
             } else {
                 // The long form of the requirement, not the Dashboard's short
-                // `nutrition.need_weighing`: this is the card the owner watched
-                // stay empty while logging feedings and nappies, so here — where
+                // `nutrition.need_weighing`: this is the card seen to stay
+                // empty while feedings and nappies were logged, so here — where
                 // there is room and a button to press — it also says what those
                 // two logs are counted over.
                 //
@@ -168,7 +168,7 @@ struct NutritionSection: View {
         // `notEnoughData` carries no figure by construction, so the guard below
         // covers it; spelling it out again would be a second rule to keep.
         guard let value else { return status }
-        return String(format: "nutrition.per_day_fmt".l, value.appRate) + " · " + status
+        return String(format: "nutrition.per_day_fmt".l, value.appRate).gluingNumbersToUnits + " · " + status
     }
 
     /// `.above` takes the neutral primary tint, matching `WeightGainCard`:

@@ -4,7 +4,7 @@ import SwiftData
 
 /// The timer mutation layer every screen and the Lock Screen's Stop share.
 /// The point of the "exactly once" cases: a Stop tapped twice, or after the
-/// app already stopped the timer, must not move the saved end time (R2.3).
+/// app already stopped the timer, must not move the saved end time.
 @MainActor
 final class TimerActionsTests: XCTestCase {
 
@@ -44,7 +44,7 @@ final class TimerActionsTests: XCTestCase {
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 1)
     }
 
-    /// D16: the widget starts a left breastfeed, and never a second feed while
+    /// The widget starts a left breastfeed, and never a second feed while
     /// one of any kind (a bottle included) runs.
     func testWidgetStartsOneFeedOnly() throws {
         let context = try makeContext()

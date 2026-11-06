@@ -26,7 +26,7 @@ struct VisitFields: View {
             TextField("form.notes_optional".l, text: $note, axis: .vertical)
                 .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular))
                 // Room to wrap: at AX2 a one-line field cut the placeholder
-                // («Заметки (необязатель…», design review m3).
+                // («Заметки (необязатель…»).
                 .lineLimit(2...6)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
                 .padding(BBTheme.Spacing.md)
@@ -43,7 +43,7 @@ struct VisitFields: View {
     }
 
     /// Label above the picker at accessibility sizes: beside it, the label
-    /// broke into fragments (Q-013).
+    /// broke into fragments.
     @ViewBuilder private var datePicker: some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {

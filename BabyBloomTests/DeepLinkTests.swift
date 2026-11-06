@@ -1,7 +1,7 @@
 import XCTest
 @testable import BabyBloom
 
-/// L4: QA opens these exact URLs, so the round trip and the rejects are pinned.
+/// Test runs open these exact URLs, so the round trip and the rejects are pinned.
 final class DeepLinkTests: XCTestCase {
 
     func testEveryDestinationRoundTrips() {
@@ -22,7 +22,7 @@ final class DeepLinkTests: XCTestCase {
         }
     }
 
-    /// D16: the widget's capsule starts a feed only when none runs and a Baby
+    /// The widget's capsule starts a feed only when none runs and a Baby
     /// exists, and the per-minute copies of the entry keep that state.
     func testWidgetControlFollowsTheRunningFeed() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)

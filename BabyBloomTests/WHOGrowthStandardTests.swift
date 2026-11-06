@@ -191,7 +191,7 @@ final class WHOGrowthStandardTests: XCTestCase {
 
     // MARK: - The badge is honest at the edge of the chart
 
-    /// The owner's repro: a weight so far above the chart that the percentile is
+    /// The reported repro: a weight so far above the chart that the percentile is
     /// 100 before the clamp. "99" beside the band label "> 97th" reads as a
     /// measured figure; it is the clamp talking.
     func testTheBadgeStopsPretendingToPrecisionPastTheClamp() throws {

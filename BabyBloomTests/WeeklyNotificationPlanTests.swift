@@ -1,8 +1,8 @@
 import XCTest
 @testable import BabyBloom
 
-/// The Monday notification: 10:00 (D9), only for a week with entries (Q7),
-/// never with the switch off (D26).
+/// The Monday notification: 10:00, only for a week with entries,
+/// never with the switch off.
 final class WeeklyNotificationPlanTests: XCTestCase {
 
     private let calendar = WeeklySummary.calendar
@@ -44,7 +44,7 @@ final class WeeklyNotificationPlanTests: XCTestCase {
         XCTAssertNil(WeeklyNotificationPlan.fireDate(now: date(10, 28, 15), enabled: false) { _ in true })
     }
 
-    /// Outside 22:00–07:00 by construction (D9).
+    /// Outside 22:00–07:00 by construction.
     func testTheHourIsDaytime() {
         XCTAssertTrue((7..<22).contains(WeeklyNotificationPlan.hour))
     }

@@ -9,7 +9,7 @@ import SwiftData
 /// A model of its own rather than a new `CustomEvent.EventType` case: a stored
 /// enum value an older build does not know crashes that build when the record
 /// arrives through CloudKit, while an unknown record TYPE is simply not
-/// imported (spike 0a, DECISIONS 2026-11-01). Every attribute is optional or
+/// imported (DECISIONS 2026-11-01). Every attribute is optional or
 /// defaulted, as CloudKit requires.
 ///
 /// Change it only through `DoctorVisitActions`: a visit and the questions it
@@ -41,7 +41,7 @@ final class DoctorVisit {
 
 /// A question the parent wants to ask. Two states only: open (`askedAt` nil),
 /// or asked at a visit (`askedAt` and `visit` set). There is no answer field —
-/// an answer goes in the visit's note (plan v2 decision 5).
+/// an answer goes in the visit's note.
 @Model
 final class DoctorQuestion {
     var id: UUID = UUID()

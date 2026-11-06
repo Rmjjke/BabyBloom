@@ -1,7 +1,7 @@
 import XCTest
 @testable import BabyBloom
 
-/// Where the report's period starts (R4) and the open-question order (R3.5).
+/// Where the report's period starts and the open-question order.
 /// Plain objects, no store: the rules are pure.
 final class DoctorPeriodTests: XCTestCase {
 
@@ -35,14 +35,14 @@ final class DoctorPeriodTests: XCTestCase {
                        date("2026-10-20T00:00:00Z"))
     }
 
-    /// R4.3: a visit logged late with an earlier date never moves the period.
+    /// A visit logged late with an earlier date never moves the period.
     func testALateLoggedEarlierVisitDoesNotMoveThePeriod() {
         let latest = visit("2026-10-20T00:00:00Z", created: "2026-10-20T16:00:00Z")
         let lateLogged = visit("2026-10-05T00:00:00Z", created: "2026-10-25T09:00:00Z")
         XCTAssertIdentical(DoctorPeriod.latestVisit([latest, lateLogged]), latest)
     }
 
-    /// Manager's decision: two visits on one date → the one logged last.
+    /// Two visits on one date → the one logged last.
     func testOnTheSameDateTheVisitLoggedLastWins() {
         let morning = visit("2026-10-20T00:00:00Z", created: "2026-10-20T09:00:00Z")
         let evening = visit("2026-10-20T00:00:00Z", created: "2026-10-20T19:00:00Z")

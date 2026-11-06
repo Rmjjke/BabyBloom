@@ -10,9 +10,14 @@ that is not visible in the code. Mechanics belong in
 [ARCHITECTURE.md](ARCHITECTURE.md); this file is the reasoning.
 
 Working-process rules (git flow, verification, task cards) are not here — they
-live with the workflow in `.desk/`.
+live with the workflow, outside this repository.
 
 ---
+
+## 2026-11-03 — Code comments give their reason in product words, with no tracker ids
+
+- **No decision numbers, bug ids, requirement labels, task names or workflow paths in Swift comments.** They resolve only in notes that live outside this repository, so a clone reads a bare number or label in brackets and cannot follow it. A comment states the reason itself, and cites this file by date when the reason is long («DECISIONS 2026-10-30»). A pointer to a tracked document by its path stays («teamdocs/design/m1-live-activity.md §§ 2–4», «NOTIFICATIONS.md §3»): a clone can open it. The 1.2.0 sweep rewrote about 250 such comments. Where the id was the only content, the rule is now spelled out («the newborn gate», «Monday weeks»).
+- **Export is enabled only when a ticked category has records in the range.** A category with no records draws an empty box but stays selected underneath, and its row takes no tap, so «anything selected» left the button on with nothing to write, and a tap ended in «No data». The button also dims when off: the shared primary button does not dim itself, so every caller that disables it sets the opacity. `ExportSelection.exportable` is the one rule for the button and for what the file holds.
 
 ## 2026-11-02 — PDFs compose their own pages, print in Helvetica Neue with a named fallback list, and carry no emoji in the body
 
@@ -37,14 +42,14 @@ All of this comes from one engine, `UIMarkupTextPrintFormatter`, and all of it w
 ## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
 
 - **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
-- **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). Content's label says «typical», not «average».
+- **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). The label says «typical», not «average».
 - **«N days ago» from 48 h**, floored, with the age plurals. «131 h ago» was a number to work out, not an answer. Under 48 h, hours stay: «30 h ago» still reads at a glance.
 - **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made. The Height and Head cards therefore read the newest entry that HAS the figure, and the first weighing starts from the birth weight.
 - **The environment locale keeps the user's hour cycle.** Only the language is the app's; a fixed `ru_RU` / `en_US` would have turned a 24-hour phone's time pickers to AM/PM.
 
 ## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
 
-**The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; Content's closed no-verdict list is a test (`DoctorReportPDFTests`).
+**The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; a closed list of verdict words that must not appear is a test (`DoctorReportPDFTests`).
 - Past the chart's edge it prints «> 97» / «< 3» (`PercentileReading.badge`), never a clamped 99 or 1.
 - The number comes from `WHOGrowthStandard`, the same functions the Growth screen uses.
 
@@ -66,7 +71,7 @@ The export's «a day» figures use the report's rule: `PeriodSummary` over finis
 - **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
 - **Averages and «Days with entries: N of M» use the FINISHED days only.** Today stays in every count, but it does not average: the report is opened at the visit, mid-morning. Under 3 finished days, raw counts replace the averages. This amends the first rule, which let today join the count once it had an entry. The final review showed that 2 morning feeds after three days of 8 read as «6.5 a day», and «wet a day», the hydration number, dropped with it.
 
-**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (D19's reason, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (the weekly card's reason for dividing by days with entries, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
 
 **Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
 
@@ -91,9 +96,9 @@ The export's «a day» figures use the report's rule: `PeriodSummary` over finis
 No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingType`/`BreastSide`, `DiaperEntry.DiaperType`/`StoolColor`, `CustomEvent.EventType`/`MoodLevel`, `Baby.Gender`/`FeedingType`, `SleepEntry.SleepType`/`SleepLocation`.
 - A new kind of record is a new `@Model`. A new property of a record is a new optional attribute.
 - `FrozenPersistedEnumTests` pins every case.
-- Hence the pediatrician visit (M2) is `DoctorVisit` plus `DoctorQuestion`, not a `CustomEvent.EventType.doctorVisit`, even though the parent sees it as an event.
+- Hence the pediatrician visit (1.2.0) is `DoctorVisit` plus `DoctorQuestion`, not a `CustomEvent.EventType.doctorVisit`, even though the parent sees it as an event.
 
-**Why.** A spike (m2-visit-and-questions, slice 0a) wrote a `CustomEvent` whose stored `type` was a value the current build does not know. That is what CloudKit delivers to a 1.1 device from a newer one. Reading it crashed the app: "SwiftData/DefaultStore.swift:1890: Fatal error: Failed to decode a composite attribute … valueType: EventType".
+**Why.** A spike for the visits feature wrote a `CustomEvent` whose stored `type` was a value the current build does not know. That is what CloudKit delivers to a 1.1 device from a newer one. Reading it crashed the app: "SwiftData/DefaultStore.swift:1890: Fatal error: Failed to decode a composite attribute … valueType: EventType".
 - The value is a plain VARCHAR raw value, and SwiftData does not skip the record: it traps on every read.
 - The Events tab, the weekly summary and the export all read every event, so a parent with an iPad still on the old version would have a crashing iPad.
 - Unknown record types and unknown attributes are what an older build CAN handle: `NSPersistentCloudKitContainer` imports only the record types its model knows.
@@ -116,8 +121,8 @@ throughout, all rows recumbent length. `GrowthEntry.heightCm` is scored as
 length, with no lying/standing adjustment, because WHO switches to height only
 after 24 months.
 
-**Why.** The pediatrician report shows a length percentile next to weight's
-(M2 plan v2, decision 7), and a transcription slip in a reference table is
+**Why.** The pediatrician report shows a length percentile next to weight's,
+and a transcription slip in a reference table is
 invisible in review. Generating from WHO's file and cross-checking against a
 second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
 lengths to ±0.1 percentile.
@@ -139,10 +144,10 @@ Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /
 `%@` (e.g. `growth.head_fmt`). Russian shows "4,29"; Spanish shows "4.29",
 because es is pinned to es_419.
 
-**Why.** The owner called the ru dot a defect (QA Q-001). One rule for every
+**Why.** A period in Russian numbers was reported as a defect. One rule for every
 number, following the region the app already pins: a comma only in
 measurements would put two separators on one screen, and moving es to Spain is
-a product change, not a bug fix (Manager decision, m1-bugfix-batch-1). Export
+a product change, not a bug fix. Export
 columns stay `en_US_POSIX` (machine-readable); whether the PDF report follows
 the app language is open.
 
@@ -162,7 +167,7 @@ dropped the widget reload. A rule applied in five places drifts; in one place
 it holds.
 
 Why reconcile instead of event-by-event updates: the activity must never
-disagree with the app (R3), and the events that can make it wrong are many and
+disagree with the app, and the events that can make it wrong are many and
 partly invisible: an app kill, a CloudKit change from another phone, iOS
 revoking the permission, a timer crossing 8 h while nobody looks. A pure
 planner that compares "what is running" with "what is shown" fixes all of them
@@ -170,9 +175,8 @@ the same way, any missed call is repaired by the next one, and the rules are
 unit-tested without ActivityKit.
 
 Why no push: updating an activity from another device needs aps-environment, a
-server and push tokens. For M1 the owner accepted that a stop made elsewhere
-reaches this Lock Screen when the app next runs (spec R3.4, verdict
-2026-10-29).
+server and push tokens. For 1.1.0 it was accepted that a stop made elsewhere
+reaches this Lock Screen when the app next runs (2026-10-29).
 
 Rejected: calling `Activity.update` / `end` from each screen's button. It is
 simpler on day one, but leaves exactly the drift above.
@@ -180,7 +184,7 @@ simpler on day one, but leaves exactly the drift above.
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
 The 10 `SubscriptionPurchaseTests` cases skip on this machine with
-`notEntitled`. The spike (card storekit-notentitled-spike, timeboxed) found
+`notEntitled`. A timeboxed spike found
 where the refusal comes from: storekitd logs **"com.nenita.app is not installed
 for development"** for every purchase-side `SKTestSession` call
 (`buyProduct`, `deleteAllTransactions`). The session's configuration calls
@@ -1211,7 +1215,7 @@ weighing wobbled a little below the one before it.
 
 ## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
 
-> **Amended 2026-11-02** (M2, plan v2 decision 7): the pediatrician report and
+> **Amended 2026-11-02**: the pediatrician report and
 > its PDF print the WHO percentile NUMBER for weight and length. See the entry
 > of that date. Everything else here stands.
 

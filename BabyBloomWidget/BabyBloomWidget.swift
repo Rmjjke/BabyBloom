@@ -43,7 +43,7 @@ struct BabyBloomProvider: TimelineProvider {
         let entry = Self.fetchEntry()
         // One entry per minute for the whole refresh window, plus one exactly
         // at the due moment. Every duration the views show is a static string
-        // computed from the entry's date (owner ruling: minutes, never
+        // computed from the entry's date (minutes by decision, never
         // seconds), so the entries ARE the clock — WidgetKit swaps them in on
         // schedule and nothing is ever staler than a minute. Live
         // `Text(_:style:)` was the previous mechanism and could not drop its

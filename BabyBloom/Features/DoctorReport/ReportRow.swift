@@ -97,7 +97,7 @@ struct ReportDaysLine: View {
     let isShort: Bool
 
     var body: some View {
-        // Short periods print raw counts and no days line (R3.3).
+        // Short periods print raw counts and no days line.
         if days.showsLine && !isShort {
             ReportCaption(String(format: "report.days_logged_fmt".l, days.withEntries, days.counted))
         }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Last calendar week, Monday to Sunday (D8), as the Dashboard card and the
+/// Last calendar week, Monday to Sunday, as the Dashboard card and the
 /// Monday notification describe it. Pure: dates and weighings in, numbers out,
 /// so every rule below is pinned by `WeeklySummaryTests` with a fixed clock.
 struct WeeklySummary: Equatable, Sendable {
@@ -44,7 +44,7 @@ struct WeeklySummary: Equatable, Sendable {
     }
 
     /// One week's figures. Averages divide by the days that have any entry at
-    /// all (D19), so a week with three blank days is not read as a week of
+    /// all, so a week with three blank days is not read as a week of
     /// small feeds.
     struct Totals: Equatable, Sendable {
         let daysWithEntries: Int
@@ -70,9 +70,9 @@ struct WeeklySummary: Equatable, Sendable {
     }
 
     enum Gain: Equatable, Sendable {
-        /// Grams per week, rounded to 10 g (D27).
+        /// Grams per week, rounded to 10 g.
         case perWeek(Int)
-        /// The newborn window: no number (D17).
+        /// The newborn window: no number.
         case newborn
         /// No two weighings ≥ 3 days apart with the later one in the week.
         case needsWeighing
@@ -80,7 +80,7 @@ struct WeeklySummary: Equatable, Sendable {
 
     let week: Week
     let current: Totals
-    /// nil for the first week in the log (S2): nothing to compare with.
+    /// nil for the first week in the log: nothing to compare with.
     let previous: Totals?
     let gain: Gain
     /// The week before's gain, for its "Week before" line; nil when it had none.
@@ -91,7 +91,7 @@ struct WeeklySummary: Equatable, Sendable {
 
     // MARK: Calendar
 
-    /// Weeks start on Monday whatever the locale (D8): a US phone's Sunday
+    /// Weeks start on Monday whatever the locale: a US phone's Sunday
     /// week would make "last week" a different seven days than the copy says.
     static let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -117,7 +117,7 @@ struct WeeklySummary: Equatable, Sendable {
 
     // MARK: Building
 
-    /// nil when last week has no entries at all (S7): no card, no notification.
+    /// nil when last week has no entries at all: no card, no notification.
     static func make(now: Date, input: Input) -> WeeklySummary? {
         let week = lastWeek(now: now)
         let current = totals(for: week, input: input)
@@ -137,7 +137,7 @@ struct WeeklySummary: Equatable, Sendable {
         )
     }
 
-    /// The week before's line passes the same D17 gate, judged as of that
+    /// The week before's line passes the same newborn gate, judged as of that
     /// week's end: a pair that ended in the newborn dip stays without a number
     /// even once this week's pair has left the window.
     static func previousGain(for week: Week, input: Input) -> Int? {
@@ -168,7 +168,7 @@ struct WeeklySummary: Equatable, Sendable {
                       longestSleep: period.longestSleep)
     }
 
-    /// D27 with the D17 gate in front: the newborn window never shows a number,
+    /// The weekly gain with the newborn gate in front: the newborn window never shows a number,
     /// whatever the weighings say.
     static func gain(for week: Week, input: Input, now: Date) -> Gain {
         let known = input.measurements.filter { $0.date < week.end }
@@ -182,7 +182,7 @@ struct WeeklySummary: Equatable, Sendable {
     }
 
     /// The `WeightVelocity` pair over the weighings up to the week's end,
-    /// counted only when its LATER weighing falls inside the week (D27), so a
+    /// counted only when its LATER weighing falls inside the week, so a
     /// week without a weighing does not repeat an older gain as its own.
     static func gramsPerWeek(for week: Week, input: Input) -> Int? {
         let known = input.measurements.filter { $0.date < week.end }

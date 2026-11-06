@@ -157,7 +157,7 @@ struct RecentActivityView: View {
         case .sleep(let entry):   deleteEntry(entry)
         case .diaper(let entry):  deleteEntry(entry)
         // Unreachable, no swipe exists on a visit row: a visit changes only
-        // in its detail (R5.4).
+        // in its detail.
         case .visit:              break
         }
     }
