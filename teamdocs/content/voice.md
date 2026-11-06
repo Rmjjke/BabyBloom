@@ -26,7 +26,8 @@ and the Live Activity read the byte-identical copies in
 |---|---|---|---|---|
 | add (a record, a weighing, a question, a medication) | Add | Добавить | Agregar | every form: «Agregar», «agregar», «Agrega», «agrega»; never «Añadir». iOS 26 says «Agregar» in es_419 (348 strings, no «Añadir») and «Añadir» in Spain's es; «agregar» is ordinary Spanish in Spain too |
 | breastfeeding (full) | Breastfeeding | Кормление грудью | Lactancia | Lock Screen, Dynamic Island |
-| breastfeeding (list shorthand) | BF | ГВ | LM | in-app lists only, never on the Lock Screen |
+| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the report's word (`report.type_breast`); history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
+| pumped milk (a feed with no amount) | Pumped milk | Сцеженное молоко | Leche extraída | `feeding.title.pumped`; the type is Pumped / Сцеженное / Extraída |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
 | Lock Screen | Lock Screen | экран блокировки | pantalla bloqueada | Apple's own terms |
 | stop a feeding | Stop | Завершить | Detener | `button.finish`, everywhere |
@@ -78,6 +79,25 @@ and the Live Activity read the byte-identical copies in
     by a no-break space, so no count needs a key of its own and the plural
     rule is the one the age already uses.
   - Medications tell a dose's age the same way (`medications.md`).
+- **Counts on Home and the stat tiles.** A count takes no unit word: «шт» /
+  "pcs" / «uds» and «раз» / "times" / «veces» do not agree with every
+  number ("1 times").
+  - Home's progress cards read "N of M" (`progress.of_fmt`: "0 of 6",
+    «0 из 6», «0 de 6»), and the card's title names what is counted. A
+    measure keeps its unit, glued to the number: `progress.of_unit_fmt`
+    "10 of 14 h".
+  - A stat tile shows the bare number above its label, and the label is a
+    category name: «Кормления», «Сон», «Подгузники», «Мокрые», «Грязные»,
+    «Измерения», «Эпизоды сна». Russian takes the nominative, as «Вес» and
+    «Рост» on the same screens: a genitive («Кормлений») reads as the word
+    the number counts.
+  - A duration reads in hours and minutes: "42 h 10 min", "42 h", "15 min"
+    (`duration.h_min`, `duration.h_only`, `duration.min_only`). Seconds
+    show only under a minute (`duration.sec`, "45 sec") and on the running
+    timer.
+  - The views still print «0/6 шт», a unit on the count tiles and «15 мин
+    0 сек»: the keys and labels above are in place, the code that reads
+    them is not yet.
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -205,16 +225,33 @@ and the Live Activity read the byte-identical copies in
   - A short Russian preposition before a number or a date: «за 7 дн.»,
     «от 6», «с 2 нояб.», «на 1,5 коридора». Russian typesetting never leaves
     the preposition at the end of a line.
+  - A one-letter Russian preposition (в, к, с, у, о) or conjunction (и, а)
+    before a word, in every text of the app: «в пределах ориентира»,
+    «с интервалом», «О питании», «Мокрый и грязный», «а не диагноз».
+    Russian typesetting never leaves a one-letter word at the end of a line.
+    The verdict stands in a narrow column at the right of its row, after the
+    number: «8 в сутки · в пределах ориентира». With a plain space that line
+    ended on «· в» at the default size on 375 and 402 pt screens. The
+    no-break space joins the one-letter word to the next word only, so the
+    run stays short. Two one-letter words in a row are both glued: «и к
+    10–14-му дню».
+  - On a 320 pt screen at xxxL, the largest size before the accessibility
+    sizes, the Nutrition card's gain row leaves its verdict about 103 pt.
+    The dot and «в пределах» take 116 pt, so «пределах» breaks inside. The
+    same card breaks words at that size without the glue too («Кормлени» /
+    «я», «подгузни» / «ки»): the cure there is the row's layout, not the
+    words.
+  - The event row's title «Мокрый и грязный» (`diaper.title.both`) breaks
+    inside «грязный» on a 320 pt screen at AX1. Beside the icon and the time
+    the title has about 111 pt, less than «и грязный». Loose, the «и» ended
+    a line in 12 of the 18 cases (three widths, six sizes from Large to
+    AX2). At AX2 the row breaks both words without the glue too: the cure
+    there is the row's layout, not the words.
   - A number range stays on one line. The line may break after an en dash
     («6–» / «10»), so a word joiner (U+2060, invisible, no width) follows
     the dash: `6–\u{2060}10`, and `%d–\u{2060}%d` in a format. A range in
     words glues its words with no-break spaces: "1 to 24", «от 1 до 24»,
     «del 1 al 24», «de 6 a 10», «del percentil 15 al 85».
-  - The percentile band labels (`percentile.3_15` … `percentile.85_97`)
-    keep the plain dash. Each stands alone, so its line breaks only when the
-    whole label is wider than its box, and there a break after the dash
-    reads better than one inside a number. A unit test also matches «15–50»
-    as written.
   - A unit with a slash stays whole. The line may break after the slash
     («100–200 g/» / «week.»), so a word joiner follows it:
     `g/\u{2060}week`, `г/\u{2060}нед`, `g/\u{2060}sem`. A UI test that
@@ -225,8 +262,10 @@ and the Live Activity read the byte-identical copies in
     375 pt one), the slash is the one place it can break. With a joiner it
     would break inside «week» instead. The same key also fills the Home
     growth row and the weekly summary's previous week, where it has room.
-  - In the JSON the no-break space is written as the escape ` `, which
-    reads as the same character.
+  - In the JSON the no-break space and the word joiner are the raw
+    characters U+00A0 and U+2060, not escapes. An editor and a diff show
+    them as a plain space or as nothing, so a value is checked with a script
+    that prints its code points.
   - A count «5 из 7» / "5 of 7" at the end of a line that wraps stays whole:
     `%d\u{00A0}of\u{00A0}%d` in `weekly.days_logged_fmt` and
     `report.days_logged_fmt`. These lines wrap on a 320 pt screen, and a
@@ -236,11 +275,75 @@ and the Live Activity read the byte-identical copies in
   - Not glued:
     - the PDF page number `report.pdf.page_fmt` ("Page 2 of 3"), which
       never wraps;
+    - Home's progress count `progress.of_fmt` («0 из 6»), a short value on
+      one line beside the card's title;
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
-    - strings that VoiceOver speaks and the screen never shows.
-  - Still open: literal numbers inside longer texts (onboarding facts,
-    hints, notifications, the export ranges) still use plain spaces.
+    - strings that VoiceOver speaks and the screen never shows;
+    - a two-word label where the glue only trades the loose letter for a
+      break inside the word: «О приложении» (`settings.about`). The Settings
+      row holds it on one line at every size but AX1 and AX2 on a 320 pt
+      screen. There, glued, it breaks inside «приложении» at AX1, where
+      loose it breaks after «О»; at AX2 the word breaks either way.
+  - The rule holds in every key and every language, long texts included:
+    onboarding facts, info sheets, hints, notifications, the export ranges.
+    Besides a number and its unit it glues:
+    - a counted word before its number: "day 14", «día 14», «день 14»,
+      «percentil 50», "Day %d";
+    - a duration as a whole: `duration.min_sec` "%d min %d sec", as
+      `duration.h_min`;
+    - a short Russian preposition before a number, in every key: «до 12
+      раз», «от 3 дней», «К 3 месяцам».
+  - A Russian ordinal (a number, the end of a range or `%d`, then a hyphen
+    and its ending) takes the no-break hyphen U+2011 in place of the
+    hyphen: «14‑му», «3–97‑й», «%d‑й». It draws as the hyphen,
+    and the line never breaks inside the ordinal. Every ordinal in the
+    Russian JSON has it: `dashboard.growth.percentile_fmt`,
+    `percentile.below3`, `percentile.above97`, `newborn.flag_not_regained`,
+    `newborn.info_body`, `percentile.info_body` and `chart.who_corridor`.
+    Like the no-break space, it is the raw character in the JSON, and a diff
+    shows it as a hyphen.
+    - The word after the ordinal stays loose: «50‑й перцентиль» may
+      break at the space, and a break after a whole ordinal reads well.
+      Glued, «50‑й перцентиль» would be one run wider than the value
+      beside «Перцентиль по весу» on the Home growth row (on a 320 pt screen
+      from xL, on a 375 pt one at xxxL), and the line would break inside
+      «перцентиль». On the info sheets the glue only adds lines.
+    - A one-letter preposition before the ordinal is glued like any other
+      («к 14‑му дню»); a longer word before it is not («выше 97‑го»).
+    - Measured on 320, 375 and 402 pt screens from Large to AX2, the line
+      broke at the ordinal's own hyphen 5 times on the growth info sheets:
+      «к 14-» / «му» on the newborn sheet on a 320 pt screen at AX1, 375 pt
+      at AX2 and 402 pt at Large, «10–14-» / «му» on the same sheet at AX2
+      on 402 pt, and «97-» / «го» on the percentile sheet at AX2 on 402 pt.
+      With the no-break hyphen it never does. No line breaks inside a word
+      that did not before; at AX2 on a 402 pt screen each of the two sheets
+      takes one line more.
+    - SF and SF Rounded, the app's and the widget's faces, draw U+2011 with
+      the hyphen's own glyph. Helvetica Neue, the PDF's face, draws it as a
+      hyphen a little shorter than its plain one (86% of its width in
+      Regular, 82% in Bold); Helvetica draws it at the same width.
+    - A unit test that compares one of these strings with a literal writes
+      `\u{2011}` in it; a UI test matcher takes `.` in its place.
+  - Before this rule the ordinal was loose, and a glue around it only moved
+    the break inside it: «3–97-» / «й перцентили», which reads worse than a
+    break at the space. With the glue and without it the line broke at the
+    ordinal's own hyphen in the same places, and loose, the «к» before
+    «14-му» ended a line 6 times in 18 cases on the newborn sheet, so it was
+    glued.
+  - Left to the code: a key whose every use passes through
+    `gluingNumbersToUnits` keeps its plain space in the JSON, because the
+    code glues each digit to the space after it when it shows the line.
+    These are `stats.min_ago`, `stats.h_ago`, `premium.cta_trial_fmt` and
+    `velocity.interval_fmt`. A new use of one of them outside that function
+    needs the no-break space in the JSON.
+  - Left loose, because glued it would break inside a word: Russian «на 6–8
+    кормлений» in `onboarding.fact.infant2`. The fact page's text is 224 pt
+    wide on a 320 pt screen. Glued whole, «на 6–8 кормлений» would break
+    inside «кормлений» at AX1 and AX2, and «6–8 кормлений» alone at AX2.
+  - Check a glued run against its place at AX2 before committing it: a run
+    wider than its line breaks inside a word, which is worse than the break
+    the glue prevents.
 
 ## Changes
 
@@ -328,3 +431,64 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — A legend for a glyph is for sight only (§ Surface rules). The
   weekly card's `weekly.legend`, and its hidden line `weekly.hidden` with
   `weekly.undo`: `weekly-and-notifications.md`.
+- 2026-11-04 — The no-break rule for numbers covers every key (§ Line breaks
+  around numbers). This change touches 30 English, 28 Russian and 31 Spanish
+  values and only their space characters:
+  `dashboard.growth.percentile_fmt` (en, es), `diaper.norm.hint`,
+  `duration.min_sec`, `duration.sec`, `export.range.week` / `month` /
+  `three_months`, `feeding.title.formula_ml` / `pumped_ml`,
+  `history.free_window`, `newborn.day_fmt`, `newborn.flag_loss` (ru),
+  `newborn.flag_not_regained` (en, es), `newborn.info_body`,
+  `notification.feeding_long_body` / `idle_body` / `measurements_body`, the
+  eight `onboarding.fact.*`, `percentile.info_body` (es),
+  `percentile.out_of_range`, `trend.drop_fmt` (en, es), `velocity.info_body`,
+  `velocity.needs_two` / `needs_second` / `no_reference`. A UI test that
+  matches one of these lines takes `.` where the no-break space now is.
+- 2026-11-04 — The four percentile band labels are deleted:
+  `percentile.3_15`, `percentile.15_50`, `percentile.50_85`,
+  `percentile.85_97`. The growth card states the percentile itself ("61"),
+  so no screen, widget or report reads them. Their exception under the range
+  rule goes with them. `percentile.below3`, `percentile.above97` and the
+  badges stay.
+- 2026-11-05 — Russian one-letter prepositions before a word are glued to
+  it in the growth and Nutrition texts (§ Line breaks around numbers), so
+  the Nutrition rows and the Home gain row no longer end a line on «· в».
+  26 no-break spaces, nothing else changed: `velocity.within`,
+  `velocity.needs_two`, `velocity.first_weeks`, `velocity.info_title`,
+  `velocity.info_body`, `nutrition.status_within`, `nutrition.need_weighing`,
+  `nutrition.need_weighing_detail`, `nutrition.info_title`,
+  `nutrition.info_body`.
+- 2026-11-05 — Every Russian text now glues a one-letter preposition (в, к,
+  с, у, о) or conjunction (и, а) to the next word (§ Line breaks around
+  numbers): 154 no-break spaces in 105 keys, nothing else changed. They are
+  in the Home cards, the empty states, onboarding and its facts, the
+  notifications, the weekly summary, Premium, Settings, the export, the
+  widget and the Live Activity, the doctor report, the visit questions and
+  the growth sheets. In `velocity.*` and `nutrition.*` only «и» and «а» were
+  still loose. Left plain: the VoiceOver-only `medication.a11y_hint`,
+  `premium.locked_a11y` and `report.a11y_hint`, and `settings.about`. At
+  the default size no line breaks inside a word that did not before. A UI
+  test that matches one of these lines takes `.` where the no-break space
+  now is. The ordinal rule now says the one-letter preposition before an
+  ordinal is glued («к 14-му дню»).
+- 2026-11-05 — Every Russian ordinal takes the no-break hyphen U+2011 in
+  place of its hyphen (§ Line breaks around numbers), so a line no longer
+  ends on «14-» with «му» on the next: 11 hyphens in
+  `dashboard.growth.percentile_fmt`, `percentile.below3`,
+  `percentile.above97`, `newborn.flag_not_regained`, `newborn.info_body`
+  (2), `percentile.info_body` (4) and `chart.who_corridor`, nothing else
+  changed. The word after the ordinal stays loose. A test that compares
+  `percentile.below3` or `percentile.above97` with «< 3-й» or «> 97-го»
+  takes the new hyphen.
+- 2026-11-05 — A breast feed is "Breast / Грудь / Pecho", the report's word,
+  wherever the app names it by type (`feeding.type.breast`,
+  `feeding.title.breast`), in place of BF / ГВ / LM. The history titles read
+  "Left breast / Right breast / Both breasts", «Левая грудь / Правая грудь /
+  Обе груди», «Pecho izquierdo / Pecho derecho / Ambos pechos». en
+  `feeding.title.pumped` is "Pumped milk", one name with the type "Pumped".
+  `export.summary.total_time` names what it counts: "Total feeding time" /
+  «Общее время кормлений» / «Tiempo total de tomas». New
+  `progress.of_fmt` and `progress.of_unit_fmt` for Home's progress counts
+  (§ Counts on Home and the stat tiles). The Russian stat labels
+  `stat.feedings`, `stat.sleep_episodes`, `stat.measurements`,
+  `stat.diapers`, `stat.wet` and `stat.dirty` are in the nominative.
