@@ -420,11 +420,10 @@ art is not. The insets come from a `GeometryReader` inside the safe area,
 wrapped around the one that ignores it for the full size: a reader under
 `.ignoresSafeArea()` reports zero insets. The layout is a function of the
 window and the words' size alone, so a rotation puts everything in its new
-place in one pass and the reveal goes on. VoiceOver orders the splash's
-elements by position, and beside the words the art lies leading, so the art
-carries a lower sort priority to keep the words read first (DECISIONS
-2026-11-05 "In a wide window the splash puts the figure and the words side by
-side").
+place in one pass and the reveal goes on (DECISIONS 2026-11-05 "In a wide
+window the splash puts the figure and the words side by side"). The art and
+the tagline's two leaves are decorative and hidden from VoiceOver, which reads
+the app's name and the tagline only, in every layout.
 
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every
