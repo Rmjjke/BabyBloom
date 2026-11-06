@@ -20,8 +20,9 @@ struct FactPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-
+            // Centred while it fits; at the accessibility sizes on a small
+            // phone the content scrolls and the button under it stays put.
+            onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
                 illustration
                     .padding(.horizontal, BBTheme.Spacing.lg)
@@ -64,8 +65,8 @@ struct FactPage: View {
                 .offset(y: appear ? 0 : 20)
                 .opacity(appear ? 1 : 0)
             }
-
-            Spacer()
+            .padding(.vertical, BBTheme.Spacing.lg)
+            }
 
             // A plain "Next": the commitment CTA now lives on the widget page,
             // the last page before the loader it kicks off.

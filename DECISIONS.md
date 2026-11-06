@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-06 — Onboarding's ground never sizes the flow; a page with its own button scrolls its content above the button
+
+`OnboardingBackground` draws its blobs in an `.overlay` of the ground colour, so the ground takes exactly the size it is offered. The fact and widget pages put their content in `onboardingCenteredScroll` and keep the button under it, outside the scroll, as Notifications and Premium keep theirs.
+
+**Why.** As layout children, the largest blob (380 pt) made the flow's `ZStack` 380 wide, and the stack laid every page out at that width: on a 320-pt screen each page ran from −30 to 350 pt, its full-width button 332 pt wide from x −6; on a 375-pt screen the page still overhung each side by 2.5 pt. Nothing showed on the 402-pt phones the flow was usually looked at on, and every page was affected at once. A decoration larger than the screen must never be a layout child of a container the content shares. Separately, a `Spacer` / content / `Spacer` / button column with no scroll pushed the button off a 568-pt screen at AX1 and AX2, and squeezed the one text without a vertical `fixedSize` — the source link — to a single truncated line at AX2 on 375 pt; in a scroll the content keeps its full height and the button stays put.
+
+**Rejected.** Pinning the ground with a `.frame` or `.clipped()` — the first freezes a size the stack should give, the second only hides the overflow while the blob still sizes the stack.
+
 ## 2026-11-06 — The progress card's figure and glyph grow with its title; the figure stands beside while every word of the title fits
 
 `BBProgressCard`'s figure (13 pt, medium) and glyph (14 pt, semibold) scale relative to `.body` as its 14-pt title does, capped at AX2 with the rest of the type scale. Below the accessibility sizes the figure stands beside the title while every word of the title keeps whole next to it (`BBValueRow`'s `.byWords`), else under the title's text, as at the accessibility sizes.
