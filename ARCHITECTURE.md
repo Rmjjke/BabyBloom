@@ -356,7 +356,8 @@ glyph and caption, the Feeding quick tiles' words and captions, the Home
 quick actions' words, the Feeding and Sleep timer cards' labels and the Home
 timer card's subtitle, the Diaper screen's norm chip (word and glyph),
 onboarding's gender tiles (figure and word), stool colour names, slider
-ends and hints use it, and so do the stat card's title, unit and trend chip.
+ends and hints use it, and so do the stat card's title, unit and trend chip
+and the Growth gain card's interval, band label and reference line.
 Some screens outside the entry sheets still set fixed sizes. A glyph that
 stands over or beside its word grows with it; colour samples, icon plates
 (with the glyph inside them) and decoration keep their size, and the Growth
@@ -438,7 +439,11 @@ rows stack at accessibility sizes on any width, so the running cards keep one
 shape at the largest text. The Diaper
 screen's Today row puts the norm chip under the title at accessibility sizes
 by the text size: its words hold at 320 pt at every size below, so no width
-changes the answer.
+changes the answer. The Growth gain card sets its number («+210 g/week») and
+the interval («over 9 days») on one row while both fit whole, else the
+interval under the number. Squeezed beside the interval, the number broke at
+its slash. Alone, it still breaks there, its only break, where it outgrows
+the line: at AX2 on a 320-pt screen in en and es.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`, which take the same `BBSheetTitlePlacement`.
@@ -607,7 +612,13 @@ out-of-range state), gain, centile trend, nutrition — carries a "?" badge and 
 explainer sheet behind it. All five are one mechanism, in
 `GrowthInsightCards.swift`: `GrowthExplainer` names the subject and resolves its
 icon, tint and copy keys (`<card's own key family>.info_title` / `.info_body`),
-and `ExplainerSheet` renders any of them.
+and `ExplainerSheet` renders any of them. Every insight card's header is
+`InsightCardHeader` (the percentile card's hand-built one too). A title wraps
+at the larger text sizes on a narrow screen, and the badge stays on its first
+line, as a glyph beside wrapping text does everywhere in the app: a hidden
+one-line box in the title's face carries that line's baseline, and the badge
+is centred in it. Beside a one-line title that is where the centred badge
+always sat.
 
 How a card opens its explainer depends on what its own tap already does:
 

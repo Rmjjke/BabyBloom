@@ -54,14 +54,10 @@ struct PercentileCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            HStack {
-                // The same title view every `InsightCard` header uses, so
-                // this hand-built header carries the explainer to VoiceOver
-                // exactly as the others do.
-                InsightCardTitle("section.who_percentiles".l)
-                Spacer()
-                InfoBadge()
-            }
+            // The header every `InsightCard` uses, so this hand-built card
+            // carries the explainer to VoiceOver and sets its badge as the
+            // others do.
+            InsightCardHeader(title: "section.who_percentiles".l)
 
             VStack(spacing: BBTheme.Spacing.md) {
                 HStack {
