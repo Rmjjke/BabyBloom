@@ -356,6 +356,12 @@ struct AddSleepSheet: View {
                     }
                     .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                     .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                    // `in: startTime...` below limits what the End picker
+                    // shows, never its binding: without this, End shows
+                    // Start while the earlier end waits to be saved.
+                    .onChange(of: startTime) { _, start in
+                        if endTime < start { endTime = start }
+                    }
 
                     BBLabeledPicker("form.end_time".l) { label in
                         DatePicker(label, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
@@ -389,15 +395,15 @@ struct AddSleepSheet: View {
     }
 
     private func save() {
-        let entry = SleepEntry(startTime: startTime, type: selectedType, location: selectedLocation)
-        entry.endTime = endTime
+        let entry = SleepEntry.manual(start: startTime, end: endTime, type: selectedType, location: selectedLocation)
         entry.baby = babies.first
         modelContext.insert(entry)
         try? modelContext.save()
         WidgetRefresh.entriesChanged()
         NotificationManager.shared.onSleepEnded(
             ageMonths: babies.first?.ageInMonths ?? 0,
-            endedAt: endTime
+            // The wake window runs from the end that was stored.
+            endedAt: entry.endTime ?? startTime
         )
         reviewPrompt.entrySaved(.sleep)
         dismiss()
