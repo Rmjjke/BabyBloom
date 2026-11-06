@@ -359,7 +359,8 @@ over its bar, today's in `textPrimary`, the others in `textSecondary`, hidden
 from VoiceOver, which reads each bar's day and value. Swift Charts speaks the
 plotted number, right for a count; Sleep plots hours, so it passes
 `voiceOverValue`, and each day up to today reads in the duration words
-(«2 h 5 min»), floored to the minute like the Total tile.
+(«2 h 5 min»), floored to the minute like the Total tile. A future day shows
+no bar and no number, and its bar is hidden from VoiceOver: it would read «0».
 
 `textSecondary` holds 4.5:1 on every fill it sits on in light: 5.12 on the
 background, 5.62 on the surface, at least 4.62 on the stat cards', timer
@@ -928,6 +929,18 @@ days of age, widened to the first and the last weighing — is
 `WeightChartWindow` (`Core/Growth/`), and the pediatrician report's chart
 draws from it too, so the PDF shows the stretch of the corridor the parent
 sees on the screen.
+
+VoiceOver reads the weighings, not the marks. Each weighing has an invisible
+24-pt element on its dot, placed in the chart's overlay through the
+`ChartProxy` (`spokenWeighings`), that reads the readout's words: the date and
+age as its label («Nov 25 · 1 week»), the weight as its value («3.45 kg»),
+oldest first, two weighings on one day in the list's order. The point marks,
+the band, the median, the line and the rule are all hidden: Swift Charts merges
+marks that stand closer than its element width into one element it words
+itself, in the device's locale («13 Nov 2023 at 00 to 20 Nov 2023 at 00»,
+«3,4 to 3,18, 2 values»), and no API turns that off. With every mark hidden
+the chart has no Audio Graph (DECISIONS 2026-11-06). The elements sit under the
+tap layer, so a tap still selects.
 
 `showsWHOCorridor` exists for a caller that ever reuses this shell for height
 or head circumference: those are different tables, and a weight corridor under

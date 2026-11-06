@@ -3,16 +3,17 @@ import SwiftUI
 @testable import BabyBloom
 
 /// The weekly chart's bars as VoiceOver finds them: Sleep's day reads in the
-/// words every duration uses, a count reads as its number.
+/// words every duration uses, a count reads as its number, and a day still to
+/// come reads nothing.
 @MainActor
 final class WeeklyBarChartVoiceOverTests: XCTestCase {
 
     /// 2 h 5 min, as Sleep plots it: the day's seconds over 3600.
     private let sleepHours = 7500.0 / 3600
+    private let accessibility = HostedAccessibility()
 
     override func tearDown() {
-        windows.forEach { $0.isHidden = true }
-        windows = []
+        accessibility.close()
         LocalizationManager.shared.setLanguage(.en)
         super.tearDown()
     }
@@ -37,10 +38,11 @@ final class WeeklyBarChartVoiceOverTests: XCTestCase {
                 voiceOverValue: SleepView.chartVoiceOverValue(hours:)
             ))
             print("BAR_READOUT \(language):", readout(chart))
-            XCTAssertEqual(try bar(chart, on: Date()).value, words, "\(language)")
-            if let tomorrow = futureDayThisWeek() {
-                XCTAssertEqual(try bar(chart, on: tomorrow).value, "0", "a future day reads as before")
+            for day in daysUpToToday() {
+                XCTAssertEqual(try XCTUnwrap(bar(chart, on: day), "no bar for \(day) in \(readout(chart))").value,
+                               words, "\(language)")
             }
+            assertFutureDaysAreSilent(chart, "\(language)")
         }
     }
 
@@ -54,93 +56,64 @@ final class WeeklyBarChartVoiceOverTests: XCTestCase {
 
     /// Feeding and Diapers pass no writer: their bars read the count.
     func testACountsBarKeepsReadingItsNumber() throws {
-        LocalizationManager.shared.setLanguage(.ru)
-        let chart = try host(BBWeeklyBarChart(valueFor: plotted(3), color: .blue))
-        print("BAR_READOUT count:", readout(chart))
-        XCTAssertEqual(try bar(chart, on: Date()).value, "3")
+        for language in [SupportedLanguage.en, .ru] {
+            LocalizationManager.shared.setLanguage(language)
+            let chart = try host(BBWeeklyBarChart(valueFor: plotted(3), color: .blue))
+            print("BAR_READOUT count \(language):", readout(chart))
+            for day in daysUpToToday() {
+                XCTAssertEqual(try XCTUnwrap(bar(chart, on: day), "no bar for \(day) in \(readout(chart))").value,
+                               "3", "\(language)")
+            }
+            assertFutureDaysAreSilent(chart, "\(language) count")
+        }
     }
 
-    // MARK: Hosting
-
-    private var windows: [UIWindow] = []
+    // MARK: Days
 
     private func host(_ chart: BBWeeklyBarChart) throws -> UIView {
-        try Self.enableAccessibility()
-        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
-        let window = UIWindow(windowScene: scene)
-        window.frame = CGRect(x: 0, y: 0, width: 402, height: 400)
-        let controller = UIHostingController(rootView: chart.frame(width: 370))
-        window.rootViewController = controller
-        window.isHidden = false
-        windows.append(window)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
-        return controller.view
+        let root = try accessibility.host(chart.frame(width: 370), size: CGSize(width: 402, height: 400))
+        for descriptor in accessibility.chartDescriptors(root) {
+            print("BAR_AUDIO_GRAPH \(LocalizationManager.shared.language): \(descriptor.readout)")
+        }
+        return root
     }
 
-    /// SwiftUI builds a hosted view's accessibility elements only while an
-    /// assistive client is on; a freshly booted simulator has none.
-    private static func enableAccessibility() throws {
-        let library = try XCTUnwrap(dlopen("/usr/lib/libAccessibility.dylib", RTLD_NOW),
-                                    "libAccessibility did not load: the chart's elements cannot be read")
-        let symbol = try XCTUnwrap(dlsym(library, "_AXSApplicationAccessibilitySetEnabled"),
-                                   "_AXSApplicationAccessibilitySetEnabled is gone from libAccessibility")
-        typealias SetEnabled = @convention(c) (Bool) -> Void
-        unsafeBitCast(symbol, to: SetEnabled.self)(true)
+    /// The chart's week, Monday first, as `BBWeeklyBarChart` lays it out.
+    private func week() -> [Date] {
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2
+        let start = calendar.dateInterval(of: .weekOfYear, for: Date())!.start
+        return (0..<7).map { calendar.date(byAdding: .day, value: $0, to: start)! }
     }
 
-    /// Tomorrow when it is still in the chart's week (Monday first); nil on Sunday.
-    private func futureDayThisWeek() -> Date? {
-        let calendar = Calendar.current
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
-        return calendar.component(.weekday, from: tomorrow) == 2 ? nil : tomorrow
+    private func daysUpToToday() -> [Date] {
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        return week().filter { $0 <= todayStart }
+    }
+
+    /// No element at all for a day still to come: it shows no bar and no
+    /// number, so it says nothing (Sunday has none to check).
+    private func assertFutureDaysAreSilent(_ chart: UIView, _ context: String,
+                                           file: StaticString = #filePath, line: UInt = #line) {
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        for day in week() where day > todayStart {
+            XCTAssertNil(bar(chart, on: day), "\(context): a future day reads nothing, in \(readout(chart))",
+                         file: file, line: line)
+        }
     }
 
     // MARK: Reading
 
-    private struct Element { let label: String; let value: String }
-
     /// The bar whose label is the day's weekday as the axis writes it.
-    private func bar(_ root: UIView, on date: Date) throws -> Element {
+    private func bar(_ root: UIView, on date: Date) -> HostedAccessibility.Element? {
         let formatter = DateFormatter()
         formatter.locale = LocalizationManager.shared.language.locale
         formatter.dateFormat = "EEE"
         let day = String(formatter.string(from: date).prefix(2)).capitalized
-        return try XCTUnwrap(elements(root).first { $0.label == day },
-                             "no bar for \(day) in \(readout(root))")
+        return accessibility.elements(root).first { $0.label == day }
     }
 
     private func readout(_ root: UIView) -> [String] {
-        elements(root).map { "\($0.label) | \($0.value)" }
-    }
-
-    private func elements(_ root: UIView) -> [Element] {
-        var seen = Set<ObjectIdentifier>()
-        var out: [Element] = []
-        collect(root, seen: &seen, into: &out)
-        return out
-    }
-
-    private func collect(_ root: NSObject, seen: inout Set<ObjectIdentifier>, into out: inout [Element]) {
-        guard seen.insert(ObjectIdentifier(root)).inserted else { return }
-        if root.isAccessibilityElement {
-            out.append(Element(label: root.accessibilityLabel ?? "", value: root.accessibilityValue ?? ""))
-        }
-        for child in children(of: root) { collect(child, seen: &seen, into: &out) }
-    }
-
-    private func children(of root: NSObject) -> [NSObject] {
-        var out: [NSObject] = []
-        if let elements = root.accessibilityElements {
-            out += elements.compactMap { $0 as? NSObject }
-        } else {
-            let count = root.accessibilityElementCount()
-            if count > 0, count != NSNotFound {
-                for i in 0..<count {
-                    if let element = root.accessibilityElement(at: i) as? NSObject { out.append(element) }
-                }
-            }
-        }
-        if let view = root as? UIView { out += view.subviews }
-        return out
+        accessibility.elements(root).map { "\($0.label) | \($0.value)" }
     }
 }
