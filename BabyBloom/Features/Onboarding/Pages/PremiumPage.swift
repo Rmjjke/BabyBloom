@@ -32,17 +32,6 @@ struct PremiumPage: View {
         store.hasResolvedEntitlements && !store.isPremium && !planPicker.loadFailed(in: store)
     }
 
-    // Must stay identical to `PaywallView.features` — the two paywalls are the
-    // same offer seen at two moments, and a line present in one and missing
-    // from the other is a discrepancy a buyer can catch. `f4` (multi-profile)
-    // is gone from both: the app has no second baby to give.
-    private let features: [(icon: String, text: String)] = [
-        ("infinity", "onboarding.premium.f1"),
-        ("star.fill", "onboarding.premium.f2"),
-        ("square.and.arrow.up.fill", "onboarding.premium.f3"),
-        ("chart.bar.fill", "onboarding.premium.f5"),
-    ]
-
     var body: some View {
         // The offer scrolls, the buy button does not (NotificationsPage's
         // arrangement): at AX2 the plans alone reach the fold.
@@ -143,23 +132,12 @@ struct PremiumPage: View {
                     .offset(y: appear ? 0 : 20)
                     .opacity(appear ? 1 : 0)
 
-                // Features list
-                VStack(spacing: 0) {
-                    ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                        PremiumFeatureRow(icon: feat.icon, text: feat.text.l)
-
-                        if i < features.count - 1 {
-                            Divider().padding(.horizontal, BBTheme.Spacing.md)
-                        }
-                    }
-                }
-                .background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.lg)
-                .bbShadow(BBTheme.Shadow.card)
-                .padding(.horizontal, BBTheme.Spacing.lg)
-                .padding(.top, BBTheme.Spacing.lg)
-                .offset(y: appear ? 0 : 30)
-                .opacity(appear ? 1 : 0)
+                // Features list — shared with the settings paywall
+                PremiumFeatureList()
+                    .padding(.horizontal, BBTheme.Spacing.lg)
+                    .padding(.top, BBTheme.Spacing.lg)
+                    .offset(y: appear ? 0 : 30)
+                    .opacity(appear ? 1 : 0)
 
                 // Sell only once StoreKit has actually answered, and only to
                 // someone it says is not subscribed. The app root's launch

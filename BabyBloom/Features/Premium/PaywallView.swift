@@ -24,18 +24,6 @@ struct PaywallView: View {
         store.hasResolvedEntitlements && !store.isPremium && !planPicker.loadFailed(in: store)
     }
 
-    /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
-    /// absent: the app has one baby and no way to add a second, so the line
-    /// sold something that does not exist. Numbering is left with the gap
-    /// rather than resequenced — renaming f5 to f4 would silently change what
-    /// every translation of those two keys says.
-    private let features: [(icon: String, key: String)] = [
-        ("infinity",                  "onboarding.premium.f1"),
-        ("star.fill",                 "onboarding.premium.f2"),
-        ("square.and.arrow.up.fill",  "onboarding.premium.f3"),
-        ("chart.bar.fill",            "onboarding.premium.f5"),
-    ]
-
     var body: some View {
         // The offer scrolls, the buy button does not (NotificationsPage's
         // arrangement): at AX2 the plans alone reach the fold.
@@ -101,8 +89,8 @@ struct PaywallView: View {
                             .padding(.vertical, BBTheme.Spacing.xl)
                     }
 
-                    // Features
-                    featuresCard
+                    // Features — shared with onboarding's paywall.
+                    PremiumFeatureList()
 
                     Spacer(minLength: BBTheme.Spacing.xl)
                 }
@@ -168,16 +156,42 @@ struct PaywallView: View {
                 .stroke(BBTheme.Colors.primary.opacity(0.25), lineWidth: 1.5)
         )
     }
+}
 
-    // MARK: - Features
+// MARK: - Feature List
 
-    private var featuresCard: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                PremiumFeatureRow(icon: feat.icon, text: feat.key.l)
+/// The feature card of both paywalls, the in-app one (for subscribers too) and
+/// onboarding's. One list for the two: they are the same offer seen at two
+/// moments, and a line present in one and missing from the other is a
+/// discrepancy a buyer can catch.
+///
+/// One shape for every row, as in the Nutrition card: rows of one shape read as
+/// a list, and a mix of the two does not. The texts stand beside their icons
+/// while every word of every row fits there, wrapping between words; otherwise,
+/// and at every accessibility size, each text goes under its icon and check.
+struct PremiumFeatureList: View {
+    /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
+    /// absent: the app has one baby and no way to add a second, so the line
+    /// sold something that does not exist. Numbering is left with the gap
+    /// rather than resequenced — renaming f5 to f4 would silently change what
+    /// every translation of those two keys says.
+    static let features: [(icon: String, key: String)] = [
+        ("infinity",                  "onboarding.premium.f1"),
+        ("star.fill",                 "onboarding.premium.f2"),
+        ("square.and.arrow.up.fill",  "onboarding.premium.f3"),
+        ("chart.bar.fill",            "onboarding.premium.f5"),
+    ]
 
-                if i < features.count - 1 {
-                    Divider().padding(.horizontal, BBTheme.Spacing.md)
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        Group {
+            if typeSize >= .accessibility1 {
+                rows(.stacked)
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    rows(.beside)
+                    rows(.stacked)
                 }
             }
         }
@@ -185,22 +199,36 @@ struct PaywallView: View {
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
     }
+
+    /// A stack's ideal width is its widest row's, so the beside form fits only
+    /// where every row does.
+    func rows(_ shape: PremiumFeatureRow.Shape) -> some View {
+        let features = Self.features
+        return VStack(spacing: 0) {
+            ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
+                PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: shape)
+
+                if i < features.count - 1 {
+                    Divider().padding(.horizontal, BBTheme.Spacing.md)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Feature Row
 
-/// One row for both paywalls and the subscribed screen. A Text only breaks
-/// inside a word when the word alone is wider than its space, and beside a
-/// 34pt icon, a checkmark and the padding, a long Russian word
-/// («Неограниченная») was exactly that at the accessibility sizes and at
-/// xxxLarge on a 320-pt screen. So the text stands beside the icon only while
-/// every word of it fits the room there, wrapping between words; otherwise,
-/// and at every accessibility size, it goes under the icon and the check.
+/// A Text only breaks inside a word when the word alone is wider than its
+/// space, and beside a 34pt icon, a checkmark and the padding a long Russian
+/// word («Неограниченная») was exactly that at the accessibility sizes and at
+/// xxxLarge on a 320-pt screen. `PremiumFeatureList` picks the shape, one for
+/// all its rows.
 struct PremiumFeatureRow: View {
+    enum Shape { case beside, stacked }
+
     let icon: String
     let text: String
-
-    @Environment(\.dynamicTypeSize) private var typeSize
+    let shape: Shape
 
     private var iconBadge: some View {
         Image(systemName: icon)
@@ -216,43 +244,38 @@ struct PremiumFeatureRow: View {
             .foregroundStyle(BBTheme.Colors.success)
     }
 
-    /// Its ideal width is its widest word, the width `ViewThatFits` compares.
-    private var label: some View {
-        WordWrappingText(text: text)
+    /// Its ideal width is its widest word, the width the list's `ViewThatFits`
+    /// compares.
+    var besideLabel: some View {
+        styled(WordWrappingText(text: text))
+    }
+
+    private func styled(_ label: some View) -> some View {
+        label
             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    var beside: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            iconBadge
-            label
-            Spacer()
-            check
-        }
-    }
-
-    var stacked: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                iconBadge
-                Spacer()
-                check
-            }
-            label
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
     var body: some View {
         Group {
-            if typeSize >= .accessibility1 {
-                stacked
-            } else {
-                ViewThatFits(in: .horizontal) {
-                    beside
-                    stacked
+            switch shape {
+            case .beside:
+                HStack(spacing: BBTheme.Spacing.md) {
+                    iconBadge
+                    besideLabel
+                    Spacer()
+                    check
+                }
+            case .stacked:
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    HStack {
+                        iconBadge
+                        Spacer()
+                        check
+                    }
+                    styled(Text(text))
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }

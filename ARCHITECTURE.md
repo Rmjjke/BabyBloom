@@ -548,8 +548,8 @@ the switch rows hold theirs, so the state and the hint start at the title's x,
 and it stays one VoiceOver element. The paywall's plan rows take `.byFit`
 too, so a price keeps one line with its period: at xxxLarge the savings badge
 left the yearly price room for «$39.99 /» alone (en on 320 pt, ru on 375 pt),
-and on 320 pt in ru the price broke inside the number; there the badge now
-stands under the price. `.byWords` keeps the value beside while
+and on 320 pt in ru the price broke inside the number; in all three the badge
+now stands under the price. `.byWords` keeps the value beside while
 every word of the title stays whole next to it, the title wrapping between
 them, else under it: `BBProgressCard`'s figure and glyph grow with the text
 (`BBProgressCard.Face`, all relative to `.body`, the figure 13 : 14 with its
@@ -624,12 +624,13 @@ own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
 about words, not the whole line. `BBEventRow`'s title and subtitle are
-measured the same way, and so is the paywalls' feature row
-(`PremiumFeatureRow`): its text stands beside the 34-pt icon while every word
-fits there, else under the icon and the check, as at every accessibility size.
-At xxxLarge on 320 pt the ru «Неограниченная история записей» and «Расширенная
-аналитика и графики» go under; the other two rows, and all four on 375 pt,
-stay beside. `SideBySideIdeal` (in
+measured the same way, and so is the paywalls' feature card
+(`PremiumFeatureList`, one list for both paywalls): its texts stand beside
+their 34-pt icons while every word of every row fits there, else every text
+goes under its icon and check, as at every accessibility size. The card takes
+one shape for all four rows, as the Nutrition card does: at xxxLarge on 320 pt
+in ru «Неограниченная» and «Расширенная» miss the room beside, so the whole
+list goes under; on 375 pt it stays beside. `SideBySideIdeal` (in
 `DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
 | value row: its ideal width is the least at which the stack's own split (the
 less flexible text offered half the room, the other the rest) leaves each
