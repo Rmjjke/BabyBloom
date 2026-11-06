@@ -343,19 +343,26 @@ struct ProfileView: View {
                     HStack {
                         // A Label needs an SF Symbol, so BrandMark cannot serve
                         // here; crown carries the premium reading the retired
-                        // wreath glyph used to.
-                        Label("settings.premium".l, systemImage: "crown.fill")
-                            .foregroundStyle(BBTheme.Colors.primary)
-                        Spacer()
-                        if store.isPremium {
-                            Text("premium.active_badge".l)
-                                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.onPrimary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(BBTheme.Colors.primary)
-                                .cornerRadius(BBTheme.Radius.pill)
+                        // wreath glyph used to. At the accessibility sizes the
+                        // badge goes under the title; the chevron stays trailing.
+                        Label {
+                            BBValueRow(underSpacing: 2) {
+                                Text("settings.premium".l)
+                            } value: {
+                                if store.isPremium {
+                                    Text("premium.active_badge".l)
+                                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(BBTheme.Colors.onPrimary)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(BBTheme.Colors.primary)
+                                        .cornerRadius(BBTheme.Radius.pill)
+                                }
+                            }
+                        } icon: {
+                            Image(systemName: "crown.fill")
                         }
+                        .foregroundStyle(BBTheme.Colors.primary)
                         Image(systemName: "chevron.right")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))

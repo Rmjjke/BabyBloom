@@ -13,11 +13,12 @@ struct BBMeasureSlider: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
+            // The figure under the title at the accessibility sizes.
+            BBValueRow {
                 Text(title)
                     .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
+            } value: {
                 Text(display)
                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                     .foregroundStyle(BBTheme.Colors.textPrimary)

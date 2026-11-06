@@ -35,6 +35,8 @@ struct ExportView: View {
                             formatButton(fmt)
                         }
                     }
+                    // Both tiles take the taller one's height.
+                    .fixedSize(horizontal: false, vertical: true)
                 }
 
                 // ── Date range ──────────────────────────────────────────
@@ -108,7 +110,13 @@ struct ExportView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity)
+            // sm a side inside the outline: the description's lines ran into it.
+            .padding(.horizontal, BBTheme.Spacing.sm)
+            // The row's full height (the HStack's fixedSize), the glyph on top.
+            // minWidth 0 holds the tile to its share: a wrapped line can measure
+            // a third of a point past its width, and without it the whole column
+            // widened by that.
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding(.vertical, 16)
             .background(selected ? BBTheme.Colors.primary.opacity(0.08) : BBTheme.Colors.background)
             .cornerRadius(BBTheme.Radius.md)
@@ -166,14 +174,17 @@ struct ExportView: View {
                     .frame(width: 30, height: 30)
                     .background(BBTheme.Colors.primary.opacity(0.1))
                     .cornerRadius(8)
-                Text(cat.rawValue.l)
-                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                Spacer()
-                if isEmpty {
-                    Text("0")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                // At the accessibility sizes the «0» goes under the title.
+                BBValueRow {
+                    Text(cat.rawValue.l)
+                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                } value: {
+                    if isEmpty {
+                        Text("0")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
                 }
                 Image(systemName: isOn && !isEmpty ? "checkmark.square.fill" : "square")
                     .font(.system(size: 20))

@@ -515,6 +515,24 @@ plate, whichever is wider. At Large that is four on 375 pt and wider; on
 320 pt ru goes two by two, where «Подгузники» (71.1 pt) misses a quarter (64),
 and en and es, whose widest tile is the plate, stay four.
 
+A title with one trailing value is a `BBValueRow`
+(`DesignSystem/Components/BBValueRow.swift`): Settings' Premium row and its
+badge, the measure sliders' and the bottle volume's figure, `BBProgressCard`'s
+count, Export's category «0», a plan row's badge and the iCloud Sync state.
+The value keeps its one-line width and the title wraps beside it, between
+words only; at accessibility sizes the value stands under the title, lined up
+with the title's text: where a glyph leads the title (`BBProgressCard`), the
+`bbValueRowTitle` alignment guide marks the text, so the figure starts past it.
+`.byFit` keeps the value beside only while the title fits one line next to it,
+else under it at any size: on a 320-pt screen at Large the ru and es iCloud
+Sync titles miss that line, and beside the value «Синхронизация» broke inside
+the word. That row is one Label around the title, the state and the hint, as
+the switch rows hold theirs, so the state and the hint start at the title's x,
+and it stays one VoiceOver element. The medication menu's label stands above
+its menu at every size, not beside it below the accessibility sizes: a long
+running name squeezed it. The Export format tiles keep 8 pt a side inside the
+outline and take the taller tile's height, so the two stay one row.
+
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while
 it fits, else stacked. The Feeding timer's side pills stand three in a row while the row
