@@ -47,24 +47,51 @@ laid over the surface (G26); and the question and visit sheets' deletes
 (170d574), the photo's Remove, the purchase error and the delete-all button
 under the platform red's role, with no over-limit red (G4, G5). The
 stool-colour warning keeps its orange words (G3, by design). Decided the same
-day and planned: the brand gradient one step deeper, one pair in both modes, with
-every word on it in white at full strength (G12); unchecked and unselected
-marks in BBTextSecondary at full strength (G27); the splash words in a deep
-violet (G17).
-Decided the same day and planned too: the norm editor's stepper card as wide
-as the column where its widest form does not fit (G22), a selected tile's
-or chip's border drawn outside its fill (§ 3, G29), and the splash words
-beside the art's figure wherever its crop would put them on it, as in
-landscape (G28).
-Decided the same day and planned too: a title and its trailing value keeping the value whole
+day and in code (3bb4936): the brand gradient one step deeper, one pair in
+both modes, with every word on it in white at full strength (G12); unchecked
+and unselected marks in BBTextSecondary at full strength (G27); the splash
+words in a deep violet (G17).
+Decided the same day and in code too: the norm editor's stepper card as wide
+as the column where its widest form does not fit (G22, eb1f410), a selected
+tile's or chip's border drawn outside its fill (§ 3, § 7, G29, 1187418), and
+the splash words beside the art's figure wherever its crop would put them on
+it, as in landscape (G28, d3e94e8).
+Decided the same day and in code at c090a8e: a title and its trailing value keeping the value whole
 and the title's words whole, with the value under the title at accessibility
 sizes and, in Settings' iCloud Sync row, wherever the two do not share one
 line, and the medication menu's label above it at every size (§ 3, § 7, G30);
 and the Export format tiles' description with sm 8 a side and the two tiles of
 one height (G29).
-Decided on 2026-11-05 and planned: the event row's time under its texts
+Decided on 2026-11-05 and in code at 42a74fe: the event row's time under its texts
 wherever a word of the title or the second line misses beside it, and the
-Nutrition card's three rows taking one shape by fit (§ 3, § 7).
+Nutrition card's three rows taking one shape by fit (§ 3, § 7). In code at
+19a14f1: a span of minutes from one writer, and the stat tile's duration
+with its unit words at the unit's size inside the value (§ 7). Decided on
+2026-11-05, from 1.3.0: a screen's large title in the content wherever it
+misses the bar's one line, with the inline title after the scroll (§ 3,
+§ 7, G31), and Growth without the floating + (P7, § 7, G32), in code at
+7b886b1; the splash art silent to VoiceOver (§ 9), in code at 8c4bdae; the
+Export PDF told apart from the doctor's report by its tile's words, its
+first page and its file name, with a pointer to the report under the
+format tiles (§ 7, G33), in code at 361abe5, its count tiles naming what
+they count at 0a925bf; a weight-for-age section in the report PDF (§ 9,
+G34) and a weighing's head value on its own line in the report screen's
+Growth card (§ 7, G35), in code at 80d2e54.
+Decided on 2026-11-06, from 1.3.0, in code at a298c62: the section header
+without its action, Home's growth rows and Growth's history rows by fit,
+and a Settings row by fit, its switch under the label where a word misses
+beside it and, at the accessibility sizes, its icon above a title whose
+first word misses beside the icon (§ 7); Export's category rows without
+lines, in code at 361abe5 (§ 7). Decided on 2026-11-06: the system Language
+row's hyphen as the one stated exception to a word kept whole (§ 3, in
+force, the system's row); and a dash never starting a line (§ 3, planned).
+Decided on 2026-11-06, from 1.3.0: an age, a report's period length and its
+day and month glued at their writers (§ 3), with Settings' baby row by fit
+at the accessibility sizes (§ 7), in code at 92c70db; Home's sleep card read
+as two durations (§ 3, § 7), in code at c67ab7c. Proposed on 2026-11-06: the
+progress card's figure and icon scaling, its row by fit (§ 7, G36), and
+Home's header name under the greeting's row where it misses beside the
+avatar (§ 7, G37).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -89,7 +116,7 @@ semibold for headers.
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
 | P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + the hex constants of `ExportGenerator` and of `DoctorReportPDF` (§ 2 "Outside `Colors/`"). | in force | DECISIONS 2026-07-21, 2026-09-01 |
 | P6 | **Dynamic Type through `BBTheme.Typography`**, ceiling AX2 (`accessibilityLarge`) in one constant. | in force | DECISIONS 2026-08-28 |
-| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **From 1.3.0** (G32, decided 2026-11-05): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
+| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **From 1.3.0** (G32, decided 2026-11-05; in code at 7b886b1): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
 | P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | product decision 2026-10-28: WCAG 2.2 AA is the review bar |
 
 ## 2. Colour tokens
@@ -116,10 +143,10 @@ All sRGB, light (`any`) / dark (`luminosity: dark`).
 | BBDiaper | `Colors.diaper` | #E5C98F | #C4AA75 | category tint — diapers |
 | BBGrowth | `Colors.growth` | #8FC9AC | #79B396 | category tint — growth |
 | BBEvents | `Colors.events` | #C4ABDD | #A78FC2 | category tint — events |
-| BBGradientStart | `Colors.premiumGradient` | #6F5BA8 | #7E6BB8 | premium hero / widget gradient, top-leading. White words on the gradient are under 4.5:1 in both modes (G12); #5D4893 in both, planned (decided 2026-11-04) |
-| BBGradientEnd | `Colors.premiumGradient` | #A795D9 | #9C89CE | premium hero / widget gradient, bottom-trailing; #7B68B6 in both, planned (G12) |
+| BBGradientStart | `Colors.premiumGradient` | #5D4893 | #5D4893 | premium hero / widget gradient, top-leading, one value in both modes, in the app's and the widget's catalogs; white reads 7.46 on it (G12, in code at 3bb4936; #6F5BA8 / #7E6BB8 before, under 4.5:1 for white words in both modes) |
+| BBGradientEnd | `Colors.premiumGradient` | #7B68B6 | #7B68B6 | premium hero / widget gradient, bottom-trailing, one value; white reads 4.67 on it (G12, in code at 3bb4936; #A795D9 / #9C89CE before) |
 | BBLaunchBackground | `Color("BBLaunchBackground")` | #D3BEE7 | #D3BEE7 | splash backdrop (one value) |
-| BBSplashText | `Color("BBSplashText")` | #F7F1E4 | #F7F1E4 | splash wordmark/tagline over the art (one value); 1.1–1.5 over the art in portrait, 1.0 in landscape, #4A357E in both modes, planned (G17) |
+| BBSplashText | `Color("BBSplashText")` | #4A357E | #4A357E | splash wordmark/tagline over the art (one value), both lines at full strength: 4.87 or more under the tagline in portrait, 5.72 beside the figure (G17, G28; in code at 3bb4936; #F7F1E4 before, 1.1–1.5 over the art in portrait, 1.0 in landscape) |
 
 Outside `Colors/`:
 - `AccentColor.colorset` (system tint) = BBPrimary's values, #6F5BA8 / #A795D9.
@@ -207,13 +234,15 @@ In code at 16f2802 (decided 2026-11-04):
   delete-all button without its red wash (G4); no over-limit red (G5). The
   stool-colour warning's orange words stay: the one exception (G3).
 
-Planned (decided 2026-11-04), the gradient, the marks and the splash:
+In code at 3bb4936 (decided 2026-11-04), the gradient, the marks and the splash:
 - The brand gradient one step deeper in its own hue, one pair in both modes:
   BBGradientStart #5D4893 and BBGradientEnd #7B68B6 (OKLCH L 0.460 → 0.569),
   every word and glyph on it white at full strength, 7.46 at the start and
-  4.67 at the end; the hierarchy by size and weight (G12).
+  4.67 at the end; the hierarchy by size and weight (G12). The hero's
+  BrandMark keeps its white@0.35 ring, a badge's edge (§ 7).
 - An unchecked or unselected mark in BBTextSecondary at full strength, the
-  checked one in BBPrimary (G27).
+  checked one in BBPrimary (G27): Export's range circle and category square
+  (`ExportView.swift:141`, `:180`).
 - BBSplashText #4A357E, one value, both splash lines at full strength (G17).
 
 ### Data colours (not tokens)
@@ -239,10 +268,11 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | white on accent (the plan badge before 1.3.0) | **1.84** | **1.66** |
 | BBOnAccent on accent (the plan badge from 1.3.0) | 9.88 | 10.95 |
 | textSecondary edge of the White / Black stool swatch on the background (from 1.3.0; a border, 3:1) | 5.12 | 6.82 |
-| white on gradient end | **2.64** | **3.05** |
-| white on gradient start | 5.6 | **4.48** |
-| the widget's words at white@0.7–1.0 on the gradient, at their places (G12) | **2.37–4.62** | **2.46–4.07** |
-| white on the planned gradient #5D4893 → #7B68B6, start / end; the widget's words at their places (G12) | 7.46 / 4.67; 5.21–6.68 | the same |
+| white on gradient end, before 3bb4936 | **2.64** | **3.05** |
+| white on gradient start, before 3bb4936 | 5.6 | **4.48** |
+| the widget's words at white@0.7–1.0 on the gradient, at their places, before 3bb4936 (G12) | **2.37–4.62** | **2.46–4.07** |
+| white on the gradient #5D4893 → #7B68B6 (from 3bb4936), start / end; the widget's words at their places (G12) | 7.46 / 4.67; 5.21–6.68 | the same |
+| the BrandMark's ring, white@0.35 on the gradient from 3bb4936, start / end (a badge's edge, not a state: § 7; 2.03 / 1.46 on the light plate before) | **2.32 / 1.87** | the same |
 | alert on surface / background, as text | **3.64 / 3.31** | 5.53 / 6.17 |
 | success / accent on the surface, as text ink on the Growth cards before 855227f (G23) | **1.98 / 1.84** | 9.47 / 9.82 |
 | feeding / sleep tint as ink on its timer card, tint@0.08 over the background, before fa5c55f (G24) | **1.80 / 1.82** | 5.94 / 5.53 |
@@ -256,11 +286,11 @@ Domain enums carry hex strings rendered with `Color(hex:)` — no dark variants:
 | primary as words on primary@0.12 / @0.10 over the background: selected tiles, pills, before 16f2802 (G26) | **4.38 / 4.50** (4.499) | 5.71 / 5.92 |
 | primary as words on primary@0.12 / @0.10 over the surface (G26, from 16f2802) | 4.78 / 4.91 | 5.04 / 5.22 |
 | system orange words on their orange@0.1 wash (the stool-colour warning, G3, by design) | **2.13** | 6.14 |
-| the Export screen's unselected circle textSecondary@0.3 / unchecked square @0.4 on the surface (G27) | **1.48 / 1.71** | **1.72 / 2.10** |
-| an unchecked or unselected mark in BBTextSecondary on the surface (G27, planned; #6B647C in light) | 5.62 | 6.11 |
-| BBSplashText #F7F1E4 over the splash art under the words in portrait, worst / median; in landscape, worst (G17, G28) | **1.07 / 1.38**; **1.00** | the same |
-| BBSplashText #4A357E (planned) under the tagline, every portrait screen, worst (G17) | 4.87 | the same |
-| BBSplashText #4A357E (planned) beside the art's figure, wordmark / tagline, worst (G28, planned) | 5.72 / 5.74 | the same |
+| the Export screen's unselected circle textSecondary@0.3 / unchecked square @0.4 on the surface, before 3bb4936 (G27) | **1.48 / 1.71** | **1.72 / 2.10** |
+| an unchecked or unselected mark in BBTextSecondary on the surface (G27, from 3bb4936; #6B647C in light) | 5.62 | 6.11 |
+| BBSplashText #F7F1E4 over the splash art under the words in portrait, worst / median; in landscape, worst, before 3bb4936 (G17, G28) | **1.07 / 1.38**; **1.00** | the same |
+| BBSplashText #4A357E (from 3bb4936) under the tagline, every portrait screen, worst (G17) | 4.87 | the same |
+| BBSplashText #4A357E beside the art's figure, wordmark / tagline, worst (G28, from d3e94e8) | 5.72 / 5.74 | the same |
 
 Bold = under P8 for normal-size text; see § 10.
 
@@ -301,7 +331,53 @@ scaled relative to `.body` grows by 40/22, body's line height there over its
 `m3-medications.md` § 11 holds in every sheet and screen, not only on the
 medication path:
 - A word never breaks inside itself. A line breaks only at a space, or after
-  a hyphen the word already has.
+  a hyphen the word already has. One stated exception (decided 2026-11-06),
+  the system's own Language picker row in Settings, which places
+  its value and chevron itself and hyphenates a title it cannot fit beside
+  them: en «Lan-» / «guage» at xxxLarge with Bold Text on 320 pt («Language»
+  103.6 pt semibold; 98.9 regular sets one line); from AX1 the row stacks,
+  its value at the row's leading edge. The hyphen marks the break. Why kept:
+  a row and a list of our own for one hyphen, in one language at one size
+  with Bold Text, would give up the system's selection list and its
+  VoiceOver selected state.
+- **Planned** (decided 2026-11-06): a dash never starts a line. A spaced em
+  dash keeps a no-break space (U+00A0) before it, so a line that breaks
+  there ends with the dash. The rule reaches every spaced em dash in the
+  app's words, the widget's medium name, the source labels and the dash
+  before a line break in the onboarding subtitle among them; only the two
+  export file names keep a plain space, a file name not being set text.
+  Where a word and its dash cannot keep one line, the dash goes: the feed
+  titles read «Сцеженное 80 мл», «Смесь 100 мл», "Pumped 100 ml", "Formula
+  100 ml". On 320 pt at xLarge ru «Сцеженное — 80 мл» set «Сцеженное» /
+  «— 80 мл» in a history row, and the glued «Сцеженное —» (114.4 pt at 17
+  semibold) is wider than the event row's title room there (111 pt), so the
+  line would still break, at the no-break space. Why: a dash that opens a
+  line reads as a list mark or a reply, and Russian setting never starts a
+  line with one; a word and its amount read as one title without it. The
+  row's fit (`SideBySideIdeal`) parts words at plain spaces only, so a word
+  glued to its dash counts as one word and the time goes under the texts
+  where it misses.
+- A number keeps its unit, and an age or a span of time its words, by
+  no-break spaces set at the phrase's writer, never in a format string
+  (decided 2026-11-06 for the age and the report's phrases; in code at
+  92c70db): an age from `Baby.describeAge` («11 месяцев», «3 semanas»), a
+  report's period length and day and month from `ReportFormat.periodLength`
+  and `dayMonth`, one writer for the report screen and its PDF («30 дней»,
+  «28 сент.»), and a span of minutes from `DurationText.minutes`
+  («2 ч 55 мин»: each number with its unit, the space between the parts
+  plain; in code at 19a14f1). A format string's own spaces stay plain:
+  Home's sleep line «2 ч 55 мин из 14 ч» (`progress.of_duration_fmt`, in
+  code at c67ab7c) parts at «из», and a count «3 из 7» has no glue. A date
+  that stands as a line of its own (a visit's date) is not glued: glued, it
+  is wider than its line at the largest sizes and would break inside a word
+  instead of between words. Glue cannot hold a phrase wider than its line
+  either, since the text engine then breaks it at the no-break space; there
+  the row gives the words room (Settings' baby row, § 7). At AX2 on 320 pt
+  the glued phrases keep one line: Home's age pill at most 147.0 pt
+  («11 месяцев», Bold Text) of the 228 beside the avatar, and the report
+  screen's head line's widest run 124.7 («28 сент.») of about 264. Why at
+  the writer: one source leaves no caller to forget, and the screen and the
+  PDF break the same way.
 - A label that shares a line with its controls stacks above them; a date
   picker's label stands above its pills at every size: `BBLabeledPicker` (§ 7).
 - A placeholder that is a field's only label stays whole:
@@ -309,7 +385,8 @@ medication path:
 - A sheet's title moves from the bar into the content, from xLarge on:
   `BBSheetHeading` (§ 7).
 - A screen's large title moves from the bar into the content wherever it
-  misses the bar's one line: `BBScreenHeading` (§ 7, G31; from 1.3.0).
+  misses the bar's one line: `BBScreenHeading` (§ 7, G31; from 1.3.0, in
+  code at 7b886b1).
 - A grid that cannot give its widest word its width takes fewer columns; the
   tiles keep their order and spacing.
 
@@ -390,12 +467,13 @@ Home's quick actions and running-timer card and onboarding's gender row
   size below the accessibility sizes branches on the text size, because no
   width changes the answer: the Diaper screen's Today row (title and norm
   chip, `DiaperView.swift:140`; +56.8 pt at xxxLarge, −19.5 at AX2).
-  `BBEventRow` branches on the text size too (the time under the texts at the
-  accessibility sizes, in code at fa7de91), but its titles do not hold beside
-  the time at 320 pt below them: ru «вскармливание» breaks from Large (−10 pt
-  in the history row), en «Breastfeeding» from xLarge (−12). Planned (decided
-  2026-11-05): the row goes by fit, the time under the texts wherever a word
-  of the title or the second line misses beside it (§ 7). A row whose shape would change under the parent's own edit
+  `BBEventRow` branched on the text size too (the time under the texts at the
+  accessibility sizes, in code at fa7de91), but its titles did not hold beside
+  the time at 320 pt below them: ru «вскармливание» broke from Large (−10 pt
+  in the history row), en «Breastfeeding» from xLarge (−12). Decided
+  2026-11-05 and in code at 42a74fe: the row goes by fit, the time under the
+  texts wherever a word of the title or the second line misses beside it
+  (`SideBySideIdeal`, § 7). A row whose shape would change under the parent's own edit
   (picking a date with a longer name) keeps one shape per size
   (`BBLabeledPicker`, decided 2026-11-04).
 - The spare keeps a measuring error, a later word or Bold Text from landing a
@@ -422,14 +500,15 @@ Home's quick actions and running-timer card and onboarding's gender row
   words that wraps at accessibility sizes is centred in its tile. Below them
   none wraps on 320 pt: es «Sueño nocturno», the longest, keeps one line in
   its half of the Sleep sheet at xxxLarge (121.9 pt in 136.0, +14.1; +7.6
-  with Bold Text, +4.6 inside the selected tile's 1.5 pt border) and wraps
+  with Bold Text, selected or not, since the border lies outside the fill
+  from 1187418; +4.6 inside it before) and wraps
   from AX1 (142.3, −6.3), where `SleepView.swift:275` centres it. Three tiles
   in two columns set 2 + 1, the third at half width under the first, at every
   size: the Feeding type, Diaper type, Sleep location and profile feeding rows,
   and from xLarge the Diaper and Feeding quick-add rows and the breast-side
   chips.
-- **A selected tile's or chip's border is drawn outside its fill** (planned,
-  decided 2026-11-04; G29). The 1.5 pt BBPrimary border's inner edge lies on
+- **A selected tile's or chip's border is drawn outside its fill** (decided
+  2026-11-04, in code at 1187418: `bbSelectedBorder`, § 7; G29). The 1.5 pt BBPrimary border's inner edge lies on
   the fill's edge and its outer edge 1.5 pt beyond it, on a shape whose
   corner radius is the tile's plus 1.5 (a capsule stays a capsule). The fill,
   the layout and the unselected tile stay as they are. Why: a word's room is
@@ -450,8 +529,11 @@ Home's quick actions and running-timer card and onboarding's gender row
   Feeding timer's side pills, the Sleep sheet's type and location tiles, the
   Diaper sheet's type tiles, the Add Event type and mood tiles, the profile
   sheet's gender and feeding tiles, and onboarding's gender tiles and feeding
-  rows (lines in G29).
-- **A title and its trailing value** (decided 2026-11-04, planned, G30). A row with a
+  rows (lines in G29). The border is laid after the tile's `bbShadow`, so the
+  shadow keeps the fill's outline and selecting changes the ring only; the
+  tile's VoiceOver frame takes the ring in, 1.5 pt a side, and with 6.5 pt or
+  more between rings no two frames meet.
+- **A title and its trailing value** (decided 2026-11-04, in code at c090a8e, `BBValueRow`, G30). A row with a
   title at its leading edge and a value at its trailing edge (a status, a
   figure, a count, a badge) keeps the value whole: it never wraps or shrinks,
   and the title wraps only between its words. Below the accessibility sizes
@@ -468,9 +550,10 @@ Home's quick actions and running-timer card and onboarding's gender row
   and bounded, so any break falls in the title, and only between words; a
   figure that changes under a slider's drag cannot change the row's shape when
   the shape follows the text size; the one row that takes the fit, Settings'
-  iCloud Sync, does what the system's value cell does beside the
-  system-drawn Language row (side by side while they fit, else stacked), and
-  its value changes only with the account. On 320 pt at Large «Синхронизация»
+  iCloud Sync, keeps its long first word whole where the system-drawn
+  Language row beside it stays side by side below the accessibility sizes
+  and hyphenates its title (the exception above), and its value changes only
+  with the account; on 320 pt in ru it stacks from Large. On 320 pt at Large «Синхронизация»
   beside «Выключена» misses by 9.2 pt, so the title broke inside the word; at
   the accessibility sizes on 320 pt the Premium badge, onboarding's sliders,
   the Export category rows with their «0» and the plan rows break a word
@@ -783,7 +866,7 @@ Surface levels:
 ## 7. Components (`BabyBloom/DesignSystem/`)
 
 triggers: a file added to or removed from `DesignSystem/Components/`; a public component renamed
-check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model and `BBBarAction` the bar button's; `EmptyStateView`, `AppAppearance` and `SettingsSwitchLabel` live elsewhere; `BBSheetHeading`, `bbSheetTitle` and `BBSheetTitlePlacement` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
+check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*.swift | sort` → the names below (`HistoryFilter` is the picker's model, `BBBarAction` the bar button's, and `SideBySideIdeal` (`SideBySideIdeal.swift`) and `WidestWordIdeal` (`BBCard.swift:169`) the by-fit rows' measures; `EmptyStateView`, `AppAppearance`, `SettingsSwitchRow` and `SettingsRowLabel` live elsewhere; `BBSheetHeading`, `bbSheetTitle` and `BBSheetTitlePlacement` live in `BBTheme.swift`, and `bbPlaceholderLabel` is a modifier)
 
 | component | file | purpose | used in |
 |---|---|---|---|
@@ -793,25 +876,32 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
 | BBBarButton + BBBarAction | BBBarButton | **from 1.3.0** (G21) — a sheet bar's button as a glyph: `.cancel` and `.close` ×, `.save` ✓, `.edit` a pencil. Each case owns its glyph and the word VoiceOver reads, in the app's language (`button.cancel`, `button.close`, `button.save`, `button.edit`). On iOS 26 the bar draws each in the platform's glass circle and Save is `.glassProminent`, BBPrimary tint with a BBOnPrimary check; before iOS 26 the glyphs stand bare, Cancel and Close in BBTextSecondary, Save and Edit in BBPrimary, a disabled Save in BBTextSecondary. Measured on the 26.3 renders: × 5.53 / 6.71 on its glass, ✓ 5.70 / 7.27. × is Cancel where it drops the sheet's edits, Close where nothing waits (the diaper norm editor's × is Close, in code at 2511a0b). A fifth case, `.startFeeding`, is a confirm that starts a timer: `play.fill` in Save's style, read with the bottom button's word (`button.start_feeding`), for the Feeding sheet while Start Timer is on (§ 3; in code at 7335076, `BBBarButton.swift:9`) | the 17 sheet bars and the medication screen's bar, 29 buttons: Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet, MedicationFormSheet, VisitSheet, VisitDetailSheet (the pencil and, in edit mode, × and ✓), BabyProfileEditSheet, the diaper norm editor (Close), the three Home quick sheets, the growth explainer (Close) and the medication screen, a pushed screen (the pencil, in code at b57b678) |
-| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt. The trend chip stands beside the plate while each of its words fits the room there, wrapping between words, else on its own line under the plate, leading, sm 8 below it (in force, in code at 4f3c86c, `WordWrappingText` `:127`, § 3). The unit and title are BBTextSecondary on the tonal wash (4.83–5.05 in light from 16f2802; 4.28–4.36 with #746D85 before, G10); no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5) | Dashboard, Feeding, Sleep, Diaper, Growth |
+| BBStatCard | BBCard | tonal KPI tile: 36 pt icon tile, metric value + unit + title, optional trend chip and chevron, whole card tappable, min 110 pt. From 1.3.0 its title (13 regular), unit (13 medium) and trend chip (12 medium) scale relative to `.body` (§ 3); the icon plate stays 36 pt. The trend chip stands beside the plate while each of its words fits the room there, wrapping between words, else on its own line under the plate, leading, sm 8 below it (in force, in code at 4f3c86c, `WordWrappingText` `:127`, § 3). The unit and title are BBTextSecondary on the tonal wash (4.83–5.05 in light from 16f2802; 4.28–4.36 with #746D85 before, G10); no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5). A duration carries its unit words inside its value («10 ч 45 мин»; in code at 19a14f1): one Text cut into runs (`valueRuns`, `valueText`), the figures 28 semibold rounded relative to `title2` with monospaced digits in BBTextPrimary, the words and the spaces between them 13 medium rounded relative to `.body` in BBTextSecondary, the unit's own style, letter-spacing 0, the SF line; one line, scaling down to 0.6 as a whole. A weight or length keeps its unit as a Text of its own beside the value, 2 apart on the last baseline; a count has none. The words come from `DurationText.minutes`, the one writer of a span of minutes, which glues each number to its unit and keeps the space between the parts. Why: each of a duration's two units keeps the style a unit has on the tile, and one Text keeps the value on one line, scaling as one where two Texts would shrink apart | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBStatGrid | BBCard | **from 1.3.0** — the grid of stat cards: two flexible columns 8 pt apart (the grid's own spacing), rows md 16 apart; one column from xxLarge and at accessibility sizes (in code at 6f66d45, through `BBTileColumns`), where a grown title no longer fits half the screen: en «Measurements» is 100.8 pt at xxLarge and 151.9 at AX2, and half a 320 pt screen leaves a card 108.0 pt inside its md padding (135.5 at 375 pt); one column leaves 256.0 (311.0) | Dashboard, Feeding, Sleep, Diaper, Growth |
 | BBTileColumns | BBCard | **from 1.3.0** — a tile or grid row's column count at Large (and every smaller size), xLarge, xxLarge, xxxLarge and accessibility sizes, stated in one place; the counts come from the column rule (§ 3) | BBStatGrid; Diaper (quick-add, type, stool), Feeding (quick-add, type, breast sides), Sleep (start, location), Events (quick, Add Event type, mood), the profile sheet (gender, feeding) and onboarding (gender), from b8e9a41. Home's quick actions count by their own fit (`QuickActionsLayout`, § 3) |
-| BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6). At the accessibility sizes the time and its date go on one line under the texts, so the title takes the row less the disc and paddings (196 pt on 320; in code at fa7de91, `BBCard.swift:214`). **Planned** (decided 2026-11-05, § 3): below the accessibility sizes the row goes by fit, the time column beside while every word of the title and the second line fits, else the time line under the texts as at the accessibility sizes. Beside the time on 320 pt, titles break inside a word from Large in ru («Грудное вскармливание» −10 pt in the history row, +3 on Home) and from xLarge in en («Breastfeeding» −12), and at xxxLarge in 11 of the event titles; on 375 pt only ru «вскармливание» at xxxLarge in the history row (−5). By fit cures every case but ru «вскармливание» at AX2 on 320 (−8 under the texts), which breaks once and is kept | Feeding, Sleep, Diaper, Events, RecentActivity |
-| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target; no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5) | Dashboard, Diaper |
-| BBSectionHeader | BBCard | title3 header + optional "All" action | Dashboard, Feeding, Sleep, Diaper, Events, Growth, BBHistorySection |
-| BBValueRow | — | **planned** (decided 2026-11-04; § 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: xs)`, the title's text's leading); `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its Label's title as `SettingsSwitchLabel`'s hint does | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
+| BBEventRow | BBCard | elevated list row: 44 pt tint disc, title (scaled 15 semibold), subtitle, trailing time. From 1.3.0 the subtitle and the time scale too (13 relative to footnote; time 13 / date 12 relative to footnote / caption1), because a medication row's subtitle carries its name and dose (`m3-medications.md` § 6). At the accessibility sizes the time and its date go on one line under the texts, so the title takes the row less the disc and paddings (196 pt on 320; in code at fa7de91, `BBCard.swift:214`). Below the accessibility sizes the row goes by fit (decided 2026-11-05, § 3; in code at 42a74fe): the time column beside while every word of the title and the second line fits, else the time line under the texts as at the accessibility sizes. The fit is `SideBySideIdeal` (`DesignSystem/Components/SideBySideIdeal.swift:13`): the least width at which both texts keep every word whole, measured on each text as set and with one word a line, words parted at plain spaces only, so a no-break space keeps a run one word; `ViewThatFits` takes beside only from that width. Beside the time on 320 pt, titles broke inside a word from Large in ru («Грудное вскармливание» −10 pt in the history row, +3 on Home) and from xLarge in en («Breastfeeding» −12), and at xxxLarge in 11 of the event titles; on 375 pt only ru «вскармливание» at xxxLarge in the history row (−5). By fit cures every case but ru «вскармливание» at AX2 on 320 (−8 under the texts), which breaks once and is kept | Feeding, Sleep, Diaper, Events, RecentActivity |
+| BBProgressCard | BBCard | elevated card with 8 pt progress bar toward a target (`BBCard.swift:348`); the title and its value through `BBValueRow` (in code at c090a8e), the value under the title at the accessibility sizes. The value by `measure` (from 1.3.0, decided 2026-11-06; in code at c67ab7c): `.count` «3 из 7» from `progress.of_fmt`; `.hours`, Home's sleep card, «2 ч 55 мин из 14 ч» from `progress.of_duration_fmt` («%@ из %@» / "%@ of %@" / «%@ de %@»), both sides from `DurationText.minutes`, each number glued to its unit and the two sides joined by plain spaces around the word between (§ 3); the current side rounds the seconds, then floors the minute, as the Sleep tile counts, and the target is whole hours. Past the target the line reads as it is, no alarm style. On 320 pt the sleep line stands beside «Сон» at Large and xxxLarge (113 pt wide) and under it at the accessibility sizes, «Мокрые / подгузники» wrapping between its words at AX-L. The title 14 semibold rounded relative to `.body`; the figure 13 medium rounded and the icon 14 semibold, fixed (G2; scaled, with the row by fit, proposed: G36); no over-limit red: `overLimit`, set by no caller, went with its red at 16f2802 (G5). `progress.of_unit_fmt` («10 из 14 ч», whole hours) has no reader from c67ab7c. Why one writer on both sides: the Sleep tile beside the card shows the total to the minute, and whole hours on the card disagreed with it | Dashboard (feeding, sleep, wet nappies, `DashboardView.swift:490`), Diaper (the daily norm, `DiaperView.swift:182`) |
+| BBSectionHeader | BBCard | **from 1.3.0** (decided 2026-11-06; in code at a298c62, `BBCard.swift:416`) — a section's title alone: title3, BBTextPrimary, leading, a `Spacer` after it. Its one action, Growth's «All» over the current measurements, opened the add sheet and went with `action` and `actionTitle`: once the floating + left Growth (G32) the bar's + is the screen's add, a second add in a header was a second door to the same sheet under a weaker word, and a scroll to the history reaches the section right under it | Dashboard, Feeding, Sleep, Diaper, Events, Growth, Medications (the list, a medication's doses), BBHistorySection |
+| BBValueRow | — | **in code at c090a8e** (decided 2026-11-04; § 3, G30) — a title and its trailing value: beside below the accessibility sizes (`HStack`, `Spacer(minLength: sm)`, the value `.fixedSize()` with layout priority 1, the title wrapping between words), the value under the title at them (`VStack(alignment: .leading, spacing: underSpacing)`: xs 4 by default, 2 in the Settings rows, as their hints; the value on the title's text's leading edge by the `bbValueRowTitle` alignment guide); `shape` `.bySize` by default, `.byFit` (`ViewThatFits` of the two, below the accessibility sizes) for Settings' iCloud Sync row, whose value and hint sit in its `SettingsRowLabel`'s texts as a switch row's hint does. The medication menu is not on it: its label stands above it at every size (§ 3) | Settings (iCloud Sync, Premium), BBMeasureSlider, the Feeding sheet's bottle volume, BBProgressCard, Export's category rows, the plan rows |
 | BBTierValue | BBTierValue | **from 1.3.0** (G23, § 2) — a value whose tier a dot carries: the words semibold at the caller's size relative to its text style (13 / `caption1` on Home and the Nutrition card, 14 / `body` on the Growth cards), in BBTextPrimary or the caller's text ink, led by a dot in the tier tint drawn into the words' own run of text: 7/13 of the size across (7 pt at 13, 7.5 at 14) and a 5/13 gap, both scaled with the style, on the baseline, its centre within 0.2 pt of the x-height's middle, glued to the first word by a word joiner (U+2060). A wrapped second line starts at the dot's x, the text's leading edge; the dot stays on the first line. The tint is resolved from the environment, so it follows a switch between light and dark; the tints are under 3:1 on the light surfaces and stand as marks beside words that say the verdict. VoiceOver reads the words, the dot is silent. In code at 855227f | Dashboard (`DashboardView.swift:598`), the Growth cards (`GrowthInsightCards.swift:628`), the Nutrition card (`NutritionSection.swift:156`) |
-| Nutrition card rows | — (`NutritionSection`) | the card's three rows (gain, feeds, wet diapers): the label beside its status (BBTierValue) below the accessibility sizes, the status under the label at them. **Planned** (decided 2026-11-05): the three take one shape by fit, all beside while every row keeps its words whole, else all stacked as at the accessibility sizes, so the eye does not jump between rows (the weekly rows' rule, 0334779). Beside, ru xxxLarge on 320 pt breaks three words («12·в·сутки» 102 pt in 98, «Кормления» 105 in 98, «в·пределах» 112 in 106), and with Bold Text ru xxLarge one («подгузники» 103 in 100); stacked, the status lines wrap between words | Growth |
-| SettingsSwitchLabel | — (private, `App/MainTabView.swift:382`) | **from 1.3.0** — a Settings switch's label: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`), both inside one `Label`'s title, the icon in BBTextPrimary on the title's row; the hint starts at the title's leading edge and VoiceOver reads both with the switch. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). In code at 8b90029 | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches — every Settings switch |
+| Nutrition card rows | — (`NutritionSection`) | the card's three rows (gain, feeds, wet diapers): the label beside its status (BBTierValue) below the accessibility sizes, the status under the label at them. The three take one shape by fit (decided 2026-11-05; in code at 42a74fe, `ViewThatFits { rows(true); rows(false) }`, each row's beside width from `SideBySideIdeal`): all beside while every row keeps its words whole, else all stacked as at the accessibility sizes, so the eye does not jump between rows (the weekly rows' rule, 0334779). Beside, ru xxxLarge on 320 pt broke three words («12·в·сутки» 102 pt in 98, «Кормления» 105 in 98, «в·пределах» 112 in 106), and with Bold Text ru xxLarge one («подгузники» 103 in 100); stacked, the status lines wrap between words | Growth |
+| Home growth rows | — (`GrowthSummaryRow`, `DashboardView.swift:589`) | **from 1.3.0** (decided 2026-11-06; in code at a298c62) — a label and its status on Home's growth card: the label 15 medium rounded relative to `.body`, BBTextPrimary; the status `BBTierValue` 13 / `caption1`; letter-spacing 0, the SF line; rows sm 8 apart. The card's rows take one shape by fit, the Nutrition card's: all beside while every row keeps its words whole (`SideBySideIdeal` per row, its chrome the two sm 8 gaps and the spacer's least sm 8; one `ViewThatFits` over the rows, `summary`, `:362`), else all stacked as at the accessibility sizes, where they always stack. Beside: `HStack(alignment: .firstTextBaseline, spacing: sm)`, `Spacer(minLength: sm)`, the status trailing-aligned; stacked: `VStack(alignment: .leading, spacing: xs)`, the status leading. VoiceOver reads each row as one element. Beside on 320 pt at xxxLarge with Premium, words broke inside before: the status of en «Weight gain», and with Bold Text en «Weight Percentile» and ru «Перцентиль по весу» (at 42a74fe); now at xxxLarge en stacks, ru stays beside, ru with Bold Text stacks, every word whole. Why: the rows read as one list, as the Nutrition card's do, and a branch on the text size cannot see a word that misses below the accessibility sizes | Dashboard |
+| Home header | — (`DashboardView.headerSection`, `DashboardView.swift:127`) | the greeting (15 medium rounded relative to `.body`, BBTextSecondary) over the baby's name (`title1`: 26 semibold SF Pro relative to `.title2`, tracking −0.3, BBTextPrimary) over the age pill (14 medium rounded relative to `.body`, BBPrimary on BBPrimary at 0.10 over BBSurface, 10 / 4 padding, pill radius), 4 apart, leading; the avatar (52 pt, a 1.5 pt ring in BBPrimary at 0.15) at the trailing edge, top-aligned; md 16 above; the other texts at letter-spacing 0, the SF line. **Proposed** (G37): where the name's widest word misses beside the avatar (228 pt on 320 at AX1 and AX2), the greeting keeps the avatar's row, wrapping between words, and the name and the pill go under that row at the full content width (288 on 320), 4 apart; the name wraps between words with no line limit, and only a word wider than the full width steps down to `title2`, then `title3`, as `BBScreenHeading`; never cut, never broken inside. The fit is the Settings baby row's: `ViewThatFits` over the row set one word a line. Where the name fits beside the avatar nothing changes; VoiceOver's order stays greeting, name, age, the profile button | Dashboard |
+| Growth history row | — (`GrowthEntryRow`, `GrowthView.swift:744`) | **from 1.3.0** (decided 2026-11-06; in code at a298c62) — a weighing in Growth's history: a 44 pt tile (growth@0.22, radius 10, an 18 pt `scalemass.fill` in the growth tint), md 16, then the values, weight and length (`Label`s, 14 semibold rounded relative to `.body`, BBTextPrimary, each number glued to its unit by a no-break space), 4 apart over the head line (12 regular rounded relative to `caption1`, BBTextSecondary), and the date (13 medium rounded relative to `.footnote`, BBTextSecondary, `BBEventRow`'s time: 55.6 pt at xxLarge, 61.6 at xxxLarge); md 16 padding, the surface, radius md, the card shadow. A value is one line at its full size, never shrunk or cut. The row goes by fit as `BBEventRow`: below the accessibility sizes the date stands at the trailing edge while every value and every word of the head line keeps whole beside it (`WidestWordIdeal` over the values and the head line one word a line), else on a line of its own under the texts, leading, 4 apart; at the accessibility sizes always under. The values stand side by side md 16 apart while both fit whole, else one under the other, 4 apart, at every size. Each row fits on its own, as each event row does, so one list can mix the two shapes: at xxxLarge with Bold Text on 320 pt en «Nov 6» stands beside its values and «Oct 28» goes under its row's; kept, as in every list of event rows. Before, on 320 pt at xxLarge, ru «4,29 кг» drew «4…» in 47 pt and «55 см» «…» in 42, beside a fixed date «6 нояб.» 46 pt wide (at 42a74fe). Why: a value is the fact the row is for and is never cut (§ 3), and a fixed date took the values' room first | Growth (the measurement history) |
+| Report weighing row | — (`GrowthReportCard`) | **from 1.3.0** (decided 2026-11-05; § 3, G35; in code at 80d2e54) — a weighing in the report screen's Growth card, one Text: the date in `callout` (16 regular rounded relative to `.callout`) with « · », then the values in `metricSmall` (17 semibold rounded relative to `.body`, monospaced digits), weight and length joined by « · », BBTextPrimary, letter-spacing 0, the SF line (20.3 pt a line at Large, measured), wrapping between words; at accessibility sizes the date as a caption (12 medium rounded relative to `caption1`, tracking 0.3, BBTextSecondary) over the values, xs 4 apart. A weighing with a head value adds a line under its values, «Head: 38.5 cm» from `growth.head_fmt` split at its %@ as `ReportRow` splits a row's key: the words in `callout`, the figure in `metricSmall`, BBTextPrimary, never stacked; 0 apart below the accessibility sizes (the row 20.3 → 40.7 pt at Large on 320 pt; a year-dated row, its date and values on two lines, 61.0 with its head), xs 4 at them (69.7 → 110.7 pt at AX2 on 320). It sets one line at every size: 112.2 / 123.1 / 128.3 pt at Large (en / ru / es) and about 202 / 222 / 232 at AX2, in the card's 256 pt on 320 and 338 on 402. Leading, full width, growing in height (`fixedSize(horizontal: false, vertical: true)`); VoiceOver reads the row as one element: date, values, head. No line without a head value | the report screen (`GrowthReportCard.swift:132`) |
+| Export format card | — (`ExportView`) | **in code at c090a8e** (decided 2026-11-04, G29): sm 8 a side inside each tile for the glyph, the name and the description (11 pt regular rounded, fixed, centred), the two tiles of the taller one's height, each laid from its top. **From 1.3.0** (decided 2026-11-05, G33; in code at 361abe5): the PDF tile's description says what the file holds, without «report» / «отчёт» / «informe»: «Every entry, day by day» / «Все записи по дням» / «Cada registro, día a día» (117.6 / 106.1 / 116.7 pt), one line from 375 pt; on 320 pt en and es take two lines, «Every entry, day / by day» and «Cada registro, día / a día». **Planned** (decided 2026-11-06): «day by day» and «día a día» held together by no-break spaces, so those lines break at the comma; ru keeps one line. Why: "day by day" is one idea, and half of it alone on line 2 reads as a stray word. Then, sm 8 under the tiles, a caption pointing to the doctor's PDF, «For the doctor’s visit: More › For the pediatrician» (`ExportDoctorHint`, `ExportView.swift:339`), its path built from the More tab's and the report row's own names (`tab.more`, `report.title`) so it cannot drift from them, a no-break space before « › » so no line starts with it: caption (12 medium rounded relative to `caption1`, tracking 0.3; 14.1 pt line at Large, 29.4 at AX2), BBTextSecondary (5.62:1 on the surface in light), leading at the card's content edge, 256 pt wide on 320 and 338 on 402, wrapping between words, no line limit, shown whichever format is selected. Plain text, not a link: a link would jump from Profile to another tab, which the app does nowhere else. VoiceOver reads «, » for « › », static text: «For the doctor's visit: More, For the pediatrician». Lines at Large on 320 / 402 and at AX2, as built: en 2 / 1 and 3 / 2, ru 1 / 1 and 2 / 2, es 2 / 1 and 3 / 2 | Export (`ExportView.swift:34`, the tile `formatButton`) |
+| Export category rows | — (`ExportView.categoryToggle`, `ExportView.swift:174`) | a category to include: a 30 pt tile (the glyph 15 semibold in BBPrimary on BBPrimary at 0.1, radius 8), md 16, the name (15 medium rounded relative to `.body`, BBTextPrimary) and, for a category with no entries, its «0» (13 medium rounded, fixed, BBTextSecondary) through `BBValueRow` (in code at c090a8e), then the check square (20 pt); 10 pt above and below; a category with no entries at 0.4 and disabled. **From 1.3.0** (decided 2026-11-06; in code at 361abe5): no lines between the rows, as shipped since 4c0481c; the `Divider` after the `return`, which never ran, went. Why: each row's tinted tile and its 10 pt above and below part the rows, the date-range rows above have no lines, and the screen reads right as shipped | Export |
+| SettingsSwitchRow + SettingsRowLabel | — (`Features/Profile/SettingsRows.swift`: `SettingsSwitchRow` `:92`, `SettingsRowLabel` `:8`) | **from 1.3.0** (decided 2026-11-06; in code at a298c62) — a Settings switch with a line under its title, and a Settings row's icon and texts. The texts: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`); the icon in BBTextPrimary. Below the accessibility sizes the switch goes by fit: beside as the system row (a `Toggle` around one `Label`, the icon centred on the title and hint, the hint at the title's leading edge) while every word of the title and the hint keeps whole beside it, else under the texts, its leading edge at the title's x, sm 8 under the hint; at the accessibility sizes always under. The beside width is the same row set one word a line (`ProbedIdealWidth`, `:71`): asked its ideal width, a Label in a List at the accessibility sizes answers its icon's column alone (59.7 pt at AX2), so hidden copies give `ViewThatFits` the words' width, and the probe sets `.body` itself so Bold Text is measured. At the accessibility sizes `SettingsRowLabel` keeps the system Label while each text's first word fits beside the icon, else sets the icon on a line of its own above the texts, leading, xs 4 apart. With the icon beside, the Label sets it as a first-line indent of each text: the hint's first line starts at the title's x and its later lines run under the icon (at AX2 on 320 pt ru «Приходит / утром / по понедельникам.»), the system Label's layout, the same before; kept. VoiceOver reads one switch with the title and the hint in either shape. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). Before, beside the switch on 320 pt ru «использования» broke from xxxLarge (158.3 pt; the column lay in [134.0, 158.3)), and beside the icon «Синхронизация» at AX2 (236.6) and at AX1 with Bold Text, es «Sincronización» at AX2 (207.0). Now every Settings word in en, ru and es keeps whole, Bold Text included: on a 320 pt screen the ru switch goes under its line at xxxLarge, and the iCloud icon stands above its title at AX1 with Bold Text and at AX2 in ru and es, every other row's icon beside. Why: the words fit once the switch and the icon give back their room, so no shorter words; the icon moves only where a first word misses, since the Label already runs later lines under it | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches (`MainTabView.swift:271`, `:284`, `:322`); `SettingsRowLabel` also the iCloud Sync row (`ICloudStatusRow`, `AboutView.swift:8`), its status through `BBValueRow` |
+| Settings baby row | — (`SettingsBabyRowLabel`, `Features/Profile/SettingsRows.swift:70`) | **from 1.3.0** (decided 2026-11-06; in code at 92c70db) — the baby's row at the top of Settings: the avatar (56 pt), md 16, the texts, a `Spacer`, the chevron (`chevron.right` 13 semibold, BBTextSecondary at 0.4). The texts: the name (20 semibold rounded relative to `.title3`, BBTextPrimary) over the age (14 medium rounded relative to `.body`, BBPrimary, from `Baby.describeAge`, its number glued to its word, § 3), 3 apart, leading; letter-spacing 0, the SF line. Below the accessibility sizes the row stands as before. At the accessibility sizes it goes by fit: beside while the row also fits set one word a line (`ViewThatFits(in: .horizontal)` over `ProbedIdealWidth`, the Settings switch rows' probe), else the avatar and the chevron on a line of their own above the texts (`VStack(alignment: .leading, spacing: sm)`; the avatar leading, the chevron trailing), the texts under them at the row's full width, the name wrapping between words. At AX2 on 320 pt in ru, beside the avatar the name broke «Алекса / ндра» before, and with Bold Text the age «11 / месяцев»: a glued phrase wider than its line breaks at its no-break space. Now «Александра» and «11 месяцев» stand whole under the avatar's line, Regular and Bold. Why: glue cannot hold a phrase wider than its line, so the row gives the words room, as a Settings row's icon goes above a title whose first word misses beside it | Settings (`MainTabView.swift:201`) |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
-| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **From 1.3.0** (P7, G32, decided 2026-11-05): not on Growth, where at rest it sat over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding is xl 32, as on Events | Feeding, Sleep, Diaper |
+| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **From 1.3.0** (P7, G32, decided 2026-11-05; in code at 7b886b1): not on Growth, where at rest it sat over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding is xl 32, as on Events | Feeding, Sleep, Diaper |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
 | BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1); the other words BBTextSecondary on primary@0.08, 4.62 in light from 16f2802 (4.05 with #746D85 before, G10) | BBHistorySection |
 | BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation. The day labels 11 pt rounded in BBTextSecondary, today's bold in BBTextPrimary (G24, from fa5c55f; the tint before); a value 4 pt over every bar up to today, «0» included, 11 semibold rounded, today's in BBTextPrimary and the others' in BBTextSecondary, hidden from VoiceOver, a future day without one; no axis numbers, the grid lines kept at BBTextSecondary@0.06; the bars, under 3:1 in light, stay as marks (G25, from 16f2802; before it only the tallest bar's value, in the tint, with axis numbers). The values and labels stay at a fixed 11 pt; at 320 pt the widest value («24,0», 25.4 pt) has a 36.6 pt slot | Feeding, Sleep, Diaper |
 | BBDeleteHistoryButton | BBCharts | destructive "delete all" with a scope-honest confirmation (P4): the platform red words and a 1 pt red@0.2 stroke, no wash (G4, from 16f2802; the red@0.06 wash took the words from 3.25:1 to 3.01:1) | Events, BBHistorySection |
 | BBLockedHistoryFooter | BBLockedHistoryFooter | the one calm locked row for history beyond the free window (P2) | Events, RecentActivity, BBHistorySection |
 | LockBadge + `bbLockedAccessibility` | LockBadge | the one padlock: 10 pt glyph on a surface disc; VoiceOver value "locked" (P3) | Events, BBQuickActionButton |
-| BrandMark | BrandMark | `BBLogo` clipped to a circle, 1 pt ring, optional shadow, on-gradient variant | MainTabView, PremiumHero, Onboarding (Welcome, Generating) |
+| BrandMark | BrandMark | `BBLogo` clipped to a circle, 1 pt ring, optional shadow, on-gradient variant. The ring is BBPrimary@0.25, and white@0.35 on the gradient (`BrandMark.swift:31`): the badge's edge, not a word, a state or a control, so P8's 3:1 for marks does not bind it and it keeps its alpha; on the gradient from 3bb4936 it reads 2.32 → 1.87, more than on the light plate before (2.03 → 1.46) | MainTabView, PremiumHero (on the gradient), Onboarding (Welcome, Generating) |
 | BBElapsedTimer | BBElapsedTimer | **an enum from 1.3.0** — the digits every timer card draws and how they read: 36 pt semibold rounded with monospaced digits, relative to `.largeTitle` (42.4 pt line at Large), one line, shrinks to 0.7; ink: BBTextPrimary in both modes (G24, from fa5c55f; the caller's tint before); MM:SS with the minutes running on past 59, or HH:MM:SS from an hour with `showsHours` (the sleep cards: the Sleep screen's and, from 95525c6, Home's). The clock lives in `BBTimerFit` | Feeding and Sleep (through BBTimerCardHeader), Dashboard (through BBTimerFit, 22 pt relative to `.title2`) |
 | BBTimerFit | BBElapsedTimer | **from 1.3.0** — a running timer with what is running: one per-second `TimelineView` clock draws both shapes, so each fit check reads the digits on screen. Below AX1 the content stands beside the digits (a `Spacer` between, the given gap on each side) while both fit one line, else above them, sm 8 apart, both leading (`ViewThatFits`); at accessibility sizes always above (§ 3) | Dashboard (`ActiveTimerCard`: title 15 semibold over subtitle 13 regular, 2 apart, md 16 gaps, beside a 48 pt plate; on 320 pt at Large it stacks at any time; the sleep card passes `showsHours`, `DashboardView.swift:187`, and past an hour stacks on en 375 pt and es 375 and 402 pt too), BBTimerCardHeader |
 | BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in BBTextPrimary (G24, from fa5c55f; the card's colour before) over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
@@ -820,7 +910,8 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
 | BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:370`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:304`) as the header above Large |
-| BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
+| `bbSelectedBorder(_:shape:)` + BBSelectionShape | BBTheme | **from 1.3.0** (decided 2026-11-04, in code at 1187418, `BBTheme.swift:327`; § 3, G29) — a selected tile's or chip's border, drawn outside its fill: a 1.5 pt `strokeBorder` in BBPrimary, clear when not selected so the tree is the same in both states, on the tile's shape padded −1.5, its inner edge on the fill's edge; `.tile` a rounded rectangle of Radius.md + 1.5 = 17.5, `.capsule` a capsule. Laid after `cornerRadius(Radius.md)` and `bbShadow`, so the shadow keeps the fill's outline. It takes no layout, so a word's room is its tile's (§ 3); the ring reaches 1.5 pt into the gap (sm 8 → 6.5, md 16 → 14.5), and VoiceOver's frame grows by it | Feeding (type tiles, breast-side chips, the timer's side pills as `.capsule`), Sleep (type, location), Diaper (type), Add Event (type, mood), the profile sheet (gender, feeding), onboarding (gender, feeding rows). Not on: Export's format tiles (their own outline, G29), the plan rows, the stool swatches' 2.5 pt ring, the medication interval chips, the retry capsule |
+| BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05; in code at 7b886b1). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -843,9 +934,10 @@ check: `grep -rnoE --include=*.swift 'spring\(response: [0-9.]+, dampingFraction
 triggers: a widget family / Live Activity / export format added; splash art changed
 check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientEnd, BBGradientStart, BBOnPrimary, BBPrimary, BBSleep, BBSurface, BBTextPrimary, BBTextSecondary (10 colorsets) + Contents.json
 
-- **Widget** (`Features/Widget/WidgetViews.swift`): premium gradient
-  background, all text white at 0.7–1.0 opacity (under 4.5:1 in both modes,
-  G12; white at full strength on a deeper gradient planned), raw rounded sizes 10–32 pt
+- **Widget** (`Features/Widget/WidgetViews.swift`): the brand gradient
+  #5D4893 → #7B68B6 in both modes, every word and glyph white at full
+  strength, 4.67:1 or more (G12, in code at 3bb4936; white at 0.7–1.0 on a
+  lighter gradient before, 2.37–4.62), raw rounded sizes 10–32 pt
   (widgets do not take Dynamic Type the same way; fixed sizes are expected
   here). Since 1.1.0 it has tap areas and a start-feeding control:
   `m1-live-activity.md` § 5.
@@ -853,12 +945,84 @@ check: `ls WidgetResources/Colors.xcassets` → BBAccent, BBFeeding, BBGradientE
   Screen on BBSurface, Dynamic Island on its black — spec in `m1-live-activity.md`.
 - **Splash** (`Features/Splash/SplashView.swift`): BBLaunchBackground, then
   `BBSplashBg` art (design PNG with its text band stitched out), wordmark and
-  tagline in BBSplashText (1.1–1.5 over the art, G17; #4A357E planned); in
-  landscape the words lie over the crescent, and beside it is planned: the
-  figure and the words side by side, the art's inner sides faded into
-  BBLaunchBackground (G28). Launch screen is colour-only. Art: `docs/design/splash*.png`.
+  tagline in BBSplashText #4A357E at full strength (G17, in code at 3bb4936;
+  #F7F1E4 at 1.1–1.5 over the art before). Wherever the stack at 0.82 of the
+  height would touch the art's figure (landscape on the phones and the full
+  iPads, Split View at 2/3), the figure and the words stand side by side, the
+  art's inner sides faded into BBLaunchBackground (G28, in code at d3e94e8,
+  `SplashLayout`); every portrait window keeps the stack under the figure.
+  The art and the tagline's two leaves are hidden from VoiceOver (from
+  1.3.0, in code at 8c4bdae, `SplashView.swift:56`, `:71`, `:77`): the
+  splash reads as its two texts, the wordmark and the tagline, with their
+  frames and traits as before (5 accessibility elements before, 2 after, in
+  every window). Why: they carry no information, and a picture that says
+  nothing is not read out (WCAG 2.2, 1.1.1).
+  Launch screen is colour-only. Art: `docs/design/splash*.png`.
 - **App icon**: `docs/design/icon*.png`, brief `docs/design/icon-design-brief.md`.
 - **PDF / HTML export**: § 2 "Outside `Colors/`".
+- **The Export PDF** (from 1.3.0, G33, in code at 361abe5;
+  `ExportGenerator.swift`, `ExportView.swift`): its first page says «All
+  entries» («Все записи», «Todos los registros») under its title, and its
+  file is «All entries – Mia – 2026-11-06.pdf», the baby's name as typed, as
+  the doctor's file has it. Every exported file name, both PDFs and the
+  CSVs, stays within 255 bytes of UTF-8 and only the name gives way, a whole
+  character at a time, so the date and «.pdf» always stay (a 60-character
+  name: 95 to 180 bytes, each ending « – 2026-11-06.pdf»); a name keeps the
+  joiners and tags inside an emoji, and bidi overrides stay out. The
+  feeds-a-day tile shows the bare figure («7»): its label says «a day». The
+  count tiles read the plural stat words (`stat.feedings`,
+  `stat.sleep_episodes`, `stat.diapers`, `stat.measurements`): «45 Feedings
+  · 13 Sleep episodes · 45 Diapers · 10 Measurements», ru «45 Кормления · 13
+  Эпизоды сна · 45 Подгузники · 10 Измерения», es «45 Tomas · 13 Episodios
+  de sueño · 45 Pañales · 10 Medidas»; the tables keep the category's name
+  as their heading («Feeding», «Кормление», «Alimentación»; from 1.3.0, in
+  code at 0a925bf, `ExportGenerator.swift:289–310`, headings `:319–379`).
+  Why: a count reads with its plural («45 Кормления», never «45 Кормление»),
+  a heading names its category.
+- **The report PDF's weight for age** (from 1.3.0, G34, in code at 80d2e54;
+  `DoctorReportPDF.swift:93–137`, `Core/DoctorReport/WeightForAgeChart.swift`,
+  `Core/Growth/WeightChartWindow.swift`): the report's last section, after
+  the questions and before its closing line, kept whole on one page of A4
+  (595.2 × 841.8, margins 36, the body to 781.8). The report's heading
+  «Weight for age» (13 px, weight 600, #6F5BA8, Helvetica Neue) with « · WHO
+  percentiles» on its line in 10 px #6B647C, then the chart, 523.2 × 111.5 pt
+  (612 CSS px, the printable width); the block with its heading is 145.6 pt
+  (149.0 estimated before the build). doctorMonth goes from 1 page to 2,
+  page 1 losing only its closing line.
+  - Geometry, in the chart's own points: the plot x 28–501 (page x 64–537),
+    y 6–96; labels 10 px (8.55 pt) Helvetica Neue in #6B647C, x labels' top
+    at y 100; ticks 3 pt of 0.5 pt #6B647C; a label stands 4 pt from its
+    tick, line or neighbour.
+  - y: gridlines 0.5 pt #E5E5EA at whole kilograms, from the floor of the
+    lowest of P3 and the child's weights to the ceiling of the highest of
+    P97 and them (the top + 1 where the two meet); a step of 1 kg up to a
+    6 kg range, else 2, an odd range at step 2 taking its top + 1, so both
+    ends carry a label; labelled «N kg» (a no-break space), right-aligned
+    4 pt left of the plot and centred on their line.
+  - x: the window the Growth screen's chart takes for the same weighings,
+    one source for both (`WeightChartWindow`); a tick at its start and at
+    each month mark of age at least 15 % of the span from it (a four-week
+    window shows its start alone, «Nov 4» / «4 нояб.» / «4 nov»). Past six
+    marks they are thinned by halves, every second one going, until six or
+    fewer remain (a two-year history shows months 4, 8, 12, 16, 20). Each
+    tick carries its label, the report's short date, centred and kept
+    inside x 24–505 (page x 60–541): the start's label always shows, and a
+    later one that would not stand 4 pt clear of the one before goes with
+    its tick, never a tick without its date (doctorMonth «Sep 5 Oct 5 Nov
+    5»). The screen's own chart is unchanged: it drops a label within 18 %
+    of its right edge (`GrowthView.swift:734`).
+  - Lines: P3 and P97 dashed 0.75 pt (3 on, 2 off), P50 solid 1 pt, all
+    #6B647C, from `WHOCorridor` for the baby's sex, each numbered «3», «50»,
+    «97» 4 pt past its end (page x 541); the child's weights a 1.5 pt
+    #6F5BA8 line with a 2.5 pt-radius dot at each, drawn over it, the points
+    the screen draws. Lines, not a band: a black-and-white print keeps them.
+    Every label is text in Helvetica Neue in the text layer.
+  - Shown only where the report's weight percentile shows a figure and the
+    window holds two weighings at different instants or more; two at the
+    same instant count as one, so no chart. Known limit: near two years the
+    window can run past the WHO tables' last day (730); there the centile
+    lines stop inside the plot, each number at its line's end. The child's
+    points never pass 730, since the chart needs a percentile figure.
 
 ## 10. Gaps and inconsistencies (notes, not fixes — 2026-10-28)
 
@@ -903,14 +1067,34 @@ their renders in light and dark and the week chart's 320 pt shots
 (2026-11-05). The screens' large titles were measured at 3bb4936 from
 CoreText widths against the bar's room and a shot of the report at AX2 on
 402 pt, and Growth's floating + from the app's tree and shots on 440 pt at
-Large and AX2, where G31 and G32 were found (2026-11-05). Each line:
+Large and AX2, where G31 and G32 were found (2026-11-05). The two PDFs'
+words and file names, the report PDF's pages and the report screen's
+weighings were read at eb1f410 from the code, the rendered PDFs of 8eea793,
+the shots of bb17b39 and CoreText widths, where G33 to G35 were found
+(2026-11-05). The builds of G12, G17 and G27 (3bb4936), G22's stepper card
+(eb1f410), the selected border (1187418) and G28 (d3e94e8) were read at
+their hashes against their directions, with their renders on 320, 375 and
+402 pt and the iPads, the splash's frames from the app's tree and the
+contrasts computed from the colorsets (2026-11-05). The title + value rows,
+the weekly card's week change, the stat tile's duration, the event row and
+the Nutrition card's rows were read at c090a8e, 3e4044a, 19a14f1 and 42a74fe
+with their renders, 320 pt dumps, live 320 pt shots and trees and CoreText
+widths (2026-11-06). The builds of G31 and G32 (7b886b1), the splash's
+silent art (8c4bdae), G33 (361abe5, 0a925bf), G34 and G35 (80d2e54) and
+G30's last rows, Home's growth rows, Growth's history rows, the Settings
+switch rows and the section header (a298c62), were read at their hashes
+against their directions, with their renders, trees, rendered PDFs and live
+320 pt shots before and after (2026-11-06). The age glue and Settings' baby
+row (92c70db), Home's sleep line (c67ab7c) and the charts' VoiceOver words
+(ed4a561, dc529cc; nothing drawn changes) were read at their hashes, with
+their renders before and after and CoreText widths (2026-11-06). Each line:
 what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
 Home's quick actions and the weight gain card, G22 is fixed for its reach,
-and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26, G31 and G32 are fixed
-for 1.3.0.
+and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26 and G30 to G35 are fixed
+for 1.3.0; G36 and G37 are proposed.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -975,8 +1159,8 @@ for 1.3.0.
   grids and tile rows take the counts of § 3 at every text size. The rest of
   the app's fixed words follow the same rule, screen by screen: among them the
   Growth insight cards and screen (GrowthInsightCards 17 at e8abca8, GrowthView 8), the
-  charts, the Home cards' 13 pt words (`BBProgressCard`'s current and target,
-  `BBCard.swift:240`; the growth hint, `GrowthInsightCards.swift:458`;
+  charts, the Home cards' 13 pt words (`BBProgressCard`'s figure,
+  `BBCard.swift:393`, G36; the growth hint, `GrowthInsightCards.swift:458`;
   `LockedInsightCard`, `:785`, `:790`), the weekly card, the paywall and
   onboarding's other pages. Onboarding's feeding rows also miss the column
   room at accessibility sizes on 320 pt (§ 3).
@@ -1065,10 +1249,15 @@ for 1.3.0.
   to 248 pt, 63.5 pt from the screen's edges against Save's 32 (on 402 pt
   312, 45 from them), and on 320 at Large its edges stand 4 pt inside Save's.
   Computed from the simulator's metrics; 375 not rendered. Decided
-  2026-11-04, planned: where the xl form misses, the card takes the
-  column's width and its four gaps share the room, md 16 at least, the digits
-  shrinking below that as built: 311 pt on 375 at Large (gaps 31.75), 256 on
-  320 (gaps 18, the card's edges on Save's), 402 unchanged. Why: the card
+  2026-11-04, in code at eb1f410 (`DiaperView.swift:326`, a `ViewThatFits`
+  of the xl form and a filling form): where the xl form misses, the card
+  takes the column's width and its four gaps share the room, md 16 at
+  least, the digits shrinking below that as built. The xl form is 312 pt
+  with a one-digit norm and 313.3 with «12» (81.3 pt at 64 pt semibold
+  rounded, over the digits' 80 pt minimum): on 375 at Large the card is the
+  column's 311 pt (gaps 31.4; 31.75 with one digit), on 320 its 256 (gaps
+  17.7; 18), its edges on Save's in both, as the build's shots show; 402
+  unchanged. Why: the card
   changes by the room it lacks, not by 64 pt for 1.
 - **G23 · Tier tints as text ink on the Growth cards and Home's growth card**
   (found 2026-11-04 at a8369f8; every site read at 6fc67d1). The tier tints
@@ -1242,10 +1431,12 @@ for 1.3.0.
   BBPrimary disc). Inactive, so exempt: an empty category's row at 0.4
   (`.disabled`), the week chart's forward chevron at @0.3 when it cannot go
   on, the Export button at 0.5. Not a state, so not on the list: the row
-  chevrons at textSecondary@0.4 / @0.5, the format tile's textSecondary@0.15
+  chevrons at textSecondary@0.4 / @0.5 (1.73–2.64 on the surfaces; none
+  lies on the brand gradient), the format tile's textSecondary@0.15
   edge (the selected tile's 2 pt BBPrimary edge and wash carry the choice),
   the tiles' tint strokes, the charts' grid lines. Direction (decided
-  2026-11-04, planned): an unchecked or unselected mark is
+  2026-11-04, in code at 3bb4936, `ExportView.swift:141`, `:180`): an
+  unchecked or unselected mark is
   BBTextSecondary at full strength and a checked one BBPrimary, as the visit
   sheet and the plan picker already draw theirs: the circle and the square
   read 5.62 in light with #6B647C (G10) and 6.11 in dark; shapes and sizes
@@ -1258,11 +1449,12 @@ for 1.3.0.
   field under the crescent; in a window wider than the art's 0.69 the crop
   keeps the art's middle. On iPhone and on the full iPad in landscape the
   wordmark and the tagline then lie on the crescent and the baby's face, every
-  word's box on the figure (1.00 today; with G17's planned ink 2.05–8.38 for
+  word's box on the figure (1.00 then; with G17's new ink 2.05–8.38 for
   the wordmark and 3.20–8.64 for the tagline at worst). In Split View at 2/3
   they lie on the crescent's shadow (the wordmark 3.05–3.57). Not a contrast
   fix: the words need a place of their own. Direction (decided 2026-11-04,
-  planned): where the 0.82 stack would touch the figure (the crescent, the
+  in code at d3e94e8: `SplashLayout`, `SplashView.swift:126`): where the
+  0.82 stack would touch the figure (the crescent, the
   baby, the sprout and the crescent's shadow: x 0.2317–0.8257, y
   0.2658–0.7269 of the art), the figure and the words sit side by side. The
   art keeps today's fill scale where it can and is drawn smaller where it
@@ -1281,7 +1473,12 @@ for 1.3.0.
   phones and on the full iPads); beside at today's crop (135–140 pt beside
   the figure for a 220–262 pt stack); a field behind the words (a panel over
   the baby's face); a landscape crop of the art (a new brand image, not
-  needed).
+  needed). As built, the stack's width is the words' layout box
+  (`SplashView.swift:82`), a little wider than their ink: on the 320 class in
+  landscape the scale is 0.407 against 0.405 from CoreText's advances, the
+  box ends lg 24 from the trailing safe edge and the ink 24.7–25.0; every
+  word clears the figure by xl 32 or more, and right-to-left mirrors the
+  group.
 - **G29 · A selected tile's border took its word's room** (found 2026-11-04
   at 4259dd0, measured at 3b9dd3d). Twelve selected marks draw
   `strokeBorder(BBPrimary, lineWidth: 1.5)` inside the tile:
@@ -1292,7 +1489,12 @@ for 1.3.0.
   side padding, so the border lay 1.5 pt a side inside the word's room, and
   with Bold Text on 320 pt over the word's box at three (§ 3). Breaks § 3
   (the column is the word's own room). Direction (decided 2026-11-04,
-  planned): drawn outside the fill (§ 3). Not taken: on the outline, half
+  in code at 1187418): drawn outside the fill (§ 3, § 7
+  `bbSelectedBorder`) at the twelve sites, at that hash
+  `FeedingView.swift:322`, `:409`, `:434`; `SleepView.swift:295`, `:324`;
+  `DiaperView.swift:479`; `EventsView.swift:340`, `:373`;
+  `BabyProfileEditSheet.swift:268`, `:289`; `BirthPage.swift:110`,
+  `FeedingPage.swift:63`. Not taken: on the outline, half
   inside, which leaves those three about a quarter point under it; inside
   with fewer columns, which sets the chips and the profile feeding row 2 + 1
   at Large on every phone. Also seen: Export's format tiles
@@ -1303,7 +1505,7 @@ for 1.3.0.
   in 151.5, which lies 0.8 pt under the selected outline (es 0.6). Measured at
   8b90029: the two descriptions set different line counts (on 375 pt en 2
   against 1), so the tiles have two heights. Direction (decided 2026-11-04,
-  planned): sm 8 a side
+  in code at c090a8e): sm 8 a side
   inside the tile, for the glyph, the name and the description, and the two
   tiles of the taller one's height, each laid from its top
   (`ExportView.swift:33–37`, `:99–112`). With sm 8 every line keeps 7 pt or
@@ -1340,12 +1542,25 @@ for 1.3.0.
   history rows (`GrowthView.swift:792`, their values stacking at accessibility
   sizes) and `BBSectionHeader`'s action (a button, +8.9). Settings' Language
   row is the system's picker (`MainTabView.swift:232`): its one line misses
-  from AX1 on 320 pt (en −44.0) and at AX2 on 375 pt in en (−34.5), and what
-  the system does there is not in the files; nor is whether a Settings
-  Label moves a first word wider than the 196 pt beside its icon at AX2 on
-  320 pt («Синхронизация» 236.6, «использования» 226.5) under the icon or
-  breaks it. Breaks § 3 (a word never breaks inside itself). Direction
-  (decided 2026-11-04, planned): § 3's title + value rule, through `BBValueRow` (§ 7). Not taken:
+  from AX1 on 320 pt (en −44.0) and at AX2 on 375 pt in en (−34.5). Read on
+  the 320 pt renders at c090a8e: the system keeps it side by side below the
+  accessibility sizes and hyphenates a title that misses (en «Lan-» /
+  «guage» at xxxLarge with Bold Text), and stacks it at them, the value at
+  the row's leading edge (§ 3, the stated exception, decided 2026-11-06). A
+  Settings Label does not move a first word wider than its room beside the
+  icon (about 196 pt at AX2 on 320; «Синхронизация» 236.6) under the icon: it
+  breaks it («Синхрониза» / «ция» at AX2, «Синхронизаци» / «я» at AX1 with
+  Bold Text), since it sets the icon as a first-line indent and runs the
+  later lines under it; from 1.3.0 the icon stands above a title whose first
+  word misses its room beside it (§ 7 Settings switch row, in code at
+  a298c62). Breaks § 3 (a word never breaks inside itself). Direction
+  (decided 2026-11-04, in code at c090a8e): § 3's title + value rule, through `BBValueRow` (§ 7),
+  on every row above that broke but the medication menu, whose label stands
+  above it, and on the bottle volume and `BBProgressCard`, which held. The
+  Growth history rows held on their words alone: a fixed date beside them
+  cut their values at xxLarge on 320 pt, so they go by fit (§ 7 Growth
+  history row; from 1.3.0, in code at a298c62), and `BBSectionHeader`'s
+  action went (§ 7; in code at a298c62). Not taken:
   one fit for every row (a slider's figure changes under the drag, and the
   rows that hold would change shape with nothing broken); shorter words (they
   hold at Large only); a title that shrinks (the user's text set smaller in
@@ -1363,14 +1578,14 @@ for 1.3.0.
   xxxLarge on 375 pt. The other seven titles fit at every width and size (ru
   «Подгузники», the widest, 272.6 at AX2 in 288). Breaks § 3 (a word never
   breaks inside itself; here the title was cut inside one). Fix, decided
-  2026-11-05 for 1.3.0, in `BBScreenTitle.swift` (§ 3, § 7): the title leaves
-  the bar where it misses it, `BBScreenHeading`. The fit measures the title at
-  its CoreText width, so in six cells it leaves the bar one size before the
-  bar would cut it, never after: Recent activity in ru on 320, 402 and 440 pt
-  and in es on 440, Export in ru on 320 and 375. At AX2 every heading but es
-  «Medicamentos» (title2, 260.1 pt) takes two lines on 320 pt, and on 402 pt
-  «For the / pediatrician», «Недавние / записи», «Actividad / reciente» and
-  «Экспорт / данных» do. Not taken: an
+  2026-11-05 for 1.3.0, in code at 7b886b1, `BBScreenTitle.swift` (§ 3,
+  § 7): the title leaves the bar where it misses it, `BBScreenHeading`. The
+  fit measures the title at its CoreText width, so in six cells it leaves
+  the bar one size before the bar would cut it, never after: Recent activity
+  in ru on 320, 402 and 440 pt and in es on 440, Export in ru on 320 and
+  375. At AX2 every heading but es «Medicamentos» (title2, 260.1 pt) takes
+  two lines on 320 pt, and on 402 pt «For the / pediatrician», «Недавние /
+  записи», «Actividad / reciente» and «Экспорт / данных» do. Not taken: an
   empty bar once the heading has scrolled away, as the sheets have (a screen
   with no name beside screens whose bar keeps it); shorter titles (the
   report's names are decided, and es «Medicamentos» alone misses at AX1 on
@@ -1379,22 +1594,146 @@ for 1.3.0.
 - **G32 · Growth's floating + over the chart's end and the «?»; fixed for
   1.3.0** (found 2026-11-05 at 3bb4936). `BBFab` sat at the bottom-trailing
   corner, [368, 801]–[424, 857] on 440 pt at every scroll and size, over a
-  page 3 screens long at Large and 4 at AX2. At rest it covered the chart's trailing
-  bottom (40 × 25 pt at Large, 40 × 20 at AX2), where the chart's clear tap
-  layer would select the nearest weighing and the + opens the new-measurement
-  sheet instead; the Nutrition card's header «?» at Large and AX2; and at AX2
-  the Measurements tile's chevron (56 × 41 pt of the tile). Only the end of
-  the scroll is clear, through the 64 pt bottom padding. The overlaps hold on
-  every width: the + spans W − 72 to W − 16, the plot's trailing 40 pt
-  W − 72 to W − 32, the «?» about W − 54 to W − 34. Breaks P7 (a tap target
-  keeps its 44 pt; under the + the «?» and the chart's corner keep none at
-  rest). Fix, decided 2026-11-05 for 1.3.0, in `GrowthView.swift` (P7,
-  `BBFab`): Growth has no floating +; a weighing is added from the bar's +
-  and «Add a weighing», and the bottom padding is xl 32. Not taken: an inset (the end of the scroll is
+  page 3 screens long at Large and 4 at AX2. At rest it covered the chart's
+  trailing bottom (40 × 25 pt at Large, 40 × 20 at AX2), where the chart's
+  clear tap layer would select the nearest weighing and the + opened the
+  new-measurement sheet instead; the Nutrition card's header «?» at Large
+  and AX2; and at AX2 the Measurements tile's chevron (56 × 41 pt of the
+  tile). Only the end of the scroll was clear, through the 64 pt bottom
+  padding. The overlaps held on every width: the + spanned W − 72 to W − 16,
+  the plot's trailing 40 pt W − 72 to W − 32, the «?» about W − 54 to
+  W − 34. Breaks P7 (a tap target keeps its 44 pt; under the + the «?» and
+  the chart's corner kept none at rest). Fix, decided 2026-11-05 for 1.3.0,
+  in code at 7b886b1, `GrowthView.swift` (P7, `BBFab`): Growth has no
+  floating +; a weighing is added from the bar's + and «Add a weighing», and
+  the bottom padding is xl 32. Not taken: an inset (the end of the scroll is
   clear already, and at rest nothing moves out from under a fixed overlay);
   hiding it while scrolling (it returns at rest); bottom-leading (it would
   cover the chart's start and the cards' first words); a 72 pt trailing inset
   on the chart (a smaller plot on every width, the «?» still under the +).
+- **G33 · Two PDFs, one word; fixed for 1.3.0** (found 2026-11-05 at
+  eb1f410). The app makes two PDFs: the doctor's, from More › «For the
+  pediatrician», and the export, from Profile › Data › «Export Data» › PDF
+  (16 pages for 30 days: a summary, then a table per category). The entry
+  rows are apart; at the choice and after it «report» named both. The PDF
+  tile read «Beautiful report for printing or sharing» (ru «Красивый
+  отчёт…», es «Un informe bonito…», `ExportView.swift:106`), the export's
+  first page «Health & activity report» under «Bitty — Mia»
+  (`ExportGenerator.swift:424`), and its file «Bitty_mia_2026-11-05.pdf»
+  (`ExportView.swift:285`) lay beside «Pediatrician report – Mia –
+  2026-11-05.pdf». A parent who looked for the doctor's report under Export
+  picked the tile that promised one and got the tables. No written rule
+  covered it: one word named two files. Fix, decided 2026-11-05 for 1.3.0,
+  in code at 361abe5 and 0a925bf (§ 7 Export format card, § 9 The Export
+  PDF): «report» stays the doctor's word. The PDF tile says what the file
+  holds («Every entry, day by day», 117.6 pt at 11 pt; on 320 pt with sm 8 a
+  side en 2 lines, ru 1, es 2, against 2, 3 and 3 before); under the tiles a
+  caption points to the doctor's PDF («For the doctor’s visit: More › For
+  the pediatrician»); the export's first page says «All entries» under its
+  title and its file is «All entries – Mia – 2026-11-05.pdf», the name as
+  typed, as the doctor's file has it, every file name within 255 bytes of
+  UTF-8 with only the name giving way; the first page's count tiles read the
+  plural stat words («45 Feedings»), the tables' headings the category's
+  name (0a925bf). The entry rows stay. Not taken: renaming «Export Data»
+  (the name says what the row does); a subtitle on the More row (one
+  two-line row in a plain list); a link from Export to the report (a jump
+  from Profile to another tab, which the app makes nowhere else); renaming
+  the doctor's PDF (its names are decided).
+- **G34 · No growth chart in the report PDF; fixed for 1.3.0** (found
+  2026-11-05 at eb1f410, with the rendered PDFs of 8eea793). The Growth tab
+  draws the weight on WHO's 3–97 corridor; the report PDF printed the same
+  weighings as numbers only: the latest values, the weight and length
+  percentiles as numbers, a table of the period's weighings. A doctor reads
+  a growth history against the curves first. No rule was broken; a piece
+  was missing. The month-long seed (doctorMonth) had 16.2 pt left on its one
+  page (the closing line ends 765.6, the body 781.8), so any chart takes it
+  to 2 pages. Fix, decided 2026-11-05 for 1.3.0, in code at 80d2e54
+  (`DoctorReportPDF.swift`, `WeightForAgeChart.swift`; § 9 The report PDF's
+  weight for age): weight for age only, as the report's last section before
+  its closing line, kept whole, its block 145.6 pt. doctorMonth goes from 1
+  page to 2, its page 1 losing only its closing line, with the chart and the
+  closing line on page 2; on the other seeds page 1 stays as before; a short
+  history (two weighings, the last question ending 591.4) stays on 1 page
+  (14.2 pt to spare by the estimate); a period of today only stays on 1;
+  a 2-page report stays on 2. The curves are lines, not a band, with no
+  tint, no band word and no mark, as the percentile number has none
+  (`m2-doctor-report.md` § 10.1 rule 7). Not taken: the chart in the Growth
+  section under «At birth» (148 pt there push Diapers, the questions and the
+  closing line of doctorMonth to page 2, splitting the month's figures); a
+  length chart (the screen draws none, and a second block takes the short
+  history to 2 pages); a head chart (the app holds no WHO head table, and
+  head has no percentile); a filled band (a black-and-white print turns it
+  into a grey slab and loses its edges); the period's window alone (a month
+  of weighings draws a short stroke, not the curve).
+- **G35 · Head on the PDF's weighings, not on the screen's; fixed for
+  1.3.0** (found 2026-11-05 at eb1f410). The report screen's Growth card
+  listed each weighing as «28 Oct · 5.42 kg · 58 cm»
+  (`GrowthReportCard.swift:130`); the PDF's table of the same weighings has a
+  Head column (`DoctorReportPDF.swift:206`), and the data holds the value
+  (`DoctorReportSummary.Weighing.headCm`). The screen showed head only as the
+  latest value in the card's facts. Broke the report's rule that the PDF's
+  rows are the screen's rows (`m2-doctor-report.md` § 5). Fix, decided
+  2026-11-05 for 1.3.0, in code at 80d2e54 (`GrowthReportCard.swift:132`,
+  § 7 Report weighing row): a weighing with a head value gets a line under
+  its values, «Head: 38.5 cm» (`growth.head_fmt`), the one shape that fits
+  at every size: 112.2 / 123.1 / 128.3 pt at Large (en / ru / es) and about
+  202 / 222 / 232 at AX2, in 256 pt on 320. Measured in ru on 320 pt at
+  Large: a row 20.3 pt tall without a head value and 40.7 with one, a
+  year-dated row with its head 61.0, one VoiceOver element a row. Not taken: head joined
+  to the line bare (28 to 48 pt over on 320 pt at Large, over on every width
+  at AX2, and a bare third number does not read as head); joined with
+  «Head:» (74 to 102 pt over on 320 pt at Large); left out (the screen and
+  its PDF keep disagreeing on one list). Also seen: a weighing from another
+  year carries the year («May 28, 2026»), and its line wraps between words at
+  Large on 320 pt (en by 7 pt with a wide value, ru by 17, es by 3); nothing
+  is cut.
+- **G36 · The progress card's figure stays 13 pt at every size; proposed,
+  for 1.3.0** (found 2026-11-06 at c67ab7c). `BBProgressCard`'s figure is
+  `.system(size: 13, weight: .medium, design: .rounded)` (`BBCard.swift:393`)
+  and its icon `.system(size: 14, weight: .semibold)` (`:384`); only the
+  title scales (`:387`). At AX2 the figure is 13 pt under a 27.2 pt title
+  (0.48), on every progress card: Home's feeding, sleep and wet nappies
+  (`DashboardView.swift:490`) and the Diaper screen's daily norm
+  (`DiaperView.swift:182`). Breaks P6 and WCAG 1.4.4 (G2): the figure is the
+  card's read-at-a-glance value. Proposed fix: the figure
+  `scaled(13, relativeTo: .body, weight: .medium, design: .rounded)`,
+  `BBStatCard`'s unit (`BBCard.swift:114`), so it keeps 13 : 14 with its
+  title at every size (17.59 : 18.94 at xxxLarge, 25.24 : 27.18 at AX2); the
+  icon `scaled(14, relativeTo: .body, weight: .semibold)`, a glyph beside its
+  word (§ 3); below the accessibility sizes the row beside only while every
+  word of the title keeps whole beside the figure (`SideBySideIdeal`, as
+  `BBEventRow` and Home's growth rows), else the figure under the title as at
+  the accessibility sizes. Measured on 320 pt (the card 256 inside), the
+  title's room against its widest word: beside holds in ru, en and es at
+  every size below the accessibility sizes, except at xxxLarge with Bold
+  Text, where es «Sueño» beside the widest sleep line «20 h 40 min de 14 h»
+  (163.0 pt) keeps +2.1 with the moon's advance and −0.2 with the heart's;
+  every other case keeps +7.3 or more, the counts +34.3 or more. A branch on
+  the text size cannot see that edge; the fit can. Under the title at AX2
+  the line keeps one line in 256 (230.4 / 220.1 / 225.7 pt, ru / en / es,
+  Bold Text). Not taken: relative to `.footnote`, as `BBEventRow`'s
+  subtitle, which outgrows the title at xxxLarge (19 against 18.94) and
+  breaks es «Sueño» beside «16 h 20 min de 16 h» (−1.3 Regular, −9.1 Bold);
+  left fixed, which keeps the one number the card is for at its smallest.
+- **G37 · Home's header name cut at AX2 on 320 pt; proposed, after 1.2.0**
+  (found 2026-11-06 at 92c70db). At AX2 on a 320 pt screen the name beside
+  the 52 pt avatar reads «Алексан…», Regular and Bold. `title1` is 46.1 pt
+  there and «Александра» 263.2 / 271.1 pt (Regular / Bold) in the 228 beside
+  the avatar; at c67ab7c the source sets no line limit on the name
+  (`DashboardView.swift:127`, `BBTheme.swift:120`), so the fix finds the
+  cut's cause. Of 19 names tested in ru, en and es, every one fits 228 at
+  xxxLarge and below, 13 miss it at AX2, and all 19 fit the full content
+  width, 288 (the widest, «Анна-Мария», 278.5 Bold); on 375 pt the room
+  beside the avatar is about 283 and every one fits. Breaks § 3: a word is
+  never cut or broken inside itself. Proposed fix: § 7 Home header, the name
+  and its pill under the greeting's row at the full width where the name
+  misses beside the avatar, wrapping between words, stepping down to
+  `title2`, then `title3`, only for a word wider than the full width. Not
+  taken: a smaller size alone (at `title2`, 38.85 pt, «Александра» Bold is
+  228.8 in 228, and every name would lose its size where it fits); a second
+  line beside the avatar (no help to a one-word name); the greeting giving
+  way (it loses words, and its widest word, «пожаловать» 171.9 pt, fits
+  beside the avatar).
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
@@ -1497,7 +1836,7 @@ for 1.3.0.
   the hero's title 3.09–3.26 / 3.32–3.41 (26 semibold, needs 3), its
   headline at white@0.82 2.40–2.59 / 2.65–2.75. Breaks P8. The widget's
   control capsule passes (BBPrimary on BBSurface, 5.62 / 6.15).
-  Direction (decided 2026-11-04, planned): one gradient in both modes,
+  Direction (decided 2026-11-04, in code at 3bb4936): one gradient in both modes,
   one step deeper in its own hue, BBGradientStart #5D4893 and BBGradientEnd
   #7B68B6 (OKLCH L 0.460 → 0.569 at the start's hue and chroma) in the app's
   and the widget's catalogs, with every word and glyph on it in white at full
@@ -1505,8 +1844,10 @@ for 1.3.0.
   at the end, so every point of the plate passes; the widget's words
   5.21–6.68, the hero's title 5.16–5.35 and headline 4.88–5.16. The dark
   plate is dimmer than today's (L 0.46–0.57 against 0.58–0.67). In dark the
-  capsule stands 2.6–3.4 against the plate around it, and its words name it
-  (WCAG 1.4.11 needs no edge). Why: every point of the plate passes white,
+  capsule stands 2.6–3.5 against the plate around it, and its words name it
+  (WCAG 1.4.11 needs no edge). The hero's BrandMark keeps its white@0.35
+  ring, the badge's edge, not a word, a state or a control: 2.32 → 1.87 on
+  this plate (2.03 → 1.46 on the old light one; § 7). Why: every point of the plate passes white,
   so no word, locale or new state reaches a failing corner, and the widget is
   quieter on a home screen at night. Not taken: the dark plate kept lavender
   (#8874C4 → #9C89CE) with BBOnPrimary's dark ink, which makes the widget
@@ -1540,7 +1881,7 @@ for 1.3.0.
   (1.38–1.40); BBSplashText on BBLaunchBackground alone is 1.52. The
   wordmark is the brand name, a logotype (WCAG 1.4.3 sets no minimum); the
   tagline is text (4.5). Breaks P8. Direction (decided 2026-11-04,
-  planned): BBSplashText #4A357E, one value in both modes, the deep violet of
+  in code at 3bb4936): BBSplashText #4A357E, one value in both modes, the deep violet of
   the brand hue (OKLCH L 0.392), and the tagline at full strength: under the
   tagline 4.87 (en, 320 pt) to 5.90 at worst on every portrait screen, the
   wordmark 5.58–5.97. BBTextPrimary cannot carry it: it turns light in dark
