@@ -268,7 +268,7 @@ struct ExportGenerator {
         let totalFeedMin = Int(finished.reduce(0) { $0 + $1.duration } / 60)
         // Every figure below is prose, so it speaks the app language; the CSV
         // keeps its own invariant dot decimal.
-        let totalSleepH  = (sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600).appDecimal(1)
+        let totalSleepMin = Int(sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 60)
         let avgFeedPerDay = averagePerDay(
             dates: finished.map(\.startTime),
             range: range
@@ -298,7 +298,7 @@ struct ExportGenerator {
         if categories.contains(.sleep) {
             sections += """
             <div class="stat"><span class="val">\(sleeps.count)</span><span class="lbl">\("export.cat.sleep".l)</span></div>
-            <div class="stat"><span class="val">\(totalSleepH)\(ReportFormat.nbsp)\("unit.h".l)</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
+            <div class="stat"><span class="val">\(minutesText(totalSleepMin))</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
             """
         }
         if categories.contains(.diapers) {
@@ -453,9 +453,16 @@ struct ExportGenerator {
         return cleaned.isEmpty ? "baby.default_name".l : String(cleaned.prefix(60))
     }
 
-    /// Whole minutes with the localized unit, glued so a cell never wraps «5 / min».
+    /// The name inside the export's file names, as typed («Mia_Rose»): spaces
+    /// become underscores, the case stays.
+    static func fileSlug(_ raw: String) -> String {
+        fileNamePart(raw).replacingOccurrences(of: " ", with: "_")
+    }
+
+    /// Whole minutes as the app writes a duration («45 min», «1 h 15 min»),
+    /// glued so a cell never wraps «5 / min».
     private static func minutesText(_ minutes: Int) -> String {
-        "\(minutes)\(ReportFormat.nbsp)\("unit.min".l)"
+        DurationText.minutes(minutes)
     }
 
     /// Entries per day over the FINISHED days `[start, startOfToday)`, divided

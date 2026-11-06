@@ -4,7 +4,9 @@ import SwiftUI
 struct BBStatCard: View {
     let title: String
     let value: String
-    let unit: String
+    /// A unit key drawn beside the value (kg, cm). A count has none, and a
+    /// duration carries its unit words inside the value («1 ч 15 мин»).
+    var unit: String = ""
     let icon: String
     let color: Color
     var trend: String? = nil
@@ -60,13 +62,14 @@ struct BBStatCard: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    BBTheme.Typography.metric(value)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    Text(Self.valueText(value))
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                    Text(unit.l)
-                        .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+                    if !unit.isEmpty {
+                        Text(unit.l)
+                            .font(Self.wordFont)
+                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                    }
                 }
                 Text(title.l)
                     .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
@@ -104,6 +107,43 @@ struct BBStatCard: View {
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.5))
+        }
+    }
+
+    private static var wordFont: Font {
+        BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded)
+    }
+
+    struct ValueRun: Equatable {
+        let text: String
+        let isWord: Bool
+    }
+
+    /// The value cut into figures (digits, separators, a dash) and the words
+    /// between them; letters and spaces are words.
+    static func valueRuns(_ value: String) -> [ValueRun] {
+        var runs: [ValueRun] = []
+        for character in value {
+            let isWord = character.isLetter || character.isWhitespace
+            if let last = runs.last, last.isWord == isWord {
+                runs[runs.count - 1] = ValueRun(text: last.text + String(character), isWord: isWord)
+            } else {
+                runs.append(ValueRun(text: String(character), isWord: isWord))
+            }
+        }
+        return runs
+    }
+
+    /// Figures at the metric size, words at the unit's size. One Text, so a
+    /// long «10 ч 45 мин» scales down as one line instead of wrapping.
+    static func valueText(_ value: String) -> AttributedString {
+        valueRuns(value).reduce(into: AttributedString()) { text, run in
+            var part = AttributedString(run.text)
+            part.font = run.isWord
+                ? wordFont
+                : BBTheme.Typography.scaled(28, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit()
+            part.foregroundColor = run.isWord ? BBTheme.Colors.textSecondary : BBTheme.Colors.textPrimary
+            text += part
         }
     }
 }
@@ -274,11 +314,20 @@ struct BBProgressCard: View {
     let title: String
     let current: Double
     let target: Double
-    let unit: String
+    /// A unit key for a measured target («10 of 14 h»); nil for a count
+    /// («0 of 6»).
+    var unit: String? = nil
     let color: Color
     let icon: String
 
     private var progress: Double { min(current / max(target, 1), 1.0) }
+
+    /// Not glued: the key holds the unit to its number, and the words between
+    /// the two numbers may wrap at the accessibility sizes.
+    static func valueText(current: Double, target: Double, unit: String?) -> String {
+        guard let unit else { return String(format: "progress.of_fmt".l, Int(current), Int(target)) }
+        return String(format: "progress.of_unit_fmt".l, Int(current), Int(target), unit.l)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
@@ -295,7 +344,7 @@ struct BBProgressCard: View {
                         .alignmentGuide(.bbValueRowTitle) { $0[.leading] }
                 }
             } value: {
-                Text("\(Int(current))/\(Int(target)) \(unit.l)".gluingNumbersToUnits)
+                Text(Self.valueText(current: current, target: target, unit: unit))
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }

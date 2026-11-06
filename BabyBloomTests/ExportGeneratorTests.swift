@@ -174,7 +174,7 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertTrue(out.contains("37,0\(nbsp)\("unit.cm".l)"))
         XCTAssertTrue(out.contains("120\(nbsp)\("unit.ml".l)"))
         XCTAssertTrue(out.contains("15\(nbsp)\("unit.min".l)"))
-        XCTAssertTrue(out.contains("1,5\(nbsp)\("unit.h".l)"), "sleep hours: 1 digit, ru separator")
+        XCTAssertTrue(out.contains(String(format: "duration.h_min".l, 1, 30)), "sleep: hours and minutes, glued")
         XCTAssertFalse(out.contains("4.25"))
         XCTAssertFalse(out.contains("%."), "a format specifier leaked into the document")
         for english in [" kg", " cm", " ml", " min<", " h<"] {

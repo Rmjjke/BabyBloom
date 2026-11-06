@@ -254,8 +254,7 @@ enum DoctorReportPDF {
         }
         if !feeding.byType.isEmpty {
             cells.append(row("report.feeds_by_type_fmt", ReportFormat.countList(feeding.byType.map {
-                ReportFormat.countItem(name: $0.type == .breast ? "report.type_breast".l : $0.type.displayName.l,
-                                       count: $0.count)
+                ReportFormat.countItem(name: $0.type.displayName.l, count: $0.count)
             })))
         }
         if let ml = feeding.bottleMLPerDay { cells.append(row("report.bottle_a_day_fmt", ReportFormat.ml(ml))) }

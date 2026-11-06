@@ -162,14 +162,12 @@ struct DiaperView: View {
                 BBStatCard(
                     title: "stat.wet",
                     value: "\(wetCount)",
-                    unit: "unit.pcs",
                     icon: "drop.fill",
                     color: Color(hex: "#B0C4F5")
                 )
                 BBStatCard(
                     title: "stat.dirty",
                     value: "\(dirtyCount)",
-                    unit: "unit.pcs",
                     icon: "circle.fill",
                     color: BBTheme.Colors.diaper
                 )
@@ -185,7 +183,6 @@ struct DiaperView: View {
                 title: "stat.daily_norm",
                 current: Double(todayEntries.count),
                 target: Double(dailyNorm),
-                unit: "unit.pcs",
                 color: BBTheme.Colors.diaper,
                 icon: "checkmark.circle.fill"
             )

@@ -226,7 +226,6 @@ struct DashboardView: View {
                 BBStatCard(
                     title: "stat.feedings",
                     value: "\(todayFeedings.count)",
-                    unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding,
                     trend: lastFeedingText,
@@ -234,8 +233,9 @@ struct DashboardView: View {
                 )
                 BBStatCard(
                     title: "stat.sleep",
-                    value: totalSleepToday.appDecimal(1),
-                    unit: "unit.hours",
+                    // Back to whole seconds first: hours summed as a Double
+                    // can land a hair under a whole minute.
+                    value: DurationText.minutes(Int((totalSleepToday * 3600).rounded()) / 60),
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep,
                     action: { showQuickSleepSheet = true }
@@ -243,7 +243,6 @@ struct DashboardView: View {
                 BBStatCard(
                     title: "stat.diapers",
                     value: "\(todayDiapers.count)",
-                    unit: "unit.pcs",
                     icon: "drop.fill",
                     color: BBTheme.Colors.diaper,
                     action: { showQuickDiaperSheet = true }
@@ -461,9 +460,9 @@ struct DashboardView: View {
     /// One table, one answer.
     private var progressSection: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
-            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, unit: "unit.times", color: BBTheme.Colors.feeding, icon: "heart.fill")
+            BBProgressCard(title: "tab.feeding", current: Double(todayFeedings.count), target: feedingTarget, color: BBTheme.Colors.feeding, icon: "heart.fill")
             BBProgressCard(title: "tab.sleep",   current: totalSleepToday, target: sleepTarget, unit: "unit.h", color: BBTheme.Colors.sleep, icon: "moon.fill")
-            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, unit: "unit.pcs", color: BBTheme.Colors.diaper, icon: "drop.fill")
+            BBProgressCard(title: "progress.wet_nappies", current: Double(todayWetNappies), target: wetNappyTarget, color: BBTheme.Colors.diaper, icon: "drop.fill")
         }
     }
 

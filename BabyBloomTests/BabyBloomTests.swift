@@ -126,14 +126,15 @@ final class BabyBloomTests: XCTestCase {
     func testWHOPercentileFigureAndTailWords() {
         let inside = WHOGrowthStandard.PercentileReading(percentile: 50, isBeyondChart: false)
         XCTAssertEqual(inside.badge, "50")
-        XCTAssertEqual(inside.rowText(format: "dashboard.growth.percentile_fmt".l), "50-й перцентиль")
+        // The ordinal's hyphen is U+2011, so a narrow row never breaks «50-й» apart.
+        XCTAssertEqual(inside.rowText(format: "dashboard.growth.percentile_fmt".l), "50\u{2011}й перцентиль")
         XCTAssertEqual(WHOGrowthStandard.PercentileReading(percentile: 2, isBeyondChart: false).badge, "2")
         let below = WHOGrowthStandard.PercentileReading(percentile: 1, isBeyondChart: true)
         XCTAssertEqual(below.badge, "< 3")
-        XCTAssertEqual(below.rowText(format: "%d"), "< 3-й")
+        XCTAssertEqual(below.rowText(format: "%d"), "< 3\u{2011}й")
         let above = WHOGrowthStandard.PercentileReading(percentile: 99, isBeyondChart: true)
         XCTAssertEqual(above.badge, "> 97")
-        XCTAssertEqual(above.rowText(format: "%d"), "> 97-го")
+        XCTAssertEqual(above.rowText(format: "%d"), "> 97\u{2011}го")
     }
 
     // MARK: - Schema Validity

@@ -27,18 +27,7 @@ final class SleepEntry {
         return end.timeIntervalSince(startTime)
     }
 
-    var durationFormatted: String {
-        let totalMins = Int(duration) / 60
-        let hours = totalMins / 60
-        let mins = totalMins % 60
-        // Whole hours drop the minutes, as in the widget and the weekly card.
-        if hours > 0 {
-            return (mins == 0
-                ? String(format: "duration.h_only".l, hours)
-                : String(format: "duration.h_min".l, hours, mins)).gluingNumbersToUnits
-        }
-        return String(format: "duration.min_only".l, mins).gluingNumbersToUnits
-    }
+    var durationFormatted: String { DurationText.minutes(Int(duration) / 60) }
 
     var isActive: Bool { endTime == nil }
 

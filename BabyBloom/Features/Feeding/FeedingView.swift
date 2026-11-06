@@ -181,14 +181,12 @@ struct FeedingView: View {
                 BBStatCard(
                     title: "stat.feedings",
                     value: "\(todayEntries.count)",
-                    unit: "unit.times",
                     icon: "heart.fill",
                     color: BBTheme.Colors.feeding
                 )
                 BBStatCard(
                     title: "stat.total",
-                    value: totalMinutesToday,
-                    unit: "unit.min",
+                    value: totalTimeToday,
                     icon: "clock.fill",
                     color: BBTheme.Colors.primary
                 )
@@ -196,9 +194,9 @@ struct FeedingView: View {
         }
     }
 
-    private var totalMinutesToday: String {
+    private var totalTimeToday: String {
         let total = todayEntries.filter { !$0.isActive }.reduce(0.0) { $0 + $1.duration }
-        return "\(Int(total / 60))"
+        return DurationText.minutes(Int(total / 60))
     }
 
     // MARK: - Weekly Chart
