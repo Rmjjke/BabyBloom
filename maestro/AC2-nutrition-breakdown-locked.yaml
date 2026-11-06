@@ -66,6 +66,6 @@ tags: [regression]
 # a free user.
 - assertNotVisible: ".*This is an observation, not a diagnosis.*"
 - assertNotVisible: ".*The reference for this age is.*"
-# No space before "a day": the figure's no-break space would never match it,
-# and this check would pass whatever the screen shows.
-- assertNotVisible: ".*Feedings: .*a day, reference .*"
+# A '.' for the no-break space in "a day": a plain space would never match
+# it, and this check would pass whatever the screen shows.
+- assertNotVisible: ".*Feedings: .*a.day, reference .*"
