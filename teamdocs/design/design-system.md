@@ -91,7 +91,10 @@ at the accessibility sizes (§ 7), in code at 92c70db; Home's sleep card read
 as two durations (§ 3, § 7), in code at c67ab7c; the progress card's figure
 and glyph scaling with its title, its row by words (§ 7, G36), in code at
 1fb7ece. Proposed on 2026-11-06: Home's header name under the greeting's row
-where it misses beside the avatar (§ 7, G37).
+where it misses beside the avatar (§ 7, G37); the primary and secondary
+buttons' md 16 inset, their labels centred and wrapping between words (§ 7,
+G38); the onboarding setup page's step in progress in place of its five rows
+where they miss the page (§ 7, G39).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
 decision stated here with its reason; `planned` means decided, not shipped yet. Gaps are notes
 (§ 10), not fixes.
@@ -870,8 +873,8 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 
 | component | file | purpose | used in |
 |---|---|---|---|
-| BBPrimaryButton | BBButton | full-width CTA: primary→primary@0.8 gradient, white 17 semibold, min 56 pt, radius lg, `button` shadow, loading state. From 1.3.0 the gradient ends at primary@0.9 and the label is BBOnPrimary (G1) | Feeding, Sleep, Diaper, Events, Growth, Export, BabyProfileEditSheet, PlanPickerSection, Onboarding (Welcome, Fact, Notifications, GrowthShowcase, WidgetShowcase, OnboardingView) |
-| BBSecondaryButton | BBButton | outlined companion: primary@0.10 fill, primary@0.30 stroke | DoctorReport (QuestionsCard), since 1.2.0 |
+| BBPrimaryButton | BBButton | full-width CTA: primary→primary@0.8 gradient, white 17 semibold, min 56 pt, radius lg, `button` shadow, loading state. From 1.3.0 the gradient ends at primary@0.9 and the label is BBOnPrimary (G1). **Proposed** (G38): md 16 inside each side (`padding(.horizontal, md)` inside the fill), so the glyph and the label get the button's width less 32 (240 pt on 320, 295 on 375), as a surface's words keep md 16 from its edge (§ 4) and `BBDeleteHistoryButton` already does. The label 17 semibold rounded relative to `.body`, letter-spacing 0, the SF line (20.0 pt at Large), centred (`multilineTextAlignment(.center)`), wrapping between words with no line limit (`fixedSize(horizontal: false, vertical: true)`); sm 8 above and below, so two lines keep the 56 pt (2 × 20.0 + 16) and a third grows the button. The glyph (17 semibold, the symbol's own design) sm 8 before the label, centred on its lines. Where the glyph and the label's widest word miss one line of that width, the glyph goes and the words stay, a mark beside words that say the action; only a word wider than the whole width steps the label down to the AX1 size (26.3 pt), then xxxLarge's (22.3), as `BBScreenHeading` steps down. Never cut, never broken inside a word, never shrunk to fit. The fit is `ViewThatFits(in: .horizontal)` over the label set one word a line (`WidestWordIdeal`), with the glyph, then without; the loading state keeps its spinner alone | Feeding, Sleep, Diaper, Events, Growth, Export, Medications (the list, a medication, DoseSheet, MedicationFormSheet), BabyProfileEditSheet, PlanPickerSection, Onboarding (Welcome, Fact, Notifications, GrowthShowcase, WidgetShowcase, OnboardingView) |
+| BBSecondaryButton | BBButton | outlined companion: primary@0.10 fill, primary@0.30 stroke. **Proposed** (G38): `BBPrimaryButton`'s md 16 inset and its label and glyph rule, the words in BBPrimary | DoctorReport (QuestionsCard), since 1.2.0 |
 | BBQuickActionButton | BBButton | 60 pt tint@0.22 disc + 26 pt glyph (a plate: both keep their size), xs 4 above a 12 pt medium rounded label in BBTextSecondary (14.1 pt line at Large); optional `LockBadge`. From 1.3.0 the label scales relative to `.body` (§ 3). Its ideal width is the larger of its label and its disc | Dashboard: four in a row while the widest tile fits a quarter of the card, else two by two (`QuickActionsLayout`, `DashboardView.swift:677`), one column at accessibility sizes (§ 3) |
 | BBIconButton | BBButton | circular tint@0.12 icon button, 48 pt | — (unused) |
 | BBScaleButtonStyle | BBButton | press feedback for every tappable (§ 8) | 11 feature files |
@@ -893,6 +896,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | Export category rows | — (`ExportView.categoryToggle`, `ExportView.swift:174`) | a category to include: a 30 pt tile (the glyph 15 semibold in BBPrimary on BBPrimary at 0.1, radius 8), md 16, the name (15 medium rounded relative to `.body`, BBTextPrimary) and, for a category with no entries, its «0» (13 medium rounded, fixed, BBTextSecondary) through `BBValueRow` (in code at c090a8e), then the check square (20 pt); 10 pt above and below; a category with no entries at 0.4 and disabled. **From 1.3.0** (decided 2026-11-06; in code at 361abe5): no lines between the rows, as shipped since 4c0481c; the `Divider` after the `return`, which never ran, went. Why: each row's tinted tile and its 10 pt above and below part the rows, the date-range rows above have no lines, and the screen reads right as shipped | Export |
 | SettingsSwitchRow + SettingsRowLabel | — (`Features/Profile/SettingsRows.swift`: `SettingsSwitchRow` `:92`, `SettingsRowLabel` `:8`) | **from 1.3.0** (decided 2026-11-06; in code at a298c62) — a Settings switch with a line under its title, and a Settings row's icon and texts. The texts: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`); the icon in BBTextPrimary. Below the accessibility sizes the switch goes by fit: beside as the system row (a `Toggle` around one `Label`, the icon centred on the title and hint, the hint at the title's leading edge) while every word of the title and the hint keeps whole beside it, else under the texts, its leading edge at the title's x, sm 8 under the hint; at the accessibility sizes always under. The beside width is the same row set one word a line (`ProbedIdealWidth`, `:71`): asked its ideal width, a Label in a List at the accessibility sizes answers its icon's column alone (59.7 pt at AX2), so hidden copies give `ViewThatFits` the words' width, and the probe sets `.body` itself so Bold Text is measured. At the accessibility sizes `SettingsRowLabel` keeps the system Label while each text's first word fits beside the icon, else sets the icon on a line of its own above the texts, leading, xs 4 apart. With the icon beside, the Label sets it as a first-line indent of each text: the hint's first line starts at the title's x and its later lines run under the icon (at AX2 on 320 pt ru «Приходит / утром / по понедельникам.»), the system Label's layout, the same before; kept. VoiceOver reads one switch with the title and the hint in either shape. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). Before, beside the switch on 320 pt ru «использования» broke from xxxLarge (158.3 pt; the column lay in [134.0, 158.3)), and beside the icon «Синхронизация» at AX2 (236.6) and at AX1 with Bold Text, es «Sincronización» at AX2 (207.0). Now every Settings word in en, ru and es keeps whole, Bold Text included: on a 320 pt screen the ru switch goes under its line at xxxLarge, and the iCloud icon stands above its title at AX1 with Bold Text and at AX2 in ru and es, every other row's icon beside. Why: the words fit once the switch and the icon give back their room, so no shorter words; the icon moves only where a first word misses, since the Label already runs later lines under it | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches (`MainTabView.swift:271`, `:284`, `:322`); `SettingsRowLabel` also the iCloud Sync row (`ICloudStatusRow`, `AboutView.swift:8`), its status through `BBValueRow` |
 | Settings baby row | — (`SettingsBabyRowLabel`, `Features/Profile/SettingsRows.swift:70`) | **from 1.3.0** (decided 2026-11-06; in code at 92c70db) — the baby's row at the top of Settings: the avatar (56 pt), md 16, the texts, a `Spacer`, the chevron (`chevron.right` 13 semibold, BBTextSecondary at 0.4). The texts: the name (20 semibold rounded relative to `.title3`, BBTextPrimary) over the age (14 medium rounded relative to `.body`, BBPrimary, from `Baby.describeAge`, its number glued to its word, § 3), 3 apart, leading; letter-spacing 0, the SF line. Below the accessibility sizes the row stands as before. At the accessibility sizes it goes by fit: beside while the row also fits set one word a line (`ViewThatFits(in: .horizontal)` over `ProbedIdealWidth`, the Settings switch rows' probe), else the avatar and the chevron on a line of their own above the texts (`VStack(alignment: .leading, spacing: sm)`; the avatar leading, the chevron trailing), the texts under them at the row's full width, the name wrapping between words. At AX2 on 320 pt in ru, beside the avatar the name broke «Алекса / ндра» before, and with Bold Text the age «11 / месяцев»: a glued phrase wider than its line breaks at its no-break space. Now «Александра» and «11 месяцев» stand whole under the avatar's line, Regular and Bold. Why: glue cannot hold a phrase wider than its line, so the row gives the words room, as a Settings row's icon goes above a title whose first word misses beside it | Settings (`MainTabView.swift:201`) |
+| Onboarding setup steps | — (`GeneratingPage`, `Features/Onboarding/Pages/GeneratingPage.swift:39`) | the onboarding page that sets the app up and moves on by itself in 4.65 s (the five steps tick 450 / 1000 / 650 / 1200 / 550 ms apart, the done state 500 ms after the last, the next page 300 ms later); no button, no scroll. One column centred in the page's height, lg 24 a side (272 pt on 320): the progress ring (100 pt; a 6 pt BBPrimary@0.12 track under a BBPrimary→BBAccent trim of the steps done, `easeInOut(0.5)`; the 44 pt `BrandMark` in its middle), xl 32, the title (`title3`, BBTextPrimary, centred), sm 8, the steps card (lg 24 padding, the surface, radius lg, the card shadow): five rows 10 apart, each a 28 pt disc (BBPrimary with a 12 bold BBOnPrimary check when done, else BBPrimary@0.1 with the step's 11 pt glyph at BBPrimary@0.5), 10, the step (15 medium rounded relative to `.body`, BBTextPrimary when done, else BBTextSecondary; 186 pt of room on 320), a row past the one in progress at 0.3; letter-spacing 0, the SF line (17.7 pt at Large). **Proposed** (G39): the step wraps between words (`fixedSize(horizontal: false, vertical: true)`, no line limit). The five rows stand while the column fits the page's height with every step's words whole in its row; else the card's place takes one step, the one in progress (the last after the fifth): 15 medium rounded relative to `.body`, BBTextPrimary, centred at the page's width (272 on 320), sm 8 under the title, wrapping between words with no line limit; no card and no disc, since the ring's trim carries the count. Its box is as tall as the tallest of the five at that width (all five set in one place, the one in progress shown, the others at 0 and hidden from VoiceOver), so the ring and the title stand still from step to step; the next step takes the place by opacity, `easeInOut(0.25)`, with no movement, which Reduce Motion keeps. The fit is `ViewThatFits(in: .vertical)` over the five-row column and the one-step column against the page's own height, the one-step column in `onboardingCenteredScroll` as the net (in landscape it may miss too). VoiceOver reads the title and the step in progress. On 320 pt the one step takes over at AX1 and AX2 in every language, from xxxLarge in ru and from xxLarge in es and in ru with Bold Text, there at the edge (549 pt in 548); on 375 pt from AX1 in es and at AX2 in every language | Onboarding |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
 | BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **From 1.3.0** (P7, G32, decided 2026-11-05; in code at 7b886b1): not on Growth, where at rest it sat over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding is xl 32, as on Events | Feeding, Sleep, Diaper |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
@@ -1087,14 +1091,16 @@ against their directions, with their renders, trees, rendered PDFs and live
 320 pt shots before and after (2026-11-06). The age glue and Settings' baby
 row (92c70db), Home's sleep line (c67ab7c) and the charts' VoiceOver words
 (ed4a561, dc529cc; nothing drawn changes) were read at their hashes, with
-their renders before and after and CoreText widths (2026-11-06). Each line:
-what, where, which rule.
+their renders before and after and CoreText widths (2026-11-06). The primary
+button and the onboarding setup page were read at a070713 in its 320 pt
+renders at Large and AX2, with CoreText widths, where G38 and G39 were found
+(2026-11-06). Each line: what, where, which rule.
 Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
 Home's quick actions and the weight gain card, G22 is fixed for its reach,
 and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26 and G30 to G36 are fixed
-for 1.3.0; G37 is proposed.
+for 1.3.0; G37 to G39 are proposed.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -1740,6 +1746,60 @@ for 1.3.0; G37 is proposed.
   line beside the avatar (no help to a one-word name); the greeting giving
   way (it loses words, and its widest word, «пожаловать» 171.9 pt, fits
   beside the avatar).
+- **G38 · A primary button's words run to its edges on 320 pt; proposed,
+  after 1.2.0** (found 2026-11-06 at a070713). On a 320 pt screen at Large the
+  trial button's words with their arrow, ru «Попробовать 7 дн. бесплатно»,
+  are 270.7 pt (278.2 Bold) in the 272 pt button and touch both edges, on the
+  onboarding premium page and the paywall sheet alike
+  (`PlanPickerSection.swift:294`); nothing is cut. `BBPrimaryButton` and
+  `BBSecondaryButton` set no side padding and no line alignment
+  (`BBButton.swift:4`, `:57`), so a label wider than its button wraps flush to
+  the leading edge: at AX2 the widget page's «Создать / мой трекер». Breaks
+  § 4: a surface's words keep md 16 from its edge. Measured with CoreText at
+  17 pt and at 30.9 (AX2, 17 × 40/22), Regular and Bold, for every primary and
+  secondary button's words in en, ru and es: at md 16 on 320 pt at Large only
+  the ru trial words miss one line and set two, «Попробовать 7 дн. /
+  бесплатно», 56 pt tall still; on 375 pt (295 inside) they keep one. At AX2
+  on 320 pt the glyph leaves three labels whose widest word misses beside it,
+  ru «Включить уведомления» (242.0 / 249.4 pt in 240), the ru trial words
+  (240.3 / 247.0) and es «Activar notificaciones» (241.0 / 248.9); es
+  «Agregar medicamento» with Bold Text keeps it at the edge (239.5). ru
+  «Экспортировать» leaves its glyph from AX1 (246.5 / 252.9), and at AX2 the
+  word alone (243.5 / 251.0) steps down to the AX1 size (207.5 / 213.9); on
+  375 pt only that word with Bold Text leaves its glyph (296.0 in 295). Every
+  other label keeps its glyph and its size. Proposed fix: § 7 BBPrimaryButton
+  and BBSecondaryButton, md 16 a side, the label centred and wrapping between
+  words, the glyph leaving before a word would break, a step down only for a
+  word wider than the whole width. Not taken: sm 8 a side (a two-line label's
+  ends then sit 1.9 pt clear of the radius-lg corner's curve, 9.9 at md 16); lg
+  24 (16 pt more from every label, for corners already clear at md 16); a
+  smaller size for every long label (the size is the reader's, P6); a shorter
+  ru trial line (the wrap holds any length). Its fix is to come.
+- **G39 · The onboarding setup steps cut at the accessibility sizes on
+  320 pt; proposed, after 1.2.0** (found 2026-11-06 at a070713). At AX2 on a
+  320 pt screen each of the five steps under the ring reads one cut line,
+  «Персонализ…», «Калибруем п…», «Настраивае…», «Подготавли…»,
+  «Настраивае…»: the steps set no vertical `fixedSize` and the page does not
+  scroll (`GeneratingPage.swift:88`), so the column squeezes each to a line.
+  The page moves on by itself, so nobody is stranded; the words are lost.
+  Measured with CoreText and the SF line, not rendered: the step's 15 pt is
+  19.8 / 23.2 / 27.3 at xxxLarge / AX1 / AX2, and ru «Персонализируем» is
+  172.5 / 201.0 / 235.7 pt (181.5 / 211.6 / 248.2 Bold) in the 186 beside the
+  disc, so from AX1 it would break inside the word even wrapped, and at AX2
+  even in 218 with md paddings. Wrapped, the five rows' column is 610 pt at
+  xxxLarge and 825 at AX2 in ru against the page's 548 (en 540 and 754, es
+  610 and 889), and fits through xxLarge in en and ru (xLarge in ru with Bold
+  Text) and through xLarge in es; one step in their place is at most 384 pt
+  (ru Bold, AX2) and fits at every size. On 375 pt the five rows fit through
+  xxxLarge in every language and through AX1 in en and ru. Breaks § 3: a word
+  is never cut or broken inside itself. Proposed fix: § 7 Onboarding setup
+  steps, the five rows wrapping while the column fits the page, else the step
+  in progress alone under the title, centred, in a box as tall as the tallest
+  step. Not taken: the five rows wrapping alone (the column is half again the
+  page's height and more at AX2, and ru's word breaks); a scroll (the page
+  moves on in 4.65 s, and steps below the fold go by unseen unless the parent
+  scrolls); the discs kept beside the one step (the ring already counts);
+  shorter steps (at AX2 they would still need the fit). Its fix is to come.
 - **G4 · Red outside the destructive role.** The platform red is the app's
   destructive red (§ 2): `SwipeToDeleteRow` (`.red` tint, `BBCard.swift:232`)
   and `BBDeleteHistoryButton` (`.red`, red@0.06 fill, red@0.2 stroke,
