@@ -267,6 +267,7 @@ struct AddWeighingButton: View {
                 // near miss opens the explainer instead of the sheet.
                 .frame(minHeight: 44)
                 .background(BBTheme.Colors.primary.opacity(0.12))
+                .background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.pill)
                 .contentShape(Rectangle())
             }
@@ -880,7 +881,10 @@ struct CorrectedAgeChip: View {
         .foregroundStyle(BBTheme.Colors.primary)
         .padding(.horizontal, BBTheme.Spacing.sm)
         .padding(.vertical, 6)
+        // Over the surface: the chip sits on the bare background, where the
+        // wash alone left its words at 4.38:1.
         .background(BBTheme.Colors.primary.opacity(0.12))
+        .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.sm)
     }
 }

@@ -139,6 +139,7 @@ struct DashboardView: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
                         .background(BBTheme.Colors.primary.opacity(0.1))
+                        .background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.pill)
                 } else {
                     BBTheme.Typography.title1("brand.name".l)
@@ -638,7 +639,6 @@ struct ActiveTimerCard: View {
             BBTimerFit(startTime: startTime,
                        showsHours: showsHours,
                        font: BBTheme.Typography.scaled(22, relativeTo: .title2, weight: .semibold, design: .rounded).monospacedDigit(),
-                       color: color,
                        spacing: BBTheme.Spacing.md) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)

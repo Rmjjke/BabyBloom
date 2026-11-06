@@ -14,7 +14,8 @@ struct OnboardingBackground: View {
 
     /// Deliberately asymmetric: three blobs on a grid would read as a pattern.
     /// Radius and blur are large relative to the screen so no blob shows an
-    /// edge — only its tint reaches the page above.
+    /// edge — only its tint reaches the page above. The two primary blobs stay
+    /// at 0.08: a page's secondary hints sit over them and need 4.5:1 there.
     private struct Blob {
         let color: Color
         let size: CGFloat
@@ -28,11 +29,11 @@ struct OnboardingBackground: View {
     private var blobs: [Blob] {
         [
             Blob(color: BBTheme.Colors.primary, size: 380, center: CGSize(width: 120, height: -280),
-                 opacity: 0.16, blur: 70, travel: CGSize(width: -18, height: 22)),
+                 opacity: 0.08, blur: 70, travel: CGSize(width: -18, height: 22)),
             Blob(color: BBTheme.Colors.accent, size: 300, center: CGSize(width: -130, height: -40),
                  opacity: 0.18, blur: 60, travel: CGSize(width: 20, height: -16)),
             Blob(color: BBTheme.Colors.primary, size: 340, center: CGSize(width: 90, height: 320),
-                 opacity: 0.12, blur: 80, travel: CGSize(width: -14, height: -20)),
+                 opacity: 0.08, blur: 80, travel: CGSize(width: -14, height: -20)),
         ]
     }
 

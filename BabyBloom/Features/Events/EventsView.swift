@@ -334,7 +334,7 @@ struct AddEventSheet: View {
                                         .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 }
                                 .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                                 .cornerRadius(BBTheme.Radius.md)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)
@@ -370,7 +370,7 @@ struct AddEventSheet: View {
                                                 .foregroundStyle(selectedMood == mood ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                         }
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
-                                        .background(selectedMood == mood ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                                        .background(selectedMood == mood ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                                         .cornerRadius(BBTheme.Radius.md)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: BBTheme.Radius.md)

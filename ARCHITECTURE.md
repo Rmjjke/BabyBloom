@@ -332,12 +332,35 @@ the first word, and the value carries its words as its VoiceOver label
 (DECISIONS 2026-11-04 "A growth verdict's tier is a dot, never the colour of
 its words").
 
+**A category tint (`BBFeeding`, `BBSleep`, `BBDiaper`) is a mark too**: the
+running-timer cards' wash, stroke and Home's glyph disc, the week chart's
+bars, the bottle slider. The words and figures beside them are text ink: the
+timer's label and digits (`BBElapsedTimer.face` and `BBTimerCardHeader` take
+no colour), the chart's day labels and values, and the bottle volume. As ink
+in light a tint read at 1.6–2.1:1 on its wash or the surface, under the 3:1 a
+large figure needs; the same digits are `textPrimary` on the Lock Screen too.
+The week chart has no axis numbers: every day up to today states its value
+over its bar, today's in `textPrimary`, the others in `textSecondary`, hidden
+from VoiceOver, which reads each bar's day and value.
+
+`textSecondary` holds 4.5:1 on every fill it sits on in light: 5.12 on the
+background, 5.62 on the surface, at least 4.62 on the stat cards', timer
+cards' and pickers' washes. A primary wash under `BBPrimary` words (a selected
+tile, a pill or chip, the secondary button) is laid over `surface`
+(`.background(selected ? primary.opacity(0.12) : .clear).background(surface)`),
+so the words read 4.78 on any ground, a timer card's wash or an onboarding
+blob included; over the bare background they were 4.38. Onboarding's two
+primary blobs stay at 0.08 for the same reason (DECISIONS 2026-11-05).
+
 A delete draws the system red: from `role: .destructive` where the button has
 a role (the sheets' Delete, the confirmations), from `Color.red` where it has
-none (the delete-history button, the swipe action). Never `BBAlert` on a
-delete's label, which overrides the role: `BBAlert` means a growth flag or a
-percentile tail (DECISIONS 2026-09-05 "A count above its reference is never
-styled as an alarm").
+none (the delete-history button, the swipe action, remove photo). Never
+`BBAlert` on a delete's label, which overrides the role: `BBAlert` means a
+growth flag or a percentile tail (DECISIONS 2026-09-05 "A count above its
+reference is never styled as an alarm"). Red stays on deletes and marks: the
+delete-history button has a red stroke and no red wash, the purchase error's
+words are `textPrimary` beside a red glyph, and no card has an over-limit red
+state.
 
 `BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
 Rounded body, rounded monospaced digits for metrics and timers). **Every

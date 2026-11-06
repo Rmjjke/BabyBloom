@@ -405,7 +405,7 @@ struct ExportGenerator {
           .stats-grid { display: flex; flex-wrap: wrap; gap: 10px; }
           .stat { background: white; border-radius: 8px; padding: 10px 14px; min-width: 80px; }
           .stat .val { display: block; font-size: 18px; font-weight: 700; color: #1C1C1E; }
-          .stat .lbl { display: block; font-size: 10px; color: #746D85; margin-top: 2px; }
+          .stat .lbl { display: block; font-size: 10px; color: #6B647C; margin-top: 2px; }
           table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: 4px; }
           th { background: #6F5BA8; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
           th:first-child { border-radius: 6px 0 0 0; }
@@ -413,7 +413,7 @@ struct ExportGenerator {
           td { padding: 6px 10px; border-bottom: 1px solid #E5E5EA; font-size: 11px; word-wrap: break-word; }
           tr:last-child td { border-bottom: none; }
           tr:nth-child(even) td { background: #F9F9FB; }
-          .footer { text-align: center; color: #746D85; font-size: 10px; margin-top: 24px; }
+          .footer { text-align: center; color: #6B647C; font-size: 10px; margin-top: 24px; }
         </style>
         </head>
         <body>

@@ -164,20 +164,18 @@ struct DiaperView: View {
                     value: "\(wetCount)",
                     unit: "unit.pcs",
                     icon: "drop.fill",
-                    color: Color(hex: "#B0C4F5"),
-                    overLimit: false
+                    color: Color(hex: "#B0C4F5")
                 )
                 BBStatCard(
                     title: "stat.dirty",
                     value: "\(dirtyCount)",
                     unit: "unit.pcs",
                     icon: "circle.fill",
-                    color: BBTheme.Colors.diaper,
-                    overLimit: false
+                    color: BBTheme.Colors.diaper
                 )
             }
 
-            // Never `overLimit`. A nappy count is a MINIMUM — the reference
+            // No over-the-norm state. A nappy count is a MINIMUM — the reference
             // tables this app cites give a floor and no ceiling — so more
             // nappies than the norm is reassurance, and the card used to turn
             // red with a warning triangle for it. Under the norm stays neutral
@@ -214,6 +212,7 @@ struct DiaperView: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(BBTheme.Colors.primary.opacity(0.1))
+            .background(BBTheme.Colors.surface)
             .cornerRadius(BBTheme.Radius.pill)
         }
     }
@@ -440,7 +439,7 @@ struct AddDiaperSheet: View {
                         .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
-                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : Color.clear).background(BBTheme.Colors.surface)
                 .cornerRadius(BBTheme.Radius.md)
                 .overlay(
                     RoundedRectangle(cornerRadius: BBTheme.Radius.md)

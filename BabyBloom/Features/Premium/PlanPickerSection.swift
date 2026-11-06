@@ -309,12 +309,19 @@ struct PlanPickerCTA: View {
                     .multilineTextAlignment(.center)
             }
 
-            // Purchase error (load errors are handled by the section's retry card)
+            // Purchase error (load errors are handled by the section's retry card).
+            // The words in the text ink, the red on the glyph only: a purchase
+            // error is not a delete, and red words read at 3.25:1 on the page.
             if let err = store.purchaseError, selectedProduct != nil {
-                Text(err)
-                    .font(.system(size: 12, design: .rounded))
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+                    Text(err)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                        .multilineTextAlignment(.center)
+                }
+                .font(.system(size: 12, design: .rounded))
             }
         }
         .padding(.horizontal, BBTheme.Spacing.lg)
