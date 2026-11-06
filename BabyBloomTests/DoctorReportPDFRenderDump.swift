@@ -44,22 +44,29 @@ final class DoctorReportPDFRenderDump: XCTestCase {
                                             periodStart: periodStart, now: now)
             try data.write(to: dir.appendingPathComponent("report-\(language.rawValue).pdf"))
         }
-        // The general export, a week of the same store, in Russian: its own
-        // layout, numbers in the app language.
-        LocalizationManager.shared.setLanguage(.ru)
+        // The general export, a week of the same store, in each language: its
+        // own layout, numbers in the app language; and the name each PDF's
+        // file takes.
         let week = ExportDateRange.week.startDate(now: now) ?? now
-        let export = ExportGenerator.pdfData(
-            baby: baby,
-            feedings: try context.fetch(FetchDescriptor<FeedingEntry>()).filter { $0.startTime >= week }
-                .sorted { $0.startTime > $1.startTime },
-            sleeps: try context.fetch(FetchDescriptor<SleepEntry>()).filter { $0.startTime >= week }
-                .sorted { $0.startTime > $1.startTime },
-            diapers: try context.fetch(FetchDescriptor<DiaperEntry>()).filter { $0.time >= week }
-                .sorted { $0.time > $1.time },
-            growths: try context.fetch(FetchDescriptor<GrowthEntry>()).sorted { $0.date > $1.date },
-            events: try context.fetch(FetchDescriptor<CustomEvent>()).filter { $0.time >= week },
-            categories: Set(ExportCategory.allCases), range: .week)
-        try export.write(to: dir.appendingPathComponent("export-ru.pdf"))
+        for language in [SupportedLanguage.en, .ru, .es] {
+            LocalizationManager.shared.setLanguage(language)
+            let export = ExportGenerator.pdfData(
+                baby: baby,
+                feedings: try context.fetch(FetchDescriptor<FeedingEntry>()).filter { $0.startTime >= week }
+                    .sorted { $0.startTime > $1.startTime },
+                sleeps: try context.fetch(FetchDescriptor<SleepEntry>()).filter { $0.startTime >= week }
+                    .sorted { $0.startTime > $1.startTime },
+                diapers: try context.fetch(FetchDescriptor<DiaperEntry>()).filter { $0.time >= week }
+                    .sorted { $0.time > $1.time },
+                growths: try context.fetch(FetchDescriptor<GrowthEntry>()).sorted { $0.date > $1.date },
+                events: try context.fetch(FetchDescriptor<CustomEvent>()).filter { $0.time >= week },
+                categories: Set(ExportCategory.allCases), range: .week)
+            try export.write(to: dir.appendingPathComponent("export-\(language.rawValue).pdf"))
+            for name in [baby.name, String(repeating: "Abcdefghij", count: 6)] {
+                print("PDF_FILE_NAME \(language.rawValue) export=\(ExportGenerator.pdfFileName(babyName: name, date: now))"
+                      + " report=\(DoctorReportPDF.fileName(babyName: name, date: now))")
+            }
+        }
         print("REPORT_PDF_DIR=\(dir.path)")
         withExtendedLifetime(container) {}
     }

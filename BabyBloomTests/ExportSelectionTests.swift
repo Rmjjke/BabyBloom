@@ -32,3 +32,31 @@ final class ExportSelectionTests: XCTestCase {
         XCTAssertEqual(exportable([.growth, .sleep], counts), [.growth])
     }
 }
+
+/// The caption under the format tiles names the report's place in the tab's
+/// and the row's own words.
+final class ExportDoctorHintTests: XCTestCase {
+
+    override func tearDown() {
+        LocalizationManager.shared.setLanguage(.en)
+        super.tearDown()
+    }
+
+    func testTheCaptionNamesThePathInEachLanguage() {
+        let expected: [(SupportedLanguage, String, String)] = [
+            (.en, "For the doctor's visit: More\u{00A0}› For the pediatrician",
+             "For the doctor's visit: More, For the pediatrician"),
+            (.ru, "Для приёма у\u{00A0}врача: Ещё\u{00A0}› Для педиатра",
+             "Для приёма у\u{00A0}врача: Ещё, Для педиатра"),
+            (.es, "Para la consulta médica: Más\u{00A0}› Para el pediatra",
+             "Para la consulta médica: Más, Para el pediatra"),
+        ]
+        for (language, text, spoken) in expected {
+            LocalizationManager.shared.setLanguage(language)
+            XCTAssertEqual(ExportDoctorHint.text, text, "\(language)")
+            XCTAssertEqual(ExportDoctorHint.spokenText, spoken, "\(language)")
+            // A plain space before the sign would let a line start with it.
+            XCTAssertFalse(ExportDoctorHint.text.contains(" ›"), "\(language)")
+        }
+    }
+}
