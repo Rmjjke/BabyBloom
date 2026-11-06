@@ -10,9 +10,9 @@ struct ICloudStatusRow: View {
     @State private var isOn: Bool?
 
     var body: some View {
-        // One Label around the title, the value and the hint, as the switch
-        // rows hold their hint: the value and the hint start at the title's x.
-        Label {
+        // One label around the title, the value and the hint, as the switch
+        // rows hold theirs: the value and the hint start at the title's x.
+        SettingsRowLabel(systemImage: "icloud.fill") {
             VStack(alignment: .leading, spacing: 2) {
                 // By fit: on a 320 pt window the ru and es titles miss one line
                 // beside the value at Large, and side by side the title broke
@@ -32,9 +32,15 @@ struct ICloudStatusRow: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
-        } icon: {
-            Image(systemName: "icloud.fill")
-                .foregroundStyle(BBTheme.Colors.textPrimary)
+        } firstWords: {
+            Text("settings.icloud".l.firstWord)
+            if let isOn {
+                Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l.firstWord)
+            }
+            if isOn == false {
+                Text("settings.icloud_off_hint".l.firstWord)
+                    .font(.footnote)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("settings.icloud")

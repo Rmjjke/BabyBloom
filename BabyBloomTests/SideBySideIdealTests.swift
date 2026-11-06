@@ -3,9 +3,10 @@ import SwiftUI
 import UIKit
 @testable import BabyBloom
 
-/// The side-by-side rows keep every word whole: the Nutrition card's rows stand
-/// beside only from the least width at which the stack gives each text at least
-/// its widest word, and the event row puts its time under the texts below that.
+/// The side-by-side rows keep every word whole: the Nutrition card's and Home's
+/// growth card's rows stand beside only from the least width at which the stack
+/// gives each text at least its widest word, and the event row puts its time
+/// under the texts below that.
 ///
 /// The fonts scale by the device's content size, which a test cannot move, so
 /// the larger sizes are built here from the sizes the app's fonts take there.
@@ -66,21 +67,38 @@ final class SideBySideIdealTests: XCTestCase {
     /// breaks there, and one does a point under it.
     func testTheStackDividesTheRoomAsTheModelSays() throws {
         try requireLarge()
+        let report = stackReport(rowTexts) { AnyView(row($0, $1, dot: $2, style: $3, probe: $4)) }
+        XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
+    }
+
+    /// The same for Home's growth rows, whose stack has no icon column.
+    func testHomesGrowthStackDividesTheRoomAsTheModelSays() throws {
+        try requireLarge()
+        let report = stackReport({ homeGrowthTexts(premium: true) }) {
+            AnyView(homeRow($0, $1, dot: $2, style: $3, probe: $4))
+        }
+        XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
+    }
+
+    private typealias Texts = [(String, String, Color?)]
+
+    private func stackReport(_ texts: () -> Texts,
+                             _ build: (String, String, Color?, Style, Probe) -> AnyView) -> [String] {
         let original = LocalizationManager.shared.language
-        addTeardownBlock { LocalizationManager.shared.setLanguage(original) }
+        defer { LocalizationManager.shared.setLanguage(original) }
         var report: [String] = []
         for lang in ["en", "ru", "es"] {
             LocalizationManager.shared.setLanguage(lang)
             for size in [UIContentSizeCategory.large, .extraExtraLarge, .extraExtraExtraLarge] {
                 for bold in [false, true] {
-                    for (label, status, dot) in rowTexts() {
+                    for (label, status, dot) in texts() {
                         let style = Style(size: size, bold: bold)
                         let probe = Probe()
-                        let ideal = idealWidth(row(label, status, dot: dot, style: style, probe: probe))
+                        let ideal = idealWidth(build(label, status, dot, style, probe))
                         let labelWord = idealWidth(labelText(label.oneWordALine, style))
                         let statusWord = idealWidth(statusText(status.oneWordALine, dot: dot, style))
                         func whole(at width: CGFloat) -> Bool {
-                            layOut(row(label, status, dot: dot, style: style, probe: probe), width: width)
+                            layOut(build(label, status, dot, style, probe), width: width)
                             return (probe.label ?? 0) >= labelWord - 0.01 && (probe.status ?? 0) >= statusWord - 0.01
                         }
                         func offered() -> String {
@@ -92,13 +110,30 @@ final class SideBySideIdealTests: XCTestCase {
                             break
                         }
                         if whole(at: ideal - 1) {
-                            report.append("\(name): still whole a point under the ideal \(ideal) (\(offered()))")
+                            let under = (probe.label ?? 0, probe.status ?? 0)
+                            _ = whole(at: ideal)
+                            let at = (probe.label ?? 0, probe.status ?? 0)
+                            let labelLine = idealWidth(labelText(label, style))
+                            let statusLine = idealWidth(statusText(status, dot: dot, style))
+                            // The model holds its ideal where the less flexible
+                            // text's half first takes its one line. When the
+                            // other's widest word is that same width, no width
+                            // just under breaks a word: the first wraps there
+                            // and leaves the other more. Earlier stacking, never
+                            // a broken word.
+                            let atLabelsLine = under.0 < labelLine - 0.01 && at.0 >= labelLine - 0.01
+                                && abs(statusWord - labelLine) < 1
+                            let atStatusLine = under.1 < statusLine - 0.01 && at.1 >= statusLine - 0.01
+                                && abs(labelWord - statusLine) < 1
+                            if !atLabelsLine, !atStatusLine {
+                                report.append("\(name): still whole a point under the ideal \(ideal) (\(offered()))")
+                            }
                         }
                     }
                 }
             }
         }
-        XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
+        return report
     }
 
     // MARK: - The Nutrition card's decision
@@ -125,6 +160,87 @@ final class SideBySideIdealTests: XCTestCase {
                 }
             }
         }
+    }
+
+    // MARK: - Home's growth card
+
+    /// The rows that broke a word beside their label in a 256-pt card on a
+    /// 320-pt screen, so the card stands its rows under their labels there.
+    func testHomesGrowthCardStacksOnA320ScreenAtXXXLarge() throws {
+        try requireLarge()
+        let xxxL = UIContentSizeCategory.extraExtraExtraLarge
+        try inLanguage("en") {
+            let gain = gainRow(.below, grams: "+180")
+            XCTAssertGreaterThan(homeIdeal(gain, Style(size: xxxL, bold: false)), 256, "«\(gain.0)» | «\(gain.1)»")
+            let percentile = percentileRow()
+            XCTAssertGreaterThan(homeIdeal(percentile, Style(size: xxxL, bold: true)), 256,
+                                 "bold «\(percentile.0)» | «\(percentile.1)»")
+        }
+        try inLanguage("ru") {
+            let percentile = percentileRow()
+            XCTAssertGreaterThan(homeIdeal(percentile, Style(size: xxxL, bold: true)), 256,
+                                 "bold «\(percentile.0)» | «\(percentile.1)»")
+        }
+    }
+
+    /// Below xxxLarge every row the card can show keeps its words whole beside
+    /// on 320, and at xxxLarge the free card's rows still do: the fit stacks
+    /// the card only where a row needs it.
+    func testHomesGrowthCardStaysBesideWhereEveryWordFits() throws {
+        try requireLarge()
+        var report: [String] = []
+        for lang in ["en", "ru", "es"] {
+            try inLanguage(lang) {
+                for bold in [false, true] {
+                    let cases: [(UIContentSizeCategory, Texts)] = [
+                        (.large, homeGrowthTexts(premium: true)),
+                        (.extraLarge, homeGrowthTexts(premium: true)),
+                        (.extraExtraLarge, homeGrowthTexts(premium: true)),
+                        (.extraExtraExtraLarge, homeGrowthTexts(premium: false)),
+                    ]
+                    for (size, rows) in cases {
+                        for texts in rows where homeIdeal(texts, Style(size: size, bold: bold)) > 256 {
+                            report.append("\(lang) \(size.rawValue) bold=\(bold) «\(texts.0)» | «\(texts.1)»: "
+                                          + "ideal \(homeIdeal(texts, Style(size: size, bold: bold)))")
+                        }
+                    }
+                }
+            }
+        }
+        XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
+    }
+
+    /// Every row Home's growth card shows: the free card's, and with Premium
+    /// the gain's grams and the weight percentile.
+    private func homeGrowthTexts(premium: Bool) -> Texts {
+        var rows: Texts = [("stat.weight".l, ReportFormat.kg(12.35), nil)]
+        for word in [StatusWord.below, .within, .above, .notEnoughData, .firstWeeks] {
+            rows.append(gainRow(word, grams: nil))
+            if premium, word != .firstWeeks {
+                rows.append(gainRow(word, grams: "+180"))
+            }
+        }
+        if premium {
+            rows.append(percentileRow())
+            rows.append(("percentile.weight".l, "percentile.above97".l, nil))
+            rows.append(("percentile.weight".l, "percentile.below3".l, nil))
+        }
+        return rows
+    }
+
+    /// The gain row as Home words it: Premium leads with the week's grams.
+    private func gainRow(_ word: StatusWord, grams: String?) -> (String, String, Color?) {
+        let status = word.localizationKey.l
+        let value = grams.map { String(format: "velocity.per_week_fmt".l, $0) + " · " + status } ?? status
+        return ("nutrition.row_gain".l, value, word.dot)
+    }
+
+    private func percentileRow() -> (String, String, Color?) {
+        ("percentile.weight".l, String(format: "dashboard.growth.percentile_fmt".l, 50), nil)
+    }
+
+    private func homeIdeal(_ texts: (String, String, Color?), _ style: Style) -> CGFloat {
+        idealWidth(homeRow(texts.0, texts.1, dot: texts.2, style: style, probe: nil))
     }
 
     // MARK: - The event row
@@ -171,7 +287,7 @@ final class SideBySideIdealTests: XCTestCase {
         var icon: CGFloat { BBTheme.Typography.scaledPointSize(20, relativeTo: .body, for: size) }
     }
 
-    private func rowTexts() -> [(String, String, Color?)] {
+    private func rowTexts() -> Texts {
         let rows: [(String, Double?, StatusWord)] = [
             ("nutrition.row_gain".l, nil, .within), ("nutrition.row_gain".l, nil, .below),
             ("nutrition.row_gain".l, nil, .firstWeeks),
@@ -182,14 +298,14 @@ final class SideBySideIdealTests: XCTestCase {
         return rows.map { ($0.0, NutritionSection.statusText(value: $0.1, word: $0.2), $0.2.dot) }
     }
 
-    private func cardRows(gain: StatusWord, feeds: Double, nappies: Double?) -> [(String, String, Color?)] {
+    private func cardRows(gain: StatusWord, feeds: Double, nappies: Double?) -> Texts {
         let nappyWord: StatusWord = nappies == nil ? .notEnoughData : .within
         return [("nutrition.row_gain".l, NutritionSection.statusText(value: nil, word: gain), gain.dot),
                 ("nutrition.row_feeds".l, NutritionSection.statusText(value: feeds, word: .within), StatusWord.within.dot),
                 ("nutrition.row_nappies".l, NutritionSection.statusText(value: nappies, word: nappyWord), nappyWord.dot)]
     }
 
-    private func cardIdeal(_ rows: [(String, String, Color?)], _ style: Style) -> CGFloat {
+    private func cardIdeal(_ rows: Texts, _ style: Style) -> CGFloat {
         rows.map { idealWidth(row($0.0, $0.1, dot: $0.2, style: style, probe: nil)) }.max() ?? 0
     }
 
@@ -211,6 +327,27 @@ final class SideBySideIdealTests: XCTestCase {
                 Spacer(minLength: BBTheme.Spacing.sm)
                 Recorder(probe: probe, isLabel: false) {
                     statusText(status, dot: dot, style).multilineTextAlignment(.trailing)
+                }
+            }
+        }
+        .environment(\.legibilityWeight, style.bold ? .bold : .regular)
+    }
+
+    /// `GrowthSummaryRow`'s side-by-side row, in this test's fonts.
+    private func homeRow(_ label: String, _ value: String, dot: Color?, style: Style, probe: Probe?) -> some View {
+        SideBySideIdeal(chrome: 3 * BBTheme.Spacing.sm) {
+            Group {
+                labelText(label, style)
+                labelText(label.oneWordALine, style)
+                statusText(value, dot: dot, style).multilineTextAlignment(.trailing)
+                statusText(value.oneWordALine, dot: dot, style)
+            }
+            .hidden()
+            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                Recorder(probe: probe, isLabel: true) { labelText(label, style) }
+                Spacer(minLength: BBTheme.Spacing.sm)
+                Recorder(probe: probe, isLabel: false) {
+                    statusText(value, dot: dot, style).multilineTextAlignment(.trailing)
                 }
             }
         }

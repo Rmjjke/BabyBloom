@@ -125,9 +125,7 @@ struct GrowthView: View {
     // MARK: - Latest
     private var latestSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.current_stats") {
-                showAddSheet = true
-            }
+            BBSectionHeader(title: "section.current_stats")
 
             BBStatGrid {
                 // Weight comes from `measurements`, not from `latest`: that
@@ -739,61 +737,128 @@ struct WHOCorridorLegend: View {
 }
 
 // MARK: - Growth Entry Row
+/// A weighing in the history, laid out as `BBEventRow`: the date beside the
+/// texts while every value and word keeps whole there, else on a line of its
+/// own under them, and under at every accessibility size. A fixed date once
+/// took the values' room first and cut «4,29 кг» to «4…» on a 320-pt screen.
 struct GrowthEntryRow: View {
     let entry: GrowthEntry
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(BBTheme.Colors.growth.opacity(0.22))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "scalemass.fill")
-                    .font(.system(size: 18))
-                    .foregroundStyle(BBTheme.Colors.growth)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                // Weight above height at accessibility sizes, and each value
-                // one unbreakable line: side by side, ru AX2 broke «4,0 / 0 кг»
-                // (a number never splits from its unit).
-                let values = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                    : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.md))
-                values {
-                    if let w = entry.weightKg {
-                        Label("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", systemImage: "scalemass")
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                    if let h = entry.heightCm {
-                        Label(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), systemImage: "ruler")
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
-                }
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-
-                if let head = entry.headCircumferenceCm {
-                    Label(String(format: "growth.head_fmt".l, head.appDecimal(1)), systemImage: "circle.dotted")
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                under
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    beside
+                    under
                 }
             }
-
-            Spacer()
-
-            Text(entry.date.appDayMonth)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textSecondary)
         }
         .padding(BBTheme.Spacing.md)
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.md)
         .bbShadow(BBTheme.Shadow.card)
+    }
+
+    /// The date on the right. The texts' ideal width is their widest value or
+    /// word, so `ViewThatFits` keeps the date here only while none breaks.
+    private var beside: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            tile
+            WidestWordIdeal {
+                VStack(alignment: .leading, spacing: 4) {
+                    weightLabel
+                    lengthLabel
+                    if let head = headText { headLabel(head.oneWordALine) }
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                texts
+            }
+            Spacer()
+            dateText.fixedSize()
+        }
+    }
+
+    /// The date on a line of its own under the texts, which take the row's
+    /// whole width.
+    private var under: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            tile
+            VStack(alignment: .leading, spacing: 4) {
+                texts
+                dateText
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var tile: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(BBTheme.Colors.growth.opacity(0.22))
+                .frame(width: 44, height: 44)
+            Image(systemName: "scalemass.fill")
+                .font(.system(size: 18))
+                .foregroundStyle(BBTheme.Colors.growth)
+        }
+    }
+
+    /// The values side by side while both fit whole, else one under the other.
+    private var texts: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: BBTheme.Spacing.md) {
+                    weightLabel
+                    lengthLabel
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    weightLabel
+                    lengthLabel
+                }
+            }
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            if let head = headText { headLabel(head) }
+        }
+    }
+
+    @ViewBuilder private var weightLabel: some View {
+        if let w = entry.weightKg {
+            valueLabel("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", icon: "scalemass")
+        }
+    }
+
+    @ViewBuilder private var lengthLabel: some View {
+        if let h = entry.heightCm {
+            valueLabel(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), icon: "ruler")
+        }
+    }
+
+    /// One line at full size: a value is the fact the row is for, so it is
+    /// never shrunk or cut, and a number never parts from its unit (ru AX2
+    /// once broke «4,0 / 0 кг»). The row's shape makes the room for it.
+    private func valueLabel(_ text: String, icon: String) -> some View {
+        Label(text, systemImage: icon)
+            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+            .fixedSize()
+    }
+
+    private var headText: String? {
+        entry.headCircumferenceCm.map { String(format: "growth.head_fmt".l, $0.appDecimal(1)) }
+    }
+
+    private func headLabel(_ text: String) -> some View {
+        Label(text, systemImage: "circle.dotted")
+            .font(BBTheme.Typography.scaled(12, relativeTo: .caption1, weight: .regular, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+    }
+
+    private var dateText: some View {
+        Text(entry.date.appDayMonth)
+            .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
     }
 }
 
