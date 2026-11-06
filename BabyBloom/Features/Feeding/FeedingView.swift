@@ -142,7 +142,7 @@ struct FeedingView: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.today")
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            BBStatGrid {
                 BBStatCard(
                     title: "stat.feedings",
                     value: "\(todayEntries.count)",
@@ -361,6 +361,33 @@ struct AddFeedingSheet: View {
         volumeML = lastVolume(for: selectedType) ?? 100
     }
 
+    private var typeTiles: some View {
+        ForEach(FeedingEntry.FeedingType.allCases, id: \.self) { type in
+            Button {
+                withAnimation { selectedType = type }
+            } label: {
+                VStack(spacing: 6) {
+                    Image(systemName: type.icon)
+                        .font(BBTheme.Typography.scaled(22, relativeTo: .body, weight: .regular, design: .default))
+                        .foregroundStyle(BBTheme.Colors.primary)
+                    Text(type.displayName.l)
+                        .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
+                        .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, BBTheme.Spacing.md)
+                .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
+                .cornerRadius(BBTheme.Radius.md)
+                .overlay(
+                    RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                        .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
+                )
+                .bbShadow(BBTheme.Shadow.card)
+            }
+            .buttonStyle(BBScaleButtonStyle())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -373,30 +400,19 @@ struct AddFeedingSheet: View {
                             .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textPrimary)
 
-                        HStack(spacing: BBTheme.Spacing.sm) {
-                            ForEach(FeedingEntry.FeedingType.allCases, id: \.self) { type in
-                                Button {
-                                    withAnimation { selectedType = type }
-                                } label: {
-                                    VStack(spacing: 6) {
-                                        Image(systemName: type.icon)
-                                            .font(.system(size: 22))
-                                            .foregroundStyle(BBTheme.Colors.primary)
-                                        Text(type.displayName.l)
-                                            .font(.system(size: 12, weight: .medium, design: .rounded))
-                                            .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, BBTheme.Spacing.md)
-                                    .background(selectedType == type ? BBTheme.Colors.primary.opacity(0.12) : BBTheme.Colors.surface)
-                                    .cornerRadius(BBTheme.Radius.md)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                                            .strokeBorder(selectedType == type ? BBTheme.Colors.primary : Color.clear, lineWidth: 1.5)
-                                    )
-                                    .bbShadow(BBTheme.Shadow.card)
-                                }
-                                .buttonStyle(BBScaleButtonStyle())
+                        // At accessibility sizes two columns: «Сцеженное» needs
+                        // 119 pt there, more than a third of a 375-pt sheet.
+                        // Below them the row stays an HStack: a grid sets it
+                        // a third of a point lower.
+                        if dynamicTypeSize.isAccessibilitySize {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: BBTheme.Spacing.sm),
+                                                     count: 2),
+                                      spacing: BBTheme.Spacing.sm) {
+                                typeTiles
+                            }
+                        } else {
+                            HStack(spacing: BBTheme.Spacing.sm) {
+                                typeTiles
                             }
                         }
                     }
@@ -461,7 +477,7 @@ struct AddFeedingSheet: View {
                                 Spacer()
                                 Text("500\u{00A0}\("unit.ml".l)")
                             }
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                         .padding(BBTheme.Spacing.md)
@@ -477,7 +493,7 @@ struct AddFeedingSheet: View {
                                 .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
                             Text("form.timer_hint".l)
-                                .font(.system(size: 13, weight: .regular, design: .rounded))
+                                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                         }
                     }

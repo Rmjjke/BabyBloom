@@ -147,10 +147,11 @@ struct MedicationFormSheet: View {
                 .accessibilityIdentifier("medication.dose")
             divider
             fieldLabel("medication.field_max")
+            // Labelled above, but the placeholder is the example of what to
+            // type, and in es it needs a second line at accessibility sizes.
             TextField("medication.field_max_placeholder".l, text: $input.maximumText, axis: .vertical)
-                .lineLimit(1...3)
+                .bbPlaceholderLabel()
                 .keyboardType(.numberPad)
-                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .rounded))
                 .padding(.top, BBTheme.Spacing.xs)
                 .accessibilityLabel(Text("medication.field_max".l))
                 .accessibilityIdentifier("medication.max")

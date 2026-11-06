@@ -336,11 +336,26 @@ or time picker's label above it there (beside the buttons it broke mid-word)
 and hides that visible label from VoiceOver, so the picker's own label is read
 once; the entry sheets' date and time rows use it. `bbPlaceholderLabel` is
 for a vertical `TextField` whose placeholder is its only visible label (the
-medication name, dose and note, the Diaper note, the doctor question): it
+medication name, dose and note, the Diaper note, the doctor question; also
+the medication maximum, whose example placeholder needs two lines in es): it
 keeps two lines at accessibility sizes and takes the body size from
 `Typography.scaled`. Both halves matter: on iOS 26 a placeholder wraps only into lines the field already
 has, and with a text-style font such as `.body` it stays on one line and ends
 in «…» however many lines the field keeps.
+
+Words that had a fixed point size grow the same way: `Typography.scaled(<size>,
+relativeTo: .body, …)` keeps their size, weight and design at Large and then
+follows the text size as body text does: smaller below Large, larger above
+it, most at accessibility sizes. The entry
+sheets' tile words (with their glyphs), stool colour names, slider ends and
+hints use it, and so do the stat card's title, unit and trend chip. Some
+screens outside the entry sheets still set fixed sizes. A grid whose widest
+en, ru or es word at AX2 no longer fits its column at a 375-pt width, with
+8 pt to spare, takes fewer columns at accessibility sizes. The stool colours
+and the Feeding types drop to two. The stat grids drop to one, through
+`BBStatGrid` beside `BBStatCard`. Colour samples, icon plates and decorative
+figures keep their size, and the Growth sheet leaves its ruler out at those
+sizes.
 
 Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
 in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on

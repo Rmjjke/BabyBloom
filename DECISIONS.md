@@ -14,6 +14,14 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-03 — A word set at a fixed size grows at accessibility sizes, and a grid gives up columns for its widest word
+
+**The word scales from the size it had.** `Typography.scaled(<size>, relativeTo: .body)`, with the same weight and design. Below the accessibility sizes the factor is the one the body text gets, so at Large every screen stays as it was.
+
+**Why grow.** At AX2 the tile, stool and stat-card words stayed at 10–13 pt beside 31 pt body text: the smallest text on screen, for the people who asked for the largest. They also carry meaning. A tile's word is its name. A stool colour's word is the cue that does not depend on seeing the colour, next to the warning colours. A stat card's title and unit say what the number is. Colour samples, icon plates and decoration keep their size: the sample is the information, and a plate is not read.
+
+**Columns by the widest word, at 375 pt, with 8 pt to spare.** 375 pt is the SE and mini width, and Display Zoom's on the largest phones. Display Zoom on the smaller phones and iPad Slide Over are narrower, at 320 pt, and this rule does not cover them. The spare is there because three stool columns would hold «Коричневый» by 2 pt, which is inside the measuring error. A grid that keeps its columns at AX2 (Diaper type, Sleep type, Sleep location) does so because its widest word fits, not by exemption.
+
 ## 2026-11-03 — Every clock time takes the device's 12/24-hour cycle, in the app's language
 
 **One locale for formatted times and pickers.** `Date.appTimeOfDay` formats with the environment locale the root gives every `DatePicker`: the app language's region, with the device's hour cycle on top. Formatted with the pinned region instead, a dose sheet on a 24-hour phone in English or Spanish showed its picker at 09:43 and the last dose in its status line at "3:43 AM": two clocks side by side. Medication times are compared at night, so two clocks on one sheet invite a misread.
