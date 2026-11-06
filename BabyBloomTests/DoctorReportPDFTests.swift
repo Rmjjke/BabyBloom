@@ -175,7 +175,8 @@ final class DoctorReportPDFTests: XCTestCase {
             let first = try XCTUnwrap(page.range(of: rows[0]))
             let second = try XCTUnwrap(page.range(of: rows[1], range: first.upperBound..<page.endIndex))
             XCTAssertLessThan(first.lowerBound, second.lowerBound)
-            XCTAssertTrue(page.contains("thead { display: table-header-group; }"))
+            // Its head on every page is pinned on the rendered file: PDFPagesTests.
+            XCTAssertTrue(page.contains("<table class=\"weighings\"><thead>"))
         }
     }
 

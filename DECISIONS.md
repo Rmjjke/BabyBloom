@@ -14,6 +14,26 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-02 — PDFs compose their own pages, print in Helvetica Neue with a named fallback list, and carry no emoji in the body
+
+All of this comes from one engine, `UIMarkupTextPrintFormatter`, and all of it was seen on rendered files read back, not in its documentation.
+
+**We compose the pages.** The engine slices its layout at the page height and ignores `page-break-*` and repeated `thead`: a table row printed half on each page, and page 2 had no head. `PagedPDF` gives every page its own small document and formatter and asks the engine what fits. A row taller than a page is the one thing that still slices.
+- Rejected, `WKWebView`'s print path: rows stayed whole, but the head did not repeat, the text layer kept the defect below, every caller would turn async, and the first render took 1.87 s against 0.36 s on the simulator.
+- Rejected for now, a Core Text redraw of both layouts: 0.06 s, it keeps the system font and draws real emoji, but it rewrites both layouts and their tests. It is the way to go if the PDF ever needs real emoji.
+- The cost is about one layout per page, about 25 ms on the simulator. Cold, before this change against after, medians of 3: a one-page report 0.27 → 0.29 s, two pages 0.33 → 0.52 s, an export of 5 pages 0.41 → 0.50 s, of 630 rows 0.49 → 1.56 s, of 1890 rows 1.02 → 2.16 s, of 3780 rows (about 130 pages) 1.56 → 3.19 s; 7560 rows, a year, 3.40 s after this change, 3.1 to 4.3 s over three runs. Laying the whole document out first and looking for one more row on every page took about 11.7 s at 3780 rows: that is why a long document skips the first and a settled page the second, and why the layout that proved a page fits also draws it.
+- Accepted for now: a long export holds the main thread for those seconds, behind the button's spinner. Yielding between pages would keep the screen alive without shortening the render, and add an async path to share. The task waits 100 ms before the render, or the spinner never reaches the screen: a main-queue task can run before the button's new state commits, and the screen then stays still until the share sheet.
+
+**Helvetica Neue, not the system font, in both PDFs and every language.** The system font draws Cyrillic «к» and Latin «ĸ» with one glyph, and the text layer then spells every «к» U+0138. The page looks right, so nobody sees it, but a search for «кг» finds nothing and a copied value pastes as «5,32 ĸг». Restoring the system font would look harmless and bring this back. Every language, because a Russian question in an English report breaks the same way. PDFs only: the app keeps the system font. Ligatures are off for the same reason: «ﬁ» is one character in the text layer, and a search for «fine» misses it.
+
+**A named fallback list.** The engine has no system fallback: a glyph no named family holds prints a boxed «?», so a Chinese, Arabic or Thai name was a row of boxes. The CSS names a family per script, following the system's cascade list. Apple Color Emoji must stay off it: with that family named, the whole text prints boxed. The report's footer, which UIKit draws, takes the same list as a cascade: UIKit's own fallback sends a sign like ❤ to the colour font, and a PDF prints that as a box and a gap.
+
+**No emoji in the PDF body or the report's footer.** The engine can print a colour emoji only as a box, whichever way it is offered (a font, an image), and UIKit drawing the footer line into the same PDF prints one too. `PagedPDF.withoutEmoji` removes them at render only: the store, the screens, the CSV and file names keep what the parent typed.
+- A clean line on a doctor's paper beats a box, and this is the one exception to printing questions verbatim. A question of emoji alone leaves the list, and a name of emoji alone leaves no empty line.
+- Unicode also tags digits, «#», «*», «©», «®» and «™» as emoji-capable, so that tag alone must never filter: a lost digit in a question about a dose is worse than any box. They stay as text and lose only the request for the emoji form: «1️⃣» prints 1, «❤️» prints ❤.
+- A closed list becomes text instead of leaving, because a sentence must not survive with its answer gone: «Iron ❌, Vit D ✅» would print «Iron , Vit D ». ✅→✓, ❌ ❎→✗, ➕→+, ➖→−, ➗→÷, ❓ ❔→?, ❗ ❕→!, and «🔟» prints 10. The list stays closed: any other emoji leaves, and growing it is a new decision.
+- An emoji between two words or numbers leaves a space, or «5🍼10 мл» would read 510.
+
 ## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
 
 - **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
