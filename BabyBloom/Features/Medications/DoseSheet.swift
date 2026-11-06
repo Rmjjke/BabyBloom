@@ -184,10 +184,11 @@ struct DoseSheet: View {
             .tint(BBTheme.Colors.primary)
             .accessibilityIdentifier("dose.time")
         if dynamicTypeSize.isAccessibilitySize {
-            // The label stays readable by VoiceOver: the picker's own label
-            // is hidden here.
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                // The picker keeps its own label for VoiceOver, so Time is
+                // read once.
                 Text("form.time".l)
+                    .accessibilityHidden(true)
                 picker.labelsHidden()
             }
         } else {

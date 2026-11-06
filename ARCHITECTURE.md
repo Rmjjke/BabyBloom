@@ -328,7 +328,12 @@ that form reads the *device* content size and ignores the SwiftUI environment,
 so the app's ceiling walks straight past it. The ceiling itself
 (`Typography.maxContentSizeCategory`, AX2) lives in exactly one constant, from
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
-drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
+drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28. A vertical
+`TextField` whose placeholder is its only visible label and can outgrow one
+line at accessibility sizes keeps two lines there and takes a point-size font
+from `Typography.scaled` (the medication form, the Add Event form's medication
+name): on iOS 26, with a text-style font such as `.body`, the placeholder stays
+on one line and ends in «…» however many lines the field keeps.
 
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that

@@ -11,6 +11,7 @@ struct EventsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
     @Environment(SubscriptionManager.self) private var store
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var showDoseSheet = false
     /// The create gate and the history footer both sell; the source says which.
@@ -99,7 +100,12 @@ struct EventsView: View {
     private var quickAddSection: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
             BBSectionHeader(title: "section.quick_input")
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BBTheme.Spacing.md) {
+            // One column at accessibility sizes: half the width cannot hold a
+            // tile word whole (es «Medicamento» at AX2 needs 156 pt of the 148
+            // a half gives on a 402-pt iPhone).
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
+                                     count: dynamicTypeSize.isAccessibilitySize ? 1 : 2),
+                      spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
                     let locked = isLocked(type)
                     Button {
@@ -289,6 +295,7 @@ struct AddEventSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.reviewPrompt) private var reviewPrompt
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query(sort: \Baby.createdAt) private var babies: [Baby]
     @State private var selectedType: CustomEvent.EventType = .bath
     @State private var notes = ""
@@ -307,14 +314,20 @@ struct AddEventSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    // Type grid
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: BBTheme.Spacing.sm) {
+                    // Type grid: glyph and word grow with the text size, and
+                    // at accessibility sizes two columns give each word its
+                    // width (a third of the sheet cut «Medicamento»).
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()),
+                                             count: dynamicTypeSize.isAccessibilitySize ? 2 : 3),
+                              spacing: BBTheme.Spacing.sm) {
                         ForEach(CustomEvent.EventType.allCases, id: \.self) { type in
                             Button { selectedType = type } label: {
                                 VStack(spacing: 6) {
-                                    Image(systemName: type.icon).font(.system(size: 22))
+                                    Image(systemName: type.icon)
+                                        .font(BBTheme.Typography.scaled(22, relativeTo: .body, weight: .regular, design: .default))
                                         .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : Color(hex: type.colorHex))
-                                    Text(type.displayName.l).font(.system(size: 11, weight: .medium, design: .rounded))
+                                    Text(type.displayName.l)
+                                        .font(BBTheme.Typography.scaled(11, relativeTo: .body, weight: .medium, design: .rounded))
                                         .foregroundStyle(selectedType == type ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                                 }
                                 .frame(maxWidth: .infinity).padding(.vertical, BBTheme.Spacing.md)
@@ -389,7 +402,7 @@ struct AddEventSheet: View {
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
                     // Time
-                    timePicker
+                    timeRow
                         .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
@@ -476,20 +489,54 @@ struct AddEventSheet: View {
                    displayedComponents: [.date, .hourAndMinute])
     }
 
+    /// Label above the pickers at accessibility sizes: beside the date and
+    /// time buttons it had room for a few letters and broke mid-word.
+    @ViewBuilder private var timeRow: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                // The picker keeps its own label for VoiceOver, so Time is
+                // read once.
+                Text("form.time".l)
+                    .accessibilityHidden(true)
+                timePicker
+                    .labelsHidden()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            timePicker
+        }
+    }
+
     private var freeTextMedicationFields: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
             // Vertical, so a long name wraps at large text instead of shrinking.
+            // The point-size font matters: with the text-style .body the
+            // placeholder kept to one line at accessibility sizes and ended
+            // in «…» although the field had two.
             TextField("form.medication_name".l, text: $medicationName, axis: .vertical)
-                .lineLimit(1...3)
+                .lineLimit(placeholderLines)
                 .oneParagraph($medicationName)
-                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                .font(fieldFont)
+                .medicationField()
             TextField("form.dose".l, text: $medicationDose, axis: .vertical)
                 .lineLimit(1...3)
                 .oneParagraph($medicationDose)
-                .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
-                .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
+                .font(fieldFont)
+                .medicationField()
         }
+    }
+
+    /// A placeholder wraps only into lines the field already has, so at
+    /// accessibility sizes the name field keeps two: with one, the
+    /// placeholder, the field's only visible label, ended in «…». The dose
+    /// placeholder is one word and needs none.
+    private var placeholderLines: ClosedRange<Int> {
+        dynamicTypeSize.isAccessibilitySize ? 2...4 : 1...3
+    }
+
+    /// The body face at the body size, up to the app's largest text size.
+    private var fieldFont: Font {
+        BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: .default)
     }
 
     /// Kept after the alert closes, so its title does not blank as it goes.
