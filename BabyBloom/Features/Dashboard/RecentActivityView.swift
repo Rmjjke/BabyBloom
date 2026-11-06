@@ -56,6 +56,7 @@ struct RecentActivityView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                BBScreenHeading(title: "nav.recent_activity".l)
                 let model = self.model
                 let rows = self.rows(of: model)
                 if model.deletable.isEmpty && visits.isEmpty {
@@ -95,8 +96,7 @@ struct RecentActivityView: View {
             .padding(.bottom, BBTheme.Spacing.xl)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("nav.recent_activity".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("nav.recent_activity".l)
         .sheet(isPresented: $showPaywall) {
             PaywallView(source: .historyLock)
         }

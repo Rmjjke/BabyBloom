@@ -32,6 +32,7 @@ struct SleepView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBScreenHeading(title: "tab.sleep".l, horizontalPadding: BBTheme.Spacing.md)
 
                     // Active sleep
                     if let active = activeEntry {
@@ -71,8 +72,7 @@ struct SleepView: View {
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
-            .navigationTitle("tab.sleep".l)
-            .navigationBarTitleDisplayMode(.large)
+            .bbScreenTitle("tab.sleep".l)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {

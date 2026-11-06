@@ -26,6 +26,7 @@ struct DiaperView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBScreenHeading(title: "nav.diapers".l, horizontalPadding: BBTheme.Spacing.md)
 
                     quickAddSection
                         .padding(.horizontal, BBTheme.Spacing.md)
@@ -49,8 +50,7 @@ struct DiaperView: View {
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
-            .navigationTitle("nav.diapers".l)
-            .navigationBarTitleDisplayMode(.large)
+            .bbScreenTitle("nav.diapers".l)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {

@@ -26,8 +26,7 @@ struct MedicationsListView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("medication.title".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("medication.title".l)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { showForm = true } label: {
@@ -49,6 +48,7 @@ struct MedicationsListView: View {
         let active = MedicationFormat.byName(medicines.filter { !$0.isEnded })
         let ended = MedicationFormat.byEnd(medicines.filter(\.isEnded))
         VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
+            BBScreenHeading(title: "medication.title".l)
             if medicines.isEmpty {
                 VStack(spacing: BBTheme.Spacing.lg) {
                     // The view draws its own surface, so its secondary

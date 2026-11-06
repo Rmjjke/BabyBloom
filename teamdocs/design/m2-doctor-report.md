@@ -1,6 +1,6 @@
 # M2 — For the pediatrician: report, visit sheet, questions, PDF (design note)
 
-status: final, 2026-11-01; § 2.1 after the design review 2026-11-02; § 5 follows the PDFs of 2026-11-02
+status: final, 2026-11-01; § 2.1 after the design review 2026-11-02; § 5 follows the PDFs of 2026-11-02; the days line in its words of 2026-11-04 (§ 2.1, § 5, § 8)
 decisions: WCAG 2.2 AA; no gain number in the newborn window, because a −180 g in week one is normal but reads as a verdict; averages over days with entries, because a forgotten day is not "the baby slept less"; the product rules and design decisions in § 10; DECISIONS.md 2026-09-05 (doctor-facing = measurements; empty state names the thing + offers the action; a count above reference is never an alarm), 2026-09-01 (a gated control shows its padlock), 2026-10-28 (primary action never inside the scroll), 2026-10-30 (numbers in the app language)
 reference: `teamdocs/design/design-system.md` (P = principle); the weekly card note `m1-weekly-summary.md` (row style, AX2 stacking); the copy note `teamdocs/content/doctor-report.md`
 triggers: a section or row added to or removed from the report; a state added; the visit or question model changed; the PDF page layout changed; a product rule in § 10.1 changed
@@ -89,13 +89,13 @@ The rows are **label: value in one Text**: label `Typography.callout` + value `T
 | | Breast 120 · Formula 30 · Pumped 12 | counts over the period, only the types logged, and **only when more than one type** was logged (one fact once: with breast only, the line adds nothing). The type words are the app's `feeding.type.*` (en Pumped, ru Сцеженное, es Extraída), with no report-only key: one word for one thing, the word the parent logs with (design review 2026-11-02) |
 | | Bottle a day: 480 ml | formula + expressed volume, averaged over days with bottle entries; only when volumes exist |
 | | Breastfeed: 18 min (the copy's word for a median, e.g. «usually») | the **median** duration of finished breastfeeds (with an even count, the mean of the two middle values); only when breastfeeds exist. Not the mean: one forgotten timer moves a mean, never the median (design review 2026-11-02; supersedes "on average" in § 8 and § 10.2 item 5) |
-| | Days with entries: 18 of 20 | only when N < M |
+| | Averages over the days with entries: 18 of 20 | `report.days_logged_fmt`: ru «Среднее по дням с записями: 18 из 20», es «Promedio de los días con registros: 18 de 20». It says what the per-day rows above average over. Only when N < M (the weekly card shows its line on every week) |
 | Sleep | Sleep a day: 14 h 20 min | `weekly.sleep_fmt`, finished sleeps; a sleep that crosses the period start counts by its part inside (§ 10.1 rule 6) |
 | | Longest sleep: 5 h 10 min · 24 Oct | `weekly.longest_sleep_fmt` + the date in `caption` |
-| | Days with entries | as Feeding |
+| | Averages over the days with entries: N of M | as Feeding |
 | Diapers | Wet a day: 7.1 · Dirty a day: 3.2 | two rows; `both` counts in both (as on the Diapers tab) |
 | | Stool colours: Yellow 18 · Green 2 | name + count, most frequent first; colour names from `diaper.color.*`. **No swatch, no warning line, no red** (§ 10.1 rule 9). Absent when no colour was logged |
-| | Days with entries | as Feeding |
+| | Averages over the days with entries: N of M | as Feeding |
 
 Running timers are not counted (§ 10.1 rule 6), and nothing on screen says so: a running feed has no number yet.
 
@@ -198,7 +198,8 @@ A new template in the same renderer (`ExportGenerator.renderPDF`). It does **not
 │ │ 28 Oct    5.42 kg   58 cm     39 cm│                    │
 │ │ …                                  │                    │
 │ Feeding                                                   │
-│ Feeds a day: 7.4 · Days with entries: 18 of 20            │
+│ Feeds a day: 7.4             Bottle a day: 480 ml         │
+│ Averages over the days with entries: 18 of 20             │  its own line under the rows, secondary; only when N < M
 │ …  Sleep  …  Diapers  …                                   │
 │ Questions from the parent                                 │  open questions, numbered 1. 2. 3.
 │ 1. Is it fine that she sleeps on her tummy?               │
@@ -259,7 +260,7 @@ None new. BBPrimary, BBTextPrimary, BBTextSecondary, BBBackground, BBSurface, th
   - ↺ `weekly.feeds_fmt`;
   - type counts «Breast %d», «Formula %d», «Expressed %d»;
   - «Bottle a day: %@», «Breastfeed: %@ on average»;
-  - «Days with entries: %d of %d» (new: `weekly.days_logged_fmt` hard-codes 7).
+  - «Averages over the days with entries: %d of %d», `report.days_logged_fmt` (its own key, because `weekly.days_logged_fmt` hard-codes 7).
 - Sleep: ↺ `weekly.sleep_fmt`, ↺ `weekly.longest_sleep_fmt`.
 - Diapers: «Wet a day: %@», «Dirty a day: %@», «Stool colours: %@», ↺ `diaper.color.*`.
 - Short-period count forms: «Feeds: %d», «Sleep: %@ in total», «Wet: %d · Dirty: %d».
