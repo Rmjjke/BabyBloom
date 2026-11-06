@@ -220,8 +220,8 @@ struct PremiumFeatureList: View {
 
 /// A Text only breaks inside a word when the word alone is wider than its
 /// space, and beside a 34pt icon, a checkmark and the padding a long Russian
-/// word («Неограниченная») was exactly that at the accessibility sizes and at
-/// xxxLarge on a 320-pt screen. `PremiumFeatureList` picks the shape, one for
+/// word («Неограниченная») was exactly that at the accessibility sizes, and on
+/// a 320-pt screen from xLarge. `PremiumFeatureList` picks the shape, one for
 /// all its rows.
 struct PremiumFeatureRow: View {
     enum Shape { case beside, stacked }
