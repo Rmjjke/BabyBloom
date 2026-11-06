@@ -26,7 +26,7 @@ and the Live Activity read the byte-identical copies in
 |---|---|---|---|---|
 | add (a record, a weighing, a question, a medication) | Add | Добавить | Agregar | every form: «Agregar», «agregar», «Agrega», «agrega»; never «Añadir». iOS 26 says «Agregar» in es_419 (348 strings, no «Añadir») and «Añadir» in Spain's es; «agregar» is ordinary Spanish in Spain too |
 | breastfeeding (full) | Breastfeeding | Кормление грудью | Lactancia | Lock Screen, Dynamic Island |
-| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the report's word (`report.type_breast`); history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
+| breast (a feed's type) | Breast | Грудь | Pecho | `feeding.type.breast`, the one key for the word, the report's included; history titles "Left breast" / «Левая грудь» / «Pecho izquierdo»; never an abbreviation (BF / ГВ / LM) |
 | pumped milk (a feed with no amount) | Pumped milk | Сцеженное молоко | Leche extraída | `feeding.title.pumped`; the type is Pumped / Сцеженное / Extraída |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
 | Lock Screen | Lock Screen | экран блокировки | pantalla bloqueada | Apple's own terms |
@@ -95,9 +95,17 @@ and the Live Activity read the byte-identical copies in
     (`duration.h_min`, `duration.h_only`, `duration.min_only`). Seconds
     show only under a minute (`duration.sec`, "45 sec") and on the running
     timer.
-  - The views still print «0/6 шт», a unit on the count tiles and «15 мин
-    0 сек»: the keys and labels above are in place, the code that reads
-    them is not yet.
+  - The code reads these keys: Home's progress cards print
+    `progress.of_fmt` / `progress.of_unit_fmt`, the tiles print the bare
+    number, and every duration from one minute comes from one writer, with
+    no seconds. The unit words `unit.pcs`, `unit.times` and `unit.hours`,
+    `duration.min_sec` and `report.type_breast` lost their last reader and
+    are gone.
+  - The export's summary follows the tile rule. Its feeds-a-day tile is
+    labelled "Feeds a day" / «Кормления в день» / «Tomas al día»
+    (`export.summary.avg`), the weekly card's words in the nominative, and
+    its value is the bare figure: the label carries "a day", so the value
+    takes no «/день».
 - **Lengths.** Length limits live in the design notes in `teamdocs/design/`.
   Every new string is checked against them in all three locales before it is
   committed.
@@ -290,8 +298,7 @@ and the Live Activity read the byte-identical copies in
     Besides a number and its unit it glues:
     - a counted word before its number: "day 14", «día 14», «день 14»,
       «percentil 50», "Day %d";
-    - a duration as a whole: `duration.min_sec` "%d min %d sec", as
-      `duration.h_min`;
+    - a duration as a whole: `duration.h_min` "%d h %d min";
     - a short Russian preposition before a number, in every key: «до 12
       раз», «от 3 дней», «К 3 месяцам».
   - A Russian ordinal (a number, the end of a range or `%d`, then a hyphen
