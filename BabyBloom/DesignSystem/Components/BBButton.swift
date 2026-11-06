@@ -118,7 +118,7 @@ struct BBQuickActionButton: View {
                     }
                 }
                 Text(title)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
             .frame(maxWidth: .infinity)

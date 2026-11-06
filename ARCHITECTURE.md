@@ -351,13 +351,15 @@ relativeTo: .body, …)` keeps their size, weight and design at Large and then
 follows the text size as body text does: smaller below Large, larger above
 it, most at accessibility sizes. The entry sheets' tile words (with their
 glyphs), the Diaper and Events quick tiles' glyphs, the Sleep start tiles'
-glyph and caption, the Feeding quick tiles' words and captions, the Feeding
-and Sleep timer cards' labels, the Diaper screen's norm chip (word and
-glyph), stool colour names, slider
+glyph and caption, the Feeding quick tiles' words and captions, the Home
+quick actions' words, the Feeding and Sleep timer cards' labels and the Home
+timer card's subtitle, the Diaper screen's norm chip (word and glyph),
+onboarding's gender tiles (figure and word), stool colour names, slider
 ends and hints use it, and so do the stat card's title, unit and trend chip.
-Some screens outside the entry sheets still set fixed sizes. Colour samples,
-icon plates and decorative figures keep their size, and the Growth sheet
-leaves its ruler out at accessibility sizes.
+Some screens outside the entry sheets still set fixed sizes. A glyph that
+stands over or beside its word grows with it; colour samples, icon plates
+(with the glyph inside them) and decoration keep their size, and the Growth
+sheet leaves its ruler out at accessibility sizes.
 
 A row of tiles keeps a column count only while its widest en, ru or es word
 fits the column (the tile less its side padding) at a 320-pt width with 8 pt
@@ -374,8 +376,9 @@ accessibility. A row that is an `HStack` at Large stays that `HStack` wherever
 its count is unchanged (a grid sets it a third of a point lower), becomes a
 grid where the count drops and a `VStack` where it reaches one; a row that is
 a grid at Large takes the count. The counts, Large to accessibility:
-- Diaper and Feeding screens' quick-add 3/2/2/2/1; Sleep screen start tiles
-  2/2/2/1/1; Events quick row and `BBStatGrid` (five screens) 2/2/1/1/1.
+- Diaper and Feeding screens' quick-add 3/2/2/2/1; Home quick actions
+  2/2/2/2/1; Sleep screen start tiles 2/2/2/1/1; Events quick row and
+  `BBStatGrid` (five screens) 2/2/1/1/1.
 - Stool colours 4/3/3/3/2; Feeding sheet types 3/3/3/2/2 and breast sides
   3/2/2/2/1; Diaper sheet types and Sleep sheet locations 3/3/3/3/2; Add Event
   types and moods 3/3/2/2/2; Sleep sheet types two at every size.
@@ -394,24 +397,30 @@ tiles at Large on 320 pt: 8 pt on the Diaper tile (16 above and below), where
 16 broke «Грязный», and none on the Feeding tile, where 8 broke «Сцеженное».
 The breast-side chip sets its glyph 4 pt from its word, not the default 8. In
 one column a quick or start tile keeps its shape: glyph above word, centred,
-full width. The profile edit sheet's gender and feeding rows, measured at a
-320-pt width, drop to one at accessibility sizes; its feeding row already
-takes two from xLarge, where «Смешанное» no longer fits a third of that width.
-They branch on the text size directly, not through `BBTileColumns`. Not yet
-checked against the rule: the Home screen's quick actions, whose words still
-have a fixed size, and the onboarding gender row.
+full width. The profile edit sheet's gender and feeding rows and onboarding's
+gender row, measured at a 320-pt width, drop to one at accessibility sizes;
+the profile feeding row already takes two from xLarge, where «Смешанное» no
+longer fits a third of that width. They branch on the text size directly,
+not through `BBTileColumns`. The Home quick actions stand two by two below
+the accessibility sizes: four in a row broke ru «Подгузники» at Large on
+320 pt and kept it under the 8-pt spare on 375 pt.
 
 A row whose fit changes with the width or the running time takes its shape
 from the fit instead, with `ViewThatFits`: the row while it fits, else
 stacked. The Feeding timer's side pills stand three in a row while the row
 fits the card, else one per row; in es the row is wider than the card on a
-320-pt screen from Medium up. The Feeding and Sleep timer cards share `BBTimerCardHeader`
-(in `DesignSystem/Components/BBElapsedTimer.swift`): the label and the title beside the timer while they
-fit one line, else above it. The timer's width follows the elapsed time
-(hours past an hour of sleep, three-digit minutes past 100 minutes of feeding),
-so the header draws both shapes from one `TimelineView` clock, and each fit
-check reads the digits on screen. Both stack at accessibility sizes on any
-width, so the running cards keep one shape at the largest text. The Diaper
+320-pt screen from Medium up. Every timer card in the app takes its shape from
+`BBTimerFit` (in `DesignSystem/Components/BBElapsedTimer.swift`): the
+Feeding and Sleep cards' `BBTimerCardHeader` (label over title) and Home's
+`ActiveTimerCard` (title over subtitle, its icon plate beside) set what is
+running beside the timer while the two fit one line, else above it. The
+timer's width follows the elapsed time (hours past an hour of sleep on the
+Sleep card, three-digit minutes past 100 minutes elsewhere), so `BBTimerFit`
+draws both shapes from one `TimelineView` clock, and each fit check reads the
+digits on screen. Home's card, whose title and subtitle stand in one column,
+stacks at Large on a 320-pt screen whatever the time. The pills and the timer
+rows stack at accessibility sizes on any width, so the running cards keep one
+shape at the largest text. The Diaper
 screen's Today row puts the norm chip under the title at accessibility sizes
 by the text size: its words hold at 320 pt at every size below, so no width
 changes the answer.
