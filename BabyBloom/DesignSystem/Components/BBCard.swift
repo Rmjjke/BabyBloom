@@ -157,7 +157,7 @@ private struct WordWrappingText: View {
 
     var body: some View {
         WidestWordIdeal {
-            Text(text.split(separator: " ").joined(separator: "\n")).hidden()
+            Text(text.oneWordALine).hidden()
             Text(text)
         }
     }
@@ -240,34 +240,18 @@ struct BBEventRow: View {
     var trailing: String? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    /// The time goes under the texts wherever a word of the title or the
+    /// subtitle would miss the room beside it, and at every accessibility size.
+    /// Beside a grown time a long word (a medication's name, «вскармливание»
+    /// on a 320-pt screen) had room for a few letters and broke mid-word.
     var body: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.22))
-                    .frame(width: 44, height: 44)
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(iconColor)
-            }
-
+        Group {
             if dynamicTypeSize.isAccessibilitySize {
-                // The time goes under the text: beside the grown time a long
-                // word (a medication's name) had room for a few letters and
-                // broke mid-word.
-                VStack(alignment: .leading, spacing: 2) {
-                    texts
-                    (timeText + Text(verbatim: "  ") + trailingText)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                under
             } else {
-                VStack(alignment: .leading, spacing: 2) {
-                    texts
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    timeText
-                    if trailing != nil { trailingText }
+                ViewThatFits(in: .horizontal) {
+                    beside
+                    under
                 }
             }
         }
@@ -277,12 +261,61 @@ struct BBEventRow: View {
         .bbShadow(BBTheme.Shadow.card)
     }
 
+    /// The time on the right. Its ideal width holds the texts at their widest
+    /// word, so `ViewThatFits` keeps it only while no word breaks; a width it
+    /// does get reaches the texts untouched, and a row that fits draws as the
+    /// bare stack.
+    var beside: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            badge
+            WidestWordIdeal {
+                VStack(alignment: .leading, spacing: 2) {
+                    texts(title.oneWordALine, subtitle.oneWordALine)
+                }
+                .hidden()
+                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    texts(title, subtitle)
+                }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                timeText
+                if trailing != nil { trailingText }
+            }
+        }
+    }
+
+    /// The time on a line of its own under the texts, which take the row's
+    /// whole width and break between words like prose.
+    var under: some View {
+        HStack(spacing: BBTheme.Spacing.md) {
+            badge
+            VStack(alignment: .leading, spacing: 2) {
+                texts(title, subtitle)
+                (timeText + Text(verbatim: "  ") + trailingText)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var badge: some View {
+        ZStack {
+            Circle()
+                .fill(iconColor.opacity(0.22))
+                .frame(width: 44, height: 44)
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(iconColor)
+        }
+    }
+
     // Verbatim: every caller passes text already localized, and a note or a
     // medication name is shown as typed, never looked up. The second line and
     // the time scale too, so a name and dose do not stay small under a grown
     // title.
     @ViewBuilder
-    private var texts: some View {
+    private func texts(_ title: String, _ subtitle: String) -> some View {
         Text(verbatim: title)
             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textPrimary)
