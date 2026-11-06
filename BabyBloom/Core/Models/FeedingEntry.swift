@@ -37,13 +37,11 @@ final class FeedingEntry {
         max(0, (endTime ?? Date()).timeIntervalSince(startTime))
     }
 
+    /// Seconds only under a minute: from one minute a feed reads like a sleep.
     var durationFormatted: String {
-        let mins = Int(duration) / 60
-        let secs = Int(duration) % 60
-        if mins > 0 {
-            return String(format: "duration.min_sec".l, mins, secs)
-        }
-        return String(format: "duration.sec".l, secs)
+        let seconds = max(0, Int(duration))
+        guard seconds >= 60 else { return String(format: "duration.sec".l, seconds) }
+        return DurationText.minutes(seconds / 60)
     }
 
     var isActive: Bool { endTime == nil }

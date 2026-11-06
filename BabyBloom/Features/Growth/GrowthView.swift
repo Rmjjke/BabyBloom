@@ -171,7 +171,6 @@ struct GrowthView: View {
                 BBStatCard(
                     title: "stat.measurements",
                     value: "\(entries.count)",
-                    unit: "unit.times",
                     icon: "calendar",
                     color: BBTheme.Colors.diaper,
                     action: { showAddSheet = true }

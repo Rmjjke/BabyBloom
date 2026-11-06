@@ -32,7 +32,7 @@ struct FeedingReportCard: View {
         if !feeding.byType.isEmpty {
             ReportRow(format: "report.feeds_by_type_fmt".l,
                       value: ReportFormat.countList(feeding.byType.map {
-                          ReportFormat.countItem(name: Self.name(of: $0.type), count: $0.count)
+                          ReportFormat.countItem(name: $0.type.displayName.l, count: $0.count)
                       }))
         }
         if let ml = feeding.bottleMLPerDay {
@@ -42,10 +42,5 @@ struct FeedingReportCard: View {
             ReportRow(format: "report.breastfeed_avg_fmt".l, value: ReportFormat.duration(typical))
         }
         ReportDaysLine(days: feeding.days, isShort: isShort)
-    }
-
-    /// `feeding.type.breast` reads «BF» (a chip label); the report spells it out.
-    private static func name(of type: FeedingEntry.FeedingType) -> String {
-        type == .breast ? "report.type_breast".l : type.displayName.l
     }
 }

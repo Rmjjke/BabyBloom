@@ -151,14 +151,12 @@ struct SleepView: View {
                 BBStatCard(
                     title: "stat.sleep_episodes",
                     value: "\(todayEntries.count)",
-                    unit: "unit.times",
                     icon: "moon.fill",
                     color: BBTheme.Colors.sleep
                 )
                 BBStatCard(
                     title: "stat.total",
-                    value: (totalSleepToday / 3600).appDecimal(1),
-                    unit: "unit.hours",
+                    value: DurationText.minutes(Int(totalSleepToday) / 60),
                     icon: "clock.fill",
                     color: BBTheme.Colors.primary
                 )

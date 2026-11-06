@@ -27,9 +27,8 @@ are `teamdocs/design/m1-weekly-summary.md`.
 - Averages are per day **over the days with entries**, and the card says so
   in `weekly.days_logged_fmt` ("Averages over the days with entries: 5 of
   7"): a forgotten day is not "the baby slept less".
-  - The app shows the line when N < 7. A full week is to show it too ("7 of
-    7"): in testing, a reader of a full week asked whether «Feeds a day: 8»
-    was an average.
+  - The line shows on every week, a full one too ("7 of 7"): in testing, a
+    reader of a full week asked whether «Feeds a day: 8» was an average.
   - The row labels keep "a day". With "average" in them, the label is 55–90
     pt longer in every language and no longer fits beside its delta on a
     320 pt screen at the default text size. An abbreviation ("avg.", «в
@@ -171,3 +170,5 @@ hint.
   Notifications › Weekly summary: when the notification comes.
 - 2026-11-04 — `weekly.hidden` and `weekly.undo`, the line the card folds to
   after ×, and `weekly.legend`, one line under the rows for the arrows.
+- 2026-11-04 — The days-with-entries line shows on every week, a full one
+  too ("7 of 7"), not only when a day is missing.

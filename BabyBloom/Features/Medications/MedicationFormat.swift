@@ -22,16 +22,8 @@ enum MedicationFormat {
     /// A no-break space before the dot, so a wrapped line never opens with it.
     static let separator = "\u{00A0}· "
 
-    /// "6 h", "1 h 30 min", "45 min". The duration keys carry their no-break
-    /// spaces, so a number never leaves its unit.
-    static func duration(minutes: Int) -> String {
-        let minutes = max(0, minutes)
-        if minutes < 60 { return String(format: "duration.min_only".l, minutes) }
-        let hours = minutes / 60, rest = minutes % 60
-        return rest == 0
-            ? String(format: "duration.h_only".l, hours)
-            : String(format: "duration.h_min".l, hours, rest)
-    }
+    /// "6 h", "1 h 30 min", "45 min".
+    static func duration(minutes: Int) -> String { DurationText.minutes(minutes) }
 
     /// The time since a dose, or nil under a minute. From two days it counts
     /// days: "73 h ago" would leave the arithmetic to the parent.

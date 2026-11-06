@@ -309,6 +309,16 @@ change — iOS reuses the extension process — so the provider calls
 reload when the language changes rather than leaving the widget stale for up
 to 15 minutes.
 
+**A span of time has one writer.** `DurationText.minutes`
+(`Core/Localization/DurationText.swift`) writes whole minutes as «45 мин»,
+«1 ч», «1 ч 15 мин» for every screen, the widget, the weekly card, medications
+and the export. Each caller turns seconds into minutes its own way: a clock
+floors, a countdown rounds up. Seconds show only under a minute and on a
+running timer. A count carries no unit word: a stat tile shows the figure
+alone, and a progress card reads «0 из 6» (`progress.of_fmt`), or «10 из 14 ч»
+for a measured target (`progress.of_unit_fmt`). A duration tile keeps its unit
+words inside the value, drawn smaller than the figures.
+
 ## Theming and typography
 
 The palette is **entirely** in the Asset Catalog
