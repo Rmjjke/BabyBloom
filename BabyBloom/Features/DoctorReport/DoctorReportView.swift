@@ -118,11 +118,11 @@ struct DoctorReportView: View {
     private func periodHeader(latest: DoctorVisit?, periodStart: Date) -> some View {
         if let latest {
             let days = DoctorPeriod.periodDays(from: periodStart, to: AppClock.now)
-            let length = days == 0 ? "report.period_today".l : "\(days) \(days.dayWord)"
             Button { detailVisit = latest } label: {
                 HStack(spacing: BBTheme.Spacing.sm) {
                     BBTheme.Typography.callout(String(format: "report.since_visit_fmt".l,
-                                                      latest.date.appDayMonth, length))
+                                                      ReportFormat.dayMonth(latest.date),
+                                                      ReportFormat.periodLength(days: days)))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)

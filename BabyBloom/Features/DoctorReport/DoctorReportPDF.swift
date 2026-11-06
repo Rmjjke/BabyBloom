@@ -268,9 +268,7 @@ enum DoctorReportPDF {
     }
 
     private static func periodLength(_ summary: DoctorReportSummary) -> String {
-        summary.periodDays == 0
-            ? "report.period_today".l
-            : "\(summary.periodDays)\(ReportFormat.nbsp)\(summary.periodDays.dayWord)"
+        ReportFormat.periodLength(days: summary.periodDays)
     }
 
     // MARK: Growth

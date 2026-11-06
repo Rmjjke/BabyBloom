@@ -1,7 +1,7 @@
 import Foundation
 
 /// Number + unit formats. Every unit is glued to its number with a
-/// no-break space (DECISIONS 2026-10-30), so a line never starts with «kg».
+/// no-break space (DECISIONS 2026-11-06), so a line never starts with «kg».
 enum ReportFormat {
     static let nbsp = "\u{00A0}"
     /// «·» glued to the item before it: a wrapped list breaks AFTER the dot,
@@ -28,6 +28,16 @@ enum ReportFormat {
 
     /// «> 97» held together.
     static func glued(_ text: String) -> String { text.replacingOccurrences(of: " ", with: nbsp) }
+
+    /// The screen's day and month, «13 окт.» held together. No year: the
+    /// screen reads the current period, the PDF (a record read later) adds it.
+    static func dayMonth(_ date: Date) -> String { glued(date.appDayMonth) }
+
+    /// «20 days», or «today» for a visit today: the period's length, one
+    /// writer for the screen and the PDF.
+    static func periodLength(days: Int) -> String {
+        days == 0 ? "report.period_today".l : "\(days)\(nbsp)\(days.dayWord)"
+    }
 
     static func kg(_ value: Double) -> String { "\(value.appDecimal(2))\(nbsp)\("unit.kg".l)" }
     static func cm(_ value: Double) -> String { "\(value.appDecimal(1))\(nbsp)\("unit.cm".l)" }

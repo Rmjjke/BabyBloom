@@ -568,7 +568,13 @@ label answered a custom ideal stood its List row as tall as that label's
 ideal. So each draws the plain system row and answers `ViewThatFits` from
 hidden copies (`ProbedIdealWidth`): the same switch row one word a line, or
 the icon's column plus each text's first word in the body font the Label sets
-on its title.
+on its title. Settings' baby row (`SettingsBabyRowLabel`) goes the same way at
+the accessibility sizes: the avatar beside the name and the age while a hidden
+copy of the row one word a line fits, else the avatar and the chevron on a
+line above them, sm 8 apart. The age's no-break space keeps «11 месяцев» one
+word in that copy, but a glued phrase wider than its line is broken at the
+no-break space, so it is the row's room, not the glue, that keeps it whole
+beside the 56-pt avatar.
 
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while
@@ -1493,7 +1499,10 @@ each caller passes in, never in the core. The share button ⑩ (Premium) makes
 `DoctorReportPDF`: an HTML page over the SAME `DoctorReportSummary` and the
 same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
 the export and the weekly card), so the PDF cannot print a number
-the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
+the screen does not; the screen's period length and dates are the PDF's
+`ReportFormat.periodLength` and `dayMonth`, glued by a no-break space, and the
+age is `Baby.describeAge`'s, glued where it is made. `DoctorReportPDFTests`
+pins that as strings, and scans
 the page for a closed list of verdict words. Medications given in the
 period (`summary.medications`: a medicine's doses together, older events by
 their trimmed, case-insensitive name beside them, nameless ones in one line;
