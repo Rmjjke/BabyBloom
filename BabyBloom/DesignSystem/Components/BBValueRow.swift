@@ -8,13 +8,18 @@ import SwiftUI
 /// accessibility sizes — the value moves under the title instead of cutting a
 /// word in half beside it.
 ///
-/// Two fits:
+/// Three fits:
 /// - `.bySize` (default): beside below the accessibility sizes, the title
 ///   wrapping as it must; under at them. Right where the title is a short label
 ///   and a wrapped one still reads as a label.
 /// - `.byFit`: beside only while the title fits on ONE line next to the value;
 ///   otherwise under, at any size. Right where a wrapped title next to its value
 ///   would stand on broken words (a long title in a narrow window at Large).
+/// - `.byWords`: beside while every word of the title keeps whole next to the
+///   value, the title wrapping between them; otherwise under. The title side
+///   states that width itself: its ideal width is its widest word
+///   (`WidestWordIdeal`). Right where the value grows with the text size and
+///   a size cannot tell whether the words still fit beside it.
 ///
 /// `underSpacing` is the gap above a value under its title: xs 4, or 2 in a
 /// Settings row, where it matches the hints under the switch titles.
@@ -23,7 +28,7 @@ import SwiftUI
 /// leads with a glyph marks its text with `.alignmentGuide(.bbValueRowTitle)`;
 /// without the mark the value starts at the title side's leading edge.
 struct BBValueRow<Title: View, Value: View>: View {
-    enum Shape { case bySize, byFit }
+    enum Shape { case bySize, byFit, byWords }
 
     private let shape: Shape
     private let underSpacing: CGFloat
@@ -44,13 +49,24 @@ struct BBValueRow<Title: View, Value: View>: View {
     var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             under
-        } else if shape == .byFit {
-            ViewThatFits(in: .horizontal) {
-                beside(oneLine: true)
-                under
-            }
         } else {
-            beside(oneLine: false)
+            switch shape {
+            case .bySize:
+                beside(oneLine: false)
+            case .byFit:
+                ViewThatFits(in: .horizontal) {
+                    beside(oneLine: true)
+                    under
+                }
+            case .byWords:
+                // ViewThatFits reads the ideal width, which the title side
+                // sets at its widest word; a row that fits then draws with
+                // the title wrapping in whatever room it gets.
+                ViewThatFits(in: .horizontal) {
+                    beside(oneLine: false)
+                    under
+                }
+            }
         }
     }
 

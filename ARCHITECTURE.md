@@ -535,7 +535,7 @@ and en and es, whose widest tile is the plate, stay four.
 A title with one trailing value is a `BBValueRow`
 (`DesignSystem/Components/BBValueRow.swift`): Settings' Premium row and its
 badge, the measure sliders' and the bottle volume's figure, `BBProgressCard`'s
-count, Export's category «0», a plan row's badge and the iCloud Sync state.
+figure, Export's category «0», a plan row's badge and the iCloud Sync state.
 The value keeps its one-line width and the title wraps beside it, between
 words only; at accessibility sizes the value stands under the title, lined up
 with the title's text: where a glyph leads the title (`BBProgressCard`), the
@@ -545,7 +545,15 @@ else under it at any size: on a 320-pt screen at Large the ru and es iCloud
 Sync titles miss that line, and beside the value «Синхронизация» broke inside
 the word. That row is one Label around the title, the state and the hint, as
 the switch rows hold theirs, so the state and the hint start at the title's x,
-and it stays one VoiceOver element. The medication menu's label stands above
+and it stays one VoiceOver element. `.byWords` keeps the value beside while
+every word of the title stays whole next to it, the title wrapping between
+them, else under it: `BBProgressCard`'s figure and glyph grow with the text
+(`BBProgressCard.Face`, all relative to `.body`, the figure 13 : 14 with its
+title), so a size alone cannot say whether a word still fits; the title's ideal
+width is its widest word (`WidestWordIdeal`), which `ViewThatFits` reads. On
+320 pt the closest is es «Sueño» beside its widest sleep line at xxxLarge with
+Bold Text, 2.3 pt to spare; under the title at AX2 that line in ru with Bold
+Text runs 3 pt past the card and wraps between its words. The medication menu's label stands above
 its menu at every size, not beside it below the accessibility sizes: a long
 running name squeezed it. The Export format tiles keep 8 pt a side inside the
 outline and take the taller tile's height, so the two stay one row. The
