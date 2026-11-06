@@ -349,19 +349,29 @@ struct BBProgressCard: View {
     let title: String
     let current: Double
     let target: Double
-    /// A unit key for a measured target («10 of 14 h»); nil for a count
-    /// («0 of 6»).
-    var unit: String? = nil
+    var measure: Measure = .count
     let color: Color
     let icon: String
 
+    /// A count reads «0 of 6». Hours are a span of time, so both sides go
+    /// through the duration writer: «2 h 55 min of 14 h», the same total the
+    /// Sleep tile shows, where whole hours read «2 of 14 h».
+    enum Measure { case count, hours }
+
     private var progress: Double { min(current / max(target, 1), 1.0) }
 
-    /// Not glued: the key holds the unit to its number, and the words between
-    /// the two numbers may wrap at the accessibility sizes.
-    static func valueText(current: Double, target: Double, unit: String?) -> String {
-        guard let unit else { return String(format: "progress.of_fmt".l, Int(current), Int(target)) }
-        return String(format: "progress.of_unit_fmt".l, Int(current), Int(target), unit.l)
+    /// Not glued between the two sides: each duration keeps the writer's glue,
+    /// and the word between them may wrap at the accessibility sizes.
+    static func valueText(current: Double, target: Double, measure: Measure) -> String {
+        switch measure {
+        case .count:
+            return String(format: "progress.of_fmt".l, Int(current), Int(target))
+        case .hours:
+            // Seconds rounded first, then floored to the minute, as the Sleep
+            // tile does, so 2.9999… h reads «3 h» on both.
+            let done = DurationText.minutes(Int((current * 3600).rounded()) / 60)
+            return String(format: "progress.of_duration_fmt".l, done, DurationText.minutes(Int(target) * 60))
+        }
     }
 
     var body: some View {
@@ -379,7 +389,7 @@ struct BBProgressCard: View {
                         .alignmentGuide(.bbValueRowTitle) { $0[.leading] }
                 }
             } value: {
-                Text(Self.valueText(current: current, target: target, unit: unit))
+                Text(Self.valueText(current: current, target: target, measure: measure))
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
