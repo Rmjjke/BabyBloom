@@ -10,9 +10,16 @@ are `teamdocs/design/m1-weekly-summary.md`.
   Monday (`weekly.a11y_hide`).
 - Lines are **label: value** (`Кормлений в день: 7,4`), so a decimal never
   meets a Russian plural form, and they stack cleanly at accessibility sizes.
-- Averages are per day **over the days with entries**, with
-  `weekly.days_logged_fmt` ("Days with entries: 5 of 7") whenever N < 7: a
-  forgotten day is not "the baby slept less".
+- Averages are per day **over the days with entries**, and the card says so
+  in `weekly.days_logged_fmt` ("Averages over the days with entries: 5 of
+  7"): a forgotten day is not "the baby slept less".
+  - The app shows the line when N < 7. A full week is to show it too ("7 of
+    7"): in testing, a reader of a full week asked whether «Feeds a day: 8»
+    was an average.
+  - The row labels keep "a day". With "average" in them, the label is 55–90
+    pt longer in every language and no longer fits beside its delta on a
+    320 pt screen at the default text size. An abbreviation ("avg.", «в
+    ср.») would break the full-word rule.
 - Comparison is two plain numbers: the delta is an arrow and a number in a
   neutral colour, and `weekly.previous_fmt` gives the week before. No word
   grades the change.
@@ -91,3 +98,6 @@ off all of the app's notifications in iOS, feeding reminders included.
   `duration.h_only`.
 - 2026-11-02 — en `duration.*` get spaces: "1 h 20 min", the same form as ru
   and es.
+- 2026-11-04 — `weekly.days_logged_fmt` says that the rows are averages:
+  "Averages over the days with entries: %d of 7" / «Среднее по дням с
+  записями: %d из 7» / «Promedio de los días con registros: %d de 7».

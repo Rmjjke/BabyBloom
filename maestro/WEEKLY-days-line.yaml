@@ -1,0 +1,59 @@
+# The weekly card's days line shows on every week. The card's rows («a day»)
+# are averages over the days with entries, and the line names that basis on a
+# full week («7 of 7») as on a week with gaps («5 of 7»; the gaps seed logs
+# feeds and sleep on 4 days, and its Sunday weighing makes a 5th).
+#
+# The count is glued to «of 7» with no-break spaces, so the selectors match
+# those two gaps with «.», not a space.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "weekly.card"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Averages over the days with entries: 7.of.7"
+    visibilityPercentage: 100
+    centerElement: true
+    timeout: 10000
+- assertVisible: "Averages over the days with entries: 7.of.7"
+
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBSeedScenario": "weeklyGaps"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "weekly.card"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Averages over the days with entries: 5.of.7"
+    visibilityPercentage: 100
+    centerElement: true
+    timeout: 10000
+- assertVisible: "Averages over the days with entries: 5.of.7"

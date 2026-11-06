@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — The weekly card's days line shows on every week, a full one too
+
+The weekly card's rows («Feeds a day», «Sleep a day») are averages over the days with entries. The line under them names that basis on every week: «Averages over the days with entries: 7 of 7» on a full week, «5 of 7» with gaps. It used to show only when a day was missing.
+
+**Why.** A label with «average» in it does not fit beside the row's delta on a 320-pt phone: measured in en, ru and es, 11 of the 12 rows are over their room. Abbreviations would break the rule that words are whole. A caption under the rows wraps, so it fits every width and every text size. Hidden on a full week, it left the rows reading «a day» with nothing to say what they average over, and a full week is the common case. The pediatrician report keeps showing its days line only when a day of its period is missing: its words are the same, but when it shows was not changed.
+
 ## 2026-11-04 — Home's quick actions stand four in a row while their words fit; the Feeding quick caption keeps 4 pt a side; Home's sleep card reads hours
 
 **Home's quick actions follow the fit.** Two by two on every phone (the entry below) moved everything under the card 94.7 pt down on the default Home of every phone to save a 320-pt one. That is the trade turned down for the Diaper, profile and Feeding rows, and Home is the screen every parent opens. No padding or shorter word reaches 320 pt: a quarter of the card less the spare is 56 pt, ru «Кормление» is 67.1 and «Подгузники» 71.1, and they are the names of the screens the tiles open. So the row stands four in a row while every action's word fits a quarter of the card as drawn, else two by two, and one column at accessibility sizes. The check is live, in the app's language, at the text size and with Bold Text, so there is no width table to go stale and no measuring error: at Large that is four on 375 pt (ru «Подгузники» 6.7 pt to spare, 2.8 with Bold Text) and 402 pt; on 320 pt ru goes two by two, and en and es stay four, because their widest tile is its 60-pt icon plate, which fits the 64-pt quarter. It is the one equal-column row with two shapes at one size; every other row keeps one count per size, because its words would set some phones' default screens in two shapes for the price of none.
