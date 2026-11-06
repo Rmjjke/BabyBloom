@@ -552,8 +552,11 @@ them, else under it: `BBProgressCard`'s figure and glyph grow with the text
 title), so a size alone cannot say whether a word still fits; the title's ideal
 width is its widest word (`WidestWordIdeal`), which `ViewThatFits` reads. On
 320 pt the closest is es «Sueño» beside its widest sleep line at xxxLarge with
-Bold Text, 2.3 pt to spare; under the title at AX2 that line in ru with Bold
-Text runs 3 pt past the card and wraps between its words. The medication menu's label stands above
+Bold Text, 2.3 pt to spare. Under its title the value is offered only the
+width left past the mark (`UnderTitle`, a `Layout`): a stack aligned on the
+mark shifts the value but offers it the row's whole width, and at AX2 the ru
+sleep line with Bold Text then ran past the card's inner edge instead of
+wrapping; now it wraps between its words. The medication menu's label stands above
 its menu at every size, not beside it below the accessibility sizes: a long
 running name squeezed it. The Export format tiles keep 8 pt a side inside the
 outline and take the taller tile's height, so the two stay one row. The

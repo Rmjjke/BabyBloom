@@ -143,6 +143,26 @@ final class ProgressCardScaleTests: XCTestCase {
         }
     }
 
+    /// Under its title the figure gets only the room past the glyph: a point
+    /// short of the row's one-line width, where the figure alone would still
+    /// fit, it wraps between its words rather than running past the edge.
+    func testUnderTheTitleTheFigureWrapsInTheRoomPastTheGlyph() throws {
+        try inLanguage("en") {
+            let card = cards()[1]
+            for (category, size) in Self.sizes where size.isAccessibilitySize {
+                for figure in card.figures {
+                    let label = "\(size) «\(figure)»"
+                    let row = progressRow(card, figure, category, size, bold: false)
+                    let oneLine = idealWidth(row)
+                    let alone = idealWidth(Text(figure).font(Face.figure.font(for: category)))
+                    XCTAssertLessThan(alone, oneLine - 1, "the glyph's room, \(label)")
+                    XCTAssertGreaterThan(height(row, width: oneLine - 1), height(row, width: oneLine) + 1,
+                                         "wraps past the glyph, \(label)")
+                }
+            }
+        }
+    }
+
     // MARK: - Cards
 
     /// The four progress cards in the app's order (Home's three, then the
