@@ -509,11 +509,16 @@ own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
 about words, not the whole line. The diaper norm editor's stepper card
-(− digits +) keeps the column's xl inset: with xl between each symbol and the
-digits and inside the card it needs 312 pt, more than the 256 a 320-pt
-column leaves and a point more than 375 pt's, so there md takes their place
-(248 pt). The editor scrolls once its content is taller than the sheet (above
-Large on a 320-pt phone) and does not bounce where it fits. The weekly card's
+(− digits +) keeps the column's xl inset, as Save: with xl between each
+symbol and the digits and inside the card it needs 313 pt with «12», 2 more
+than a 375-pt column leaves. Where that misses, the card takes the column's
+width, and its four gaps, the two inner sides and the two beside the digits,
+share what the symbols and the digits leave, equal and md at least: 31.4 pt
+each on 375 pt and 17.7 on 320 at Large. Below md the digits shrink.
+The digits are sized before the gaps (`layoutPriority`): the stack's equal
+offer would shrink them above Large while the gaps still had room. The
+editor scrolls once its content is taller than the sheet (above Large on a
+320-pt phone) and does not bounce where it fits. The weekly card's
 three value rows (feeds, sleep, gain) take one shape together: each on one
 line, its delta at the row's end, while every shown row fits there at full
 size, else all three with the delta under the value, as at the accessibility

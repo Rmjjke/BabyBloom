@@ -318,12 +318,14 @@ struct DiaperNormEditorSheet: View {
                             .padding(.horizontal)
                     }
 
-                    // The card keeps the column's inset. With xl around the
-                    // digits and inside it, it needs 312 pt, more than the 256
-                    // a 320-pt column leaves; there md takes their place.
+                    // The card keeps the column's inset, as Save. With xl
+                    // around the digits and inside it, it needs 313 pt with
+                    // «12», 2 more than a 375-pt column leaves. Where it
+                    // misses, it takes the column and its gaps share the rest,
+                    // so it changes by the room it lacks, not by 64 pt for 2.
                     ViewThatFits(in: .horizontal) {
-                        stepper(spacing: BBTheme.Spacing.xl)
-                        stepper(spacing: BBTheme.Spacing.md)
+                        spacedStepper
+                        fillingStepper
                     }
                     .padding(.horizontal, BBTheme.Spacing.xl)
 
@@ -350,46 +352,78 @@ struct DiaperNormEditorSheet: View {
         }
     }
 
-    /// − digits +, `spacing` between each symbol and the digits and inside
-    /// the card's sides.
-    private func stepper(spacing: CGFloat) -> some View {
-        HStack(spacing: spacing) {
-            Button {
-                if dailyNorm > 1 { dailyNorm -= 1 }
-            } label: {
-                Image(systemName: "minus.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
-            }
-            .disabled(dailyNorm <= 1)
-            // The goal as each button's value: VoiceOver speaks the new
-            // number after a tap, as it does on a stepper.
-            .accessibilityLabel(Text("diaper.norm.a11y_decrease".l))
-            .accessibilityValue(Text("\(dailyNorm)"))
+    /// − digits +, xl between each symbol and the digits and inside the
+    /// card's sides.
+    private var spacedStepper: some View {
+        card(HStack(spacing: BBTheme.Spacing.xl) {
+            decreaseButton
+            digits
+            increaseButton
+        }, inset: BBTheme.Spacing.xl)
+    }
 
-            Text("\(dailyNorm)")
-                .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .frame(minWidth: 80)
+    /// − digits + across the whole column: the card's two inner sides and
+    /// the two gaps beside the digits are equal and grow with the room, md
+    /// at least. Below md the digits shrink.
+    private var fillingStepper: some View {
+        card(HStack(spacing: 0) {
+            Spacer(minLength: BBTheme.Spacing.md)
+            decreaseButton
+            Spacer(minLength: BBTheme.Spacing.md)
+            // The digits are sized first: the stack would offer them an equal
+            // share with the gaps, less than their width above Large, and
+            // shrink them while the gaps still had room.
+            digits.layoutPriority(1)
+            Spacer(minLength: BBTheme.Spacing.md)
+            increaseButton
+            Spacer(minLength: BBTheme.Spacing.md)
+        }, inset: 0)
+    }
 
-            Button {
-                if dailyNorm < 20 { dailyNorm += 1 }
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 44))
-                    .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
-            }
-            .disabled(dailyNorm >= 20)
-            .accessibilityLabel(Text("diaper.norm.a11y_increase".l))
-            .accessibilityValue(Text("\(dailyNorm)"))
+    private func card(_ row: some View, inset: CGFloat) -> some View {
+        row
+            .padding(.vertical, BBTheme.Spacing.lg)
+            .padding(.horizontal, inset)
+            .background(BBTheme.Colors.surface)
+            .cornerRadius(BBTheme.Radius.lg)
+            .bbShadow(BBTheme.Shadow.card)
+    }
+
+    private var decreaseButton: some View {
+        Button {
+            if dailyNorm > 1 { dailyNorm -= 1 }
+        } label: {
+            Image(systemName: "minus.circle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm > 1 ? 1 : 0.3))
         }
-        .padding(.vertical, BBTheme.Spacing.lg)
-        .padding(.horizontal, spacing)
-        .background(BBTheme.Colors.surface)
-        .cornerRadius(BBTheme.Radius.lg)
-        .bbShadow(BBTheme.Shadow.card)
+        .disabled(dailyNorm <= 1)
+        // The goal as each button's value: VoiceOver speaks the new
+        // number after a tap, as it does on a stepper.
+        .accessibilityLabel(Text("diaper.norm.a11y_decrease".l))
+        .accessibilityValue(Text("\(dailyNorm)"))
+    }
+
+    private var digits: some View {
+        Text("\(dailyNorm)")
+            .font(BBTheme.Typography.scaled(64, relativeTo: .largeTitle, weight: .semibold, design: .rounded).monospacedDigit())
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+            .frame(minWidth: 80)
+    }
+
+    private var increaseButton: some View {
+        Button {
+            if dailyNorm < 20 { dailyNorm += 1 }
+        } label: {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(BBTheme.Colors.primary.opacity(dailyNorm < 20 ? 1 : 0.3))
+        }
+        .disabled(dailyNorm >= 20)
+        .accessibilityLabel(Text("diaper.norm.a11y_increase".l))
+        .accessibilityValue(Text("\(dailyNorm)"))
     }
 }
 
