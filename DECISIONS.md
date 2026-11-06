@@ -14,6 +14,12 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-04 — The weekly gain line without a number says what is missing, and asks for a weighing only where one helps
+
+When no weighing pair ends in the week, the gain line has four cases, judged on every weighing logged up to now, not only up to the week's end, and taken in this order. A pair whose later weighing is after the week: «This week's weighing will show the gain here next Monday», with no button. A pair that ended before the week: «Weigh your baby, and the gain will show here next week», with «Add a weighing». Weighings with no two at least 3 days apart: «One more weighing, at least 3 days after the first, …», with the button. No weighing at all: «Two weighings at least 3 days apart …», with the button. The newborn window still comes first. A pair that ends after the week but inside the newborn window (the window closed this week, the weighing came before it did) takes the older pair's line and button: next Monday's card withholds that pair as well, so «next Monday» would be a promise it cannot keep, and the weighing that ends the window is the next step.
+
+**Why.** One line for all four asked every parent to weigh, including one who had weighed that week; a weighing then changes nothing until Monday, so the button sent them to repeat it. «Weigh, and the gain shows next week» is true only where an earlier weighing exists to pair with, so it keeps that case alone. With one weighing, the next one helps only 3 days or more after it, so the line says «after the first»: a parent who weighed yesterday learns that a weighing today gives nothing. Judging up to the week's end would miss the weighing made this week, which is the one the parent remembers.
+
 ## 2026-11-04 — The weekly card's days line shows on every week, a full one too
 
 The weekly card's rows («Feeds a day», «Sleep a day») are averages over the days with entries. The line under them names that basis on every week: «Averages over the days with entries: 7 of 7» on a full week, «5 of 7» with gaps. It used to show only when a day was missing.
