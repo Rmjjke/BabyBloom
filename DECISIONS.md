@@ -14,6 +14,22 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
+
+**The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; Content's closed no-verdict list is a test (`DoctorReportPDFTests`).
+- Past the chart's edge it prints «> 97» / «< 3» (`PercentileReading.badge`), never a clamped 99 or 1.
+- The number comes from `WHOGrowthStandard`, the same functions the Growth screen uses.
+
+**Why.** A percentile is a position on the WHO chart, which is what a doctor plots anyway. A band word turns that position into a judgement, and that is where the 2026-09-05 line sits. A second implementation in the exporter was the risk that entry named; the report reads the one in `Core/Growth`.
+
+**Numbers: PDFs in the app language, CSV invariant.** Every PDF the app makes, the report and the existing export, prints numbers in the app language («4,25 кг» in ru), with localized units glued by a no-break space. The CSV keeps a dot decimal (en_US_POSIX) and puts the units in the column headers.
+
+**Why.** A PDF is read by a person, possibly a doctor in Russia or Spain. A CSV is read by spreadsheets and scripts, where a comma decimal inside a comma-separated file breaks every column after it.
+
+The export's «a day» figures use the report's rule: `PeriodSummary` over finished days, divided by days with entries. A week or month range starts mid-day («now minus 7 days»), so its cut first day is left out too and the span starts at the next midnight. So the export and the report never print two different averages for the same days.
+
+---
+
 ## 2026-11-01 — The pediatrician report counts its period its own way, on the weekly card's day core
 
 `PeriodSummary` buckets any `[start, end)` into calendar days. The weekly card is a 7-day instance of it, and the report is "since the last visit". Each caller decides what goes in. The report differs from the weekly card in four places:
@@ -1166,6 +1182,10 @@ reading to be the highest handed the green tick back to any baby whose final
 weighing wobbled a little below the one before it.
 
 ## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
+
+> **Amended 2026-11-02** (M2, plan v2 decision 7): the pediatrician report and
+> its PDF print the WHO percentile NUMBER for weight and length. See the entry
+> of that date. Everything else here stands.
 
 `ExportGenerator` writes raw growth rows — date, weight, height, head — and no
 percentile, gain band or centile-trend verdict. Verified, not merely observed:

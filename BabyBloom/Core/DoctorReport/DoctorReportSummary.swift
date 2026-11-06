@@ -72,6 +72,8 @@ struct DoctorReportSummary: Equatable {
         let weightKg: Double
         /// A height logged on the same day, if any.
         let heightCm: Double?
+        /// A head circumference logged on the same day, if any (the PDF's column).
+        var headCm: Double? = nil
     }
 
     struct Growth: Equatable {

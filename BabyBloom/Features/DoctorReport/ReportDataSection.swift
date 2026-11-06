@@ -24,10 +24,8 @@ struct ReportDataSection: View {
         self.startsAtVisit = startsAtVisit
         self.baby = baby
         self.onAddWeighing = onAddWeighing
-        let start = periodStart
-        // A night that crosses the start counts by its part inside (R2.2), and
-        // no sleep is longer than a day and a half.
-        let sleepsFrom = periodStart.addingTimeInterval(-36 * 3600)
+        // The same window the share button's fetch uses.
+        let (start, sleepsFrom) = DoctorReportSummary.Input.window(periodStart: periodStart)
         _feeds = Query(filter: #Predicate<FeedingEntry> { $0.startTime >= start })
         _sleeps = Query(filter: #Predicate<SleepEntry> { $0.startTime >= sleepsFrom })
         _diapers = Query(filter: #Predicate<DiaperEntry> { $0.time >= start })

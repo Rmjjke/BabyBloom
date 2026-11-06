@@ -52,8 +52,8 @@ carry the canonical invocations and how to report results.
 
 The palette lives entirely in the Asset Catalog
 (`BabyBloom/Resources/Assets.xcassets/Colors/`). Re-theming = colorset edits
-+ the two splash PNGs + the hex constants in `ExportGenerator` (the PDF
-renderer cannot read the Asset Catalog). Never hardcode a colour in a view.
++ the two splash PNGs + the hex constants in `ExportGenerator` and
+`DoctorReportPDF` (the PDF renderer cannot read the Asset Catalog). Never hardcode a colour in a view.
 
 ## Conventions
 

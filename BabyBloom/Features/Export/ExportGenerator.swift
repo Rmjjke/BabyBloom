@@ -13,12 +13,12 @@ enum ExportDateRange: String, CaseIterable {
     case threeMonths = "export.range.three_months"
     case all        = "export.range.all"
 
-    func startDate() -> Date? {
+    func startDate(now: Date = Date()) -> Date? {
         let cal = Calendar.current
         switch self {
-        case .week:        return cal.date(byAdding: .day,   value: -7,  to: Date())
-        case .month:       return cal.date(byAdding: .month, value: -1,  to: Date())
-        case .threeMonths: return cal.date(byAdding: .month, value: -3,  to: Date())
+        case .week:        return cal.date(byAdding: .day,   value: -7,  to: now)
+        case .month:       return cal.date(byAdding: .month, value: -1,  to: now)
+        case .threeMonths: return cal.date(byAdding: .month, value: -3,  to: now)
         case .all:         return nil
         }
     }
@@ -115,6 +115,9 @@ struct ExportGenerator {
         fields.map(csvField).joined(separator: ",")
     }
 
+    // The numeric cells below use `String(format:)` on purpose: it always writes
+    // a dot, so a comma decimal never lands inside a comma-separated file. The
+    // unit lives in the column header, never in the cell.
     private static func feedingCSV(_ entries: [FeedingEntry]) -> String {
         var rows = [csvRow(["export.csv.date".l, "export.csv.time".l, "export.csv.type".l,
                             "export.csv.side".l, "export.csv.volume_ml".l, "export.csv.duration_min".l])]
@@ -202,7 +205,8 @@ struct ExportGenerator {
 
     // MARK: - HTML Builder
 
-    private static func buildHTML(
+    /// Internal for @testable: the number format is pinned on the HTML itself.
+    static func buildHTML(
         baby: Baby?,
         feedings: [FeedingEntry],
         sleeps: [SleepEntry],
@@ -222,11 +226,13 @@ struct ExportGenerator {
 
         // Summary stats
         let totalFeedMin = Int(feedings.filter { !$0.isActive }.reduce(0) { $0 + $1.duration } / 60)
-        let totalSleepH  = String(format: "%.1f", sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600)
+        // Every figure below is prose, so it speaks the app language; the CSV
+        // keeps its own invariant dot decimal.
+        let totalSleepH  = (sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600).appDecimal(1)
+        // A running feed is not a feed yet; the report leaves it out of its rate too.
         let avgFeedPerDay = averagePerDay(
-            count: feedings.count,
-            range: range,
-            earliest: feedings.map(\.startTime).min()
+            dates: feedings.filter { !$0.isActive }.map(\.startTime),
+            range: range
         )
 
         var sections = ""
@@ -240,14 +246,20 @@ struct ExportGenerator {
         if categories.contains(.feeding) {
             sections += """
             <div class="stat"><span class="val">\(feedings.count)</span><span class="lbl">\("export.cat.feeding".l)</span></div>
-            <div class="stat"><span class="val">\(totalFeedMin) min</span><span class="lbl">\("export.summary.total_time".l)</span></div>
-            <div class="stat"><span class="val">\(String(format: "%.1f", avgFeedPerDay))/\("filter.day".l.lowercased())</span><span class="lbl">\("export.summary.avg".l)</span></div>
+            <div class="stat"><span class="val">\(minutesText(totalFeedMin))</span><span class="lbl">\("export.summary.total_time".l)</span></div>
             """
+            // No finished day, no rate: a half-lived today would print a figure
+            // the report refuses to.
+            if let avgFeedPerDay {
+                sections += """
+                <div class="stat"><span class="val">\(WeeklyFormat.perDay(avgFeedPerDay))/\("filter.day".l.lowercased())</span><span class="lbl">\("export.summary.avg".l)</span></div>
+                """
+            }
         }
         if categories.contains(.sleep) {
             sections += """
             <div class="stat"><span class="val">\(sleeps.count)</span><span class="lbl">\("export.cat.sleep".l)</span></div>
-            <div class="stat"><span class="val">\(totalSleepH) h</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
+            <div class="stat"><span class="val">\(totalSleepH)\(ReportFormat.nbsp)\("unit.h".l)</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
             """
         }
         if categories.contains(.diapers) {
@@ -268,8 +280,8 @@ struct ExportGenerator {
                      timeFmt.string(from: e.startTime),
                      e.type.displayName.l,
                      e.side?.displayName.l ?? "—",
-                     e.volumeML.map { "\(Int($0)) ml" } ?? "—",
-                     "\(Int(e.duration / 60)) min"]
+                     e.volumeML.map { ReportFormat.ml($0) } ?? "—",
+                     minutesText(Int(e.duration / 60))]
                 }
             )
         }
@@ -311,9 +323,9 @@ struct ExportGenerator {
                 headers: ["export.col.date".l, "export.col.weight".l, "export.col.height".l, "export.col.head".l],
                 rows: growths.map { e in
                     [dateFmt.string(from: e.date),
-                     e.weightKg.map { String(format: "%.2f kg", $0) } ?? "—",
-                     e.heightCm.map { String(format: "%.1f cm", $0) } ?? "—",
-                     e.headCircumferenceCm.map { String(format: "%.1f cm", $0) } ?? "—"]
+                     e.weightKg.map { ReportFormat.kg($0) } ?? "—",
+                     e.heightCm.map { ReportFormat.cm($0) } ?? "—",
+                     e.headCircumferenceCm.map { ReportFormat.cm($0) } ?? "—"]
                 }
             )
         }
@@ -371,7 +383,7 @@ struct ExportGenerator {
             </div>
           </div>
           \(sections)
-          <div class="footer">Generated by \(htmlEscape("brand.name".l)) · \(generatedDate)</div>
+          <div class="footer">\(htmlEscape(String(format: "export.generated_by_fmt".l, "brand.name".l, generatedDate)))</div>
         </body>
         </html>
         """
@@ -385,15 +397,46 @@ struct ExportGenerator {
            .replacingOccurrences(of: ">", with: "&gt;")
     }
 
-    /// Average number of entries per day. For a bounded `range` the span is the
-    /// range length; for `.all` it is measured from the earliest entry so the
-    /// figure isn't diluted by an arbitrary 30-day assumption.
-    static func averagePerDay(count: Int, range: ExportDateRange, earliest: Date?, now: Date = Date()) -> Double {
-        guard count > 0 else { return 0 }
-        let start = range.startDate() ?? earliest
-        guard let start else { return Double(count) }
-        let days = max(1, Calendar.current.dateComponents([.day], from: start, to: now).day ?? 1)
-        return Double(count) / Double(days)
+    /// A name as part of a file name: no path separators or control characters,
+    /// trimmed, at most 60 characters (a long Cyrillic name in UTF-8 would
+    /// otherwise near the 255-byte limit), and the default name when blank.
+    static func fileNamePart(_ raw: String) -> String {
+        let banned = CharacterSet(charactersIn: "/\\:").union(.controlCharacters)
+        let cleaned = String(String.UnicodeScalarView(raw.unicodeScalars.filter { !banned.contains($0) }))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.isEmpty ? "baby.default_name".l : String(cleaned.prefix(60))
+    }
+
+    /// Whole minutes with the localized unit, glued so a cell never wraps «5 / min».
+    private static func minutesText(_ minutes: Int) -> String {
+        "\(minutes)\(ReportFormat.nbsp)\("unit.min".l)"
+    }
+
+    /// Entries per day over the FINISHED days `[start, startOfToday)`, divided
+    /// by the days that have an entry of this kind: the pediatrician report's
+    /// rule, so the export and the report never disagree. A half-lived today
+    /// stays out, or opening the export mid-morning would drag the figure down.
+    /// For `.all` the span starts on the earliest entry's day. A bounded range
+    /// starts at «now minus a week» mid-day, so its first day is cut and
+    /// starts at the next midnight instead. Nil without a finished day holding
+    /// an entry.
+    static func averagePerDay(dates: [Date], range: ExportDateRange, now: Date = Date(),
+                              calendar: Calendar = .current) -> Double? {
+        let start: Date
+        if let bounded = range.startDate(now: now) {
+            let day = calendar.startOfDay(for: bounded)
+            start = day == bounded ? day : calendar.date(byAdding: .day, value: 1, to: day)!
+        } else if let earliest = dates.min() {
+            start = calendar.startOfDay(for: earliest)
+        } else {
+            return nil
+        }
+        let todayStart = calendar.startOfDay(for: now)
+        guard start < todayStart else { return nil }
+        let period = PeriodSummary.make(start: start, end: todayStart,
+                                        input: PeriodSummary.Input(feeds: dates), calendar: calendar)
+        guard period.daysWithEntries > 0 else { return nil }
+        return Double(period.totalFeeds) / Double(period.daysWithEntries)
     }
 
     private static func tableSection(title: String, headers: [String], rows: [[String]]) -> String {

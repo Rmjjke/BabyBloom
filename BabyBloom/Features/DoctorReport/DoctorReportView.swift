@@ -5,7 +5,7 @@ import SwiftData
 ///
 /// Top to bottom: the name ①, the period line ②, the age ③, the questions
 /// card (④⑤⑥), then the data cards ⑦ and the footnote ⑧, all fed by one
-/// `periodStart`. The share button ⑩ joins with the PDF (m2-report-pdf).
+/// `periodStart`. The share button ⑩ sends the same period as a PDF (Premium).
 ///
 /// Pushed inside More's `NavigationStack`, so it has none of its own (the
 /// `RecentActivityView` rule).
@@ -17,7 +17,11 @@ struct DoctorReportView: View {
     @Query(sort: \DoctorQuestion.createdAt) private var questions: [DoctorQuestion]
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(SubscriptionManager.self) private var store
     @State private var sheet: DoctorReportSheet?
+    @State private var shareRequest: ShareRequest?
+    @State private var showPaywall = false
+    @State private var showWriteError = false
     @State private var pendingQuestionDeletion: DoctorQuestion?
     @State private var detailVisit: DoctorVisit?
     @State private var showAddGrowth = false
@@ -66,6 +70,31 @@ struct DoctorReportView: View {
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .navigationTitle("report.title".l)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { share(periodStart: periodStart, openQuestions: open) } label: {
+                    // The badge beside the icon, as on Events' plus: the
+                    // affordance stays readable and the gate shows.
+                    ZStack(alignment: .bottomTrailing) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(BBTheme.Colors.primary)
+                        if !store.isPremium { LockBadge().offset(x: 8, y: 6) }
+                    }
+                }
+                .disabled(baby == nil)
+                .accessibilityLabel(Text("report.a11y_share".l))
+                .bbLockedAccessibility(!store.isPremium)
+                .accessibilityIdentifier("doctor.share")
+            }
+        }
+        .sheet(item: $shareRequest) { ShareSheet(items: $0.items) }
+        .sheet(isPresented: $showPaywall) { PaywallView(source: .doctorReport) }
+        // The export screen's wording: the same failure, a full disk.
+        .alert("export.error_title".l, isPresented: $showWriteError) {
+            Button("button.close".l, role: .cancel) {}
+        } message: {
+            Text("export.error_body".l)
+        }
         .sheet(item: $sheet, onDismiss: deletePendingQuestion) { which in
             switch which {
             case .newQuestion:
@@ -117,6 +146,31 @@ struct DoctorReportView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
         }
+    }
+
+    // MARK: ⑩ Share
+
+    /// Free: the paywall. Premium: the PDF of the period on screen, built from
+    /// a fresh fetch with the same window `ReportDataSection` queries — the
+    /// button has no @Query of its own, and one rule feeds both (DECISIONS
+    /// 2026-11-02).
+    private func share(periodStart: Date, openQuestions: [DoctorQuestion]) {
+        guard store.isPremium else { showPaywall = true; return }
+        guard let baby else { return }
+        let now = AppClock.now
+        let summary = DoctorReportSummary.make(
+            input: .load(baby: baby, periodStart: periodStart, in: modelContext),
+            periodStart: periodStart, now: now,
+            startsAtVisit: DoctorPeriod.latestVisit(visits) != nil, calendar: .current)
+        let data = DoctorReportPDF.data(summary: summary, baby: baby,
+                                        openQuestions: openQuestions.map(\.text),
+                                        periodStart: periodStart, now: now)
+        // As the export screen does: never leave a health record lying in tmp.
+        ExportGenerator.cleanupExports()
+        guard let url = ExportGenerator.writeTempFile(
+            name: DoctorReportPDF.fileName(babyName: baby.name, date: now), data: data)
+        else { showWriteError = true; return }
+        shareRequest = ShareRequest(items: [url])
     }
 
     // MARK: Sheets

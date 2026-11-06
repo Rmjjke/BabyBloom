@@ -30,7 +30,7 @@ final class AnalyticsEventTests: XCTestCase {
     private static let allowList: [String: [String: Expected]] = [
         "onboarding_page_viewed":  ["page": .token(pages)],
         "onboarding_completed":    ["birth_measurements_known": .bool],
-        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events"])],
+        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report"])],
         "plan_selected":           ["plan": .token(plans)],
         "purchase_result":         ["plan": .token(plans),
                                     "result": .token(["success", "cancelled", "failed", "pending",

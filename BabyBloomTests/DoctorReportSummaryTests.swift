@@ -258,18 +258,18 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertNil(growth.change, "nothing was weighed since the visit")
     }
 
-    func testThePeriodsWeighingsAreNewestFirstWithASameDayHeight() {
+    func testThePeriodsWeighingsAreNewestFirstWithASameDayHeightAndHead() {
         let weighings = make(input(growth: [
             Growth(date: at(10, 12), weightKg: 5.3, heightCm: 59),     // before the period
             Growth(date: at(15, 12), weightKg: 5.5, heightCm: 60),
             Growth(date: at(22, 8), weightKg: 5.7),
-            Growth(date: at(22, 18), heightCm: 61),                    // height-only, same day
+            Growth(date: at(22, 18), heightCm: 61, headCm: 39),        // no weight, same day
             Growth(date: at(29, 12), weightKg: 5.9, headCm: 40),
         ])).growth.weighings
         XCTAssertEqual(weighings, [
-            .init(date: at(29, 12), weightKg: 5.9, heightCm: nil),
-            .init(date: at(22, 8), weightKg: 5.7, heightCm: 61),
-            .init(date: at(15, 12), weightKg: 5.5, heightCm: 60),
+            .init(date: at(29, 12), weightKg: 5.9, heightCm: nil, headCm: 40),
+            .init(date: at(22, 8), weightKg: 5.7, heightCm: 61, headCm: 39),
+            .init(date: at(15, 12), weightKg: 5.5, heightCm: 60, headCm: nil),
         ])
     }
 
