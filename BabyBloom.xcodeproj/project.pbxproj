@@ -183,6 +183,7 @@
 		A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */; };
 		A5DBC483D11DD0BF4ACB66B7 /* SeedScenario+Weekly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12F9DE413A81B2C7F0C6E6 /* SeedScenario+Weekly.swift */; };
 		A5EE64D635654990A9E43BDA /* LiveActivitySync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05024C51D306FE0E87B08E38 /* LiveActivitySync.swift */; };
+		A733353F694252E3D66858C5 /* SplashLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD40D55D3B5E1F0FC3DF4F3 /* SplashLayoutTests.swift */; };
 		A8108817BD3A875D98334F0A /* TypographyCapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */; };
 		A90DC4F46E6AEDDEC31D4336 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 390F8BD3D44D73D72C6D2893 /* PaywallView.swift */; };
 		A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
@@ -480,6 +481,7 @@
 		9BB1F10C69ED80D011A6321B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9BCE37B6D166A1FE0F33D57B /* FeedingAdequacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingAdequacy.swift; sourceTree = "<group>"; };
 		9C25B2EC0FCAB1DDE48B3F66 /* WHOGrowthStandard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WHOGrowthStandard.swift; sourceTree = "<group>"; };
+		9DD40D55D3B5E1F0FC3DF4F3 /* SplashLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashLayoutTests.swift; sourceTree = "<group>"; };
 		9E61620C5985E78F54CE8166 /* ru.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ru.json; sourceTree = "<group>"; };
 		9EB8FBA5F4A2DD45BFFAABAE /* DoseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseSheet.swift; sourceTree = "<group>"; };
 		A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptPolicyTests.swift; sourceTree = "<group>"; };
@@ -841,6 +843,7 @@
 				03CC50309AE3C19E308076EC /* SeedScenarioDoctorTests.swift */,
 				7CA0BA5B37E367A7D470031A /* SeedScenarioMedicineTests.swift */,
 				07A77F10CB862F9C5FB6F349 /* ShowcaseGrowthTests.swift */,
+				9DD40D55D3B5E1F0FC3DF4F3 /* SplashLayoutTests.swift */,
 				63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */,
 				504E0F822AF49E0A345783FD /* StoreFromOlderVersionsTests.swift */,
 				FC580C2B59E255CB99C83ECE /* SubscriptionPurchaseTests.swift */,
@@ -1668,6 +1671,7 @@
 				21ED729A8EAD4A9D0FDEC26A /* SeedScenarioDoctorTests.swift in Sources */,
 				CCF17AD21819833CF8971CB0 /* SeedScenarioMedicineTests.swift in Sources */,
 				DA73CEA10ADAE59986F9E867 /* ShowcaseGrowthTests.swift in Sources */,
+				A733353F694252E3D66858C5 /* SplashLayoutTests.swift in Sources */,
 				7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */,
 				B0440F746B0373BDDF645606 /* StoreFromOlderVersionsTests.swift in Sources */,
 				FF2F56DAC09076EE1E8990B0 /* SubscriptionPurchaseTests.swift in Sources */,
