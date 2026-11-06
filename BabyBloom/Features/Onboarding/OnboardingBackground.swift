@@ -38,25 +38,30 @@ struct OnboardingBackground: View {
     }
 
     var body: some View {
-        ZStack {
-            BBTheme.Colors.background
-
-            ForEach(Array(blobs.enumerated()), id: \.offset) { index, blob in
-                Circle()
-                    .fill(blob.color.opacity(blob.opacity))
-                    .frame(width: blob.size, height: blob.size)
-                    .blur(radius: blob.blur)
-                    .offset(x: blob.center.width + (drifting ? blob.travel.width : 0),
-                            y: blob.center.height + (drifting ? blob.travel.height : 0))
-                    // Staggered so the three never reach their turning points
-                    // together, which is what would give the drift a pulse.
-                    .animation(motion(delay: Double(index) * 2.5), value: drifting)
+        // The blobs ride in an overlay so the ground takes exactly the size it
+        // is offered. As layout children the largest one made the flow's
+        // stack 380 pt wide, and every page was laid out past both edges of
+        // a 320- or 375-pt screen.
+        BBTheme.Colors.background
+            .overlay {
+                ZStack {
+                    ForEach(Array(blobs.enumerated()), id: \.offset) { index, blob in
+                        Circle()
+                            .fill(blob.color.opacity(blob.opacity))
+                            .frame(width: blob.size, height: blob.size)
+                            .blur(radius: blob.blur)
+                            .offset(x: blob.center.width + (drifting ? blob.travel.width : 0),
+                                    y: blob.center.height + (drifting ? blob.travel.height : 0))
+                            // Staggered so the three never reach their turning points
+                            // together, which is what would give the drift a pulse.
+                            .animation(motion(delay: Double(index) * 2.5), value: drifting)
+                    }
+                }
             }
-        }
-        .ignoresSafeArea()
-        // Decoration only — VoiceOver must not stop on three blurred circles.
-        .accessibilityHidden(true)
-        .onAppear { drifting = true }
+            .ignoresSafeArea()
+            // Decoration only — VoiceOver must not stop on three blurred circles.
+            .accessibilityHidden(true)
+            .onAppear { drifting = true }
     }
 
     /// ~20 s each way: slow enough that the movement is felt rather than seen.

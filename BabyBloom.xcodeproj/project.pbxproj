@@ -113,6 +113,7 @@
 		5D8C5596D133C914D8334DBE /* DiaperEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */; };
 		5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */; };
 		5F7696FD2D1F3CA322202E2A /* ReviewPromptTestClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7960B4FDF7627E5762EDD95C /* ReviewPromptTestClock.swift */; };
+		5FADED8EA0733F4DF272A8EB /* OnboardingPageLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1F33EF231F6A1CC9098260C /* OnboardingPageLayoutTests.swift */; };
 		5FB583909D948E862ADA215B /* DoctorReportPDF.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D905771541728A4DD74254 /* DoctorReportPDF.swift */; };
 		5FC6419793C71B2704538F73 /* ru.json in Resources */ = {isa = PBXBuildFile; fileRef = 35CC038C14DBB4D68AC2E233 /* ru.json */; };
 		616AE957C3EFF4537B3958DB /* ExportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6BD8327747E4A21D3AF60A7 /* ExportGenerator.swift */; };
@@ -594,6 +595,7 @@
 		EFAF3FAB463AFECEC423F714 /* WeeklySummary+Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WeeklySummary+Store.swift"; sourceTree = "<group>"; };
 		F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingGrowthPreviewTests.swift; sourceTree = "<group>"; };
 		F0938FD3458DD379FDF9DF66 /* DiaperEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperEntry.swift; sourceTree = "<group>"; };
+		F1F33EF231F6A1CC9098260C /* OnboardingPageLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageLayoutTests.swift; sourceTree = "<group>"; };
 		F248C810B3E83498B057C76D /* AppSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSchema.swift; sourceTree = "<group>"; };
 		F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindowTests.swift; sourceTree = "<group>"; };
 		F2929AC87D34C9ECC3130B96 /* DoctorReportLoadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportLoadTests.swift; sourceTree = "<group>"; };
@@ -872,6 +874,7 @@
 				3F6AD9D11B7E3FE2B34D03AA /* OnboardingBabyBuilderTests.swift */,
 				DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */,
 				F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */,
+				F1F33EF231F6A1CC9098260C /* OnboardingPageLayoutTests.swift */,
 				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
 				AA5C5C9C8DACDBEAA886D35A /* PDFPagesTests.swift */,
 				A9D7CBB786BB36751F59299E /* PercentileCardRenderDump.swift */,
@@ -1722,6 +1725,7 @@
 				4C6BF8041B42FEC6F9C999A8 /* OnboardingBabyBuilderTests.swift in Sources */,
 				54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */,
 				900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */,
+				5FADED8EA0733F4DF272A8EB /* OnboardingPageLayoutTests.swift in Sources */,
 				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
 				814AA96A432675C754BF2918 /* PDFPagesTests.swift in Sources */,
 				ED958D4B266F8232386E459D /* PercentileCardRenderDump.swift in Sources */,

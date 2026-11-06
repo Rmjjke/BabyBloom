@@ -40,8 +40,9 @@ struct WidgetShowcasePage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-
+            // Centred while it fits; at the accessibility sizes on a small
+            // phone the content scrolls and the button under it stays put.
+            onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
                 BBTheme.Typography.title3("onboarding.widget.title".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -68,8 +69,8 @@ struct WidgetShowcasePage: View {
                 .opacity(appear ? 1 : 0)
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
-
-            Spacer()
+            .padding(.vertical, BBTheme.Spacing.lg)
+            }
 
             // The commitment CTA sits here, on the last page before Generating:
             // "Build my tracker" is what the loader then visibly does.

@@ -984,6 +984,16 @@ widgets, generating, premium. The first four after welcome are the quiz
 which sells rather than informs — are not, so inserting or reordering among them
 touches neither `quizProgress` nor the nav (DECISIONS 2026-09-01).
 
+`OnboardingView` stacks one `OnboardingBackground` under the page switcher in
+a `ZStack`, and a `ZStack` lays its children out in its own bounds — so the
+ground takes exactly the size it is offered: its blobs, larger than a small
+phone, are drawn in an `.overlay` of the ground colour, never as layout
+children. A page with a button of its own puts its content in
+`onboardingCenteredScroll` (centred while it fits, scrolling at the
+accessibility sizes on a small phone) and the button under it, outside the
+scroll, so the button never leaves the screen; the quiz pages scroll above
+the shared nav. `OnboardingPageLayoutTests` pins both (DECISIONS 2026-11-06).
+
 Two of those pages show the REAL product rather than a picture of it.
 `WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed
 entry. `GrowthShowcasePage` renders `PercentileCard` with the parent's own
