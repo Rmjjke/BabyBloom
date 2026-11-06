@@ -1,26 +1,26 @@
 # M1 — Live Activity and widget controls (design note)
 
-status: final — card `m1-lockscreen-design`, 2026-10-28; § 2 "Saved looks done" + stack order from `m1-saved-state-distinct` (CHECK 2) 2026-10-29; § 0 confirmed by the Dev Lead's § A5 answers 2026-10-29 (one correction: the bottle timer, D28); corrected after the design review of `live-activity-timers` 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the design review of `widget-interactive` 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31
-decisions: D5 (auto start, Settings switch), D6/D10 (free), D14 (WCAG 2.2 AA), D16 (widget control starts a feeding timer), D28 (formula/pumped feeds run as a timer → bottle state); plan v2 review round: BBOnPrimary, Lock Screen on BBSurface, design review before MERGE
-reference: `teamdocs/design/design-system.md` (P = principle, G = gap); review: `.team/desk/tasks/m1-design-review-live-activity/docs/review.md`
+status: final, 2026-10-28; § 2 "Saved looks done" + stack order 2026-10-29; § 0 confirmed against the code 2026-10-29 (one correction: the bottle timer); corrected after the Live Activity design review 2026-10-29 (§ 1 Dynamic Type caps, § 3 two-line title and the long-state "…", bottle glyph); § 5 corrected after the widget design review 2026-10-29 (row height, label steps, minutes not a ticking timer, feed row hidden while a feed runs, no Diapers area); § 5 the running-feed hero «Кормление идёт» after the design look of PR #84, 2026-10-31; § 5 the widget's plate and its words at the gradient decided 2026-11-04 (G12)
+decisions: it starts on its own with every feeding or sleep timer, on by default, with a switch in Settings to turn it off; free, because the night feed is the core moment of value and the money comes from history and charts; WCAG 2.2 AA; the widget control starts a feeding timer and the Live Activity takes over, the same record as one made in the app, with no new strings and one meaning of "a feeding"; formula and pumped feeds already run as a timer and show as running on the Dashboard, so there is a bottle state; M1 plan review: BBOnPrimary, Lock Screen on BBSurface, a design review before merge; the widget's plate one gradient in both modes, #5D4893 → #7B68B6, with every word and glyph on it in white at full strength, because every point of the plate then passes white (2026-11-04)
+reference: `teamdocs/design/design-system.md` (P = principle, G = gap)
 triggers: a timer kind added; a Live Activity presentation or widget family added; a token in § 6 renamed; the stale/dismissal policy changed; a Dynamic Type cap changed
 check: `grep -n 'case ' BabyBloom/Core/Models/SleepEntry.swift BabyBloom/Core/Models/FeedingEntry.swift BabyBloom/Features/LiveActivity/TimerActivityAttributes.swift` vs § 0 kinds; `ls WidgetResources/Colors.xcassets` vs § 6 list; `grep -n 'dynamicTypeSize' BabyBloom/Features/LiveActivity/TimerActivityViews.swift` vs § 1 caps
 
-Drawn by hand (no design tools, `ios: none`): annotated layouts plus spec
+Drawn by hand (no design tools): annotated layouts plus spec
 tables. Sizes are targets to verify on the first render, not pixel promises.
 
-## 0. What the code says (confirmed by the Dev Lead, 2026-10-29)
+## 0. What the code says (confirmed 2026-10-29)
 
 | fact | source | consequence |
 |---|---|---|
-| A **breastfeed** runs as a timer (quick start), and so does a **formula or pumped** feed: the add-feeding sheet's "Start timer" works for every type (D28) | `FeedingView.quickStart`; `FeedingView` `form.start_timer` toggle outside the breast-only block, saved with `endTime == nil` | a **bottle state**: one title for both (`TimerTitle.bottle`), no side |
+| A **breastfeed** runs as a timer (quick start), and so does a **formula or pumped** feed: the add-feeding sheet's "Start timer" works for every type | `FeedingView.quickStart`; `FeedingView` `form.start_timer` toggle outside the breast-only block, saved with `endTime == nil` | a **bottle state**: one title for both (`TimerTitle.bottle`), no side |
 | Breast side is L / R / Both and **can change while the feed runs** | `FeedingView` side switcher in the running card | the title updates in place; no side control on the activity |
 | Sleep is **nap** or **night** | `SleepEntry.SleepType` | two sleep titles, two glyphs |
 | Feeding and sleep **can run together** | `DashboardView.activeTimersSection` | two activities at once |
 | No pause in any timer | — | no paused state |
-| `staleDate = start + 8 h`; the system draws the timer, so it never freezes | Dev's build | one "long" state (§ 2), no "frozen / open to update" state |
-| A timer stopped on another device (CloudKit) ends the activity when the app comes to the foreground | Dev's build | no string, no state of its own |
-| The Settings switch is hidden on iPad | Dev's build | no iPad wording |
+| `staleDate = start + 8 h`; the system draws the timer, so it never freezes | the build | one "long" state (§ 2), no "frozen / open to update" state |
+| A timer stopped on another device (CloudKit) ends the activity when the app comes to the foreground | the build | no string, no state of its own |
+| The Settings switch is hidden on iPad | the build | no iPad wording |
 
 Glyphs (the app's own): breastfeed `heart.fill`, bottle `drop.fill` (the formula glyph; formula and pumped share one title, so they share one glyph), nap `sun.max.fill`, night `moon.fill`, ended `checkmark.circle.fill`. Bottle states use the **BBFeeding** token for the disc and island tint, never the model's per-type hex (#B0C4F5 / #D4A8D5 — design-system G-list, P5).
 
@@ -56,7 +56,7 @@ Kinds (① only; everything else is shared):
 | kind | glyph | title |
 |---|---|---|
 | breastfeed L / R / Both | `heart.fill` | `live_activity.title.bf_*` ("Breastfeeding · left"); changes in place when the side changes |
-| bottle — formula or pumped (D28) | `drop.fill` | `live_activity.title.bottle`; **no side** |
+| bottle — formula or pumped | `drop.fill` | `live_activity.title.bottle`; **no side** |
 | nap / night | `sun.max.fill` / `moon.fill` | `live_activity.title.nap` / `.night` |
 
 States:
@@ -69,7 +69,7 @@ States:
 | long (`context.isStale`, start + 8 h; covers the system cut-off) | as running | **no digits** (the activity may soon be ended by the system, and a number left behind would lie) | Stop stays: the intent still ends the timer and writes the store | `live_activity.continues_in_app` "The timer goes on in Bitty", up to 2 lines, `minimumScaleFactor(0.8)`, BBTextSecondary; started line under it |
 | two activities | the system stacks two banners, each as above | | | |
 
-**Saved looks done** (CHECK 2 blind pass, 2026-10-29: "at 3 a.m. I can't tell at a glance whether it is still counting"). A running card and a saved card must differ in *weight*, not in a detail:
+**Saved looks done** (a first-use test, 2026-10-29: at 3 a.m. it could not be told at a glance whether the timer was still counting). A running card and a saved card must differ in *weight*, not in a detail:
 
 ```
 running                                              saved
@@ -81,15 +81,15 @@ running                                              saved
 ```
 
 - Three cues, each enough on its own: **no big number**, **no filled button**, **no colour** (neutral disc, all text BBTextSecondary). The saved card is also about a third shorter.
-- Calm (P1): nothing red, no BBSuccess green, no opacity tricks. "Saved" stays readable: BBTextSecondary on BBSurface is 4.9 light / 6.1 dark (D14 text ≥ 4.5). The check glyph BBPrimary on the neutral disc is 4.8 / 5.1 (non-text ≥ 3).
+- Calm (P1): nothing red, no BBSuccess green, no opacity tricks. "Saved" stays readable: BBTextSecondary on BBSurface is 4.9 light / 6.1 dark (P8, text ≥ 4.5). The check glyph BBPrimary on the neutral disc is 4.8 / 5.1 (non-text ≥ 3).
 - The Island is unchanged: an ended activity already leaves it (§ 3).
 
-Dismissal after Stop: `.after(now + 15 min)` (built; owner-approved spec R2.4). Long enough to see "Saved" at a glance after settling the baby, short enough not to clutter the morning.
+Dismissal after Stop: `.after(now + 15 min)` (built, as specified). Long enough to see "Saved" at a glance after settling the baby, short enough not to clutter the morning.
 
-**Order in the stack.** iOS stacks a Saved card above a running one when the Saved card is newer (CHECK 2 By design? 3). The fix is order, not a shorter life:
+**Order in the stack.** iOS stacks a Saved card above a running one when the Saved card is newer. The fix is order, not a shorter life:
 - Set `relevanceScore` on every `ActivityContent`: running 100, ended 0. iOS shows the higher-relevance activity first on the Lock Screen and in the Island.
 - The 15 minutes stay.
-- Only if a hardware check still shows a Saved card above a running timer, the owner gets a proposal: end with `.immediate` when another Bitty timer is still running (15 min otherwise).
+- Only if a hardware check still shows a Saved card above a running timer, the next step to propose: end with `.immediate` when another Bitty timer is still running (15 min otherwise).
 
 ## 3. Dynamic Island (always on black — dark token values)
 
@@ -114,7 +114,7 @@ expanded  ┌──────────────────────�
 | expanded bottom, Stop | § 4 (BBPrimary #A795D9 fill + BBOnPrimary #171420 label) | 6.9 |
 | keyline tint | BBPrimary | — |
 
-- No words in compact or minimal: glyph and digits only (Content agrees, so three locales fit).
+- No words in compact or minimal: glyph and digits only, so three locales fit.
 - **Long state** (as built, accepted in the review): compact trailing shows the `ellipsis` glyph in BBTextPrimary, no time (a time there would read as elapsed); its VoiceOver label is `live_activity.continues_in_app`, not the system's "More". Expanded trailing shows the started line (`.footnote` BBTextSecondary); expanded bottom shows `continues_in_app` in place of the title, and the glyph keeps the kind.
 - With two activities (feeding + sleep), the system shows one compact and one minimal. Each draws as above, and the glyph shape tells them apart.
 - An ended activity leaves the Island; "Saved" lives on the Lock Screen only.
@@ -130,15 +130,19 @@ expanded  ┌──────────────────────�
 | type | `.subheadline` rounded semibold, `minimumScaleFactor(0.8)`, 1 line, horizontal `fixedSize` |
 | action | the LiveActivityIntent that ends the timer and saves the entry (no unlock) |
 
-## 5. Widget — tap areas and the start-feeding control (D16)
+## 5. Widget — tap areas and the start-feeding control
 
-The background stays the premium gradient. The control is a **BBSurface capsule with a BBPrimary label**, because white on the gradient's light end is 2.64 (G12).
+The background is the brand gradient as decided on 2026-11-04 (G12, planned; the widget's catalog takes it with the app's): one pair in both modes, BBGradientStart #5D4893 → BBGradientEnd #7B68B6. Every word and glyph on it is white at full strength, and the hierarchy goes by size and weight. White reads 7.46 at the start and 4.67 at the end, so every point of the plate passes 4.5. Why: no word, locale or new state can reach a failing corner, and the widget is quieter on a home screen at night. The control stays a **BBSurface capsule with a BBPrimary label**: a filled shape sets the one control that creates data apart from the words around it.
 
 | pair | light | dark |
 |---|---|---|
+| white words and glyphs on the plate, start / end | 7.46 / 4.67 | 7.46 / 4.67 |
+| the widget's words at their places | 5.21–6.68 | 5.21–6.68 |
 | BBPrimary label on BBSurface capsule | 5.6 | 6.2 |
 | BBTextPrimary (started state) on capsule | 14.3 | 14.1 |
-| capsule edge vs gradient start (non-text, ≥ 3) | 5.6 | 3.6 |
+| capsule against the plate around it (non-text) | 4.67–7.46 | 2.6–3.4 |
+
+In dark the capsule (BBSurface #221E2C) stands under 3:1 against parts of the plate. Its BBPrimary words and its ▶ name it, so WCAG 1.4.11 needs no edge, and it reads as a dark pill on the violet.
 
 **Small**
 
@@ -168,13 +172,13 @@ The "today N feeds" line leaves the small widget to make room for a 44 pt contro
 ```
 
 Rules for the medium, settled in the widget design review:
-- **Row height 30–40, not 44.** Two 44 pt rows plus a 44 pt control need 132 pt, and the medium has 126 inside its margins (116 on an SE, 109 on a 10.2" iPad). The D14 bar is WCAG 2.2 AA 2.5.8, target ≥ 24 × 24, and 30 clears it. The rows only navigate: a mis-tap opens a tab and is undone by one more tap. The capsule is the one control that creates data, and it keeps its 44 pt hit area.
+- **Row height 30–40, not 44.** Two 44 pt rows plus a 44 pt control need 132 pt, and the medium has 126 inside its margins (116 on an SE, 109 on a 10.2" iPad). The bar is WCAG 2.2 AA 2.5.8, target ≥ 24 × 24, and 30 clears it. The rows only navigate: a mis-tap opens a tab and is undone by one more tap. The capsule is the one control that creates data, and it keeps its 44 pt hit area.
 - **The label never ends in an ellipsis.** It steps from 14 pt to 12 pt, then falls back to the small widget's `tab.feeding`. ru therefore reads «▶ Кормление» on every medium with data, the same name as on the small widget, and VoiceOver still says «Начать кормление». A widget that has room (first run) shows the full label. There is no 11 pt step: that size is too small to read at arm's length at 3 a.m.
 - **One fact once.** While a feed runs, the capsule carries its minutes, so the "Last feed" row is hidden; otherwise "Last feed 12 min" sits above "♥ 12 min" and reads as a feed that has ended. This is the same rule as the 12+ months layout, which drops that row because the hero already says it.
 - **While a feed runs, words say what and the capsule says how long** (design look after PR #84, 2026-10-31). The prediction ("Feeding in …") is hidden then, because it contradicts a running feed. Hiding it leaves an empty hero area that reads as a widget that failed to load. The empty place shows the existing key `status.feeding_going` («Кормление идёт» / "Feeding in progress" / «Toma en curso»), with no number:
   - medium: in the hero's place, 20 pt semibold rounded, white, up to 2 lines, scale down to 0.7; the name stays at the bottom;
-  - small: under the name, in the first-run line's style, 13 pt medium, white@0.9.
-  White on the gradient's start is 5.6:1 (≥ 3 for large text, ≥ 4.5 for the 13 pt line).
+  - small: under the name, in the first-run line's style, 13 pt medium, white.
+  White on the plate is 4.67 or more at every point (≥ 3 for large text, ≥ 4.5 for the 13 pt line).
 - **No Diapers area.** The widget answers the 3 a.m. questions: when she last ate, and whether she is asleep. A third row does not fit (see row height), and adding Diapers would be a product decision, not a layout one.
 
 Control states (both families):
@@ -183,27 +187,27 @@ Control states (both families):
 |---|---|---|
 | idle (no feeding running) | `play.fill` + label, BBPrimary | starts a breastfeed timer (side left, as in-app quick start); the Live Activity takes over |
 | pressed | system highlight | — |
-| started / a feeding is running (any kind, bottle included) | the running kind's glyph + elapsed whole minutes («12 мин», «1 ч 5 мин»), BBTextPrimary, no words. The owner's #25 rule: the widget speaks in minutes, never seconds. A per-minute timeline keeps it current to the minute. | opens the Feeding tab (a Link, not the intent) so a second tap never starts a second feed |
+| started / a feeding is running (any kind, bottle included) | the running kind's glyph + elapsed whole minutes («12 мин», «1 ч 5 мин»), BBTextPrimary, no words. The rule from PR #25: the widget speaks in minutes, never seconds. A per-minute timeline keeps it current to the minute. | opens the Feeding tab (a Link, not the intent) so a second tap never starts a second feed |
 | sleep running | unchanged (feeding and sleep coexist) | — |
 | intent failed | unchanged; the next timeline reload shows the truth; no error UI (P1) | — |
 | first run (nothing logged) | idle capsule under the existing "log your first feeding" line | starts the first feed |
 
-Observation for Content, not this card: the medium widget's `widget.overdue_by` line ("Overdue by 20 min") is worry-framing against P1. It is white@0.75, not red, but the word itself judges.
+Observation on the copy, outside this note: the medium widget's `widget.overdue_by` line ("Overdue by 20 min") is worry-framing against P1. It is white, not red, but the word itself judges.
 
-## 6. What Dev needs (`live-activity-timers`, `widget-interactive`)
+## 6. What the build needs
 
 1. **New colorset `BBOnPrimary`** in `Assets.xcassets/Colors/`: light #FFFFFF, dark #171420 (sRGB), plus `BBTheme.Colors.onPrimary`.
 2. **Widget catalog copies** (the Live Activity renders in the widget extension). Add to `WidgetResources/Colors.xcassets` and to the pre-build drift list: BBSurface, BBPrimary, BBOnPrimary, BBTextPrimary, BBTextSecondary, BBFeeding, BBSleep. Before M1 the extension had only BBGradientStart, BBGradientEnd, BBAccent.
 3. `activityBackgroundTint(Color("BBSurface"))`, `activitySystemActionForegroundColor(Color("BBPrimary"))`, `keylineTint(Color("BBPrimary"))`.
 4. Fonts: system text styles, `.rounded`, mono digits on every timer. No `BBTheme.Typography` in the extension.
-5. Renders for the design review: `LiveActivityRenderDump` (BabyBloomTests) — en/ru/es × light/dark × the states in §§ 2–3 (running for each kind incl. bottle, ended, long, two activities), at the default size and at the cap; the widget § 5 states. The real Dynamic Island on a dev build on my iPhone 17 Pro clone, booted only for the review (one simulator at a time, D25).
+5. Renders for the design review: `LiveActivityRenderDump` (BabyBloomTests) — en/ru/es × light/dark × the states in §§ 2–3 (running for each kind incl. bottle, ended, long, two activities), at the default size and at the cap; the widget § 5 states. The real Dynamic Island on a dev build on an iPhone 17 Pro simulator, booted only for the review (one simulator at a time, because simulators slow the machine badly).
 
-## 7. Strings — limits for Content (confirmed against Content's list)
+## 7. Strings — limits for the copy (confirmed against the copy's list)
 
-| string | limit | Content's longest | fits |
+| string | limit | longest | fits |
 |---|---|---|---|
 | Lock Screen title (`live_activity.title.*`) | ≤ 26 | «Кормление грудью · правая» 25 | yes |
-| bottle title (`live_activity.title.bottle`, D28) | ≤ 26, no side | «Кормление из бутылочки» 22 | yes |
+| bottle title (`live_activity.title.bottle`) | ≤ 26, no side | «Кормление из бутылочки» 22 | yes |
 | DI expanded bottom title | up to 2 lines beside the button (§ 3), ≤ 26 in all | 25 | yes, on 2 lines in ru; no copy change |
 | `live_activity.started_fmt` / `saved_fmt` | ≤ 30 | «Сохранено · 1 ч 20 мин» 22 | yes |
 | `live_activity.continues_in_app` | ≤ 32, up to 2 lines on the Lock Screen, scales to 0.8 at the cap | «Таймер идёт дальше в Ночке» 26 | yes |
@@ -212,7 +216,7 @@ Observation for Content, not this card: the medium widget's `widget.overdue_by` 
 | widget small control | ≤ 12 → reuse `tab.feeding` | «Кормление» 9 | yes |
 | widget medium control | ≤ 18 → reuse `button.start_feeding` | «Начать кормление» 16 | yes |
 | widget started state | no string (glyph + timer) | — | — |
-| Settings switch label / hint | label 1 line ≤ 32, or 2 lines; hint 2–3 lines; hidden on iPad | es «Temporizador en pantalla bloqueada» 34 | es may wrap to 2 lines (Settings rows wrap); Content's choice whether to shorten |
-| `settings.live_activity_off_in_ios` (Dev, Q3) | 2–3 lines under the disabled switch, BBTextSecondary | — | to write |
+| Settings switch label / hint | label 1 line ≤ 32, or 2 lines; hint 2–3 lines; hidden on iPad | es «Temporizador en pantalla bloqueada» 34 | es may wrap to 2 lines (Settings rows wrap), or the copy may shorten it |
+| `settings.live_activity_off_in_ios` | 2–3 lines under the disabled switch, BBTextSecondary | — | to write |
 
-Content's variant B strings (`widget.log_feeding`, `widget.logged_fmt`) are not needed after D16.
+The variant B strings (`widget.log_feeding`, `widget.logged_fmt`) are not needed, because the control starts a timer instead of logging a feed.
