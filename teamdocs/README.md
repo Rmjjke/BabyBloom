@@ -32,6 +32,7 @@ A section gets its row when its owner first writes one.
 
 - Last App Store release: 1.0.3 (build 26), 2026-09-27, metadata only.
 - 1.1.0 (build 27): Live Activity for running timers, the interactive widget, the weekly summary card.
-- In progress: 1.2.0, the doctor-visit report.
+- In TestFlight: 1.2.0 (28), the doctor-visit report (tag v1.2.0+28, branch release/1.2.0).
+- In progress: 1.3.0, medications with a dosing interval — the code is in main, the regression check is running.
 - Next on the roadmap: medications, then more localizations.
 - Team workflow files are local and untracked; nothing here depends on them.

@@ -103,12 +103,13 @@ enum BBTheme {
         /// values (unchanged); the point size is scaled for the user's Content Size
         /// setting and capped at `maxContentSizeCategory`. At the standard "Large"
         /// setting the scale factor is 1.0, so rendering is pixel-identical to the
-        /// fixed-size type scale.
+        /// fixed-size type scale. `category` is `scaledPointSize`'s test seam.
         static func scaled(_ size: CGFloat,
                            relativeTo style: UIFont.TextStyle,
                            weight: Font.Weight,
-                           design: Font.Design = .rounded) -> Font {
-            .system(size: scaledPointSize(size, relativeTo: style),
+                           design: Font.Design = .rounded,
+                           for category: UIContentSizeCategory? = nil) -> Font {
+            .system(size: scaledPointSize(size, relativeTo: style, for: category),
                     weight: weight, design: design)
         }
 

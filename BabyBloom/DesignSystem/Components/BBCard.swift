@@ -374,25 +374,67 @@ struct BBProgressCard: View {
         }
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            // The glyph and the title make the title side; at the
-            // accessibility sizes the figure goes under the title's text.
-            BBValueRow {
+    /// The card's faces, all relative to `.body`: the figure keeps 13 : 14
+    /// with its title at every size, and the glyph grows with the word it
+    /// stands beside. `category` sets the size in a test; nil reads the device.
+    enum Face {
+        case icon, title, figure
+
+        // The glyph keeps the symbol's own design, so at Large it is the one it was.
+        private var face: (size: CGFloat, weight: Font.Weight, design: Font.Design) {
+            switch self {
+            case .icon: (14, .semibold, .default)
+            case .title: (14, .semibold, .rounded)
+            case .figure: (13, .medium, .rounded)
+            }
+        }
+
+        func font(for category: UIContentSizeCategory? = nil) -> Font {
+            BBTheme.Typography.scaled(face.size, relativeTo: .body, weight: face.weight,
+                                      design: face.design, for: category)
+        }
+
+        func pointSize(for category: UIContentSizeCategory? = nil) -> CGFloat {
+            BBTheme.Typography.scaledPointSize(face.size, relativeTo: .body, for: category)
+        }
+    }
+
+    /// The glyph and the title make the title side, the figure its value.
+    /// The figure grows with the text, so a size alone cannot say whether a
+    /// word of the title still fits beside it (on 320 pt es «Sueño» beside its
+    /// widest sleep line at xxxLarge with Bold Text keeps 2.3 pt): the row
+    /// stands beside only while every word does, else
+    /// the figure goes under the title's text, as at the accessibility sizes.
+    struct Row: View {
+        let icon: String
+        let color: Color
+        let title: String
+        let figure: String
+        var category: UIContentSizeCategory? = nil
+
+        var body: some View {
+            BBValueRow(shape: .byWords) {
                 HStack {
                     Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Face.icon.font(for: category))
                         .foregroundStyle(color)
-                    Text(title.l)
-                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
+                    WordWrappingText(text: title)
+                        .font(Face.title.font(for: category))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .alignmentGuide(.bbValueRowTitle) { $0[.leading] }
                 }
             } value: {
-                Text(Self.valueText(current: current, target: target, measure: measure))
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                Text(figure)
+                    .font(Face.figure.font(for: category))
                     .foregroundStyle(BBTheme.Colors.textSecondary)
             }
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            Row(icon: icon, color: color, title: title.l,
+                figure: Self.valueText(current: current, target: target, measure: measure))
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {

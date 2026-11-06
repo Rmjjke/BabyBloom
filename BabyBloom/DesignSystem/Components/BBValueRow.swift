@@ -8,22 +8,29 @@ import SwiftUI
 /// accessibility sizes — the value moves under the title instead of cutting a
 /// word in half beside it.
 ///
-/// Two fits:
+/// Three fits:
 /// - `.bySize` (default): beside below the accessibility sizes, the title
 ///   wrapping as it must; under at them. Right where the title is a short label
 ///   and a wrapped one still reads as a label.
 /// - `.byFit`: beside only while the title fits on ONE line next to the value;
 ///   otherwise under, at any size. Right where a wrapped title next to its value
 ///   would stand on broken words (a long title in a narrow window at Large).
+/// - `.byWords`: beside while every word of the title keeps whole next to the
+///   value, the title wrapping between them; otherwise under. The title side
+///   states that width itself: its ideal width is its widest word
+///   (`WidestWordIdeal`). Right where the value grows with the text size and
+///   a size cannot tell whether the words still fit beside it.
 ///
 /// `underSpacing` is the gap above a value under its title: xs 4, or 2 in a
 /// Settings row, where it matches the hints under the switch titles.
 ///
 /// Under its title the value lines up with the title's text. A title side that
 /// leads with a glyph marks its text with `.alignmentGuide(.bbValueRowTitle)`;
-/// without the mark the value starts at the title side's leading edge.
+/// without the mark the value starts at the title side's leading edge. Either
+/// way the value gets only the width left from there, so a long one wraps
+/// short of the trailing edge.
 struct BBValueRow<Title: View, Value: View>: View {
-    enum Shape { case bySize, byFit }
+    enum Shape { case bySize, byFit, byWords }
 
     private let shape: Shape
     private let underSpacing: CGFloat
@@ -44,13 +51,24 @@ struct BBValueRow<Title: View, Value: View>: View {
     var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
             under
-        } else if shape == .byFit {
-            ViewThatFits(in: .horizontal) {
-                beside(oneLine: true)
-                under
-            }
         } else {
-            beside(oneLine: false)
+            switch shape {
+            case .bySize:
+                beside(oneLine: false)
+            case .byFit:
+                ViewThatFits(in: .horizontal) {
+                    beside(oneLine: true)
+                    under
+                }
+            case .byWords:
+                // ViewThatFits reads the ideal width, which the title side
+                // sets at its widest word; a row that fits then draws with
+                // the title wrapping in whatever room it gets.
+                ViewThatFits(in: .horizontal) {
+                    beside(oneLine: false)
+                    under
+                }
+            }
         }
     }
 
@@ -65,11 +83,55 @@ struct BBValueRow<Title: View, Value: View>: View {
     }
 
     private var under: some View {
-        VStack(alignment: .bbValueRowTitle, spacing: underSpacing) {
+        UnderTitle(spacing: underSpacing) {
             title.fixedSize(horizontal: false, vertical: true)
             value
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The title, then each part of the value under it from the title's
+/// `bbValueRowTitle` mark, offered only the width left from there. A stack
+/// aligned on the mark shifts the value but still offers it the row's whole
+/// width, so a value that fit the row yet not the room past a glyph ran over
+/// the trailing edge instead of wrapping. A value that is absent (an `if`
+/// without its case) adds no gap.
+private struct UnderTitle: Layout {
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard let title = subviews.first else { return .zero }
+        let (offer, inset, room) = offers(proposal, title: title)
+        var size = title.sizeThatFits(offer)
+        for part in subviews.dropFirst() {
+            let fit = part.sizeThatFits(room)
+            size.width = max(size.width, inset + fit.width)
+            size.height += spacing + fit.height
+        }
+        return size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let title = subviews.first else { return }
+        let (offer, inset, room) = offers(proposal, title: title)
+        title.place(at: bounds.origin, proposal: offer)
+        var y = bounds.minY + title.sizeThatFits(offer).height
+        for part in subviews.dropFirst() {
+            y += spacing
+            part.place(at: CGPoint(x: bounds.minX + inset, y: y), proposal: room)
+            y += part.sizeThatFits(room).height
+        }
+    }
+
+    /// Placing re-offers the row's own proposal, not the bounds: a text
+    /// offered exactly its measured width can wrap one word sooner.
+    private func offers(_ proposal: ProposedViewSize, title: LayoutSubview)
+        -> (title: ProposedViewSize, inset: CGFloat, value: ProposedViewSize) {
+        let width = proposal.width.flatMap { $0.isFinite ? $0 : nil }
+        let offer = ProposedViewSize(width: width, height: nil)
+        let inset = title.dimensions(in: offer)[.bbValueRowTitle]
+        return (offer, inset, ProposedViewSize(width: width.map { max(0, $0 - inset) }, height: nil))
     }
 }
 
