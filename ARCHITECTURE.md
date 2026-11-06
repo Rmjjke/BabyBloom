@@ -630,7 +630,7 @@ their 34-pt icons while every word of every row fits there, else every text
 goes under its icon and check, as at every accessibility size. The card takes
 one shape for all four rows, as the Nutrition card does: at xxxLarge on 320 pt
 in ru «Неограниченная» and «Расширенная» miss the room beside, so the whole
-list goes under; on 375 pt it stays beside. `SideBySideIdeal` (in
+list goes under; in en on 320 pt and in both on 375 pt it stays beside. `SideBySideIdeal` (in
 `DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
 | value row: its ideal width is the least at which the stack's own split (the
 less flexible text offered half the room, the other the rest) leaves each
