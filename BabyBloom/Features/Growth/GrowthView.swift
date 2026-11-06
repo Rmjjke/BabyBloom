@@ -856,6 +856,7 @@ struct AddGrowthSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.new_measurement".l)
                     Image(systemName: "ruler.fill")
                         .font(.system(size: 48))
                         .foregroundStyle(BBTheme.Colors.growth)
@@ -909,7 +910,7 @@ struct AddGrowthSheet: View {
                 .padding(BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("sheet.new_measurement".l)
+            .bbSheetTitle("sheet.new_measurement".l, movesIntoContentAtAX: true)
             // A selection outside the picker's range renders as an empty field
             // and cannot be corrected by tapping it, so the seed is clamped
             // before it is ever shown rather than trusted to be in range.

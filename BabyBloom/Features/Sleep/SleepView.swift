@@ -267,6 +267,7 @@ struct AddSleepSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.add_sleep".l)
                     // Type
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                         Text("form.sleep_type".l)
@@ -352,7 +353,7 @@ struct AddSleepSheet: View {
                     .padding(.bottom, BBTheme.Spacing.xs)
                     .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.add_sleep".l)
+            .bbSheetTitle("sheet.add_sleep".l, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

@@ -365,6 +365,7 @@ struct AddFeedingSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBSheetHeading(title: "sheet.new_feeding".l)
 
                     // Type selector
                     VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
@@ -501,7 +502,7 @@ struct AddFeedingSheet: View {
                 .padding(.bottom, BBTheme.Spacing.xs)
                 .background(BBTheme.Colors.background)
             }
-            .bbSheetTitle("sheet.new_feeding".l)
+            .bbSheetTitle("sheet.new_feeding".l, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }

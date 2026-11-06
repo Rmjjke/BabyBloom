@@ -342,6 +342,17 @@ keeps two lines at accessibility sizes and takes the body size from
 has, and with a text-style font such as `.body` it stays on one line and ends
 in «…» however many lines the field keeps.
 
+Sheet titles follow the same rule, through `bbSheetTitle` and `BBSheetHeading`
+in `DesignSystem/BBTheme.swift`. `bbSheetTitle` keeps a title in the bar on
+one line, capped at `.large` and shrinking to fit between Cancel and Save.
+With `movesIntoContentAtAX`, which every add, dose, visit and medication sheet
+passes, the bar shows no title at accessibility sizes. There the sheet's first
+content line, `BBSheetHeading`, shows it and carries the header trait, so
+VoiceOver reads it once. The flag and the heading go together: the flag alone
+leaves the sheet with no title at those sizes, the heading alone shows it
+twice. The diaper norm editor and the profile edit sheet still use the system
+inline title, which is cut at those sizes.
+
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
 path sits inside the tree the app target already scans, and XcodeGen then
