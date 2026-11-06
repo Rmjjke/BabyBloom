@@ -356,7 +356,10 @@ in light a tint read at 1.6–2.1:1 on its wash or the surface, under the 3:1 a
 large figure needs; the same digits are `textPrimary` on the Lock Screen too.
 The week chart has no axis numbers: every day up to today states its value
 over its bar, today's in `textPrimary`, the others in `textSecondary`, hidden
-from VoiceOver, which reads each bar's day and value.
+from VoiceOver, which reads each bar's day and value. Swift Charts speaks the
+plotted number, right for a count; Sleep plots hours, so it passes
+`voiceOverValue`, and each day up to today reads in the duration words
+(«2 h 5 min»), floored to the minute like the Total tile.
 
 `textSecondary` holds 4.5:1 on every fill it sits on in light: 5.12 on the
 background, 5.62 on the surface, at least 4.62 on the stat cards', timer

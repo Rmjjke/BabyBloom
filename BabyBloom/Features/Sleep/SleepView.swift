@@ -176,9 +176,18 @@ struct SleepView: View {
                     return dayEntries.reduce(0) { $0 + $1.duration } / 3600
                 },
                 color: BBTheme.Colors.sleep,
-                formatValue: { v in v == 0 ? "0" : v.appDecimal(1) }
+                formatValue: { v in v == 0 ? "0" : v.appDecimal(1) },
+                voiceOverValue: Self.chartVoiceOverValue(hours:)
             )
         }
+    }
+
+    /// A day's bar as VoiceOver reads it: the day's sleep in whole minutes,
+    /// floored as the Total tile and the rows floor theirs, so today's bar and
+    /// the tile say the same. The hours are rounded back to whole milliseconds
+    /// first: 7380 s / 3600 × 60 lands a hair under 123 and floored lost a minute.
+    static func chartVoiceOverValue(hours: Double) -> String {
+        DurationText.minutes(Int((hours * 3_600_000).rounded()) / 60_000)
     }
 
     // MARK: - History
