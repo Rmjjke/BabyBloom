@@ -246,8 +246,13 @@ struct SwipeToDeleteRow<Content: View>: View {
                 VStack(spacing: 4) {
                     Image(systemName: systemImage)
                         .font(.system(size: 16, weight: .semibold))
+                    // Scales with Dynamic Type inside the fixed-width button; a
+                    // long label («Back to the list») shrinks before it clips.
                     Text(title.l)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.7)
                 }
                 .foregroundStyle(.white)
                 .frame(width: deleteWidth)

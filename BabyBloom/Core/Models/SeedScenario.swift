@@ -105,6 +105,10 @@ enum SeedScenario: String, CaseIterable {
     /// logged late, so the period start, the row order and a question asked
     /// before it was written are all exercised.
     case doctorTwoVisits
+    /// `doctorMonth` plus 24 events inside the free window and a second visit
+    /// on day 4: more than the free list's 20-row cap, so the visits are seen
+    /// bypassing the cap as well as the window (EVENTS-021).
+    case doctorEventsCap
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -215,7 +219,7 @@ enum SeedScenario: String, CaseIterable {
         if [.weeklyNormal, .weeklyFirstWeek, .weeklyGaps, .weeklyNewborn].contains(self) {
             return seedWeekly(into: context)
         }
-        if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits].contains(self) {
+        if [.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits, .doctorEventsCap].contains(self) {
             return seedDoctor(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {

@@ -1,0 +1,47 @@
+import SwiftUI
+
+/// Diaper facts for the report period (design § 2.1).
+struct DiapersReportCard: View {
+    /// nil = no diaper in the period.
+    let diapers: DoctorReportSummary.Diapers?
+    let periodStart: Date
+    let isShort: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            ReportCardHeader(icon: "drop.fill", tint: BBTheme.Colors.diaper, title: "tab.diapers".l)
+            if let diapers {
+                rows(diapers)
+            } else {
+                ReportEmptyLine(format: "report.empty_diapers_fmt", periodStart: periodStart)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .bbCard()
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("doctor.section.diapers")
+    }
+
+    @ViewBuilder
+    private func rows(_ diapers: DoctorReportSummary.Diapers) -> some View {
+        if isShort {
+            ReportRow(format: "report.wet_count_fmt".l, value: "\(diapers.wetCount)")
+            ReportRow(format: "report.dirty_count_fmt".l, value: "\(diapers.dirtyCount)")
+        } else {
+            if let wet = diapers.wetPerDay {
+                ReportRow(format: "report.wet_a_day_fmt".l, value: WeeklyFormat.perDay(wet))
+            }
+            if let dirty = diapers.dirtyPerDay {
+                ReportRow(format: "report.dirty_a_day_fmt".l, value: WeeklyFormat.perDay(dirty))
+            }
+        }
+        // Names and counts only: no swatch and no warning (plan v2 decision 9).
+        if !diapers.colors.isEmpty {
+            ReportRow(format: "report.stool_colors_fmt".l,
+                      value: ReportFormat.countList(diapers.colors.map {
+                          ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
+                      }))
+        }
+        ReportDaysLine(days: diapers.days, isShort: isShort)
+    }
+}

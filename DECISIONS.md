@@ -14,6 +14,20 @@ live with the workflow in `.desk/`.
 
 ---
 
+## 2026-11-01 — The pediatrician report counts its period its own way, on the weekly card's day core
+
+`PeriodSummary` buckets any `[start, end)` into calendar days. The weekly card is a 7-day instance of it, and the report is "since the last visit". Each caller decides what goes in. The report differs from the weekly card in four places:
+- **Running timers are left out.** The weekly card counts a running feed.
+- **A sleep that began before the period counts only its part inside.** The weekly card files a sleep whole on its start day.
+- **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
+- **Averages and «Days with entries: N of M» use the FINISHED days only.** Today stays in every count, but it does not average: the report is opened at the visit, mid-morning. Under 3 finished days, raw counts replace the averages. This amends the first rule, which let today join the count once it had an entry. The final review showed that 2 morning feeds after three days of 8 read as «6.5 a day», and «wet a day», the hydration number, dropped with it.
+
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (D19's reason, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+
+**Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
+
+---
+
 ## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
 
 **No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
@@ -43,6 +57,33 @@ No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingTy
 **A visit's date is stored at noon of its day.** It is not stored at midnight. The format is fixed once 1.2 ships, so the reason is recorded here: a visit stored at 00:00 Moscow time reads as the previous day on a device in New York (the second parent's iPad, a trip). That would move the report's period start. Noon survives any offset up to ±11 h.
 
 **Rejected:** a tolerant decoder (a String attribute plus a computed enum with a fallback case). It would protect only the builds that ship it. Every 1.1 device already installed keeps the trapping decoder.
+
+---
+
+## 2026-11-01 — Length-for-age is WHO's table, generated and cross-checked, on its own denser grid
+
+`WHOGrowthStandard+Length.swift` holds WHO length-for-age LMS rows for
+0–730 days, generated from WHO's expanded tables
+(`lhfa-{boys,girls}-percentiles-expanded-tables.xlsx`,
+who.int/tools/child-growth-standards/standards/length-height-for-age), never
+typed. The generator checked every row against WHO's anthro package
+(`data-raw/growthstandards/lenanthro.txt`): identical for both sexes, `l` = 1
+throughout, all rows recumbent length. `GrowthEntry.heightCm` is scored as
+length, with no lying/standing adjustment, because WHO switches to height only
+after 24 months.
+
+**Why.** The pediatrician report shows a length percentile next to weight's
+(M2 plan v2, decision 7), and a transcription slip in a reference table is
+invisible in review. Generating from WHO's file and cross-checking against a
+second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
+lengths to ±0.1 percentile.
+
+**Rejected: reusing the weight table's day grid.** The z error of an
+interpolated median is about δM / (M·S), and length's S is about a quarter of
+weight's, so the same relative error in M costs four times as much z. At the median, where one z moves the percentile most,
+that reached 0.31 of a percentile and failed the ±0.1 test at day 45. The
+length grid is daily to 30 days, every third day to 182, then weekly (161 nodes
+per sex): under 0.022 of a percentile anywhere in −3…+3 z.
 
 ---
 

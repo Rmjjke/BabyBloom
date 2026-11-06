@@ -84,6 +84,20 @@ final class SeedScenarioDoctorTests: XCTestCase {
         XCTAssertEqual(DoctorPeriod.openQuestions(try all(DoctorQuestion.self, c)).count, 1)
     }
 
+    func testDoctorEventsCapOverflowsTheFreeListAndKeepsBothVisits() throws {
+        let c = try seeded(.doctorEventsCap)
+        let events = try all(CustomEvent.self, c)
+        XCTAssertEqual(events.count, 39)
+        let cutoff = try XCTUnwrap(cal.date(byAdding: .day, value: -15, to: now))
+        XCTAssertEqual(events.filter { $0.time >= cutoff }.count, 31, "past the free cap of 20")
+        let visits = try all(DoctorVisit.self, c)
+        XCTAssertEqual(visits.count, 2)
+        let history = EventsHistory(events: events.sorted { $0.time > $1.time },
+                                    visits: visits.sorted { $0.date > $1.date }, cutoff: cutoff)
+        XCTAssertEqual(history.rows.count, 22, "20 capped events and both visits")
+        XCTAssertEqual(DoctorPeriod.openQuestions(try all(DoctorQuestion.self, c)).count, 2)
+    }
+
     func testDoctorTwoVisitsPicksTheLaterLoggedOnTheLatestDate() throws {
         let c = try seeded(.doctorTwoVisits)
         let baby = try XCTUnwrap(all(Baby.self, c).first)
@@ -102,7 +116,7 @@ final class SeedScenarioDoctorTests: XCTestCase {
             pattern: #"\b(normal|abnormal|low|high|too|enough|only|good|poor|worry|concern|warning|should|risk|healthy|behind|ahead)\b"#,
             options: [.caseInsensitive]
         )
-        for scenario in [SeedScenario.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits] {
+        for scenario in [SeedScenario.doctorMonth, .doctorNoVisit, .doctorVisitToday, .doctorTwoVisits, .doctorEventsCap] {
             let c = try seeded(scenario)
             let texts = try all(DoctorQuestion.self, c).map(\.text)
                 + all(DoctorVisit.self, c).compactMap(\.note)

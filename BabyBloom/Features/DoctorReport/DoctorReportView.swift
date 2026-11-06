@@ -3,9 +3,9 @@ import SwiftData
 
 /// «For the pediatrician» — the report screen under More.
 ///
-/// Today it carries the period line (②) and the questions card (④⑤⑥). The data
-/// cards and the share button (m2-report-screen) slot in under the questions,
-/// fed by the same `periodStart`, so this view is the layout they extend.
+/// Top to bottom: the name ①, the period line ②, the age ③, the questions
+/// card (④⑤⑥), then the data cards ⑦ and the footnote ⑧, all fed by one
+/// `periodStart`. The share button ⑩ joins with the PDF (m2-report-pdf).
 ///
 /// Pushed inside More's `NavigationStack`, so it has none of its own (the
 /// `RecentActivityView` rule).
@@ -20,6 +20,7 @@ struct DoctorReportView: View {
     @State private var sheet: DoctorReportSheet?
     @State private var pendingQuestionDeletion: DoctorQuestion?
     @State private var detailVisit: DoctorVisit?
+    @State private var showAddGrowth = false
 
     private var baby: Baby? { babies.first }
 
@@ -34,7 +35,9 @@ struct DoctorReportView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                if let baby { ReportNameLine(baby: baby) }
                 periodHeader(latest: latest, periodStart: periodStart)
+                if let baby { ReportAgeLine(baby: baby) }
 
                 QuestionsCard(
                     open: open,
@@ -48,7 +51,11 @@ struct DoctorReportView: View {
                     onReopen: { try? DoctorVisitActions.reopen($0, in: modelContext) },
                     onLogVisit: { sheet = .logVisit }
                 )
-                // ⑦ data cards and ⑧ footnote land here (m2-report-screen).
+
+                if let baby {
+                    ReportDataSection(periodStart: periodStart, startsAtVisit: latest != nil,
+                                      baby: baby, onAddWeighing: { showAddGrowth = true })
+                }
             }
             .padding(BBTheme.Spacing.md)
             // iPad: one readable column, leading (design § 4).
@@ -70,6 +77,9 @@ struct DoctorReportView: View {
             }
         }
         .visitDetailSheet(item: $detailVisit)
+        // Plain .sheet, not .entrySheet: no rating prompt on this screen
+        // (DECISIONS 2026-11-01), a weighing added here included.
+        .sheet(isPresented: $showAddGrowth) { AddGrowthSheet() }
     }
 
     // MARK: ② Period line
