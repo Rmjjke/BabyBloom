@@ -156,8 +156,12 @@ struct PlanPickerSection: View {
                     .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary)
                     .accessibilityHidden(true)
 
-                // At the accessibility sizes the badge goes under the price.
-                BBValueRow {
+                // The badge stands beside only while the title and the price
+                // each keep one line next to it, else under the price (at the
+                // accessibility sizes always): at xxxLarge on a 320-pt screen
+                // the ru savings badge left the price about 40 pt and it broke
+                // inside the number.
+                BBValueRow(shape: .byFit) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(titleKey.l)
                             .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))

@@ -277,6 +277,70 @@ final class SideBySideIdealTests: XCTestCase {
                    title: title, subtitle: "15 мин", time: "09:40", trailing: trailing)
     }
 
+    // MARK: - The paywall's feature list
+
+    /// One-word texts, so a break inside the word is the only way the label
+    /// grows a line. The row adds the same icon, check and spacing to every
+    /// label, so its ideal is where its word stops breaking too.
+    func testTheFeatureRowsIdealIsWhereItsLongestWordStopsBreaking() throws {
+        try requireLarge()
+        var chrome: [CGFloat] = []
+        for text in ["Неограниченная", "Расширенная", "Unlimited"] {
+            let row = PremiumFeatureRow(icon: "infinity", text: text, shape: .beside)
+            let ideal = idealWidth(row.besideLabel)
+            let oneLine = height(row.besideLabel, width: ideal + 100)
+            let name = "«\(text)» label ideal \(ideal)"
+            XCTAssertEqual(height(row.besideLabel, width: ideal), oneLine, accuracy: 0.5,
+                           "\(name): one line at its ideal")
+            XCTAssertGreaterThan(height(row.besideLabel, width: ideal - 1), oneLine * 1.5,
+                                 "\(name): the word breaks a point under it")
+            chrome.append(idealWidth(row) - ideal)
+        }
+        XCTAssertEqual(chrome.max()! - chrome.min()!, 0, accuracy: 0.5, "the row around its label: \(chrome)")
+
+        // Two words, so the label (two lines at its ideal) is taller than the
+        // icon: at its ideal the row has to hand the label its widest word,
+        // whatever else stands beside it, not only add the same chrome.
+        let row = PremiumFeatureRow(icon: "infinity", text: "Неограниченная Неограниченная", shape: .beside)
+        let label = height(row.besideLabel, width: idealWidth(row.besideLabel))
+        XCTAssertEqual(height(row, width: idealWidth(row)), label + 2 * 10, accuracy: 0.5,
+                       "the row leaves its label the widest word at its ideal (10 pt above and below)")
+    }
+
+    /// At Large on a 320-pt screen every ru text stays beside its icon,
+    /// wrapping between words: on one line the «Неограниченная история
+    /// записей» row is wider than the card.
+    func testTheFeatureRowsStayBesideAtLargeOn320InRussian() throws {
+        try requireLarge()
+        let card = 320 - 2 * BBTheme.Spacing.lg
+        try inLanguage("ru") {
+            for feat in PremiumFeatureList.features {
+                let row = PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: .beside)
+                XCTAssertLessThanOrEqual(idealWidth(row), card, "«\(feat.key.l)»")
+            }
+        }
+    }
+
+    /// One shape for the card: beside down to its widest row's ideal, and a
+    /// point under it every row goes under its icon, the rows that would
+    /// still fit beside too.
+    func testTheFeatureListTakesOneShapeForAllItsRows() throws {
+        try requireLarge()
+        try inLanguage("ru") {
+            let list = PremiumFeatureList()
+            let widest = PremiumFeatureList.features.map {
+                idealWidth(PremiumFeatureRow(icon: $0.icon, text: $0.key.l, shape: .beside))
+            }.max()!
+            XCTAssertEqual(idealWidth(list.rows(.beside)), widest, accuracy: 0.5,
+                           "the dividers leave the list's ideal at its widest row's")
+            let beside = height(list.rows(.beside), width: widest)
+            let stacked = height(list.rows(.stacked), width: widest - 1)
+            XCTAssertGreaterThan(stacked, beside + 20, "the two shapes differ in height")
+            XCTAssertEqual(height(list, width: widest), beside, accuracy: 0.5, "beside at the widest row's ideal")
+            XCTAssertEqual(height(list, width: widest - 1), stacked, accuracy: 0.5, "all under a point below it")
+        }
+    }
+
     // MARK: - Rows built at a content size
 
     private struct Style {
