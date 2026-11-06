@@ -90,6 +90,10 @@ struct BBWeeklyBarChart: View {
     var formatValue: (Double) -> String = { v in
         v == floor(v) ? "\(Int(v))" : v.appDecimal(1)
     }
+    /// What VoiceOver reads as a bar's value up to today. nil leaves Swift
+    /// Charts reading the plotted number, which for a count is its own words;
+    /// a duration plotted in hours would read as «2,08».
+    var voiceOverValue: ((Double) -> String)? = nil
 
     @State private var weekOffset = 0   // 0 = current week, -1 = last week, …
 
@@ -223,6 +227,7 @@ struct BBWeeklyBarChart: View {
                 )
                 .cornerRadius(4)
                 .foregroundStyle(barGradient(for: day))
+                .spokenValue(day.isFuture ? nil : voiceOverValue?(day.value))
                 .annotation(position: .top, spacing: 4) {
                     // Each day up to today states its value, «0» included, so
                     // the chart needs no axis numbers; a future day has none
@@ -275,6 +280,18 @@ struct BBWeeklyBarChart: View {
                     }
                 }
         )
+    }
+}
+
+private extension ChartContent {
+    /// The mark's VoiceOver value when one is given; else Swift Charts' own.
+    @ChartContentBuilder
+    func spokenValue(_ text: String?) -> some ChartContent {
+        if let text {
+            accessibilityValue(Text(text))
+        } else {
+            self
+        }
     }
 }
 

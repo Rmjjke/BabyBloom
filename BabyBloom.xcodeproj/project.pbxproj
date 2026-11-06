@@ -212,6 +212,7 @@
 		B93F9C1F26EDBEF8D2DCEBF8 /* VisitDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E99C54B55877CEDA85C0912 /* VisitDetailSheet.swift */; };
 		B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DCB1384549675BD1DE563D /* BabyBloomTests.swift */; };
 		BA316D7C54A6C8E8BBE5BE5E /* MedicationEventsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2C98BBDFF5F24BF5543402 /* MedicationEventsTests.swift */; };
+		BAFDC0DFF26148239276987E /* WeeklyBarChartVoiceOverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB4473E8052D0C4C8638556 /* WeeklyBarChartVoiceOverTests.swift */; };
 		BBBE79719E0B6777CC9BD0FE /* ReviewPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF2BF69F0069D31809BAD28 /* ReviewPromptPolicy.swift */; };
 		BC0C8552EC0DE9CF90DB6423 /* EventsHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E80A3482A70EC47B69F247 /* EventsHistory.swift */; };
 		BC4783BBA3A0571C324F94BA /* StopTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */; };
@@ -544,6 +545,7 @@
 		C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingAnalyticsBackend.swift; sourceTree = "<group>"; };
 		C9D97024281147567091924D /* GrowthCardRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthCardRenderDump.swift; sourceTree = "<group>"; };
 		CA6E0F6C41E789D8A821DE9C /* DoctorPeriod+Rows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DoctorPeriod+Rows.swift"; sourceTree = "<group>"; };
+		CAB4473E8052D0C4C8638556 /* WeeklyBarChartVoiceOverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyBarChartVoiceOverTests.swift; sourceTree = "<group>"; };
 		CAD2BF1765038B638504BD85 /* FactPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FactPage.swift; sourceTree = "<group>"; };
 		CB6DB51AF7C71F0934F3C2DC /* ReportDataSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportDataSection.swift; sourceTree = "<group>"; };
 		CD4BF42AD7F5F3CD3271259F /* AnalyticsEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEventTests.swift; sourceTree = "<group>"; };
@@ -885,6 +887,7 @@
 				0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */,
 				F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */,
 				FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */,
+				CAB4473E8052D0C4C8638556 /* WeeklyBarChartVoiceOverTests.swift */,
 				658E36D98AC4BC7C45B6FCEC /* WeeklyCardWeekStateTests.swift */,
 				37E6C36D64BC0C13BD65E0C3 /* WeeklyNotificationPlanTests.swift */,
 				DAE7C80A290A93593D96A530 /* WeeklySummaryRenderDump.swift */,
@@ -1734,6 +1737,7 @@
 				C3010A7944778E878197CD5B /* WHOCorridorTests.swift in Sources */,
 				809D9EA78DCF0D4FCA38615F /* WHOGrowthStandardTests.swift in Sources */,
 				185069B67F9FD22498843A54 /* WHOLengthStandardTests.swift in Sources */,
+				BAFDC0DFF26148239276987E /* WeeklyBarChartVoiceOverTests.swift in Sources */,
 				078AD8FF85BE092884060608 /* WeeklyCardWeekStateTests.swift in Sources */,
 				31BB1B37CCA865560D696B8F /* WeeklyNotificationPlanTests.swift in Sources */,
 				145F8ECFD2EDFD176DCFD507 /* WeeklySummaryRenderDump.swift in Sources */,
