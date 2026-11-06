@@ -17,7 +17,7 @@ struct BBFab: View {
         Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(BBTheme.Colors.onPrimary)
                 .frame(width: 56, height: 56)
                 .background(BBTheme.Colors.primary)
                 .clipShape(Circle())

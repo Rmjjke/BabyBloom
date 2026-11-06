@@ -87,6 +87,15 @@ final class DiaperEntry {
             }
         }
 
+        /// The selected swatch's check: near-black on the light swatches, where
+        /// white read 1.14:1 on white; white stays on the two dark ones.
+        var checkHex: String {
+            switch self {
+            case .black, .brown: return "#FFFFFF"
+            case .yellow, .green, .orange, .red, .white: return "#171420"
+            }
+        }
+
         var isWarning: Bool {
             switch self {
             case .red, .black, .white: return true

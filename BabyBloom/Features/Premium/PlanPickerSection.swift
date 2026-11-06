@@ -178,7 +178,7 @@ struct PlanPickerSection: View {
                 if let badge {
                     Text(badge)
                         .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(BBTheme.Colors.onAccent)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
                         .background(BBTheme.Colors.accent)

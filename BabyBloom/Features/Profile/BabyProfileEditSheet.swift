@@ -271,7 +271,7 @@ struct BabyProfileEditSheet: View {
                             .frame(width: 30, height: 30)
                         Image(systemName: "camera.fill")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(BBTheme.Colors.onPrimary)
                     }
                     .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 30)
                     .contentShape(Rectangle())
