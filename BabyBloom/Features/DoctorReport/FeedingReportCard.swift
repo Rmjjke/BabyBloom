@@ -9,7 +9,7 @@ struct FeedingReportCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            ReportCardHeader(icon: "heart.fill", tint: BBTheme.Colors.feeding, title: "tab.feeding".l)
+            ReportCardHeader(icon: "heart.fill", tint: BBTheme.Colors.feeding, title: "export.cat.feeding".l)
             if let feeding {
                 rows(feeding)
             } else {
@@ -38,8 +38,8 @@ struct FeedingReportCard: View {
         if let ml = feeding.bottleMLPerDay {
             ReportRow(format: "report.bottle_a_day_fmt".l, value: ReportFormat.ml(ml))
         }
-        if let average = feeding.breastfeedAverage {
-            ReportRow(format: "report.breastfeed_avg_fmt".l, value: ReportFormat.duration(average))
+        if let typical = feeding.breastfeedMedian {
+            ReportRow(format: "report.breastfeed_avg_fmt".l, value: ReportFormat.duration(typical))
         }
         ReportDaysLine(days: feeding.days, isShort: isShort)
     }

@@ -171,7 +171,7 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertEqual(summary.feeding?.totalFeeds, 3)
         XCTAssertNil(summary.feeding?.feedsPerDay)
         XCTAssertNil(summary.feeding?.bottleMLPerDay, "a bottle a day is a per-day figure too")
-        XCTAssertEqual(summary.feeding?.breastfeedAverage, 15 * 60, "not a per-day figure: kept")
+        XCTAssertEqual(summary.feeding?.breastfeedMedian, 15 * 60, "not a per-day figure: kept")
         XCTAssertEqual(summary.sleep?.total, 2 * 3600)
         XCTAssertNil(summary.sleep?.perDay)
         XCTAssertEqual(summary.diapers?.wetCount, 2)
@@ -376,14 +376,22 @@ final class DoctorReportSummaryTests: XCTestCase {
                      "no volume logged: no row")
     }
 
-    func testTheBreastfeedAverageIsOverFinishedBreastfeedsOnly() {
+    func testTheBreastfeedFigureIsTheMedianSoOneForgottenTimerDoesNotMoveIt() {
+        let odd = make(input(feeds: [feed(at(13, 8), minutes: 10), feed(at(14, 8), minutes: 15),
+                                     feed(at(15, 8), minutes: 180)])).feeding
+        XCTAssertEqual(odd?.breastfeedMedian, 15 * 60, "the mean would read 68 min")
+        XCTAssertEqual(DoctorReportSummary.median([600, 1200]), 900, "an even count: the mean of the middle two")
+        XCTAssertNil(DoctorReportSummary.median([]))
+    }
+
+    func testTheBreastfeedFigureIsOverFinishedBreastfeedsOnly() {
         let feeding = make(input(feeds: [
             feed(at(13, 8), minutes: 10), feed(at(14, 8), minutes: 20),
             feed(at(15, 8), minutes: 30, .formula, ml: 90),
             Feed(start: at(1, 8, month: 11), type: .breast),     // running
         ])).feeding
-        XCTAssertEqual(feeding?.breastfeedAverage, 15 * 60)
-        XCTAssertNil(make(input(feeds: [feed(at(13, 8), .formula)])).feeding?.breastfeedAverage)
+        XCTAssertEqual(feeding?.breastfeedMedian, 15 * 60)
+        XCTAssertNil(make(input(feeds: [feed(at(13, 8), .formula)])).feeding?.breastfeedMedian)
     }
 
     func testABothDiaperCountsAsWetAndAsDirty() {

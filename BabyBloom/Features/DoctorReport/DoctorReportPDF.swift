@@ -132,7 +132,7 @@ enum DoctorReportPDF {
 
     private static func growth(summary: DoctorReportSummary, periodStart: Date, now: Date) -> String {
         let growth = summary.growth
-        var html = "<div class=\"sec\"><h2>\(esc("nav.growth".l))</h2>"
+        var html = "<div class=\"sec\"><h2>\(esc("export.cat.growth".l))</h2>"
         if growth.latestWeight == nil {
             html += "<p class=\"muted\">\(esc("report.empty_growth".l))</p>"
         }
@@ -145,7 +145,10 @@ enum DoctorReportPDF {
         if let height = growth.latestHeight {
             cells.append(row("report.height_fmt", ReportFormat.cm(height.value),
                              suffix: ReportFormat.date(height.date, now: now)))
-            cells += percentile(growth.heightPercentile, format: "report.percentile_height_fmt")
+            // One sentence, as the screen: weight and height share it.
+            if !growth.repeatsWeightNote {
+                cells += percentile(growth.heightPercentile, format: "report.percentile_height_fmt")
+            }
         }
         if let head = growth.latestHead {
             // The key carries its unit («Head: %@ cm»); glue it like ReportFormat does.
@@ -204,7 +207,7 @@ enum DoctorReportPDF {
     // MARK: Feeding, sleep, diapers
 
     private static func feeding(_ feeding: DoctorReportSummary.Feeding?, periodStart: Date, isShort: Bool) -> String {
-        guard let feeding else { return emptySection("tab.feeding", "report.empty_feeding_fmt", periodStart) }
+        guard let feeding else { return emptySection("export.cat.feeding", "report.empty_feeding_fmt", periodStart) }
         var cells: [String] = []
         if isShort {
             cells.append(row("report.feeds_count_fmt", "\(feeding.totalFeeds)"))
@@ -218,15 +221,15 @@ enum DoctorReportPDF {
             })))
         }
         if let ml = feeding.bottleMLPerDay { cells.append(row("report.bottle_a_day_fmt", ReportFormat.ml(ml))) }
-        if let average = feeding.breastfeedAverage {
-            cells.append(row("report.breastfeed_avg_fmt", ReportFormat.duration(average)))
+        if let typical = feeding.breastfeedMedian {
+            cells.append(row("report.breastfeed_avg_fmt", ReportFormat.duration(typical)))
         }
-        return section("tab.feeding", cells, days: feeding.days, isShort: isShort)
+        return section("export.cat.feeding", cells, days: feeding.days, isShort: isShort)
     }
 
     private static func sleep(_ sleep: DoctorReportSummary.Sleep?, periodStart: Date, isShort: Bool,
                               now: Date) -> String {
-        guard let sleep else { return emptySection("tab.sleep", "report.empty_sleep_fmt", periodStart) }
+        guard let sleep else { return emptySection("export.cat.sleep", "report.empty_sleep_fmt", periodStart) }
         var cells: [String] = []
         if isShort {
             cells.append(row("report.sleep_total_fmt", ReportFormat.duration(sleep.total)))
@@ -237,11 +240,11 @@ enum DoctorReportPDF {
             cells.append(row("weekly.longest_sleep_fmt", ReportFormat.duration(longest),
                              suffix: sleep.longestStart.map { ReportFormat.date($0, now: now) }))
         }
-        return section("tab.sleep", cells, days: sleep.days, isShort: isShort)
+        return section("export.cat.sleep", cells, days: sleep.days, isShort: isShort)
     }
 
     private static func diapers(_ diapers: DoctorReportSummary.Diapers?, periodStart: Date, isShort: Bool) -> String {
-        guard let diapers else { return emptySection("tab.diapers", "report.empty_diapers_fmt", periodStart) }
+        guard let diapers else { return emptySection("export.cat.diapers", "report.empty_diapers_fmt", periodStart) }
         var cells: [String] = []
         if isShort {
             cells.append(row("report.wet_count_fmt", "\(diapers.wetCount)"))
@@ -256,7 +259,7 @@ enum DoctorReportPDF {
                 ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
             })))
         }
-        return section("tab.diapers", cells, days: diapers.days, isShort: isShort)
+        return section("export.cat.diapers", cells, days: diapers.days, isShort: isShort)
     }
 
     private static func section(_ titleKey: String, _ cells: [String],
@@ -355,6 +358,10 @@ enum DoctorReportPDF {
         renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
         for page in 0..<renderer.numberOfPages {
             UIGraphicsBeginPDFPage()
+            // A white page, margins and footer included: a PDF page is
+            // transparent, and dark viewers drew the frame black (design review m5).
+            UIColor.white.setFill()
+            UIRectFill(UIGraphicsGetPDFContextBounds())
             renderer.drawPage(at: page, in: UIGraphicsGetPDFContextBounds())
         }
         UIGraphicsEndPDFContext()

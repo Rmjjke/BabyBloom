@@ -68,15 +68,16 @@ final class BabyBloomTests: XCTestCase {
     func testGrowthEntryFormatting() {
         let entry = GrowthEntry(weightKg: 4.25, heightCm: 56.5, headCircumferenceCm: 38.0)
         // The test host runs in Russian: the comma is the fix (Q-001), the
-        // dot this test used to pin was the bug.
-        XCTAssertEqual(entry.weightFormatted, "4,25 кг")
-        XCTAssertEqual(entry.heightFormatted, "56,5 см")
-        XCTAssertEqual(entry.headFormatted, "38,0 см")
+        // dot this test used to pin was the bug. A no-break space glues the
+        // unit to its number (nbsp-units-older-screens).
+        XCTAssertEqual(entry.weightFormatted, "4,25\u{00A0}кг")
+        XCTAssertEqual(entry.heightFormatted, "56,5\u{00A0}см")
+        XCTAssertEqual(entry.headFormatted, "38,0\u{00A0}см")
     }
 
     func testGrowthEntrySmallWeight() {
         let entry = GrowthEntry(weightKg: 0.8)
-        XCTAssertEqual(entry.weightFormatted, "800 г")
+        XCTAssertEqual(entry.weightFormatted, "800\u{00A0}г")
     }
 
     // MARK: - Feeding Entry Tests

@@ -225,13 +225,16 @@ struct ExportGenerator {
         let generatedDate = dateFmt.string(from: Date())
 
         // Summary stats
-        let totalFeedMin = Int(feedings.filter { !$0.isActive }.reduce(0) { $0 + $1.duration } / 60)
+        // A running feed is not a feed yet: the count, the total and the
+        // average all leave it out, so the three tiles agree with each other.
+        let finished = feedings.filter { !$0.isActive }
+        let finishedFeeds = finished.count
+        let totalFeedMin = Int(finished.reduce(0) { $0 + $1.duration } / 60)
         // Every figure below is prose, so it speaks the app language; the CSV
         // keeps its own invariant dot decimal.
         let totalSleepH  = (sleeps.compactMap { $0.endTime != nil ? $0.duration : nil }.reduce(0, +) / 3600).appDecimal(1)
-        // A running feed is not a feed yet; the report leaves it out of its rate too.
         let avgFeedPerDay = averagePerDay(
-            dates: feedings.filter { !$0.isActive }.map(\.startTime),
+            dates: finished.map(\.startTime),
             range: range
         )
 
@@ -240,12 +243,12 @@ struct ExportGenerator {
         // Summary card
         sections += """
         <div class="card summary">
-          <h2>📊 \("export.summary".l)</h2>
+          <h2>\("export.summary".l)</h2>
           <div class="stats-grid">
         """
         if categories.contains(.feeding) {
             sections += """
-            <div class="stat"><span class="val">\(feedings.count)</span><span class="lbl">\("export.cat.feeding".l)</span></div>
+            <div class="stat"><span class="val">\(finishedFeeds)</span><span class="lbl">\("export.cat.feeding".l)</span></div>
             <div class="stat"><span class="val">\(minutesText(totalFeedMin))</span><span class="lbl">\("export.summary.total_time".l)</span></div>
             """
             // No finished day, no rate: a half-lived today would print a figure
@@ -273,7 +276,7 @@ struct ExportGenerator {
         // Feeding table
         if categories.contains(.feeding) && !feedings.isEmpty {
             sections += tableSection(
-                title: "🍼 \("export.cat.feeding".l)",
+                title: "\("export.cat.feeding".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.side".l, "export.col.volume".l, "export.col.duration".l],
                 rows: feedings.map { e in
                     [dateFmt.string(from: e.startTime),
@@ -289,7 +292,7 @@ struct ExportGenerator {
         // Sleep table
         if categories.contains(.sleep) && !sleeps.isEmpty {
             sections += tableSection(
-                title: "😴 \("export.cat.sleep".l)",
+                title: "\("export.cat.sleep".l)",
                 headers: ["export.col.date".l, "export.col.start".l, "export.col.end".l, "export.col.type".l, "export.col.duration".l],
                 rows: sleeps.map { e in
                     [dateFmt.string(from: e.startTime),
@@ -304,7 +307,7 @@ struct ExportGenerator {
         // Diapers table
         if categories.contains(.diapers) && !diapers.isEmpty {
             sections += tableSection(
-                title: "🩲 \("export.cat.diapers".l)",
+                title: "\("export.cat.diapers".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.color".l, "export.col.notes".l],
                 rows: diapers.map { e in
                     [dateFmt.string(from: e.time),
@@ -319,7 +322,7 @@ struct ExportGenerator {
         // Growth table
         if categories.contains(.growth) && !growths.isEmpty {
             sections += tableSection(
-                title: "📏 \("export.cat.growth".l)",
+                title: "\("export.cat.growth".l)",
                 headers: ["export.col.date".l, "export.col.weight".l, "export.col.height".l, "export.col.head".l],
                 rows: growths.map { e in
                     [dateFmt.string(from: e.date),
@@ -333,7 +336,7 @@ struct ExportGenerator {
         // Events table
         if categories.contains(.events) && !events.isEmpty {
             sections += tableSection(
-                title: "⭐ \("export.cat.events".l)",
+                title: "\("export.cat.events".l)",
                 headers: ["export.col.date".l, "export.col.time".l, "export.col.type".l, "export.col.notes".l],
                 rows: events.map { e in
                     [dateFmt.string(from: e.time),
@@ -350,18 +353,21 @@ struct ExportGenerator {
         <head>
         <meta charset="UTF-8">
         <style>
+          /* A record, not a poster: one solid header (white on the gradient's
+             light end was under 3:1), no emoji in headings, and the secondary
+             grey is BBTextSecondary (#8E8E93 on white was 3.3:1). */
           body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; color: #1C1C1E; font-size: 12px; }
-          .header { background: linear-gradient(135deg, #6F5BA8, #A795D9); color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
+          .header { background: #6F5BA8; color: white; padding: 24px; border-radius: 12px; margin-bottom: 20px; }
           .header h1 { margin: 0 0 4px; font-size: 22px; }
-          .header p  { margin: 0; opacity: 0.85; font-size: 13px; }
+          .header p  { margin: 0; font-size: 13px; }
           .meta { display: flex; gap: 16px; margin-top: 8px; }
-          .meta span { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px; font-size: 11px; }
+          .meta span { font-size: 11px; }
           .card { background: #F2F2F7; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
           .card h2 { margin: 0 0 12px; font-size: 15px; color: #6F5BA8; }
           .stats-grid { display: flex; flex-wrap: wrap; gap: 10px; }
           .stat { background: white; border-radius: 8px; padding: 10px 14px; min-width: 80px; }
           .stat .val { display: block; font-size: 18px; font-weight: 700; color: #1C1C1E; }
-          .stat .lbl { display: block; font-size: 10px; color: #8E8E93; margin-top: 2px; }
+          .stat .lbl { display: block; font-size: 10px; color: #746D85; margin-top: 2px; }
           table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
           th { background: #6F5BA8; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
           th:first-child { border-radius: 6px 0 0 0; }
@@ -369,7 +375,7 @@ struct ExportGenerator {
           td { padding: 6px 10px; border-bottom: 1px solid #E5E5EA; font-size: 11px; }
           tr:last-child td { border-bottom: none; }
           tr:nth-child(even) td { background: #F9F9FB; }
-          .footer { text-align: center; color: #8E8E93; font-size: 10px; margin-top: 24px; }
+          .footer { text-align: center; color: #746D85; font-size: 10px; margin-top: 24px; }
         </style>
         </head>
         <body>
@@ -377,9 +383,9 @@ struct ExportGenerator {
             <h1>\(htmlEscape("brand.name".l)) — \(htmlEscape(babyName))</h1>
             <p>\("export.pdf.subtitle".l)</p>
             <div class="meta">
-              <span>📅 \(rangeLabel)</span>
-              <span>🎂 \(ageDesc)</span>
-              <span>🗓 \(generatedDate)</span>
+              <span>\(rangeLabel)</span>
+              <span>\(ageDesc)</span>
+              <span>\(generatedDate)</span>
             </div>
           </div>
           \(sections)
@@ -472,6 +478,10 @@ struct ExportGenerator {
         renderer.prepare(forDrawingPages: NSRange(location: 0, length: renderer.numberOfPages))
         for i in 0..<renderer.numberOfPages {
             UIGraphicsBeginPDFPage()
+            // A white page, margins and footer included: a PDF page is
+            // transparent, and dark viewers drew the frame black (design review m5).
+            UIColor.white.setFill()
+            UIRectFill(UIGraphicsGetPDFContextBounds())
             renderer.drawPage(at: i, in: UIGraphicsGetPDFContextBounds())
         }
         UIGraphicsEndPDFContext()

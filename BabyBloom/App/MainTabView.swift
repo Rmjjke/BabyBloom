@@ -304,12 +304,19 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
                 } else {
+                    // The gate visible before the tap: a free tap lands on the paywall.
                     Button {
                         showPaywall = true
                     } label: {
-                        Label("settings.export".l, systemImage: "arrow.up.doc.fill")
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
+                        HStack {
+                            Label("settings.export".l, systemImage: "arrow.up.doc.fill")
+                                .foregroundStyle(BBTheme.Colors.textPrimary)
+                            Spacer()
+                            LockBadge()
+                        }
                     }
+                    .bbLockedAccessibility(true)
+                    .accessibilityIdentifier("settings.export")
                 }
                 ICloudStatusRow()
                 Toggle(isOn: Binding(get: { analyticsEnabled },

@@ -154,7 +154,7 @@ final class DoctorReportPDFTests: XCTestCase {
             let feeding = try XCTUnwrap(summary.feeding)
             assertShown(WeeklyFormat.perDay(try XCTUnwrap(feeding.feedsPerDay)), "feeds a day")
             assertShown(ReportFormat.ml(try XCTUnwrap(feeding.bottleMLPerDay)), "bottle a day")
-            assertShown(ReportFormat.duration(try XCTUnwrap(feeding.breastfeedAverage)), "breastfeed average")
+            assertShown(ReportFormat.duration(try XCTUnwrap(feeding.breastfeedMedian)), "breastfeed average")
             let sleep = try XCTUnwrap(summary.sleep)
             assertShown(ReportFormat.duration(try XCTUnwrap(sleep.perDay)), "sleep a day")
             assertShown(ReportFormat.duration(try XCTUnwrap(sleep.longest)), "longest sleep")
@@ -191,7 +191,7 @@ final class DoctorReportPDFTests: XCTestCase {
         let page = html(summary, questions: [])
         XCTAssertTrue(page.contains(esc("report.pdf.no_entries".l)))
         XCTAssertTrue(page.contains(esc(ReportFormat.kg(5.5))), "the standing growth facts stay")
-        XCTAssertFalse(page.contains(esc("tab.feeding".l)))
+        XCTAssertFalse(page.contains(esc("export.cat.feeding".l)))
         XCTAssertFalse(page.contains("<table class=\"weighings\">"), "period rows go")
     }
 
@@ -363,6 +363,9 @@ final class DoctorReportPDFTests: XCTestCase {
             LocalizationManager.shared.setLanguage(language)
             let page = html(summary)
             XCTAssertTrue(page.contains(esc("report.pdf.before_due_date".l)), "\(language)")
+            XCTAssertEqual(page.components(separatedBy: esc("report.pdf.before_due_date".l)).count - 1, 1,
+                           "\(language): weight and height share one sentence")
+            XCTAssertTrue(summary.growth.repeatsWeightNote)
             XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_weight_fmt"))), "\(language)")
             XCTAssertFalse(page.contains(esc(fixedPrefix("report.percentile_height_fmt"))), "\(language)")
             XCTAssertFalse(page.contains(esc("percentile.out_of_range".l)), "\(language)")
@@ -414,7 +417,7 @@ final class DoctorReportPDFTests: XCTestCase {
         let summary = makeEmptySummary(periodStart: birth, startsAtVisit: false)
         XCTAssertFalse(summary.showsNewPeriodCard)
         let page = html(summary, periodStart: birth)
-        for key in ["nav.growth", "tab.feeding", "tab.sleep", "tab.diapers"] {
+        for key in ["export.cat.growth", "export.cat.feeding", "export.cat.sleep", "export.cat.diapers"] {
             XCTAssertTrue(page.contains("<h2>\(esc(key.l))</h2>"), key)
         }
         XCTAssertFalse(page.contains(esc("report.pdf.no_entries".l)))

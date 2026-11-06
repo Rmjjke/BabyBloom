@@ -266,9 +266,7 @@ struct DashboardView: View {
 
     private var lastFeedingText: String? {
         guard let last = feedings.first else { return nil }
-        let mins = Int(Date().timeIntervalSince(last.startTime) / 60)
-        if mins < 60 { return String(format: "stats.min_ago".l, mins) }
-        return String(format: "stats.h_ago".l, mins / 60)
+        return ReportFormat.ago(from: last.startTime, to: AppClock.now)
     }
 
     // MARK: - Growth

@@ -447,7 +447,7 @@ struct AddFeedingSheet: View {
                                     .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
                                 Spacer()
-                                Text("\(Int(volumeML)) \("unit.ml".l)")
+                                Text("\(Int(volumeML))\u{00A0}\("unit.ml".l)")
                                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.feeding)
                             }
@@ -458,7 +458,7 @@ struct AddFeedingSheet: View {
                             HStack {
                                 Text("0")
                                 Spacer()
-                                Text("500 \("unit.ml".l)")
+                                Text("500\u{00A0}\("unit.ml".l)")
                             }
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)

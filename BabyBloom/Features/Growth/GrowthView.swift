@@ -137,8 +137,9 @@ struct GrowthView: View {
                 // accessor drops future-dated rows, and this card sits two
                 // cards above the percentile — which already reads them — so a
                 // raw newest entry printed 4.50 kg over a percentile scored on
-                // 4.30. Height and head stay on `latest`: no filter applies to
-                // them, and their "—" already covers a missing figure.
+                // 4.30. Height and head read the newest entry that HAS them:
+                // most weighings carry no height now (the form's toggle is off
+                // by default), so the newest entry would print «—».
                 BBStatCard(
                     title: "stat.weight",
                     value: measurements.last.map { $0.weightKg.appDecimal(2) } ?? "—",
@@ -149,7 +150,7 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.height",
-                    value: latest.flatMap { $0.heightCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.heightCm != nil })?.heightCm.map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary,
@@ -157,7 +158,8 @@ struct GrowthView: View {
                 )
                 BBStatCard(
                     title: "stat.head",
-                    value: latest.flatMap { $0.headCircumferenceCm.map { $0.appDecimal(1) } } ?? "—",
+                    value: entries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm
+                        .map { $0.appDecimal(1) } ?? "—",
                     unit: "unit.cm",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent,
@@ -599,7 +601,7 @@ struct WeightChartView: View {
 
     private func readout(_ weighing: WeightMeasurement) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
+            Text("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
                 .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .bold))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(caption(weighing))
@@ -654,7 +656,7 @@ struct WeightChartView: View {
                             .frame(width: isSelected ? 14 : 9, height: isSelected ? 14 : 9)
                     }
                     .accessibilityLabel(caption(weighing))
-                    .accessibilityValue("\(weighing.weightKg.appDecimal(2)) \("unit.kg".l)")
+                    .accessibilityValue("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
             }
         }
         .chartLegend(.hidden)
@@ -667,7 +669,7 @@ struct WeightChartView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.12))
                 AxisValueLabel {
                     if let kg = value.as(Double.self) {
-                        Text("\(Self.axisWeight(kg)) \("unit.kg".l)")
+                        Text("\(Self.axisWeight(kg))\u{00A0}\("unit.kg".l)")
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                     }
@@ -840,6 +842,9 @@ struct AddGrowthSheet: View {
     @State private var heightCm: Double = 50.0
     @State private var headCm: Double = 34.0
     @State private var includeHead: Bool = false
+    /// Off by default: most weighings at home have no length, and a required
+    /// slider saved last time's height again as a new measurement.
+    @State private var includeHeight: Bool = false
     @State private var date = Date()
 
     /// The label above the picker at accessibility sizes: beside it, the
@@ -875,18 +880,22 @@ struct AddGrowthSheet: View {
                         range: 1.0...20.0, step: 0.1,
                         display: "\(weightKg.appDecimal(1))\u{00A0}\("unit.kg".l)",
                         color: BBTheme.Colors.growth,
-                        minLabel: "1 \("unit.kg".l)",
-                        maxLabel: "20 \("unit.kg".l)"
+                        minLabel: "1\u{00A0}\("unit.kg".l)",
+                        maxLabel: "20\u{00A0}\("unit.kg".l)"
                     )
 
-                    BBMeasureSlider(
+                    BBOptionalMeasureToggle(
                         title: "form.height_cm".l,
+                        // The hint key reads «(optional)» in every language.
+                        hint: "form.head_optional_hint".l,
+                        isOn: $includeHeight,
                         value: $heightCm,
                         range: 30.0...130.0, step: 0.5,
-                        display: String(format: "%.0f\u{00A0}\("unit.cm".l)", heightCm),
-                        color: BBTheme.Colors.primary,
-                        minLabel: "30 \("unit.cm".l)",
-                        maxLabel: "130 \("unit.cm".l)"
+                        // One decimal: the step is 0.5, and «50 cm» hid a saved 50.5.
+                        display: "\(heightCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
+                        minLabel: "30\u{00A0}\("unit.cm".l)",
+                        maxLabel: "130\u{00A0}\("unit.cm".l)",
+                        color: BBTheme.Colors.primary
                     )
 
                     BBOptionalMeasureToggle(
@@ -896,8 +905,8 @@ struct AddGrowthSheet: View {
                         value: $headCm,
                         range: 25.0...55.0, step: 0.5,
                         display: "\(headCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
-                        minLabel: "25 \("unit.cm".l)",
-                        maxLabel: "55 \("unit.cm".l)",
+                        minLabel: "25\u{00A0}\("unit.cm".l)",
+                        maxLabel: "55\u{00A0}\("unit.cm".l)",
                         color: BBTheme.Colors.accent
                     )
 
@@ -928,14 +937,17 @@ struct AddGrowthSheet: View {
                 // must not reset the weight back to factory. Clamped for the
                 // same reason as the date above: a value outside the slider's
                 // range must never be the value the slider shows.
-                if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg {
-                    weightKg = min(max(w, 1.0), 20.0)
+                // With no weighing yet, the first one starts from the birth weight.
+                if let w = growthEntries.first(where: { $0.weightKg != nil })?.weightKg
+                    ?? babies.first?.birthWeightKg {
+                    // Snapped to the slider's 0.1 step: «5,3» shown must be 5.3 saved.
+                    weightKg = min(max((w * 10).rounded() / 10, 1.0), 20.0)
                 }
                 if let h = growthEntries.first(where: { $0.heightCm != nil })?.heightCm {
-                    heightCm = min(max(h, 30.0), 130.0)
+                    heightCm = min(max((h * 2).rounded() / 2, 30.0), 130.0)
                 }
                 if let hc = growthEntries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm {
-                    headCm = min(max(hc, 25.0), 55.0)
+                    headCm = min(max((hc * 2).rounded() / 2, 25.0), 55.0)
                 }
             }
             .toolbar {
@@ -967,7 +979,7 @@ struct AddGrowthSheet: View {
         let entry = GrowthEntry(
             date: date,
             weightKg: weightKg,
-            heightCm: heightCm,
+            heightCm: includeHeight ? heightCm : nil,
             headCircumferenceCm: includeHead ? headCm : nil
         )
         entry.baby = babies.first

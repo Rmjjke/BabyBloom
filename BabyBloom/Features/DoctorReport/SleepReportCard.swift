@@ -9,7 +9,7 @@ struct SleepReportCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            ReportCardHeader(icon: "moon.fill", tint: BBTheme.Colors.sleep, title: "tab.sleep".l)
+            ReportCardHeader(icon: "moon.fill", tint: BBTheme.Colors.sleep, title: "export.cat.sleep".l)
             if let sleep {
                 rows(sleep)
             } else {

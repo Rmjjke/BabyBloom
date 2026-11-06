@@ -33,11 +33,11 @@ final class SleepEntry {
         let mins = totalMins % 60
         // Whole hours drop the minutes, as in the widget and the weekly card.
         if hours > 0 {
-            return mins == 0
+            return (mins == 0
                 ? String(format: "duration.h_only".l, hours)
-                : String(format: "duration.h_min".l, hours, mins)
+                : String(format: "duration.h_min".l, hours, mins)).gluingNumbersToUnits
         }
-        return String(format: "duration.min_only".l, mins)
+        return String(format: "duration.min_only".l, mins).gluingNumbersToUnits
     }
 
     var isActive: Bool { endTime == nil }

@@ -35,6 +35,7 @@ struct VisitSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                    BBSheetHeading(title: "visit.title".l)
                     VisitFields(date: $date, note: $note,
                                 range: VisitFields.dateRange(birthDate: baby?.birthDate, now: now))
 
@@ -46,7 +47,7 @@ struct VisitSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(BBTheme.Colors.background.ignoresSafeArea())
-            .bbSheetTitle("visit.title".l)
+            .bbSheetTitle("visit.title".l, movesIntoContentAtAX: true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("button.cancel".l) { dismiss() }.foregroundStyle(BBTheme.Colors.textSecondary)

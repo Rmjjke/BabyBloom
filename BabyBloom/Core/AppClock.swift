@@ -7,8 +7,8 @@ import Foundation
 /// pins the clock on the simulator, so QA can stand on a Monday, a Sunday
 /// 23:59 or a newborn week without changing the Mac's date. Simulator-gated
 /// like the other levers (DECISIONS 2026-08-26): a device binary does not
-/// contain the key. Everything else in the app keeps reading `Date()`; only
-/// the weekly path is under test here, and a global clock swap is its own job.
+/// contain the key. Its readers are listed in ARCHITECTURE (`-BBNow`);
+/// everything else keeps reading `Date()`, and a global clock swap is its own job.
 enum AppClock {
     static var now: Date {
         #if targetEnvironment(simulator)

@@ -130,6 +130,13 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertEqual(ExportGenerator.fileNamePart(String(repeating: "Я", count: 200)).count, 60)
     }
 
+    func testTheFeedCountLeavesOutARunningFeed() {
+        let running = FeedingEntry(startTime: fixedNow.addingTimeInterval(-600), type: .breast)
+        XCTAssertTrue(running.isActive)
+        let page = html(feeding: running)
+        XCTAssertTrue(page.contains("<span class=\"val\">0</span><span class=\"lbl\">\("export.cat.feeding".l)</span>"))
+    }
+
     func testTheExportFooterSpeaksTheAppLanguage() {
         LocalizationManager.shared.setLanguage(.ru)
         defer { LocalizationManager.shared.setLanguage(.en) }

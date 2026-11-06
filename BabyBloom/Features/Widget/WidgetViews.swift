@@ -89,11 +89,11 @@ enum WidgetCopy {
     /// remains; elapsed values round down, as clocks do.
     static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
         let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
-        if total < 60 { return String(format: "duration.min_only".l, total) }
+        if total < 60 { return String(format: "duration.min_only".l, total).gluingNumbersToUnits }
         // Whole hours drop the minutes: "1 ч", never "1 ч 0 мин".
-        return total % 60 == 0
+        return (total % 60 == 0
             ? String(format: "duration.h_only".l, total / 60)
-            : String(format: "duration.h_min".l, total / 60, total % 60)
+            : String(format: "duration.h_min".l, total / 60, total % 60)).gluingNumbersToUnits
     }
 
     /// `nil` in the due state on purpose: the hero there is already a whole
