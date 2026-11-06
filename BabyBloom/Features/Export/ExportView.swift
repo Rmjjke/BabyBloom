@@ -27,6 +27,8 @@ struct ExportView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
+                // The stack's own padding stands between the bar and the heading.
+                BBScreenHeading(title: "settings.export".l, topPadding: 0)
 
                 // ── Format ──────────────────────────────────────────────
                 sectionCard(title: "export.format".l) {
@@ -74,8 +76,7 @@ struct ExportView: View {
             .padding(BBTheme.Spacing.md)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("settings.export".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("settings.export".l)
         .sheet(item: $shareRequest) { request in
             ShareSheet(items: request.items)
         }

@@ -23,6 +23,7 @@ struct EventsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
+                BBScreenHeading(title: "nav.events".l, horizontalPadding: BBTheme.Spacing.md)
                 VStack(spacing: BBTheme.Spacing.md) {
                     if !activeMedicines.isEmpty {
                         medicationLines
@@ -37,8 +38,7 @@ struct EventsView: View {
             .padding(.bottom, BBTheme.Spacing.xl)
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("nav.events".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("nav.events".l)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { addEvent() } label: {

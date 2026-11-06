@@ -625,6 +625,31 @@ none, the heading alone shows it twice. The diaper norm editor, with Close
 alone in its bar, does the same without the helper: above Large its bar shows
 no title, and its first heading, «Норма в день», takes the header trait.
 
+Screen titles go by fit. The nine scrolling screens with a large title
+(Feeding, Sleep, Diapers, Events, Growth, Medications, Recent activity,
+Export, the report) set it through `bbScreenTitle(_:)` and put
+`BBScreenHeading` first in their content stack
+(`DesignSystem/Components/BBScreenTitle.swift`). The bar sets a large title
+on one line and cuts its tail, so `BBScreenTitleFit` measures the title's
+line at the bar's face (largeTitle bold at the current size, capped at AX2)
+against the bar's room, W − 32 below 414 pt and W − 40 from 414. The width
+comes from a `GeometryReader` around the content, in the same layout pass,
+so no frame shows one shape and then the other. Where the title fits, the
+bar keeps its large title and the heading draws nothing, not even stack
+spacing. Where it misses, the bar goes inline and the heading shows the
+title: largeTitle bold, wrapping between words, stepping to title1 and
+title2 while its widest word misses the width with sm 8 to spare
+(`WidestWordIdeal`'s `spare`). The bar's principal item then holds a 17-pt
+title, hidden (opacity 0, out of VoiceOver) until the heading's last line
+has passed under the bar; the heading reports that through an environment
+closure, from `onGeometryChange` in the modifier's named coordinate space,
+whose y = 0 is the bar's bottom. The principal item stays in the bar while
+hidden because an empty one lets the system draw its own inline title, cut.
+`navigationTitle` is set in both shapes, for the next screen's back button
+and the app switcher. CoreText measures a title about 3 % wider than the
+bar draws it, so a few titles leave the bar a size before the bar would cut
+them, never after.
+
 The sheet bars' buttons are glyphs, through `BBBarButton`
 (`DesignSystem/Components/BBBarButton.swift`): × for Cancel and Close in the
 secondary ink, ✓ for Save, a pencil for Edit (the visit sheet's, and the

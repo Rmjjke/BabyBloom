@@ -30,6 +30,7 @@ struct GrowthView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
+                BBScreenHeading(title: "tab.growth".l, horizontalPadding: BBTheme.Spacing.md)
 
                 // Latest measurements
                 latestSection
@@ -88,21 +89,14 @@ struct GrowthView: View {
                 WHOFootnote()
                     .padding(.horizontal, BBTheme.Spacing.md)
             }
-            // Bottom clearance so the FAB never permanently covers the last row.
-            .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
+            .padding(.bottom, BBTheme.Spacing.xl)
         }
         // Every "not enough data" card on this screen offers the one action that
         // resolves it, and they all open the sheet the "+" opens — one
         // presentation, injected once, rather than a sheet per card.
         .environment(\.addWeighingAction, { showAddSheet = true })
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .overlay(alignment: .bottomTrailing) {
-            BBFab { showAddSheet = true }
-                .padding(.trailing, BBTheme.Spacing.md)
-                .padding(.bottom, BBTheme.Spacing.md)
-        }
-        .navigationTitle("tab.growth".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("tab.growth".l)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {

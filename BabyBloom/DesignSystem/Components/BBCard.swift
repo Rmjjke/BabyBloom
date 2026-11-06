@@ -164,11 +164,13 @@ private struct WordWrappingText: View {
 }
 
 /// Lays out its second subview; the first, one word a line, only sets the
-/// ideal width. Every other proposal reaches the text unchanged, so a stack
-/// still sizes it as plain text.
-private struct WidestWordIdeal: Layout {
+/// ideal width, plus `spare`. Every other proposal reaches the text
+/// unchanged, so a stack still sizes it as plain text.
+struct WidestWordIdeal: Layout {
+    var spare: CGFloat = 0
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = proposal.width ?? subviews[0].sizeThatFits(.unspecified).width
+        let width = proposal.width ?? subviews[0].sizeThatFits(.unspecified).width + spare
         return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
     }
 

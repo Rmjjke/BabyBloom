@@ -89,7 +89,7 @@ semibold for headers.
 | P4 | **Paywall gates seeing, never deleting.** Delete reaches every row in range, hidden ones included, and the confirmation says so. | in force | DECISIONS 2026-09-01; `BBDeleteHistoryButton` |
 | P5 | **Colours only through the Asset Catalog** (`BBTheme.Colors`); never a literal in a view. Re-theming = colorsets + the widget's copies + the two splash PNGs + the hex constants of `ExportGenerator` and of `DoctorReportPDF` (§ 2 "Outside `Colors/`"). | in force | DECISIONS 2026-07-21, 2026-09-01 |
 | P6 | **Dynamic Type through `BBTheme.Typography`**, ceiling AX2 (`accessibilityLarge`) in one constant. | in force | DECISIONS 2026-08-28 |
-| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **Proposed** (G32): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
+| P7 | **One-handed at night.** Primary "add" sits in the thumb zone (`BBFab`, bottom-trailing); tap targets ≥ 44 pt. **From 1.3.0** (G32, decided 2026-11-05): the floating + on the screens of the night actions, Feeding, Sleep and Diapers, and not on Growth, where a weighing is added a few times a month from the bar's + and «Add a weighing», and where the + sat over the chart's end and the cards' «?» at rest. | in force | `BBFab`, `BBLockedHistoryFooter`, `DiaperView` |
 | P8 | **Contrast floor (WCAG 2.2 AA):** text ≥ 4.5:1 against its fill; ≥ 3:1 for text ≥ 18.66 pt bold / 24 pt regular and for non-text UI that carries meaning (icons, rings, borders). New surfaces are held to it; existing violations go to the backlog, not to blockers. | in force | product decision 2026-10-28: WCAG 2.2 AA is the review bar |
 
 ## 2. Colour tokens
@@ -308,8 +308,8 @@ medication path:
   `bbPlaceholderLabel` (§ 7).
 - A sheet's title moves from the bar into the content, from xLarge on:
   `BBSheetHeading` (§ 7).
-- Proposed: a screen's large title moves from the bar into the content
-  wherever it misses the bar's one line: `BBScreenHeading` (§ 7, G31).
+- A screen's large title moves from the bar into the content wherever it
+  misses the bar's one line: `BBScreenHeading` (§ 7, G31; from 1.3.0).
 - A grid that cannot give its widest word its width takes fewer columns; the
   tiles keep their order and spacing.
 
@@ -804,7 +804,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | Nutrition card rows | — (`NutritionSection`) | the card's three rows (gain, feeds, wet diapers): the label beside its status (BBTierValue) below the accessibility sizes, the status under the label at them. **Planned** (decided 2026-11-05): the three take one shape by fit, all beside while every row keeps its words whole, else all stacked as at the accessibility sizes, so the eye does not jump between rows (the weekly rows' rule, 0334779). Beside, ru xxxLarge on 320 pt breaks three words («12·в·сутки» 102 pt in 98, «Кормления» 105 in 98, «в·пределах» 112 in 106), and with Bold Text ru xxLarge one («подгузники» 103 in 100); stacked, the status lines wrap between words | Growth |
 | SettingsSwitchLabel | — (private, `App/MainTabView.swift:382`) | **from 1.3.0** — a Settings switch's label: the title (the row's `body`, BBTextPrimary) over its hint (`footnote`, BBTextSecondary), 2 apart (`VStack(alignment: .leading, spacing: 2)`), both inside one `Label`'s title, the icon in BBTextPrimary on the title's row; the hint starts at the title's leading edge and VoiceOver reads both with the switch. Why one Label: a Label nested in a VStack put its icon on a row of its own (iOS 26). In code at 8b90029 | Settings: the weekly summary, Lock Screen timer (iPhone only) and usage statistics switches — every Settings switch |
 | SwipeToDeleteRow | BBCard | custom swipe-to-reveal 76 pt delete action | Events, Growth, RecentActivity, BBHistorySection |
-| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **Proposed** (P7, G32): not on Growth, where at rest it sits over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding then returns to xl 32, as on Events | Feeding, Sleep, Diaper, Growth (proposed: without Growth) |
+| BBFab | BBFab | 56 pt primary circle, white "+" (BBOnPrimary from 1.3.0, G1), bottom-trailing overlay, md inset; mirrors the toolbar "+". **From 1.3.0** (P7, G32, decided 2026-11-05): not on Growth, where at rest it sat over the chart's trailing end and its tap layer, the Nutrition card's «?» and, at AX2, the Measurements tile's chevron; Growth's bottom padding is xl 32, as on Events | Feeding, Sleep, Diaper |
 | BBHistorySection | BBHistorySection | history header + range picker + empty state + swipe list + locked footer + delete-all | Feeding, Sleep, Diaper |
 | BBHistoryFilterPicker | BBCharts | segmented range picker (selected chip primary, white text; BBOnPrimary from 1.3.0, G1); the other words BBTextSecondary on primary@0.08, 4.62 in light from 16f2802 (4.05 with #746D85 before, G10) | BBHistorySection |
 | BBWeeklyBarChart | BBCharts | Swift Charts 7-day bars, today full tint, week navigation. The day labels 11 pt rounded in BBTextSecondary, today's bold in BBTextPrimary (G24, from fa5c55f; the tint before); a value 4 pt over every bar up to today, «0» included, 11 semibold rounded, today's in BBTextPrimary and the others' in BBTextSecondary, hidden from VoiceOver, a future day without one; no axis numbers, the grid lines kept at BBTextSecondary@0.06; the bars, under 3:1 in light, stay as marks (G25, from 16f2802; before it only the tallest bar's value, in the tint, with axis numbers). The values and labels stay at a fixed 11 pt; at 320 pt the widest value («24,0», 25.4 pt) has a 36.6 pt slot | Feeding, Sleep, Diaper |
@@ -820,7 +820,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
 | BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:370`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:304`) as the header above Large |
-| BBScreenHeading + `bbScreenTitle(_:)` | — | **proposed** (§ 3, G31) — a screen's large title. It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
+| BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -909,7 +909,8 @@ Under P8, existing contrast violations are backlog items, not blockers; G2 is
 in the backlog (2026-10-28) and fixed for 1.3.0 on the entry sheets, the stat
 card, the profile sheet, the tile rows, the tracker screens' timer cards,
 Home's quick actions and the weight gain card, G22 is fixed for its reach,
-and G1, G4, G5, G10, G18, G19, G20, G21 and G23 to G26 are fixed for 1.3.0.
+and G1, G4, G5, G10, G18, G19, G20, G21, G23 to G26, G31 and G32 are fixed
+for 1.3.0.
 
 **Major**
 - **G1 · White on BBPrimary in dark mode was 2.64:1; fixed for 1.3.0.** Dark
@@ -1349,32 +1350,36 @@ and G1, G4, G5, G10, G18, G19, G20, G21 and G23 to G26 are fixed for 1.3.0.
   rows that hold would change shape with nothing broken); shorter words (they
   hold at Large only); a title that shrinks (the user's text set smaller in
   the one row that lacks room).
-- **G31 · A screen's large title cut at the bar's edge** (found 2026-11-05
-  at 3bb4936). The bar sets a large title on one line and cuts it at the
-  tail; it never wraps. Its room is W − 32 pt below 414 pt of width and
-  W − 40 from 414 (288 on 320, 343 on 375, 370 on 402, 400 on 440), and it
-  draws the title at 0.969 of its CoreText width. The report at AX2 on 402 pt
-  read «For the pediatri…» (414.2 pt in 370). Of the 11 screens with a large
-  title, 4 titles of 33 are cut at AX2 on 402 pt (the report in en, Recent
-  activity in ru and es, Export in ru) and 9 on 320 pt (the report and Recent
-  activity in all three languages, Export in ru and es, Medications in es);
-  the report's en title from Large on 320 pt (295.9 in 288) and from xxxLarge
-  on 375 pt. The other seven titles fit at every width and size (ru
+- **G31 · A screen's large title cut at the bar's edge; fixed for 1.3.0**
+  (found 2026-11-05 at 3bb4936). The bar sets a large title on one line and
+  cuts it at the tail; it never wraps. Its room is W − 32 pt below 414 pt of
+  width and W − 40 from 414 (288 on 320, 343 on 375, 370 on 402, 400 on 440),
+  and it draws the title at 0.969 of its CoreText width. The report at AX2 on
+  402 pt read «For the pediatri…» (414.2 pt in 370). Of the 11 screens with a
+  large title, 4 titles of 33 were cut at AX2 on 402 pt (the report in en,
+  Recent activity in ru and es, Export in ru) and 9 on 320 pt (the report and
+  Recent activity in all three languages, Export in ru and es, Medications in
+  es); the report's en title from Large on 320 pt (295.9 in 288) and from
+  xxxLarge on 375 pt. The other seven titles fit at every width and size (ru
   «Подгузники», the widest, 272.6 at AX2 in 288). Breaks § 3 (a word never
-  breaks inside itself; here the title is cut inside one). Direction
-  (proposed): the title leaves the bar where it misses it, `BBScreenHeading`
-  (§ 7). At AX2 every heading but es «Medicamentos» (title2, 260.1 pt) takes
-  two lines on 320 pt, and on 402 pt «For the / pediatrician», «Недавние /
-  записи», «Actividad / reciente» and «Экспорт / данных» do. Not taken: an
+  breaks inside itself; here the title was cut inside one). Fix, decided
+  2026-11-05 for 1.3.0, in `BBScreenTitle.swift` (§ 3, § 7): the title leaves
+  the bar where it misses it, `BBScreenHeading`. The fit measures the title at
+  its CoreText width, so in six cells it leaves the bar one size before the
+  bar would cut it, never after: Recent activity in ru on 320, 402 and 440 pt
+  and in es on 440, Export in ru on 320 and 375. At AX2 every heading but es
+  «Medicamentos» (title2, 260.1 pt) takes two lines on 320 pt, and on 402 pt
+  «For the / pediatrician», «Недавние / записи», «Actividad / reciente» and
+  «Экспорт / данных» do. Not taken: an
   empty bar once the heading has scrolled away, as the sheets have (a screen
   with no name beside screens whose bar keeps it); shorter titles (the
   report's names are decided, and es «Medicamentos» alone misses at AX1 on
   320 pt); the inline title from AX1 (17 pt over content up to 48, and Large
   on 320 pt and xxxLarge on 375 stay cut).
-- **G32 · Growth's floating + over the chart's end and the «?»** (found
-  2026-11-05 at 3bb4936). `BBFab` sits at the bottom-trailing corner,
-  [368, 801]–[424, 857] on 440 pt at every scroll and size, over a page 3
-  screens long at Large and 4 at AX2. At rest it covers the chart's trailing
+- **G32 · Growth's floating + over the chart's end and the «?»; fixed for
+  1.3.0** (found 2026-11-05 at 3bb4936). `BBFab` sat at the bottom-trailing
+  corner, [368, 801]–[424, 857] on 440 pt at every scroll and size, over a
+  page 3 screens long at Large and 4 at AX2. At rest it covered the chart's trailing
   bottom (40 × 25 pt at Large, 40 × 20 at AX2), where the chart's clear tap
   layer would select the nearest weighing and the + opens the new-measurement
   sheet instead; the Nutrition card's header «?» at Large and AX2; and at AX2
@@ -1383,9 +1388,9 @@ and G1, G4, G5, G10, G18, G19, G20, G21 and G23 to G26 are fixed for 1.3.0.
   every width: the + spans W − 72 to W − 16, the plot's trailing 40 pt
   W − 72 to W − 32, the «?» about W − 54 to W − 34. Breaks P7 (a tap target
   keeps its 44 pt; under the + the «?» and the chart's corner keep none at
-  rest). Direction (proposed): Growth has no floating + (P7, `BBFab`); a
-  weighing is added from the bar's + and «Add a weighing», and the bottom
-  padding returns to xl 32. Not taken: an inset (the end of the scroll is
+  rest). Fix, decided 2026-11-05 for 1.3.0, in `GrowthView.swift` (P7,
+  `BBFab`): Growth has no floating +; a weighing is added from the bar's +
+  and «Add a weighing», and the bottom padding is xl 32. Not taken: an inset (the end of the scroll is
   clear already, and at rest nothing moves out from under a fixed overlay);
   hiding it while scrolling (it returns at rest); bottom-leading (it would
   cover the chart's start and the cards' first words); a 72 pt trailing inset

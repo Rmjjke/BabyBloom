@@ -39,6 +39,8 @@ struct DoctorReportView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+                // The stack's own padding stands between the bar and the heading.
+                BBScreenHeading(title: "report.title".l, topPadding: 0)
                 if let baby { ReportNameLine(baby: baby) }
                 periodHeader(latest: latest, periodStart: periodStart)
                 if let baby { ReportAgeLine(baby: baby) }
@@ -68,8 +70,7 @@ struct DoctorReportView: View {
         }
         .accessibilityIdentifier("doctor.report")
         .background(BBTheme.Colors.background.ignoresSafeArea())
-        .navigationTitle("report.title".l)
-        .navigationBarTitleDisplayMode(.large)
+        .bbScreenTitle("report.title".l)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { share(periodStart: periodStart, openQuestions: open) } label: {

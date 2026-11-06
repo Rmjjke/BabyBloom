@@ -32,6 +32,7 @@ struct FeedingView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.lg) {
+                    BBScreenHeading(title: "tab.feeding".l, horizontalPadding: BBTheme.Spacing.md)
 
                     // Active timer card
                     if let active = activeTimer {
@@ -73,8 +74,7 @@ struct FeedingView: View {
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
-            .navigationTitle("tab.feeding".l)
-            .navigationBarTitleDisplayMode(.large)
+            .bbScreenTitle("tab.feeding".l)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
