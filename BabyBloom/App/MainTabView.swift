@@ -274,8 +274,9 @@ struct ProfileView: View {
                         weeklyNotificationEnabled = isOn
                         NotificationManager.shared.rescheduleWeeklySummary()
                     })) {
-                    Label("settings.notify_weekly".l, systemImage: "calendar")
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    SettingsSwitchLabel(title: "settings.notify_weekly".l,
+                                        hint: "settings.notify_weekly_hint".l,
+                                        systemImage: "calendar")
                 }
                 .tint(BBTheme.Colors.primary)
                 .accessibilityIdentifier("settings.notify_weekly")
@@ -287,22 +288,11 @@ struct ProfileView: View {
                             liveActivityEnabled = isOn
                             liveActivity.switchChanged()
                         })) {
-                        // One Label around both lines: a Label nested in a
-                        // VStack put its icon on a row of its own (live, iOS 26).
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("settings.live_activity".l)
-                                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                                Text(liveActivity.systemEnabled
-                                     ? "settings.live_activity_hint".l
-                                     : "settings.live_activity_off_in_ios".l)
-                                    .font(.footnote)
-                                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                            }
-                        } icon: {
-                            Image(systemName: "lock.rectangle.stack.fill")
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                        }
+                        SettingsSwitchLabel(title: "settings.live_activity".l,
+                                            hint: liveActivity.systemEnabled
+                                                ? "settings.live_activity_hint".l
+                                                : "settings.live_activity_off_in_ios".l,
+                                            systemImage: "lock.rectangle.stack.fill")
                     }
                     .disabled(!liveActivity.systemEnabled)
                     .accessibilityIdentifier("settings.live_activity")
@@ -333,8 +323,9 @@ struct ProfileView: View {
                 ICloudStatusRow()
                 Toggle(isOn: Binding(get: { analyticsEnabled },
                                      set: { Analytics.shared.setEnabled($0) })) {
-                    Label("settings.analytics".l, systemImage: "chart.bar.xaxis")
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                    SettingsSwitchLabel(title: "settings.analytics".l,
+                                        hint: "settings.analytics_hint".l,
+                                        systemImage: "chart.bar.xaxis")
                 }
                 .tint(BBTheme.Colors.primary)
             }
@@ -381,6 +372,30 @@ struct ProfileView: View {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
             }
+        }
+    }
+}
+
+/// A settings switch's label with a line under its title: what the switch
+/// does or when its notification comes. One Label around both lines: a Label
+/// nested in a VStack put its icon on a row of its own (live, iOS 26).
+private struct SettingsSwitchLabel: View {
+    let title: String
+    let hint: String
+    let systemImage: String
+
+    var body: some View {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                Text(hint)
+                    .font(.footnote)
+                    .foregroundStyle(BBTheme.Colors.textSecondary)
+            }
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(BBTheme.Colors.textPrimary)
         }
     }
 }
