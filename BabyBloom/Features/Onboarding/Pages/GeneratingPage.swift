@@ -76,7 +76,7 @@ struct GeneratingPage: View {
                                     if completedSteps.contains(i) {
                                         Image(systemName: "checkmark")
                                             .font(.system(size: 12, weight: .bold))
-                                            .foregroundStyle(.white)
+                                            .foregroundStyle(BBTheme.Colors.onPrimary)
                                     } else {
                                         Image(systemName: step.icon)
                                             .font(.system(size: 11))
