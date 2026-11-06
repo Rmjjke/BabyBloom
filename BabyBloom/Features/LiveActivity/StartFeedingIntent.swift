@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-/// The widget's "Start feeding" button (D16).
+/// The widget's "Start feeding" button.
 ///
 /// A `LiveActivityIntent`, like `StopTimerIntent`, for the same two reasons:
 /// it runs in the APP's process, where the store is writable and synced and

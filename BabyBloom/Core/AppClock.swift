@@ -1,14 +1,14 @@
 import Foundation
 
 /// "Now" for the code that has a lever to move it: the weekly summary, its
-/// notification and the seeds that set them up (L3).
+/// notification and the seeds that set them up.
 ///
 /// `-BBNow 2026-10-26T00:00:00` (ISO 8601, local time when no offset is given)
-/// pins the clock on the simulator, so QA can stand on a Monday, a Sunday
+/// pins the clock on the simulator, so a test run can stand on a Monday, a Sunday
 /// 23:59 or a newborn week without changing the Mac's date. Simulator-gated
 /// like the other levers (DECISIONS 2026-08-26): a device binary does not
-/// contain the key. Everything else in the app keeps reading `Date()`; only
-/// the weekly path is under test here, and a global clock swap is its own job.
+/// contain the key. Its readers are listed in ARCHITECTURE (`-BBNow`);
+/// everything else keeps reading `Date()`, and a global clock swap is its own job.
 enum AppClock {
     static var now: Date {
         #if targetEnvironment(simulator)

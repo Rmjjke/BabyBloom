@@ -160,7 +160,7 @@ struct BBProgressCard: View {
                     .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                 Spacer()
-                Text("\(Int(current))/\(Int(target)) \(unit.l)")
+                Text("\(Int(current))/\(Int(target)) \(unit.l)".gluingNumbersToUnits)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(overLimit ? .red.opacity(0.75) : BBTheme.Colors.textSecondary)
                 if overLimit {
@@ -225,6 +225,11 @@ struct BBSectionHeader: View {
 // MARK: - Swipe to Delete Row
 struct SwipeToDeleteRow<Content: View>: View {
     let onDelete: () -> Void
+    // Defaults keep every history list as it was; the doctor report reuses
+    // the row with its own action («Back to the list»).
+    var title: String = "button.delete"
+    var systemImage: String = "trash.fill"
+    var tint: Color = .red
     @ViewBuilder let content: () -> Content
 
     @State private var offset: CGFloat = 0
@@ -239,10 +244,15 @@ struct SwipeToDeleteRow<Content: View>: View {
                 }
             } label: {
                 VStack(spacing: 4) {
-                    Image(systemName: "trash.fill")
+                    Image(systemName: systemImage)
                         .font(.system(size: 16, weight: .semibold))
-                    Text("button.delete".l)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                    // Scales with Dynamic Type inside the fixed-width button; a
+                    // long label («Back to the list») shrinks before it clips.
+                    Text(title.l)
+                        .font(BBTheme.Typography.scaled(11, relativeTo: .caption2, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.7)
                 }
                 .foregroundStyle(.white)
                 .frame(width: deleteWidth)
@@ -250,7 +260,7 @@ struct SwipeToDeleteRow<Content: View>: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: BBTheme.Radius.md)
-                    .fill(Color.red)
+                    .fill(tint)
             )
             .opacity(offset < -12 ? 1 : 0)
 

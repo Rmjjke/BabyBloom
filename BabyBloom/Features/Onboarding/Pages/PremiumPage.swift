@@ -82,7 +82,7 @@ struct PremiumPage: View {
         .onAppear {
             reportShownIfSelling()
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) { appear = true }
-            // Five seconds, not three (owner ruling, 2026-09-01). The delay is
+            // Five seconds, not three, by product decision. The delay is
             // review-safe ONLY because the button reliably appears: the task is
             // tied to the page, not to any subview, and nothing cancels it.
             closeTask = Task {

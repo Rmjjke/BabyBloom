@@ -91,7 +91,7 @@ enum AnalyticsEvent: Equatable, Sendable {
     case liveActivityStarted
     case liveActivityStoppedFromLockScreen
     case widgetFeedingLogged
-    /// The weekly card came on screen, once per calendar week per device (D11).
+    /// The weekly card came on screen, once per calendar week per device.
     case weeklySummaryViewed
 
     /// Seconds since `shownAt`, never negative (a clock change must not send
@@ -244,6 +244,8 @@ extension AnalyticsEvent {
         case historyLock = "history_lock"
         case lockedCard  = "locked_card"
         case events
+        /// The report's «Share PDF»: the PDF is Premium like every export.
+        case doctorReport = "doctor_report"
 
         var id: String { rawValue }
     }
@@ -353,7 +355,7 @@ extension AnalyticsEvent {
         }
 
         /// Development, ad-hoc and enterprise builds — a Release build run
-        /// from Xcode or handed to QA included — embed a provisioning profile;
+        /// from Xcode or handed to a tester included — embed a provisioning profile;
         /// App Store and TestFlight installs do not. Of those two, TestFlight's
         /// receipt is the sandbox one.
         static func detect(isSimulator: Bool, hasEmbeddedProfile: Bool, receiptName: String?) -> BuildChannel {

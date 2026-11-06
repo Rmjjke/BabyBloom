@@ -21,4 +21,10 @@ extension Date {
     var appDayMonth: String {
         formatted(.dateTime.day().month().locale(LocalizationManager.shared.language.locale))
     }
+
+    /// Day, month and year — "Aug 25, 2026". For the visit detail, where an
+    /// old visit is ambiguous without its year.
+    var appDayMonthYear: String {
+        formatted(.dateTime.day().month().year().locale(LocalizationManager.shared.language.locale))
+    }
 }

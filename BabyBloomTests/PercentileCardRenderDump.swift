@@ -13,7 +13,7 @@ import SwiftUI
 /// The `-standard` files are also the extraction's evidence: they were produced
 /// by a verbatim copy of `GrowthView`'s private card markup before the split
 /// and by this shared view after it, and the PNGs compared byte-identical
-/// (2026-09-21, `.desk/tasks/growth-showcase-page/docs/evidence/`).
+/// (checked on 2026-09-21).
 ///
 /// Run it, read `PERCENTILE_DIR` from the test log, open the files.
 @MainActor

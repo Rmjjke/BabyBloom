@@ -9,14 +9,7 @@ import SwiftData
 /// context and could save over each other.
 enum SharedStore {
     @MainActor static let container: ModelContainer = {
-        let schema = Schema([
-            Baby.self,
-            FeedingEntry.self,
-            SleepEntry.self,
-            DiaperEntry.self,
-            GrowthEntry.self,
-            CustomEvent.self
-        ])
+        let schema = AppSchema.schema
         let config = ModelConfiguration(schema: schema,
                                         groupContainer: .identifier("group.com.nenita.app"),
                                         cloudKitDatabase: .automatic)

@@ -241,7 +241,7 @@ struct BBWeeklyBarChart: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.06))
                     // Whole values only: on a 0…1 domain the marks fall at 0,
                     // 0.5 and 1, and an Int label printed the middle one as a
-                    // second "0" (Q-012). Its grid line stays, unlabelled.
+                    // second "0". Its grid line stays, unlabelled.
                     AxisValueLabel {
                         if let v = value.as(Double.self), v == v.rounded() {
                             Text("\(Int(v))")
@@ -303,11 +303,17 @@ struct BBDeleteHistoryButton: View {
     /// confirmation would be a half-truth then: a parent who cannot see those
     /// rows has no way to know the button reaches them.
     var deletesHiddenRows = false
+    /// For a list that shows rows this button does not delete (Events lists
+    /// pediatrician visits it keeps): "All records" would overstate the wipe.
+    /// nil keeps the shared texts every other screen uses.
+    var messageKey: String? = nil
+    var hiddenMessageKey: String? = nil
     let onDelete: () -> Void
     @State private var showConfirm = false
 
     private var confirmationMessage: String {
-        guard deletesHiddenRows else { return "confirm.delete_message".l }
+        guard deletesHiddenRows else { return (messageKey ?? "confirm.delete_message").l }
+        if let hiddenMessageKey { return hiddenMessageKey.l }
         switch scope {
         case .selectedPeriod: return "confirm.delete_message_hidden".l
         case .everything:     return "confirm.delete_message_all".l

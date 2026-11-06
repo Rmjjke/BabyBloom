@@ -141,7 +141,7 @@ final class WidgetRenderDump: XCTestCase {
             "widget.feeding_in", "widget.time_to_feed", "widget.last_feed",
             "widget.overdue_by",
             "widget.log_first_feeding", "widget.sleeping", "widget.today_short",
-            // The start-feeding capsule's label and its VoiceOver label (D16).
+            // The start-feeding capsule's label and its VoiceOver label.
             "button.start_feeding",
         ]
         for locale in ["en", "ru", "es"] {

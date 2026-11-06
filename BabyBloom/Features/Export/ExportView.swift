@@ -63,7 +63,10 @@ struct ExportView: View {
                 ) {
                     generateExport()
                 }
-                .disabled(isExporting || categories.isEmpty)
+                .disabled(isExporting || exportable.isEmpty)
+                // The primary button does not dim itself; without this a
+                // disabled Export looks live and a tap silently does nothing.
+                .opacity(exportable.isEmpty ? 0.5 : 1)
                 .padding(.bottom, BBTheme.Spacing.xl)
             }
             .padding(BBTheme.Spacing.md)
@@ -140,6 +143,9 @@ struct ExportView: View {
                 }
             }
             .padding(.vertical, 10)
+            // A plain button takes taps only where it draws: without a shape the
+            // Spacer's gap is dead, and a tap there silently keeps the old range.
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -174,6 +180,7 @@ struct ExportView: View {
                     .foregroundStyle(isOn && !isEmpty ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.4))
             }
             .padding(.vertical, 10)
+            .contentShape(Rectangle())
             .opacity(isEmpty ? 0.4 : 1)
         }
         .buttonStyle(.plain)
@@ -197,6 +204,10 @@ struct ExportView: View {
         case .growth:  return cnt(allGrowths)  { $0.date }
         case .events:  return cnt(allEvents)   { $0.time }
         }
+    }
+
+    private var exportable: Set<ExportCategory> {
+        ExportSelection.exportable(ticked: categories, recordCount: recordCount)
     }
 
     private func categoryIcon(_ cat: ExportCategory) -> String {
@@ -245,8 +256,7 @@ struct ExportView: View {
                       !diapers.isEmpty  || !growths.isEmpty || !events.isEmpty
         guard hasData else { showEmptyAlert = true; return }
 
-        // Only export categories that actually have records in this range.
-        let cats = categories.filter { recordCount($0) > 0 }
+        let cats = exportable
         guard !cats.isEmpty else { showEmptyAlert = true; return }
 
         // Capture all values before leaving main actor
@@ -260,6 +270,9 @@ struct ExportView: View {
 
         isExporting = true
         Task { @MainActor in
+            // The render holds the main thread for seconds on a long export, and a
+            // main-queue task can run before the button's new state reaches the screen.
+            try? await Task.sleep(for: .milliseconds(100))
             var items: [Any] = []
 
             if fmt == .pdf {
@@ -296,7 +309,7 @@ struct ExportView: View {
     }
 
     private func babySlug() -> String {
-        (baby?.name ?? "baby").lowercased().replacingOccurrences(of: " ", with: "_")
+        ExportGenerator.fileNamePart(baby?.name ?? "").lowercased().replacingOccurrences(of: " ", with: "_")
     }
 
     private func rangeSlug() -> String {
@@ -310,11 +323,24 @@ struct ExportView: View {
     }
 }
 
+// MARK: - What Export writes
+
+/// The ticked categories that have records in the range: what the file holds,
+/// and the one rule for the Export button. A 0-record category stays in the
+/// set (its box draws empty and its row takes no tap), so "anything ticked"
+/// alone would leave the button on with nothing to write.
+enum ExportSelection {
+    static func exportable(ticked: Set<ExportCategory>,
+                           recordCount: (ExportCategory) -> Int) -> Set<ExportCategory> {
+        ticked.filter { recordCount($0) > 0 }
+    }
+}
+
 // MARK: - Share Sheet Bridge
 
 /// Identifiable payload for `.sheet(item:)` — a fresh `id` per export guarantees the
 /// share sheet is rebuilt with the newly-generated files.
-private struct ShareRequest: Identifiable {
+struct ShareRequest: Identifiable {
     let id = UUID()
     let items: [Any]
 }

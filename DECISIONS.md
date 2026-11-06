@@ -10,7 +10,135 @@ that is not visible in the code. Mechanics belong in
 [ARCHITECTURE.md](ARCHITECTURE.md); this file is the reasoning.
 
 Working-process rules (git flow, verification, task cards) are not here — they
-live with the workflow in `.desk/`.
+live with the workflow, outside this repository.
+
+---
+
+## 2026-11-03 — Code comments give their reason in product words, with no tracker ids
+
+- **No decision numbers, bug ids, requirement labels, task names or workflow paths in Swift comments.** They resolve only in notes that live outside this repository, so a clone reads a bare number or label in brackets and cannot follow it. A comment states the reason itself, and cites this file by date when the reason is long («DECISIONS 2026-10-30»). A pointer to a tracked document by its path stays («teamdocs/design/m1-live-activity.md §§ 2–4», «NOTIFICATIONS.md §3»): a clone can open it. The 1.2.0 sweep rewrote about 250 such comments. Where the id was the only content, the rule is now spelled out («the newborn gate», «Monday weeks»).
+- **Export is enabled only when a ticked category has records in the range.** A category with no records draws an empty box but stays selected underneath, and its row takes no tap, so «anything selected» left the button on with nothing to write, and a tap ended in «No data». The button also dims when off: the shared primary button does not dim itself, so every caller that disables it sets the opacity. `ExportSelection.exportable` is the one rule for the button and for what the file holds.
+
+## 2026-11-03 — An end before its start reads as 0 min; stored rows are not repaired
+
+- **Add Sleep's End follows Start.** `DatePicker(in: startTime...)` limits what the End picker shows, not the value it is bound to: with Start moved past End, the form showed End equal to Start and saved the earlier end, a negative sleep. Now moving Start past End moves End to it, and `SleepEntry.manual` stores the later of the two, so what is saved is what the form showed.
+- **A stored end before its start reads as 0 min.** The guard sits in `SleepEntry.duration` and `FeedingEntry.duration` (Today, History, the Sleep chart, the export, the widget) and in the pure cores, `PeriodSummary` and the report's clipping (the weekly card, the report). The store loaders map rows as they are, because rules belong to the cores. Such rows exist: earlier versions saved them, and a timer stopped on a phone whose clock runs behind the starting phone's still can. The row still counts as an entry, as History lists it.
+- **No repair of stored rows.** Rewriting them is a write on users' data that CloudKit syncs to every device, for the same 0 min the read already shows. Rejected for that reason.
+
+## 2026-11-02 — PDFs compose their own pages, print in Helvetica Neue with a named fallback list, and carry no emoji in the body
+
+All of this comes from one engine, `UIMarkupTextPrintFormatter`, and all of it was seen on rendered files read back, not in its documentation.
+
+**We compose the pages.** The engine slices its layout at the page height and ignores `page-break-*` and repeated `thead`: a table row printed half on each page, and page 2 had no head. `PagedPDF` gives every page its own small document and formatter and asks the engine what fits. A row taller than a page is the one thing that still slices.
+- Rejected, `WKWebView`'s print path: rows stayed whole, but the head did not repeat, the text layer kept the defect below, every caller would turn async, and the first render took 1.87 s against 0.36 s on the simulator.
+- Rejected for now, a Core Text redraw of both layouts: 0.06 s, it keeps the system font and draws real emoji, but it rewrites both layouts and their tests. It is the way to go if the PDF ever needs real emoji.
+- The cost is about one layout per page, about 25 ms on the simulator. Cold, before this change against after, medians of 3: a one-page report 0.27 → 0.29 s, two pages 0.33 → 0.52 s, an export of 5 pages 0.41 → 0.50 s, of 630 rows 0.49 → 1.56 s, of 1890 rows 1.02 → 2.16 s, of 3780 rows (about 130 pages) 1.56 → 3.19 s; 7560 rows, a year, 3.40 s after this change, 3.1 to 4.3 s over three runs. Laying the whole document out first and looking for one more row on every page took about 11.7 s at 3780 rows: that is why a long document skips the first and a settled page the second, and why the layout that proved a page fits also draws it.
+- Accepted for now: a long export holds the main thread for those seconds, behind the button's spinner. Yielding between pages would keep the screen alive without shortening the render, and add an async path to share. The task waits 100 ms before the render, or the spinner never reaches the screen: a main-queue task can run before the button's new state commits, and the screen then stays still until the share sheet.
+
+**Helvetica Neue, not the system font, in both PDFs and every language.** The system font draws Cyrillic «к» and Latin «ĸ» with one glyph, and the text layer then spells every «к» U+0138. The page looks right, so nobody sees it, but a search for «кг» finds nothing and a copied value pastes as «5,32 ĸг». Restoring the system font would look harmless and bring this back. Every language, because a Russian question in an English report breaks the same way. PDFs only: the app keeps the system font. Ligatures are off for the same reason: «ﬁ» is one character in the text layer, and a search for «fine» misses it.
+
+**A named fallback list.** The engine has no system fallback: a glyph no named family holds prints a boxed «?», so a Chinese, Arabic or Thai name was a row of boxes. The CSS names a family per script, following the system's cascade list. Apple Color Emoji must stay off it: with that family named, the whole text prints boxed. The report's footer, which UIKit draws, takes the same list as a cascade: UIKit's own fallback sends a sign like ❤ to the colour font, and a PDF prints that as a box and a gap.
+
+**No emoji in the PDF body or the report's footer.** The engine can print a colour emoji only as a box, whichever way it is offered (a font, an image), and UIKit drawing the footer line into the same PDF prints one too. `PagedPDF.withoutEmoji` removes them at render only: the store, the screens, the CSV and file names keep what the parent typed.
+- A clean line on a doctor's paper beats a box, and this is the one exception to printing questions verbatim. A question of emoji alone leaves the list, and a name of emoji alone leaves no empty line.
+- Unicode also tags digits, «#», «*», «©», «®» and «™» as emoji-capable, so that tag alone must never filter: a lost digit in a question about a dose is worse than any box. They stay as text and lose only the request for the emoji form: «1️⃣» prints 1, «❤️» prints ❤.
+- A closed list becomes text instead of leaving, because a sentence must not survive with its answer gone: «Iron ❌, Vit D ✅» would print «Iron , Vit D ». ✅→✓, ❌ ❎→✗, ➕→+, ➖→−, ➗→÷, ❓ ❔→?, ❗ ❕→!, and «🔟» prints 10. The list stays closed: any other emoji leaves, and growing it is a new decision.
+- An emoji between two words or numbers leaves a space, or «5🍼10 мл» would read 510.
+
+## 2026-11-02 — Dates follow the app language at the root; the typical breastfeed is a median; the Today tile counts days past 48 h
+
+- **One `.environment(\.locale)` at the app root**, from the same `appLanguage` that rebuilds the tree. Every `DatePicker` and every date SwiftUI formats itself then speaks the app language, and sheets inherit it. A ru app on an en_US phone showed «2 Nov 2026» in five pickers. Rejected: a modifier per picker, because the next picker would forget it.
+- **The report's breastfeed figure is the median** of finished breastfeeds; an even count takes the mean of the two middle ones. One forgotten 3-hour timer moved a mean by tens of minutes, and the doctor asks about the typical feed (design review, 2026-11-02). The label says «typical», not «average».
+- **«N days ago» from 48 h**, floored, with the age plurals. «131 h ago» was a number to work out, not an answer. Under 48 h, hours stay: «30 h ago» still reads at a glance.
+- **A weighing does not carry a height unless the parent turns it on.** The required slider saved the last height again with every weighing, a measurement nobody made. The Height and Head cards therefore read the newest entry that HAS the figure, and the first weighing starts from the birth weight.
+- **The environment locale keeps the user's hour cycle.** Only the language is the app's; a fixed `ru_RU` / `en_US` would have turned a 24-hour phone's time pickers to AM/PM.
+
+## 2026-11-02 — The report prints the WHO percentile as a number; PDFs speak the app language, CSV stays invariant
+
+**The percentile number is a measurement.** The pediatrician report (screen and PDF) prints «Weight percentile (WHO): 42» and the same for length. It prints no band word, no tint, no ⚠, and no trend or adequacy verdict; a closed list of verdict words that must not appear is a test (`DoctorReportPDFTests`).
+- Past the chart's edge it prints «> 97» / «< 3» (`PercentileReading.badge`), never a clamped 99 or 1.
+- The number comes from `WHOGrowthStandard`, the same functions the Growth screen uses.
+
+**Why.** A percentile is a position on the WHO chart, which is what a doctor plots anyway. A band word turns that position into a judgement, and that is where the 2026-09-05 line sits. A second implementation in the exporter was the risk that entry named; the report reads the one in `Core/Growth`.
+
+**Numbers: PDFs in the app language, CSV invariant.** Every PDF the app makes, the report and the existing export, prints numbers in the app language («4,25 кг» in ru), with localized units glued by a no-break space. The CSV keeps a dot decimal (en_US_POSIX) and puts the units in the column headers.
+
+**Why.** A PDF is read by a person, possibly a doctor in Russia or Spain. A CSV is read by spreadsheets and scripts, where a comma decimal inside a comma-separated file breaks every column after it.
+
+The export's «a day» figures use the report's rule: `PeriodSummary` over finished days, divided by days with entries. A week or month range starts mid-day («now minus 7 days»), so its cut first day is left out too and the span starts at the next midnight. So the export and the report never print two different averages for the same days.
+
+---
+
+## 2026-11-01 — The pediatrician report counts its period its own way, on the weekly card's day core
+
+`PeriodSummary` buckets any `[start, end)` into calendar days. The weekly card is a 7-day instance of it, and the report is "since the last visit". Each caller decides what goes in. The report differs from the weekly card in four places:
+- **Running timers are left out.** The weekly card counts a running feed.
+- **A sleep that began before the period counts only its part inside.** The weekly card files a sleep whole on its start day.
+- **Averages are per section, over that section's own days.** Feeds a day is over days with feeds, and so on; the weekly card divides by days with any entry.
+- **Averages and «Days with entries: N of M» use the FINISHED days only.** Today stays in every count, but it does not average: the report is opened at the visit, mid-morning. Under 3 finished days, raw counts replace the averages. This amends the first rule, which let today join the count once it had an entry. The final review showed that 2 morning feeds after three days of 8 read as «6.5 a day», and «wet a day», the hydration number, dropped with it.
+
+**Why.** The report is a doctor's record of what happened, so an unfinished timer has no number yet. A night that began before the visit is half the previous period's. A per-day average divided by days with no entry of that kind would read as less feeding or sleep than there was (the weekly card's reason for dividing by days with entries, applied per section). A half-lived today is not a day: dividing by it understates every rate, and counting it in the days line printed «20 of 21» every morning. The weekly card's rules stay byte-for-byte (`WeeklySummaryTests` unchanged), because they answer a different question: how last week went.
+
+**Rejected:** a second, separate day-bucketing for the report. Two calendars of midnight arithmetic would drift, and the DST bug class would have to be fixed twice.
+
+---
+
+## 2026-11-01 — Pediatrician visits send no analytics, and bypass the free history window and the row cap
+
+**No analytics event for a visit or a question.** There is no event when one is logged, edited or deleted, and no "doctor" flag in `daily_activity`.
+
+**Why.** It follows from 2026-09-23 (no care timeline). Each event carries its own client time under a persistent id, so a `doctor_visit_logged` event would tell the backend the day this baby saw a pediatrician. In the Flo Health sense, that is health information revealed by an event. A presence flag in the daily aggregate would leak the same day. An event shaped for privacy, such as a once-per-install marker, buys nothing a product question needs today. If report usage ever matters, that is its own reviewed decision, not an extension of this one. The question and note texts could never reach a payload anyway, because the payload is typed.
+
+**Visit rows in Events and Recent activity are free.** They sit outside the 15-day window and the 20-row cap, and they are read-only: a visit changes only in its detail. The locked footer and «Delete History» keep counting events only. The Events confirm text says the visits are kept.
+
+**Why.** Logging a visit is free (plan v2, decision 4), and the visit is where the report's period starts. A visit hidden behind the lock would hide the record the free report is measured from. Deleting visits from a list would split the "questions go back to open" rule across three screens.
+
+**The doctor sheets never ask for a rating.** They use plain `.sheet`, never `.entrySheet` (2026-09-22). A question for the pediatrician is often a worry.
+
+---
+
+## 2026-11-01 — A persisted enum is closed while older versions sync; visits and questions are new models
+
+No case is ever added to an enum that a `@Model` stores: `FeedingEntry.FeedingType`/`BreastSide`, `DiaperEntry.DiaperType`/`StoolColor`, `CustomEvent.EventType`/`MoodLevel`, `Baby.Gender`/`FeedingType`, `SleepEntry.SleepType`/`SleepLocation`.
+- A new kind of record is a new `@Model`. A new property of a record is a new optional attribute.
+- `FrozenPersistedEnumTests` pins every case.
+- Hence the pediatrician visit (1.2.0) is `DoctorVisit` plus `DoctorQuestion`, not a `CustomEvent.EventType.doctorVisit`, even though the parent sees it as an event.
+
+**Why.** A spike for the visits feature wrote a `CustomEvent` whose stored `type` was a value the current build does not know. That is what CloudKit delivers to a 1.1 device from a newer one. Reading it crashed the app: "SwiftData/DefaultStore.swift:1890: Fatal error: Failed to decode a composite attribute … valueType: EventType".
+- The value is a plain VARCHAR raw value, and SwiftData does not skip the record: it traps on every read.
+- The Events tab, the weekly summary and the export all read every event, so a parent with an iPad still on the old version would have a crashing iPad.
+- Unknown record types and unknown attributes are what an older build CAN handle: `NSPersistentCloudKitContainer` imports only the record types its model knows.
+
+**A visit's date is stored at noon of its day.** It is not stored at midnight. The format is fixed once 1.2 ships, so the reason is recorded here: a visit stored at 00:00 Moscow time reads as the previous day on a device in New York (the second parent's iPad, a trip). That would move the report's period start. Noon survives any offset up to ±11 h.
+
+**Rejected:** a tolerant decoder (a String attribute plus a computed enum with a fallback case). It would protect only the builds that ship it. Every 1.1 device already installed keeps the trapping decoder.
+
+---
+
+## 2026-11-01 — Length-for-age is WHO's table, generated and cross-checked, on its own denser grid
+
+`WHOGrowthStandard+Length.swift` holds WHO length-for-age LMS rows for
+0–730 days, generated from WHO's expanded tables
+(`lhfa-{boys,girls}-percentiles-expanded-tables.xlsx`,
+who.int/tools/child-growth-standards/standards/length-height-for-age), never
+typed. The generator checked every row against WHO's anthro package
+(`data-raw/growthstandards/lenanthro.txt`): identical for both sexes, `l` = 1
+throughout, all rows recumbent length. `GrowthEntry.heightCm` is scored as
+length, with no lying/standing adjustment, because WHO switches to height only
+after 24 months.
+
+**Why.** The pediatrician report shows a length percentile next to weight's,
+and a transcription slip in a reference table is
+invisible in review. Generating from WHO's file and cross-checking against a
+second WHO source removes the slip. Tests pin WHO's published P3/P50/P97
+lengths to ±0.1 percentile.
+
+**Rejected: reusing the weight table's day grid.** The z error of an
+interpolated median is about δM / (M·S), and length's S is about a quarter of
+weight's, so the same relative error in M costs four times as much z. At the median, where one z moves the percentile most,
+that reached 0.31 of a percentile and failed the ±0.1 test at day 45. The
+length grid is daily to 30 days, every third day to 182, then weekly (161 nodes
+per sex): under 0.022 of a percentile anywhere in −3…+3 z.
 
 ---
 
@@ -22,10 +150,10 @@ Measurements and rates on screen are formatted by `Double.appDecimal(_:)` /
 `%@` (e.g. `growth.head_fmt`). Russian shows "4,29"; Spanish shows "4.29",
 because es is pinned to es_419.
 
-**Why.** The owner called the ru dot a defect (QA Q-001). One rule for every
+**Why.** A period in Russian numbers was reported as a defect. One rule for every
 number, following the region the app already pins: a comma only in
 measurements would put two separators on one screen, and moving es to Spain is
-a product change, not a bug fix (Manager decision, m1-bugfix-batch-1). Export
+a product change, not a bug fix. Export
 columns stay `en_US_POSIX` (machine-readable); whether the PDF report follows
 the app language is open.
 
@@ -45,7 +173,7 @@ dropped the widget reload. A rule applied in five places drifts; in one place
 it holds.
 
 Why reconcile instead of event-by-event updates: the activity must never
-disagree with the app (R3), and the events that can make it wrong are many and
+disagree with the app, and the events that can make it wrong are many and
 partly invisible: an app kill, a CloudKit change from another phone, iOS
 revoking the permission, a timer crossing 8 h while nobody looks. A pure
 planner that compares "what is running" with "what is shown" fixes all of them
@@ -53,9 +181,8 @@ the same way, any missed call is repaired by the next one, and the rules are
 unit-tested without ActivityKit.
 
 Why no push: updating an activity from another device needs aps-environment, a
-server and push tokens. For M1 the owner accepted that a stop made elsewhere
-reaches this Lock Screen when the app next runs (spec R3.4, verdict
-2026-10-29).
+server and push tokens. For 1.1.0 it was accepted that a stop made elsewhere
+reaches this Lock Screen when the app next runs (2026-10-29).
 
 Rejected: calling `Activity.update` / `end` from each screen's button. It is
 simpler on day one, but leaves exactly the drift above.
@@ -63,7 +190,7 @@ simpler on day one, but leaves exactly the drift above.
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
 The 10 `SubscriptionPurchaseTests` cases skip on this machine with
-`notEntitled`. The spike (card storekit-notentitled-spike, timeboxed) found
+`notEntitled`. A timeboxed spike found
 where the refusal comes from: storekitd logs **"com.nenita.app is not installed
 for development"** for every purchase-side `SKTestSession` call
 (`buyProduct`, `deleteAllTransactions`). The session's configuration calls
@@ -1093,6 +1220,10 @@ reading to be the highest handed the green tick back to any baby whose final
 weighing wobbled a little below the one before it.
 
 ## 2026-09-05 — The doctor-facing export carries measurements, not verdicts
+
+> **Amended 2026-11-02**: the pediatrician report and
+> its PDF print the WHO percentile NUMBER for weight and length. See the entry
+> of that date. Everything else here stands.
 
 `ExportGenerator` writes raw growth rows — date, weight, height, head — and no
 percentile, gain band or centile-trend verdict. Verified, not merely observed:

@@ -39,7 +39,7 @@ struct DiaperView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
                 // Extra bottom clearance so the history period-selector / delete-all
-                // button never tucks under the tab bar. (D2 bugfix)
+                // button never tucks under the tab bar.
                 .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())

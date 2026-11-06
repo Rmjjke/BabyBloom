@@ -79,7 +79,7 @@ enum WidgetCopy {
     static var formattingLocale: Locale { LocalizationManager.shared.language.locale }
 
     /// A duration as the widget speaks it: whole minutes through the app's
-    /// JSON strings, never seconds. Owner ruling on build 5 — "2 мин 0 с"
+    /// JSON strings, never seconds: "2 мин 0 с"
     /// implies a precision no glanceable widget should claim. `Text(_:style:)`
     /// cannot do this (its units are not configurable), which is why the
     /// timeline carries one entry per minute instead and every duration is
@@ -89,11 +89,11 @@ enum WidgetCopy {
     /// remains; elapsed values round down, as clocks do.
     static func minutesText(_ interval: TimeInterval, countdown: Bool = false) -> String {
         let total = max(0, countdown ? Int(ceil(interval / 60)) : Int(interval / 60))
-        if total < 60 { return String(format: "duration.min_only".l, total) }
+        if total < 60 { return String(format: "duration.min_only".l, total).gluingNumbersToUnits }
         // Whole hours drop the minutes: "1 ч", never "1 ч 0 мин".
-        return total % 60 == 0
+        return (total % 60 == 0
             ? String(format: "duration.h_only".l, total / 60)
-            : String(format: "duration.h_min".l, total / 60, total % 60)
+            : String(format: "duration.h_min".l, total / 60, total % 60)).gluingNumbersToUnits
     }
 
     /// `nil` in the due state on purpose: the hero there is already a whole
@@ -133,7 +133,7 @@ enum WidgetCopy {
     }
 }
 
-// MARK: - Start-feeding control (D16, design note § 5)
+// MARK: - Start-feeding control
 
 /// What the capsule does. Idle, it starts a feed through `StartFeedingIntent`.
 /// While a feed runs, it is a link to the Feeding tab, so a second tap can
@@ -151,7 +151,7 @@ enum WidgetControl: Equatable {
 }
 
 /// A BBSurface capsule: white on the gradient's light end measures 2.64:1,
-/// BBPrimary on BBSurface 5.6 / 6.2 (note § 5). Visually 36 pt high, with a
+/// BBPrimary on BBSurface 5.6 / 6.2. Visually 36 pt high, with a
 /// 44 pt hit area.
 struct WidgetFeedControl: View {
     let entry: BabyBloomEntry
@@ -211,7 +211,7 @@ struct WidgetFeedControl: View {
         }
     }
 
-    /// No words, only the glyph and the minutes (note § 5, owner #25: whole
+    /// No words, only the glyph and the minutes (whole
     /// minutes, never seconds). VoiceOver gets the words the glyph stands for,
     /// as on the Live Activity.
     private func running(_ since: Date) -> some View {
@@ -258,7 +258,7 @@ struct BabyBloomSmallWidgetView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 // A state, not a number: an empty middle read as a widget that
-                // failed to load (design note § 5). The minutes stay in the capsule.
+                // failed to load. The minutes stay in the capsule.
                 Text("status.feeding_going".l)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.9))
@@ -297,7 +297,7 @@ struct BabyBloomSmallWidgetView: View {
             Spacer(minLength: 0)
 
             // Today's count left this size to make room for the control; it
-            // stays on the medium widget (note § 5).
+            // stays on the medium widget.
             WidgetFeedControl(entry: entry, label: "tab.feeding".l,
                               isInteractive: isInteractive, linksToFeeding: false)
         }
@@ -339,7 +339,7 @@ struct BabyBloomMediumWidgetView: View {
                                 }
                             } else {
                                 // The hero's place holds the state, never a
-                                // number: the capsule carries the minutes (§ 5).
+                                // number: the capsule carries the minutes.
                                 Text("status.feeding_going".l)
                                     .font(.system(size: 20, weight: .semibold, design: .rounded))
                                     .foregroundStyle(.white)
@@ -360,7 +360,7 @@ struct BabyBloomMediumWidgetView: View {
                         // this row would print the same fact twice in two
                         // different formats. Sleep is the column's content there.
                         // Hidden too while a feed runs: the capsule already
-                        // shows its minutes (note § 5, "one fact once").
+                        // shows its minutes (one fact, once).
                         if entry.nextFeedingTime != nil, entry.runningFeedStart == nil,
                            let last = entry.lastFeedingTime {
                             link(.feeding) {
@@ -410,7 +410,7 @@ struct BabyBloomMediumWidgetView: View {
         WidgetFeedControl(entry: entry, label: "button.start_feeding".l, isInteractive: isInteractive)
     }
 
-    /// A tap area per section (note § 5). Off on the onboarding showcase,
+    /// A tap area per section. Off on the onboarding showcase,
     /// where a link would leave onboarding for a tab that is not there yet.
     @ViewBuilder
     private func link<Content: View>(_ destination: DeepLink.Destination,
@@ -422,7 +422,7 @@ struct BabyBloomMediumWidgetView: View {
         }
     }
 
-    /// The spec's "same, plus how long overdue", in whole minutes. Hidden for
+    /// The overdue state: the same, plus how long overdue, in whole minutes. Hidden for
     /// the first partial minute — "Просрочено на 0 мин" would undercut the
     /// hero that just said it is time.
     @ViewBuilder

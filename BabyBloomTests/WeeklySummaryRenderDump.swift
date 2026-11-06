@@ -2,9 +2,9 @@ import XCTest
 import SwiftUI
 @testable import BabyBloom
 
-/// Not an assertion suite: the weekly card in every state the design note
-/// names (S1–S6), collapsed and expanded, en/ru/es, light/dark, default and
-/// AX2, for the Designer's review. Run it, read `WEEKLY_DIR` from the log.
+/// Not an assertion suite: the weekly card in each of its states (s1–s6,
+/// built below), collapsed and expanded, en/ru/es, light/dark, default and
+/// AX2, for a visual review. Run it, read `WEEKLY_DIR` from the log.
 @MainActor
 final class WeeklySummaryRenderDump: XCTestCase {
 

@@ -3,12 +3,12 @@ import SwiftData
 
 /// The one place a feeding or sleep timer starts, stops, changes side or is
 /// deleted. The screens, the Live Activity's Stop intent and the widget's Start
-/// feeding button (D16) all come through here, so each change gets the same
+/// feeding button all come through here, so each change gets the same
 /// side effects wherever it is made: save, widget reload, the reminder hook (a
 /// side change has none), and a Live Activity reconcile.
 ///
 /// The review prompt is NOT here: it is a view concern, and a stop made from the
-/// Lock Screen must never ask for a review (R2.2). Views call it themselves
+/// Lock Screen must never ask for a review. Views call it themselves
 /// after a `stop` that returned true.
 @MainActor
 enum TimerActions {
@@ -41,7 +41,7 @@ enum TimerActions {
         return entry
     }
 
-    /// The widget's button (D16): a breastfeed on the left, as the in-app quick
+    /// The widget's button: a breastfeed on the left, as the in-app quick
     /// start, unless a feeding of any kind already runs. The widget swaps the
     /// button for a link once one runs, but its timeline can be a minute
     /// behind, and a second tap must never start a second feed. Nor before
@@ -79,7 +79,7 @@ enum TimerActions {
 
     /// Stops the running entry with this id. Returns false and writes nothing
     /// when it is gone or already stopped — a second tap on the Lock Screen, or
-    /// a stop that raced an in-app one, must not move the end time (R2.3).
+    /// a stop that raced an in-app one, must not move the end time.
     @discardableResult
     static func stop(entryID: UUID, kind: TimerKind, at date: Date = Date(),
                      in context: ModelContext) -> Bool {

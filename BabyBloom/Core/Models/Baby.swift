@@ -28,6 +28,8 @@ final class Baby {
     @Relationship(deleteRule: .cascade, inverse: \DiaperEntry.baby) var diaperEntries: [DiaperEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \GrowthEntry.baby) var growthEntries: [GrowthEntry]? = []
     @Relationship(deleteRule: .cascade, inverse: \CustomEvent.baby) var customEvents: [CustomEvent]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorVisit.baby) var doctorVisits: [DoctorVisit]? = []
+    @Relationship(deleteRule: .cascade, inverse: \DoctorQuestion.baby) var doctorQuestions: [DoctorQuestion]? = []
 
     init(name: String, birthDate: Date, gender: Gender, feedingType: FeedingType) {
         self.id = UUID()
@@ -196,11 +198,13 @@ final class Baby {
 
 // MARK: - Int word forms (language-aware)
 extension Int {
-    var dayWord: String   { ageWord(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
-    var weekWord: String  { ageWord(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
-    var monthWord: String { ageWord(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
+    var dayWord: String   { plural(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
+    var weekWord: String  { plural(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
+    var monthWord: String { plural(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
 
-    private func ageWord(one: String, few: String, many: String) -> String {
+    /// The localized form of three keys that fits this number in the app
+    /// language: one/few/many for Russian, one/other (`few`) for en/es.
+    func plural(one: String, few: String, many: String) -> String {
         switch LocalizationManager.shared.language.pluralRule {
         case .singularPlural:
             // English/Spanish: "1 day" / "21 days", "1 día" / "21 días".

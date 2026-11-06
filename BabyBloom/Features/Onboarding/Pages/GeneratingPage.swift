@@ -31,8 +31,8 @@ struct GeneratingPage: View {
     }
 
     /// Uneven on purpose: uniform ticks read as an animation, uneven ones as
-    /// work. Sums with the trailing pauses to ~4.6 s (owner: +40% over the
-    /// old 3.2 s).
+    /// work. Sums with the trailing pauses to ~4.6 s (+40% over the old
+    /// 3.2 s).
     private let stepDelays: [UInt64] = [450, 1_000, 650, 1_200, 550].map { $0 * 1_000_000 }
 
     var body: some View {

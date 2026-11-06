@@ -2,7 +2,7 @@ import XCTest
 @testable import BabyBloom
 
 /// Measurements used to print a decimal period in Russian because
-/// `String(format:)` ignores the app language (Q-001).
+/// `String(format:)` ignores the app language.
 final class DecimalFormatTests: XCTestCase {
 
     private var originalLanguage: SupportedLanguage!
@@ -31,8 +31,8 @@ final class DecimalFormatTests: XCTestCase {
         XCTAssertEqual(52.0.appDecimal(1), "52.0")
     }
 
-    /// es is pinned to es_419, whose separator is a period — decided
-    /// (m1-bugfix-batch-1), not an oversight: one rule with `appRate`.
+    /// es is pinned to es_419, whose separator is a period — decided,
+    /// not an oversight: one rule with `appRate`.
     func testSpanishFollowsEs419Period() {
         LocalizationManager.shared.setLanguage("es")
         XCTAssertEqual(4.29.appDecimal(2), "4.29")

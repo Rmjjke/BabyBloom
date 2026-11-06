@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 #if targetEnvironment(simulator)
-/// The weekly-summary fixtures (L3). Built from `AppClock.now`, so a run with
+/// The weekly-summary fixtures. Built from `AppClock.now`, so a run with
 /// `-BBNow 2026-10-25T23:59:00` and one with `-BBNow 2026-10-26T00:00:00`
 /// stand on either side of the Sunday → Monday edge with the same data.
 extension SeedScenario {

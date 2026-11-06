@@ -81,8 +81,9 @@ tags: [regression]
 - assertNotVisible: ".*Available with Premium.*"
 
 # THE POINT OF THE SCENARIO. Nothing unlogged may surface as a number.
-# Explicitly no zero rate anywhere, in the section or in the card:
-- assertNotVisible: '.*\b0([.,]0)? a day.*'
+# Explicitly no zero rate anywhere, in the section or in the card. \W, not a
+# space: the figure is glued to "a day" with a no-break space.
+- assertNotVisible: '.*\b0([.,]0)?\Wa day.*'
 # and, stronger, no per-day rate AT ALL — with nothing logged there is no rate
 # to render, so any "N a day" on this screen is a bug whatever N is:
 - assertNotVisible: '.*\ba day\b.*'

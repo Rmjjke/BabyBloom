@@ -63,7 +63,7 @@ struct FeedingView: View {
                         .padding(.horizontal, BBTheme.Spacing.md)
                 }
                 // Extra bottom clearance so the history period-selector / delete-all
-                // button never tucks under the tab bar. (D2 bugfix)
+                // button never tucks under the tab bar.
                 .padding(.bottom, BBTheme.Spacing.xxl + BBTheme.Spacing.md)
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
@@ -235,7 +235,7 @@ struct FeedingTimerCard: View {
     var body: some View {
         VStack(spacing: BBTheme.Spacing.md) {
             // The timer under the title at accessibility sizes: beside the wide
-            // AX2 digits the title's column broke «Сцеженное» mid-word (Q-013).
+            // AX2 digits the title's column broke «Сцеженное» mid-word.
             let header = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
                 : AnyLayout(HStackLayout())
@@ -255,7 +255,7 @@ struct FeedingTimerCard: View {
             // Breast side switcher (for breast feeding)
             if entry.type == .breast {
                 // One pill per row at accessibility sizes: three in a row broke
-                // «Правая» inside the word (Q-013).
+                // «Правая» inside the word.
                 let pills = dynamicTypeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: BBTheme.Spacing.sm))
                     : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
@@ -336,11 +336,11 @@ struct AddFeedingSheet: View {
     @State private var selectedSide: FeedingEntry.BreastSide = .left
     @State private var volumeML: Double = 100
     /// Set once the user drags the volume slider by hand. After that a type-switch
-    /// must not overwrite their chosen volume (brief §1).
+    /// must not overwrite their chosen volume.
     @State private var userTouchedVolume = false
     @State private var startTimer = false
     /// Drives the initial sheet height. Starts at `.large` so the timer toggle /
-    /// primary action are on-screen without a manual drag (brief §2).
+    /// primary action are on-screen without a manual drag.
     @State private var selectedDetent: PresentationDetent = .large
 
     init(initialType: FeedingEntry.FeedingType = .breast) {
@@ -408,7 +408,7 @@ struct AddFeedingSheet: View {
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
 
                             // Stacked at accessibility sizes, as the timer
-                            // card's pills: «Прав / ая», «Izquie / rdo» (Q-013).
+                            // card's pills: «Прав / ая», «Izquie / rdo».
                             let chips = dynamicTypeSize.isAccessibilitySize
                                 ? AnyLayout(VStackLayout(spacing: BBTheme.Spacing.sm))
                                 : AnyLayout(HStackLayout(spacing: BBTheme.Spacing.sm))
@@ -447,7 +447,7 @@ struct AddFeedingSheet: View {
                                     .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
                                     .foregroundStyle(BBTheme.Colors.textPrimary)
                                 Spacer()
-                                Text("\(Int(volumeML)) \("unit.ml".l)")
+                                Text("\(Int(volumeML))\u{00A0}\("unit.ml".l)")
                                     .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .semibold, design: .rounded).monospacedDigit())
                                     .foregroundStyle(BBTheme.Colors.feeding)
                             }
@@ -458,7 +458,7 @@ struct AddFeedingSheet: View {
                             HStack {
                                 Text("0")
                                 Spacer()
-                                Text("500 \("unit.ml".l)")
+                                Text("500\u{00A0}\("unit.ml".l)")
                             }
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -540,7 +540,7 @@ struct AddFeedingSheet: View {
             isActiveBF: selectedType == .breast && startTimer,
             recentFeedingTimes: Array(feedings.prefix(7).map(\.startTime))
         )
-        // This sheet can start a timer of any type (D28), so the Lock Screen
+        // This sheet can start a timer of any type, so the Lock Screen
         // must hear about it like any other mutation.
         TimerActions.afterChange()
         // A running timer is a feed that has only begun, not a finished

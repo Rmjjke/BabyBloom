@@ -21,10 +21,21 @@ final class SleepEntry {
         self.createdAt = Date()
     }
 
+    /// The Add Sleep form's entry. Its End picker only displays times from
+    /// Start on, so the end is held at the start here too: what is saved is
+    /// what the form showed.
+    static func manual(start: Date, end: Date, type: SleepType, location: SleepLocation?) -> SleepEntry {
+        let entry = SleepEntry(startTime: start, type: type, location: location)
+        entry.endTime = max(start, end)
+        return entry
+    }
+
     // MARK: Computed
+    /// Never below 0. Earlier versions of the Add Sleep form could store an
+    /// end before the start, and a timer stopped on a phone whose clock runs
+    /// behind still can; such a row reads as no sleep and is left as stored.
     var duration: TimeInterval {
-        guard let end = endTime else { return Date().timeIntervalSince(startTime) }
-        return end.timeIntervalSince(startTime)
+        max(0, (endTime ?? Date()).timeIntervalSince(startTime))
     }
 
     var durationFormatted: String {
@@ -33,11 +44,11 @@ final class SleepEntry {
         let mins = totalMins % 60
         // Whole hours drop the minutes, as in the widget and the weekly card.
         if hours > 0 {
-            return mins == 0
+            return (mins == 0
                 ? String(format: "duration.h_only".l, hours)
-                : String(format: "duration.h_min".l, hours, mins)
+                : String(format: "duration.h_min".l, hours, mins)).gluingNumbersToUnits
         }
-        return String(format: "duration.min_only".l, mins)
+        return String(format: "duration.min_only".l, mins).gluingNumbersToUnits
     }
 
     var isActive: Bool { endTime == nil }

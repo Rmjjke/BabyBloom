@@ -36,16 +36,42 @@ structure below.
 
 ## Domain model
 
-Six `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
-`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`.
+Eight `@Model` types in `BabyBloom/Core/Models/`: `Baby`, `FeedingEntry`,
+`SleepEntry`, `DiaperEntry`, `GrowthEntry`, `CustomEvent`, and the 1.2.0 pair
+`DoctorVisit` / `DoctorQuestion` (`DoctorVisit.swift`). They are listed ONCE,
+in `AppSchema.models`, and every container — app, widget, tests — opens the
+store through `AppSchema.schema`; `AppSchemaTests` pins the list.
+
+**A persisted enum is closed.** Enum properties (`CustomEvent.type`,
+`FeedingEntry.side`, …) are stored as their raw value. A build that reads a
+value it does not know — one written by a newer version and delivered by
+CloudKit — crashes in SwiftData's decoder, on every launch. A new kind of
+record is therefore a new model or a new optional attribute, never a new
+case; `FrozenPersistedEnumTests` fails on a new case with that explanation
+(DECISIONS 2026-11-01).
 
 **Every stored property has a default value and every relationship is
 optional.** That is not style — it is what CloudKit requires of a mirrored
 SwiftData schema. A new non-optional property without a default will compile
 and then fail at container creation, at launch, in `fatalError`.
 
-`Baby` owns the five entry types with `deleteRule: .cascade` and an explicit
-`inverse:`. Deleting the baby deletes its history.
+`Baby` owns the five entry types, the visits and the questions with
+`deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
+its history.
+
+**Visits and questions change only through `DoctorVisitActions`**
+(`Services/`), the same idea as `TimerActions`. A visit stamps the questions
+asked at it (`askedAt` + `visit`) in the same save that writes it, and
+deleting a visit returns those questions to open before it goes; the
+visit→questions relationship is `.nullify`, which alone would leave them
+"asked" at nothing. A question is open when it has no `askedAt` OR no
+`visit` — the link is the truth, so a cross-device merge that leaves a stray
+stamp brings the question back instead of losing it. A visit's `date` is held
+at NOON of its day (`DoctorVisitActions.visitDay`), so it reads as the same
+day in any time zone a synced device sits in; readers take `startOfDay`. Every
+action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
+report's period starts: 00:00 of the latest visit's date (same date → the one
+logged last), else the birth day.
 
 **The app is single-baby by construction.** Onboarding creates exactly one
 `Baby`; every screen reads `babies.first`; no `@Query` filters entries by
@@ -96,8 +122,16 @@ in this repo, CloudKit mirrors the store.
 
 The widget opens **the same store with `cloudKitDatabase: .none`**. A widget
 extension must not drive sync — the app target owns it. Because the models
-are CloudKit-compatible, `.none` reads the identical store with no schema
-mismatch.
+are CloudKit-compatible and the widget uses the app's own `AppSchema`, `.none`
+reads the identical store with no schema mismatch. A widget list that lacked
+a model would open the store as another model version, and a lightweight
+migration may drop the tables it does not know.
+
+**A new model needs the CloudKit schema deployed to Production** (CloudKit
+Console → Deploy Schema Changes) before the build that adds it ships.
+TestFlight and App Store builds sync against Production, where the new record
+types do not exist until deployed; without that the new records never sync,
+and nothing reports it. It is an owner step on the release card.
 
 Two consequences worth knowing before you debug something:
 
@@ -151,11 +185,15 @@ to 15 minutes.
 The palette is **entirely** in the Asset Catalog
 (`Resources/Assets.xcassets/Colors/`), reached through `BBTheme.Colors`.
 Never hardcode a colour in a view. Re-theming the app is: colorset edits, the
-two splash PNGs, and the hex constants in `ExportGenerator` — the PDF renderer
-cannot read the Asset Catalog, so it is the one place a colour is duplicated.
+two splash PNGs, and the hex constants in `ExportGenerator` and
+`DoctorReportPDF` — the PDF renderer cannot read the Asset Catalog, so those
+two are the only places a colour is duplicated (both mirror the LIGHT
+colorsets: a PDF page is always white).
 
-`BBTheme.Typography` is the D1 type scale. **Every Dynamic Type scale in the
-app goes through `Typography.scaledPointSize`**, including layout metrics that
+`BBTheme.Typography` is the app's type scale (SF Pro semibold headers, SF
+Rounded body, rounded monospaced digits for metrics and timers). **Every
+Dynamic Type scale in the app goes through `Typography.scaledPointSize`**,
+including layout metrics that
 must track text size. A bare `UIFontMetrics.scaledValue(for:)` is a defect:
 that form reads the *device* content size and ignores the SwiftUI environment,
 so the app's ceiling walks straight past it. The ceiling itself
@@ -179,7 +217,7 @@ question, and each carries its source in its header:
 
 | File | Question |
 |---|---|
-| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo). |
+| `WHOGrowthStandard` | How big is this baby? Weight-for-age percentile from published LMS coefficients (0–24 mo); length-for-age in `WHOGrowthStandard+Length` (same LMS code path, its own denser grid), read by the pediatrician report (`DoctorReportSummary`). |
 | `WeightVelocity` | Is enough going on? Gain against WHO 1-month weight-velocity increments. |
 | `GrowthTrend` | Is the baby holding its centile channel? Centile-space movement in EITHER direction — NICE faltering-growth thresholds for a fall, a flat two spaces for a rise. |
 | `NewbornWeightLoss` | The first two weeks, measured against birth weight — where a percentile is the wrong and actively frightening instrument. |
@@ -491,7 +529,10 @@ Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
 tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
 branch, and each wears a padlock badge so the gate is visible before the tap.
 And **how far back the five activity lists read** — the free history window
-below, the only gate that bounds something already recorded.
+below, the only gate that bounds something already recorded. The
+pediatrician report's PDF is an export like any other: its share button wears
+the badge and opens `PaywallView(source: .doctorReport)` for a free parent,
+while the screen itself and visits stay free.
 
 That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
@@ -506,7 +547,12 @@ also spelled out in six JSON strings, see the comment on the constant — and
 `cutoff()`, `startOfDay(now − 14 days)`.
 
 `HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
-surfaces use. It returns three things: `visible` (windowed, then capped),
+surfaces use. Pediatrician visits never go through it: Events
+(`EventsHistory`) and Recent activity merge them in AFTER the window and the
+cap (`Core/History/HistoryMerge`), so they are free and always listed, the
+locked footer still means "entries older than 15 days", and Events' delete-all
+reaches events only (its confirm says the visits are kept). Visit rows have no
+swipe. It returns three things: `visible` (windowed, then capped),
 `showsLockedFooter`, and `deletable` — the **untouched input**, which is what
 makes the no-hostage rule a property of the type instead of a discipline at
 five call sites.
@@ -576,20 +622,24 @@ at launch and never over the Dashboard. That page is the single call site of
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
 `onAppBackgrounded()` on every `.background`.
 
-**Weekly summary (#15).** Last calendar week, Monday to Sunday whatever the
+**Weekly summary.** Last calendar week, Monday to Sunday whatever the
 locale, is `Core/Weekly/WeeklySummary` — pure, fed by
 `WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
-notification). Averages divide by the days that have any entry (D19). The gain
-is the `WeightVelocity` pair whose later weighing falls in the week, and the
-newborn gate (`NewbornWeightLoss.gainDeferral`) withholds the number (D17,
-D27). The Dashboard shows `WeeklySummaryCard` under the running timers. It is
-hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
+notification). Averages divide by the days that have any entry: a day with
+nothing logged is a gap in the log, not a day without feeds or sleep, and the
+card says «N of 7» when days are missing. The gain is a rate in g/week, the
+`WeightVelocity` pair whose later weighing falls in the week, so it is the
+number Growth shows. The newborn gate (`NewbornWeightLoss.gainDeferral`)
+withholds it (DECISIONS 2026-09-05, «During the newborn window, no surface
+reports a weight-gain verdict»). The Dashboard shows `WeeklySummaryCard` under
+the running timers. It is hidden per week by × (`weekly.hiddenWeek`, the Monday as `yyyy-MM-dd`, local)
 and sends `weekly_summary_viewed` once a week. The Monday notification is a
 ONE-SHOT for the next Monday 10:00 under the old id, re-planned on every
 foreground and background, and after the Lock Screen and widget intents' own
 writes (no scenePhase change there), by `WeeklyNotificationPlan`, and only when the reported week has
-entries and the Settings switch (`notify.weeklySummary`, D26) is on. A
-repeating trigger cannot skip an empty week. `AppClock.now` is the clock for
+entries and the Settings switch (`notify.weeklySummary`, on by default) is on.
+Off stops the notification only; the card still shows. A repeating trigger
+cannot skip an empty week. `AppClock.now` is the clock for
 this path only, so `-BBNow` can move it.
 
 ## Timers and the Live Activity
@@ -633,8 +683,8 @@ launch right after.
 It runs after every mutation, on launch, on every foregrounding, on
 `NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
 changes. With no push (no aps-environment, no server), a stop made on another
-device reaches this Lock Screen when the app next runs here. The owner accepted
-that limit for M1.
+device reaches this Lock Screen when the app next runs here. That limit was
+accepted for 1.1.0.
 
 **Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
 into both targets because the extension's `Button(intent:)` needs the type.
@@ -810,7 +860,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` \| `doctor_report` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
@@ -835,7 +885,8 @@ the App Store Connect answers in step.
 ## Navigation
 
 `MainTabView` — five tabs: Home, Feeding, Sleep, Diapers, More. Growth,
-Recent activity, Events and Profile live under More rather than in the bar;
+«For the pediatrician», Recent activity, Events and Profile live under More
+rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
 stats → growth → progress. Its Growth header AND the data card under it are one
@@ -851,6 +902,49 @@ Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
 
+**«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, 1.2.0)
+comes right after Growth in More. Top to bottom: the name ①, the period line
+(②, tap → the visit detail), the age ③, the questions card (④ open
+questions, add, log the visit; ⑥ the questions asked at the latest visit,
+«Back to the list»), the four data cards ⑦ and the footnote ⑧. The numbers
+come from `DoctorReportSummary` (`Core/DoctorReport/`), pure and built from
+plain values through its store bridge, over `[periodStart, AppClock.now)`.
+It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
+card also runs on, with the REPORT's input: running timers out and a sleep
+that began before the period clipped to it — the weekly card counts a running
+feed and files a sleep whole on its start day, so those rules live in what
+each caller passes in, never in the core. The share button ⑩ (Premium) makes
+`DoctorReportPDF`: an HTML page over the SAME `DoctorReportSummary` and the
+same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
+the export and the weekly card), so the PDF cannot print a number
+the screen does not; `DoctorReportPDFTests` pins that as strings, and scans
+the page for a closed list of verdict words. It renders through `PagedPDF`
+(`Features/Export/`), which the export shares. `UIMarkupTextPrintFormatter`
+slices its layout at the page height and ignores the CSS break rules, so a
+document hands over its blocks and rows, every page is composed as its own
+small HTML document with its own formatter, and the engine's page count says
+what fits: rows move whole, a table prints its head on every page it reaches,
+and a document that fits one page is laid out once, as it is. Each page's table
+would size its own columns, so their widths are fixed in advance: the export's
+from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
+`UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
+N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
+list and no colour emoji, the footer included (DECISIONS 2026-11-02).
+`PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
+The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
+fetches with `Input.window(periodStart:)`, the same window
+`ReportDataSection`'s queries use. Every PDF prints numbers in the app
+language; every CSV stays dot-decimal with units in its headers (DECISIONS
+2026-11-02), and file names go through `ExportGenerator.fileNamePart`. A
+visit is changed in ONE place, `VisitDetailSheet`, presented everywhere
+through `.visitDetailSheet(item:)` — from the period line, Events and Recent
+activity. That modifier deletes in the sheet's `onDismiss`, after the sheet
+is gone: deleting while a sheet still holds the model makes its body read a
+deleted model ("backing data could no longer be found"). The question sheet
+follows the same rule in the report screen. The doctor sheets are plain
+`.sheet`, never `.entrySheet` — no rating prompt over a question for the
+doctor (DECISIONS 2026-11-01).
+
 **Deep links.** `nenita://tab/<home|feeding|sleep|diapers>`
 (`Features/Widget/DeepLink.swift`, shared with the widget) selects a tab. The
 `onOpenURL` sits on the app root, not on `MainTabView`: a cold launch shows the
@@ -859,9 +953,10 @@ root keeps the destination, and `MainTabView` takes it when it appears (or at
 once, when it is already up). Before onboarding is done a link just opens
 onboarding and is not kept. The widget's tap areas build these URLs. The
 scheme is registered in Info.plist only so that `xcrun simctl openurl booted
-nenita://tab/sleep` works for QA; a widget link would reach its app without it.
+nenita://tab/sleep` works for testing; a widget link would reach its app without it.
 
-**The widget's tap areas and button** (design note § 5, D16):
+**The widget's tap areas, and its one button, which starts a feeding timer**
+(`teamdocs/design/m1-live-activity.md` § 5):
 - **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
 - **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
 - **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
@@ -930,8 +1025,8 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; and four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification and the weekly seeds read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; four for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`; and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly and doctor seeds, the pediatrician period length, the visit date's default and upper bound, and the Today tile's «last feed … ago» read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |

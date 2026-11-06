@@ -12,7 +12,7 @@ import UIKit
 /// foregrounding, on store changes synced from another device, and when the
 /// Settings switch or the iOS permission changes. Nothing pushes; a stop made
 /// on another phone reaches this Lock Screen when the app next runs here
-/// (R3.4, accepted by the owner for M1).
+/// (an accepted limit: DECISIONS 2026-10-29, reconciled, never pushed).
 @MainActor @Observable
 final class LiveActivitySync {
     static let shared = LiveActivitySync()
@@ -43,7 +43,7 @@ final class LiveActivitySync {
                 guard let self else { return }
                 // iOS off removed every activity. Forget the starts here too, not
                 // only in a reconcile: by the time one runs, the fresh read may
-                // already say "on" again (QA Q4).
+                // already say "on" again.
                 if !enabled { LiveActivitySettings.startedEntryIDs = [] }
                 self.systemEnabled = enabled
                 self.reconcile()
@@ -207,7 +207,7 @@ final class LiveActivitySync {
         Activity<TimerActivityAttributes>.activities.first { $0.id == id }
     }
 
-    /// Stack order (design note § 2): iOS puts the higher score first, so a
+    /// Stack order: iOS puts the higher score first, so a
     /// running timer stays above a newer "Saved" card on the Lock Screen and
     /// in the Island.
     nonisolated static let runningRelevance: Double = 100
@@ -222,7 +222,7 @@ final class LiveActivitySync {
     }
 
     /// The final "Saved · N min" state stays 15 minutes: long enough to see it
-    /// after settling the baby, gone by morning (design note § 2). The title
+    /// after settling the baby, gone by morning. The title
     /// comes from the store, not the activity, so a last side change shows.
     nonisolated private static func endSaved(_ id: String, endedAt: Date, title: TimerTitle) async {
         await activity(id)?.end(ActivityContent(state: .init(title: title, endedAt: endedAt),

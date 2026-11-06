@@ -1,17 +1,17 @@
 # M1 — Weekly summary card on the Dashboard (design note)
 
-status: final — card `m1-weekly-design`, 2026-10-28; corrected after the design review of `weekly-summary` 2026-10-30 (notification tap lands collapsed, range per locale, gain as a rate, glyphs scale with the text, × and Reduce Motion, days before birth); § 2 ⑥ the delta arrow scales with caption, after the live AX2 look of #85, 2026-11-01 (main 1fc4848 via #86)
-decisions: D8 (Dashboard card, expands on tap), D9 (Mon–Sun + Monday notification), D10 (free), D14 (WCAG 2.2 AA), D17 (no gain number in the newborn window), D18 (stays Mon–Sun, × hides until next week), D19 (averages over days with entries + "N of 7"); plan v2 review: neutral deltas; Manager 2026-10-29: a notification tap lands collapsed
-reference: `teamdocs/design/design-system.md` (P = principle, G = gap); strings: Content's review `m1-weekly-copy`; review: `.team/desk/tasks/m1-design-review-weekly/docs/review.md`
-triggers: a figure added to or removed from the card; a state added; D17–D19 changed
+status: final, 2026-10-28; corrected after the design review 2026-10-30 (notification tap lands collapsed, range per locale, gain as a rate, glyphs scale with the text, × and Reduce Motion, days before birth); § 2 ⑥ the delta arrow scales with caption, after the live AX2 look of #85, 2026-11-01 (main 1fc4848 via #86)
+decisions: a Dashboard card at the top once a week that expands on tap, because everyone who opens the app sees it and it is quicker to build; calendar week Mon–Sun and a calm notification on Monday morning outside quiet hours, a reason to come back; free, because the summary is about retention and is already bounded by the 15-day free history window; WCAG 2.2 AA; no gain number in the newborn window, because a −180 g in week one is normal but reads as a verdict (DECISIONS 2026-09-05); stays Mon–Sun, × hides until next week; averages over days with entries + "N of 7", because a forgotten day is not "the baby slept less"; neutral deltas; a notification tap lands collapsed (2026-10-29)
+reference: `teamdocs/design/design-system.md` (P = principle, G = gap)
+triggers: a figure added to or removed from the card; a state added; the newborn-window, week-span or averages rule changed
 check: `grep -c '"weekly\.' BabyBloom/Resources/Localization/en.json` vs the string keys in § 6
 
-Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` checked them on renders and live.
+Drawn by hand. Sizes were targets; the design review checked them on renders and live.
 
 ## 1. Place and surface
 
-- **Dashboard order:** header → running timers (if any) → **weekly card** → Quick input → … A running timer outranks the summary at 3 a.m. Otherwise the card is the first thing under the header (D8 "at the top").
-- **Shown** from Monday 00:00 to Sunday 23:59 for the calendar week before (D9, D18). Hidden by × until the next Monday. Not shown when last week holds no entries.
+- **Dashboard order:** header → running timers (if any) → **weekly card** → Quick input → … A running timer outranks the summary at 3 a.m. Otherwise the card is the first thing under the header.
+- **Shown** from Monday 00:00 to Sunday 23:59 for the calendar week before. Hidden by × until the next Monday. Not shown when last week holds no entries.
 - **Surface:** elevated `bbCard()` (surface, radius md, `card` shadow, top highlight). It is the first real caller of `bbCard()`, which partly closes G9.
 - **Type:** named `BBTheme.Typography` styles and `Typography.scaled` only (G2 not repeated); drawn at default size and AX2.
 
@@ -26,7 +26,7 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 │ ☾  Sleep a day: 14 h 20 min                 ↓ 25 min  │
 │ ⚖  Weight gain: +210 g/week                           │
 │                                                       │
-│ Days with entries: 6 of 7                             │  ⑦ only when N < 7 (D19)
+│ Days with entries: 6 of 7                             │  ⑦ only when N < 7
 └───────────────────────────────────────────────────────┘
    padding md 16 · rows sm 8 apart · header to rows md 16
 ```
@@ -39,7 +39,7 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 | ④ | × hide | `xmark` 11 pt semibold, BBTextSecondary, in a 28 pt circle `textSecondary@0.10`; hit area 44 × 44; stays fixed at AX sizes (a secondary action whose hit area is already 44). VoiceOver label `weekly.a11y_hide` ("Hide until next week") | 4.9 | 6.1 |
 | ⑤ | glyph | 15 pt at default, **scaled with the label** (`@ScaledMetric(relativeTo: .callout)`); the expanded lines' indent is the glyph width + 8, so it scales too. Category tint (BBFeeding / BBSleep / BBGrowth). **Decorative**: the label names the figure, so the tint's 2.1:1 on white is not a P8 failure | — | — |
 | ⑤ | label: value | label `Typography.callout` BBTextPrimary + value `Typography.metricSmall` BBTextPrimary, in one Text (`weekly.feeds_fmt` …), 1 line at default size. Gain is a rate: "+210 g/week", the same unit as Growth's velocity | 14.3 | 14.1 |
-| ⑥ | delta | `arrow.up` / `arrow.down` 10 pt, **scales with caption** (`@ScaledMetric(relativeTo: .caption)`, so at AX2 it keeps pace with its number) + number, `Typography.caption` mono digits, **BBTextSecondary — never green or red** (P1, plan v2 review). Equal values: no delta. The gain row has no delta; its week before is in the expanded view. VoiceOver speaks the direction in words (`weekly.a11y_delta_up_fmt` / `_down_fmt`, Content 6b19f47): the arrow is the only carrier of direction, so without words it fails WCAG 1.1.1 | 4.9 | 6.1 |
+| ⑥ | delta | `arrow.up` / `arrow.down` 10 pt, **scales with caption** (`@ScaledMetric(relativeTo: .caption)`, so at AX2 it keeps pace with its number) + number, `Typography.caption` mono digits, **BBTextSecondary — never green or red** (P1). Equal values: no delta. The gain row has no delta; its week before is in the expanded view. VoiceOver speaks the direction in words (`weekly.a11y_delta_up_fmt` / `_down_fmt`): the arrow is the only carrier of direction, so without words it fails WCAG 1.1.1 | 4.9 | 6.1 |
 | ⑦ | days line `weekly.days_logged_fmt` | `Typography.caption`, BBTextSecondary | 4.9 | 6.1 |
 
 ## 3. Expanded (tap on the header row)
@@ -57,7 +57,7 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 │ ☾  Sleep a day: 14 h 20 min                 ↓ 25 min  │
 │    week before: 14 h 45 min                           │
 │    ▅ ▅ ▆ ▄ ▅ ▆ ▅                                      │
-│    Longest sleep: 5 h 10 min                          │  ⑩ "what changed" (Content's line)
+│    Longest sleep: 5 h 10 min                          │  ⑩ "what changed"
 │                                                       │
 │ ⚖  Weight gain: +210 g/week                           │
 │    week before: +190 g/week                           │
@@ -78,11 +78,11 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 |---|---|---|
 | S1 | normal week, previous week present | as §§ 2–3 |
 | S2 | **first week** (no previous week with entries) | no deltas ⑥, no previous lines ⑧; one line `weekly.first_week` under the rows (`caption`, BBTextSecondary, wraps) |
-| S3 | **partial week** (born or installed mid-week) | averages over days with entries (D19) + ⑦ "Days with entries: 4 of 7"; bars: days before the birth date are absent, not stubs. An install mid-week cannot be told from a gap, so those days are stubs (as S4) |
+| S3 | **partial week** (born or installed mid-week) | averages over days with entries + ⑦ "Days with entries: 4 of 7"; bars: days before the birth date are absent, not stubs. An install mid-week cannot be told from a gap, so those days are stubs (as S4) |
 | S4 | **week with gaps** | as S3: ⑦ shows N of 7; the gap days are stubs in ⑨ |
-| S5 | **newborn window** (D17) | gain row: no number, no delta, no previous line — the glyph + `weekly.gain_newborn` in `callout` BBTextSecondary (calm: no ⚠, no tint change) |
+| S5 | **newborn window** | gain row: no number, no delta, no previous line — the glyph + `weekly.gain_newborn` in `callout` BBTextSecondary (calm: no ⚠, no tint change) |
 | S6 | **no weighing pair** in the week | gain row: `weekly.gain_needs_weighing` + a text button `growth.add_weighing` ("Add a weighing", existing key), BBPrimary `callout` semibold, min 44 high, opens AddGrowthSheet |
-| S7 | **nothing logged last week** | no card (and, per Content Q7, no notification) |
+| S7 | **nothing logged last week** | no card (and no notification) |
 | S8 | hidden by × | gone until next Monday; it fades out (opacity, 0.2 s) and the rows below close up |
 | — | light / dark | tokens only, values in the tables |
 | — | **AX2** | at `dynamicTypeSize >= .accessibility1` each row stacks: label line, value line, delta under the value. Glyphs ⑤ and the chevron ③ scale with their text; × keeps its 28 pt circle; all keep 44 pt hits; bars keep their size (not text). A long value may wrap between its parts ("8 ч / 30 мин"); a number never leaves its unit |
@@ -94,16 +94,16 @@ Drawn by hand (`ios: none`). Sizes were targets; the review of `weekly-summary` 
 - Hide (×): opacity 0.2 s, then the layout closes. With **Reduce Motion**, the card goes with no animation, the same as expand.
 - Values do not count up or animate: a summary is read, not performed.
 
-## 6. What Content and Dev need
+## 6. What the copy and the build need
 
-**Content** (answers to Content's two questions):
+**Copy:**
 - Collapsed card = title + range + **three value rows** (feeds, sleep, gain) + the days line when N < 7 + the first-week line in S2. Expanded adds the previous lines, bars and "Longest sleep".
-- Value rows: **label and value on one line at default size.** Content's longest are 21–25 characters plus a delta, which fits an iPhone 17 card. At accessibility sizes they stack (§ 4), so no shorter variants are needed.
+- Value rows: **label and value on one line at default size.** The longest are 21–25 characters plus a delta, which fits an iPhone 17 card. At accessibility sizes they stack (§ 4), so no shorter variants are needed.
 - New string: `weekly.a11y_hide` ("Hide until next week"). The add-weighing action reuses `growth.add_weighing`.
 - From the review: a VoiceOver delta per direction (⑥); an hours-only duration for whole hours ("1 ч", not "1 ч 0 мин"); a no-break space between a number and its unit in the gain value.
 
-**Dev** (`weekly-summary`):
-- Figures: per-day averages over days with entries (D19), N of 7; previous week computed the same way; gain from the weighings of the week (none in the newborn window, D17); longest sleep.
+**Build:**
+- Figures: per-day averages over days with entries, N of 7; previous week computed the same way; gain from the weighings of the week (none in the newborn window); longest sleep.
 - Hidden state per calendar week (× until next Monday), local is enough.
-- The notification tap opens the Dashboard with the card **collapsed** (Manager, 2026-10-29). The collapsed card already shows the three figures the notification speaks of. Opening it expanded waits for the backlog card `notification-tap-handling`.
+- The notification tap opens the Dashboard with the card **collapsed** (2026-10-29). The collapsed card already shows the three figures the notification speaks of. Opening it expanded waits for notification tap handling, in the backlog.
 - Renders for the design review: S1–S6 light/dark, default and AX2, iPhone 17 and iPad 13".
