@@ -390,6 +390,8 @@ struct AddDiaperSheet: View {
                                             Circle()
                                                 .fill(Color(hex: color.hexColor))
                                                 .frame(width: 36, height: 36)
+                                                // Inside the disc, under the selected ring.
+                                                .overlay(Circle().strokeBorder(color.needsEdge ? BBTheme.Colors.textSecondary : .clear, lineWidth: 1))
                                                 .overlay(Circle().stroke(selectedColor == color ? BBTheme.Colors.primary : .clear, lineWidth: 2.5))
                                                 .overlay(
                                                     selectedColor == color
