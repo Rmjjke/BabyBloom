@@ -280,7 +280,7 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
     private func container(babyName: String) throws -> ModelContainer {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let baby = Baby(name: babyName, birthDate: Date().addingTimeInterval(-90 * 86_400),
                         gender: .female, feedingType: .breast)
         container.mainContext.insert(baby)

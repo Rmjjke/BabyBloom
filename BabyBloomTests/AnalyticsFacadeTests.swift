@@ -441,7 +441,7 @@ final class DailyActivityCounterTests: XCTestCase {
         let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
-            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         return ModelContext(container)
     }

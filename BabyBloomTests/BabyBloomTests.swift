@@ -138,12 +138,12 @@ final class BabyBloomTests: XCTestCase {
     }
 
     // MARK: - Schema Validity
-    // Guards the CloudKit-compatibility invariants (defaults on stored
-    // properties, optional inverse relationships): a regression here would
-    // otherwise only surface as a fatalError at app launch.
+    // The whole schema builds a container and takes a save. The CloudKit
+    // rules (defaults on stored properties, optional inverses) are pinned in
+    // `AppSchemaTests`: with the store local only, nothing checks them at launch.
     func testModelContainerSchemaIsValid() throws {
         let schema = AppSchema.schema
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = ModelContext(container)
         let baby = Baby(name: "Тест", birthDate: Date(), gender: .female, feedingType: .breast)

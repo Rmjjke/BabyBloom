@@ -17,20 +17,10 @@ import SwiftData
 /// real device, and no shipped binary may carry a path that wipes a parent's
 /// data. On device the whole seeding body — including `wipe` — does not exist.
 ///
-/// # Only run this on a simulator that is NOT signed into iCloud
-///
-/// Read this before you pass `-BBSeedScenario` for the first time. The
-/// simulator gate keeps the wipe out of every shipped binary; it does NOT make
-/// the wipe local. The model container is configured with
-/// `cloudKitDatabase: .automatic` (`BabyBloomApp.swift`), so on a simulator
-/// signed into a real iCloud account this deletes every `Baby` and every entry
-/// from **that Apple Account's private database** — the same records the
-/// person's own phone is syncing — and then pushes the fixture baby outward to
-/// replace them. It is not a sandbox and there is no undo.
-///
-/// Sign the simulator out of iCloud (Settings ▸ [your name] ▸ Sign Out), or use
-/// a simulator that was never signed in. A simulator with no account does not
-/// sync at all, which is the normal state for a test run.
+/// The wipe is local: the store has no CloudKit database
+/// (`SharedStore.configuration`), so it touches only this simulator's store.
+/// If sync is ever turned back on, the wipe deletes the signed-in Apple
+/// Account's records too: run seeds only on a simulator signed out of iCloud.
 ///
 /// Permanent test scaffolding, kept on purpose: it lets every later growth
 /// feature be verified in the real app instead of only in unit tests.

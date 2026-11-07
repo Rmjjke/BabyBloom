@@ -34,7 +34,7 @@
 
 В [developer.apple.com/account](https://developer.apple.com/account) → **Certificates, Identifiers & Profiles**:
 
-1. **Identifiers → App IDs → +** → App → bundle ID приложения. Включить возможности: **App Groups**, **iCloud (CloudKit)**, **Push Notifications** (нужны для CloudKit-синхронизации).
+1. **Identifiers → App IDs → +** → App → bundle ID приложения. Включить возможности: **App Groups**, **iCloud (CloudKit)**, **Push Notifications** (понадобятся для CloudKit-синхронизации, когда её включат; сейчас она выключена).
 2. Ещё один App ID для виджета: `<bundle-id>.widget`, включить **App Groups**.
 3. **Identifiers → App Groups → +** → создать группу с тем же идентификатором, что в `project.yml`.
 4. **Identifiers → iCloud Containers → +** → создать контейнер, привязать к обоим App ID.

@@ -320,7 +320,6 @@ struct ProfileView: View {
                     .bbLockedAccessibility(true)
                     .accessibilityIdentifier("settings.export")
                 }
-                ICloudStatusRow()
                 SettingsSwitchRow(title: "settings.analytics".l,
                                   hint: "settings.analytics_hint".l,
                                   systemImage: "chart.bar.xaxis",

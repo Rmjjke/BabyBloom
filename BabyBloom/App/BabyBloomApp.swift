@@ -108,8 +108,8 @@ struct BabyBloomApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NotificationManager.shared.onAppForegrounded()
-                // Catches whatever changed while the app was away: a stop on
-                // another device, a timer that crossed the 8 h line.
+                // Catches whatever changed while the app was away, such as a
+                // timer that crossed the 8 h line.
                 LiveActivitySync.shared.reconcile()
                 // Expiry produces NO transaction — a lapsed subscription just
                 // drops out of currentEntitlements — so Transaction.updates

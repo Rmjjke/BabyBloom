@@ -41,7 +41,7 @@ Bitty — интеллектуальный помощник для родите�
 - iOS Home Screen Widgets (Small, Medium) через WidgetKit
 - Тёмная тема — обязательна для ночных кормлений
 - Universal App (iPhone + iPad)
-- Офлайн-режим, синхронизация через SwiftData + CloudKit
+- Офлайн-режим: данные хранятся только на устройстве (SwiftData)
 
 ## Дизайн-система
 
@@ -58,7 +58,7 @@ Femtech Wellness iOS — мягкие пастельные тона, округ�
 
 - **Language:** Swift 6.0
 - **UI:** SwiftUI
-- **Storage:** SwiftData (local) + CloudKit (sync)
+- **Storage:** SwiftData (local only)
 - **Notifications:** UserNotifications / APNs
 - **Widgets:** WidgetKit
 - **Analytics:** Amplitude (Swift SDK via SPM, US region) — typed events only, no-op without a key, opt-out in Settings
@@ -96,7 +96,7 @@ Config/                     # App.xcconfig (committed); Secrets.xcconfig (gitign
 ```
 
 Дерево выше — карта, а не архитектура. Как система работает на самом деле —
-доменная модель, синхронизация, локализация, путь данных виджета, премиум,
+доменная модель, хранилище, локализация, путь данных виджета, премиум,
 тестовые хуки — описано в [ARCHITECTURE.md](ARCHITECTURE.md). Почему она такая
 и что было решено сознательно — в [DECISIONS.md](DECISIONS.md).
 

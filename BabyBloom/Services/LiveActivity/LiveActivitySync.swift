@@ -9,10 +9,10 @@ import UIKit
 /// asks `LiveActivityPlanner` what should change, and does it.
 ///
 /// Called after every timer mutation (`TimerActions`), on launch, on every
-/// foregrounding, on store changes synced from another device, and when the
-/// Settings switch or the iOS permission changes. Nothing pushes; a stop made
-/// on another phone reaches this Lock Screen when the app next runs here
-/// (an accepted limit: DECISIONS 2026-10-29, reconciled, never pushed).
+/// foregrounding, on a remote store change, and when the Settings switch or
+/// the iOS permission changes. The store is local only, so the Lock Screen
+/// follows this device's timers; nothing pushes (DECISIONS 2026-10-29,
+/// reconciled, never pushed).
 @MainActor @Observable
 final class LiveActivitySync {
     static let shared = LiveActivitySync()
@@ -77,7 +77,8 @@ final class LiveActivitySync {
         await tail?.value
     }
 
-    /// CloudKit imports arrive in bursts; one reconcile per burst is enough.
+    /// Remote changes can arrive in bursts (a CloudKit import, were sync turned
+    /// back on); one reconcile per burst is enough.
     private func remoteStoreChanged() {
         Self.log.debug("Store changed remotely; reconciling")
         pendingRemoteReconcile?.cancel()

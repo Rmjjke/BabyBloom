@@ -211,7 +211,7 @@ final class MedicationReminderTests: XCTestCase {
     func testCoursesReadEachSwitchFromThisDevicesDefaults() throws {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let context = ModelContext(container)
         let on = Medicine(name: "Paracetamol", intervalMinutes: 360)
         let off = Medicine(name: "Ibuprofen", intervalMinutes: 480)
@@ -236,7 +236,7 @@ final class MedicationReminderTests: XCTestCase {
     func testASaveInTheStoreStartsAPass() async throws {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let context = ModelContext(container)
         let center = FakeReminderCenter(pending: [])
         let sync = MedicationReminderSync(center: center, defaults: defaults, context: { context })

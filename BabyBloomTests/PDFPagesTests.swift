@@ -29,7 +29,7 @@ final class PDFPagesTests: XCTestCase {
     private func seeded() throws -> (baby: Baby, context: ModelContext, container: ModelContainer) {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let context = ModelContext(container)
         SeedScenario.doctorNoVisit.seedDoctor(into: context, now: Date())
         return (try XCTUnwrap(context.fetch(FetchDescriptor<Baby>()).first), context, container)

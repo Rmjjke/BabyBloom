@@ -45,16 +45,18 @@ store through `AppSchema.schema`; `AppSchemaTests` pins the list.
 
 **A persisted enum is closed.** Enum properties (`CustomEvent.type`,
 `FeedingEntry.side`, …) are stored as their raw value. A build that reads a
-value it does not know — one written by a newer version and delivered by
-CloudKit — crashes in SwiftData's decoder, on every launch. A new kind of
-record is therefore a new model or a new optional attribute, never a new
-case; `FrozenPersistedEnumTests` fails on a new case with that explanation
-(DECISIONS 2026-11-01).
+value it does not know — one written by a newer version, as CloudKit would
+deliver it with sync on — crashes in SwiftData's decoder, on every launch.
+A new kind of record is therefore a new model or a new optional attribute,
+never a new case; `FrozenPersistedEnumTests` fails on a new case with that
+explanation (DECISIONS 2026-11-01).
 
 **Every stored property has a default value and every relationship is
 optional.** That is not style — it is what CloudKit requires of a mirrored
-SwiftData schema. A new non-optional property without a default will compile
-and then fail at container creation, at launch, in `fatalError`.
+SwiftData schema. The store is local only today (§ Persistence); the rule is
+kept so that sync can return without a model migration. With sync on, a new
+non-optional property without a default compiles and then fails at container
+creation, at launch, in `fatalError`; `AppSchemaTests` pins the rule.
 
 `Baby` owns the five entry types, the visits, the questions and the medicines
 with `deleteRule: .cascade` and an explicit `inverse:`. Deleting the baby deletes
@@ -66,10 +68,10 @@ asked at it (`askedAt` + `visit`) in the same save that writes it, and
 deleting a visit returns those questions to open before it goes; the
 visit→questions relationship is `.nullify`, which alone would leave them
 "asked" at nothing. A question is open when it has no `askedAt` OR no
-`visit` — the link is the truth, so a cross-device merge that leaves a stray
-stamp brings the question back instead of losing it. A visit's `date` is held
-at NOON of its day (`DoctorVisitActions.visitDay`), so it reads as the same
-day in any time zone a synced device sits in; readers take `startOfDay`. Every
+`visit` — the link is the truth, so a stamp left without its visit brings the
+question back instead of losing it. A visit's `date` is held at NOON of its
+day (`DoctorVisitActions.visitDay`), so it reads as the same day in any time
+zone the phone is taken to; readers take `startOfDay`. Every
 action saves once and rolls the context back if the save fails. `DoctorPeriod` (`Core/DoctorReport/`) answers where the
 report's period starts: 00:00 of the latest visit's date (same date → the one
 logged last), else the birth day.
@@ -146,7 +148,7 @@ ordered so no view reads a deleted model: the form only asks, and the detail
 pops itself and deletes the medicine once it has disappeared; Delete Dose
 hands the dose back and the detail deletes it in the dose sheet's
 `onDismiss`. The detail and the dose sheet draw nothing for a model with no
-context or `isDeleted` (one deleted on another device). Nothing in the feature is
+context or `isDeleted` (one deleted under it). Nothing in the feature is
 gated. The reminder is under Notifications.
 
 **The Home card** (`MedicationHomeCard.swift`). While a course runs and its
@@ -246,33 +248,36 @@ handle nil to-one relationships dependably), and it refuses to burn its
 is the normal case, and marking it done there would strand those entries
 forever.
 
-## Persistence and sync
+## Persistence
 
-The app opens the container with `groupContainer: .identifier(...)` and
-`cloudKitDatabase: .automatic`. Sync is silent and free: no sync code exists
-in this repo, CloudKit mirrors the store.
+The app opens the container from `SharedStore.configuration`: the App Group
+store (`groupContainer: .identifier(...)`) with `cloudKitDatabase: .none`.
+The store is local to the device and no record leaves it; there is no iCloud
+sync. Turning sync back on is its own piece of work, and what it takes is in
+DECISIONS 2026-11-07.
 
-The widget opens **the same store with `cloudKitDatabase: .none`**. A widget
-extension must not drive sync — the app target owns it. Because the models
-are CloudKit-compatible and the widget uses the app's own `AppSchema`, `.none`
-reads the identical store with no schema mismatch. A widget list that lacked
-a model would open the store as another model version, and a lightweight
-migration may drop the tables it does not know.
+Every `ModelConfiguration` names its CloudKit database, test containers
+included. The initializer's default is `.automatic`, which takes the iCloud
+container from the entitlements the app keeps, so a configuration that left
+it out could start mirroring on a device or simulator signed into iCloud.
 
-**A new model needs the CloudKit schema deployed to Production** (CloudKit
-Console → Deploy Schema Changes) before the build that adds it ships.
-TestFlight and App Store builds sync against Production, where the new record
-types do not exist until deployed; without that the new records never sync,
-and nothing reports it. It is an owner step on the release card.
+Builds up to 1.2.0 opened the store with `.automatic`, so an older store holds
+CloudKit's mirroring tables and persistent history. It opens local only with
+every row and takes writes (`StoreFromOlderVersionsTests`); the leftover
+tables stay unused.
 
-Two consequences worth knowing before you debug something:
+The widget opens **the same store with `cloudKitDatabase: .none`** and the
+app's own `AppSchema`, so it reads the identical store with no schema
+mismatch. A widget list that lacked a model would open the store as another
+model version, and a lightweight migration may drop the tables it does not
+know. If sync returns, the widget stays `.none`: an extension must not drive
+sync.
+
+One consequence worth knowing before you debug something:
 
 - **The store survives an app uninstall.** It lives in the App Group
   container, not the app container. `xcrun simctl uninstall` does not give
   you a clean database; erasing the device does.
-- **A simulator signed into a real Apple Account syncs for real.** Anything
-  that wipes the store — the seed hooks below — reaches that account's
-  private CloudKit database. Run seeded flows on a simulator with no account.
 
 ## Localization
 
@@ -548,18 +553,14 @@ semibold label heavy (DECISIONS 2026-11-07).
 A title with one trailing value is a `BBValueRow`
 (`DesignSystem/Components/BBValueRow.swift`): Settings' Premium row and its
 badge, the measure sliders' and the bottle volume's figure, `BBProgressCard`'s
-figure, Export's category «0», a plan row's badge and the iCloud Sync state.
+figure, Export's category «0» and a plan row's badge.
 The value keeps its one-line width and the title wraps beside it, between
 words only; at accessibility sizes the value stands under the title, lined up
 with the title's text: where a glyph leads the title (`BBProgressCard`), the
 `bbValueRowTitle` alignment guide marks the text, so the figure starts past it.
 `.byFit` keeps the value beside only while the title fits one line next to it,
-else under it at any size: on a 320-pt screen at Large the ru and es iCloud
-Sync titles miss that line, and beside the value «Синхронизация» broke inside
-the word. That row is one Label around the title, the state and the hint, as
-the switch rows hold theirs, so the state and the hint start at the title's x,
-and it stays one VoiceOver element. The paywall's plan rows take `.byFit`
-too, so a price keeps one line with its period: at xxxLarge the savings badge
+else under it at any size. The paywall's plan rows take it, so a price keeps
+one line with its period: at xxxLarge the savings badge
 left the yearly price room for «$39.99 /» alone (en on 320 pt, ru on 375 pt),
 and on 320 pt in ru the price broke inside the number; in all three the badge
 now stands under the price. `.byWords` keeps the value beside while
@@ -592,11 +593,10 @@ of every text it holds past its icon's column (53 pt at AX1 and 59.7 at AX2,
 of a 256-pt row on 320 pt), so a first word wider than that line's room breaks
 inside itself; below them the texts keep a column beside the icon, where any
 word can miss. So a Settings row's icon and texts (`SettingsRowLabel`: the
-iCloud Sync row and the switch rows under their texts) stay the system Label
-while every word of the texts fits beside the icon, else set the icon on its
-own line above the texts, xs 4 apart, chosen by fit at every text size the
-app allows (it stops at AX2); ru and es iCloud Sync do so at AX2 on 320 pt,
-and ru at AX1 with Bold Text. More's rows below the first (`ListTitleRowLabel`)
+switch rows under their texts) stay the system Label while every word of the
+texts fits beside the icon, else set the icon on its own line above the
+texts, xs 4 apart, chosen by fit at every text size the app allows (it stops
+at AX2). More's rows below the first (`ListTitleRowLabel`)
 do the same over their title, and a word wider than the whole row under the
 icon is drawn at AX1's size, then xxxLarge's (es «Medicamentos» with Bold Text
 at AX2 on 320 pt), so it breaks only if it misses the row even at xxxLarge.
@@ -1304,12 +1304,12 @@ synced). `MedicationReminderPlan` (pure, `Core/Medicine`) wants it at the
 schedule's `nextAllowed`, the 24-hour maximum included, only while that is
 ahead and the course runs. `MedicationReminderSync` (`Services`) makes the
 centre agree: it removes every `bb.med.*` the plan does not want (a switch
-off, a course ended or past its time, a medication deleted here or on
-another device) and adds each wanted one again, which replaces it. A pass
-runs at once after every local store save (`ModelContext.didSave`), so no
-surface that logs, moves or deletes a dose calls it, and after every
-`NSPersistentStoreRemoteChange`, debounced 0.5 s for CloudKit's bursts; also
-on every foregrounding, on backgrounding (holding a background task until it
+off, a course ended or past its time, a medication deleted) and adds each
+wanted one again, which replaces it. A pass runs at once after every local
+store save (`ModelContext.didSave`), so no surface that logs, moves or
+deletes a dose calls it, and after every `NSPersistentStoreRemoteChange`,
+debounced 0.5 s for bursts; also on every foregrounding, on backgrounding
+(holding a background task until it
 lands), after a switch changes, and when notifications are allowed.
 Passes are serialized, so the last one, read from the freshest store, lands.
 The trigger is a time interval (elapsed time, like the interval itself); the
@@ -1365,9 +1365,10 @@ launch right after.
 
 It runs after every mutation, on launch, on every foregrounding, on
 `NSPersistentStoreRemoteChange` (debounced 1 s) and when the iOS permission
-changes. With no push (no aps-environment, no server), a stop made on another
-device reaches this Lock Screen when the app next runs here. That limit was
-accepted for 1.1.0.
+changes. The store is local only, so a timer on another device never reaches
+this Lock Screen. With sync back on and no push (no aps-environment, no
+server), a stop made on another device would reach it only when the app next
+ran here; that limit was accepted in 1.1.0.
 
 **Stop runs in the app.** `StopTimerIntent` is a `LiveActivityIntent`, compiled
 into both targets because the extension's `Button(intent:)` needs the type.
@@ -1549,7 +1550,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
 | `paywall_closed_x` | `seconds_visible` | the X of either paywall (not a swipe-down), once per paywall shown |
 | `first_entry` | `kind`: `feeding` \| `sleep` \| `diaper` \| `growth` \| `event` | `ReviewPromptTrigger.entrySaved(_:)` → `Analytics.noteEntrySaved`, once per kind per install (`analytics.firstEntryKinds`); an install already past onboarding when analytics arrives is seeded with every kind, so it reports no firsts |
-| `daily_activity` | `feeding`, `sleep`, `diaper`, `growth`, `event`: Bool (logged at all); `total`: `0` \| `1-5` \| `6-15` \| `16+` | `Analytics.appBecameActive` (and `start`) at the first foregrounding of a new local day, for the PREVIOUS day only, once (`analytics.dailyActivityDay`). `DailyActivityCounter` counts that day with one `fetchCount` per kind; the facade reduces the counts to presence plus one total bucket — no per-kind count, and edges clear of the clinical 8–12 feeds a day. Sent with the event time set to NOON of the reported day (local) and `sessionId -1`, so neither the time nor a session id gives away the first open after midnight. Nothing for a store with no baby; the first launch only sets the marker. The store is CloudKit-synced, so this is the baby's logged day across the family's devices, not this install's own usage. A time-zone change can make two consecutive reports cover overlapping hours — acceptable noise for a bucketed aggregate. There is deliberately no per-entry event (DECISIONS 2026-09-23) |
+| `daily_activity` | `feeding`, `sleep`, `diaper`, `growth`, `event`: Bool (logged at all); `total`: `0` \| `1-5` \| `6-15` \| `16+` | `Analytics.appBecameActive` (and `start`) at the first foregrounding of a new local day, for the PREVIOUS day only, once (`analytics.dailyActivityDay`). `DailyActivityCounter` counts that day with one `fetchCount` per kind; the facade reduces the counts to presence plus one total bucket — no per-kind count, and edges clear of the clinical 8–12 feeds a day. Sent with the event time set to NOON of the reported day (local) and `sessionId -1`, so neither the time nor a session id gives away the first open after midnight. Nothing for a store with no baby; the first launch only sets the marker. The store is local only, so this is the day logged on this install; with sync back on it would be the baby's logged day across the family's devices. A time-zone change can make two consecutive reports cover overlapping hours — acceptable noise for a bucketed aggregate. There is deliberately no per-entry event (DECISIONS 2026-09-23) |
 | `notification_permission` | `granted` | `NotificationsPage`, the system dialog's answer only |
 | `widget_installed` | — | `Analytics.appBecameActive` via `WidgetCenter.getCurrentConfigurations`, asked at most once a local day (`analytics.widgetProbeDay`), reported once per install |
 | `history_lock_shown` | `surface`: `feeding` \| `sleep` \| `diaper` \| `events` \| `recent_activity` | `BBLockedHistoryFooter.onAppear` → `Analytics.noteHistoryLockShown`, at most once per surface per local day (`analytics.historyLockDays`) — on insertion into a (non-lazy) list, not on scroll; a footer built with no `surface` (a medicine's doses) sends none |
@@ -1675,7 +1676,7 @@ nenita://tab/sleep` works for testing; a widget link would reach its app without
 (`teamdocs/design/m1-live-activity.md` § 5):
 - **Small:** the whole widget opens Feeding (`widgetURL`). WidgetKit ignores a `Link` in this family, so only the capsule's button is a separate target.
 - **Medium:** the left column and the feed row open Feeding, the sleep row opens Sleep (each a `Link`). The feed row hides while a feed runs, since the capsule already shows its minutes. The rows are 30–40 pt: they take layout priority over the spacer, so the smallest medium widgets (SE, 10.2" iPad) shrink them rather than overflow.
-- **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is synced and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
+- **The capsule:** with no feed running, it is `Button(intent: StartFeedingIntent())`. That is a `LiveActivityIntent`, so it runs in the app's process, where the store is writable and `TimerActions` exists, and the Live Activity may start from the background. It calls `TimerActions.startFeedingFromWidget`, a left breastfeed that does nothing while any feed runs or before onboarding has created a Baby. While a feed runs, the capsule is a `Link` to Feeding (medium) with the feed's glyph and whole minutes. With no Baby yet (`entry.hasBaby == false`) it looks idle but only opens the app.
 - **The onboarding showcase** renders the same view with `isInteractive: false`, so a tap there starts nothing.
 
 The widget writes time since an event in whole days from 48 hours, rounded

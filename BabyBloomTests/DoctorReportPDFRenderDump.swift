@@ -26,7 +26,7 @@ final class DoctorReportPDFRenderDump: XCTestCase {
     private func store(_ seed: (ModelContext) -> Void) throws -> Store {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let context = ModelContext(container)
         seed(context)
         try context.save()

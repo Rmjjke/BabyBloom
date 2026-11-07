@@ -24,9 +24,15 @@ final class HostedAccessibility {
 
     private var windows: [UIWindow] = []
 
-    /// Hides every window this instance opened; call it from `tearDown`.
+    /// Takes down every window this instance opened; call it from `tearDown`.
+    /// The root controller goes too: a hidden window outlived its test, and the
+    /// view graph it held kept a `@Query` that trapped on a later test's save
+    /// into a store of another schema.
     func close() {
-        windows.forEach { $0.isHidden = true }
+        for window in windows {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
         windows = []
     }
 

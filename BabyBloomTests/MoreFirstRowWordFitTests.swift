@@ -123,7 +123,7 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     private func moreTab(babyName: String, bold: Bool) throws -> [HostedAccessibility.Element] {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let baby = Baby(name: babyName, birthDate: Date().addingTimeInterval(-90 * 86_400),
                         gender: .female, feedingType: .breast)
         container.mainContext.insert(baby)

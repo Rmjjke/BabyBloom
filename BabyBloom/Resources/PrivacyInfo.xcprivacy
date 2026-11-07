@@ -9,8 +9,7 @@
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 
-	<!-- Baby data stays on device and syncs only to the user's own iCloud
-	     private database, which we cannot read — none of it is "collected".
+	<!-- Baby data stays on the device — none of it is "collected".
 	     What IS collected is product analytics (Amplitude, US region, opt-out
 	     in Settings): typed behavioural events, a random per-install device
 	     id, and which plan was bought (purchase / restore / plan events). No
