@@ -208,6 +208,7 @@
 		A9A33375C2406FDBEA851657 /* Date+AppLocale.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */; };
 		AA9FA84C733D7FADFC1FBD1B /* GrowthInsightCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = D710F916E5F50C96785E8A5B /* GrowthInsightCards.swift */; };
 		AAA5E67BFD4E2335658E72B6 /* DoctorPeriodRowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8FE2F53DE809CBCB728254C /* DoctorPeriodRowsTests.swift */; };
+		AAF9DA78E507C3E1B512FE4C /* MoreFirstRowWordFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DD24DA89ABE6CABE2AC6AD /* MoreFirstRowWordFitTests.swift */; };
 		AFEFB3BD1DC78268E2EBFE2F /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1C5CB91D7CE471041BDF8A /* DiaperView.swift */; };
 		B007E6643FAF6651A3E6A623 /* SideBySideIdeal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 953C4AE02D2D566EE63230A0 /* SideBySideIdeal.swift */; };
 		B0440F746B0373BDDF645606 /* StoreFromOlderVersionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504E0F822AF49E0A345783FD /* StoreFromOlderVersionsTests.swift */; };
@@ -502,6 +503,7 @@
 		8DA3D32F0D2D5261DD037F00 /* PeriodSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodSummary.swift; sourceTree = "<group>"; };
 		8DC61B36B29C0F41B11EE8C7 /* QuestionsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionsCard.swift; sourceTree = "<group>"; };
 		9038F5FBC90E94029D789DC4 /* WeeklySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryTests.swift; sourceTree = "<group>"; };
+		90DD24DA89ABE6CABE2AC6AD /* MoreFirstRowWordFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreFirstRowWordFitTests.swift; sourceTree = "<group>"; };
 		914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrendTests.swift; sourceTree = "<group>"; };
 		918ED2820ABAB2DB83D2A7AC /* BBButtonLabelFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBButtonLabelFitTests.swift; sourceTree = "<group>"; };
 		92018595E27242A50820D2B8 /* WidgetRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetRenderDump.swift; sourceTree = "<group>"; };
@@ -878,6 +880,7 @@
 				5B706374C142AA60C96371AF /* MedicationStoreTests.swift */,
 				63224488CC245E6D9CAC116F /* MedicineModelTests.swift */,
 				FC58DB8A226B83D0195EC7D9 /* MedicineScheduleTests.swift */,
+				90DD24DA89ABE6CABE2AC6AD /* MoreFirstRowWordFitTests.swift */,
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				D4EAC3A72A4E3588441CFAEB /* NewbornWindowGateTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
@@ -1733,6 +1736,7 @@
 				432BB9DB84F4AD4632A0CE6E /* MedicationStoreTests.swift in Sources */,
 				929535DF284A4D4C03008514 /* MedicineModelTests.swift in Sources */,
 				249C44967ADBA0218F3FAC3C /* MedicineScheduleTests.swift in Sources */,
+				AAF9DA78E507C3E1B512FE4C /* MoreFirstRowWordFitTests.swift in Sources */,
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				08397073EA2C1C14B5E247EF /* NewbornWindowGateTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
