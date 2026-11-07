@@ -171,6 +171,7 @@
 		900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */; };
 		903BBA91510F94E84A770E2B /* AppSchema.swift in Sources */ = {isa = PBXBuildFile; fileRef = F248C810B3E83498B057C76D /* AppSchema.swift */; };
 		90FFF159DCBB9A999D5AB2D8 /* ExportSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4504212871C1399B76EC5403 /* ExportSelectionTests.swift */; };
+		919E300C3D211A64C0D47AFF /* OnboardingWordFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A1CACF0BA095DF3692D2F6A /* OnboardingWordFitTests.swift */; };
 		929535DF284A4D4C03008514 /* MedicineModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63224488CC245E6D9CAC116F /* MedicineModelTests.swift */; };
 		92D69E3860B1946A1721B49E /* MedicationFormInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5332E6C0888F642F987506E0 /* MedicationFormInputTests.swift */; };
 		92D85E1C10E2FE0EC6623192 /* BBElapsedTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */; };
@@ -443,6 +444,7 @@
 		56D905771541728A4DD74254 /* DoctorReportPDF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDF.swift; sourceTree = "<group>"; };
 		582657DC180DE03128A75629 /* NewbornWeightLoss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewbornWeightLoss.swift; sourceTree = "<group>"; };
 		5A003916D83216166C88BE0C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5A1CACF0BA095DF3692D2F6A /* OnboardingWordFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWordFitTests.swift; sourceTree = "<group>"; };
 		5B40F49A33B61B3BF475CBD5 /* MedicationCopyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationCopyTests.swift; sourceTree = "<group>"; };
 		5B706374C142AA60C96371AF /* MedicationStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationStoreTests.swift; sourceTree = "<group>"; };
 		5E0516E7308094CC3973C77A /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
@@ -881,6 +883,7 @@
 				DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */,
 				F04140D70B76467F31999ADB /* OnboardingGrowthPreviewTests.swift */,
 				F1F33EF231F6A1CC9098260C /* OnboardingPageLayoutTests.swift */,
+				5A1CACF0BA095DF3692D2F6A /* OnboardingWordFitTests.swift */,
 				C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */,
 				AA5C5C9C8DACDBEAA886D35A /* PDFPagesTests.swift */,
 				A9D7CBB786BB36751F59299E /* PercentileCardRenderDump.swift */,
@@ -1734,6 +1737,7 @@
 				54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */,
 				900D3C39F949218AF3CB8B57 /* OnboardingGrowthPreviewTests.swift in Sources */,
 				5FADED8EA0733F4DF272A8EB /* OnboardingPageLayoutTests.swift in Sources */,
+				919E300C3D211A64C0D47AFF /* OnboardingWordFitTests.swift in Sources */,
 				C2CE52DEFCE7C3F7CECE4954 /* OrphanedEntryAdoptionTests.swift in Sources */,
 				814AA96A432675C754BF2918 /* PDFPagesTests.swift in Sources */,
 				ED958D4B266F8232386E459D /* PercentileCardRenderDump.swift in Sources */,

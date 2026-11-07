@@ -6,6 +6,15 @@ struct WelcomePage: View {
     let onStart: () -> Void
     @State private var appear = false
 
+    private var features: [(icon: String, color: Color, key: String, delay: Double)] {
+        [
+            ("heart.fill", BBTheme.Colors.feeding, "onboarding.feature.feeding", 0.15),
+            ("moon.fill", BBTheme.Colors.sleep, "onboarding.feature.sleep", 0.25),
+            ("chart.line.uptrend.xyaxis", BBTheme.Colors.growth, "onboarding.feature.growth", 0.35),
+            ("drop.fill", BBTheme.Colors.diaper, "nav.diapers", 0.45),
+        ]
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
@@ -36,24 +45,11 @@ struct WelcomePage: View {
                 }
                 .frame(height: 320)
 
-                // Feature cards
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    WelcomeFeatureCard(icon: "heart.fill",
-                                       color: BBTheme.Colors.feeding,
-                                       title: "onboarding.feature.feeding".l,
-                                       delay: 0.15)
-                    WelcomeFeatureCard(icon: "moon.fill",
-                                       color: BBTheme.Colors.sleep,
-                                       title: "onboarding.feature.sleep".l,
-                                       delay: 0.25)
-                    WelcomeFeatureCard(icon: "chart.line.uptrend.xyaxis",
-                                       color: BBTheme.Colors.growth,
-                                       title: "onboarding.feature.growth".l,
-                                       delay: 0.35)
-                    WelcomeFeatureCard(icon: "drop.fill",
-                                       color: BBTheme.Colors.diaper,
-                                       title: "nav.diapers".l,
-                                       delay: 0.45)
+                // Feature cards: one shape for all four, beside while every
+                // title's words fit beside the icon.
+                ViewThatFits(in: .horizontal) {
+                    featureCards(.beside)
+                    featureCards(.stacked)
                 }
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, BBTheme.Spacing.xl)
@@ -73,30 +69,81 @@ struct WelcomePage: View {
             }
         }
     }
+
+    /// A stack's ideal width is its widest card's, so the beside form fits
+    /// only where every card's does.
+    private func featureCards(_ shape: WelcomeFeatureCard.Shape) -> some View {
+        VStack(spacing: BBTheme.Spacing.sm) {
+            ForEach(features, id: \.key) { feature in
+                WelcomeFeatureCard(icon: feature.icon,
+                                   color: feature.color,
+                                   title: feature.key.l,
+                                   delay: feature.delay,
+                                   shape: shape)
+            }
+        }
+    }
 }
 
+/// A Text breaks inside a word only when the word alone is wider than its
+/// column. Beside the 42-pt icon and the check, a Russian title's word
+/// («кормлений») was that on a 320-pt screen at the accessibility sizes, so
+/// there the page sets every title under its icon instead.
 private struct WelcomeFeatureCard: View {
+    enum Shape { case beside, stacked }
+
     let icon: String
     let color: Color
     let title: String
     let delay: Double
+    let shape: Shape
     @State private var appear = false
 
+    private var badge: some View {
+        Image(systemName: icon)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(color)
+            .frame(width: 42, height: 42)
+            .background(color.opacity(0.12))
+            .cornerRadius(12)
+    }
+
+    private var check: some View {
+        Image(systemName: "checkmark.circle.fill")
+            .foregroundStyle(color.opacity(0.7))
+            .font(.system(size: 18))
+    }
+
+    private func styled(_ label: some View) -> some View {
+        label
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     var body: some View {
-        HStack(spacing: BBTheme.Spacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(color)
-                .frame(width: 42, height: 42)
-                .background(color.opacity(0.12))
-                .cornerRadius(12)
-            Text(title)
-                .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-            Spacer()
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(color.opacity(0.7))
-                .font(.system(size: 18))
+        Group {
+            switch shape {
+            case .beside:
+                // The title's ideal width is its widest word's: the width the
+                // page's ViewThatFits compares.
+                HStack(spacing: BBTheme.Spacing.md) {
+                    badge
+                    styled(WordWrappingText(text: title))
+                    Spacer()
+                    check
+                }
+            case .stacked:
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    HStack {
+                        badge
+                        Spacer()
+                        check
+                    }
+                    styled(Text(title))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
         .padding(BBTheme.Spacing.md)
         .background(BBTheme.Colors.surface)

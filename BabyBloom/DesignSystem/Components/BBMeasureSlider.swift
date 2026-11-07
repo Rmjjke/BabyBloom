@@ -54,21 +54,43 @@ struct BBOptionalMeasureToggle: View {
     let maxLabel: String
     let color: Color
 
+    private var toggle: some View {
+        Toggle("", isOn: $isOn)
+            .labelsHidden()
+            .tint(color)
+    }
+
+    private func labels(_ titleText: some View, _ hintText: some View) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            titleText
+                .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            hintText
+                .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                    Text(hint)
-                        .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
+            // Beside the switch while every word of the title and the hint
+            // fits beside it; else the switch goes under them at the title's
+            // x, so a long word («Окружность» on a 320-pt screen at the
+            // accessibility sizes) is never broken. Decided by the fit alone:
+            // where the words fit, the larger sizes keep the beside form.
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    labels(WordWrappingText(text: title), WordWrappingText(text: hint))
+                    Spacer()
+                    toggle
                 }
-                Spacer()
-                Toggle("", isOn: $isOn)
-                    .labelsHidden()
-                    .tint(color)
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    labels(Text(title), Text(hint))
+                    toggle
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             if isOn {
                 HStack {

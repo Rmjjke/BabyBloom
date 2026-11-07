@@ -1035,6 +1035,20 @@ one-step column is in `onboardingCenteredScroll` as the net. The layout tests
 pin both forms and, by sampling the page as it runs, the title's place
 (DECISIONS 2026-11-07).
 
+The welcome cards, the notifications bullets and the feeding rows are each
+one `ViewThatFits(in: .horizontal)` over the page's whole set: beside their
+icons while every word fits there, else every text under its icon. The beside
+texts are `WordWrappingText`, whose ideal width is the widest word's, so the
+choice follows the language, the width and Bold Text rather than a text size.
+Every feeding row draws the check (opacity 0 where unselected, hidden from
+VoiceOver), so the shape does not follow the selection. `BBOptionalMeasureToggle`
+chooses the same way between its switch beside the texts and under them, and
+the feeding subtitle (`FeedingHint`) steps down from the reader's size to
+AX1's, then xxxLarge's, only where one word misses its column.
+`OnboardingWordFitTests` pins the shapes in narrow windows at Large and, when
+the simulator runs at AX1 or AX2, every word whole on 320 and 375 pt
+(DECISIONS 2026-11-07).
+
 Two of those pages show the REAL product rather than a picture of it.
 `WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed
 entry. `GrowthShowcasePage` renders `PercentileCard` with the parent's own
