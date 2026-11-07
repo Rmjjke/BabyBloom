@@ -320,6 +320,19 @@ and the Live Activity read the byte-identical copies in
     now never does. No word breaks inside where it did not before, and
     6 / 28 / 2 cases take one line more. A UI test that matches such a line
     takes `.` for the no-break space.
+  - The middle dot « · » that joins two parts of a line never starts a line
+    either. The space before it is a no-break space and the space after it
+    stays plain, in every key and every language: "Since the visit on %@ · %@",
+    «С рождения · %@», «Guardado · %@». With a plain space the report's
+    period line read «С приёма 2 нояб.» / «· сегодня» on a 320 pt screen at
+    AX2. The keys: `report.since_visit_fmt`, `report.since_birth_fmt`,
+    `question.asked_at_fmt`, `question.asked_at_count_fmt`,
+    `export.generated_by_fmt`, `live_activity.title.bf_left` / `_right` /
+    `_both`, `live_activity.saved_fmt`, `premium.price_only_fmt` and
+    `medication.ended_on_fmt`. The glued run is the word before and the dot,
+    so it never has to break inside a word. The report's lists and the
+    medication dose line join their parts in code with the same pair of
+    spaces (`ReportFormat.listSeparator`, `MedicationFormat.separator`).
   - In the JSON the no-break space and the word joiner are the raw
     characters U+00A0 and U+2060, not escapes. An editor and a diff show
     them as a plain space or as nothing, so a value is checked with a script
@@ -588,3 +601,8 @@ and the Live Activity read the byte-identical copies in
   new). Whole hours read 2 h 55 min as "2 of 14 h". `progress.of_fmt` and
   `progress.of_unit_fmt` keep their values (§ Counts on Home and the stat
   tiles).
+- 2026-11-07 — The middle dot « · » never starts a line (§ Line breaks
+  around numbers): a no-break space before it in 10 keys of each language,
+  the report's period line and questions line, the export's footer, the
+  Lock Screen's breastfeeding titles and saved line and the paywall's price
+  line, with nothing else changed in them.
