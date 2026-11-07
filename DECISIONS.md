@@ -14,6 +14,24 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-08 — A sheet's pinned Save leaves while the keyboard is up; the bar's ✓ saves meanwhile
+
+Pinned under the form (2026-10-28), an entry sheet's big Save rode up on the
+keyboard and lay over the field below the one being typed in. On New
+Medication, with the name typed and an interval picked, it covered Dose, and a
+tap aimed at Dose saved the form with no dose in it.
+
+**Rule.** A sheet's pinned footer (`BBSheetFooter`) is gone between the
+keyboard's will-show and will-hide notifications and back once the keyboard is
+down. The bar's ✓ stays and saves while typing. The big Save is kept for the
+keyboard-down state, where it is the easy target.
+
+**Rejected: scrolling the next field clear of the footer.** The footer would
+still take 56 pt or more of the little room above the keyboard on a half-height
+sheet, and every field would need its own focus-and-scroll wiring, so the next
+field added would bring the bug back. The keyboard's notifications cover every
+field a sheet has or gains, with nothing to wire per field.
+
 ## 2026-11-07 — iCloud sync is off: the store is local only, and the way back is kept small
 
 The app opens the store from `SharedStore.configuration` with `cloudKitDatabase: .none`, as the widget always did, and every test container names `.none` too: the initializer's default is `.automatic`, which takes the container from the entitlements. The one exception is the test that writes an old mirrored store, which opens it with `.private` on purpose and only on a simulator signed out of iCloud. Settings has no iCloud Sync row, and the account-status check behind it is gone. Three things stay: the iCloud entitlement with the container `iCloud.com.nenita.app`, the push capability on the App ID, and the models' CloudKit rules (every attribute optional or defaulted, every relationship optional with an inverse, no unique constraint, persisted enums closed).

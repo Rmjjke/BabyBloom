@@ -56,8 +56,12 @@ tags: [regression]
 - tapOn:
     id: "dose.note"
 - inputText: "after food"
-- tapOn:
+# While the keyboard is up the footer Save is gone; the bar's saves. The
+# keyboard may come back after the alert, so the bar's Save is the one below.
+- assertNotVisible:
     id: "dose.save"
+- tapOn:
+    id: "dose.bar_save"
 - extendedWaitUntil:
     visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000
@@ -68,12 +72,12 @@ tags: [regression]
 - tapOn: "Cancel"
 - assertNotVisible: "With this dose, 5.doses in 24.hours"
 - assertVisible:
-    id: "dose.save"
+    id: "dose.bar_save"
 - assertVisible: "after food"
 
 # Save: one dose is kept and the screen counts from it.
 - tapOn:
-    id: "dose.save"
+    id: "dose.bar_save"
 - extendedWaitUntil:
     visible: "With this dose, 5.doses in 24.hours"
     timeout: 10000

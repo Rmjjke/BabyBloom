@@ -57,15 +57,13 @@ struct MedicationFormSheet: View {
                     }
                     .padding(BBTheme.Spacing.md)
                 }
-                // BBPrimaryButton has no disabled look of its own.
-                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                    .disabled(!input.canSave)
-                    .opacity(input.canSave ? 1 : 0.4)
-                    .accessibilityIdentifier("medication.save")
-                    .padding(.horizontal, BBTheme.Spacing.md)
-                    .padding(.top, BBTheme.Spacing.sm)
-                    .padding(.bottom, BBTheme.Spacing.xs)
-                    .background(BBTheme.Colors.background)
+                BBSheetFooter {
+                    // BBPrimaryButton has no disabled look of its own.
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                        .disabled(!input.canSave)
+                        .opacity(input.canSave ? 1 : 0.4)
+                        .accessibilityIdentifier("medication.save")
+                }
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .bbSheetTitle(title)
@@ -76,6 +74,7 @@ struct MedicationFormSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     BBBarButton(.save) { save() }
                         .disabled(!input.canSave)
+                        .accessibilityIdentifier("medication.bar_save")
                 }
             }
             .alert("medication.delete".l, isPresented: $confirmDelete) {

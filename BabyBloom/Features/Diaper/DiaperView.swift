@@ -580,11 +580,9 @@ struct AddDiaperSheet: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) {
-                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                    .padding(.horizontal, BBTheme.Spacing.md)
-                    .padding(.top, BBTheme.Spacing.sm)
-                    .padding(.bottom, BBTheme.Spacing.xs)
-                    .background(BBTheme.Colors.background)
+                BBSheetFooter {
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                }
             }
             .bbSheetTitle("sheet.diaper".l)
             .toolbar {

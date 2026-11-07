@@ -218,11 +218,9 @@ struct BabyProfileEditSheet: View {
             // Big primary action pinned to the safe area for one-handed / night use;
             // mirrors the toolbar Save (both call save()).
             .safeAreaInset(edge: .bottom) {
-                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                    .padding(.horizontal, BBTheme.Spacing.md)
-                    .padding(.top, BBTheme.Spacing.sm)
-                    .padding(.bottom, BBTheme.Spacing.xs)
-                    .background(BBTheme.Colors.background)
+                BBSheetFooter {
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                }
             }
             .bbSheetTitle("profile.edit_title".l)
             .toolbar {
