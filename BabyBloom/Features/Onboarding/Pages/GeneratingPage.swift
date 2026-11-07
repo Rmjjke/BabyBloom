@@ -35,74 +35,25 @@ struct GeneratingPage: View {
     /// 3.2 s).
     private let stepDelays: [UInt64] = [450, 1_000, 650, 1_200, 550].map { $0 * 1_000_000 }
 
+    private var stepFont: Font {
+        BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded)
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: BBTheme.Spacing.xl) {
-                // Animated ring
-                ZStack {
-                    Circle()
-                        .stroke(BBTheme.Colors.primary.opacity(0.12), lineWidth: 6)
-                        .frame(width: 100, height: 100)
-                    Circle()
-                        .trim(from: 0, to: showDone ? 1 : CGFloat(completedSteps.count) / CGFloat(steps.count))
-                        .stroke(
-                            LinearGradient(colors: [BBTheme.Colors.primary, BBTheme.Colors.accent],
-                                            startPoint: .topLeading, endPoint: .bottomTrailing),
-                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
-                        )
-                        .frame(width: 100, height: 100)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.5), value: completedSteps.count)
-                    // Shadowless: the card shadow would blur across the
-                    // progress track only 22pt away.
-                    BrandMark(diameter: 44, shadowed: false)
-                }
-
-                VStack(spacing: BBTheme.Spacing.sm) {
-                    let name = babyName.trimmingCharacters(in: .whitespaces)
-                    BBTheme.Typography.title3(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                        .multilineTextAlignment(.center)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(Array(steps.enumerated()), id: \.offset) { i, step in
-                            HStack(spacing: 10) {
-                                ZStack {
-                                    Circle()
-                                        .fill(completedSteps.contains(i) ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(0.1))
-                                        .frame(width: 28, height: 28)
-                                    if completedSteps.contains(i) {
-                                        Image(systemName: "checkmark")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundStyle(BBTheme.Colors.onPrimary)
-                                    } else {
-                                        Image(systemName: step.icon)
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(BBTheme.Colors.primary.opacity(0.5))
-                                    }
-                                }
-                                .animation(.spring(response: 0.4), value: completedSteps.contains(i))
-
-                                Text(step.text)
-                                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                    .foregroundStyle(completedSteps.contains(i) ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
-                                    .animation(.easeIn, value: completedSteps.contains(i))
-                            }
-                            .opacity(i <= completedSteps.count ? 1 : 0.3)
-                        }
-                    }
-                    .padding(BBTheme.Spacing.lg)
-                    .background(BBTheme.Colors.surface)
-                    .cornerRadius(BBTheme.Radius.lg)
-                    .bbShadow(BBTheme.Shadow.card)
-                }
+        // The five rows while the column fits the page's height, else the step
+        // in progress alone, at any text size, language or Bold Text: where it
+        // flips differs by each (es needs 549 pt of a 548-pt page at xxLarge),
+        // so no size threshold could hold it. The page moves on by itself, so
+        // it is not meant to scroll; the scroll is only the net for a landscape
+        // phone, where even one step may miss.
+        ViewThatFits(in: .vertical) {
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+                column { stepRows }
+                Spacer(minLength: 0)
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, BBTheme.Spacing.lg)
-
-            Spacer()
-            Spacer()
+            onboardingCenteredScroll { column { stepInProgress } }
         }
         // A stable anchor for driving the flow by hand. The e2e walks do NOT
         // wait on it — the page can be gone before Maestro's tap returns;
@@ -121,5 +72,98 @@ struct GeneratingPage: View {
             guard !Task.isCancelled else { return }
             onDone()
         }
+    }
+
+    private func column<Steps: View>(@ViewBuilder _ steps: () -> Steps) -> some View {
+        VStack(spacing: BBTheme.Spacing.xl) {
+            ring
+
+            VStack(spacing: BBTheme.Spacing.sm) {
+                let name = babyName.trimmingCharacters(in: .whitespaces)
+                BBTheme.Typography.title3(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                steps()
+            }
+        }
+        .padding(.horizontal, BBTheme.Spacing.lg)
+    }
+
+    private var ring: some View {
+        ZStack {
+            Circle()
+                .stroke(BBTheme.Colors.primary.opacity(0.12), lineWidth: 6)
+                .frame(width: 100, height: 100)
+            Circle()
+                .trim(from: 0, to: showDone ? 1 : CGFloat(completedSteps.count) / CGFloat(steps.count))
+                .stroke(
+                    LinearGradient(colors: [BBTheme.Colors.primary, BBTheme.Colors.accent],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing),
+                    style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                )
+                .frame(width: 100, height: 100)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.5), value: completedSteps.count)
+            // Shadowless: the card shadow would blur across the
+            // progress track only 22pt away.
+            BrandMark(diameter: 44, shadowed: false)
+        }
+    }
+
+    private var stepRows: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(steps.enumerated()), id: \.offset) { i, step in
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(completedSteps.contains(i) ? BBTheme.Colors.primary : BBTheme.Colors.primary.opacity(0.1))
+                            .frame(width: 28, height: 28)
+                        if completedSteps.contains(i) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(BBTheme.Colors.onPrimary)
+                        } else {
+                            Image(systemName: step.icon)
+                                .font(.system(size: 11))
+                                .foregroundStyle(BBTheme.Colors.primary.opacity(0.5))
+                        }
+                    }
+                    .animation(.spring(response: 0.4), value: completedSteps.contains(i))
+
+                    Text(step.text)
+                        .font(stepFont)
+                        .foregroundStyle(completedSteps.contains(i) ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .animation(.easeIn, value: completedSteps.contains(i))
+                }
+                .opacity(i <= completedSteps.count ? 1 : 0.3)
+            }
+        }
+        .padding(BBTheme.Spacing.lg)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.lg)
+        .bbShadow(BBTheme.Shadow.card)
+    }
+
+    /// The one in progress, the last after the fifth. All five are set in one
+    /// place, so the box is the tallest one's height and the ring and the title
+    /// stand still as the steps change. The ring's trim carries the count, so
+    /// no disc; the change is by opacity alone, which Reduce Motion keeps.
+    private var stepInProgress: some View {
+        let current = min(completedSteps.count, steps.count - 1)
+        return ZStack {
+            ForEach(Array(steps.enumerated()), id: \.offset) { i, step in
+                Text(step.text)
+                    .font(stepFont)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .opacity(i == current ? 1 : 0)
+                    .accessibilityHidden(i != current)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.easeInOut(duration: 0.25), value: current)
     }
 }

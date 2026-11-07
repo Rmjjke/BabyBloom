@@ -14,6 +14,22 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-07 — A primary or secondary button keeps md 16 inside each side; its glyph goes before a word breaks
+
+`BBPrimaryButton` and `BBSecondaryButton` set their label md 16 inside each side and sm 8 above and below, at least 56 pt tall. The label is centred and wraps between words with no line limit, so the button grows to hold it. Its shape is the first of these that fits the room, read by `ViewThatFits` over the label set one word a line (`WordWrappingText`): with the glyph, without it, at the AX1 size, at xxxLarge's.
+
+**Why.** The buttons set no side padding and no line alignment. On a 320-pt screen at Large the ru trial offer with its arrow, «Попробовать 7 дн. бесплатно», measured 270.7 pt in the 272-pt button and drew from 3 to 269 pt, on both paywalls; a label wider than its button wrapped flush to the leading edge (at AX2 the widget page's «Создать / мой трекер»). A surface's words keep md 16 from its edge. md 16 rather than sm 8: at sm 8 a two-line label's ends sit 1.9 pt clear of the radius-lg corner's curve, 9.9 at md 16; lg 24 would take 16 pt more from every label for corners already clear. The glyph goes before a word breaks: a mark beside words that already say the action is the smaller loss. The size is the reader's, so only a word wider than the whole room steps down — ru «Экспортировать» at AX2 on 320 pt, 243.5 pt in 240 — to the AX1 size, then xxxLarge's, as `BBScreenHeading` steps down. The fit is measured live rather than read from a table of widths: under Bold Text SwiftUI sets the semibold label and glyph heavy, not bold («Экспортировать» at Large: 140.5 pt bold, 146.4 heavy, drawn 146.7).
+
+**Rejected.** A smaller size for every long label, `minimumScaleFactor` (both set the reader's size smaller); a line limit (it cuts); a shorter ru trial line (the wrap holds any length).
+
+## 2026-11-07 — The onboarding setup page shows the step in progress alone where its five rows miss the page, chosen by fit
+
+`GeneratingPage`'s five step rows wrap between words. `ViewThatFits(in: .vertical)` keeps them while their column fits the page's height; else the step in progress stands alone under the title, centred, with no card and no disc. All five are set in one box, the one in progress shown and the others at opacity 0 and out of VoiceOver, so the box is as tall as the tallest step and the ring and the title stand still from step to step; the next step takes the place by opacity (`easeInOut(0.25)`), which Reduce Motion keeps. The one-step column sits in `onboardingCenteredScroll` as the net (in landscape it may miss too).
+
+**Why.** The rows set no vertical `fixedSize` and the page does not scroll, so at AX2 on a 320-pt screen the column squeezed each step to one cut line («Персонализ…»). Wrapped alone, the rows are half again the page's height at AX2 (825 pt in ru against 548) and ru «Персонализируем» breaks inside the word beside its disc from AX1. No scroll: the page moves on by itself in 4.65 s, and steps below the fold would go by unseen. By fit, not by a text size: where the rows miss depends on the language, the width and Bold Text — on 320 pt the edge falls at xxLarge in es (549 pt in 548), and on 375 pt at AX2 en keeps its rows (ending at 613 of 647) where ru and es take the one step. The discs are not kept beside the one step: the ring's trim already counts.
+
+**Rejected.** A scroll; the rows wrapping alone; a text-size threshold; shorter steps (at AX2 they would still need the fit).
+
 ## 2026-11-06 — Onboarding's ground never sizes the flow; a page with its own button scrolls its content above the button
 
 `OnboardingBackground` draws its blobs in an `.overlay` of the ground colour, so the ground takes exactly the size it is offered. The fact and widget pages put their content in `onboardingCenteredScroll` and keep the button under it, outside the scroll, as Notifications and Premium keep theirs.
