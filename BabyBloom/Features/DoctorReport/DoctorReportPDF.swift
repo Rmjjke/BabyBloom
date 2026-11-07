@@ -508,7 +508,7 @@ enum DoctorReportPDF {
         // UIKit draws this line, and in a PDF context it prints an emoji as a box too.
         let name = PagedPDF.withoutEmoji(baby.name).trimmingCharacters(in: .whitespaces)
         let footer = [ "brand.name".l, name, periodRange(periodStart, now: now) ]
-            .filter { !PagedPDF.isBlank($0) }.joined(separator: " · ")
+            .filter { !PagedPDF.isBlank($0) }.joined(separator: ReportFormat.listSeparator)
         return PagedPDF.data(document, renderer: ReportPageRenderer(footerLeft: footer))
     }
 

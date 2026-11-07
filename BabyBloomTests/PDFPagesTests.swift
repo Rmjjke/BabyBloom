@@ -7,6 +7,10 @@ import SwiftData
 /// head repeats, and the text layer holds the letters printed.
 @MainActor
 final class PDFPagesTests: XCTestCase {
+    /// The footer joins its parts with `ReportFormat.listSeparator`, but the PDF's
+    /// text layer reads the drawn no-break space back as a plain space, so a
+    /// footer read from the page carries this join.
+    private static let footerJoin = ReportFormat.listSeparator.replacingOccurrences(of: "\u{00A0}", with: " ")
 
     private struct Report {
         let document: PDFDocument
@@ -114,7 +118,7 @@ final class PDFPagesTests: XCTestCase {
             XCTAssertFalse(lines.isEmpty, "\(label), page \(index + 1) reads as empty", file: file, line: line)
             for selection in lines {
                 let text = selection.string ?? ""
-                guard !text.contains("Page \(index + 1) of"), !text.hasPrefix("brand.name".l + " ·") else { continue }
+                guard !text.contains("Page \(index + 1) of"), !text.hasPrefix("brand.name".l + Self.footerJoin) else { continue }
                 XCTAssertGreaterThanOrEqual(selection.bounds(for: page).minY, 60 - 0.5,
                                             "\(label), page \(index + 1): «\(text)»", file: file, line: line)
             }
@@ -507,7 +511,7 @@ final class PDFPagesTests: XCTestCase {
             let document = try report(extraWeighings: 0, name: "美玲 🌸", questions: words + ["😀👶"]).document
             let lines = texts(document).joined(separator: "\n").components(separatedBy: "\n")
                 // The footer is drawn by UIKit, whose emoji read back as a NUL though they print.
-                .filter { !$0.hasPrefix("brand.name".l + " ·") }
+                .filter { !$0.hasPrefix("brand.name".l + Self.footerJoin) }
             let body = lines.joined(separator: "\n")
             for word in words + ["美玲"] { XCTAssertTrue(body.contains(word), word) }
             XCTAssertFalse(body.unicodeScalars.contains { $0.value == 0 || $0.value == 0xFFFD }, "a boxed glyph: \(body)")
@@ -601,11 +605,11 @@ final class PDFPagesTests: XCTestCase {
         try inLanguage(.en) {
             let some = try XCTUnwrap(report(extraWeighings: 0, name: "美玲 🌸").document.string)
             XCTAssertFalse(some.contains("🌸"))
-            XCTAssertTrue(some.contains("\("brand.name".l) · 美玲 · "), "no space stays before the separator")
+            XCTAssertTrue(some.contains("brand.name".l + Self.footerJoin + "美玲" + Self.footerJoin), "no space stays before the separator")
 
             let none = try XCTUnwrap(report(extraWeighings: 0, name: "🌸").document.string)
             XCTAssertFalse(none.contains("🌸"))
-            XCTAssertTrue(none.contains("\("brand.name".l) · "))
+            XCTAssertTrue(none.contains("brand.name".l + Self.footerJoin))
             XCTAssertNil(none.range(of: "·\\s*·", options: .regularExpression), "a name of emoji alone leaves no gap")
         }
     }
@@ -623,7 +627,7 @@ final class PDFPagesTests: XCTestCase {
                 let document = try report(extraWeighings: 0, name: typed).document
                 XCTAssertFalse(fontNames(document).contains { $0.contains("LastResort") }, typed)
                 let text = try XCTUnwrap(document.string)
-                XCTAssertTrue(text.contains("\("brand.name".l) · \(printed) · "), "no gap in the footer for \(typed)")
+                XCTAssertTrue(text.contains("brand.name".l + Self.footerJoin + printed + Self.footerJoin), "no gap in the footer for \(typed)")
             }
 
             let scripts = try report(extraWeighings: 0, name: "美玲 سارة สมชาย").document
@@ -647,7 +651,7 @@ final class PDFPagesTests: XCTestCase {
             let right = try XCTUnwrap(lines.first { $0.string == number })
             XCTAssertEqual(left.bounds(for: page).midY, right.bounds(for: page).midY, accuracy: 3, "one baseline")
             XCTAssertLessThan(left.bounds(for: page).maxX, right.bounds(for: page).minX)
-            XCTAssertEqual(left.string?.components(separatedBy: " · ").count, 2, "cut inside the name")
+            XCTAssertEqual(left.string?.components(separatedBy: Self.footerJoin).count, 2, "cut inside the name")
         }
     }
 
