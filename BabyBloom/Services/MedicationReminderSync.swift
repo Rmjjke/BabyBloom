@@ -52,11 +52,11 @@ struct SystemReminderCenter: ReminderCenter {
 ///
 /// A pass runs at once after every local store save, so every surface that
 /// logs, moves or deletes a dose, or edits, ends or deletes a medication, is
-/// covered without a call of its own; on changes synced from another device;
-/// on every foregrounding and backgrounding; when a switch changes; and when
-/// notifications are allowed. Nothing pushes: a dose logged on another phone
-/// reaches this phone's reminder when the app next runs here, which is why
-/// the body names the dose it counts from.
+/// covered without a call of its own; on a remote store change; on every
+/// foregrounding and backgrounding; when a switch changes; and when
+/// notifications are allowed. The body names the dose it counts from: with
+/// sync back on and nothing pushing, a dose logged on another phone would
+/// reach this reminder only when the app next ran here.
 @MainActor
 final class MedicationReminderSync {
     static let shared = MedicationReminderSync(center: SystemReminderCenter())
@@ -100,7 +100,8 @@ final class MedicationReminderSync {
         reconcile()
     }
 
-    /// CloudKit imports come in bursts; one pass per burst.
+    /// Remote changes can come in bursts (a CloudKit import, were sync turned
+    /// back on); one pass per burst.
     private func remoteStoreChanged() {
         pendingChange?.cancel()
         pendingChange = Task { [weak self] in

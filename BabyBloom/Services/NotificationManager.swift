@@ -75,8 +75,8 @@ final class NotificationManager: @unchecked Sendable {
         // the switch turned back on all take effect.
         Task { @MainActor in
             self.rescheduleWeeklySummary()
-            // A dose synced while the app was away moves its reminder; a
-            // permission changed in Settings redraws the switches.
+            // A permission granted in Settings while the app was away lets
+            // the reminders be added again; the refresh redraws the switches.
             MedicationReminderSync.shared.reconcile()
             await NotificationPermission.shared.refresh()
         }

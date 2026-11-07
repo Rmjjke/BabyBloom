@@ -4,7 +4,7 @@ import Foundation
 /// The widget's "Start feeding" button.
 ///
 /// A `LiveActivityIntent`, like `StopTimerIntent`, for the same two reasons:
-/// it runs in the APP's process, where the store is writable and synced and
+/// it runs in the APP's process, where the store is writable and
 /// `TimerActions` exists; and only from there may the Live Activity start
 /// while the app is in the background. A plain widget intent would run in the
 /// extension, which by convention only reads the store and has no

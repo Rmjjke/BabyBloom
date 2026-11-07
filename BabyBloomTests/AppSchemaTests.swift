@@ -18,8 +18,8 @@ final class AppSchemaTests: XCTestCase {
     }
 
     /// CloudKit mirroring refuses a non-optional attribute without a default
-    /// and a non-optional relationship. A violation surfaces only as a
-    /// fatalError at launch on a device signed into iCloud, so it is pinned here.
+    /// and a non-optional relationship. The store is local only today; the
+    /// rules are pinned so that turning sync back on needs no model migration.
     func testEveryAttributeAndRelationshipIsCloudKitValid() {
         for entity in AppSchema.schema.entities {
             for attribute in entity.attributes {
@@ -40,7 +40,7 @@ final class AppSchemaTests: XCTestCase {
     func testTheNewModelsOpenAndRelateInAStore() throws {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         let baby = Baby(name: "Mia", birthDate: Date(), gender: .female, feedingType: .breast)
@@ -68,7 +68,7 @@ final class AppSchemaTests: XCTestCase {
     func testAMedicineOwnsItsDosesAndBelongsToTheBaby() throws {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         let baby = Baby(name: "Mia", birthDate: Date(), gender: .female, feedingType: .breast)
@@ -86,7 +86,7 @@ final class AppSchemaTests: XCTestCase {
     }
 }
 
-/// A persisted enum is CLOSED while older versions sync (DECISIONS 2026-11-01).
+/// A persisted enum is CLOSED (DECISIONS 2026-11-01), so that sync can return.
 ///
 /// Every case below is stored as its raw value. A device on an older build
 /// that receives a record holding a value it does not know crashes on read:

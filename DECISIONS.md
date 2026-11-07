@@ -14,6 +14,36 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-07 — iCloud sync is off: the store is local only, and the way back is kept small
+
+The app opens the store from `SharedStore.configuration` with `cloudKitDatabase: .none`, as the widget always did, and every test container names `.none` too: the initializer's default is `.automatic`, which takes the container from the entitlements. The one exception is the test that writes an old mirrored store, which opens it with `.private` on purpose and only on a simulator signed out of iCloud. Settings has no iCloud Sync row, and the account-status check behind it is gone. Three things stay: the iCloud entitlement with the container `iCloud.com.nenita.app`, the push capability on the App ID, and the models' CloudKit rules (every attribute optional or defaulted, every relationship optional with an inverse, no unique constraint, persisted enums closed).
+
+**Why.** Sync never ran for users. The container's Production schema was never deployed: Development and Production hold only the system Users type. So since 1.0 no record left a device, while from 1.1.0 Settings said "iCloud Sync: On" from the account status alone. Deploying the schema would switch sync on at once for every installed 1.0–1.2 copy, and two things are not ready for that:
+- **Duplicates.** The app is single-baby: it reads the oldest `Baby`, and its entry queries are unfiltered. Two devices on one Apple Account would merge their histories and keep a second baby.
+- **No background delivery.** With no `aps-environment` and no `remote-notification` background mode, another device's changes would arrive only while the app runs.
+
+Turning sync off makes the app say what it does. Sync comes back as its own piece of work.
+
+**Old stores.** A store written by a build up to 1.2.0 holds CloudKit's mirroring tables and persistent history. It opens local only with every row and takes writes (`StoreFromOlderVersionsTests`). Those tables stay in the file, unused.
+
+**Guards kept.** Code that copes with a change made on another device stays, and so do its comments that say so: a row deleted, moved or ended under an open sheet, a row dated by a phone whose clock was wrong, a reminder that names the dose it counts from. Each guard also covers this device (a save that already ran, a clock set wrong when the row was written, a backup restored onto a new phone), and sync's return needs them as they are.
+
+**The way back.**
+1. Set `SharedStore.configuration` to `.automatic` (or `.private("iCloud.com.nenita.app")`). The widget and the test containers stay `.none`.
+2. Fill the Development schema, which holds only Users today: run a Debug build signed into iCloud with a DEBUG-only call to `initializeCloudKitSchema` (Apple's SwiftData recipe), which creates every record type with every field.
+3. Deploy the schema to Production (CloudKit Console → Deploy Schema Changes) before that build ships, with every record type, `Medicine` included. TestFlight and App Store builds use Production only, and a type missing there never syncs, with no error. From then on, every new model or attribute is deployed before the build that carries it ships.
+4. Gate that deploy on the old installs. Builds 1.0 to 1.2 open the store with `.automatic`, so the deploy switches sync on for them too, and they have no merge: an account with one device on such a build would show two babies there. Deploy only once those builds are a negligible share, or make the merge run on every import, so a baby an old build uploads is folded in as well.
+5. Add `aps-environment` to the app's entitlements in `project.yml` (XcodeGen rewrites the entitlements file from it) and `remote-notification` to `UIBackgroundModes` in `BabyBloom/Resources/Info.plist`, so changes arrive in the background.
+6. Handle the merge on first sync: one `Baby` per account, with the other baby's entries moved to it.
+7. Bring the Settings row back from history, showing a real sync state rather than the account status.
+8. Remember that the seed hooks wipe the store: once sync is on, run them only on a simulator signed out of iCloud.
+
+**Rejected.**
+- **Deploying the schema for 1.2.0 or 1.3.0.** It switches sync on for every installed copy before the merge and the push are handled.
+- **Keeping `.automatic` and removing only the row.** The app would keep trying to upload, and sync would switch on by itself the day anyone deployed the schema, with nothing ready for it.
+- **Removing the entitlement.** An unused entitlement changes nothing for users or review, keeping it keeps the return small, and the upgrade test builds its CloudKit-shaped store with it.
+- **Dropping the CloudKit model rules.** The return would then need a model migration.
+
 ## 2026-11-07 — An onboarding page's card texts go under their icons where a word misses beside them, chosen by fit for the whole page
 
 The welcome page's feature cards, the notifications page's bullets and the feeding page's type rows each go by one `ViewThatFits(in: .horizontal)` over the page's whole set: every text beside its icon while every word of every text fits there (the beside texts are `WordWrappingText`, whose ideal width is the widest word's), else every text under its icon at the card's leading edge, the icon (and on a feeding row the check) on a line of its own above. One shape for a page's cards, as the Nutrition card's rows keep one. The feeding rows keep the check's room in every row: the unselected rows draw it at opacity 0 and out of VoiceOver. `BBOptionalMeasureToggle` — the head-circumference and preterm switches on onboarding, Growth and the profile sheet — stands beside its title and hint while their words fit beside it, else under them at the title's x, sm 8 apart, as a Settings switch does. The feeding page's subtitle wraps between words at the reader's size; only where one word is wider than the whole column does it step down to the AX1 size, then xxxLarge's, as a primary button's label does.

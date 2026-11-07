@@ -6,8 +6,9 @@ three targets.
 ## Stack
 
 - Swift 6.0, SwiftUI, iOS 17+, universal (iPhone + iPad)
-- SwiftData + CloudKit for persistence and sync; App Group
-  `group.com.nenita.app` shares the store with the widget
+- SwiftData for persistence, local only (no iCloud sync; DECISIONS.md has
+  the way back); App Group `group.com.nenita.app` shares the store with the
+  widget
 - WidgetKit extension (`BabyBloomWidget`), StoreKit 2 paywall
 - XCTest bundle `BabyBloomTests`
 

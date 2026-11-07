@@ -72,19 +72,14 @@ scenario's data untouched). Under Maestro the value goes in the same
 
     "-BBSeedScenario": "lowGain"
 
-> ### ⚠️ Run seeded flows only on a simulator that is NOT signed into iCloud
+> ### Seeding wipes the store first
 >
-> Seeding **wipes the database first** — every `Baby` and every entry. The
-> simulator gate keeps that out of shipped binaries; it does not make it local.
-> The model container is `cloudKitDatabase: .automatic`, so on a simulator
-> signed into a real Apple Account the wipe deletes those records from **that
-> account's private CloudKit database** — the ones the person's own phone is
-> syncing — and then pushes the fixture baby out in their place. There is no
-> undo.
->
-> Before the first seeded run: Settings ▸ [your name] ▸ Sign Out on the
-> simulator, or pick a simulator that was never signed in. A simulator with no
-> account does not sync at all, which is the normal state for a test run.
+> Seeding deletes every `Baby` and every entry before it writes the fixture.
+> The simulator gate keeps that out of shipped binaries. The store is local
+> only (`cloudKitDatabase: .none`), so the wipe touches this simulator alone.
+> If iCloud sync is ever turned back on, run seeded flows only on a simulator
+> signed out of iCloud: the wipe would then reach that Apple Account's
+> private database, with no undo.
 
 `newbornWindow` is the fixture for the newborn gate: a twelve-day-old, birth
 weight on the profile and a first entry dated at the birth, whose weight
@@ -154,10 +149,10 @@ database:
     xcrun simctl uninstall booted com.nenita.app        # app only
     xcrun simctl erase <udid>                           # everything, needs shutdown first
 
-CloudKit sync is `.automatic`; a simulator without an iCloud account simply
-does not sync, which is the normal state for test runs — and the state
-`-BBSeedScenario` requires, since its wipe would otherwise reach a real
-account's private database (see the warning above).
+The store has no iCloud sync (`cloudKitDatabase: .none`, test containers
+included), so a simulator's iCloud account does not matter to a run (see the
+note above). The one test that writes a CloudKit-mirrored store, to prove an
+old store still opens, skips itself on a simulator signed into iCloud.
 
 ## Looking at the result
 

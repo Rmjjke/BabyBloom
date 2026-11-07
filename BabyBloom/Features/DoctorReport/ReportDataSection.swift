@@ -4,10 +4,10 @@ import SwiftData
 /// ⑦ the data cards (medications only when given) and ⑧ the footnote, for one period.
 ///
 /// A child view so its queries can be filtered by the period: the parent's
-/// body re-runs on every sheet and every store change (a CloudKit import
-/// included), and summarising the whole history since birth on each of those
-/// was the cost the final review flagged. Growth stays unfiltered — the latest
-/// weighing the doctor needs may be older than the period.
+/// body re-runs on every sheet and every store change, and summarising the
+/// whole history since birth on each of those was the cost the final review
+/// flagged. Growth stays unfiltered — the latest weighing the doctor needs may
+/// be older than the period.
 struct ReportDataSection: View {
     let periodStart: Date
     let startsAtVisit: Bool

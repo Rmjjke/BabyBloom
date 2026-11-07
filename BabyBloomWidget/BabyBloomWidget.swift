@@ -5,10 +5,9 @@ import SwiftData
 // MARK: - Shared SwiftData Store (App Group)
 /// Lazily-opened, read-only container over the shared App Group store.
 /// Created once per process to avoid re-opening the same store on repeated
-/// timeline reloads. Widget extensions must NOT enable CloudKit sync, so the
-/// container is opened with `cloudKitDatabase: .none`; the app target owns
-/// sync. The models were made CloudKit-compatible in A1, so `.none` reads the
-/// same store without any schema mismatch.
+/// timeline reloads. It is opened with `cloudKitDatabase: .none`, as the app
+/// opens the store. Keep it so if sync returns: a widget extension must never
+/// drive CloudKit sync, only the app may.
 enum WidgetDataStore {
     static let appGroupIdentifier = "group.com.nenita.app"
 

@@ -26,7 +26,7 @@ final class TimerActionsTests: XCTestCase {
         let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
-            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         context.insert(Baby(name: "Mia", birthDate: Date(), gender: .female, feedingType: .breast))

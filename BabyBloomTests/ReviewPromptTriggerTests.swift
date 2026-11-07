@@ -35,7 +35,7 @@ final class ReviewPromptTriggerTests: XCTestCase {
         let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
-            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         context = ModelContext(container)
         for _ in 0..<ReviewPromptPolicy.minimumEntries {

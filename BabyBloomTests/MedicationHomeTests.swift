@@ -22,7 +22,7 @@ final class MedicationHomeTests: XCTestCase {
         try await super.setUp()
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)])
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         context = ModelContext(container)
     }
 

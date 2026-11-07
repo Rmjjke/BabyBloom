@@ -3,10 +3,11 @@ import SwiftUI
 /// A Settings row's icon and texts: the system Label while every word of the
 /// texts fits beside the icon, else the icon on a line of its own above the
 /// texts, xs 4 apart; chosen by fit at every text size. At the accessibility
-/// sizes the Label sets the icon into the first line of every text, and
-/// «Синхронизация» broke inside itself at AX2 on a 320-pt screen. The probe
-/// holds every word, not each text's first: with no size gate, a later word
-/// that misses its room beside the icon breaks there as well.
+/// sizes the Label sets the icon into the first line of every text, and a long
+/// ru word (a former row's «Синхронизация») broke inside itself at AX2 on a
+/// 320-pt screen. The probe holds every word, not each text's first: with no
+/// size gate, a later word that misses its room beside the icon breaks there
+/// as well.
 struct SettingsRowLabel<Texts: View, Words: View>: View {
     let systemImage: String
     /// One view: the texts' column.

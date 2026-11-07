@@ -19,7 +19,7 @@ final class SeedScenarioDoctorTests: XCTestCase {
     private func seeded(_ scenario: SeedScenario) throws -> ModelContext {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         scenario.seedDoctor(into: context, now: now)

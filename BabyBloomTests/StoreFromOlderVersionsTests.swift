@@ -1,5 +1,7 @@
 import XCTest
 import SwiftData
+import SQLite3
+import CloudKit
 @testable import BabyBloom
 
 // Aliases to the app's enums, declared BEFORE `Schema120`: inside it the names
@@ -309,8 +311,8 @@ private enum Schema110: VersionedSchema {
 
 /// A store written by an older version, 1.2.0 or 1.1.0, opens under the
 /// current schema with every row intact, and a medication event written back
-/// then can be linked to a medicine afterwards. A plain SQLite store, as the
-/// widget opens it: the CloudKit mirroring adds its own tables beside these.
+/// then can be linked to a medicine afterwards. Each is reopened local only,
+/// as the app and the widget open the store now.
 @MainActor
 final class StoreFromOlderVersionsTests: XCTestCase {
 
@@ -328,12 +330,102 @@ final class StoreFromOlderVersionsTests: XCTestCase {
         if let directory { try? FileManager.default.removeItem(at: directory) }
     }
 
+    /// Up to 1.2.0 the app mirrored the store to CloudKit, so a phone's file
+    /// holds the mirroring's own tables and the change history it reads beside
+    /// the rows. Opened local only it keeps every row and takes writes, which
+    /// are there on the next launch.
+    func testAStoreMirroredByCloudKitOpensLocalOnlyWithEveryRowAndTakesWrites() async throws {
+        // The mirrored store would upload its rows to a signed-in account's
+        // private database, so it is written only where there is none.
+        let status = try? await CKContainer(identifier: "iCloud.com.nenita.app").accountStatus()
+        try XCTSkipUnless(status == .noAccount, "signed into iCloud: \(String(describing: status))")
+
+        try writeOldStore(cloudKit: true)
+        let tables = try tableNames()
+        XCTAssertTrue(tables.contains { $0.hasPrefix("ANSCK") }, "not the mirrored shape: \(tables)")
+        XCTAssertTrue(tables.contains("ATRANSACTION"), "no change history: \(tables)")
+
+        try linkTheOldDoseLocalOnly()
+
+        // The next launch.
+        let context = ModelContext(try localContainer())
+        let counts = [
+            try context.fetchCount(FetchDescriptor<Baby>()),
+            try context.fetchCount(FetchDescriptor<FeedingEntry>()),
+            try context.fetchCount(FetchDescriptor<SleepEntry>()),
+            try context.fetchCount(FetchDescriptor<DiaperEntry>()),
+            try context.fetchCount(FetchDescriptor<GrowthEntry>()),
+            try context.fetchCount(FetchDescriptor<CustomEvent>()),
+            try context.fetchCount(FetchDescriptor<DoctorVisit>()),
+            try context.fetchCount(FetchDescriptor<DoctorQuestion>()),
+            try context.fetchCount(FetchDescriptor<Medicine>()),
+        ]
+        XCTAssertEqual(counts, [1, 1, 1, 1, 1, 2, 1, 1, 1])
+        let baby = try XCTUnwrap(context.fetch(FetchDescriptor<Baby>()).first)
+        XCTAssertEqual(baby.name, "Mia")
+        XCTAssertEqual(baby.feedingEntries?.first?.endTime, doseTime.addingTimeInterval(-6000))
+        XCTAssertEqual(baby.diaperEntries?.first?.color, .green)
+        XCTAssertEqual(baby.growthEntries?.first?.weightKg, 5.2)
+        XCTAssertEqual(baby.doctorVisits?.first?.questions?.first?.text, "Tummy sleep?")
+        let dose = try XCTUnwrap(baby.customEvents?.first { $0.type == .medication })
+        XCTAssertEqual(dose.medicationDose, "2.5 ml")
+        XCTAssertEqual(dose.medicine?.name, "Paracetamol")
+        XCTAssertEqual(baby.medicines?.count, 1)
+        XCTAssertEqual(baby.sleepEntries?.count, 1)
+        XCTAssertEqual(baby.customEvents?.count, 2)
+        XCTAssertTrue(baby.doctorQuestions?.first?.visit === baby.doctorVisits?.first)
+    }
+
+    /// Its own function so the container is released before the next launch.
+    private func linkTheOldDoseLocalOnly() throws {
+        let context = ModelContext(try localContainer())
+        let baby = try XCTUnwrap(context.fetch(FetchDescriptor<Baby>()).first)
+        let dose = try XCTUnwrap(context.fetch(FetchDescriptor<CustomEvent>())
+            .first { $0.type == .medication })
+        let medicine = Medicine(name: "Paracetamol", intervalMinutes: 360, doseText: "2.5 ml")
+        medicine.baby = baby
+        context.insert(medicine)
+        dose.medicine = medicine
+        // Core Data opens a store read-only when it once tracked change
+        // history and now does not: this save is where that would fail.
+        try context.save()
+    }
+
+    /// `SharedStore.configuration` at this test's own file.
+    private func localContainer() throws -> ModelContainer {
+        try ModelContainer(
+            for: AppSchema.schema,
+            configurations: ModelConfiguration(schema: AppSchema.schema, url: url, cloudKitDatabase: .none)
+        )
+    }
+
+    private func tableNames() throws -> [String] {
+        var db: OpaquePointer?
+        defer { sqlite3_close(db) }
+        guard sqlite3_open_v2(url.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else {
+            throw CocoaError(.fileReadUnknown)
+        }
+        var statement: OpaquePointer?
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_prepare_v2(db, "SELECT name FROM sqlite_master WHERE type = 'table'", -1,
+                                 &statement, nil) == SQLITE_OK else {
+            throw CocoaError(.fileReadUnknown)
+        }
+        var names: [String] = []
+        while sqlite3_step(statement) == SQLITE_ROW, let name = sqlite3_column_text(statement, 0) {
+            names.append(String(cString: name))
+        }
+        return names
+    }
+
     /// Its own function so the old container is released before the reopen.
-    private func writeOldStore() throws {
+    /// `cloudKit` writes it as 1.2.0 did, mirrored to the app's container.
+    private func writeOldStore(cloudKit: Bool = false) throws {
         let schema = Schema(Schema120.models)
+        let database: ModelConfiguration.CloudKitDatabase = cloudKit ? .private("iCloud.com.nenita.app") : .none
         let container = try ModelContainer(
             for: schema,
-            configurations: ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none)
+            configurations: ModelConfiguration(schema: schema, url: url, cloudKitDatabase: database)
         )
         let context = ModelContext(container)
 
@@ -383,11 +475,7 @@ final class StoreFromOlderVersionsTests: XCTestCase {
     func testAStoreFromBeforeMedicinesOpensWithEveryRowAndTakesAMedicine() throws {
         try writeOldStore()
 
-        let container = try ModelContainer(
-            for: AppSchema.schema,
-            configurations: ModelConfiguration(schema: AppSchema.schema, url: url, cloudKitDatabase: .none)
-        )
-        let context = ModelContext(container)
+        let context = ModelContext(try localContainer())
 
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<Baby>()), 1)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 1)
@@ -456,11 +544,7 @@ final class StoreFromOlderVersionsTests: XCTestCase {
     func testAStoreFrom110OpensWithEveryRowAndTakesAMedicine() throws {
         try writeStore110()
 
-        let container = try ModelContainer(
-            for: AppSchema.schema,
-            configurations: ModelConfiguration(schema: AppSchema.schema, url: url, cloudKitDatabase: .none)
-        )
-        let context = ModelContext(container)
+        let context = ModelContext(try localContainer())
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<Baby>()), 1)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<FeedingEntry>()), 1)
         XCTAssertEqual(try context.fetchCount(FetchDescriptor<CustomEvent>()), 1)

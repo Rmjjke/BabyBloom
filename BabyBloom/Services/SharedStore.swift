@@ -8,13 +8,18 @@ import SwiftData
 /// Two containers on one store in one process would each keep their own
 /// context and could save over each other.
 enum SharedStore {
+    /// Local only: no CloudKit database, so nothing leaves the device. The
+    /// models still follow CloudKit's rules, so turning sync back on needs no
+    /// model migration; the rest it needs is in DECISIONS 2026-11-07.
+    static var configuration: ModelConfiguration {
+        ModelConfiguration(schema: AppSchema.schema,
+                           groupContainer: .identifier("group.com.nenita.app"),
+                           cloudKitDatabase: .none)
+    }
+
     @MainActor static let container: ModelContainer = {
-        let schema = AppSchema.schema
-        let config = ModelConfiguration(schema: schema,
-                                        groupContainer: .identifier("group.com.nenita.app"),
-                                        cloudKitDatabase: .automatic)
         do {
-            return try ModelContainer(for: schema, configurations: [config])
+            return try ModelContainer(for: AppSchema.schema, configurations: [configuration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

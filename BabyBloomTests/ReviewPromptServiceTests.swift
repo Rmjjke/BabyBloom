@@ -38,7 +38,7 @@ final class ReviewPromptServiceTests: XCTestCase {
         let schema = AppSchema.schema
         let container = try ModelContainer(
             for: schema,
-            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         // Spread across all five kinds: the count is over every kind, and a

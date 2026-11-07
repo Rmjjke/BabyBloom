@@ -17,7 +17,7 @@ final class SeedScenarioMedicineTests: XCTestCase {
     private func seeded() throws -> ModelContext {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         SeedScenario.medsTwoCourses.seedMedicines(into: context, now: now)
@@ -80,7 +80,7 @@ final class SeedScenarioMedicineTests: XCTestCase {
             let at = cal.date(bySettingHour: hour, minute: 30, second: 0, of: now)!
             let container = try ModelContainer(
                 for: AppSchema.schema,
-                configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+                configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
             )
             let c = ModelContext(container)
             SeedScenario.medsTwoCourses.seedMedicines(into: c, now: at)

@@ -23,7 +23,7 @@ final class MedicationEventsTests: XCTestCase {
     private func makeContext() throws -> ModelContext {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         return ModelContext(container)
     }

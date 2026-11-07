@@ -16,7 +16,7 @@ final class DoctorVisitActionsTests: XCTestCase {
     private func makeContext() throws -> (ModelContext, Baby) {
         let container = try ModelContainer(
             for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true)]
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)]
         )
         let context = ModelContext(container)
         let baby = Baby(name: "Mia", birthDate: date("2026-09-01T00:00:00Z"), gender: .female, feedingType: .breast)
