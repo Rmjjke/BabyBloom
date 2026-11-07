@@ -161,7 +161,10 @@ struct MoreView: View {
 /// the avatar on a line of its own above them, where the texts take the row's
 /// whole width; the system chevron stays trailing either way. Beside the
 /// 44-pt avatar on a 320-pt screen at AX2 the column split «Алекса|ндра», and
-/// in Bold Text «уведомления,» and «notificaciones,» as well.
+/// in Bold Text «уведомления,» and «notificaciones,» as well. The List draws a
+/// NavigationLink's chevron out of the label's reach (Settings' baby row draws
+/// its own and lifts it to the avatar's line); stacked, the texts still keep
+/// about 220 pt beside it there, more than any of their words take.
 private struct MoreProfileRowLabel: View {
     let baby: Baby?
 

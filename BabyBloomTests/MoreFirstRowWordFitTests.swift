@@ -17,6 +17,9 @@ final class MoreFirstRowWordFitTests: XCTestCase {
 
     private let accessibility = HostedAccessibility()
     private let screen = CGSize(width: 320, height: 568)
+    /// Beside, the texts start past the 44-pt avatar (x 84); under it, at the
+    /// row's leading edge (x 32).
+    private let besideMinX: CGFloat = 60
 
     override func tearDown() {
         accessibility.close()
@@ -46,39 +49,48 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     private func assertRow(at size: UIContentSizeCategory) throws {
         for babyName in ["Александра", "Mia"] {
             for language in [SupportedLanguage.en, .ru, .es] {
+                var regularName: (drawn: CGFloat, measured: CGFloat)?
                 for bold in [false, true] {
                     LocalizationManager.shared.setLanguage(language)
-                    let name = "\(babyName) \(language.rawValue)\(bold ? " bold" : "") \(size.rawValue)"
+                    let label = "\(babyName) \(language.rawValue)\(bold ? " bold" : "") \(size.rawValue)"
                     let subtitle = "profile.settings_subtitle".l
                     let elements = try moreTab(babyName: babyName, bold: bold)
                     let nameText = try XCTUnwrap(elements.first { $0.label == babyName },
-                                                 "\(name): «\(babyName)» is not in \(elements)")
+                                                 "\(label): «\(babyName)» is not in \(elements)")
                     let subtitleText = try XCTUnwrap(elements.first { $0.label == subtitle },
-                                                     "\(name): «\(subtitle)» is not in \(elements)")
+                                                     "\(label): «\(subtitle)» is not in \(elements)")
                     let nameWord = widestWord(babyName, nameFont, bold: bold)
                     let subtitleWord = widestWord(subtitle, subtitleFont, bold: bold)
-                    print("MORE_ROW \(name): name x \(nameText.frame.minX) w \(nameText.frame.width) "
+                    print("MORE_ROW \(label): name x \(nameText.frame.minX) w \(nameText.frame.width) "
                           + "for «\(nameWord.0)» \(nameWord.1); subtitle w \(subtitleText.frame.width) "
                           + "for «\(subtitleWord.0)» \(subtitleWord.1)")
 
+                    if let regularName {
+                        // Bold Text reaches both the hosted tab and the measure;
+                        // a miss would only compare regular widths with regular.
+                        XCTAssertGreaterThan(nameText.frame.width, regularName.drawn,
+                                             "\(label): the name is drawn no wider than without Bold Text")
+                        XCTAssertGreaterThan(nameWord.1, regularName.measured,
+                                             "\(label): the name measures no wider than without Bold Text")
+                    } else {
+                        regularName = (nameText.frame.width, nameWord.1)
+                    }
                     XCTAssertGreaterThanOrEqual(nameText.frame.width + 0.5, nameWord.1,
-                                                "\(name): «\(nameWord.0)» (\(nameWord.1)) is broken at \(nameText.frame.width)")
+                                                "\(label): «\(nameWord.0)» (\(nameWord.1)) is broken at \(nameText.frame.width)")
                     XCTAssertGreaterThanOrEqual(subtitleText.frame.width + 0.5, subtitleWord.1,
-                                                "\(name): «\(subtitleWord.0)» (\(subtitleWord.1)) is broken at \(subtitleText.frame.width)")
+                                                "\(label): «\(subtitleWord.0)» (\(subtitleWord.1)) is broken at \(subtitleText.frame.width)")
                     // VoiceOver reads the row once, the hidden one-word-a-line
                     // copy of the texts never.
                     XCTAssertEqual(elements.filter { $0.label == "\(babyName), \(subtitle)" }.count, 1,
-                                   "\(name): the row does not read as the name and the subtitle once: \(elements)")
+                                   "\(label): the row does not read as the name and the subtitle once: \(elements)")
                     XCTAssertFalse(elements.contains { $0.label.contains("\n") },
-                                   "\(name): the one-word-a-line copy reads: \(elements)")
+                                   "\(label): the one-word-a-line copy reads: \(elements)")
                     XCTAssertEqual(nameText.frame.minX, subtitleText.frame.minX, accuracy: 0.5,
-                                   "\(name): the name and the subtitle do not share their leading edge")
+                                   "\(label): the name and the subtitle do not share their leading edge")
                     if let stacked = expectedStacked(babyName, language: language, bold: bold, size: size) {
-                        // Beside, the texts start past the 44-pt avatar; under
-                        // it, at the row's leading edge.
-                        let beside = nameText.frame.minX > 60
+                        let beside = nameText.frame.minX > besideMinX
                         XCTAssertEqual(beside, !stacked,
-                                       "\(name): the texts are \(beside ? "beside" : "under") the avatar at x \(nameText.frame.minX)")
+                                       "\(label): the texts are \(beside ? "beside" : "under") the avatar at x \(nameText.frame.minX)")
                     }
                 }
             }

@@ -85,7 +85,7 @@ final class HostedAccessibility {
         return out
     }
 
-    private func collect(_ root: NSObject, automation: Bool = false, seen: inout Set<ObjectIdentifier>,
+    private func collect(_ root: NSObject, automation: Bool, seen: inout Set<ObjectIdentifier>,
                          into out: inout [Element]) {
         guard seen.insert(ObjectIdentifier(root)).inserted else { return }
         if root.isAccessibilityElement {
