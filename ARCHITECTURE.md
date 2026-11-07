@@ -532,6 +532,18 @@ plate, whichever is wider. At Large that is four on 375 pt and wider; on
 320 pt ru goes two by two, where «Подгузники» (71.1 pt) misses a quarter (64),
 and en and es, whose widest tile is the plate, stay four.
 
+`BBPrimaryButton` and `BBSecondaryButton` (`DesignSystem/Components/BBButton.swift`)
+keep their label md 16 inside each side and sm 8 above and below, at least
+56 pt tall. The label (`BBButtonLabel`) is centred and wraps between words with
+no line limit, so the button grows to hold it: on a 320-pt screen at Large the
+ru trial offer takes two lines. `ViewThatFits` over the label set one word a
+line picks the first shape that fits: with the glyph, without it, and only for
+a word wider than the whole room (ru «Экспортировать» at AX2 on 320 pt) the
+AX1 size, then xxxLarge's — never cut, broken inside a word or shrunk. While
+it loads, the button shows its spinner alone. `BBButtonLabelFitTests` pins the
+shapes to the words' widths, Regular and Bold Text, where SwiftUI sets the
+semibold label heavy (DECISIONS 2026-11-07).
+
 A title with one trailing value is a `BBValueRow`
 (`DesignSystem/Components/BBValueRow.swift`): Settings' Premium row and its
 badge, the measure sliders' and the bottle volume's figure, `BBProgressCard`'s
@@ -1006,6 +1018,22 @@ button under it, outside the scroll, so the button never leaves the screen;
 the quiz pages scroll above the shared nav. `OnboardingPageLayoutTests` pins
 the ground's size to its proposal, portrait and landscape, and, in a window
 shorter than the content, the button inside the screen (DECISIONS 2026-11-06).
+
+The setup page (`GeneratingPage`) has no button and no scroll of its own: it
+moves on by itself. Its five step rows wrap between words while their column
+fits the page's height and every word fits its row, else the step in progress
+stands alone under the title. `ViewThatFits(in: .vertical)` makes the choice,
+so it follows the language, the width and Bold Text rather than a text size:
+on 320 pt every language takes the one step at AX2, and on 375 pt en keeps its
+rows there. The width check is a small layout around the rows that reports an
+unbounded height when their ideal width (the widest word beside its disc,
+through `WordWrappingText`) is wider than offered; without it a narrow, tall
+window would keep the rows with a word broken.
+All five steps are set in one box, the one in progress shown, so the box is as
+tall as the tallest and the title does not move from step to step; the
+one-step column is in `onboardingCenteredScroll` as the net. The layout tests
+pin both forms and, by sampling the page as it runs, the title's place
+(DECISIONS 2026-11-07).
 
 Two of those pages show the REAL product rather than a picture of it.
 `WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed

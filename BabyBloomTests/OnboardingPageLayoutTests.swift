@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import BabyBloom
 
 /// The onboarding pages are laid out at the screen's width, and the pages with
@@ -56,5 +57,146 @@ final class OnboardingPageLayoutTests: XCTestCase {
             }
             accessibility.close()
         }
+    }
+
+    // MARK: - The setup page
+
+    private let birth = Date().addingTimeInterval(-60 * 86_400)
+
+    /// Russian on a 320-pt screen (a 548-pt page) at Large: the five rows fit,
+    /// each whole on screen.
+    func testTheSetupPageListsItsFiveStepsWhileTheyFit() throws {
+        try requireSize(.large)
+        LocalizationManager.shared.setLanguage(.ru)
+        let screen = CGRect(x: 0, y: 0, width: 320, height: 548)
+        let elements = accessibility.elements(try accessibility.host(setupPage(), size: screen.size))
+        XCTAssertEqual(elements.filter { setupSteps().contains($0.label) }.count, 5, "\(elements)")
+        XCTAssertTrue(elements.contains { $0.label == setupTitle() }, "no title in \(elements)")
+        assertInside(screen, elements)
+    }
+
+    /// A page 240 pt wide leaves each row 106 pt beside its disc, less than
+    /// ru «Персонализируем» at Large (about 133): the rows would fit its
+    /// 1400-pt height with the word broken, so the step in progress stands
+    /// alone instead. en «Personalising» (about 92) fits, so English keeps
+    /// its rows.
+    func testTheSetupPageShowsOneStepWhereAWordMissesItsRow() throws {
+        try requireSize(.large)
+        let screen = CGRect(x: 0, y: 0, width: 240, height: 1400)
+        for (language, rows) in [(SupportedLanguage.ru, 1), (.en, 5)] {
+            LocalizationManager.shared.setLanguage(language)
+            let elements = accessibility.elements(try accessibility.host(setupPage(), size: screen.size))
+            XCTAssertEqual(elements.filter { setupSteps().contains($0.label) }.count, rows, "\(language): \(elements)")
+            XCTAssertTrue(elements.contains { $0.label == setupTitle() }, "\(language): no title in \(elements)")
+            assertInside(screen, elements, language.rawValue)
+            accessibility.close()
+        }
+    }
+
+    /// 320 × 380 leaves the five rows less height than they need, as the
+    /// accessibility sizes do on a full page: the step in progress stands
+    /// alone under the title, and the next one takes its place without moving
+    /// the title. A long name sets the second step on two lines and the others
+    /// on one, so a box that took each step's own height would move it.
+    func testTheSetupPageShowsTheStepInProgressWhereTheRowsMiss() throws {
+        try requireSize(.large)
+        LocalizationManager.shared.setLanguage(.ru)
+        let name = "Анастасия-Виктория"
+        let screen = CGRect(x: 0, y: 0, width: 320, height: 380)
+        let root = try accessibility.host(setupPage(name: name), size: screen.size)
+        let steps = setupSteps(name: name)
+
+        // The steps finish at 0.45, 1.45, 2.1, 3.3 and 3.85 s from the start.
+        var seen: [String] = []
+        var title: CGRect?
+        for _ in 0..<14 {
+            let elements = accessibility.elements(root)
+            let shown = elements.filter { steps.contains($0.label) }
+            XCTAssertEqual(shown.count, 1, "\(elements)")
+            assertInside(screen, elements)
+            if let label = shown.first?.label, seen.last != label { seen.append(label) }
+            let found = try XCTUnwrap(elements.first { $0.label == setupTitle(name: name) }, "no title in \(elements)")
+            if let title {
+                XCTAssertEqual(found.frame.minY, title.minY, accuracy: 0.5, "the title moved at «\(seen.last ?? "")»")
+                XCTAssertEqual(found.frame.height, title.height, accuracy: 0.5, "the title moved at «\(seen.last ?? "")»")
+            }
+            title = title ?? found.frame
+            RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+        }
+        XCTAssertTrue(seen.contains(steps[1]), "the two-line step was not shown: \(seen)")
+        XCTAssertGreaterThanOrEqual(seen.count, 3, "the step did not move on: \(seen)")
+    }
+
+    /// Opt-in: runs with the device at AX2
+    /// (`xcrun simctl ui <device> content_size accessibility-large`). On a
+    /// 320-pt phone the five rows miss the page in each language and with Bold
+    /// Text, so the page shows one step; on 375 the fit decides (English keeps
+    /// its rows, ending at 613 of 647). A 320 × 1100 window (an iPad's Slide
+    /// Over) holds the rows' height, but ru «Персонализируем» (236 pt) is wider
+    /// than its 186-pt row there, so Russian shows one step too, while en
+    /// «Personalising» (about 163) fits and keeps the rows; es «Personalizando»
+    /// is within a point of the row, so the fit decides. Either way every step
+    /// is on screen; the rows used to be squeezed to one cut line each.
+    func testTheSetupPageAtAX2KeepsEveryStepOnScreen() throws {
+        try requireSize(.accessibilityLarge)
+        let phone320 = CGRect(x: 0, y: 0, width: 320, height: 548)
+        let phone375 = CGRect(x: 0, y: 0, width: 375, height: 647)
+        let slideOver = CGRect(x: 0, y: 0, width: 320, height: 1100)
+        let cases: [(language: SupportedLanguage, weight: LegibilityWeight)] = [
+            (.ru, .regular), (.en, .regular), (.es, .regular), (.ru, .bold),
+        ]
+        for screen in [phone320, phone375, slideOver] {
+            for c in cases {
+                LocalizationManager.shared.setLanguage(c.language)
+                let name = "\(c.language.rawValue) \(Int(screen.width))×\(Int(screen.height)) "
+                    + (c.weight == .bold ? "Bold" : "Regular")
+                let elements = accessibility.elements(try accessibility.host(
+                    setupPage().environment(\.legibilityWeight, c.weight), size: screen.size))
+                let shown = elements.filter { setupSteps().contains($0.label) }.count
+                if screen == phone375 || (screen == slideOver && c.language == .es) {
+                    XCTAssertTrue(shown == 1 || shown == 5, "\(name): \(elements)")
+                } else if screen == slideOver && c.language == .en {
+                    XCTAssertEqual(shown, 5, "\(name): \(elements)")
+                } else {
+                    XCTAssertEqual(shown, 1, "\(name): \(elements)")
+                }
+                XCTAssertTrue(elements.contains { $0.label == setupTitle() }, "\(name): no title")
+                assertInside(screen, elements, name)
+                accessibility.close()
+            }
+        }
+    }
+
+    /// The page on the flow's ground at the full size it is given: the
+    /// hosting window may sit under the device's own safe area.
+    private func setupPage(name: String = "Mia") -> some View {
+        ZStack {
+            OnboardingBackground()
+            VStack(spacing: 0) { GeneratingPage(babyName: name, birthDate: birth, onDone: {}) }
+        }
+        .ignoresSafeArea()
+    }
+
+    private func setupSteps(name: String = "Mia") -> [String] {
+        ["onboarding.gen.step1".l,
+         String(format: "onboarding.gen.step_named".l, name, Baby.describeAge(from: birth)),
+         "onboarding.gen.step2".l, "onboarding.gen.step3".l, "onboarding.gen.step4".l]
+    }
+
+    private func setupTitle(name: String = "Mia") -> String {
+        String(format: "onboarding.gen.title_named".l, name)
+    }
+
+    private func assertInside(_ screen: CGRect, _ elements: [HostedAccessibility.Element], _ name: String = "",
+                              file: StaticString = #filePath, line: UInt = #line) {
+        for element in elements {
+            XCTAssertTrue(screen.insetBy(dx: -0.5, dy: -0.5).contains(element.frame),
+                          "\(name) \(element) is past the screen, \(screen.size)", file: file, line: line)
+        }
+    }
+
+    private func requireSize(_ size: UIContentSizeCategory) throws {
+        let current = UIApplication.shared.preferredContentSizeCategory
+        try XCTSkipUnless(current == size, "the case is measured at \(size.rawValue); the device is at \(current.rawValue)")
     }
 }
