@@ -20,8 +20,10 @@ struct BrandMark: View {
     /// the mark itself turns it off.
     var shadowed: Bool = true
 
+    /// Decorative: every placement sets the brand name or a title beside the
+    /// badge, and a named image otherwise reads its file name to VoiceOver.
     private var badge: some View {
-        Image("BBLogo")
+        Image(decorative: "BBLogo")
             .resizable()
             .scaledToFill()
             .frame(width: diameter, height: diameter)
