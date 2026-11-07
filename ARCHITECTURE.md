@@ -594,11 +594,14 @@ inside itself; below them the texts keep a column beside the icon, where any
 word can miss. So a Settings row's icon and texts (`SettingsRowLabel`: the
 iCloud Sync row and the switch rows under their texts) stay the system Label
 while every word of the texts fits beside the icon, else set the icon on its
-own line above the texts, xs 4 apart, chosen by fit at every text size; ru and
-es iCloud Sync do so at AX2 on 320 pt, and ru at AX1 with Bold Text. More's
-rows below the first (`ListTitleRowLabel`) do the same over their title, and a
-word wider than the whole row under the icon is drawn at AX1's size, then
-xxxLarge's, never broken (es «Medicamentos» with Bold Text at AX2 on 320 pt).
+own line above the texts, xs 4 apart, chosen by fit at every text size the
+app allows (it stops at AX2); ru and es iCloud Sync do so at AX2 on 320 pt,
+and ru at AX1 with Bold Text. More's rows below the first (`ListTitleRowLabel`)
+do the same over their title, and a word wider than the whole row under the
+icon is drawn at AX1's size, then xxxLarge's (es «Medicamentos» with Bold Text
+at AX2 on 320 pt), so it breaks only if it misses the row even at xxxLarge.
+The Settings rows have no such step: under the icon every word of today's
+texts fits the row at AX2 on 320 pt.
 Neither can measure the system row it draws: at those sizes a Label's ideal
 width is its icon's column alone, and a switch whose label answered a custom
 ideal stood its List row as tall as that label's ideal. So each draws the

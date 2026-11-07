@@ -46,9 +46,10 @@ struct SettingsRowLabel<Texts: View, Words: View>: View {
 /// a line of its own above the title, xs 4 apart; chosen by fit at every text
 /// size. At AX2 on a 320-pt screen the Label left a title about 158 pt beside
 /// its icon and split «Medica-tions», «Crec-imiento» and «Лекарств/а». A word
-/// wider than the whole row is drawn smaller, at AX1 and then at xxxLarge,
-/// never broken: with Bold Text es «Medicamentos» takes 221.6 pt at AX2 in a
-/// 218-pt row.
+/// wider than the whole row is drawn smaller, at AX1 and then at xxxLarge, so
+/// it stays whole while it fits the row at xxxLarge: with Bold Text es
+/// «Medicamentos» takes 221.6 pt at AX2 in a 218-pt row. The app's text sizes
+/// stop at AX2.
 struct ListTitleRowLabel: View {
     let title: String
     let systemImage: String

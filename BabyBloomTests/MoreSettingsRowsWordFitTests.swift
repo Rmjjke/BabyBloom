@@ -70,6 +70,10 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
     /// row's, and its words by its lines: a one-word title beside the icon is
     /// one line, or the word broke. A title under its icon reads alone.
     private func assertMoreRows(at size: UIContentSizeCategory) throws {
+        // Every row has the same room beside its icon in every language, so
+        // a word drawn whole there shows that room for the rest of the size.
+        var roomShown: CGFloat = 0
+        var unseenBreaks: [(run: String, title: String, word: String, width: CGFloat)] = []
         for language in [SupportedLanguage.en, .ru, .es] {
             var regularEvents: CGFloat?
             for bold in [false, true] {
@@ -94,13 +98,24 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
                     print("MORE_ROWS \(run) «\(title)»: x \(text.frame.minX) w \(text.frame.width) "
                           + "h \(text.frame.height) drop \(drop) for «\(word.0)» \(word.1)")
                     if isBeside {
-                        // A word broken beside the icon takes a line of its
-                        // own: no more lines than words, and a one-word title
-                        // on one.
-                        let words = title.split(separator: " ").count
-                        XCTAssertLessThan(text.frame.height, (CGFloat(words) + 0.5) * line,
-                                          "\(run): «\(title)» beside its icon takes \(text.frame.height) for \(words) "
-                                          + "word(s) of \(line) a line")
+                        // Beside, the title has at least its widest word's
+                        // room, so it takes no more lines than it does at
+                        // exactly that room. A broken word takes a line more,
+                        // which a count of words can miss: «Para el / pedia /
+                        // tra» is three lines for three words.
+                        let whole = height(title, .body, bold: bold, width: word.1 + 0.5)
+                        let lines = (whole / line).rounded()
+                        XCTAssertLessThan(text.frame.height, (lines + 0.5) * line,
+                                          "\(run): «\(title)» beside its icon takes \(text.frame.height) for \(lines) "
+                                          + "line(s) of \(line) with every word whole")
+                        // Where the broken word's tail joins the next word's
+                        // line («Недавни / е записи»), the lines cannot tell:
+                        // that word is held to the room another shows.
+                        if height(title, .body, bold: bold, width: word.1 - 1) > whole {
+                            roomShown = max(roomShown, word.1)
+                        } else {
+                            unseenBreaks.append((run, title, word.0, word.1))
+                        }
                         beside.append((title, word.1))
                     } else if size == .accessibilityLarge, word.1 > underRoomAtAX2 {
                         // Wider than the whole row at the reader's size: set at
@@ -146,6 +161,12 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
                 XCTAssertFalse(spoken.contains { $0.label.contains("\n") },
                                "\(run): a one-word-a-line copy reads: \(spoken)")
             }
+        }
+        for unseen in unseenBreaks {
+            XCTAssertLessThanOrEqual(unseen.width, roomShown + 0.5,
+                                     "\(unseen.run): a broken «\(unseen.word)» (\(unseen.width)) would not add a line "
+                                     + "to «\(unseen.title)», and no word as wide is drawn whole beside an icon "
+                                     + "at this size (widest \(roomShown))")
         }
     }
 
@@ -290,6 +311,18 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
 
     private func lineHeight(_ font: Font, bold: Bool) -> CGFloat {
         measure(Text("M"), font, bold: bold, at: nil).height
+    }
+
+    /// The text wrapped at `width`; narrower than a word, it breaks the word.
+    private func height(_ text: String, _ font: Font, bold: Bool, width: CGFloat) -> CGFloat {
+        let device = DynamicTypeSize(UIApplication.shared.preferredContentSizeCategory) ?? .large
+        let view = Text(text).font(font)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(width: width)
+            .environment(\.legibilityWeight, bold ? .bold : .regular)
+            .environment(\.dynamicTypeSize, device)
+        return UIHostingController(rootView: view)
+            .sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude)).height
     }
 
     private func measure(_ text: Text, _ font: Font, bold: Bool, at size: DynamicTypeSize?) -> CGSize {
