@@ -95,20 +95,8 @@ struct MoreView: View {
                 // settings. The subtitle spells out what moved in here so the
                 // settings do not become undiscoverable.
                 NavigationLink(destination: ProfileView()) {
-                    HStack(spacing: BBTheme.Spacing.sm) {
-                        BabyAvatarView(photoData: baby?.photoData,
-                                       gender: baby?.gender,
-                                       size: 44)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(baby?.name ?? "nav.profile".l)
-                                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textPrimary)
-                            Text("profile.settings_subtitle".l)
-                                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded))
-                                .foregroundStyle(BBTheme.Colors.textSecondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                    MoreProfileRowLabel(baby: baby)
+                        .padding(.vertical, 4)
                 }
                 NavigationLink(destination: GrowthView()) {
                     Label {
@@ -164,6 +152,56 @@ struct MoreView: View {
             }
             .navigationTitle("tab.more".l)
             .navigationBarTitleDisplayMode(.large)
+        }
+    }
+}
+
+/// More's first row: the baby's avatar beside the name and the settings
+/// subtitle while their widest word fits the column the avatar leaves, else
+/// the avatar on a line of its own above them, where the texts take the row's
+/// whole width; the system chevron stays trailing either way. Beside the
+/// 44-pt avatar on a 320-pt screen at AX2 the column split «Алекса|ндра», and
+/// in Bold Text «уведомления,» and «notificaciones,» as well. The List draws a
+/// NavigationLink's chevron out of the label's reach (Settings' baby row draws
+/// its own and lifts it to the avatar's line); stacked, the texts still keep
+/// about 220 pt beside it there, more than any of their words take.
+private struct MoreProfileRowLabel: View {
+    let baby: Baby?
+
+    var body: some View {
+        let name = baby?.name ?? "nav.profile".l
+        let subtitle = "profile.settings_subtitle".l
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: BBTheme.Spacing.sm) {
+                avatar
+                WidestWordIdeal {
+                    // The same texts one word a line: their ideal width is the
+                    // narrowest the drawn texts keep every word whole at.
+                    texts(name: name.oneWordALine, subtitle: subtitle.oneWordALine)
+                        .hidden()
+                        .accessibilityHidden(true)
+                    texts(name: name, subtitle: subtitle)
+                }
+            }
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                avatar
+                texts(name: name, subtitle: subtitle)
+            }
+        }
+    }
+
+    private var avatar: some View {
+        BabyAvatarView(photoData: baby?.photoData, gender: baby?.gender, size: 44)
+    }
+
+    private func texts(name: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(name)
+                .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+            Text(subtitle)
+                .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
         }
     }
 }

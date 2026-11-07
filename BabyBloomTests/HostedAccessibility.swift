@@ -30,12 +30,17 @@ final class HostedAccessibility {
         windows = []
     }
 
-    /// The view at `size` in a window of its own, settled.
-    func host<V: View>(_ view: V, size: CGSize) throws -> UIView {
+    /// The view at `size` in a window of its own, settled. `bold` turns Bold
+    /// Text on for the window: an environment `legibilityWeight` does not reach
+    /// the views a NavigationStack hosts, the window's trait does.
+    func host<V: View>(_ view: V, size: CGSize, bold: Bool = false) throws -> UIView {
         try Self.enableAccessibility()
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(origin: .zero, size: size)
+        if bold {
+            window.traitOverrides.legibilityWeight = .bold
+        }
         let controller = UIHostingController(rootView: view)
         window.rootViewController = controller
         window.isHidden = false
@@ -57,10 +62,13 @@ final class HostedAccessibility {
 
     // MARK: Reading
 
-    func elements(_ root: UIView) -> [Element] {
+    /// `automation` also reads the elements a combined element keeps for UI
+    /// tests, as Maestro and XCUITest see them: a List row reads as one
+    /// element to VoiceOver, its texts each with a frame of their own here.
+    func elements(_ root: UIView, automation: Bool = false) -> [Element] {
         var seen = Set<ObjectIdentifier>()
         var out: [Element] = []
-        collect(root, seen: &seen, into: &out)
+        collect(root, automation: automation, seen: &seen, into: &out)
         return out
     }
 
@@ -77,18 +85,24 @@ final class HostedAccessibility {
         return out
     }
 
-    private func collect(_ root: NSObject, seen: inout Set<ObjectIdentifier>, into out: inout [Element]) {
+    private func collect(_ root: NSObject, automation: Bool, seen: inout Set<ObjectIdentifier>,
+                         into out: inout [Element]) {
         guard seen.insert(ObjectIdentifier(root)).inserted else { return }
         if root.isAccessibilityElement {
             out.append(Element(label: root.accessibilityLabel ?? "",
                                value: root.accessibilityValue ?? "",
                                frame: root.accessibilityFrame))
         }
-        for child in children(of: root) { collect(child, seen: &seen, into: &out) }
+        for child in children(of: root, automation: automation) {
+            collect(child, automation: automation, seen: &seen, into: &out)
+        }
     }
 
-    private func children(of root: NSObject) -> [NSObject] {
+    private func children(of root: NSObject, automation: Bool = false) -> [NSObject] {
         var out: [NSObject] = []
+        if automation, let elements = root.automationElements {
+            out += elements.compactMap { $0 as? NSObject }
+        }
         if let elements = root.accessibilityElements {
             out += elements.compactMap { $0 as? NSObject }
         } else {
