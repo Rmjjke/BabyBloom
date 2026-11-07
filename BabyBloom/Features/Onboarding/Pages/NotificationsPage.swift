@@ -32,6 +32,40 @@ struct NotificationsPage: View {
         return trimmed.isEmpty ? "baby.default_name".l : trimmed
     }
 
+    /// Beside, each text's ideal width is its widest word's, so the stack's
+    /// is its widest word's beside the icon: the width the ViewThatFits compares.
+    private func bulletRows(stacked: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            ForEach(bullets, id: \.key) { bullet in
+                let icon = Image(systemName: bullet.icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(BBTheme.Colors.primary)
+                    .frame(width: 32, height: 32)
+                    .background(BBTheme.Colors.primary.opacity(0.1), in: Circle())
+                if stacked {
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        icon
+                        bulletText(Text(bullet.key.l))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
+                        icon
+                        bulletText(WordWrappingText(text: bullet.key.l))
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
+    }
+
+    private func bulletText(_ text: some View) -> some View {
+        text
+            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // The pitch scrolls, the buttons do not. At the app's declared AX2
@@ -52,21 +86,13 @@ struct NotificationsPage: View {
                         .padding(.horizontal, BBTheme.Spacing.lg)
                         .opacity(appear ? 1 : 0)
 
-                    VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-                        ForEach(bullets, id: \.key) { bullet in
-                            HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
-                                Image(systemName: bullet.icon)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(BBTheme.Colors.primary)
-                                    .frame(width: 32, height: 32)
-                                    .background(BBTheme.Colors.primary.opacity(0.1), in: Circle())
-                                Text(bullet.key.l)
-                                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                                    .foregroundStyle(BBTheme.Colors.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Spacer(minLength: 0)
-                            }
-                        }
+                    // One shape for the three: beside the icon while every
+                    // word fits there, else each text under its icon, so a
+                    // long Russian word («бодрствования») on a 320-pt screen
+                    // at the accessibility sizes is never broken.
+                    ViewThatFits(in: .horizontal) {
+                        bulletRows(stacked: false)
+                        bulletRows(stacked: true)
                     }
                     .padding(BBTheme.Spacing.lg)
                     .background(BBTheme.Colors.surface)
