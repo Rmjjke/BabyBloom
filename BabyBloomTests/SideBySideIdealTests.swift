@@ -184,8 +184,9 @@ final class SideBySideIdealTests: XCTestCase {
     }
 
     /// Below xxxLarge every row the card can show keeps its words whole beside
-    /// on 320, and at xxxLarge the free card's rows still do: the fit stacks
-    /// the card only where a row needs it.
+    /// on 320, but for en at xxLarge with Bold Text (the next test), and at
+    /// xxxLarge the free card's rows still do: the fit stacks the card only
+    /// where a row needs it.
     func testHomesGrowthCardStaysBesideWhereEveryWordFits() throws {
         try requireLarge()
         var report: [String] = []
@@ -198,7 +199,7 @@ final class SideBySideIdealTests: XCTestCase {
                         (.extraExtraLarge, homeGrowthTexts(premium: true)),
                         (.extraExtraExtraLarge, homeGrowthTexts(premium: false)),
                     ]
-                    for (size, rows) in cases {
+                    for (size, rows) in cases where !(lang == "en" && bold && size == .extraExtraLarge) {
                         for texts in rows where homeIdeal(texts, Style(size: size, bold: bold)) > 256 {
                             report.append("\(lang) \(size.rawValue) bold=\(bold) «\(texts.0)» | «\(texts.1)»: "
                                           + "ideal \(homeIdeal(texts, Style(size: size, bold: bold)))")
@@ -208,6 +209,19 @@ final class SideBySideIdealTests: XCTestCase {
             }
         }
         XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
+    }
+
+    /// With Premium, en «+180 g/week ·» is one run: the grams are glued to
+    /// their unit and the dot to the grams, so a wrapped line never opens with
+    /// «·». Beside «Weight gain» at xxLarge with Bold Text that run misses the
+    /// 256-pt card, so the card stacks there.
+    func testHomesGrowthCardStacksAtXXLargeBoldWhereTheGainRunMisses() throws {
+        try requireLarge()
+        try inLanguage("en") {
+            let gain = gainRow(.below, grams: "+180")
+            XCTAssertGreaterThan(homeIdeal(gain, Style(size: .extraExtraLarge, bold: true)), 256,
+                                 "«\(gain.0)» | «\(gain.1)»")
+        }
     }
 
     /// Every row Home's growth card shows: the free card's, and with Premium
@@ -231,7 +245,7 @@ final class SideBySideIdealTests: XCTestCase {
     /// The gain row as Home words it: Premium leads with the week's grams.
     private func gainRow(_ word: StatusWord, grams: String?) -> (String, String, Color?) {
         let status = word.localizationKey.l
-        let value = grams.map { String(format: "velocity.per_week_fmt".l, $0) + " · " + status } ?? status
+        let value = grams.map { String(format: "velocity.per_week_fmt".l, $0) + ReportFormat.listSeparator + status } ?? status
         return ("nutrition.row_gain".l, value, word.dot)
     }
 

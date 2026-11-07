@@ -194,7 +194,8 @@ struct NutritionSection: View {
         // `notEnoughData` carries no figure by construction, so the guard below
         // covers it; spelling it out again would be a second rule to keep.
         guard let value else { return status }
-        return String(format: "nutrition.per_day_fmt".l, value.appRate).gluingNumbersToUnits + " · " + status
+        return String(format: "nutrition.per_day_fmt".l, value.appRate).gluingNumbersToUnits
+            + ReportFormat.listSeparator + status
     }
 }
 

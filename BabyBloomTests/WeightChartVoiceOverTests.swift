@@ -94,7 +94,7 @@ final class WeightChartVoiceOverTests: XCTestCase {
     private func caption(_ weighing: WeightMeasurement) -> String {
         let ageDays = Calendar.current.dateComponents([.day], from: birth, to: weighing.date).day ?? 0
         let age = ageDays <= 0 ? "chart.at_birth".l : Baby.describeAge(from: birth, to: weighing.date)
-        return "\(weighing.date.appDayMonth) · \(age)"
+        return weighing.date.appDayMonth + ReportFormat.listSeparator + age
     }
 
     private func weight(_ weighing: WeightMeasurement) -> String {

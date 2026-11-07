@@ -126,8 +126,9 @@ interval in `Medicine.intervalMinutesRange` (15 min … 48 h) from a chip or
 the Other wheels (at 48 h the minutes wheel offers only 0); the maximum field
 keeps two digits and may be empty, but 0 or over 24 keeps Save off and shows
 the range hint under the field. Lines the code joins with a middle dot use
-`MedicationFormat.separator`, which puts a no-break space before the dot, so
-a wrapped line never opens with it; a dot inside a copy key is the key's.
+`MedicationFormat.separator` (elsewhere in the app `ReportFormat.listSeparator`,
+the same string), which puts a no-break space before the dot, so a wrapped
+line never opens with it; a dot inside a copy key is the key's.
 The name and dose fields wrap (`axis: .vertical`) but stay one paragraph
 (`View.oneParagraph`): Return ends editing and a pasted line break becomes
 a space, since the copies travel into every row, the alert and the export.
