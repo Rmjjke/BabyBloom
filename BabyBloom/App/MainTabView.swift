@@ -99,53 +99,33 @@ struct MoreView: View {
                         .padding(.vertical, 4)
                 }
                 NavigationLink(destination: GrowthView()) {
-                    Label {
-                        Text("nav.growth".l)
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                    } icon: {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .foregroundStyle(BBTheme.Colors.growth)
-                    }
+                    ListTitleRowLabel(title: "nav.growth".l,
+                                      systemImage: "chart.line.uptrend.xyaxis",
+                                      iconColor: BBTheme.Colors.growth)
                 }
                 // Right after Growth: the report reads growth first.
                 NavigationLink(destination: DoctorReportView()) {
-                    Label {
-                        Text("report.title".l)
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                    } icon: {
-                        Image(systemName: "stethoscope")
-                            .foregroundStyle(BBTheme.Colors.primary)
-                    }
+                    ListTitleRowLabel(title: "report.title".l,
+                                      systemImage: "stethoscope",
+                                      iconColor: BBTheme.Colors.primary)
                 }
                 .accessibilityHint("report.a11y_hint".l)
                 .accessibilityIdentifier("more.doctor_report")
                 NavigationLink(destination: RecentActivityView()) {
-                    Label {
-                        Text("nav.recent_activity".l)
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                    } icon: {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .foregroundStyle(BBTheme.Colors.primary)
-                    }
+                    ListTitleRowLabel(title: "nav.recent_activity".l,
+                                      systemImage: "clock.arrow.circlepath",
+                                      iconColor: BBTheme.Colors.primary)
                 }
                 NavigationLink(destination: EventsView()) {
-                    Label {
-                        Text("nav.events".l)
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                    } icon: {
-                        Image(systemName: "star.fill")
-                            .foregroundStyle(BBTheme.Colors.events)
-                    }
+                    ListTitleRowLabel(title: "nav.events".l,
+                                      systemImage: "star.fill",
+                                      iconColor: BBTheme.Colors.events)
                 }
                 .accessibilityIdentifier("more.events")
                 NavigationLink(destination: MedicationsListView()) {
-                    Label {
-                        Text("medication.title".l)
-                            .foregroundStyle(BBTheme.Colors.textPrimary)
-                    } icon: {
-                        Image(systemName: "pills.fill")
-                            .foregroundStyle(BBTheme.Colors.primary)
-                    }
+                    ListTitleRowLabel(title: "medication.title".l,
+                                      systemImage: "pills.fill",
+                                      iconColor: BBTheme.Colors.primary)
                 }
                 .accessibilityHint("medication.a11y_hint".l)
                 .accessibilityIdentifier("more.medications")

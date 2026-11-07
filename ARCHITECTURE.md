@@ -590,22 +590,28 @@ switch carries them as its label, so it still reads as one switch with both.
 At the accessibility sizes the system Label in a List starts the first line
 of every text it holds past its icon's column (53 pt at AX1 and 59.7 at AX2,
 of a 256-pt row on 320 pt), so a first word wider than that line's room breaks
-inside itself. A row whose first words miss it (`SettingsRowLabel`: the iCloud
-Sync row and the switch rows under their texts) sets the icon on its own line
-above the texts, xs 4 apart; ru and es iCloud Sync do so at AX2 on 320 pt, and
-ru at AX1 with Bold Text. Neither can measure the system row it draws: at those
-sizes a Label's ideal width is its icon's column alone, and a switch whose
-label answered a custom ideal stood its List row as tall as that label's
-ideal. So each draws the plain system row and answers `ViewThatFits` from
-hidden copies (`ProbedIdealWidth`): the same switch row one word a line, or
-the icon's column plus each text's first word in the body font the Label sets
-on its title. Settings' baby row (`SettingsBabyRowLabel`) goes the same way at
-the accessibility sizes: the avatar beside the name and the age while a hidden
-copy of the row one word a line fits, else the avatar and the chevron on a
-line above them, sm 8 apart. The age's no-break space keeps «11 месяцев» one
-word in that copy, but a glued phrase wider than its line is broken at the
-no-break space, so it is the row's room, not the glue, that keeps it whole
-beside the 56-pt avatar.
+inside itself; below them the texts keep a column beside the icon, where any
+word can miss. So a Settings row's icon and texts (`SettingsRowLabel`: the
+iCloud Sync row and the switch rows under their texts) stay the system Label
+while every word of the texts fits beside the icon, else set the icon on its
+own line above the texts, xs 4 apart, chosen by fit at every text size; ru and
+es iCloud Sync do so at AX2 on 320 pt, and ru at AX1 with Bold Text. More's
+rows below the first (`ListTitleRowLabel`) do the same over their title, and a
+word wider than the whole row under the icon is drawn at AX1's size, then
+xxxLarge's, never broken (es «Medicamentos» with Bold Text at AX2 on 320 pt).
+Neither can measure the system row it draws: at those sizes a Label's ideal
+width is its icon's column alone, and a switch whose label answered a custom
+ideal stood its List row as tall as that label's ideal. So each draws the
+plain system row and answers `ViewThatFits` from hidden copies
+(`ProbedIdealWidth`): the same switch row one word a line, or the icon's
+column plus the texts one word a line in the body font the Label sets on its
+title. Settings' baby row (`SettingsBabyRowLabel`) goes the same way at every
+text size: the avatar beside the name and the age while a hidden copy of the
+row one word a line fits, else the avatar and the chevron on a line above
+them, sm 8 apart; on 320 pt «Александра» goes under from xxxLarge. The age's
+no-break space keeps «11 месяцев» one word in that copy, but a glued phrase
+wider than its line is broken at the no-break space, so it is the row's room,
+not the glue, that keeps it whole beside the 56-pt avatar.
 
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while

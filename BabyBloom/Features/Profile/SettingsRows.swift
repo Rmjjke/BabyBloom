@@ -1,103 +1,154 @@
 import SwiftUI
 
-/// A Settings row's icon and texts: the system Label, except at the
-/// accessibility sizes when a text's first word misses its room beside the
-/// icon. There the Label sets the icon into the first line of every text, and
-/// «Синхронизация» broke inside itself at AX2 on a 320-pt screen; such a row
-/// sets the icon on a line of its own above the texts, xs 4 apart.
-struct SettingsRowLabel<Texts: View, FirstWords: View>: View {
+/// A Settings row's icon and texts: the system Label while every word of the
+/// texts fits beside the icon, else the icon on a line of its own above the
+/// texts, xs 4 apart; chosen by fit at every text size. At the accessibility
+/// sizes the Label sets the icon into the first line of every text, and
+/// «Синхронизация» broke inside itself at AX2 on a 320-pt screen. The probe
+/// holds every word, not each text's first: with no size gate, a later word
+/// that misses its room beside the icon breaks there as well.
+struct SettingsRowLabel<Texts: View, Words: View>: View {
     let systemImage: String
     /// One view: the texts' column.
     @ViewBuilder let texts: () -> Texts
-    /// Each text's first word in the font it is drawn in: what must fit
-    /// beside the icon.
-    @ViewBuilder let firstWords: () -> FirstWords
+    /// Each text one word a line, in the font it is drawn in: its ideal width
+    /// is the widest word, what must fit beside the icon.
+    @ViewBuilder let words: () -> Words
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            ProbedIdealWidth {
+                Label {
+                    texts()
+                } icon: {
+                    RowIcon(systemImage: systemImage)
+                }
+                IconColumn(systemImage: systemImage)
+                // The body font set here, as the List's Label sets it on
+                // its title: a word left on the default font beside the
+                // Label measured without Bold Text and passed for fitting.
+                VStack(alignment: .leading, spacing: 0) { words() }
+                    .font(.body)
+                    .hidden()
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                RowIcon(systemImage: systemImage)
+                texts()
+            }
+            .font(.body)
+        }
+    }
+}
+
+/// A list row's icon and title, as More's rows below the first: the system
+/// Label while the title's widest word fits beside the icon, else the icon on
+/// a line of its own above the title, xs 4 apart; chosen by fit at every text
+/// size. At AX2 on a 320-pt screen the Label left a title about 158 pt beside
+/// its icon and split «Medica-tions», «Crec-imiento» and «Лекарств/а». A word
+/// wider than the whole row is drawn smaller, at AX1 and then at xxxLarge,
+/// never broken: with Bold Text es «Medicamentos» takes 221.6 pt at AX2 in a
+/// 218-pt row.
+struct ListTitleRowLabel: View {
+    let title: String
+    let systemImage: String
+    var iconColor: Color = BBTheme.Colors.textPrimary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            ViewThatFits(in: .horizontal) {
-                ProbedIdealWidth {
-                    label
-                    // The icon's column: the same Label with nothing beside it.
-                    Label {
-                        Color.clear.frame(width: 0, height: 0)
-                    } icon: {
-                        icon
-                    }
+        ViewThatFits(in: .horizontal) {
+            ProbedIdealWidth {
+                Label {
+                    Text(title)
+                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                } icon: {
+                    RowIcon(systemImage: systemImage, color: iconColor)
+                }
+                IconColumn(systemImage: systemImage)
+                Text(title.oneWordALine)
+                    .font(.body)
                     .hidden()
                     .accessibilityHidden(true)
-                    // The body font set here, as the List's Label sets it on
-                    // its title: a word left on the default font beside the
-                    // Label measured without Bold Text and passed for fitting.
-                    VStack(alignment: .leading, spacing: 0) { firstWords() }
-                        .font(.body)
-                        .hidden()
-                        .accessibilityHidden(true)
-                }
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
-                    icon
-                    texts()
-                }
-                .font(.body)
             }
-        } else {
-            label
+            under(at: dynamicTypeSize)
+            under(at: min(dynamicTypeSize, .accessibility1))
+            under(at: min(dynamicTypeSize, .xxxLarge))
         }
     }
 
-    private var label: some View {
-        Label {
-            texts()
-        } icon: {
-            icon
+    /// Under the icon the title has the row's whole width; its ideal width is
+    /// its widest word at `size`, so the row keeps a size only while that word
+    /// fits.
+    private func under(at size: DynamicTypeSize) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+            RowIcon(systemImage: systemImage, color: iconColor)
+            WordWrappingText(text: title)
+                .foregroundStyle(BBTheme.Colors.textPrimary)
+                .dynamicTypeSize(size)
         }
+        .font(.body)
     }
+}
 
-    private var icon: some View {
+private struct RowIcon: View {
+    let systemImage: String
+    var color: Color = BBTheme.Colors.textPrimary
+
+    var body: some View {
         Image(systemName: systemImage)
-            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .foregroundStyle(color)
             .accessibilityHidden(true)
     }
 }
 
+/// The icon's column: the List's Label with nothing beside it.
+private struct IconColumn: View {
+    let systemImage: String
+
+    var body: some View {
+        Label {
+            Color.clear.frame(width: 0, height: 0)
+        } icon: {
+            Image(systemName: systemImage)
+        }
+        .hidden()
+        .accessibilityHidden(true)
+    }
+}
+
 /// The baby's row at the top of Settings: the avatar beside the name and the
-/// age while every word keeps whole there, else, at the accessibility sizes,
-/// the avatar on a line of its own above them. Beside the 56-pt avatar on a
-/// 320-pt screen at AX2 the column split «Алекса|ндра», and with Bold Text the
-/// glued «11 месяцев» missed it too: a glued phrase wider than its line is
-/// broken at its no-break space, so «месяцев» started a line alone.
+/// age while every word keeps whole there, else the avatar on a line of its
+/// own above them; chosen by fit at every text size. Beside the 56-pt avatar
+/// on a 320-pt screen the column split «Алекса|ндра» at AX2 and «Александ|ра»
+/// at xxxLarge, and with Bold Text the glued «11 месяцев» missed it too: a
+/// glued phrase wider than its line is broken at its no-break space, so
+/// «месяцев» started a line alone.
 struct SettingsBabyRowLabel: View {
     let baby: Baby
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let age = baby.ageDescription
-        if dynamicTypeSize.isAccessibilitySize {
-            ViewThatFits(in: .horizontal) {
-                ProbedIdealWidth {
-                    beside(name: baby.name, age: age)
-                    // The same row one word a line: its ideal width is the
-                    // narrowest the drawn row keeps every word whole at. The
-                    // age's no-break space keeps it one word here.
-                    beside(name: baby.name.oneWordALine, age: age.oneWordALine)
-                        .hidden()
-                        .accessibilityHidden(true)
-                }
-                // The chevron rides the avatar's line, so the texts get the
-                // row's whole width: beside them it still split a bold
-                // «Александра» at AX2.
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                    HStack {
-                        avatar
-                        Spacer(minLength: 0)
-                        chevron
-                    }
-                    texts(name: baby.name, age: age)
-                }
+        ViewThatFits(in: .horizontal) {
+            ProbedIdealWidth {
+                beside(name: baby.name, age: age)
+                // The same row one word a line: its ideal width is the
+                // narrowest the drawn row keeps every word whole at. The
+                // age's no-break space keeps it one word here.
+                beside(name: baby.name.oneWordALine, age: age.oneWordALine)
+                    .hidden()
+                    .accessibilityHidden(true)
             }
-        } else {
-            beside(name: baby.name, age: age)
+            // The chevron rides the avatar's line, so the texts get the
+            // row's whole width: beside them it still split a bold
+            // «Александра» at AX2.
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                HStack {
+                    avatar
+                    Spacer(minLength: 0)
+                    chevron
+                }
+                texts(name: baby.name, age: age)
+            }
         }
     }
 
@@ -218,9 +269,9 @@ struct SettingsSwitchRow: View {
                 .labelsHidden()
                 .fixedSize()
             }
-        } firstWords: {
-            Text(title.firstWord)
-            Text(hint.firstWord)
+        } words: {
+            Text(title.oneWordALine)
+            Text(hint.oneWordALine)
                 .font(.footnote)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -32,13 +32,13 @@ struct ICloudStatusRow: View {
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                 }
             }
-        } firstWords: {
-            Text("settings.icloud".l.firstWord)
+        } words: {
+            Text("settings.icloud".l.oneWordALine)
             if let isOn {
-                Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l.firstWord)
+                Text((isOn ? "settings.icloud_on" : "settings.icloud_off").l.oneWordALine)
             }
             if isOn == false {
-                Text("settings.icloud_off_hint".l.firstWord)
+                Text("settings.icloud_off_hint".l.oneWordALine)
                     .font(.footnote)
             }
         }
