@@ -45,10 +45,35 @@ final class BBButtonLabelFitTests: XCTestCase {
         for c in cases {
             let name = "«\(c.title)» \(c.icon ?? "no glyph") at \(c.size.rawValue)"
             let label = BBButtonLabel(title: c.title, icon: c.icon, category: c.size)
-            XCTAssertEqual(idealWidth(label), c.regular, accuracy: 1, name)
+            XCTAssertEqual(idealWidth(label.environment(\.legibilityWeight, .regular)), c.regular, accuracy: 1, name)
             XCTAssertEqual(idealWidth(label.environment(\.legibilityWeight, .bold)), c.bold, accuracy: 1,
                            "\(name), Bold Text")
         }
+    }
+
+    /// Given the room, the label is one line: the glyph, sm 8 and the words, as
+    /// measured for the design. The ru trial line is wider than a 320-pt
+    /// screen's 240, so it sets two lines there. No xxxLarge line: the design's
+    /// widths take 22.4 pt there (body's line height, 29 over 22) where
+    /// UIFontMetrics sets 22.26, so its long lines run 1.4 to 1.9 pt wide.
+    func testOneLineIsTheGlyphAndTheWords() {
+        let cases: [(title: String, icon: String, size: UIContentSizeCategory, width: CGFloat)] = [
+            (trial, "arrow.right", .large, 270.7),
+            (notify, "bell.fill", .large, 223.8),
+            (notify, "bell.fill", .accessibilityMedium, 337.1),
+            (activar, "bell.fill", .large, 198.2),
+            (activar, "bell.fill", .accessibilityLarge, 346.4),
+            (tracker, "arrow.right", .large, 195.3),
+        ]
+        for c in cases {
+            let label = BBButtonLabel(title: c.title, icon: c.icon, category: c.size)
+                .environment(\.legibilityWeight, .regular)
+            XCTAssertEqual(UIHostingController(rootView: label).sizeThatFits(in: CGSize(width: 4000, height: 4000)).width,
+                           c.width, accuracy: 1, "«\(c.title)» at \(c.size.rawValue)")
+        }
+        let oneLine = fitted(trial, "arrow.right", .large, bold: false, in: 300).height
+        XCTAssertGreaterThan(fitted(trial, "arrow.right", .large, bold: false, in: small).height, oneLine + 10,
+                             "the trial line is not on two lines in 240")
     }
 
     /// The glyph stays while it and the widest word fit one line, and goes
@@ -59,9 +84,13 @@ final class BBButtonLabelFitTests: XCTestCase {
             let bare = fitted(notify, nil, size, bold: false, in: small).width
             XCTAssertGreaterThan(kept - bare, 20, "«\(notify)» lost its glyph at \(size.rawValue)")
         }
+        // At AX2 the trial, notify and activar lines miss 240 by 0.3 to 2 pt.
         let dropped: [(title: String, icon: String, size: UIContentSizeCategory, bold: Bool)] = [
+            (trial, "arrow.right", .accessibilityLarge, false),
             (trial, "arrow.right", .accessibilityLarge, true),
+            (notify, "bell.fill", .accessibilityLarge, false),
             (notify, "bell.fill", .accessibilityLarge, true),
+            (activar, "bell.fill", .accessibilityLarge, false),
             (activar, "bell.fill", .accessibilityLarge, true),
             (export, "square.and.arrow.up", .accessibilityMedium, false),
             (export, "square.and.arrow.up", .accessibilityMedium, true),

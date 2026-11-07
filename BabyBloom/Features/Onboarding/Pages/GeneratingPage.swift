@@ -40,16 +40,17 @@ struct GeneratingPage: View {
     }
 
     var body: some View {
-        // The five rows while the column fits the page's height, else the step
-        // in progress alone, at any text size, language or Bold Text: where it
-        // flips differs by each (es needs 549 pt of a 548-pt page at xxLarge),
-        // so no size threshold could hold it. The page moves on by itself, so
-        // it is not meant to scroll; the scroll is only the net for a landscape
-        // phone, where even one step may miss.
+        // The five rows while the column fits the page's height with every word
+        // whole beside its disc, else the step in progress alone, at any text
+        // size, language or Bold Text: where it flips differs by each (es needs
+        // 549 pt of a 548-pt page at xxLarge), so no size threshold could hold
+        // it. The page moves on by itself, so it is not meant to scroll; the
+        // scroll is only the net for a landscape phone, where even one step
+        // may miss.
         ViewThatFits(in: .vertical) {
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
-                column { stepRows }
+                column { WholeWordsOnly { stepRows } }
                 Spacer(minLength: 0)
                 Spacer(minLength: 0)
             }
@@ -131,7 +132,7 @@ struct GeneratingPage: View {
                     }
                     .animation(.spring(response: 0.4), value: completedSteps.contains(i))
 
-                    Text(step.text)
+                    WordWrappingText(text: step.text)
                         .font(stepFont)
                         .foregroundStyle(completedSteps.contains(i) ? BBTheme.Colors.textPrimary : BBTheme.Colors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -165,5 +166,24 @@ struct GeneratingPage: View {
         }
         .frame(maxWidth: .infinity)
         .animation(.easeInOut(duration: 0.25), value: current)
+    }
+}
+
+/// Its content as it is while the content's ideal width fits the width it is
+/// offered; else taller than any page, so the `ViewThatFits(in: .vertical)`
+/// above passes the rows over. The rows' ideal width is their widest word
+/// beside its disc (`WordWrappingText`), so they stay only while no word
+/// breaks. The height alone would keep them in a narrow, tall window (iPad
+/// Slide Over at 320 pt), where ru «Персонализируем» at AX2 is 236 pt in a
+/// 186-pt row.
+private struct WholeWordsOnly: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let size = subviews[0].sizeThatFits(proposal)
+        guard let width = proposal.width, subviews[0].sizeThatFits(.unspecified).width > width else { return size }
+        return CGSize(width: size.width, height: .infinity)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews[0].place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
     }
 }

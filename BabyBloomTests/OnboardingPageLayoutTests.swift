@@ -75,6 +75,24 @@ final class OnboardingPageLayoutTests: XCTestCase {
         assertInside(screen, elements)
     }
 
+    /// A page 240 pt wide leaves each row 106 pt beside its disc, less than
+    /// ru «Персонализируем» at Large (about 133): the rows would fit its
+    /// 1400-pt height with the word broken, so the step in progress stands
+    /// alone instead. en «Personalising» (about 92) fits, so English keeps
+    /// its rows.
+    func testTheSetupPageShowsOneStepWhereAWordMissesItsRow() throws {
+        try requireSize(.large)
+        let screen = CGRect(x: 0, y: 0, width: 240, height: 1400)
+        for (language, rows) in [(SupportedLanguage.ru, 1), (.en, 5)] {
+            LocalizationManager.shared.setLanguage(language)
+            let elements = accessibility.elements(try accessibility.host(setupPage(), size: screen.size))
+            XCTAssertEqual(elements.filter { setupSteps().contains($0.label) }.count, rows, "\(language): \(elements)")
+            XCTAssertTrue(elements.contains { $0.label == setupTitle() }, "\(language): no title in \(elements)")
+            assertInside(screen, elements, language.rawValue)
+            accessibility.close()
+        }
+    }
+
     /// 320 × 380 leaves the five rows less height than they need, as the
     /// accessibility sizes do on a full page: the step in progress stands
     /// alone under the title, and the next one takes its place without moving
@@ -110,28 +128,37 @@ final class OnboardingPageLayoutTests: XCTestCase {
     }
 
     /// Opt-in: runs with the device at AX2
-    /// (`xcrun simctl ui <device> content_size accessibility-large`). On 320
-    /// the five rows miss the page in each language and with Bold Text, so the
-    /// page shows one step; on 375 the fit decides (English keeps its rows,
-    /// ending at 613 of 647). Either way every word is on screen; the rows
-    /// used to run past the bottom.
+    /// (`xcrun simctl ui <device> content_size accessibility-large`). On a
+    /// 320-pt phone the five rows miss the page in each language and with Bold
+    /// Text, so the page shows one step; on 375 the fit decides (English keeps
+    /// its rows, ending at 613 of 647). A 320 × 1100 window (an iPad's Slide
+    /// Over) holds the rows' height, but ru «Персонализируем» (236 pt) is wider
+    /// than its 186-pt row there, so Russian shows one step too, while en
+    /// «Personalising» (about 163) fits and keeps the rows; es «Personalizando»
+    /// is within a point of the row, so the fit decides. Either way every step
+    /// is on screen; the rows used to be squeezed to one cut line each.
     func testTheSetupPageAtAX2KeepsEveryStepOnScreen() throws {
         try requireSize(.accessibilityLarge)
-        let screens = [CGRect(x: 0, y: 0, width: 320, height: 548), CGRect(x: 0, y: 0, width: 375, height: 647)]
+        let phone320 = CGRect(x: 0, y: 0, width: 320, height: 548)
+        let phone375 = CGRect(x: 0, y: 0, width: 375, height: 647)
+        let slideOver = CGRect(x: 0, y: 0, width: 320, height: 1100)
         let cases: [(language: SupportedLanguage, weight: LegibilityWeight)] = [
             (.ru, .regular), (.en, .regular), (.es, .regular), (.ru, .bold),
         ]
-        for screen in screens {
+        for screen in [phone320, phone375, slideOver] {
             for c in cases {
                 LocalizationManager.shared.setLanguage(c.language)
-                let name = "\(c.language.rawValue) \(Int(screen.width)) \(c.weight == .bold ? "Bold" : "Regular")"
+                let name = "\(c.language.rawValue) \(Int(screen.width))×\(Int(screen.height)) "
+                    + (c.weight == .bold ? "Bold" : "Regular")
                 let elements = accessibility.elements(try accessibility.host(
                     setupPage().environment(\.legibilityWeight, c.weight), size: screen.size))
                 let shown = elements.filter { setupSteps().contains($0.label) }.count
-                if screen.width == 320 {
-                    XCTAssertEqual(shown, 1, "\(name): \(elements)")
-                } else {
+                if screen == phone375 || (screen == slideOver && c.language == .es) {
                     XCTAssertTrue(shown == 1 || shown == 5, "\(name): \(elements)")
+                } else if screen == slideOver && c.language == .en {
+                    XCTAssertEqual(shown, 5, "\(name): \(elements)")
+                } else {
+                    XCTAssertEqual(shown, 1, "\(name): \(elements)")
                 }
                 XCTAssertTrue(elements.contains { $0.label == setupTitle() }, "\(name): no title")
                 assertInside(screen, elements, name)

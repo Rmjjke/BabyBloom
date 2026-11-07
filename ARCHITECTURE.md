@@ -1021,10 +1021,14 @@ shorter than the content, the button inside the screen (DECISIONS 2026-11-06).
 
 The setup page (`GeneratingPage`) has no button and no scroll of its own: it
 moves on by itself. Its five step rows wrap between words while their column
-fits the page's height, else the step in progress stands alone under the
-title. `ViewThatFits(in: .vertical)` makes the choice, so it follows the
-language, the width and Bold Text rather than a text size: on 320 pt every
-language takes the one step at AX2, and on 375 pt en keeps its rows there.
+fits the page's height and every word fits its row, else the step in progress
+stands alone under the title. `ViewThatFits(in: .vertical)` makes the choice,
+so it follows the language, the width and Bold Text rather than a text size:
+on 320 pt every language takes the one step at AX2, and on 375 pt en keeps its
+rows there. The width check is a small layout around the rows that reports an
+unbounded height when their ideal width (the widest word beside its disc,
+through `WordWrappingText`) is wider than offered; without it a narrow, tall
+window would keep the rows with a word broken.
 All five steps are set in one box, the one in progress shown, so the box is as
 tall as the tallest and the title does not move from step to step; the
 one-step column is in `onboardingCenteredScroll` as the net. The layout tests
