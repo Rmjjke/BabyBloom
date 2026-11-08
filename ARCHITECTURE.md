@@ -759,6 +759,20 @@ the new number after a tap. With a glyph on each side the title has 174 pt at La
 320-pt phone in every language, so a title of at most 166 pt at 17 pt
 semibold stays whole there.
 
+An entry sheet's big Save sits under its form, outside the scroll, in
+`BBSheetFooter` (`DesignSystem/Components/BBSheetFooter.swift`): it holds the
+footer's insets and ground and drops its content while the keyboard is up:
+gone at will-show, back at did-hide, so it is away through both slides too.
+Only a keyboard standing over 100 pt on the screen counts
+(`BBSheetKeyboard`): the short bar an iPad shows over a hardware keyboard
+leaves the footer in place. New and Edit Medication, Log and Edit Dose,
+Diaper, Event, Feeding, Sleep and the baby's profile take it. Pinned, the
+button rode up on the keyboard over the next field; while typing, the bar's ✓
+saves. The medication, dose and event bars' ✓ carry `medication.bar_save`,
+`dose.bar_save` and `event.bar_save` for the UI flows. Growth and the diaper
+goal editor keep their Save at the end of the scroll, where it cannot cover a
+field.
+
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
 path sits inside the tree the app target already scans, and XcodeGen then

@@ -417,15 +417,13 @@ struct AddEventSheet: View {
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) {
-                // BBPrimaryButton has no disabled look of its own.
-                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                    .disabled(!canSave)
-                    .opacity(canSave ? 1 : 0.4)
-                    .accessibilityIdentifier("event.save")
-                    .padding(.horizontal, BBTheme.Spacing.md)
-                    .padding(.top, BBTheme.Spacing.sm)
-                    .padding(.bottom, BBTheme.Spacing.xs)
-                    .background(BBTheme.Colors.background)
+                BBSheetFooter {
+                    // BBPrimaryButton has no disabled look of its own.
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                        .disabled(!canSave)
+                        .opacity(canSave ? 1 : 0.4)
+                        .accessibilityIdentifier("event.save")
+                }
             }
             .bbSheetTitle("sheet.new_event".l)
             .toolbar {
@@ -435,6 +433,7 @@ struct AddEventSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     BBBarButton(.save) { save() }
                         .disabled(!canSave)
+                        .accessibilityIdentifier("event.bar_save")
                 }
             }
         }

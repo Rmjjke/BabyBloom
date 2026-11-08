@@ -552,14 +552,12 @@ struct AddFeedingSheet: View {
             // mirrors the bar's confirm: both call save(), and both show ▶ and
             // Start Feeding while the timer is on.
             .safeAreaInset(edge: .bottom) {
-                BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l,
-                                icon: startTimer ? "play.fill" : "checkmark") {
-                    save()
+                BBSheetFooter {
+                    BBPrimaryButton(startTimer ? "button.start_feeding".l : "button.save".l,
+                                    icon: startTimer ? "play.fill" : "checkmark") {
+                        save()
+                    }
                 }
-                .padding(.horizontal, BBTheme.Spacing.md)
-                .padding(.top, BBTheme.Spacing.sm)
-                .padding(.bottom, BBTheme.Spacing.xs)
-                .background(BBTheme.Colors.background)
             }
             .bbSheetTitle("sheet.new_feeding".l)
             .toolbar {

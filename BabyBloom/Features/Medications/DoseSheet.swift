@@ -98,15 +98,13 @@ struct DoseSheet: View {
                         fields
                     }
                 }
-                // BBPrimaryButton has no disabled look of its own.
-                BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
-                    .disabled(!canSave)
-                    .opacity(canSave ? 1 : 0.4)
-                    .accessibilityIdentifier("dose.save")
-                    .padding(.horizontal, BBTheme.Spacing.md)
-                    .padding(.top, BBTheme.Spacing.sm)
-                    .padding(.bottom, BBTheme.Spacing.xs)
-                    .background(BBTheme.Colors.background)
+                BBSheetFooter {
+                    // BBPrimaryButton has no disabled look of its own.
+                    BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                        .disabled(!canSave)
+                        .opacity(canSave ? 1 : 0.4)
+                        .accessibilityIdentifier("dose.save")
+                }
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .bbSheetTitle(title, placement: .content)
@@ -117,6 +115,7 @@ struct DoseSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     BBBarButton(.save) { save() }
                         .disabled(!canSave)
+                        .accessibilityIdentifier("dose.bar_save")
                 }
             }
         }

@@ -63,16 +63,27 @@ tags: [regression]
 - tapOn:
     id: "medication.name"
 - inputText: "Paracetamol"
-- assertVisible:
+# While the keyboard is up the footer Save is gone and the bar's is the one to
+# tap: pinned, the footer lay over Dose, and a tap aimed at Dose saved. The
+# check below needs the on-screen keyboard up: with a hardware keyboard taking
+# its place, the footer stays and the check fails.
+- assertNotVisible:
     id: "medication.save"
+- assertVisible:
+    id: "medication.bar_save"
     enabled: false
 - tapOn:
     id: "medication.chip.6"
 - assertVisible:
-    id: "medication.save"
+    id: "medication.bar_save"
     enabled: true
 - tapOn:
-    id: "medication.save"
+    id: "medication.dose"
+- assertVisible:
+    id: "medication.name"
+- assertNotVisible: "No doses logged yet"
+- tapOn:
+    id: "medication.bar_save"
 - extendedWaitUntil:
     visible: "No doses logged yet"
     timeout: 10000
