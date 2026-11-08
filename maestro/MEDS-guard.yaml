@@ -58,8 +58,8 @@ tags: [regression]
 - inputText: "after food"
 # While the keyboard is up the footer Save is gone; the bar's saves. The
 # keyboard may come back after the alert, so the bar's Save is the one below.
-# This needs the on-screen keyboard: with the Simulator's Connect Hardware
-# Keyboard on, none rises and the footer stays.
+# The check below needs the on-screen keyboard up: with a hardware keyboard
+# taking its place, the footer stays and the check fails.
 - assertNotVisible:
     id: "dose.save"
 - tapOn:
