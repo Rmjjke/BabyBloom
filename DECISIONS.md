@@ -21,10 +21,13 @@ keyboard and lay over the field below the one being typed in. On New
 Medication, with the name typed and an interval picked, it covered Dose, and a
 tap aimed at Dose saved the form with no dose in it.
 
-**Rule.** A sheet's pinned footer (`BBSheetFooter`) is gone between the
-keyboard's will-show and will-hide notifications and back once the keyboard is
-down. The bar's ✓ stays and saves while typing. The big Save is kept for the
-keyboard-down state, where it is the easy target.
+**Rule.** A sheet's pinned footer (`BBSheetFooter`) leaves as the keyboard
+starts to rise and comes back only once it is all the way down: through either
+slide the form is as short as with the keyboard up. The bar's ✓ stays and
+saves while typing. The big Save is kept for the keyboard-down state, where it
+is the easy target. A keyboard counts only when it stands over 100 pt on the
+screen: the bar an iPad shows over a hardware keyboard leaves the form its
+room, and taking the big Save away there would cost it for nothing.
 
 **Rejected: scrolling the next field clear of the footer.** The footer would
 still take 56 pt or more of the little room above the keyboard on a half-height

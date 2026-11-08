@@ -64,7 +64,9 @@ tags: [regression]
     id: "medication.name"
 - inputText: "Paracetamol"
 # While the keyboard is up the footer Save is gone and the bar's is the one to
-# tap: pinned, the footer lay over Dose, and a tap aimed at Dose saved.
+# tap: pinned, the footer lay over Dose, and a tap aimed at Dose saved. This
+# needs the on-screen keyboard: with the Simulator's Connect Hardware Keyboard
+# on, none rises and the footer stays.
 - assertNotVisible:
     id: "medication.save"
 - assertVisible:

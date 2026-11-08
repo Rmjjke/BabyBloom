@@ -58,6 +58,8 @@ tags: [regression]
 - inputText: "after food"
 # While the keyboard is up the footer Save is gone; the bar's saves. The
 # keyboard may come back after the alert, so the bar's Save is the one below.
+# This needs the on-screen keyboard: with the Simulator's Connect Hardware
+# Keyboard on, none rises and the footer stays.
 - assertNotVisible:
     id: "dose.save"
 - tapOn:
@@ -87,8 +89,9 @@ tags: [regression]
 - extendedWaitUntil:
     visible: "Last dose at 10:00.· just now"
     timeout: 10000
+# The sheet is gone: its bar Save shows whether the keyboard came back or not.
 - assertNotVisible:
-    id: "dose.save"
+    id: "dose.bar_save"
 - assertVisible: "Last 24.hours: 5.doses of the 4 you set"
 - takeScreenshot: ${OUT}-guard-saved
 
