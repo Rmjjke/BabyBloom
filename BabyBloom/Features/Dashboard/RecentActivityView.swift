@@ -114,6 +114,7 @@ struct RecentActivityView: View {
 
     @ViewBuilder
     private func row(for event: RecentEvent) -> some View {
+        let day = RecentEvent.dayLabel(for: event.eventTime, now: AppClock.now)
         switch event {
         case .feeding(let entry):
             BBEventRow(
@@ -121,7 +122,8 @@ struct RecentActivityView: View {
                 iconColor: BBTheme.Colors.feeding,
                 title: entry.displayTitle,
                 subtitle: entry.isActive ? "status.feeding_active".l : entry.durationFormatted,
-                time: entry.startTime.appTimeOfDay
+                time: entry.startTime.appTimeOfDay,
+                trailing: day
             )
         case .sleep(let entry):
             BBEventRow(
@@ -129,7 +131,8 @@ struct RecentActivityView: View {
                 iconColor: BBTheme.Colors.sleep,
                 title: entry.type.displayName.l,
                 subtitle: entry.isActive ? "status.sleeping_now".l : entry.durationFormatted,
-                time: entry.startTime.appTimeOfDay
+                time: entry.startTime.appTimeOfDay,
+                trailing: day
             )
         case .diaper(let entry):
             BBEventRow(
@@ -137,7 +140,8 @@ struct RecentActivityView: View {
                 iconColor: BBTheme.Colors.diaper,
                 title: entry.displayTitle,
                 subtitle: entry.color?.displayName.l ?? "",
-                time: entry.time.appTimeOfDay
+                time: entry.time.appTimeOfDay,
+                trailing: day
             )
         case .visit(let visit):
             BBEventRow(
@@ -200,6 +204,15 @@ enum RecentEvent: Identifiable {
         case .diaper(let entry):  return entry.persistentModelID
         case .visit(let visit):   return visit.persistentModelID
         }
+    }
+
+    /// The date under the time for a row from an earlier day, in the history
+    /// rows' form; nil today. The list mixes days, and past midnight a bare
+    /// "23:42" read as tonight. A per-row date rather than day headings: the
+    /// history lists already teach it, and `BBEventRow` lays it out at every
+    /// text size.
+    static func dayLabel(for date: Date, now: Date, calendar: Calendar = .current) -> String? {
+        calendar.isDate(date, inSameDayAs: now) ? nil : date.appDayMonth
     }
 
     var eventTime: Date {
