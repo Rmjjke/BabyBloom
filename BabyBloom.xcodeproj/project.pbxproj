@@ -46,10 +46,8 @@
 		1D5821F38CAA5AA754208E09 /* BBScreenTitleFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEDB039AFD50ADF3376CDFF1 /* BBScreenTitleFitTests.swift */; };
 		1E34D33370F1AD7BFCB9693F /* AnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63179AF1B5A54A645E0AB24 /* AnalyticsBackend.swift */; };
 		1EC02AD5DAC3D2239153AC52 /* BBTierValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D89A78D82F54D28A1AE114 /* BBTierValue.swift */; };
-		1EE8FD8F6E83985C8E5604E5 /* Dulce noche en la nursery-1.png in Resources */ = {isa = PBXBuildFile; fileRef = 6145ABB34FFC4F85099A1E05 /* Dulce noche en la nursery-1.png */; };
 		21ED729A8EAD4A9D0FDEC26A /* SeedScenarioDoctorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CC50309AE3C19E308076EC /* SeedScenarioDoctorTests.swift */; };
 		22635DE9DA65A975AC422C08 /* OnboardingFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739CB2CBC67A7786E2057C92 /* OnboardingFacts.swift */; };
-		226B04ED2D04E7703D237272 /* Midnight Nursery Cuddle-2.png in Resources */ = {isa = PBXBuildFile; fileRef = 487F672C2FC6364DA534C35E /* Midnight Nursery Cuddle-2.png */; };
 		22F76FA1DEAE7C2CC33FC1FD /* FeedingBreakdownCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3510D2203C7D61D3F94AB86C /* FeedingBreakdownCard.swift */; };
 		23A3132E48192240EE790994 /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = F691DCEBF4864F06700FFE43 /* DeepLink.swift */; };
 		24577B13AFD3466DDB0C5BB8 /* FeedingRhythm.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */; };
@@ -151,7 +149,6 @@
 		756E50D0B3BC99E5ACEC621F /* DecimalFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */; };
 		75842B664B14C6F574C98559 /* WeightMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B74168BA0F3186B5E3422 /* WeightMeasurement.swift */; };
 		7709B3B3003B7B391E98A254 /* SpyAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D3CD12A6DFCBD5134EF1B6 /* SpyAnalyticsBackend.swift */; };
-		778596A3AFB6EF2FD88FB8C0 /* Cozy Lavender Nursery Dreams-3.png in Resources */ = {isa = PBXBuildFile; fileRef = 86225187FEBB24D59DF7F248 /* Cozy Lavender Nursery Dreams-3.png */; };
 		794493D6F77D4D54108D4060 /* SettingsRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FC0CFBB8FC894BDBDC61C9 /* SettingsRows.swift */; };
 		7A247FA719B1F2C134F9E6E3 /* WeightForAgeChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988C30B92DC57518B85A413B /* WeightForAgeChart.swift */; };
 		7B2737EB596E0135A560C902 /* NamePage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A856FE301431E425A94C4CA /* NamePage.swift */; };
@@ -437,7 +434,6 @@
 		46CFF5A9567092348158A1F6 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthDateChangeTests.swift; sourceTree = "<group>"; };
 		485A8F117DDB926F2315EC05 /* MedicationReminderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationReminderSync.swift; sourceTree = "<group>"; };
-		487F672C2FC6364DA534C35E /* Midnight Nursery Cuddle-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Midnight Nursery Cuddle-2.png"; sourceTree = "<group>"; };
 		48898F260E6DF44F56AB2061 /* WeeklySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryCard.swift; sourceTree = "<group>"; };
 		49FC0CFBB8FC894BDBDC61C9 /* SettingsRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRows.swift; sourceTree = "<group>"; };
 		4A12F9DE413A81B2C7F0C6E6 /* SeedScenario+Weekly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SeedScenario+Weekly.swift"; sourceTree = "<group>"; };
@@ -467,7 +463,6 @@
 		5FD32EDF9471DEC7DFF47F84 /* VisitSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisitSheet.swift; sourceTree = "<group>"; };
 		60D6CBB2DD36A7C6C2D25F41 /* DoctorPeriod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorPeriod.swift; sourceTree = "<group>"; };
 		6112F627E58FC33E9FD8EDB1 /* BBElapsedTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBElapsedTimer.swift; sourceTree = "<group>"; };
-		6145ABB34FFC4F85099A1E05 /* Dulce noche en la nursery-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Dulce noche en la nursery-1.png"; sourceTree = "<group>"; };
 		624B29F59802C271608F6A4E /* StartFeedingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartFeedingIntent.swift; sourceTree = "<group>"; };
 		63224488CC245E6D9CAC116F /* MedicineModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineModelTests.swift; sourceTree = "<group>"; };
 		63BCFB16F40BF516F2C8D002 /* MedicationConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationConfirmationTests.swift; sourceTree = "<group>"; };
@@ -508,7 +503,6 @@
 		833D4E931E3BC4A0715B9DC8 /* String+UnitGlue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+UnitGlue.swift"; sourceTree = "<group>"; };
 		83D159D7A1D44A9E0B77C031 /* BBButtonInsetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBButtonInsetTests.swift; sourceTree = "<group>"; };
 		850950E53910EDD07BD7A452 /* DoctorReportPDFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportPDFTests.swift; sourceTree = "<group>"; };
-		86225187FEBB24D59DF7F248 /* Cozy Lavender Nursery Dreams-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Cozy Lavender Nursery Dreams-3.png"; sourceTree = "<group>"; };
 		8848A60B812E23969302C7BF /* DoctorReportSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorReportSummaryTests.swift; sourceTree = "<group>"; };
 		887D938F6670A32C329A2F96 /* MedicationReminderCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationReminderCard.swift; sourceTree = "<group>"; };
 		8A07049E9D30F01EB4916982 /* RecentActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentActivityView.swift; sourceTree = "<group>"; };
@@ -971,10 +965,7 @@
 			children = (
 				5A003916D83216166C88BE0C /* Assets.xcassets */,
 				211641EE3146F95A380099EE /* BabyBloom.entitlements */,
-				86225187FEBB24D59DF7F248 /* Cozy Lavender Nursery Dreams-3.png */,
-				6145ABB34FFC4F85099A1E05 /* Dulce noche en la nursery-1.png */,
 				A6176EDF7A3620F3F51143E3 /* Info.plist */,
-				487F672C2FC6364DA534C35E /* Midnight Nursery Cuddle-2.png */,
 				4ACFA220FE675C3DDDAC7265 /* PrivacyInfo.xcprivacy */,
 				00E206A2E013B64EC6C14D22 /* InfoPlist.strings */,
 				60F5AC726CF1B044A235C50A /* Localization */,
@@ -1446,10 +1437,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF2C64E14C94C424A20B1B9C /* Assets.xcassets in Resources */,
-				778596A3AFB6EF2FD88FB8C0 /* Cozy Lavender Nursery Dreams-3.png in Resources */,
-				1EE8FD8F6E83985C8E5604E5 /* Dulce noche en la nursery-1.png in Resources */,
 				A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */,
-				226B04ED2D04E7703D237272 /* Midnight Nursery Cuddle-2.png in Resources */,
 				40F099D6E749944BC8D2C8A8 /* PrivacyInfo.xcprivacy in Resources */,
 				4B45B0E6CF5B3905BE60A520 /* en.json in Resources */,
 				97135640A3A39C6C9A4C9929 /* es.json in Resources */,
