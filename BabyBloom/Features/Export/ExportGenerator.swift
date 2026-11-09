@@ -274,42 +274,42 @@ struct ExportGenerator {
             range: range
         )
 
-        var sections = ""
-
-        // Summary card
-        sections += """
-        <div class="card summary">
-          <h2>\("export.summary".l)</h2>
-          <div class="stats-grid">
-        """
+        // Summary card: tiles first. Events has no tile, so an export of
+        // Events alone (a log of medicines only) prints no card at all
+        // rather than an empty one.
+        var tiles = ""
         // A count tile names what it counts, as the app's own tiles do: the
         // section's name beside a number read as one item or an amount.
         if categories.contains(.feeding) {
-            sections += """
+            tiles += """
             <div class="stat"><span class="val">\(finishedFeeds)</span><span class="lbl">\("stat.feedings".l)</span></div>
             <div class="stat"><span class="val">\(minutesText(totalFeedMin))</span><span class="lbl">\("export.summary.total_time".l)</span></div>
             """
             // No finished day, no rate: a half-lived today would print a figure
             // the report refuses to. The bare figure: its label says «a day».
             if let avgFeedPerDay {
-                sections += """
+                tiles += """
                 <div class="stat"><span class="val">\(WeeklyFormat.perDay(avgFeedPerDay))</span><span class="lbl">\("export.summary.avg".l)</span></div>
                 """
             }
         }
         if categories.contains(.sleep) {
-            sections += """
+            tiles += """
             <div class="stat"><span class="val">\(sleeps.count)</span><span class="lbl">\("stat.sleep_episodes".l)</span></div>
             <div class="stat"><span class="val">\(minutesText(totalSleepMin))</span><span class="lbl">\("export.summary.total_sleep".l)</span></div>
             """
         }
         if categories.contains(.diapers) {
-            sections += "<div class=\"stat\"><span class=\"val\">\(diapers.count)</span><span class=\"lbl\">\("stat.diapers".l)</span></div>"
+            tiles += "<div class=\"stat\"><span class=\"val\">\(diapers.count)</span><span class=\"lbl\">\("stat.diapers".l)</span></div>"
         }
         if categories.contains(.growth) {
-            sections += "<div class=\"stat\"><span class=\"val\">\(growths.count)</span><span class=\"lbl\">\("stat.measurements".l)</span></div>"
+            tiles += "<div class=\"stat\"><span class=\"val\">\(growths.count)</span><span class=\"lbl\">\("stat.measurements".l)</span></div>"
         }
-        sections += "</div></div>"
+        let summary: [PagedPDF.Item] = tiles.isEmpty ? [] : [.block("""
+            <div class="card summary">
+              <h2>\("export.summary".l)</h2>
+              <div class="stats-grid">\(tiles)</div></div>
+            """)]
 
         var tables: [PagedPDF.Item] = []
 
@@ -432,7 +432,7 @@ struct ExportGenerator {
           </div>
         """
         let footer = "<div class=\"footer\">\(htmlEscape(String(format: "export.generated_by_fmt".l, "brand.name".l, generatedDate)))</div>"
-        return PagedPDF.Document(head: head, items: [.block(header), .block(sections)] + tables + [.block(footer)])
+        return PagedPDF.Document(head: head, items: [.block(header)] + summary + tables + [.block(footer)])
     }
 
     /// A user-supplied value ready for the PDF's HTML: HTML-significant characters
