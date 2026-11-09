@@ -28,13 +28,14 @@ enum BBScreenTitleFit {
     /// The heading's styles, largest first; each a step down when the
     /// widest word misses the heading's width.
     enum Style: CaseIterable {
-        case largeTitle, title1, title2
+        case largeTitle, title1, title2, title3
 
         var textStyle: UIFont.TextStyle {
             switch self {
             case .largeTitle: .largeTitle
             case .title1: .title1
             case .title2: .title2
+            case .title3: .title3
             }
         }
 
@@ -44,6 +45,7 @@ enum BBScreenTitleFit {
             case .largeTitle: .largeTitle.bold()
             case .title1: .title.bold()
             case .title2: .title2.bold()
+            case .title3: .title3.bold()
             }
         }
     }
@@ -98,7 +100,7 @@ enum BBScreenTitleFit {
             let font = font(style, size: size, boldText: boldText)
             let widest = words.map { Self.width(of: $0, in: font) }.max() ?? 0
             return widest + spare <= width
-        } ?? .title2
+        } ?? .title3
     }
 }
 
@@ -151,7 +153,10 @@ private struct BBScreenTitle: ViewModifier {
 /// The screen's title as its content's first lines wherever the bar cannot
 /// hold it (`bbScreenTitle`); nothing, and no stack spacing, where it can.
 /// Wraps between words, never inside one: it steps from `.largeTitle` down
-/// to `.title1` and `.title2` while its widest word misses the width.
+/// to `.title1`, `.title2` and `.title3` while its widest word misses the
+/// width. The system's Bold Text sets these faces heavier than a measure can
+/// ask for (es «Medicamentos» in `.title2` at AX2: 290 pt against 288 on a
+/// 320-pt screen), so `.title3` is the step the layout lands on there.
 struct BBScreenHeading: View {
     nonisolated static let coordinateSpace = "bbScreenTitle"
 
@@ -171,6 +176,7 @@ struct BBScreenHeading: View {
                 styled(.largeTitle)
                 styled(.title1)
                 styled(.title2)
+                styled(.title3)
             }
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)

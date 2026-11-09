@@ -201,7 +201,7 @@ final class BBScreenTitleFitTests: XCTestCase {
                 height(Text(title).font($0.font), size: size, width: 288)
             }
             let name = "«\(title)» at \(size), \(chosen)"
-            XCTAssertEqual(Set(plain.map { Int(($0 * 2).rounded()) }).count, 3, "\(name): the styles tell apart")
+            XCTAssertEqual(Set(plain.map { Int(($0 * 2).rounded()) }).count, plain.count, "\(name): the styles tell apart")
             XCTAssertEqual(heading, plain[BBScreenTitleFit.Style.allCases.firstIndex(of: chosen)!],
                            accuracy: 0.5, name)
         }

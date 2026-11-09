@@ -4,7 +4,8 @@ import SwiftUI
 /// buttons the label broke mid-word as the text grew («Врем / я» at xxxLarge
 /// on a 402-pt phone), and at Large on a 320-pt screen ru «Время» and en
 /// «Time» had no room beside the widest date. One shape, not a fit: a row
-/// that fits by its date would jump while the parent picks one.
+/// that fits by its date would jump while the parent picks one. Only the
+/// picker itself steps down a text size where its date misses the width.
 ///
 /// The closure builds the picker with the label it is handed. The visible
 /// label is hidden from VoiceOver and the picker keeps its own, so the label
@@ -22,10 +23,29 @@ struct BBLabeledPicker<Content: View>: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
             Text(label)
                 .accessibilityHidden(true)
-            picker
+            BBFitsByTextSize { picker }
                 .labelsHidden()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// A control that never wraps or shrinks, such as a compact date picker's
+/// date button, steps down a text size while it misses the width, as
+/// BBScreenHeading does; where it fits it keeps the user's size. At AX2 with
+/// Bold Text ru «10 нояб. 2026 г.» outgrew a 320-pt sheet's card and widened
+/// the whole sheet past the screen.
+struct BBFitsByTextSize<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        // Ranges, so a step never sets a size above the user's.
+        ViewThatFits(in: .horizontal) {
+            content
+            content.dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            content.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            content.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        }
     }
 }
 
