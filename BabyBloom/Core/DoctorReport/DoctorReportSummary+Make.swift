@@ -157,8 +157,11 @@ extension DoctorReportSummary {
         let bottles = feeds.filter { $0.type != .breast && ($0.volumeML ?? 0) > 0 && frame.isFinishedDay($0.start) }
         let bottleDays = frame.bucketFinished(.init(otherEntries: bottles.map(\.start))).daysWithEntries
         let bottleML = bottles.reduce(0) { $0 + ($1.volumeML ?? 0) }
+        // Under a whole second nothing was measured (timer off, or a clock that
+        // ran behind): no length, not a 0-minute feed that drags the median down.
         let breastLengths = feeds.filter { $0.type == .breast }
-            .compactMap { feed in feed.end.map { max(0, $0.timeIntervalSince(feed.start)) } }
+            .compactMap { feed in feed.end.map { $0.timeIntervalSince(feed.start) } }
+            .filter { $0 >= 1 }
 
         return Feeding(
             totalFeeds: summary.totalFeeds,

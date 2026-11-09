@@ -145,7 +145,8 @@ struct DoctorReportSummary: Equatable {
         /// Median length of finished breastfeeds: one
         /// forgotten 3-hour timer moved a mean by minutes; the typical feed is
         /// what the doctor asks about. An even count takes the mean of the two
-        /// middle lengths.
+        /// middle lengths. A breastfeed with no measured length stays out; nil
+        /// (no row) when no breastfeed has one.
         let breastfeedMedian: TimeInterval?
         let days: Days
 
