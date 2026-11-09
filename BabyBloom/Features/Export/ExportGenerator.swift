@@ -140,7 +140,7 @@ struct ExportGenerator {
             let type = e.type.displayName.l
             let side = e.side?.displayName.l ?? ""
             let vol  = e.volumeML.map { String(Int($0)) } ?? ""
-            let dur  = String(Int(e.duration / 60))
+            let dur  = e.hasLength ? String(Int(e.duration / 60)) : ""
             rows.append(csvRow([fmt.string(from: e.startTime), tfmt.string(from: e.startTime), type, side, vol, dur]))
         }
         return rows.joined(separator: "\n")
@@ -324,7 +324,7 @@ struct ExportGenerator {
                      e.type.displayName.l,
                      e.side?.displayName.l ?? "—",
                      e.volumeML.map { ReportFormat.ml($0) } ?? "—",
-                     minutesText(Int(e.duration / 60))]
+                     e.hasLength ? minutesText(Int(e.duration / 60)) : "—"]
                 }
             ))
         }

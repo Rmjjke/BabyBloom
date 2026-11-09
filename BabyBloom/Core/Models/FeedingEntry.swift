@@ -37,9 +37,16 @@ final class FeedingEntry {
         max(0, (endTime ?? Date()).timeIntervalSince(startTime))
     }
 
+    /// A whole second or more between start and end. A bottle saved without
+    /// the timer is stamped start ≈ end, and a timer stopped on a phone whose
+    /// clock runs behind clamps to 0: neither measured anything.
+    var hasLength: Bool { Int(duration) > 0 }
+
     /// Seconds only under a minute: from one minute a feed reads like a sleep.
+    /// Empty for a feed with no length, where «0 sec» read as a measured feed.
     var durationFormatted: String {
-        let seconds = max(0, Int(duration))
+        guard hasLength else { return "" }
+        let seconds = Int(duration)
         guard seconds >= 60 else { return String(format: "duration.sec".l, seconds) }
         return DurationText.minutes(seconds / 60)
     }
