@@ -76,7 +76,8 @@ final class EndBeforeStartTests: XCTestCase {
         // where -120 s would print "0 sec" by itself.
         feed.endTime = date(10, 21, 8, 59).addingTimeInterval(-30)
         XCTAssertEqual(feed.duration, 0)
-        XCTAssertEqual(feed.durationFormatted, String(format: "duration.sec".l, 0))
+        XCTAssertFalse(feed.hasLength)
+        XCTAssertEqual(feed.durationFormatted, "", "a clamped feed measured nothing and prints no length")
     }
 
     // MARK: The weekly card, from the store

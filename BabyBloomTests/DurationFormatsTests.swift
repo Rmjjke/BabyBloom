@@ -45,6 +45,19 @@ final class DurationFormatsTests: XCTestCase {
                        "a feed and a sleep of one length read the same")
     }
 
+    /// A bottle saved without the timer is stamped start ≈ end: it measured
+    /// nothing, so it prints no length rather than «0 sec».
+    func testAFeedWithNoLengthPrintsNone() {
+        LocalizationManager.shared.setLanguage(.en)
+        let untimed = feeding(seconds: 0, volume: 110)
+        XCTAssertFalse(untimed.hasLength)
+        XCTAssertEqual(untimed.durationFormatted, "")
+        XCTAssertFalse(feeding(seconds: 0.4).hasLength, "under a whole second is the save's own stamp gap")
+
+        XCTAssertTrue(feeding(seconds: 1).hasLength)
+        XCTAssertEqual(feeding(seconds: 1).durationFormatted, String(format: "duration.sec".l, 1))
+    }
+
     /// A count reads its two numbers; sleep reads two durations from the one
     /// writer, so 2 h 55 min is never «2 of 14 h» beside a tile saying
     /// «2 h 55 min».

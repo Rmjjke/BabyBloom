@@ -235,6 +235,29 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertTrue(page.contains("<span class=\"val\">0</span><span class=\"lbl\">\("stat.feedings".l)</span>"))
     }
 
+    /// An untimed bottle measured nothing: the PDF prints «—» and the CSV an
+    /// empty cell, never «0 min» / «0»; a timed feed keeps its minutes.
+    func testAFeedWithNoLengthExportsNoLength() {
+        let start = fixedNow.addingTimeInterval(-3600)
+        let untimed = FeedingEntry(startTime: start, type: .formula, side: nil, volumeML: 110)
+        untimed.endTime = start
+        let timed = FeedingEntry(startTime: start.addingTimeInterval(-7200), type: .formula, side: nil, volumeML: 90)
+        timed.endTime = timed.startTime.addingTimeInterval(15 * 60)
+
+        let page = html(feeding: untimed)
+        XCTAssertTrue(page.contains("<td>\(ExportGenerator.htmlEscape(ReportFormat.ml(110)))</td><td>—</td></tr>"))
+        XCTAssertFalse(page.contains("<td>\(ExportGenerator.htmlEscape(DurationText.minutes(0)))</td></tr>"))
+        XCTAssertTrue(html(feeding: timed).contains("<td>\(ExportGenerator.htmlEscape(DurationText.minutes(15)))</td></tr>"))
+
+        let csv = ExportGenerator.csvString(
+            feedings: [untimed, timed], sleeps: [], diapers: [], growths: [], events: [],
+            categories: [.feeding]
+        ).first { $0.name == "feeding.csv" }!.content
+        let lines = csv.split(separator: "\n").map(String.init)
+        XCTAssertTrue(lines.contains { $0.hasSuffix(",110,") }, csv)
+        XCTAssertTrue(lines.contains { $0.hasSuffix(",90,15") }, csv)
+    }
+
     func testTheExportFooterSpeaksTheAppLanguage() {
         LocalizationManager.shared.setLanguage(.ru)
         defer { LocalizationManager.shared.setLanguage(.en) }
