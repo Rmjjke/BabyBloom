@@ -127,7 +127,7 @@ final class EndBeforeStartTests: XCTestCase {
         XCTAssertEqual(sleep.longest, 10 * 3600)
         let feeding = try XCTUnwrap(report.feeding)
         XCTAssertEqual(feeding.totalFeeds, 2)
-        XCTAssertEqual(feeding.breastfeedMedian, 10 * 60, "the median of 0 and 20 min")
+        XCTAssertEqual(feeding.breastfeedMedian, 20 * 60, "the clamped feed has no length: only the 20 min one counts")
         withExtendedLifetime(container) {}
     }
 }

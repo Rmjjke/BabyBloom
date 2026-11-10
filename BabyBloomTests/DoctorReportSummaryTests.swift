@@ -453,6 +453,18 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertNil(make(input(feeds: [feed(at(13, 8), .formula)])).feeding?.breastfeedMedian)
     }
 
+    func testABreastfeedWithNoLengthStaysOutOfTheMedian() {
+        let timed = make(input(feeds: [
+            feed(at(13, 8), minutes: 10), feed(at(14, 8), minutes: 20),
+            feed(at(15, 8), minutes: 0), feed(at(16, 8), minutes: 0.5 / 60),   // timer off
+        ])).feeding
+        XCTAssertEqual(timed?.breastfeedMedian, 15 * 60, "the median of 10 and 20 min, as without them")
+
+        let untimed = make(input(feeds: [feed(at(13, 8), minutes: 0), feed(at(14, 8), minutes: 0)])).feeding
+        XCTAssertEqual(untimed?.totalFeeds, 2, "still counted as feeds")
+        XCTAssertNil(untimed?.breastfeedMedian, "no timed breastfeed: no median row, never 0 min")
+    }
+
     func testABothDiaperCountsAsWetAndAsDirty() {
         let diapers = make(input(diapers: [Diaper(time: at(13, 8), type: .wet),
                                            Diaper(time: at(13, 10), type: .dirty),
