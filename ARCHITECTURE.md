@@ -454,9 +454,15 @@ or time picker's label above it at every size (beside the buttons it broke
 mid-word as the text grew, and at Large on a 320-pt screen it had no room
 beside the widest date) and hides that visible label from VoiceOver, so the
 picker's own label is read once; the entry sheets' date and time rows use it.
+Its picker sits in `BBFitsByTextSize`, which steps a control that never wraps
+or shrinks down a text size, to AX1, xxxLarge and xxLarge, while it misses
+the width, and keeps the user's size where it fits: a compact picker's date
+neither wraps nor shrinks, and at AX2 with Bold Text the ru «10 нояб. 2026 г.»
+outgrew a 320-pt sheet's card and widened the whole sheet past the screen.
 The profile edit sheet's birth date keeps that form's smaller caption above
 the picker, so it takes the same two halves without the helper: the caption
-is hidden from VoiceOver and the picker carries the name. `bbPlaceholderLabel`
+is hidden from VoiceOver and the picker carries the name. Its picker steps
+through `BBFitsByTextSize` too. `bbPlaceholderLabel`
 is for a vertical `TextField` whose placeholder is its only visible label (the
 medication name, dose and note, the Diaper note, the doctor question; also
 the medication maximum, whose example placeholder needs two lines in es): it
@@ -724,9 +730,15 @@ comes from a `GeometryReader` around the content, in the same layout pass,
 so no frame shows one shape and then the other. Where the title fits, the
 bar keeps its large title and the heading draws nothing, not even stack
 spacing. Where it misses, the bar goes inline and the heading shows the
-title: largeTitle bold, wrapping between words, stepping to title1 and
-title2 while its widest word misses the width with sm 8 to spare
-(`WidestWordIdeal`'s `spare`). The bar's principal item then holds a 17-pt
+title: largeTitle bold, wrapping between words, stepping to title1, title2
+and title3 while its widest word misses the width with sm 8 to spare
+(`WidestWordIdeal`'s `spare`). The system's Bold Text sets these faces
+heavier than a measure can ask for (es «Medicamentos» in title2 at AX2:
+about 290 pt against 288 on a 320-pt screen), so title3 is the step the
+heading lands on there. `EmptyStateView`'s title steps the same way: drawn
+at AX1's size, then xxxLarge's, while its widest word misses the card's line
+(es «medicamentos» at AX2 with Bold Text on 320 pt); its subtitle keeps the
+size. The bar's principal item then holds a 17-pt
 title, hidden (opacity 0, out of VoiceOver) until the heading's last line
 has passed under the bar; the heading reports that through an environment
 closure, from `onGeometryChange` in the modifier's named coordinate space,

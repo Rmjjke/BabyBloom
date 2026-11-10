@@ -117,12 +117,14 @@ struct BabyProfileEditSheet: View {
                                 .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .medium, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                                 .accessibilityHidden(true)
-                            DatePicker("profile.birth_date".l, selection: $editedBirthDate,
-                                       in: ...latestSelectableBirthDate,
-                                       displayedComponents: .date)
-                                .labelsHidden()
-                                .datePickerStyle(.compact)
-                                .tint(BBTheme.Colors.primary)
+                            BBFitsByTextSize {
+                                DatePicker("profile.birth_date".l, selection: $editedBirthDate,
+                                           in: ...latestSelectableBirthDate,
+                                           displayedComponents: .date)
+                                    .labelsHidden()
+                                    .datePickerStyle(.compact)
+                                    .tint(BBTheme.Colors.primary)
+                            }
                         }
                     }
 

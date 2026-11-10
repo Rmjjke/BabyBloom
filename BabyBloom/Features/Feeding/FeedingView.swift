@@ -622,9 +622,16 @@ struct EmptyStateView: View {
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(color.opacity(0.6))
             }
-            Text(title.l)
-                .font(BBTheme.Typography.scaled(18, relativeTo: .body, weight: .semibold, design: .rounded))
-                .foregroundStyle(BBTheme.Colors.textPrimary)
+            // A word never breaks: at AX2 with Bold Text es «medicamentos»
+            // outgrew the card's line on a 320-pt screen. The title steps down
+            // a text size while its widest word misses the line; the subtitle
+            // keeps its size.
+            ViewThatFits(in: .horizontal) {
+                titleText(cap: nil)
+                titleText(cap: .accessibilityMedium)
+                titleText(cap: .extraExtraExtraLarge)
+            }
+            .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(subtitle.l)
                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
                 .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -635,5 +642,17 @@ struct EmptyStateView: View {
         .background(BBTheme.Colors.surface)
         .cornerRadius(BBTheme.Radius.lg)
         .bbShadow(BBTheme.Shadow.card)
+    }
+
+    /// The scaled font follows the device's text size, not the environment's,
+    /// so a step caps the point size itself, never above the user's size.
+    private func titleText(cap: UIContentSizeCategory?) -> some View {
+        let size = BBTheme.Typography.scaledPointSize(18, relativeTo: .body)
+        let capped = cap.map { min(size, BBTheme.Typography.scaledPointSize(18, relativeTo: .body, for: $0)) } ?? size
+        return WidestWordIdeal {
+            Text(title.l.oneWordALine).hidden().accessibilityHidden(true)
+            Text(title.l)
+        }
+        .font(.system(size: capped, weight: .semibold, design: .rounded))
     }
 }
