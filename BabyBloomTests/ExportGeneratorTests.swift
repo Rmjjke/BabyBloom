@@ -267,6 +267,26 @@ final class ExportGeneratorTests: XCTestCase {
             String(format: "export.generated_by_fmt".l, "brand.name".l, "").trimmingCharacters(in: .whitespaces))))
     }
 
+    /// Events has no Summary tile: an export of Events alone (a log of
+    /// medicines only) opens with its table, not an empty card. Any tiled
+    /// category keeps the card.
+    func testTheSummaryCardNeedsATile() {
+        let dose = CustomEvent(time: fixedNow.addingTimeInterval(-3600), type: .medication)
+        let eventsOnly = ExportGenerator.buildHTML(
+            baby: nil, feedings: [], sleeps: [], diapers: [], growths: [], events: [dose],
+            categories: [.events], range: .all)
+        XCTAssertFalse(eventsOnly.contains("class=\"card summary\""))
+        XCTAssertFalse(eventsOnly.contains("<h2>\("export.summary".l)</h2>"))
+        XCTAssertTrue(eventsOnly.contains("export.cat.events".l), "the Events table is still there")
+
+        let diaper = DiaperEntry(time: fixedNow.addingTimeInterval(-7200), type: .wet)
+        let withDiapers = ExportGenerator.buildHTML(
+            baby: nil, feedings: [], sleeps: [], diapers: [diaper], growths: [], events: [dose],
+            categories: [.diapers, .events], range: .all)
+        XCTAssertTrue(withDiapers.contains("class=\"card summary\""))
+        XCTAssertTrue(withDiapers.contains("<span class=\"val\">1</span><span class=\"lbl\">\("stat.diapers".l)</span>"))
+    }
+
     // MARK: - Number format: PDF in the app language, CSV invariant
 
     private func html(growth: GrowthEntry? = nil, feeding: FeedingEntry? = nil,
