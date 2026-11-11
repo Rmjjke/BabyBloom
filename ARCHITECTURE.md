@@ -962,11 +962,14 @@ none, the heading alone shows it twice. The diaper norm editor, with Close
 alone in its bar, does the same without the helper: above Large its bar shows
 no title, and its first heading, «Норма в день», takes the header trait.
 
-Screen titles go by fit. The nine scrolling screens with a large title
+Screen titles go by fit. The eleven scrolling screens with a large title
 (Feeding, Sleep, Diapers, Events, Growth, Medications, Recent activity,
-Export, the report) set it through `bbScreenTitle(_:)` and put
+Export, the report, More, Profile) set it through `bbScreenTitle(_:)` and put
 `BBScreenHeading` first in their content stack
-(`DesignSystem/Components/BBScreenTitle.swift`). The bar sets a large title
+(`DesignSystem/Components/BBScreenTitle.swift`). More and Profile are Lists:
+their first section is `BBScreenListHeading`, the heading in a row with no
+insets, background or separator, lg above the next section; where the bar
+holds the title the section has no row, so the list starts where it did. The bar sets a large title
 on one line and cuts its tail, so `BBScreenTitleFit` measures the title's
 line at the bar's face (largeTitle bold at the current size, capped at AX2)
 against the bar's room, W − 32 below 414 pt and W − 40 from 414. The width
@@ -985,8 +988,13 @@ at AX1's size, then xxxLarge's, while its widest word misses the card's line
 size. The bar's principal item then holds a 17-pt
 title, hidden (opacity 0, out of VoiceOver) until the heading's last line
 has passed under the bar; the heading reports that through an environment
-closure, from `onGeometryChange` in the modifier's named coordinate space,
-whose y = 0 is the bar's bottom. The principal item stays in the bar while
+closure, from `onGeometryChange`, comparing its bottom in window coordinates
+with the bar's bottom, which the modifier's `GeometryReader` reads the same
+way. Window coordinates on both sides because inside a List row a named
+coordinate space of the screen's resolves as the window. A List also takes
+the row out when a fast scroll carries it past the top between two frames,
+with no last report, so the heading reports itself gone when it disappears
+and where it is when it appears again. The principal item stays in the bar while
 hidden because an empty one lets the system draw its own inline title, cut.
 `navigationTitle` is set in both shapes, for the next screen's back button
 and the app switcher. CoreText measures a title about 3 % wider than the
