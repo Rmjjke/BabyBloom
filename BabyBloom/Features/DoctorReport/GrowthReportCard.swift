@@ -95,8 +95,8 @@ struct GrowthReportCard: View {
     @ViewBuilder
     private var periodRows: some View {
         if let change = growth.change {
-            let since = String(format: "report.change_since_fmt".l, ReportFormat.date(change.baseDate), "%@")
-            ReportRow(format: since, value: ReportFormat.grams(change.grams))
+            ReportRow(format: "report.change_since_fmt".l, at: 2, filling: [ReportFormat.date(change.baseDate)],
+                      value: ReportFormat.grams(change.grams))
         }
         if !growth.weighings.isEmpty { weighings }
     }
@@ -154,13 +154,15 @@ struct GrowthReportCard: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// «Head: 38.5 cm», split at `%@` as `ReportRow` splits it, so the word
-    /// order stays the translator's.
+    /// «Head: 38.5 cm», split as `ReportRow` splits it, so the word order
+    /// stays the translator's.
     private func headLine(_ cm: Double) -> Text {
-        let parts = "growth.head_fmt".l.components(separatedBy: "%@")
-        return BBTheme.Typography.callout(parts.first ?? "")
-            + BBTheme.Typography.metricSmall(cm.appDecimal(1))
-            + BBTheme.Typography.callout(parts.dropFirst().joined())
+        let value = cm.appDecimal(1)
+        let format = "growth.head_fmt".l
+        let split = FormatSplit(format, value: value)
+        return BBTheme.Typography.callout(split?.head ?? format)
+            + BBTheme.Typography.metricSmall(value)
+            + BBTheme.Typography.callout(split?.tail ?? "")
     }
 
     // MARK: At birth

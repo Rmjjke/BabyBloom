@@ -300,8 +300,8 @@ enum DoctorReportPDF {
         }
         // A new period just began: the period rows go, the standing facts stay.
         if !summary.showsNewPeriodCard, let change = growth.change {
-            let since = String(format: "report.change_since_fmt".l, ReportFormat.date(change.baseDate, now: now), "%@")
-            cells.append(row(format: since, ReportFormat.grams(change.grams)))
+            cells.append(row(format: "report.change_since_fmt".l, at: 2,
+                             filling: [ReportFormat.date(change.baseDate, now: now)], ReportFormat.grams(change.grams)))
         }
         html += twoColumns(cells)
         if let birth = atBirth(growth) { html += "<p class=\"sub\">\(esc(birth))</p>" }
@@ -471,16 +471,17 @@ enum DoctorReportPDF {
 
     // MARK: Row building
 
-    /// «label <b>value</b> tail», split at the `%@` exactly as the screen's
-    /// `ReportRow` does, so the word order stays the translator's.
+    /// «label <b>value</b> tail», split at argument `position` exactly as the
+    /// screen's `ReportRow` does, so the word order stays the translator's.
     private static func row(_ key: String, _ value: String, suffix: String? = nil, glueUnit: Bool = false) -> String {
         row(format: key.l, value, suffix: suffix, glueUnit: glueUnit)
     }
 
-    private static func row(format: String, _ value: String, suffix: String? = nil, glueUnit: Bool = false) -> String {
-        let parts = format.replacingOccurrences(of: "%d", with: "%@").components(separatedBy: "%@")
-        let label = parts.first ?? ""
-        var tail = parts.dropFirst().joined()
+    static func row(format: String, at position: Int = 1, filling others: [any CVarArg] = [],
+                    _ value: String, suffix: String? = nil, glueUnit: Bool = false) -> String {
+        let split = FormatSplit(format, at: position, value: value, filling: others)
+        let label = split?.head ?? format
+        var tail = split?.tail ?? ""
         if glueUnit { tail = tail.replacingOccurrences(of: " ", with: ReportFormat.nbsp) }
         var html = "\(esc(label))<b>\(esc(value))</b>\(esc(tail))"
         if let suffix { html += "<span class=\"sub\">\(esc(ReportFormat.joiner + suffix))</span>" }

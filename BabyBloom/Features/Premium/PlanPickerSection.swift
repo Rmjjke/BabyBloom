@@ -112,7 +112,7 @@ struct PlanPickerSection: View {
                 id: SubscriptionManager.yearlyID,
                 product: store.yearlyProduct,
                 titleKey: "premium.plan.yearly",
-                periodKey: "premium.per_year",
+                priceKey: "premium.price_per_year_fmt",
                 badge: yearlySavingsPercent.map { String(format: "premium.save_fmt".l, $0) }
                     ?? "premium.plan.best_value".l
             )
@@ -120,14 +120,14 @@ struct PlanPickerSection: View {
                 id: SubscriptionManager.monthlyID,
                 product: store.monthlyProduct,
                 titleKey: "premium.plan.monthly",
-                periodKey: "premium.per_month",
+                priceKey: "premium.price_per_month_fmt",
                 badge: nil
             )
             planRow(
                 id: SubscriptionManager.weeklyID,
                 product: store.weeklyProduct,
                 titleKey: "premium.plan.weekly",
-                periodKey: "premium.per_week",
+                priceKey: "premium.price_per_week_fmt",
                 badge: nil
             )
         }
@@ -137,7 +137,7 @@ struct PlanPickerSection: View {
         id: String,
         product: Product?,
         titleKey: String,
-        periodKey: String,
+        priceKey: String,
         badge: String?
     ) -> some View {
         let isSelected = state.selectedID == id
@@ -168,7 +168,7 @@ struct PlanPickerSection: View {
                             .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         if let product {
-                            Text(product.displayPrice + " " + periodKey.l)
+                            Text(String(format: priceKey.l, product.displayPrice))
                                 .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded).monospacedDigit())
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)

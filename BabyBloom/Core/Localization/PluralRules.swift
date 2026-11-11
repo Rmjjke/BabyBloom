@@ -112,7 +112,9 @@ extension SupportedLanguage {
 
 /// Every counted phrase the app shows: a family of keys `<name>.<category>`,
 /// each value a whole template with its number inside (`%d⍽день`). Code passes
-/// the bare number and never adds a space or a word of its own.
+/// the bare number and never adds a space or a word of its own. A family whose
+/// sentence holds more than the counted number (`arguments`) is read through
+/// `template(_:)` and filled by its caller.
 enum PluralFamily: String, CaseIterable, Sendable {
     case ageDays = "age.days"
     case ageWeeks = "age.weeks"
@@ -124,6 +126,9 @@ enum PluralFamily: String, CaseIterable, Sendable {
     case trendDrop = "trend.drop"
     case medicationDoseCount = "medication.dose_count"
     case questionCount = "question.count"
+    /// «0 of the 4 you set»: the category follows the prescribed number, the
+    /// second argument; the first is the dose count, already a phrase.
+    case medicationCount24h = "medication.count_24h"
 
     /// What the template's one argument is: an Int (`%d`), or a decimal shown
     /// with this many fraction digits and passed as text (`%@`).
@@ -139,11 +144,25 @@ enum PluralFamily: String, CaseIterable, Sendable {
         }
     }
 
+    /// The arguments every value of the family takes, as the language lint
+    /// writes them: position and conversion.
+    var arguments: [String] {
+        switch self {
+        case .medicationCount24h: return ["1@", "2d"]
+        default: return kind == .integer ? ["1d"] : ["1@"]
+        }
+    }
+
+    /// The template the language's rule picks for `count`, unfilled.
+    func template(_ count: Int) -> String {
+        LocalizationManager.shared.pluralTemplate(self, PluralOperands(count))
+    }
+
     func key(_ category: PluralCategory) -> String { "\(rawValue).\(category.rawValue)" }
 
     /// "21 день", "3 days": the family's template for `count`, filled.
     func text(_ count: Int) -> String {
-        String(format: LocalizationManager.shared.pluralTemplate(self, PluralOperands(count)), count)
+        String(format: template(count), count)
     }
 
     /// "1,5": the decimal as `appDecimal` shows it, in the template its

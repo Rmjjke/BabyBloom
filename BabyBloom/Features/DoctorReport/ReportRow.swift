@@ -10,23 +10,25 @@ struct ReportRow: View {
     let value: String
     /// A secondary tail on the same line, «· 28 Oct» (caption, textSecondary).
     let suffix: String?
-    /// What follows the `%@` in the format — « cm» in `growth.head_fmt`.
+    /// What follows the value in the format — « cm» in `growth.head_fmt`.
     private let tail: String
 
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    /// `format` is a localized string with one `%@` for the value; it is split
-    /// there, so the word order stays the translator's. A `%d` key works too.
-    init(format: String, value: String, suffix: String? = nil) {
-        let parts = format.replacingOccurrences(of: "%d", with: "%@").components(separatedBy: "%@")
-        label = parts.first ?? ""
-        tail = parts.dropFirst().joined()
+    /// `format` is a localized string; it is split at argument `position`
+    /// (`FormatSplit`), so the word order stays the translator's even when a
+    /// translation reorders the arguments. `others` fill the rest.
+    init(format: String, at position: Int = 1, filling others: [any CVarArg] = [],
+         value: String, suffix: String? = nil) {
+        let split = FormatSplit(format, at: position, value: value, filling: others)
+        label = split?.head ?? format
+        tail = split?.tail ?? ""
         self.value = value
         self.suffix = suffix
     }
 
-    /// A label that is not a key: a medication's name as typed, which a
-    /// format split at `%@` could cut.
+    /// A label that is not a key: a medication's name as typed, never read
+    /// as a format.
     init(label: String, value: String, suffix: String? = nil) {
         self.label = label
         self.tail = ""

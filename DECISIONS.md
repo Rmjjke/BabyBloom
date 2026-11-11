@@ -14,6 +14,29 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Two or more arguments are always numbered; a styled value is cut out by its number; sentences are whole templates
+
+**Every string with two or more arguments numbers them.** Word order is the
+language's: a translation may put the change before its date («+320 g desde
+el 28 oct.»), and Russian places words around the values differently. With plain `%@`
+a translator cannot reorder without swapping the values. The lint enforces
+it, so a new string cannot slip back.
+
+**The bold value is found by its number, not by the first `%@`.** The report
+row and the PDF used to split the format at its first specifier, which bolds
+the date once a translation swaps the order. `FormatSplit` keeps the copy
+plain text: markup in the JSON (`**%2$@**`) was rejected, because every
+language would have to repeat it correctly and the PDF's HTML and the
+screen's `Text` read it differently.
+
+**A sentence is one template; code glues nothing.** Fragments joined in code
+fix the order, the separator and the space for every language: «%d wk» needs
+no space in Japanese, and «the 4 h interval has passed» reads «интервал 4 ч
+прошёл» in Russian, the verb after the value. Only
+lists of independent facts stay joined by « · » in code. A count inside a
+longer sentence that needs its own form («из 21 указанной») makes the
+sentence a plural family with two arguments, chosen by that count.
+
 ## 2026-11-11 — Pseudo-languages are a debug loader override, not languages; the widest piece follows the screen's line breaking
 
 **en-XA and ja-XB are a DEBUG-and-simulator override in the loader, never
