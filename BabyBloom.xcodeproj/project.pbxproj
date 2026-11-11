@@ -297,6 +297,7 @@
 		CCF17AD21819833CF8971CB0 /* SeedScenarioMedicineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA0BA5B37E367A7D470031A /* SeedScenarioMedicineTests.swift */; };
 		CCFDCF15EB2BDBDAE9A6EC28 /* StopTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0DA8C92118E5D72749B91B /* StopTimerIntent.swift */; };
 		CD209E71F9D39A0074A6FCC5 /* DoctorVisitActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA0A6FD509A864884C0A582 /* DoctorVisitActions.swift */; };
+		CF65FCC9FE11B041C5949226 /* NotificationWords.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3F32CCC180044BD3098364 /* NotificationWords.swift */; };
 		CFAC11584D9A5A725B6C868D /* WidgetElapsedTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E664569DD7197025727900 /* WidgetElapsedTextTests.swift */; };
 		CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24305DDA00F1158E50872FA2 /* NotificationManager.swift */; };
 		CFD7D6C092C5A2D19A61BFA0 /* BirthDateChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D3C3DD2D4598F20BCF32A8 /* BirthDateChange.swift */; };
@@ -358,6 +359,7 @@
 		F9B386AEF053A4238E530F8C /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C49E15D8A3D66502ADD8D /* Analytics.swift */; };
 		FA2DA9D30512A67540F4A140 /* MedicationFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C76B80590AB2A80E9FD7B87 /* MedicationFormat.swift */; };
 		FAA1BC2E3C190770A76818AB /* uk.json in Resources */ = {isa = PBXBuildFile; fileRef = 60A98106D47C5157092AF75B /* uk.json */; };
+		FAC6D2C6874DD89BB2AF0027 /* NotificationRewordingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51D29090C908C731B8D8FD4 /* NotificationRewordingTests.swift */; };
 		FB0FF5DF7128177F2AC5DDD4 /* BabyBloomApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2513C4003999FCC2F3F5AC /* BabyBloomApp.swift */; };
 		FD34452EFE9375DDFA203750 /* MedicationReminderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485A8F117DDB926F2315EC05 /* MedicationReminderSync.swift */; };
 		FE39A2B8148ED8EF411EC42B /* TimerActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5CE0967C70CD8D11D34837 /* TimerActions.swift */; };
@@ -649,6 +651,7 @@
 		AA98648033E0B8A1C0D59E3D /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythmTests.swift; sourceTree = "<group>"; };
 		AAD9C92BD0A333C12C6E5C98 /* RoundedCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedCorner.swift; sourceTree = "<group>"; };
+		AB3F32CCC180044BD3098364 /* NotificationWords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationWords.swift; sourceTree = "<group>"; };
 		AB75C908DE32A3AF04E426B2 /* BBScreenTitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBScreenTitle.swift; sourceTree = "<group>"; };
 		AC80829507E86AC0E649D814 /* LocalizationLintTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationLintTests.swift; sourceTree = "<group>"; };
 		ACEF5753AC6154B3FFA472C6 /* da */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = da; path = da.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -677,6 +680,7 @@
 		C420362165FF7D4EDBECE42E /* ReviewPromptTriggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptTriggerTests.swift; sourceTree = "<group>"; };
 		C47139363776A0047D8C4653 /* DailyActivityCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyActivityCounter.swift; sourceTree = "<group>"; };
 		C5144AF014B68CE7465D4B34 /* AgeDescriptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeDescriptionTests.swift; sourceTree = "<group>"; };
+		C51D29090C908C731B8D8FD4 /* NotificationRewordingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationRewordingTests.swift; sourceTree = "<group>"; };
 		C57679372F5C35B036611DC8 /* OrphanedEntryAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoptionTests.swift; sourceTree = "<group>"; };
 		C75E3499496F23745A390CD3 /* LocaleDatesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocaleDatesTests.swift; sourceTree = "<group>"; };
 		C84C99B05F1B89D90089D72A /* AppClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppClock.swift; sourceTree = "<group>"; };
@@ -1040,6 +1044,7 @@
 				99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */,
 				D4EAC3A72A4E3588441CFAEB /* NewbornWindowGateTests.swift */,
 				021519F1EE5B8F81CEF2A432 /* NotificationManagerTests.swift */,
+				C51D29090C908C731B8D8FD4 /* NotificationRewordingTests.swift */,
 				B86B2CFD78D4B411B68808C9 /* NutritionRenderDump.swift */,
 				3F6AD9D11B7E3FE2B34D03AA /* OnboardingBabyBuilderTests.swift */,
 				DD98BC18610B19DAA46C3256 /* OnboardingFactsTests.swift */,
@@ -1139,6 +1144,7 @@
 				3EA0A6FD509A864884C0A582 /* DoctorVisitActions.swift */,
 				485A8F117DDB926F2315EC05 /* MedicationReminderSync.swift */,
 				24305DDA00F1158E50872FA2 /* NotificationManager.swift */,
+				AB3F32CCC180044BD3098364 /* NotificationWords.swift */,
 				2FA09374D8C6395A118085BF /* ReviewPromptService.swift */,
 				5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */,
 				2C48DEAA09C03B8BDE9814C2 /* SharedStore.swift */,
@@ -1864,6 +1870,7 @@
 				7B2737EB596E0135A560C902 /* NamePage.swift in Sources */,
 				E331F86DB9602B33518CDA0B /* NewbornWeightLoss.swift in Sources */,
 				CFC854B30F20463AE386AF22 /* NotificationManager.swift in Sources */,
+				CF65FCC9FE11B041C5949226 /* NotificationWords.swift in Sources */,
 				95E5748D0F9E4A55D45F2E20 /* NotificationsPage.swift in Sources */,
 				3D576494896C8DCF89E129E3 /* NutritionSection.swift in Sources */,
 				E494D515F729B4D9187DACC4 /* OnboardingBabyBuilder.swift in Sources */,
@@ -2004,6 +2011,7 @@
 				4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */,
 				08397073EA2C1C14B5E247EF /* NewbornWindowGateTests.swift in Sources */,
 				5F59D720E48B7CEB77CE9A60 /* NotificationManagerTests.swift in Sources */,
+				FAC6D2C6874DD89BB2AF0027 /* NotificationRewordingTests.swift in Sources */,
 				9A2E7598C81EEBFE19E565BA /* NutritionRenderDump.swift in Sources */,
 				4C6BF8041B42FEC6F9C999A8 /* OnboardingBabyBuilderTests.swift in Sources */,
 				54CFC1E0778F31C87B38B6F8 /* OnboardingFactsTests.swift in Sources */,
