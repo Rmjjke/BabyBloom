@@ -358,8 +358,8 @@ price per period (`premium.price_per_*_fmt`), a type with its count
 A weight, mass, length or volume goes through `Units`
 (`Core/Localization/Units.swift`) and its template (`unit.kg_fmt`,
 `unit.g_fmt`, `unit.cm_fmt`, `unit.ml_fmt`), so a language places the unit
-and the space, or none (Japanese, Korean and Chinese write «3.4kg»); the
-number stays on its unit's line. A stat card takes its value with the unit
+and the space, or none, as Japanese, Korean and Chinese write «3.4kg»; a
+number before its unit stays on its line. A stat card takes its value with the unit
 already inside.
 Lists of separate facts (`reportDoseLine`, the PDF's event rows) stay joined
 by « · » in code. Where one argument is styled apart from the rest — the
@@ -1533,8 +1533,12 @@ resolved strings, so each one also carries the keys and arguments it was
 written from and the moment it fires (`NotificationWords`, in its
 `userInfo`). After a change in the app or in iOS Settings, every pending
 request is added again under its own id in the new language, with the time
-left on its trigger; the weekly summary and medication reminders are planned
-again in the same pass. Re-wording in place rather than planning again: most
+left on its trigger (a calendar or repeating trigger as it is); the weekly
+summary and medication reminders are planned again in the same pass. The
+language the requests were worded in is stored (`bb.notifications.language`),
+so a launch after the phone's language changed re-words them too. An id the
+manager posts or cancels while a pass runs is skipped by it: the pass read
+the pending list before that newer request. Re-wording in place rather than planning again: most
 kinds count from a moment the store does not keep (a save, the day's first
 feed). The default baby name travels as a marker, so it follows the
 language too.

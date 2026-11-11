@@ -235,6 +235,49 @@ final class NotificationRewordingTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(center.requests["bb.med.x"]).content.title, "old")
     }
 
+    /// An id posted while the pass ran is newer than the pass's copy: the
+    /// copy is not put back over it.
+    func testAnIdTouchedDuringThePassIsNotPutBack() async throws {
+        let words = NotificationWords(title: .init("notification.idle_title"),
+                                      body: .init("notification.idle_body", babyName),
+                                      fireAt: Date().addingTimeInterval(3600))
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3600, repeats: false)
+        center.add(request("bb.engage.idle", words: words, trigger: trigger))
+        center.add(request("bb.feeding.reminder", words: words, trigger: trigger))
+
+        LocalizationManager.shared.setLanguage(.ru)
+        let reworded = await NotificationRewording.reword(center: center, now: Date(),
+                                                          skipping: { ["bb.engage.idle"] })
+        XCTAssertEqual(reworded, ["bb.feeding.reminder"])
+        XCTAssertEqual(try XCTUnwrap(center.requests["bb.engage.idle"]).content.title, "old")
+        XCTAssertEqual(try XCTUnwrap(center.requests["bb.feeding.reminder"]).content.title,
+                       "notification.idle_title".l)
+    }
+
+    /// A repeating interval keeps its trigger: it counts from its add, not
+    /// from a stored moment.
+    func testARepeatingIntervalIsKept() async throws {
+        let words = NotificationWords(title: .init("notification.feeding_title"),
+                                      body: .init("notification.feeding_body"), fireAt: nil)
+        center.add(request("bb.feeding.reminder", words: words,
+                           trigger: UNTimeIntervalNotificationTrigger(timeInterval: 7200, repeats: true)))
+
+        LocalizationManager.shared.setLanguage(.ru)
+        let reworded = await NotificationRewording.reword(center: center, now: Date())
+        XCTAssertEqual(reworded, ["bb.feeding.reminder"])
+        let trigger = try XCTUnwrap(center.requests["bb.feeding.reminder"]?.trigger as? UNTimeIntervalNotificationTrigger)
+        XCTAssertTrue(trigger.repeats)
+        XCTAssertEqual(trigger.timeInterval, 7200)
+    }
+
+    /// A launch re-words only when the language moved since the last wording;
+    /// before any wording is recorded there is nothing to compare.
+    func testALaunchRewordsOnlyWhenTheLanguageMoved() {
+        XCTAssertTrue(NotificationManager.shouldReword(worded: "en", current: "ru"))
+        XCTAssertFalse(NotificationManager.shouldReword(worded: "ru", current: "ru"))
+        XCTAssertFalse(NotificationManager.shouldReword(worded: nil, current: "ru"))
+    }
+
     private func request(_ id: String, words: NotificationWords, trigger: UNNotificationTrigger) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.title = "old"

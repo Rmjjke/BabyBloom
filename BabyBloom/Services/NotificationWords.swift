@@ -112,12 +112,18 @@ enum NotificationRewording {
     /// written in the current language. A calendar trigger is kept as it is;
     /// a time-interval one gets the time left. Under a second left, the
     /// request is left alone: it fires in the old language either way.
-    /// Returns the ids re-worded.
+    /// `skipping` names the ids added or removed since the pending list was
+    /// read: the copy here is older than them and must not be put back.
+    /// On the main actor, where the manager posts, so no post lands between
+    /// that check and the add. Returns the ids re-worded.
+    @MainActor
     @discardableResult
-    static func reword(center: NotificationCenterSeam, now: Date) async -> [String] {
+    static func reword(center: NotificationCenterSeam, now: Date,
+                       skipping: () -> Set<String> = { [] }) async -> [String] {
         var reworded: [String] = []
         for request in await center.pending() {
-            guard let words = NotificationWords(userInfo: request.content.userInfo),
+            guard !skipping().contains(request.identifier),
+                  let words = NotificationWords(userInfo: request.content.userInfo),
                   let trigger = trigger(for: request.trigger, words: words, now: now),
                   let content = request.content.mutableCopy() as? UNMutableNotificationContent
             else { continue }
@@ -134,6 +140,9 @@ enum NotificationRewording {
         switch old {
         case let calendar as UNCalendarNotificationTrigger:
             return calendar
+        // A repeating interval counts from its add, whatever is stored.
+        case let interval as UNTimeIntervalNotificationTrigger where interval.repeats:
+            return interval
         case is UNTimeIntervalNotificationTrigger:
             guard let left = words.fireAt?.timeIntervalSince(now), left >= 1 else { return nil }
             return UNTimeIntervalNotificationTrigger(timeInterval: left, repeats: false)

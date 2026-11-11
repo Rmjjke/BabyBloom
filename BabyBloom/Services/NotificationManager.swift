@@ -32,6 +32,7 @@ final class NotificationManager: @unchecked Sendable {
     private let kFirstGrowth     = "hasFirstGrowthEntry"
     private let kBabyName        = "bb.storedBabyName"
     private let kLastGainSignal  = "bb.growth.lastGainSignalAt"
+    private let kWordedLanguage  = "bb.notifications.language"
 
     private static let log = Logger(subsystem: "com.nenita.app", category: "Notifications")
 
@@ -46,13 +47,51 @@ final class NotificationManager: @unchecked Sendable {
     /// planned again, so nothing waits for the next foregrounding.
     @MainActor
     func languageChanged() {
+        UserDefaults.standard.set(LocalizationManager.shared.language.rawValue, forKey: kWordedLanguage)
+        touched.withLock { $0.passes += 1 }
         Task { @MainActor in
-            let ids = await NotificationRewording.reword(center: center, now: Date())
+            let ids = await NotificationRewording.reword(center: center, now: Date(),
+                                                         skipping: { self.touched.withLock { $0.ids } })
+            touched.withLock { state in
+                state.passes -= 1
+                if state.passes == 0 { state.ids = [] }
+            }
             Self.log.info("language change: \(ids.count, privacy: .public) pending re-worded")
             // After the re-wording, which would otherwise put back the weekly
             // request it read before this pass replaced it.
             rescheduleWeeklySummary()
             MedicationReminderSync.shared.reconcile()
+        }
+    }
+
+    /// At launch, once the language is set: a change the app was not running
+    /// for (the phone's language, with no choice made in the app) re-words
+    /// what is pending, as a change in the app does.
+    @MainActor
+    func rewordIfLanguageMoved() {
+        let current = LocalizationManager.shared.language.rawValue
+        let worded = UserDefaults.standard.string(forKey: kWordedLanguage)
+        if Self.shouldReword(worded: worded, current: current) {
+            languageChanged()
+        } else if worded == nil {
+            UserDefaults.standard.set(current, forKey: kWordedLanguage)
+        }
+    }
+
+    /// Nothing is known before the first launch that records the language:
+    /// requests from earlier builds carry no words to re-word anyway.
+    static func shouldReword(worded: String?, current: String) -> Bool {
+        worded.map { $0 != current } ?? false
+    }
+
+    /// Ids posted or cancelled while a re-wording pass runs. Its snapshot of
+    /// the pending list is older than them (an idle reminder posted again at
+    /// foregrounding), so the pass skips them.
+    private let touched = OSAllocatedUnfairLock(initialState: (passes: 0, ids: Set<String>()))
+
+    private func touch(_ id: String) {
+        touched.withLock { state in
+            if state.passes > 0 { state.ids.insert(id) }
         }
     }
 
@@ -563,6 +602,7 @@ final class NotificationManager: @unchecked Sendable {
     @MainActor
     private func add(_ content: UNNotificationContent, _ trigger: UNNotificationTrigger) {
         let request = UNNotificationRequest(identifier: NID.engageWeekly.rawValue, content: content, trigger: trigger)
+        touch(request.identifier)
         center.add(request) {
             Task { @MainActor in self.logPendingIfAsked() }
         }
@@ -665,10 +705,12 @@ final class NotificationManager: @unchecked Sendable {
             content.interruptionLevel = .timeSensitive
         }
         let trigger  = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
+        touch(id.rawValue)
         center.add(UNNotificationRequest(identifier: id.rawValue, content: content, trigger: trigger))
     }
 
     private func cancel(_ id: NID) {
+        touch(id.rawValue)
         center.remove([id.rawValue])
     }
 }

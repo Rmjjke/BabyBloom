@@ -27,14 +27,6 @@ final class DatePickerWeekTests: XCTestCase {
                 .appLanguageEnvironment(language)
             let root = try accessibility.host(picker, size: CGSize(width: 390, height: 520))
             let elements = accessibility.elements(root, automation: true)
-            if ProcessInfo.processInfo.environment["BB_PICKER_DUMP"] != nil {
-                elements.forEach { print("PICKER \(language.rawValue): \($0)") }
-                let renderer = UIGraphicsImageRenderer(bounds: root.bounds)
-                let image = renderer.image { _ in root.drawHierarchy(in: root.bounds, afterScreenUpdates: true) }
-                let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("picker-\(language.rawValue).png")
-                try image.pngData()?.write(to: url)
-                print("PICKER_PNG=\(url.path)")
-            }
             let days = elements.filter { $0.frame.width > 10 && $0.frame.width < 80 }
             let second = try XCTUnwrap(days.first { Self.isDay(2, $0.label) }, "\(language): no cell for the 2nd")
             let first = try XCTUnwrap(days.first { Self.isDay(1, $0.label) }, "\(language): no cell for the 1st")
