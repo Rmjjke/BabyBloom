@@ -71,6 +71,7 @@ struct FeedingView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { addSheetRequest = FeedingSheetRequest(type: .breast) }
+                    .accessibilityIdentifier("feeding.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }

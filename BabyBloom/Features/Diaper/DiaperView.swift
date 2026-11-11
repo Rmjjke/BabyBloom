@@ -47,6 +47,7 @@ struct DiaperView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { showAddSheet = true }
+                    .accessibilityIdentifier("diaper.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }

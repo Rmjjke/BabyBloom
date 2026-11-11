@@ -69,6 +69,7 @@ struct SleepView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { showAddSheet = true }
+                    .accessibilityIdentifier("sleep.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }

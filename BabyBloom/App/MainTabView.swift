@@ -375,6 +375,7 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
                     }
                 }
+                .accessibilityIdentifier("settings.premium")
             }
         }
         .navigationTitle("nav.profile".l)
