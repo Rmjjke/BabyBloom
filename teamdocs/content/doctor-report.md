@@ -37,7 +37,8 @@ Nothing on it grades the baby.
   (`visit.log`): a button names its action, not a fact ("Visit happened").
   Copy that refers to it quotes it by this name.
 - "Height", not WHO's "length": the app says height everywhere (stat,
-  export columns), so the parent meets one word. Card titles reuse
+  export columns), so the parent meets one word. Spanish says «Talla»
+  everywhere, WHO's Spanish word, which covers both. Card titles reuse
   `export.cat.*`.
 - Breastfeeding is "Breast / Грудь / Pecho" (`feeding.type.breast`), the one
   key for the word: the report reads the app's type name, the word of the
@@ -97,9 +98,7 @@ Nothing on it grades the baby.
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
   - `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
     one/few/many rule (`Int.plural`).
-  - The older `question.asked_at_fmt` (`· %d`) is no longer read by the app.
-    It stays in the JSON until every branch that reads it is merged, so that
-    no branch reaches main without a key it reads. Then it is deleted.
+  - The older `question.asked_at_fmt` (`· %d`) is deleted: nothing reads it.
 - **Composed in code, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
@@ -279,3 +278,10 @@ and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
   gone too; the report's durations come from the app's one writer, in hours
   and minutes. A spaced dash in the app now takes a no-break space before
   it; no key on the closed list changed with it.
+- 2026-11-11 — Spanish height is «Talla» in the report (`report.height_fmt`,
+  `report.percentile_height_fmt`), the export's table and CSV heads, the
+  stat tile and the form, where it said «Altura». The CSV's stool head stays
+  «heces», the word for a doctor; the parent's screens say «caca».
+  "Show all" carries its count in brackets in en and es: "Show all (12)",
+  «Ver todos (12)», as «Показать все (12)». `question.asked_at_fmt` is
+  deleted. The new values pass the closed word list as it stands.
