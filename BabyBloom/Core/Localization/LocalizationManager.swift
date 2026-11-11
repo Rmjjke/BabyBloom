@@ -105,8 +105,8 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         return Locale(components: components)
     }
 
-    /// Always Gregorian, speaking the app language: weekday names and the
-    /// first weekday follow the language's region, as the month names do. Not
+    /// Always Gregorian, speaking the app language: weekday and month names
+    /// follow the language, the week starts on Monday (`gregorian`). Not
     /// the device's calendar: a phone set to the Japanese or Buddhist calendar
     /// would otherwise date a birth «Reiwa 8» in an English app, and the
     /// report a doctor reads would carry a year they cannot place.
@@ -123,10 +123,20 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         Date.FormatStyle(locale: locale, calendar: gregorian(locale: locale))
     }
 
-    private static func gregorian(locale: Locale) -> Calendar {
+    /// The calendar the app counts its own weeks and months in: the charts'
+    /// week and range, the export and report periods.
+    var calendar: Calendar { Self.gregorian(locale: locale) }
+
+    /// Gregorian in the given language, the week starting on Monday in every
+    /// language (ISO weeks, as the weekly summary counts them): a US phone's
+    /// Sunday week would make the chart's week and the weekly card two
+    /// different seven days.
+    static func gregorian(locale: Locale) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = locale
         calendar.timeZone = .current
+        calendar.firstWeekday = 2
+        calendar.minimumDaysInFirstWeek = 4
         return calendar
     }
 

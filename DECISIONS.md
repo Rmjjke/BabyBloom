@@ -14,6 +14,29 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — The week starts on Monday in every language; date forms come from the locale's templates
+
+**Monday first, everywhere.** The week chart used the phone's first weekday
+while the weekly card always counted Monday to Sunday, so an en_US phone
+showed a Sunday-to-Saturday chart beside a card about "last week" that meant
+other days. The app's calendar now starts
+every week on Monday (ISO weeks). The region's own first weekday was
+rejected: a language is pinned to one region already, so the first weekday
+would differ between, say, English and Russian on the same phone, and the
+weekly card and its Monday notification could not follow it without changing
+what "last week" means.
+
+**Templates, never patterns.** Fixed patterns (`"LLLL yyyy"`, a range glued
+as `"d MMM – d"`) put the month before the year and the day before the month
+for every language, which reads wrong in Japanese, Korean and Chinese
+(«10月 2026» instead of «2026年10月») and in German («19 Okt – 25»). The
+locale knows its own order, separators and abbreviations, so `LocaleDates`
+asks for a template. Weekday names are the locale's short form, never the
+first two letters of a longer name: «週一» or «lun.» cut to two characters is
+not how either language abbreviates.
+
+---
+
 ## 2026-11-11 — Two or more arguments are always numbered; a styled value is cut out by its number; sentences are whole templates
 
 **Every string with two or more arguments numbers them.** Word order is the

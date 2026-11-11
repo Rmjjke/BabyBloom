@@ -98,6 +98,12 @@ final class Baby {
     /// Two years, after which prematurity is no longer corrected for.
     private static let correctionCutoffDays = 730
 
+    /// Ages are counted in Gregorian days and months, whatever the phone's
+    /// calendar: on a Hebrew or Islamic calendar `Calendar.current` counts
+    /// lunar months, and «2 months» would mean something else than a
+    /// paediatrician's chart.
+    private static var ageCalendar: Calendar { Calendar(identifier: .gregorian) }
+
     /// `isPreterm` and `correctedBirthDate` as pure functions of the two fields
     /// they read.
     ///
@@ -116,7 +122,7 @@ final class Baby {
     static func correctedBirthDate(birthDate: Date,
                                    gestationalWeeks: Int?,
                                    now: Date = Date()) -> Date {
-        let ageInDays = Calendar.current.dateComponents([.day], from: birthDate, to: now).day ?? 0
+        let ageInDays = ageCalendar.dateComponents([.day], from: birthDate, to: now).day ?? 0
         guard isPreterm(gestationalWeeks: gestationalWeeks),
               let weeks = gestationalWeeks,
               ageInDays <= correctionCutoffDays else {
@@ -125,15 +131,15 @@ final class Baby {
         // Guard against nonsense stored ages producing an absurd correction.
         let clamped = min(max(weeks, minGestationalWeeks), termWeeks)
         let offsetDays = (termWeeks - clamped) * 7
-        return Calendar.current.date(byAdding: .day, value: offsetDays, to: birthDate) ?? birthDate
+        return ageCalendar.date(byAdding: .day, value: offsetDays, to: birthDate) ?? birthDate
     }
 
     private static func days(from date: Date, to end: Date = Date()) -> Int {
-        Calendar.current.dateComponents([.day], from: date, to: end).day ?? 0
+        ageCalendar.dateComponents([.day], from: date, to: end).day ?? 0
     }
 
     static func months(from date: Date, to end: Date = Date()) -> Int {
-        Calendar.current.dateComponents([.month], from: date, to: end).month ?? 0
+        ageCalendar.dateComponents([.month], from: date, to: end).month ?? 0
     }
 
     /// The number and its word are joined by a no-break space, so a wrapped
