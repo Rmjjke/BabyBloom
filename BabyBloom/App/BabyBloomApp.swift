@@ -22,6 +22,19 @@ struct BabyBloomApp: App {
     // One container per process, shared with the Live Activity's Stop intent.
     var sharedModelContainer: ModelContainer { SharedStore.container }
 
+    init() {
+        // Before anything reads the language: a choice made in iOS Settings
+        // since the last launch (which relaunched the app) becomes the stored
+        // one, so `appLanguage` below already reads it.
+        LocalizationManager.adoptPerAppLanguageChange()
+        // The manager starts from the App Group, which the widget needs; the
+        // app's truth is the picker's value. Handed over before the first view:
+        // a launch that skips the splash would otherwise draw its first screen
+        // in one language and format its dates in another.
+        LocalizationManager.shared.setLanguage(
+            UserDefaults.standard.string(forKey: LocalizationManager.languageKey) ?? LocalizationManager.deviceDefault)
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -45,8 +58,7 @@ struct BabyBloomApp: App {
             // Every DatePicker (and any date SwiftUI formats itself) speaks the
             // APP language, not the device region: a ru app on an en_US phone
             // showed «2 Nov 2026». Set at the root so sheets inherit it.
-            .environment(\.locale, (SupportedLanguage(rawValue: appLanguage) ?? .fallback).environmentLocale)
-            .environment(\.calendar, (SupportedLanguage(rawValue: appLanguage) ?? .fallback).environmentCalendar)
+            .appLanguageEnvironment(LocalizationManager.environmentLanguage(for: appLanguage))
             // At the root, not on MainTabView: a cold launch shows the splash
             // for ~5 s, and a URL delivered while no view listens is dropped.
             // Before onboarding is done a link just opens onboarding, so it is
@@ -76,7 +88,6 @@ struct BabyBloomApp: App {
             // entitlements an install starts with.
             .task { await subscriptionManager.refreshEntitlements() }
             .onAppear {
-                LocalizationManager.shared.setLanguage(appLanguage)
                 // Starts the review prompt's three-day clock; written once.
                 ReviewPromptService.shared.recordFirstLaunchIfNeeded()
                 // Applies the stored opt-out before anything can be sent; a

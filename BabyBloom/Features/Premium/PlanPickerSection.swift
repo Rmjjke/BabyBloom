@@ -112,7 +112,7 @@ struct PlanPickerSection: View {
                 id: SubscriptionManager.yearlyID,
                 product: store.yearlyProduct,
                 titleKey: "premium.plan.yearly",
-                periodKey: "premium.per_year",
+                priceKey: "premium.price_per_year_fmt",
                 badge: yearlySavingsPercent.map { String(format: "premium.save_fmt".l, $0) }
                     ?? "premium.plan.best_value".l
             )
@@ -120,14 +120,14 @@ struct PlanPickerSection: View {
                 id: SubscriptionManager.monthlyID,
                 product: store.monthlyProduct,
                 titleKey: "premium.plan.monthly",
-                periodKey: "premium.per_month",
+                priceKey: "premium.price_per_month_fmt",
                 badge: nil
             )
             planRow(
                 id: SubscriptionManager.weeklyID,
                 product: store.weeklyProduct,
                 titleKey: "premium.plan.weekly",
-                periodKey: "premium.per_week",
+                priceKey: "premium.price_per_week_fmt",
                 badge: nil
             )
         }
@@ -137,7 +137,7 @@ struct PlanPickerSection: View {
         id: String,
         product: Product?,
         titleKey: String,
-        periodKey: String,
+        priceKey: String,
         badge: String?
     ) -> some View {
         let isSelected = state.selectedID == id
@@ -168,7 +168,7 @@ struct PlanPickerSection: View {
                             .foregroundStyle(isSelected ? BBTheme.Colors.primary : BBTheme.Colors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         if let product {
-                            Text(product.displayPrice + " " + periodKey.l)
+                            Text(String(format: priceKey.l, product.displayPrice))
                                 .font(BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded).monospacedDigit())
                                 .foregroundStyle(BBTheme.Colors.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -208,6 +208,8 @@ struct PlanPickerSection: View {
             .accessibilityElement(children: .combine)
         }
         .buttonStyle(BBScaleButtonStyle())
+        // Last dotted component of the product id: weekly, monthly, yearly.
+        .accessibilityIdentifier("paywall.plan.\(id.split(separator: ".").last.map(String.init) ?? id)")
     }
 
     // MARK: - Restore
@@ -221,6 +223,7 @@ struct PlanPickerSection: View {
                 .foregroundStyle(BBTheme.Colors.primary)
                 .underline()
         }
+        .accessibilityIdentifier("paywall.restore")
         .disabled(store.isLoading)
     }
 
@@ -234,8 +237,10 @@ struct PlanPickerSection: View {
             HStack(spacing: BBTheme.Spacing.lg) {
                 Link("premium.terms".l,
                      destination: LegalLinks.terms)
+                    .accessibilityIdentifier("paywall.terms")
                 Link("premium.privacy".l,
                      destination: LegalLinks.privacy)
+                    .accessibilityIdentifier("paywall.privacy")
             }
         }
         .font(.system(size: 11, design: .rounded))
@@ -302,6 +307,7 @@ struct PlanPickerCTA: View {
                     }
                 }
             }
+            .accessibilityIdentifier("paywall.cta")
             .disabled(store.isLoading || selectedProduct == nil)
             .opacity(selectedProduct == nil ? 0.5 : 1)
 
@@ -343,7 +349,7 @@ struct PlanPickerCTA: View {
               store.isEligibleForIntroOffer,
               let offer = product.subscription?.introductoryOffer,
               offer.paymentMode == .freeTrial else { return "premium.cta_subscribe".l }
-        return String(format: "premium.cta_trial_fmt".l, Self.days(in: offer.period)).gluingNumbersToUnits
+        return PluralFamily.premiumCtaTrial.text(Self.days(in: offer.period)).gluingNumbersToUnits
     }
 
     /// The line above the button. Reads the trial from the SELECTED product
@@ -360,7 +366,7 @@ struct PlanPickerCTA: View {
             return String(format: "premium.price_only_fmt".l, product.displayPrice)
         }
         let days = Self.days(in: offer.period)
-        return String(format: "premium.trial_fmt".l, days, days.dayWord, product.displayPrice).gluingNumbersToUnits
+        return String(format: "premium.trial_days_fmt".l, PluralFamily.durationDays.text(days), product.displayPrice).gluingNumbersToUnits
     }
 
     /// An introductory period expressed in days, so the copy can decline the

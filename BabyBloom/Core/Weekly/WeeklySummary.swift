@@ -228,8 +228,6 @@ struct WeeklySummary: Equatable, Sendable {
     }
 
     /// "+210", "0", "-30": the number only, for `weekly.gain_fmt` and
-    /// `velocity.per_week_fmt`.
-    static func signed(_ grams: Int) -> String {
-        grams > 0 ? "+\(grams)" : "\(grams)"
-    }
+    /// `velocity.per_week_fmt`, with the language's own signs.
+    static func signed(_ grams: Int) -> String { grams.appSigned }
 }

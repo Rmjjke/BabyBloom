@@ -38,16 +38,33 @@ carry the canonical invocations and how to report results.
 ## Localization
 
 - ALL UI strings go through the JSON `LocalizationManager`
-  (`BabyBloom/Resources/Localization/{en,ru,es}.json`). `NSLocalizedString`
+  (`BabyBloom/Resources/Localization/<lang>.json`). `NSLocalizedString`
   is never used; the `.lproj/Localizable.strings` files were deleted (PR #14).
-- `{en,ru,es}.lproj/InfoPlist.strings` IS live — it drives the per-language
+  A key a language lacks reads English.
+- `<lang>.lproj/InfoPlist.strings` IS live — it drives the per-language
   app name.
 - The widget reads a **physical copy** of the JSONs in
   `WidgetResources/Localization/`. A pre-build script fails the build when
   the copies drift. To sync:
   `cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json`
-- Adding a language means touching `SupportedLanguage`, all three JSON
-  locations and the pre-build script's language list.
+- A `SupportedLanguage` case is offered only once its JSON ships
+  (`SupportedLanguage.available`). Adding a language means the case, the
+  app's JSON, its widget copy and an `.lproj` folder in both
+  (`BabyBloom/Resources/` and `WidgetResources/Localization/`, each with
+  `CFBundleDisplayName` = `brand.name`), then `xcodegen generate`; the pre-build script
+  checks every JSON in the folder by itself. Once its file holds every key,
+  add its code to `Localization/complete-languages.txt`. From then on
+  `LocalizationLintTests` fails on any key missing from that language.
+- A sentence that names the app writes `{brand}`, never the name itself
+  (filled from `brand.name` at load). A language that declines the name
+  writes those forms inline and lists each sentence in
+  `Localization/brand-declined.txt`.
+- A string with a count is a plural family: `<family>.<category>` keys
+  (CLDR categories; `.other` always), each a whole one-argument template,
+  read through `PluralFamily.<name>.text(n)`. Never glue a number to a word
+  in code. A new family is a `PluralFamily` case plus its English keys;
+  `LocalizationLintTests` checks every complete language holds the
+  categories its rule needs.
 
 ## Theming
 

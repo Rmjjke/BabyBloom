@@ -80,8 +80,7 @@ final class WeeklyBarChartVoiceOverTests: XCTestCase {
 
     /// The chart's week, Monday first, as `BBWeeklyBarChart` lays it out.
     private func week() -> [Date] {
-        var calendar = Calendar.current
-        calendar.firstWeekday = 2
+        let calendar = LocalizationManager.shared.language.calendar
         let start = calendar.dateInterval(of: .weekOfYear, for: Date())!.start
         return (0..<7).map { calendar.date(byAdding: .day, value: $0, to: start)! }
     }
@@ -106,10 +105,7 @@ final class WeeklyBarChartVoiceOverTests: XCTestCase {
 
     /// The bar whose label is the day's weekday as the axis writes it.
     private func bar(_ root: UIView, on date: Date) -> HostedAccessibility.Element? {
-        let formatter = DateFormatter()
-        formatter.locale = LocalizationManager.shared.language.locale
-        formatter.dateFormat = "EEE"
-        let day = String(formatter.string(from: date).prefix(2)).capitalized
+        let day = LocaleDates.shortWeekday(date, locale: LocalizationManager.shared.language.locale)
         return accessibility.elements(root).first { $0.label == day }
     }
 

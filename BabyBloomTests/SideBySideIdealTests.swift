@@ -8,11 +8,28 @@ import UIKit
 /// gives each text at least its widest word, and the event row puts its time
 /// under the texts below that.
 ///
+/// The fit cases run in every shipped language and both pseudo-languages; the
+/// cases pinning where a card stacks stay in the language they were measured in.
+///
 /// The fonts scale by the device's content size, which a test cannot move, so
 /// the larger sizes are built here from the sizes the app's fonts take there.
 /// The decision cases need the device at Large and say so when it is not.
 @MainActor
 final class SideBySideIdealTests: XCTestCase {
+
+    /// Places known not to fit yet. Keys: "nutrition card <gain> <feeds>
+    /// <nappies> on 375 at Large[ bold]", "home growth card on 320 at
+    /// <size>[ bold]" (size as UIContentSizeCategory's raw value) and
+    /// "<feature key> on 320 at Large".
+    private static let knownMisses: [KnownMiss] = [
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryL", width: 284.3, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryL bold", width: 300.3, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXL", width: 314.3, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 333.3, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 339.7, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 360.3, room: 256.0),
+        KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 272.3, room: 256.0),
+    ]
 
     // MARK: - The least room, from known widths
 
@@ -84,11 +101,10 @@ final class SideBySideIdealTests: XCTestCase {
 
     private func stackReport(_ texts: () -> Texts,
                              _ build: (String, String, Color?, Style, Probe) -> AnyView) -> [String] {
-        let original = LocalizationManager.shared.language
-        defer { LocalizationManager.shared.setLanguage(original) }
+        defer { FitLanguage.restore() }
         var report: [String] = []
-        for lang in ["en", "ru", "es"] {
-            LocalizationManager.shared.setLanguage(lang)
+        for language in FitLanguage.all {
+            language.apply()
             for size in [UIContentSizeCategory.large, .extraExtraLarge, .extraExtraExtraLarge] {
                 for bold in [false, true] {
                     for (label, status, dot) in texts() {
@@ -104,7 +120,7 @@ final class SideBySideIdealTests: XCTestCase {
                         func offered() -> String {
                             "label \(probe.label ?? -1) for \(labelWord), status \(probe.status ?? -1) for \(statusWord)"
                         }
-                        let name = "\(lang) \(size.rawValue) bold=\(bold) «\(label)» | «\(status)»"
+                        let name = "\(language) \(size.rawValue) bold=\(bold) «\(label)» | «\(status)»"
                         for extra: CGFloat in stride(from: 0, through: 80, by: 2.5) where !whole(at: ideal + extra) {
                             report.append("\(name): a word breaks at the ideal \(ideal) + \(extra) (\(offered()))")
                             break
@@ -141,7 +157,7 @@ final class SideBySideIdealTests: XCTestCase {
     /// Every word of the three rows in a 256-pt card on a 320-pt screen.
     func testRussianOnA320ScreenStacksAtXXXLargeAndAtXXLargeBold() throws {
         try requireLarge()
-        try inLanguage("ru") {
+        try inLanguage(.real(.ru)) {
             let rows = cardRows(gain: .within, feeds: 8, nappies: 7)
             XCTAssertGreaterThan(cardIdeal(rows, Style(size: .extraExtraExtraLarge, bold: false)), 256)
             XCTAssertGreaterThan(cardIdeal(rows, Style(size: .extraExtraLarge, bold: true)), 256)
@@ -150,13 +166,20 @@ final class SideBySideIdealTests: XCTestCase {
 
     func testEveryLanguageStaysBesideAtLargeOnA375Screen() throws {
         try requireLarge()
-        for lang in ["en", "ru", "es"] {
-            try inLanguage(lang) {
-                for rows in [cardRows(gain: .within, feeds: 8, nappies: 7),
-                             cardRows(gain: .below, feeds: 5, nappies: 4),
-                             cardRows(gain: .below, feeds: 5, nappies: nil)] {
-                    XCTAssertLessThanOrEqual(cardIdeal(rows, Style(size: .large, bold: false)), 311, lang)
-                    XCTAssertLessThanOrEqual(cardIdeal(rows, Style(size: .large, bold: true)), 311, "\(lang) bold")
+        let room: CGFloat = 311
+        for language in FitLanguage.all {
+            try inLanguage(language) {
+                let cases: [(String, Texts)] = [
+                    ("within 8 7", cardRows(gain: .within, feeds: 8, nappies: 7)),
+                    ("below 5 4", cardRows(gain: .below, feeds: 5, nappies: 4)),
+                    ("below 5 none", cardRows(gain: .below, feeds: 5, nappies: nil)),
+                ]
+                for (name, rows) in cases {
+                    for bold in [false, true] {
+                        let key = "nutrition card \(name) on 375 at Large" + (bold ? " bold" : "")
+                        let ideal = cardIdeal(rows, Style(size: .large, bold: bold))
+                        check(language, key, width: ideal, room: room, what: "ideal")
+                    }
                 }
             }
         }
@@ -169,14 +192,14 @@ final class SideBySideIdealTests: XCTestCase {
     func testHomesGrowthCardStacksOnA320ScreenAtXXXLarge() throws {
         try requireLarge()
         let xxxL = UIContentSizeCategory.extraExtraExtraLarge
-        try inLanguage("en") {
+        try inLanguage(.real(.en)) {
             let gain = gainRow(.below, grams: "+180")
             XCTAssertGreaterThan(homeIdeal(gain, Style(size: xxxL, bold: false)), 256, "«\(gain.0)» | «\(gain.1)»")
             let percentile = percentileRow()
             XCTAssertGreaterThan(homeIdeal(percentile, Style(size: xxxL, bold: true)), 256,
                                  "bold «\(percentile.0)» | «\(percentile.1)»")
         }
-        try inLanguage("ru") {
+        try inLanguage(.real(.ru)) {
             let percentile = percentileRow()
             XCTAssertGreaterThan(homeIdeal(percentile, Style(size: xxxL, bold: true)), 256,
                                  "bold «\(percentile.0)» | «\(percentile.1)»")
@@ -186,12 +209,17 @@ final class SideBySideIdealTests: XCTestCase {
     /// Below xxxLarge every row the card can show keeps its words whole beside
     /// on 320, but for en at xxLarge with Bold Text (the next test), and at
     /// xxxLarge the free card's rows still do: the fit stacks the card only
-    /// where a row needs it.
+    /// where a row needs it. Every language is held to that; the en exception
+    /// is a measured design pin on the English rows, so it covers a language's
+    /// row only while that row reads the same English words (keys it has not
+    /// translated yet).
     func testHomesGrowthCardStaysBesideWhereEveryWordFits() throws {
         try requireLarge()
-        var report: [String] = []
-        for lang in ["en", "ru", "es"] {
-            try inLanguage(lang) {
+        let room: CGFloat = 256
+        var english: Set<String> = []
+        try inLanguage(.real(.en)) { english = Set(homeGrowthTexts(premium: true).map(words)) }
+        for language in FitLanguage.all {
+            try inLanguage(language) {
                 for bold in [false, true] {
                     let cases: [(UIContentSizeCategory, Texts)] = [
                         (.large, homeGrowthTexts(premium: true)),
@@ -199,16 +227,25 @@ final class SideBySideIdealTests: XCTestCase {
                         (.extraExtraLarge, homeGrowthTexts(premium: true)),
                         (.extraExtraExtraLarge, homeGrowthTexts(premium: false)),
                     ]
-                    for (size, rows) in cases where !(lang == "en" && bold && size == .extraExtraLarge) {
-                        for texts in rows where homeIdeal(texts, Style(size: size, bold: bold)) > 256 {
-                            report.append("\(lang) \(size.rawValue) bold=\(bold) «\(texts.0)» | «\(texts.1)»: "
-                                          + "ideal \(homeIdeal(texts, Style(size: size, bold: bold)))")
-                        }
+                    for (size, all) in cases {
+                        let pinned = bold && size == .extraExtraLarge
+                        let rows = pinned ? all.filter { !english.contains(words($0)) } : all
+                        if rows.isEmpty { continue }
+                        let style = Style(size: size, bold: bold)
+                        let ideals = rows.map { homeIdeal($0, style) }
+                        let widest = ideals.max() ?? 0
+                        // The rows that miss, named in the message: one key per
+                        // card shape keeps the known-miss table stable when a
+                        // translation changes which row misses.
+                        let missing = zip(rows, ideals).filter { $0.1 > room }
+                            .map { "«\($0.0.0)» | «\($0.0.1)» \(points($0.1))" }
+                        let key = "home growth card on 320 at \(size.rawValue)" + (bold ? " bold" : "")
+                        check(language, key, width: widest, room: room,
+                              what: "widest row ideal", detail: missing.joined(separator: "; "))
                     }
                 }
             }
         }
-        XCTAssertTrue(report.isEmpty, report.joined(separator: "\n"))
     }
 
     /// With Premium, en «+180 g/week ·» is one run: the grams are glued to
@@ -217,7 +254,7 @@ final class SideBySideIdealTests: XCTestCase {
     /// 256-pt card, so the card stacks there.
     func testHomesGrowthCardStacksAtXXLargeBoldWhereTheGainRunMisses() throws {
         try requireLarge()
-        try inLanguage("en") {
+        try inLanguage(.real(.en)) {
             let gain = gainRow(.below, grams: "+180")
             XCTAssertGreaterThan(homeIdeal(gain, Style(size: .extraExtraLarge, bold: true)), 256,
                                  "«\(gain.0)» | «\(gain.1)»")
@@ -247,6 +284,10 @@ final class SideBySideIdealTests: XCTestCase {
         let status = word.localizationKey.l
         let value = grams.map { String(format: "velocity.per_week_fmt".l, $0) + ReportFormat.listSeparator + status } ?? status
         return ("nutrition.row_gain".l, value, word.dot)
+    }
+
+    private func words(_ row: (String, String, Color?)) -> String {
+        "\(row.0) | \(row.1)"
     }
 
     private func percentileRow() -> (String, String, Color?) {
@@ -321,16 +362,20 @@ final class SideBySideIdealTests: XCTestCase {
                        "the row leaves its label the widest word at its ideal (10 pt above and below)")
     }
 
-    /// At Large on a 320-pt screen every ru text stays beside its icon,
-    /// wrapping between words: on one line the «Неограниченная история
-    /// записей» row is wider than the card.
-    func testTheFeatureRowsStayBesideAtLargeOn320InRussian() throws {
+    /// At Large on a 320-pt screen every text stays beside its icon, wrapping
+    /// between words: on one line the ru «Неограниченная история записей» row
+    /// is wider than the card. The row's ideal is its widest word plus the
+    /// same chrome (above), so this is a widest-word fit.
+    func testTheFeatureRowsStayBesideAtLargeOn320InEveryLanguage() throws {
         try requireLarge()
         let card = 320 - 2 * BBTheme.Spacing.lg
-        try inLanguage("ru") {
-            for feat in PremiumFeatureList.features {
-                let row = PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: .beside)
-                XCTAssertLessThanOrEqual(idealWidth(row), card, "«\(feat.key.l)»")
+        for language in FitLanguage.all {
+            try inLanguage(language) {
+                for feat in PremiumFeatureList.features {
+                    let row = PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: .beside)
+                    check(language, "\(feat.key) on 320 at Large", width: idealWidth(row), room: card,
+                          what: "ideal", detail: "«\(feat.key.l)»")
+                }
             }
         }
     }
@@ -340,7 +385,7 @@ final class SideBySideIdealTests: XCTestCase {
     /// still fit beside too.
     func testTheFeatureListTakesOneShapeForAllItsRows() throws {
         try requireLarge()
-        try inLanguage("ru") {
+        try inLanguage(.real(.ru)) {
             let list = PremiumFeatureList()
             let widest = PremiumFeatureList.features.map {
                 idealWidth(PremiumFeatureRow(icon: $0.icon, text: $0.key.l, shape: .beside))
@@ -454,11 +499,27 @@ final class SideBySideIdealTests: XCTestCase {
                           + UIApplication.shared.preferredContentSizeCategory.rawValue)
     }
 
-    private func inLanguage(_ lang: String, _ body: () throws -> Void) throws {
-        let original = LocalizationManager.shared.language
-        defer { LocalizationManager.shared.setLanguage(original) }
-        LocalizationManager.shared.setLanguage(lang)
+    private func inLanguage(_ language: FitLanguage, _ body: () throws -> Void) throws {
+        defer { FitLanguage.restore() }
+        language.apply()
         try body()
+    }
+
+    /// A fit, or a listed miss that must still miss.
+    private func check(_ language: FitLanguage, _ key: String, width: CGFloat, room: CGFloat,
+                       what: String, detail: String = "") {
+        let fits = width <= room
+        let message = "\(language) \(key): \(what) \(points(width)) in \(points(room))"
+            + (detail.isEmpty ? "" : " (\(detail))")
+        if KnownMiss.listed(Self.knownMisses, language, key) {
+            if fits { XCTFail("\(language) \(key) fits now: remove its known-miss row") }
+        } else {
+            XCTAssertTrue(fits, message)
+        }
+    }
+
+    private func points(_ value: CGFloat) -> String {
+        String(format: "%.1f", Double(value))
     }
 
     private func idealWidth<V: View>(_ view: V) -> CGFloat {

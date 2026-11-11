@@ -684,8 +684,7 @@ struct WeightGainCard: View {
 
     /// Signed, so a week of loss reads unmistakably as loss.
     private func formatted(_ gramsPerWeek: Double) -> String {
-        let rounded = Int(gramsPerWeek.rounded())
-        return rounded > 0 ? "+\(rounded)" : "\(rounded)"
+        Int(gramsPerWeek.rounded()).appSigned
     }
 
     private func gainNumber(_ reading: WeightVelocity.Reading) -> some View {
@@ -694,7 +693,7 @@ struct WeightGainCard: View {
     }
 
     private func interval(_ reading: WeightVelocity.Reading) -> some View {
-        Text(String(format: "velocity.interval_fmt".l, reading.intervalDays).gluingNumbersToUnits)
+        Text(PluralFamily.velocityInterval.text(reading.intervalDays).gluingNumbersToUnits)
             .font(BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textSecondary)
     }
@@ -746,7 +745,7 @@ struct CentileTrendCard: View {
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                 }
             case let .sustainedDrop(spaces):
-                FlagRow(text: String(format: "trend.drop_fmt".l, spaces.appDecimal(1)))
+                FlagRow(text: PluralFamily.trendDrop.text(spaces))
             case .crossingUp:
                 // Neutral by design: an upward crossing is a fact, not a
                 // finding. No tick — that belongs to `.stable` — and none of

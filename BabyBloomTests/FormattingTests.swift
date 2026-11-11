@@ -26,12 +26,12 @@ final class FormattingTests: XCTestCase {
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(0.5), to: now), String(format: "stats.min_ago".l, 30).gluingNumbersToUnits)
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(47.9), to: now), String(format: "stats.h_ago".l, 47).gluingNumbersToUnits)
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(48), to: now),
-                       String(format: "stats.days_ago_fmt".l, "2\(nbsp)\(2.dayWord)"))
+                       String(format: "stats.days_ago_fmt".l, PluralFamily.durationDays.text(2)))
         // Floored: 2 days 23 hours is still «2 days», never rounded up to 3.
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(71), to: now),
-                       String(format: "stats.days_ago_fmt".l, "2\(nbsp)\(2.dayWord)"))
+                       String(format: "stats.days_ago_fmt".l, PluralFamily.durationDays.text(2)))
         XCTAssertEqual(ReportFormat.ago(from: hoursAgo(131), to: now),
-                       String(format: "stats.days_ago_fmt".l, "5\(nbsp)\(5.dayWord)"))
+                       String(format: "stats.days_ago_fmt".l, PluralFamily.durationDays.text(5)))
     }
 
     func testAgoUsesTheRussianDayPlurals() {
@@ -59,7 +59,7 @@ final class FormattingTests: XCTestCase {
     func testTheQuestionCountTakesTheRussianPlurals() {
         LocalizationManager.shared.setLanguage(.ru)
         func count(_ n: Int) -> String {
-            String(format: n.plural(one: "question.count.one", few: "question.count.few", many: "question.count.many"), n)
+            PluralFamily.questionCount.text(n)
                 .replacingOccurrences(of: nbsp, with: " ")
         }
         XCTAssertEqual(count(1), "1 вопрос")
@@ -84,7 +84,7 @@ final class FormattingTests: XCTestCase {
     func testTheReportPeriodAndDateHoldTogether() {
         for language in [SupportedLanguage.en, .ru, .es] {
             LocalizationManager.shared.setLanguage(language)
-            XCTAssertEqual(ReportFormat.periodLength(days: 20), "20\(nbsp)\(20.dayWord)", "\(language)")
+            XCTAssertEqual(ReportFormat.periodLength(days: 20), PluralFamily.durationDays.text(20), "\(language)")
             XCTAssertEqual(ReportFormat.periodLength(days: 0), "report.period_today".l, "\(language)")
             let date = ReportFormat.dayMonth(now)
             XCTAssertFalse(date.contains(" "), "\(language): «\(date)»")

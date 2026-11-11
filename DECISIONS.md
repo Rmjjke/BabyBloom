@@ -14,6 +14,181 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Fifteen languages ship their files before their copy; a missing key reads English, never an English copy
+
+uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT and zh-Hant join en, ru and
+es. Each ships its JSON (app and widget) and an `.lproj` in the app and the
+widget before any of its copy exists; the JSON starts with `brand.name`
+alone (Ukrainian «Нічка», the rest «Bitty»), and every key it lacks reads
+English at run time.
+
+**Why no English copies in the file.** A key present in a language's file is
+a key that language has translated. Copying English in would hide what is
+left to translate from the lint and from the translator, and would freeze
+stale English into the file when the English changes.
+
+**Why the lint asks for every permission prompt only of a complete
+language.** The same rule as the JSON parity: a language in
+`complete-languages.txt` must hold every key; one still being translated
+holds the display name and nothing English lacks. A prompt its
+`InfoPlist.strings` does not hold reads the base `Info.plist`'s English.
+
+**What a phone in one of these languages sees meanwhile.** iOS resolves to
+the language as soon as its `.lproj` ships, so the app's locale follows it:
+English sentences carry that language's dates, weekdays and decimal commas,
+and system controls speak the language. iOS Settings › Bitty › Language and
+the App Store listing name every shipped language. A build released before
+a language's copy lands presents that language as supported while its text
+reads English.
+
+**Brand.** This extends the per-language brand below: Ukrainian declines
+«Нічка» as Russian declines «Ночка»; the other new languages keep «Bitty»
+for now.
+
+## 2026-11-11 — The week starts on Monday in every language; date forms come from the locale's templates
+
+**Monday first, everywhere.** The week chart used the phone's first weekday
+while the weekly card always counted Monday to Sunday, so an en_US phone
+showed a Sunday-to-Saturday chart beside a card about "last week" that meant
+other days. The app's calendar now starts
+every week on Monday (ISO weeks). The region's own first weekday was
+rejected: a language is pinned to one region already, so the first weekday
+would differ between, say, English and Russian on the same phone, and the
+weekly card and its Monday notification could not follow it without changing
+what "last week" means.
+
+**Templates, never patterns.** Fixed patterns (`"LLLL yyyy"`, a range glued
+as `"d MMM – d"`) put the month before the year and the day before the month
+for every language, which reads wrong in Japanese, Korean and Chinese
+(«10月 2026» instead of «2026年10月») and in German («19 Okt – 25»). The
+locale knows its own order, separators and abbreviations, so `LocaleDates`
+asks for a template. Weekday names are the locale's short form, never the
+first two letters of a longer name: «週一» or «lun.» cut to two characters is
+not how either language abbreviates.
+
+---
+
+## 2026-11-11 — Two or more arguments are always numbered; a styled value is cut out by its number; sentences are whole templates
+
+**Every string with two or more arguments numbers them.** Word order is the
+language's: a translation may put the change before its date («+320 g desde
+el 28 oct.»), and Russian places words around the values differently. With plain `%@`
+a translator cannot reorder without swapping the values. The lint enforces
+it, so a new string cannot slip back.
+
+**The bold value is found by its number, not by the first `%@`.** The report
+row and the PDF used to split the format at its first specifier, which bolds
+the date once a translation swaps the order. `FormatSplit` keeps the copy
+plain text: markup in the JSON (`**%2$@**`) was rejected, because every
+language would have to repeat it correctly and the PDF's HTML and the
+screen's `Text` read it differently.
+
+**A sentence is one template; code glues nothing.** Fragments joined in code
+fix the order, the separator and the space for every language: «%d wk» needs
+no space in Japanese, and «the 4 h interval has passed» reads «интервал 4 ч
+прошёл» in Russian, the verb after the value. Only
+lists of independent facts stay joined by « · » in code. A count inside a
+longer sentence that needs its own form («из 21 указанной») makes the
+sentence a plural family with two arguments, chosen by that count.
+
+## 2026-11-11 — Pseudo-languages are a debug loader override, not languages; the widest piece follows the screen's line breaking
+
+**en-XA and ja-XB are a DEBUG-and-simulator override in the loader, never
+`SupportedLanguage` cases.** As cases they would reach the release picker, the
+plural table, the widget's exhaustive switches and the lint's list of complete
+languages. Every one of those would then need an exception, and a missed
+exception would ship a test language. As an override they exist only in debug
+simulator builds and in the tests, which build the same tables from `en.json`.
+Each one borrows a real language's rule and typesetting (en, ja), so
+plurals and the Japanese glyph forms run as they will in production.
+
+**A Chinese or Japanese piece is measured per line-break opportunity, with a
+fixed tokenizer locale.** Splitting on spaces measured a whole Japanese
+sentence as one word, so every fit would fail or be waived. The tokenizer under
+the "ja" locale segments by dictionary phrase («今日» / «赤ちゃん», and a
+full-width Latin run as one word), while Core Text wraps Japanese between any
+two characters the kinsoku rules allow. That held under ja, en and no language
+attribute. A measured piece wider than anything the screen keeps together
+would fail fits that are not misses, so the locale is fixed. Scripts that write
+spaces skip the tokenizer: it would also cut "e-mail" at the hyphen, and their
+measures are pinned.
+
+**Letter-spacing is 0 in ja, ko and zh-Hant.** The type scale's tracking was
+tuned for SF's Latin. On a full-width grid it opens gaps between characters,
+and on the splash tagline (4.5) it spreads a short Japanese phrase across the
+screen.
+
+---
+
+## 2026-11-11 — Plurals: our own CLDR table in code, no `.stringsdict`, the JSON stays the one source
+
+A count selects its sentence by CLDR category from the operands of the number
+as shown (n, i, v, f, t), through a rule table for the 15 languages in
+`PluralRules.swift`. Each category is a whole template in the language's JSON
+(`age.days.few`: `"%d дня"`). A family may leave out a category no count it
+shows reaches; the lookup falls back to `.other`, which every family holds.
+
+**Why.** The two hand-written rules covered en/es and ru only: French and
+Portuguese (0 is singular), Ukrainian and the one-form languages (ja, ko,
+zh-Hant) could not be written, and the code glued the number to its word, so
+the space before a counter was the code's, not the language's. Not taken:
+`.stringsdict` / String Catalogs, which would split every string between two
+formats, take plurals out of the JSON the widget copies, the lint and the
+review read, and give back the `NSLocalizedString` path the app dropped.
+`Foundation`'s inflection (`^[…](inflect: true)`) covers a few languages and
+no count shown with decimals. The table is one switch of eight rules copied
+from CLDR, tested row by row against its samples; it changes only when CLDR
+changes a rule. Reading the category from the shown digits, not the Double,
+is what makes «1,0» and «0,96 → 1,0» read as the copy says. `.many` is
+optional where it means millions (es, fr, pt): no count in the app reaches
+it, and requiring it would make translators write a sentence nobody sees.
+
+## 2026-11-11 — Sentences name the app with `{brand}`; declined forms stay inline
+
+Every sentence that names the app writes `{brand}`, filled from the
+language's `brand.name` when the table loads. A language whose grammar changes
+the name's ending (ru «в Ночку», «для Ночки») writes those forms inline and
+lists the sentence in `Localization/brand-declined.txt`; its nominative uses
+the token like every other language.
+
+**Why.** The name was typed into 16 sentences per language, and the copies
+drift: a Spanish fact said "Bitty" for a release. Renaming the app in a
+language is now one value, and a test fails any sentence that types a shipped
+name by hand. A declining language still rewrites its declined forms by hand
+on a rename; the test fails until it does. Not taken: case tokens (`{brand.gen}`, `{brand.acc}`), which
+need a case table per language and put grammar into the engine for the few
+languages that decline a name (ru, uk); filling at each lookup instead of at
+load (a replace on every view render). The English fallback is filled with the
+current language's name too, so a key a language lacks never shows another
+language's name.
+
+## 2026-11-11 — The device language is matched by Foundation; each language pins one region; a Simplified-Chinese device gets English
+
+The app grows from three languages to fifteen, with regional pairs
+(`pt-BR`/`pt-PT`) and a script variant (`zh-Hant`). Matching only the primary
+subtag of the first preferred language made the pairs collide, mapped `no` and
+`nn` to nothing and never read a second preferred language.
+
+**Rule.** The device list is matched with `Bundle.preferredLocalizations`
+over the languages whose file ships, English first. Each language pins one
+region for its formats (`es_419`, `zh_Hant_TW` for Hong Kong and Macau too);
+the phone's region does not change them. Dates are always Gregorian. A
+missing key reads English. A device on Simplified Chinese only gets English.
+
+**Why.** Foundation's matcher is the one iOS uses to pick an app's
+localization and its App Store page, so the app agrees with the system on
+every device; a hand-written subtag table would re-derive `pt-AO` → `pt-PT`
+or `zh-MO` → `zh-Hant` and drift from it. One region per language gives one
+format per language, which a translator and a reviewer can check once.
+Simplified Chinese is not shipped, and Traditional reads as foreign to a
+mainland reader; English matches what iOS and the store already show that
+user, and 繁體中文 stays one tap away in the picker. A doctor reading a report
+needs a Gregorian year whatever calendar the parent's phone uses.
+
+**Rejected.** Following the device region (a Spanish app on a US phone would
+mix formats per phone); falling back to Traditional for `zh-Hans`; showing raw
+keys for an incomplete file (a half-translated file would be unusable).
+
 ## 2026-11-08 — A sheet's pinned Save leaves while the keyboard is up; the bar's ✓ saves meanwhile
 
 Pinned under the form (2026-10-28), an entry sheet's big Save rode up on the

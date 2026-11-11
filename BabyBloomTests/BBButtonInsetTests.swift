@@ -21,7 +21,7 @@ final class BBButtonInsetTests: XCTestCase {
     /// label used to run to within a point of both edges.
     func testTheTrialLabelWrapsInsideTheInsetOnASmallPhone() throws {
         try requireLarge()
-        let title = "Попробовать 7\u{00A0}дн. бесплатно"
+        let title = "Попробовать 7\u{00A0}дней бесплатно"
         let buttons: [(name: String, found: Ink)] = [
             ("primary", try ink(of: BBPrimaryButton(title, icon: "arrow.right") {},
                                 ground: BBTheme.Colors.primary, label: BBTheme.Colors.onPrimary)),

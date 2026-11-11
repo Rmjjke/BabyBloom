@@ -73,6 +73,7 @@ struct FactPage: View {
             BBPrimaryButton("button.next".l, icon: "arrow.right") {
                 onContinue()
             }
+            .accessibilityIdentifier("onboarding.next")
             .padding(.horizontal, BBTheme.Spacing.lg)
             .padding(.bottom, 40)
             .opacity(appear ? 1 : 0)

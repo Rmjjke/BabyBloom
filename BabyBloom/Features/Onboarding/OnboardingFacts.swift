@@ -78,10 +78,16 @@ enum OnboardingFacts {
         return candidates[abs(seed) % candidates.count]
     }
 
-    /// Body text with the name substituted. Keys without `%@` ignore the
-    /// argument — `String(format:)` handles both shapes.
+    /// Body text with the name substituted.
     static func body(for fact: Fact, name: String) -> String {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        return String(format: fact.key.l, trimmed.isEmpty ? "baby.default_name".l : trimmed)
+        return fill(fact.key.l, name: trimmed.isEmpty ? "baby.default_name".l : trimmed)
+    }
+
+    /// Only a text that takes a string argument (`%@`, `%1$@`) goes through
+    /// `String(format:)`: in one without it, a translation's "80% s" would
+    /// read as a specifier with no matching argument and crash.
+    static func fill(_ text: String, name: String) -> String {
+        FormatSplit.arguments(in: text).contains { $0.conversion == "@" } ? String(format: text, name) : text
     }
 }

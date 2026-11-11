@@ -4,21 +4,11 @@ import Foundation
 enum WeeklyFormat {
     private static var locale: Locale { LocalizationManager.shared.language.locale }
 
-    /// "20 – 26 Oct": the month once when both ends share it.
-    static func range(_ week: WeeklySummary.Week) -> String {
-        let calendar = WeeklySummary.calendar
-        let last = calendar.date(byAdding: .day, value: -1, to: week.end)!
-        let sameMonth = calendar.component(.month, from: week.start) == calendar.component(.month, from: last)
-        guard sameMonth else {
-            return String(format: "weekly.range_fmt".l, week.start.appDayMonth, last.appDayMonth)
-        }
-        // The month is written once, on the side the language puts it:
-        // "Oct 19 – 25" in English, "19 – 25 окт." in Russian.
-        let dayOnly = { (date: Date) in date.formatted(.dateTime.day().locale(locale)) }
-        let monthFirst = !(last.appDayMonth.first?.isNumber ?? true)
-        return monthFirst
-            ? String(format: "weekly.range_fmt".l, week.start.appDayMonth, dayOnly(last))
-            : String(format: "weekly.range_fmt".l, dayOnly(week.start), last.appDayMonth)
+    /// "Oct 19 – 25", «10月19日～25日»: the month once when both ends share
+    /// it, in the language's own order.
+    static func range(_ week: WeeklySummary.Week, locale: Locale = LocalizationManager.shared.language.locale) -> String {
+        let last = WeeklySummary.calendar.date(byAdding: .day, value: -1, to: week.end)!
+        return LocaleDates.dayRange(week.start, last, locale: locale)
     }
 
     static func perDay(_ value: Double) -> String {

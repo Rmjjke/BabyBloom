@@ -143,8 +143,9 @@ final class WidgetRenderDump: XCTestCase {
         let keys = [
             "brand.name", "baby.default_name", "tab.feeding", "tab.sleep",
             "duration.min_only", "duration.h_min", "duration.h_only",
-            // Whole days since the last feed, from 48 hours.
-            "age.day.one", "age.day.few", "age.day.many",
+            // Whole days since the last feed, from 48 hours: the two forms
+            // every shipped language holds.
+            "duration.days.one", "duration.days.other",
             "status.feeding_going",
             "widget.description_small", "widget.name_medium",
             "widget.description_medium",

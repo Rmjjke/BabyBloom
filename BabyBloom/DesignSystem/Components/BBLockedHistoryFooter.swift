@@ -24,7 +24,7 @@ struct BBLockedHistoryFooter: View {
                     .font(.system(size: 15))
                     .foregroundStyle(BBTheme.Colors.primary)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("history.free_window".l)
+                    Text(PluralFamily.historyFreeWindow.text(HistoryWindow.freeDays))
                         .font(BBTheme.Typography.scaled(13, relativeTo: .body,
                                                         weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
@@ -54,10 +54,10 @@ struct BBLockedHistoryFooter: View {
         // they cannot open: the one failure worse than showing no padlock at
         // all. `bbLockedAccessibility` appends `premium.locked_a11y` as the
         // VALUE, so the row reads «Показаны последние 15 дней, Доступно с
-        // Премиум, кнопка» — the state, the gate, the affordance, once each.
+        // Premium, кнопка» — the state, the gate, the affordance, once each.
         // A hint would repeat the gate a third time, since the visible second
         // line already says it.
-        .accessibilityLabel(Text("history.free_window".l))
+        .accessibilityLabel(Text(PluralFamily.historyFreeWindow.text(HistoryWindow.freeDays)))
         .bbLockedAccessibility(true)
         // On insertion, not on scroll: the hosting lists are plain VStacks, so
         // this reads "a day on which a capped list was opened", whether or not

@@ -281,34 +281,215 @@ One consequence worth knowing before you debug something:
 
 ## Localization
 
-Three languages: `en`, `ru`, `es` (`SupportedLanguage` in
-`Core/Localization/LocalizationManager.swift`).
+`SupportedLanguage` (`Core/Localization/LocalizationManager.swift`) lists
+every language the app knows, 15 cases with BCP-47 raw values (`pt-BR`,
+`pt-PT`, `nb`, `zh-Hant`) that double as the JSON file names. A case alone
+ships nothing: `SupportedLanguage.available` holds the cases whose
+`<raw>.json` is in the bundle (English always), and the picker, the device
+step and stored values all read only that list. A language goes live when
+its file lands. All 15 ship a file: en, ru and es whole (the languages in
+`Localization/complete-languages.txt`), uk, ja, ko, fr, de, sv, nb, da, fi,
+pt-BR, pt-PT and zh-Hant as they are translated, starting from `brand.name`
+alone. A file never holds an English copy of a value: an untranslated key is
+simply absent and reads English.
 
 **`NSLocalizedString` is never called.** Every UI string resolves through a
 JSON dictionary per language and the `.l` extension. The `.lproj/
-Localizable.strings` files are gone; `{en,ru,es}.lproj/InfoPlist.strings` is
-still live and is what makes the app icon's caption change per language.
+Localizable.strings` files are gone; `<lang>.lproj/InfoPlist.strings` is
+still live and is what makes the app icon's caption change per language (and
+what tells iOS and the App Store the app speaks that language, so iOS
+Settings › the app › Language offers it). Its `CFBundleDisplayName` equals
+the language's `brand.name`; a permission prompt the file does not hold yet
+reads the base `Info.plist`'s English. The widget has its own
+`WidgetResources/Localization/<lang>.lproj/InfoPlist.strings` per language,
+the extension's name only. `LocalizationLintTests` checks both against
+`brand.name`, and asks for every prompt only of a complete language.
+
+**A missing key reads English.** The English table is always loaded; a lookup
+goes language → English → the key itself. A language file may therefore hold
+only part of the keys. Debug builds log each missing key once per language
+(subsystem `com.nenita.app`, category `Localization`).
+
+**The app's name is filled in at load.** A sentence that names the app
+writes `{brand}`; `LocalizationManager.branded` replaces it with the
+language's `brand.name` in the language's table and in the English fallback,
+once per load, so a missing key still shows the current language's name. A
+language that declines the name (ru) writes those forms inline and lists each
+such sentence in `Localization/brand-declined.txt` (`<language> <key>`).
+`BrandTokenTests` holds every sentence English writes with `{brand}` to the
+token or a declared declined form, fails a value that types any shipped
+`brand.name` by hand or a declined form that lost the name's stem (so a
+rename in ru fails until its forms are rewritten), and checks that the
+strings pointing at iOS Settings carry the `CFBundleDisplayName` unless they
+are declared declined (ru names the app there, «для Ночки», not the row). The three strings that pass the name as
+`%@` (`widget.name_medium`, `onboarding.widget.howto`,
+`export.generated_by_fmt`) keep it as an argument.
+
+**A count picks its sentence by CLDR plural category.** A string that
+carries a count is a plural family: one key per category the language uses,
+`<family>.<category>` (`age.days.one`, `.few`, `.many`, `.other`), each a
+whole template with one argument (`"%d дней"`), so the space or its absence
+between number and word belongs to the language's copy (ja «7日»). The
+families are `PluralFamily` (`Core/Localization/PluralRules.swift`); a view
+calls `PluralFamily.ageDays.text(days)` and never builds a key. The category
+comes from the CLDR operands of the number **as shown** — n, i, v, f, t —
+through `SupportedLanguage.pluralCategory`, a table of the 15 languages' CLDR
+rules in code: «1,0» has v = 1, so ru reads «1,0 коридора» and es «1,0»
+takes `.one`. A decimal family (`trend.drop`) is shown with `appDecimal`'s
+digits and passed as `%@`; the category is read from those same digits, so
+0.96 shown as «1,0» is the 1.0 row. Lookup: the language's category → its
+`.other` → English's category for the number → English's `.other` → the key.
+A family may leave out a category its rule names when no count it shows
+reaches it (es and fr `.many` is whole millions); `.other` is always there.
+
+A family's arguments are declared in `PluralFamily.arguments`: one count for
+most (`["1d"]`, `["1@"]` for a decimal), and two for the 24-hour medication
+line (`["1@", "2d"]`: the dose phrase, then the prescribed count that picks
+the form, «из 21 указанной» / «из 22 указанных»). Such a family is filled
+from `template(_:)` with every argument, never through `text(_:)`.
+
+**A string with two or more arguments numbers every one** (`%1$@`, `%2$d`),
+so a translation can reorder them. A sentence is one template with its
+arguments, never fragments glued in code: the medication status lines
+(`medication.passed_primary_fmt`, `waiting_secondary_*_fmt`, `meta_fmt`), the
+price per period (`premium.price_per_*_fmt`), a type with its count
+(`report.type_count_fmt`) and a number with its unit
+(`unit.weeks_short_fmt`) each carry their own separators and no-break spaces.
+Lists of separate facts (`reportDoseLine`, the PDF's event rows) stay joined
+by « · » in code. Where one argument is styled apart from the rest — the
+bold value of a report row on screen and in the PDF — `FormatSplit`
+(`Core/Localization/FormatSplit.swift`) cuts the localized format at that
+argument **by its number**, fills the others, and gives the text before and
+after it, so «**+320 g** desde el 28 oct.» bolds the right value too.
 
 The JSONs exist in **two physical locations**:
 
-- `BabyBloom/Resources/Localization/{en,ru,es}.json` — the source of truth.
-- `WidgetResources/Localization/{en,ru,es}.json` — a copy the widget target
+- `BabyBloom/Resources/Localization/<lang>.json` — the source of truth.
+- `WidgetResources/Localization/<lang>.json` — a copy the widget target
   bundles. It must be a distinct path outside any other scanned source root,
   or XcodeGen dedupes the file references with the app target and the `.appex`
   ends up with no Resources build phase at all — the widget then renders raw
   i18n keys.
 
-A pre-build script (`preBuildScripts` in `project.yml`) `cmp`s the two sets
-and fails the build on drift. Do not disable it; sync instead:
+A pre-build script (`preBuildScripts` in `project.yml`) `cmp`s every JSON in
+the app folder against its widget copy, fails on a widget file with no app
+original, and fails the build on drift. It globs the folder, so a new
+language needs no edit there. Do not disable it; sync instead:
 
     cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json
 
-**Language resolution order** (`LocalizationManager.storedLanguage`):
-launch argument → App Group suite → this process's own `UserDefaults`
-(legacy, so upgrading users keep their choice) → device default. The launch
-argument must be read explicitly via `volatileDomain(forName:)`: the argument
-domain's precedence applies only within `UserDefaults.standard`, and the App
-Group is a separate store that would otherwise shadow it.
+**Localization lint.** `LocalizationLintTests` checks every shipped language
+against `en.json`:
+- Keys: no key English lacks. A `PluralFamily` key (`age.days.one`, …)
+  compares by its family, so a language's own categories are not read as
+  extras; a family is present when its `.other` is. A plain key that shares a
+  family's name (`question.count` beside `question.count.other`) fails, as
+  does a category the language's rule never selects (`.few` in English) or a
+  `<x>.<category>` key with no `PluralFamily` behind it. English holds exactly
+  the families the code reads.
+- Plural categories: a complete language holds, per family, `.other` and
+  every category its rule selects over the counts the family shows (whole
+  numbers 0–999; 0.0–99.9 for a decimal family). A complete ru without
+  `age.days.many` fails; es needs no `.many`.
+- Arguments: every value reads the same arguments, with the same types, as
+  English. A family value takes exactly one argument of its family's kind (`%d`, or `%@` for a decimal).
+- Spacing (ja, zh-Hant): no space between a number and Han or Kana, nor
+  between Han or Kana and Latin text (`{brand}` counts as Latin); ko: no
+  space between a number and the Hangul after it (Apple's «7日», «7일»).
+- Format strings (a `_fmt` key, or one whose English value formats):
+  positional and plain arguments never mixed, every argument numbered when
+  there are two or more, no stray `%`. A `%` in a plain
+  string is text: the onboarding facts format only a text that takes a `@`
+  argument (`%@` or `%1$@`).
+- `{brand}` is the only `{…}` token. No value is empty.
+- The widget copies are byte-equal to the app's, with no orphan.
+- Each `InfoPlist.strings` has English's keys and a `CFBundleDisplayName`
+  equal to the language's `brand.name`.
+
+A missing key fails only for a language listed in
+`Localization/complete-languages.txt`: a data file, one code per line, so a
+language's own change adds it there. It is `.txt`, so the widget copy check
+skips it. Any other shipped language falls back to English for its missing
+keys, and the completeness report lists them per language, printed as
+`LOCALIZATION_COMPLETENESS` and attached to the test run. The lint does not
+check layout (the fit tests do) or formatting from the environment locale.
+
+**Language resolution order.** In the app the picker's
+`@AppStorage("appLanguage")` is the truth: launch argument → the app's own
+`UserDefaults` → device. `BabyBloomApp.init` hands that value to
+`LocalizationManager` before the first view, and every `setLanguage` mirrors
+it to the App Group suite, which is what the widget reads.
+`LocalizationManager.storedLanguage` serves a reader with no `@AppStorage` —
+the widget, and the manager's first value: launch argument → App Group suite
+→ this process's own `UserDefaults` → device. In both, the first stored value
+that names an available language wins; one that does not falls through. The
+launch argument must be read explicitly via `volatileDomain(forName:)`: the
+argument domain's precedence applies only within `UserDefaults.standard`, and
+the App Group is a separate store that would otherwise shadow it.
+
+The device step is `SupportedLanguage.resolve(preferred:available:)` over the
+whole `Locale.preferredLanguages` list: Foundation's
+`Bundle.preferredLocalizations`, the matcher iOS itself uses for an app's
+localizations. It maps regional variants (`pt-AO` → `pt-PT`, `no`/`nn` →
+`nb`, `zh-HK` → `zh-Hant`), reads past an unshipped first language
+(`[it, de]` → `de`) and never crosses scripts: a Simplified-Chinese device
+gets English, as its App Store page does.
+
+**iOS Settings › the app › Language.** iOS writes the per-app list into the
+app's own defaults and relaunches it, but a stored choice outranks the
+device, so on its own the change would do nothing.
+`LocalizationManager.adoptPerAppLanguageChange()` runs first thing in the
+app's `init`: it keeps the last per-app list it saw, and a list that changed
+since becomes the stored choice. A list that went away (the app set back to
+the device's language) is a change too: the device list is adopted. The first
+launch that records the list adopts nothing, so an older per-app setting
+never overturns a choice made in the app.
+
+**One region per language.** `SupportedLanguage.locale` pins a region (`es`
+is `es_419`, `zh-Hant` is `zh_Hant_TW`, Hong Kong included): formats follow
+the language, never the phone's region. Clock times take the device's
+12/24-hour cycle on top (`environmentLocale`).
+
+**Gregorian dates.** `environmentCalendar` and `SupportedLanguage.dateFormat`
+are Gregorian whatever the device calendar. Every format style the app builds
+starts from `dateFormat`: `.formatted(.dateTime….locale(x))` keeps the device
+calendar however the locale is pinned (a Japanese-calendar phone printed
+"Oct 26, Reiwa 8"), while a `DateFormatter` takes the calendar of the locale
+it is given.
+
+**The week starts on Monday.** `SupportedLanguage.calendar` and
+`environmentCalendar` set the first weekday to Monday and a week to ISO's
+(4 days in the first week) in every language, an en_US phone included: the
+week chart and the weekly card (`WeeklySummary.calendar`) agree on the same
+seven days. The history's "week" is the last seven days, not a calendar
+week, and the system date pickers still take their first column from the
+phone's region. Month and year arithmetic (the chart ranges, the export and
+report periods, `Baby`'s age) never reads `Calendar.current`, so a phone set
+to a lunar calendar does not count months of 29 or 30 days; day counts and
+same-day checks are the same in every calendar and may.
+
+**A date's word order is the locale's.** Ranges, a month with its year and a
+short weekday come from `LocaleDates` (`Core/Localization/LocaleDates.swift`),
+which asks the locale for a template (`DateIntervalFormatter` with `MMMd` or
+`MMMy`, `setLocalizedDateFormatFromTemplate("MMMMy")`, standalone `cccccc`)
+and never writes a pattern or cuts a name: Japanese reads «10月19日～25日» and
+«2026年10月», German «19.–25. Okt.». A title takes the locale's own
+start-of-sentence form, so Russian reads «Октябрь 2026 г.» without the
+«г.» turning into a capital. Only the chart axis trims: the year word after
+the year (Russian «г.», Ukrainian «р.») is dropped, since four in a row
+collide on a phone. A fixed `dateFormat` such as `"LLL yyyy"` is a defect:
+it guesses one language's order for all.
+
+**Signed numbers carry the language's sign.** `Int.appSigned` writes a change
+as «+210» or «−30» with the locale's own minus: Swedish, Norwegian and Finnish
+use U+2212, not the hyphen. A name list (the report's medications) sorts with
+the app language's collation, not the phone's.
+
+**Roots carry the language.** `appLanguageEnvironment(_:)` sets the locale,
+the calendar and the typesetting language (which picks the Japanese or the
+Traditional-Chinese forms of shared characters such as 骨 and 直). The app's
+window, both widget families and every Live Activity region apply it: the
+system renders those apart, so none inherits it from another.
 
 The widget process cannot see the app's `UserDefaults.standard` at all, which
 is why the language travels through the App Group. It also outlives a language
@@ -328,6 +509,49 @@ card is a span of time, so both sides go through the writer: «2 ч 55 мин и
 14 ч» (`progress.of_duration_fmt`, `BBProgressCard.Measure.hours`), the same
 total the Sleep tile shows. A duration tile keeps its unit words inside the
 value, drawn smaller than the figures.
+
+**Pseudo-languages.** Two made-up languages built from `en.json` meet the
+layouts before any translation does (`Core/Localization/PseudoLanguage.swift`).
+en-XA lengthens every word by about 40 % (its vowels doubled, then accented)
+inside `[…]`: it stands in for German or Finnish, whose long words are what
+break a widest-word fit. ja-XB turns printable ASCII full-width, drops the
+spaces and wraps the value in 「…」, so line breaking and the Japanese
+typesetting run. Format specifiers and `{token}`s pass through byte-equal.
+They are not `SupportedLanguage` cases, since a case would reach the picker,
+the plural table, the widget's exhaustive switches and the lint's list of
+complete languages. They are a loader override instead: a debug simulator
+build reads `-BBPseudoLanguage en-XA|ja-XB` at launch, and `LocalizationManager`
+then serves the pseudo table while `language` answers the base language (en,
+ja) for the plural rule, the locale and typesetting. The stored `appLanguage`
+never holds a pseudo code, so the window's environment reads
+`LocalizationManager.environmentLanguage(for:)`. Fit tests build the same
+tables with `PseudoLanguage.table(from:_:)`.
+
+**Fit tests over every language.** The fit tests loop `FitLanguage.all`:
+every language that ships a JSON plus the two pseudo ones, so a new language
+file joins them by itself (`BabyBloomTests/FitLanguages.swift`). The values
+pinned per language stay for en, ru and es; any other language has to meet
+the view's own rule (whole words, no ellipsis, no shrunk font). A place a
+language does not fit yet is a row in the file's `knownMisses` table, with
+the measured width and the room in pt: a listed miss keeps the run green, a
+new one fails it, and a listed one that fits now fails too, so the table only
+shrinks. Beyond the SwiftUI screens they measure UIKit's tab bar hosted on a
+320-pt screen, Settings' Appearance segments, the history filter, and every
+PDF table head against its column: both PDF tables use
+`table-layout: fixed`, where a word wider than its column runs into the next
+one. The iPad floating tab bar, which pages its items when they do not fit,
+is not hosted.
+
+**The widest unbreakable piece.** Every widest-word measure (`oneWordALine`,
+`BBScreenTitle`'s words) reads `String.lineBreakUnits`. Words part at plain
+spaces, and a no-break space keeps its pair. A piece holding Han, kana or the
+full-width forms is cut further at the Unicode line-break opportunities, with
+kinsoku glue: no piece starts with a closing mark or a small kana, and none
+ends with an opening bracket. The tokenizer's locale is fixed rather than the
+app's, because under "ja" it segments by dictionary phrase while Core Text
+wraps Japanese between characters. Scripts that write spaces never reach the
+tokenizer, so their measures are exactly the old space split
+(`LineBreakUnitsTests` pins this).
 
 ## Theming and typography
 
@@ -447,6 +671,12 @@ so the app's ceiling walks straight past it. The ceiling itself
 (`Typography.maxContentSizeCategory`, AX2) lives in exactly one constant, from
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
+
+The headers' and the caption's letter-spacing is tuned for SF's Latin. Every
+`.tracking` goes through `Typography.tracking(_:)`, which returns that value
+for every language except ja, ko and zh-Hant, where it is 0: their glyphs sit
+on a full-width grid, and extra spacing reads as gaps between characters. The
+splash tagline's 4.5 follows the same rule. Latin and Cyrillic are unchanged.
 
 Two field layouts have one helper each in
 `DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
@@ -1198,9 +1428,9 @@ reads "Events, Requires Premium" rather than losing the gate entirely.
 
 **The free history window.** Activity lists show a free account the last 15
 calendar days and offer the rest for sale. `Core/History/HistoryWindow.swift`
-is the whole mechanism and it is pure Foundation: `freeDays` (15) — a number
-also spelled out in six JSON strings, see the comment on the constant — and
-`cutoff()`, `startOfDay(now − 14 days)`.
+is the whole mechanism and it is pure Foundation: `freeDays` (15) — the copy
+reads it through the `history.free_window` plural family, never a typed
+number — and `cutoff()`, `startOfDay(now − 14 days)`.
 
 `HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
 surfaces use. Pediatrician visits never go through it: Events
@@ -1767,7 +1997,7 @@ iOS folds `-key value` launch arguments into `UserDefaults`' argument domain,
 so every `@AppStorage` key is drivable from the command line with no product
 code: `-hasCompletedOnboarding`, `-appLanguage`, `-appAppearance`.
 
-Seven hooks *are* product code, and six of them are gated on
+The hooks below *are* product code, and all but `-BBSkipSplash` are gated on
 `#if targetEnvironment(simulator)` — not on `DEBUG`, because a
 release-optimized QA build is still a real build on a real device and no
 shipped binary may carry a path that wipes data, hands out a paid
@@ -1776,8 +2006,9 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`; and `pluralSweep`, also from `AppClock.now`, which puts one count n (`-BBCount <n>`, default 21) on every screen that can carry it so plural forms are read live: n doses of a medicine in the last 24 hours with a maximum of n, n questions asked at a visit today, and either an age of n days (n below 7, no weighings) or, from 7, weighings past the newborn window that give a gain interval of n days and a trend drop of `-BBDrop <x.y>` centile spaces (default 1.5; the birth weight is under the 9th centile, so any drop from 1.0 is flagged). The age and the gain interval cannot share one n — the age reads in days only in the first week, the growth cards ignore the first 21 days — and the age wins below 7). An unrecognised name, or a `-BBCount`/`-BBDrop` that is not a positive number, logs the reason and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBPseudoLanguage en-XA\|ja-XB` | **Debug simulator builds only** (`DEBUG` and the simulator: a test language has no place in any shipped binary). Serves a pseudo-language's table in place of the stored language's; the plural rule, locale and typesetting follow its base (en, ja). The picker and the stored `appLanguage` are untouched, and the language reverts on a launch without the argument. See § Localization, Pseudo-languages. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor, medicines and plural-sweep seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBMedicationNotifyIn <seconds>` | **Simulator only.** Every pending medication reminder fires in N seconds instead of at its time, with the words of its real time, so the banner can be looked at. |
