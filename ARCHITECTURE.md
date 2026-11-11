@@ -467,6 +467,21 @@ never holds a pseudo code, so the window's environment reads
 `LocalizationManager.environmentLanguage(for:)`. Fit tests build the same
 tables with `PseudoLanguage.table(from:_:)`.
 
+**Fit tests over every language.** The fit tests loop `FitLanguage.all`:
+every language that ships a JSON plus the two pseudo ones, so a new language
+file joins them by itself (`BabyBloomTests/FitLanguages.swift`). The values
+pinned per language stay for en, ru and es; any other language has to meet
+the view's own rule (whole words, no ellipsis, no shrunk font). A place a
+language does not fit yet is a row in the file's `knownMisses` table, with
+the measured width and the room in pt: a listed miss keeps the run green, a
+new one fails it, and a listed one that fits now fails too, so the table only
+shrinks. Beyond the SwiftUI screens they measure UIKit's tab bar hosted on a
+320-pt screen, Settings' Appearance segments, the history filter, and every
+PDF table head against its column: both PDF tables use
+`table-layout: fixed`, where a word wider than its column runs into the next
+one. The iPad floating tab bar, which pages its items when they do not fit,
+is not hosted.
+
 **The widest unbreakable piece.** Every widest-word measure (`oneWordALine`,
 `BBScreenTitle`'s words) reads `String.lineBreakUnits`. Words part at plain
 spaces, and a no-break space keeps its pair. A piece holding Han, kana or the
