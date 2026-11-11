@@ -4,19 +4,26 @@ import XCTest
 /// The rules every language file keeps, checked over every shipped language
 /// against English:
 /// - no key English lacks, and — for a language in `complete-languages.txt` —
-///   no key missing; plural families (`age.day.one`, `.few`, …) compare by
-///   their base name, so a language's own categories are not read as extras;
-/// - the same arguments with the same types as English in every value (`%d`
-///   read as `%@` crashes `String(format:)`); in a format string, never
+///   no key missing;
+/// - plural families: a key `<family>.<category>` belongs to a family only when
+///   `<family>` is a `PluralFamily`, and families compare by `<family>.#`, so a
+///   language's own categories are not extras and a plain `x` never merges
+///   with `x.other`. English holds exactly the families the code reads; a
+///   complete language holds `.other` plus every category its rule selects for
+///   the numbers the family shows; no language holds a category its rule never
+///   names; every family value takes exactly one argument of the family's kind;
+/// - the same arguments with the same types as English in every other value
+///   (`%d` read as `%@` crashes `String(format:)`); in a format string, never
 ///   positional and plain mixed, no stray `%`;
 /// - `{brand}` is the only `{…}` token, with no stray brace; no value is empty;
+/// - ja and zh-Hant write no space between a number and a counter or between
+///   Han/Kana and Latin text; ko none between a number and its counter;
 /// - the widget's copies are byte-equal to the app's, and each language's
 ///   `InfoPlist.strings` has English's keys and a display name equal to
 ///   `brand.name`.
 ///
-/// What it cannot see: layout (the fit tests), formatting that comes from the
-/// environment locale (dates, numbers), and which plural categories a
-/// language's rule allows — a family is compared by name only.
+/// What it cannot see: layout (the fit tests) and formatting that comes from
+/// the environment locale (dates, numbers).
 final class LocalizationLintTests: XCTestCase {
 
     // MARK: Shipped files
@@ -27,7 +34,7 @@ final class LocalizationLintTests: XCTestCase {
         return try JSONDecoder().decode([String: String].self, from: Data(contentsOf: url))
     }
 
-    private var shipped: [String] { SupportedLanguage.available.map(\.rawValue) }
+    private var shipped: [SupportedLanguage] { SupportedLanguage.available }
 
     private func completeLanguages() throws -> [String] {
         let url = try XCTUnwrap(Bundle.main.url(forResource: "complete-languages", withExtension: "txt"),
@@ -42,10 +49,17 @@ final class LocalizationLintTests: XCTestCase {
         let english = try table("en")
         let complete = Set(try completeLanguages())
         for language in shipped {
-            let problems = LocalizationLint.problems(in: try table(language), english: english,
-                                                     complete: complete.contains(language))
-            XCTAssertEqual(problems, [], "\(language): \(problems.count) problem(s)")
+            let problems = LocalizationLint.problems(in: try table(language.rawValue), english: english,
+                                                     complete: complete.contains(language.rawValue),
+                                                     language: language)
+            XCTAssertEqual(problems, [], "\(language.rawValue): \(problems.count) problem(s)")
         }
+    }
+
+    /// Code and copy cannot drift: a family the code reads has English copy,
+    /// and English holds no family the code does not know.
+    func testEnglishHoldsExactlyTheFamiliesTheCodeReads() throws {
+        XCTAssertEqual(LocalizationLint.familyProblems(english: try table("en")), [])
     }
 
     func testTheCompleteSetNamesShippedLanguagesOnly() throws {
@@ -54,7 +68,7 @@ final class LocalizationLintTests: XCTestCase {
         XCTAssertEqual(complete.count, Set(complete).count, "a language listed twice")
         for code in complete {
             XCTAssertNotNil(SupportedLanguage(rawValue: code), "\(code): not a supported language")
-            XCTAssertTrue(shipped.contains(code), "\(code): listed as complete but no file ships")
+            XCTAssertTrue(shipped.map(\.rawValue).contains(code), "\(code): listed as complete but no file ships")
         }
     }
 
@@ -64,8 +78,8 @@ final class LocalizationLintTests: XCTestCase {
         let english = try table("en")
         var lines: [String] = []
         for language in shipped {
-            let missing = LocalizationLint.missingKeys(in: try table(language), english: english)
-            lines.append("\(language): \(missing.count) missing" + (missing.isEmpty ? "" : " — " + missing.joined(separator: ", ")))
+            let missing = LocalizationLint.missingKeys(in: try table(language.rawValue), english: english)
+            lines.append("\(language.rawValue): \(missing.count) missing" + (missing.isEmpty ? "" : " — " + missing.joined(separator: ", ")))
         }
         let report = lines.joined(separator: "\n")
         print("LOCALIZATION_COMPLETENESS\n\(report)")
@@ -81,7 +95,7 @@ final class LocalizationLintTests: XCTestCase {
         let widget = try XCTUnwrap(
             Bundle.main.builtInPlugInsURL.flatMap { Bundle(url: $0.appendingPathComponent("BabyBloomWidget.appex")) },
             "the widget extension is not in the app bundle")
-        for language in shipped {
+        for language in shipped.map(\.rawValue) {
             let app = try XCTUnwrap(Bundle.main.url(forResource: language, withExtension: "json"))
             let copy = try XCTUnwrap(widget.url(forResource: language, withExtension: "json"),
                                      "\(language).json has no widget copy")
@@ -89,12 +103,12 @@ final class LocalizationLintTests: XCTestCase {
         }
         let widgetLanguages = (widget.urls(forResourcesWithExtension: "json", subdirectory: nil) ?? [])
             .map { $0.deletingPathExtension().lastPathComponent }
-        XCTAssertEqual(Set(widgetLanguages), Set(shipped), "the widget holds a language the app does not ship")
+        XCTAssertEqual(Set(widgetLanguages), Set(shipped.map(\.rawValue)), "the widget holds a language the app does not ship")
     }
 
     func testEveryLanguageNamesTheAppInItsInfoPlist() throws {
         let english = try infoPlistStrings("en")
-        for language in shipped {
+        for language in shipped.map(\.rawValue) {
             let problems = LocalizationLint.infoPlistProblems(try infoPlistStrings(language), english: english,
                                                               brandName: try table(language)["brand.name"])
             XCTAssertEqual(problems, [], "\(language): InfoPlist.strings")
@@ -117,22 +131,39 @@ final class LocalizationLintTests: XCTestCase {
         "count_fmt": "%d feeds",
         "pair_fmt": "%@ at %@",
         "percent_fmt": "%d%% of birth weight",
-        "dose.one": "%d dose",
-        "dose.many": "%d doses",
+        "question.count.one": "%d question",
+        "question.count.other": "%d questions",
+        "trend.drop.other": "Dropped about %@ centile spaces.",
     ]
 
-    private func problems(_ table: [String: String], complete: Bool = true) -> [String] {
-        LocalizationLint.problems(in: table, english: english, complete: complete)
+    private let russian: [String: String] = [
+        "brand.name": "Ночка",
+        "plain": "Вес на 10% ниже веса при рождении",
+        "count_fmt": "%d кормлений",
+        "pair_fmt": "%@ в %@",
+        "percent_fmt": "%d%% от веса при рождении",
+        "question.count.one": "%d вопрос",
+        "question.count.few": "%d вопроса",
+        "question.count.many": "%d вопросов",
+        "question.count.other": "%d вопроса",
+        "trend.drop.other": "Снижение примерно на %@ коридора.",
+    ]
+
+    private func problems(_ table: [String: String], complete: Bool = true,
+                          language: SupportedLanguage = .en) -> [String] {
+        LocalizationLint.problems(in: table, english: english, complete: complete, language: language)
     }
 
     func testTheFixtureItselfPasses() {
         XCTAssertEqual(problems(english), [])
+        XCTAssertEqual(problems(russian, language: .ru), [])
         // A plain string's % is text: "10% del" never goes through String(format:).
         var spanish = english
         spanish["plain"] = "Un 10% del peso al nacer"
         spanish["pair_fmt"] = "%2$@, %1$@"
         spanish["count_fmt"] = "%1$d tomas (%1$d)"
-        XCTAssertEqual(problems(spanish), [])
+        spanish["trend.drop.one"] = "Ha bajado alrededor de %@ espacio."
+        XCTAssertEqual(problems(spanish, language: .es), [])
     }
 
     func testAMissingKeyFailsACompleteLanguageOnly() {
@@ -143,16 +174,78 @@ final class LocalizationLintTests: XCTestCase {
         XCTAssertEqual(LocalizationLint.missingKeys(in: table, english: english), ["count_fmt"])
     }
 
-    func testPluralFamiliesCompareByBaseName() {
+    /// ru's `.few/.many` and es's `trend.drop.one` are the language's own
+    /// categories of an English family, never keys English lacks.
+    func testPluralFamiliesCompareByFamilyBase() {
+        XCTAssertEqual(problems(russian, complete: false, language: .ru), [])
         var table = english
-        table["dose.many"] = nil
-        table["dose.few"] = "%d doses"
-        table["dose.other"] = "%d doses"
+        table["question.count.other"] = nil
+        XCTAssertEqual(problems(table), ["question.count.other: missing"])
+        // An incomplete language with a family's .other has the family.
+        var partial = russian
+        partial["question.count.many"] = nil
+        partial["question.count.few"] = nil
+        partial["question.count.one"] = nil
+        XCTAssertEqual(LocalizationLint.missingKeys(in: partial, english: english), [])
+        partial["question.count.other"] = nil
+        partial["question.count.one"] = "%d вопрос"
+        XCTAssertEqual(LocalizationLint.missingKeys(in: partial, english: english), ["question.count.other"])
+    }
+
+    /// A complete ru without `.many` would show the `.other` (genitive
+    /// singular) form for 25: «25 вопроса».
+    func testACompleteLanguageHoldsEveryCategoryItsRuleSelects() {
+        var table = russian
+        table["question.count.many"] = nil
+        XCTAssertEqual(problems(table, language: .ru), ["question.count.many: missing"])
+        XCTAssertEqual(problems(table, complete: false, language: .ru), [])
+        // es selects .one for «1,0», so a complete es needs trend.drop.one; en never does.
+        var spanish = english
+        XCTAssertEqual(problems(spanish, language: .es), ["trend.drop.one: missing"])
+        spanish["trend.drop.one"] = "Ha bajado alrededor de %@ espacio."
+        XCTAssertEqual(problems(spanish, language: .es), [])
+        // Whole millions (es and fr .many) are out of every family's range.
+        XCTAssertEqual(LocalizationLint.requiredCategories(.questionCount, .fr), [.one, .other])
+        XCTAssertEqual(LocalizationLint.requiredCategories(.trendDrop, .en), [.other])
+        XCTAssertEqual(LocalizationLint.requiredCategories(.trendDrop, .da), [.one, .other])
+        XCTAssertEqual(LocalizationLint.requiredCategories(.ageDays, .ru), [.one, .few, .many, .other])
+        XCTAssertEqual(LocalizationLint.requiredCategories(.ageDays, .ja), [.other])
+    }
+
+    func testACategoryTheRuleNeverNamesFails() {
+        var table = english
+        table["question.count.few"] = "%d questions"
+        XCTAssertEqual(problems(table), ["question.count.few: en never selects few"])
+    }
+
+    func testAPlainKeyNeverMergesWithAFamily() {
+        var table = english
+        table["question.count"] = "%d questions"
+        XCTAssertEqual(problems(table), ["question.count: collides with the family question.count"])
+        // A category word on a name the code reads as no family is a plain key.
+        var stray = english
+        stray["dose.other"] = "%d doses"
+        XCTAssertEqual(problems(stray, complete: false), ["dose.other: not in English"])
+        XCTAssertTrue(LocalizationLint.familyProblems(english: stray).contains("dose.other: no plural family of that name"))
+    }
+
+    func testEnglishMustHoldEveryFamily() {
+        let expected = PluralFamily.allCases.filter { ![.questionCount, .trendDrop].contains($0) }
+            .map { "\($0.rawValue): no English copy" }
+        XCTAssertEqual(LocalizationLint.familyProblems(english: english), expected.sorted())
+    }
+
+    func testAFamilyValueTakesExactlyOneArgumentOfItsKind() {
+        var table = english
+        table["question.count.one"] = "One question"
+        XCTAssertEqual(problems(table), ["question.count.one: arguments [], the family takes [1d]"])
+        table["question.count.one"] = "%d question of %@"
+        XCTAssertEqual(problems(table), ["question.count.one: arguments [1d, 2@], the family takes [1d]"])
+        table = english
+        table["trend.drop.other"] = "Dropped about %d centile spaces."
+        XCTAssertEqual(problems(table), ["trend.drop.other: arguments [1d], the family takes [1@]"])
+        table["trend.drop.other"] = "Dropped about %1$@ centile spaces."
         XCTAssertEqual(problems(table), [])
-        table["dose.one"] = nil
-        table["dose.few"] = nil
-        table["dose.other"] = nil
-        XCTAssertEqual(problems(table), ["dose: missing"])
     }
 
     func testAKeyEnglishLacksFails() {
@@ -170,15 +263,9 @@ final class LocalizationLintTests: XCTestCase {
     func testAMissingOrAddedArgumentFails() {
         var table = english
         table["pair_fmt"] = "%@"
-        table["dose.one"] = "%d dose of %@"
-        XCTAssertEqual(problems(table), ["dose.one: arguments [1d, 2@], English [1d]",
+        table["count_fmt"] = "%d feeds of %@"
+        XCTAssertEqual(problems(table), ["count_fmt: arguments [1d, 2@], English [1d]",
                                          "pair_fmt: arguments [1@], English [1@, 2@]"])
-    }
-
-    func testAPluralFormMayDropItsNumber() {
-        var table = english
-        table["dose.one"] = "One dose"
-        XCTAssertEqual(problems(table), [])
     }
 
     func testMixingPositionalAndPlainFails() {
@@ -222,18 +309,88 @@ final class LocalizationLintTests: XCTestCase {
         table["plain"] = " "
         XCTAssertEqual(problems(table), ["plain: empty"])
     }
+
+    // MARK: Number and counter in ja, ko, zh-Hant
+
+    func testJapaneseAndChineseWriteNoSpaceAroundANumberOrLatinText() {
+        for language in [SupportedLanguage.ja, .zhHant] {
+            XCTAssertEqual(LocalizationLint.cjkSpacingProblems(
+                ["age.days.other": "生後%d日", "trend.drop.other": "%@ポイント", "plain": "在{brand}中", "count_fmt": "共%d天"],
+                language: language), [], "\(language)")
+            XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "%d\u{00A0}日"], language: language),
+                           ["age.days.other: a space in \"%d\u{00A0}日\""], "\(language)")
+            XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["count_fmt": "共 %d 天"], language: language),
+                           ["count_fmt: a space in \"%d 天\"", "count_fmt: a space in \"共 %d\""], "\(language)")
+            XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["plain": "在 {brand} 中"], language: language),
+                           ["plain: a space in \"} 中\"", "plain: a space in \"在 {\""], "\(language)")
+            XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["plain": "7\u{2009}日間"], language: language),
+                           ["plain: a space in \"7\u{2009}日\""], "\(language)")
+        }
+    }
+
+    func testKoreanWritesNoSpaceBetweenANumberAndItsCounter() {
+        XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "생후 %d일", "plain": "Bitty 앱"],
+                                                           language: .ko), [])
+        XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "생후 %d 일"], language: .ko),
+                       ["age.days.other: a space in \"%d 일\""])
+        // Every other language may space as it likes.
+        XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "%d 日"], language: .en), [])
+    }
+
+    func testTheSpacingRuleRunsWithTheOthers() {
+        var table = english
+        table["question.count.one"] = nil  // ja names .other only
+        table["count_fmt"] = "%d 回"
+        XCTAssertEqual(problems(table, complete: false, language: .ja), ["count_fmt: a space in \"%d 回\""])
+    }
 }
 
 /// The rules over in-memory tables, so each one has a fixture of its own.
 enum LocalizationLint {
-    static let pluralCategories: Set<String> = ["zero", "one", "two", "few", "many", "other"]
 
-    /// `age.day.few` → `age.day`; a key with no category suffix is its own base.
+    /// `age.days.few` → (ageDays, few); nil for a key outside every family,
+    /// a category word on an unknown name included.
+    static func member(_ key: String) -> (family: PluralFamily, category: PluralCategory)? {
+        guard let dot = key.lastIndex(of: "."),
+              let category = PluralCategory(rawValue: String(key[key.index(after: dot)...])),
+              let family = PluralFamily(rawValue: String(key[..<dot])) else { return nil }
+        return (family, category)
+    }
+
+    /// `age.days.few` → `age.days.#`; any other key is its own base, so a
+    /// plain `x` and the family `x` are two entries, never one.
     static func base(of key: String) -> String {
-        guard let dot = key.lastIndex(of: "."), pluralCategories.contains(String(key[key.index(after: dot)...])) else {
-            return key
+        member(key).map { "\($0.family.rawValue).#" } ?? key
+    }
+
+    /// `.other` plus every category the language's rule selects for a number
+    /// the family can show: whole numbers 0…999, or 0.0…99.9 at the family's
+    /// digits. Whole millions (es, fr `.many`) are out of range on purpose:
+    /// lookup falls back to `.other` there.
+    static func requiredCategories(_ family: PluralFamily, _ language: SupportedLanguage) -> Set<PluralCategory> {
+        var found: Set<PluralCategory> = [.other]
+        switch family.kind {
+        case .integer:
+            for n in 0...999 { found.insert(language.pluralCategory(PluralOperands(n))) }
+        case .decimal(let digits):
+            let scale = Int(pow(10, Double(digits)))
+            for k in 0..<(100 * scale) {
+                found.insert(language.pluralCategory(PluralOperands(Double(k) / Double(scale), fractionDigits: digits)))
+            }
         }
-        return String(key[..<dot])
+        return found
+    }
+
+    /// English is the family list's other half: every `PluralFamily` has its
+    /// `.other`, and no key with a category word names a family the code lacks.
+    static func familyProblems(english: [String: String]) -> [String] {
+        var found = PluralFamily.allCases.filter { english[$0.key(.other)] == nil }.map { "\($0.rawValue): no English copy" }
+        for key in english.keys where member(key) == nil {
+            if let dot = key.lastIndex(of: "."), PluralCategory(rawValue: String(key[key.index(after: dot)...])) != nil {
+                found.append("\(key): no plural family of that name")
+            }
+        }
+        return found.sorted()
     }
 
     /// The home-screen name is `brand.name`; every permission prompt English has.
@@ -246,26 +403,50 @@ enum LocalizationLint {
         return found.sorted()
     }
 
+    /// A family counts as present by its `.other`, the one category every
+    /// language holds; it is named by that key.
     static func missingKeys(in table: [String: String], english: [String: String]) -> [String] {
-        let present = Set(table.keys.map(base))
-        return Set(english.keys.map(base)).subtracting(present).sorted()
+        let present = Set(table.keys.compactMap { key -> String? in
+            guard let member = member(key) else { return key }
+            return member.category == .other ? base(of: key) : nil
+        })
+        return Set(english.keys.map(base)).subtracting(present)
+            .map { $0.hasSuffix(".#") ? String($0.dropLast(2)) + ".other" : $0 }
+            .sorted()
     }
 
-    static func problems(in table: [String: String], english: [String: String], complete: Bool) -> [String] {
+    static func problems(in table: [String: String], english: [String: String], complete: Bool,
+                         language: SupportedLanguage) -> [String] {
         var found: [String] = complete ? missingKeys(in: table, english: english).map { "\($0): missing" } : []
         let englishBases = Dictionary(grouping: english.keys, by: base)
         for (key, value) in table {
+            if PluralFamily(rawValue: key) != nil {
+                found.append("\(key): collides with the family \(key)")
+                continue
+            }
             guard let family = englishBases[base(of: key)] else {
                 found.append("\(key): not in English")
                 continue
             }
-            found += problems(key: key, value: value, english: family.compactMap { english[$0] },
-                              isFamily: base(of: key) != key)
+            if let member = member(key), !language.pluralCategories.contains(member.category) {
+                found.append("\(key): \(language.rawValue) never selects \(member.category.rawValue)")
+            }
+            found += problems(key: key, value: value, english: family.compactMap { english[$0] })
         }
+        if complete {
+            // `.other` is already in the missing keys above.
+            for family in PluralFamily.allCases where english[family.key(.other)] != nil {
+                for category in requiredCategories(family, language).subtracting([.other])
+                where table[family.key(category)] == nil {
+                    found.append("\(family.key(category)): missing")
+                }
+            }
+        }
+        found += cjkSpacingProblems(table, language: language)
         return found.sorted()
     }
 
-    private static func problems(key: String, value: String, english: [String], isFamily: Bool) -> [String] {
+    private static func problems(key: String, value: String, english: [String]) -> [String] {
         var found: [String] = []
         if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { found.append("\(key): empty") }
         let tokens = tokens(value)
@@ -284,16 +465,50 @@ enum LocalizationLint {
             if own.mixed { found.append("\(key): positional and plain arguments mixed") }
             if own.stray { found.append("\(key): a stray %") }
         }
-        if isFamily {
-            // A plural form may drop its number ("One dose"), never add one.
-            let allowed = Set(reference.flatMap(\.arguments))
-            if !Set(own.arguments).isSubset(of: allowed) {
-                found.append("\(key): arguments \(list(own.arguments)), English \(list(allowed.sorted()))")
+        if let member = member(key) {
+            // The category, not the copy, picks the word for the number, so
+            // every form shows it: «один вопрос» would read for 21 too.
+            let expected = member.family.kind == .integer ? ["1d"] : ["1@"]
+            if own.arguments != expected {
+                found.append("\(key): arguments \(list(own.arguments)), the family takes \(list(expected))")
             }
         } else if let first = reference.first, own.arguments != first.arguments {
             found.append("\(key): arguments \(list(own.arguments)), English \(list(first.arguments))")
         }
         return found
+    }
+
+    // MARK: Number and counter in ja, ko, zh-Hant
+
+    private static let number = "(?:\\d|%(?:\\d+\\$)?[d@])"
+    private static let space = "[ \\u00A0\\u2009\\u202F\\u3000]+"
+    private static let hanKana = "[\\p{Han}\\p{Hiragana}\\p{Katakana}\\u30FC]"
+    // `{brand}` reads as Latin text; the `d` of `%d` / `%1$d` is the number's, not a word.
+    private static let latin = "(?:(?<!%)(?<!\\$)[A-Za-z]|\\{|\\})"
+
+    private static let spacingRules: [SupportedLanguage: [NSRegularExpression]] = {
+        let hanRules = [
+            "\(number)\(space)\(hanKana)", "\(hanKana)\(space)\(number)",
+            "\(latin)\(space)\(hanKana)", "\(hanKana)\(space)\(latin)",
+        ].map { try! NSRegularExpression(pattern: $0) }
+        let korean = [try! NSRegularExpression(pattern: "\(number)\(space)\\p{Hangul}")]
+        return [.ja: hanRules, .zhHant: hanRules, .ko: korean]
+    }()
+
+    /// Apple's ja and zh-TW strings write «7日», «在Bitty中»; ko spaces words
+    /// but writes «7일». The space is the template's, so the template is checked.
+    static func cjkSpacingProblems(_ table: [String: String], language: SupportedLanguage) -> [String] {
+        guard let rules = spacingRules[language] else { return [] }
+        var found: [String] = []
+        for (key, value) in table {
+            let ns = value as NSString
+            for rule in rules {
+                for match in rule.matches(in: value, range: NSRange(location: 0, length: ns.length)) {
+                    found.append("\(key): a space in \"\(ns.substring(with: match.range))\"")
+                }
+            }
+        }
+        return found.sorted()
     }
 
     private static func list(_ arguments: [String]) -> String { "[" + arguments.joined(separator: ", ") + "]" }

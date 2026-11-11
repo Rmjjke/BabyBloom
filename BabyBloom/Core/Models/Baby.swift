@@ -137,22 +137,22 @@ final class Baby {
     }
 
     /// The number and its word are joined by a no-break space, so a wrapped
-    /// line never starts with «месяца» alone (DECISIONS 2026-11-06); every
-    /// caller gets the glue from here.
+    /// line never starts with «месяца» alone (DECISIONS 2026-11-06); the glue
+    /// is inside the `age.*` templates, so every caller gets it from here.
     /// - Parameter end: the moment the age is read at — today by default; the
     ///   weight chart passes a weighing's date to say how old the baby was then.
     static func describeAge(from date: Date, to end: Date = Date()) -> String {
         let days = max(0, self.days(from: date, to: end))
         let months = max(0, self.months(from: date, to: end))
         if days < 7 {
-            return "\(days)\u{00A0}\(days.dayWord)"
+            return PluralFamily.ageDays.text(days)
         } else if days < 30 || months == 0 {
             // Day 30 of a 31-day month is not yet a calendar month: without the
             // second condition it read "0 months".
             let weeks = days / 7
-            return "\(weeks)\u{00A0}\(weeks.weekWord)"
+            return PluralFamily.ageWeeks.text(weeks)
         } else {
-            return "\(months)\u{00A0}\(months.monthWord)"
+            return PluralFamily.ageMonths.text(months)
         }
     }
 
@@ -197,33 +197,5 @@ final class Baby {
             case .mixed: return "heart.circle.fill"
             }
         }
-    }
-}
-
-// MARK: - Int word forms (language-aware)
-extension Int {
-    var dayWord: String   { plural(one: "age.day.one",   few: "age.day.few",   many: "age.day.many") }
-    var weekWord: String  { plural(one: "age.week.one",  few: "age.week.few",  many: "age.week.many") }
-    var monthWord: String { plural(one: "age.month.one", few: "age.month.few", many: "age.month.many") }
-
-    /// The localized form of three keys that fits this number in the app
-    /// language: one/few/many for Russian, one/other (`few`) for en/es.
-    func plural(one: String, few: String, many: String) -> String {
-        switch LocalizationManager.shared.language.pluralRule {
-        case .singularPlural:
-            // English/Spanish: "1 day" / "21 days", "1 día" / "21 días".
-            return self == 1 ? one.l : few.l
-        case .slavic:
-            return pluralize(one: one.l, few: few.l, many: many.l)
-        }
-    }
-
-    private func pluralize(one: String, few: String, many: String) -> String {
-        let n = abs(self) % 100
-        let n1 = n % 10
-        if n >= 11 && n <= 19 { return many }
-        if n1 == 1 { return one }
-        if n1 >= 2 && n1 <= 4 { return few }
-        return many
     }
 }

@@ -21,14 +21,10 @@ enum HistoryWindow {
 
     /// The size of the free window in CALENDAR days, today included.
     ///
-    /// **The number is spelled out in the copy**, in six places:
-    /// `history.free_window` in `{en,ru,es}.json` and their byte-identical
-    /// copies under `WidgetResources/Localization/`. Changing this constant
-    /// means changing all six, and changing it to a number whose Russian
-    /// plural form differs means rewriting that string rather than swapping a
-    /// digit — 15 takes «дней», 21 would take «день» and 22 «дня». The copy
-    /// carries no interpolated count precisely so that a future edit here is a
-    /// deliberate translation change and not a silently ungrammatical one.
+    /// The copy reads it through the `history.free_window` plural family
+    /// (`PluralFamily.historyFreeWindow`), so the number and its word follow
+    /// this constant in every language: 15 takes «дней», 21 «день», 22 «дня»
+    /// with no edit to the JSON.
     static let freeDays = 15
 
     /// The oldest instant a free account can still see, or `nil` if the

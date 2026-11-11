@@ -57,6 +57,12 @@ carry the canonical invocations and how to report results.
   (filled from `brand.name` at load). A language that declines the name
   writes those forms inline and lists each sentence in
   `Localization/brand-declined.txt`.
+- A string with a count is a plural family: `<family>.<category>` keys
+  (CLDR categories; `.other` always), each a whole one-argument template,
+  read through `PluralFamily.<name>.text(n)`. Never glue a number to a word
+  in code. A new family is a `PluralFamily` case plus its English keys;
+  `LocalizationLintTests` checks every complete language holds the
+  categories its rule needs.
 
 ## Theming
 

@@ -315,6 +315,23 @@ are declared declined (ru names the app there, «для Ночки», not the ro
 `%@` (`widget.name_medium`, `onboarding.widget.howto`,
 `export.generated_by_fmt`) keep it as an argument.
 
+**A count picks its sentence by CLDR plural category.** A string that
+carries a count is a plural family: one key per category the language uses,
+`<family>.<category>` (`age.days.one`, `.few`, `.many`, `.other`), each a
+whole template with one argument (`"%d дней"`), so the space or its absence
+between number and word belongs to the language's copy (ja «7日»). The
+families are `PluralFamily` (`Core/Localization/PluralRules.swift`); a view
+calls `PluralFamily.ageDays.text(days)` and never builds a key. The category
+comes from the CLDR operands of the number **as shown** — n, i, v, f, t —
+through `SupportedLanguage.pluralCategory`, a table of the 15 languages' CLDR
+rules in code: «1,0» has v = 1, so ru reads «1,0 коридора» and es «1,0»
+takes `.one`. A decimal family (`trend.drop`) is shown with `appDecimal`'s
+digits and passed as `%@`; the category is read from those same digits, so
+0.96 shown as «1,0» is the 1.0 row. Lookup: the language's category → its
+`.other` → English's category for the number → English's `.other` → the key.
+A family may leave out a category its rule names when no count it shows
+reaches it (es and fr `.many` is whole millions); `.other` is always there.
+
 The JSONs exist in **two physical locations**:
 
 - `BabyBloom/Resources/Localization/<lang>.json` — the source of truth.
@@ -333,11 +350,22 @@ language needs no edit there. Do not disable it; sync instead:
 
 **Localization lint.** `LocalizationLintTests` checks every shipped language
 against `en.json`:
-- Keys: no key English lacks. Plural families (`age.day.one`, `.few`, …)
-  compare by their base name, so a language's own plural categories are not
-  read as extras. Which categories a family must hold is not checked yet.
+- Keys: no key English lacks. A `PluralFamily` key (`age.days.one`, …)
+  compares by its family, so a language's own categories are not read as
+  extras; a family is present when its `.other` is. A plain key that shares a
+  family's name (`question.count` beside `question.count.other`) fails, as
+  does a category the language's rule never selects (`.few` in English) or a
+  `<x>.<category>` key with no `PluralFamily` behind it. English holds exactly
+  the families the code reads.
+- Plural categories: a complete language holds, per family, `.other` and
+  every category its rule selects over the counts the family shows (whole
+  numbers 0–999; 0.0–99.9 for a decimal family). A complete ru without
+  `age.days.many` fails; es needs no `.many`.
 - Arguments: every value reads the same arguments, with the same types, as
-  English. A plural form may drop its number.
+  English. A family value takes exactly one argument of its family's kind (`%d`, or `%@` for a decimal).
+- Spacing (ja, zh-Hant): no space between a number and Han or Kana, nor
+  between Han or Kana and Latin text (`{brand}` counts as Latin); ko: no
+  space between a number and the Hangul after it (Apple's «7日», «7일»).
 - Format strings (a `_fmt` key, or one whose English value formats):
   positional and plain arguments never mixed, no stray `%`. A `%` in a plain
   string is text: the onboarding facts format only a text that holds `%@`.
@@ -352,8 +380,7 @@ language's own change adds it there. It is `.txt`, so the widget copy check
 skips it. Any other shipped language falls back to English for its missing
 keys, and the completeness report lists them per language, printed as
 `LOCALIZATION_COMPLETENESS` and attached to the test run. The lint does not
-check layout (the fit tests do), formatting from the environment locale, or
-which plural categories a language's rule allows.
+check layout (the fit tests do) or formatting from the environment locale.
 
 **Language resolution order.** In the app the picker's
 `@AppStorage("appLanguage")` is the truth: launch argument → the app's own
@@ -1292,9 +1319,9 @@ reads "Events, Requires Premium" rather than losing the gate entirely.
 
 **The free history window.** Activity lists show a free account the last 15
 calendar days and offer the rest for sale. `Core/History/HistoryWindow.swift`
-is the whole mechanism and it is pure Foundation: `freeDays` (15) — a number
-also spelled out in six JSON strings, see the comment on the constant — and
-`cutoff()`, `startOfDay(now − 14 days)`.
+is the whole mechanism and it is pure Foundation: `freeDays` (15) — the copy
+reads it through the `history.free_window` plural family, never a typed
+number — and `cutoff()`, `startOfDay(now − 14 days)`.
 
 `HistoryWindow.list(_:date:cutoff:cap:)` is the single derivation all five
 surfaces use. Pediatrician visits never go through it: Events
@@ -1870,8 +1897,8 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`). An unrecognised name logs the valid ones and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor and medicines seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`; and `pluralSweep`, also from `AppClock.now`, which puts one count n (`-BBCount <n>`, default 21) on every screen that can carry it so plural forms are read live: n doses of a medicine in the last 24 hours with a maximum of n, n questions asked at a visit today, and either an age of n days (n below 7, no weighings) or, from 7, weighings past the newborn window that give a gain interval of n days and a trend drop of `-BBDrop <x.y>` centile spaces (default 1.5; the birth weight is under the 9th centile, so any drop from 1.0 is flagged). The age and the gain interval cannot share one n — the age reads in days only in the first week, the growth cards ignore the first 21 days — and the age wins below 7). An unrecognised name, or a `-BBCount`/`-BBDrop` that is not a positive number, logs the reason and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor, medicines and plural-sweep seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBMedicationNotifyIn <seconds>` | **Simulator only.** Every pending medication reminder fires in N seconds instead of at its time, with the words of its real time, so the banner can be looked at. |
