@@ -14,6 +14,37 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Fifteen languages ship their files before their copy; a missing key reads English, never an English copy
+
+uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT and zh-Hant join en, ru and
+es. Each ships its JSON (app and widget) and an `.lproj` in the app and the
+widget before any of its copy exists; the JSON starts with `brand.name`
+alone (Ukrainian «Нічка», the rest «Bitty»), and every key it lacks reads
+English at run time.
+
+**Why no English copies in the file.** A key present in a language's file is
+a key that language has translated. Copying English in would hide what is
+left to translate from the lint and from the translator, and would freeze
+stale English into the file when the English changes.
+
+**Why the lint asks for every permission prompt only of a complete
+language.** The same rule as the JSON parity: a language in
+`complete-languages.txt` must hold every key; one still being translated
+holds the display name and nothing English lacks. A prompt its
+`InfoPlist.strings` does not hold reads the base `Info.plist`'s English.
+
+**What a phone in one of these languages sees meanwhile.** iOS resolves to
+the language as soon as its `.lproj` ships, so the app's locale follows it:
+English sentences carry that language's dates, weekdays and decimal commas,
+and system controls speak the language. iOS Settings › Bitty › Language and
+the App Store listing name every shipped language. A build released before
+a language's copy lands presents that language as supported while its text
+reads English.
+
+**Brand.** This extends the per-language brand below: Ukrainian declines
+«Нічка» as Russian declines «Ночка»; the other new languages keep «Bitty»
+for now.
+
 ## 2026-11-11 — The week starts on Monday in every language; date forms come from the locale's templates
 
 **Monday first, everywhere.** The week chart used the phone's first weekday
