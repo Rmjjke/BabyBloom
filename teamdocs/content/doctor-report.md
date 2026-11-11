@@ -139,9 +139,9 @@ ru and es, in every report state. None of the keys or words below may appear
 in it. The screen reads the same keys as the PDF, except the parent's
 sentences, which have a `report.pdf.*` twin.
 
-**Keys.** The test reads each value from the JSON of the language under test.
+**Keys.** The test reads each value from the JSON of the language under test,
+and each value of a plural family on its own.
 For a key with placeholders, it scans the longest fixed stretch between them.
-A plural family is scanned value by value.
 - Percentile bands: `percentile.normal`, `percentile.below_normal`,
   `percentile.above_normal`, `percentile.very_low`, `percentile.very_high`,
   `percentile.below3`, `percentile.above97`. The badges
