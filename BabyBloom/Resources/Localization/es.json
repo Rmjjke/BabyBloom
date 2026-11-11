@@ -455,7 +455,6 @@
   "notification.idle_title": "¿Todo bien? 👀",
   "notification.idle_body": "Llevas 2 días sin registrar nada. Toca para ponerte al día con %@.",
   "weekly.title": "La semana pasada",
-  "weekly.range_fmt": "%1$@ – %2$@",
   "weekly.feeds_fmt": "Tomas al día: %@",
   "weekly.sleep_fmt": "Sueño al día: %@",
   "weekly.gain_fmt": "Aumento de peso: %@ g/⁠sem",

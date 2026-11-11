@@ -21,6 +21,13 @@ final class LocaleDatesTests: XCTestCase {
 
     // MARK: Ranges
 
+    func testADateRangeCarriesItsYearOnce() {
+        XCTAssertEqual(plain(LocaleDates.dateRange(day(11, 2), day(11, 20), locale: locale("en_US"))), "Nov 2 – 20, 2026")
+        XCTAssertEqual(plain(LocaleDates.dateRange(day(11, 2), day(11, 20), locale: locale("ru_RU"))), "2—20 нояб. 2026 г.")
+        XCTAssertEqual(plain(LocaleDates.dateRange(day(11, 2), day(11, 20), locale: locale("ja_JP"))), "2026年11月2日～20日")
+        XCTAssertEqual(plain(LocaleDates.dateRange(day(11, 2), day(11, 2), locale: locale("en_US"))), "Nov 2, 2026")
+    }
+
     func testAWeekRangeInEachLanguagesOrder() {
         let expected = [
             "ja_JP": "10月19日～25日",

@@ -13,6 +13,12 @@ enum LocaleDates {
         interval(first, last, template: "MMMd", locale: locale)
     }
 
+    /// "Oct 20 – Nov 2, 2026", «20 окт. — 2 нояб. 2026 г.»: a range that
+    /// carries its year, once when both ends share it, for a record read later.
+    static func dateRange(_ first: Date, _ last: Date, locale: Locale) -> String {
+        interval(first, last, template: "yMMMd", locale: locale)
+    }
+
     /// The month and its year as a title: «Октябрь 2026 г.», «2026年10月».
     /// Across two months, both months and the year once: «Окт. — нояб. 2026 г.».
     static func monthTitle(_ first: Date, _ last: Date, locale: Locale) -> String {

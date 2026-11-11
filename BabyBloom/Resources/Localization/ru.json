@@ -472,7 +472,6 @@
   "notification.idle_title": "Всё в порядке? 👀",
   "notification.idle_body": "%@ — уже 2 дня без новых записей. Нажмите, чтобы добавить пропущенное.",
   "weekly.title": "Прошлая неделя",
-  "weekly.range_fmt": "%1$@ – %2$@",
   "weekly.feeds_fmt": "Кормлений в день: %@",
   "weekly.sleep_fmt": "Сон в сутки: %@",
   "weekly.gain_fmt": "Прибавка веса: %@ г/⁠нед",

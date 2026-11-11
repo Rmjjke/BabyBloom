@@ -454,7 +454,6 @@
   "notification.idle_title": "Everything ok? 👀",
   "notification.idle_body": "You haven't logged anything in 2 days. Tap to catch up, %@.",
   "weekly.title": "Last week",
-  "weekly.range_fmt": "%1$@ – %2$@",
   "weekly.feeds_fmt": "Feeds a day: %@",
   "weekly.sleep_fmt": "Sleep a day: %@",
   "weekly.gain_fmt": "Weight gain: %@ g/⁠week",

@@ -261,10 +261,9 @@ enum DoctorReportPDF {
     /// A date in a record read later always carries its year, unlike the screen's rows.
     private static func fullDate(_ date: Date) -> String { ReportFormat.glued(date.appDayMonthYear) }
 
+    /// «Nov 2 – 20, 2026», with its year; a visit today is the one date.
     private static func periodRange(_ start: Date, now: Date) -> String {
-        // A visit today: «2 Nov 2026», not «2 Nov – 2 Nov 2026».
-        guard !Calendar.current.isDate(start, inSameDayAs: now) else { return fullDate(now) }
-        return String(format: "weekly.range_fmt".l, ReportFormat.date(start, now: now), fullDate(now))
+        ReportFormat.rangeGlued(LocaleDates.dateRange(start, now, locale: LocalizationManager.shared.language.locale))
     }
 
     private static func periodLength(_ summary: DoctorReportSummary) -> String {
