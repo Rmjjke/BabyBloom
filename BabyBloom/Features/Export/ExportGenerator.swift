@@ -390,7 +390,7 @@ struct ExportGenerator {
 
         let head = """
         <!DOCTYPE html>
-        <html>
+        <html lang="\(LocalizationManager.shared.language.rawValue)">
         <head>
         <meta charset="UTF-8">
         <style>

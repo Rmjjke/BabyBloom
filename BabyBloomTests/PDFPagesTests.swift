@@ -519,6 +519,53 @@ final class PDFPagesTests: XCTestCase {
         }
     }
 
+    /// 骨 and 直 differ between Japanese, Traditional and Simplified Chinese, and the
+    /// first family that holds them draws them: the faces the file embeds show which
+    /// forms printed, in the body and in the footer, which carries the name.
+    func testHanCharactersPrintInTheDocumentLanguagesForms() throws {
+        for (language, face) in [(SupportedLanguage.ja, "HiraginoSans-"), (.zhHant, "PingFangTC-")] {
+            try inLanguage(language) {
+                let report = try report(extraWeighings: 0, name: "骨直", questions: ["骨と直?"])
+                XCTAssertTrue(report.html.contains("<html lang=\"\(language.rawValue)\">"), "\(language)")
+                let note = DiaperEntry(time: Date(), type: .wet, notes: "骨直")
+                let data = ExportGenerator.pdfData(baby: nil, feedings: [], sleeps: [], diapers: [note], growths: [],
+                                                   events: [], categories: [.diapers], range: .all)
+                let export = try XCTUnwrap(PDFDocument(data: data))
+                XCTAssertTrue(try XCTUnwrap(export.string).contains("骨直"))
+                for (what, document) in [("report", report.document), ("export", export)] {
+                    let names = fontNames(document)
+                    XCTAssertTrue(names.contains { $0.contains(face) }, "\(language) \(what): \(names)")
+                    XCTAssertFalse(names.contains { $0.contains("PingFangSC") }, "\(language) \(what): \(names)")
+                }
+            }
+        }
+    }
+
+    /// Latin and Cyrillic never reach the Han block: the pinned face draws them.
+    func testLatinAndCyrillicStayInHelveticaNeue() throws {
+        for (language, name) in [(SupportedLanguage.en, "Mia"), (.ru, "Мия"), (.uk, "Їжачок")] {
+            try inLanguage(language) {
+                let names = fontNames(try report(extraWeighings: 0, name: name, questions: ["?"]).document)
+                    .union(fontNames(try exportPDF(rows: 2).document))
+                XCTAssertFalse(names.isEmpty)
+                XCTAssertTrue(names.allSatisfy { $0.contains("HelveticaNeue") }, "\(language): \(names)")
+            }
+        }
+    }
+
+    /// The footer's face takes the same order, and its text says its language.
+    func testTheFooterFaceFollowsTheLanguage() {
+        let range = CFRange(location: 0, length: 1)
+        for (language, face) in [(SupportedLanguage.ja, "HiraginoSans"), (.zhHant, "PingFangTC"),
+                                 (.ko, "AppleSDGothicNeo"), (.en, "PingFangSC")] {
+            let font = PagedPDF.font(ofSize: 9, language: language) as CTFont
+            let drawn = CTFontCopyPostScriptName(CTFontCreateForString(font, "骨" as CFString, range)) as String
+            XCTAssertTrue(drawn.hasPrefix(face), "\(language): \(drawn)")
+            XCTAssertEqual(PagedPDF.languageAttribute(language)[NSAttributedString.Key(kCTLanguageAttributeName as String)]
+                           as? String, language.rawValue)
+        }
+    }
+
     func testEmojiLeaveTheHTMLAndTheTextAroundThemStays() {
         for (raw, printed) in [("Mia 🌸", "Mia "), ("🇷🇺 flag", " flag"), ("👩‍👧 two", " two"), ("👍🏽ok", "ok"),
                                ("🏳️‍🌈 pride", " pride"), ("🌶️ hot", " hot"), ("a & b", "a &amp; b")] {

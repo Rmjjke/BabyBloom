@@ -52,7 +52,7 @@ enum DoctorReportPDF {
 
         let head = """
         <!DOCTYPE html>
-        <html>
+        <html lang="\(LocalizationManager.shared.language.rawValue)">
         <head>
         <meta charset="utf-8">
         <style>
@@ -526,6 +526,7 @@ enum DoctorReportPDF {
         private let footerLeft: String
         /// Once per render, not per page: it carries the whole fallback list.
         private let font = PagedPDF.font(ofSize: 9)
+        private let language = PagedPDF.languageAttribute()
 
         init(footerLeft: String) {
             self.footerLeft = footerLeft
@@ -551,10 +552,10 @@ enum DoctorReportPDF {
             let line = CGRect(x: area.minX, y: area.maxY - footerHeight / 2 - 6, width: area.width, height: 12)
             (footerLeft as NSString).draw(
                 in: CGRect(x: line.minX, y: line.minY, width: line.width - pageWidth - 8, height: line.height),
-                withAttributes: [.font: font, .foregroundColor: color, .paragraphStyle: left])
+                withAttributes: language.merging([.font: font, .foregroundColor: color, .paragraphStyle: left]) { $1 })
             (pageText as NSString).draw(
                 in: CGRect(x: line.maxX - pageWidth, y: line.minY, width: pageWidth, height: line.height),
-                withAttributes: [.font: font, .foregroundColor: color, .paragraphStyle: right])
+                withAttributes: language.merging([.font: font, .foregroundColor: color, .paragraphStyle: right]) { $1 })
         }
     }
 }
