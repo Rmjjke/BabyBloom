@@ -32,6 +32,32 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertEqual(ExportGenerator.csvField("plain"), "plain")
     }
 
+    func testACarriageReturnIsQuotedToo() {
+        XCTAssertEqual(ExportGenerator.csvField("a\rb"), "\"a\rb\"")
+    }
+
+    /// Excel takes a CSV for UTF-8 only behind a byte-order mark; the text after
+    /// it must read back whole, a comma inside a field included.
+    func testAUkrainianCSVStartsWithABOMAndReadsBack() throws {
+        LocalizationManager.shared.setLanguage("uk")
+        addTeardownBlock { LocalizationManager.shared.setLanguage("en") }
+        let diaper = DiaperEntry(time: Date(), type: .wet, color: .yellow, notes: "Годування, ніч")
+        let content = ExportGenerator.csvString(
+            feedings: [], sleeps: [], diapers: [diaper], growths: [], events: [],
+            categories: [.diapers]
+        ).first { $0.name == "diapers.csv" }!.content
+
+        let url = try XCTUnwrap(ExportGenerator.writeTempCSV(name: "uk-bom-test.csv", content: content))
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        let data = try Data(contentsOf: url)
+        XCTAssertEqual(Array(data.prefix(3)), [0xEF, 0xBB, 0xBF])
+
+        let text = try XCTUnwrap(String(data: data.dropFirst(3), encoding: .utf8))
+        XCTAssertEqual(text, content)
+        XCTAssertTrue(text.contains("\"Годування, ніч\""))
+        XCTAssertTrue(text.hasPrefix(ExportGenerator.csvField("export.csv.date".l)))
+    }
+
     // MARK: - CSV localization
 
     func testCSVUsesLocalizedValues() {

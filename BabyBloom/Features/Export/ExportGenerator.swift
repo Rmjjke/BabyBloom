@@ -78,9 +78,9 @@ struct ExportGenerator {
     }
 
     /// Escapes a single CSV field per RFC 4180: fields containing a comma,
-    /// double-quote or newline are wrapped in quotes with inner quotes doubled.
+    /// double-quote or line break are wrapped in quotes with inner quotes doubled.
     static func csvField(_ raw: String) -> String {
-        if raw.contains(",") || raw.contains("\"") || raw.contains("\n") {
+        if raw.contains(where: { $0 == "," || $0 == "\"" || $0.isNewline }) {
             return "\"" + raw.replacingOccurrences(of: "\"", with: "\"\"") + "\""
         }
         return raw
@@ -608,7 +608,13 @@ struct ExportGenerator {
     }
 
     static func writeTempCSV(name: String, content: String) -> URL? {
-        guard let data = content.data(using: .utf8) else { return nil }
-        return writeTempFile(name: name, data: data)
+        writeTempFile(name: name, data: csvData(content))
+    }
+
+    /// UTF-8 behind a byte-order mark: without it Excel reads a CSV in the
+    /// system's legacy code page, and Cyrillic or CJK text opens as mojibake.
+    /// Numbers and every other reader skip the mark.
+    static func csvData(_ content: String) -> Data {
+        Data([0xEF, 0xBB, 0xBF]) + Data(content.utf8)
     }
 }
