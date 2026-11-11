@@ -69,6 +69,7 @@ struct SleepView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { showAddSheet = true }
+                    .accessibilityIdentifier("sleep.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
@@ -331,6 +332,7 @@ struct AddSleepSheet: View {
                                     .bbSelectedBorder(selectedType == type)
                                 }
                                 .buttonStyle(BBScaleButtonStyle())
+                                .accessibilityIdentifier("sleep.type.\(type.rawValue)")
                             }
                         }
                     }
@@ -385,6 +387,7 @@ struct AddSleepSheet: View {
             .safeAreaInset(edge: .bottom) {
                 BBSheetFooter {
                     BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                        .accessibilityIdentifier("sleep.save")
                 }
             }
             .bbSheetTitle("sheet.add_sleep".l)

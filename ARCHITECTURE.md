@@ -450,6 +450,49 @@ card is a span of time, so both sides go through the writer: «2 ч 55 мин и
 total the Sleep tile shows. A duration tile keeps its unit words inside the
 value, drawn smaller than the figures.
 
+**Pseudo-languages.** Two made-up languages built from `en.json` meet the
+layouts before any translation does (`Core/Localization/PseudoLanguage.swift`).
+en-XA lengthens every word by about 40 % (its vowels doubled, then accented)
+inside `[…]`: it stands in for German or Finnish, whose long words are what
+break a widest-word fit. ja-XB turns printable ASCII full-width, drops the
+spaces and wraps the value in 「…」, so line breaking and the Japanese
+typesetting run. Format specifiers and `{token}`s pass through byte-equal.
+They are not `SupportedLanguage` cases, since a case would reach the picker,
+the plural table, the widget's exhaustive switches and the lint's list of
+complete languages. They are a loader override instead: a debug simulator
+build reads `-BBPseudoLanguage en-XA|ja-XB` at launch, and `LocalizationManager`
+then serves the pseudo table while `language` answers the base language (en,
+ja) for the plural rule, the locale and typesetting. The stored `appLanguage`
+never holds a pseudo code, so the window's environment reads
+`LocalizationManager.environmentLanguage(for:)`. Fit tests build the same
+tables with `PseudoLanguage.table(from:_:)`.
+
+**Fit tests over every language.** The fit tests loop `FitLanguage.all`:
+every language that ships a JSON plus the two pseudo ones, so a new language
+file joins them by itself (`BabyBloomTests/FitLanguages.swift`). The values
+pinned per language stay for en, ru and es; any other language has to meet
+the view's own rule (whole words, no ellipsis, no shrunk font). A place a
+language does not fit yet is a row in the file's `knownMisses` table, with
+the measured width and the room in pt: a listed miss keeps the run green, a
+new one fails it, and a listed one that fits now fails too, so the table only
+shrinks. Beyond the SwiftUI screens they measure UIKit's tab bar hosted on a
+320-pt screen, Settings' Appearance segments, the history filter, and every
+PDF table head against its column: both PDF tables use
+`table-layout: fixed`, where a word wider than its column runs into the next
+one. The iPad floating tab bar, which pages its items when they do not fit,
+is not hosted.
+
+**The widest unbreakable piece.** Every widest-word measure (`oneWordALine`,
+`BBScreenTitle`'s words) reads `String.lineBreakUnits`. Words part at plain
+spaces, and a no-break space keeps its pair. A piece holding Han, kana or the
+full-width forms is cut further at the Unicode line-break opportunities, with
+kinsoku glue: no piece starts with a closing mark or a small kana, and none
+ends with an opening bracket. The tokenizer's locale is fixed rather than the
+app's, because under "ja" it segments by dictionary phrase while Core Text
+wraps Japanese between characters. Scripts that write spaces never reach the
+tokenizer, so their measures are exactly the old space split
+(`LineBreakUnitsTests` pins this).
+
 ## Theming and typography
 
 The palette is **entirely** in the Asset Catalog
@@ -568,6 +611,12 @@ so the app's ceiling walks straight past it. The ceiling itself
 (`Typography.maxContentSizeCategory`, AX2) lives in exactly one constant, from
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
+
+The headers' and the caption's letter-spacing is tuned for SF's Latin. Every
+`.tracking` goes through `Typography.tracking(_:)`, which returns that value
+for every language except ja, ko and zh-Hant, where it is 0: their glyphs sit
+on a full-width grid, and extra spacing reads as gaps between characters. The
+splash tagline's 4.5 follows the same rule. Latin and Cyrillic are unchanged.
 
 Two field layouts have one helper each in
 `DesignSystem/Components/BBFieldLabels.swift`. `BBLabeledPicker` puts a date
@@ -1888,7 +1937,7 @@ iOS folds `-key value` launch arguments into `UserDefaults`' argument domain,
 so every `@AppStorage` key is drivable from the command line with no product
 code: `-hasCompletedOnboarding`, `-appLanguage`, `-appAppearance`.
 
-Seven hooks *are* product code, and six of them are gated on
+The hooks below *are* product code, and all but `-BBSkipSplash` are gated on
 `#if targetEnvironment(simulator)` — not on `DEBUG`, because a
 release-optimized QA build is still a real build on a real device and no
 shipped binary may carry a path that wipes data, hands out a paid
@@ -1898,6 +1947,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
 | `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`; and `pluralSweep`, also from `AppClock.now`, which puts one count n (`-BBCount <n>`, default 21) on every screen that can carry it so plural forms are read live: n doses of a medicine in the last 24 hours with a maximum of n, n questions asked at a visit today, and either an age of n days (n below 7, no weighings) or, from 7, weighings past the newborn window that give a gain interval of n days and a trend drop of `-BBDrop <x.y>` centile spaces (default 1.5; the birth weight is under the 9th centile, so any drop from 1.0 is flagged). The age and the gain interval cannot share one n — the age reads in days only in the first week, the growth cards ignore the first 21 days — and the age wins below 7). An unrecognised name, or a `-BBCount`/`-BBDrop` that is not a positive number, logs the reason and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBPseudoLanguage en-XA\|ja-XB` | **Debug simulator builds only** (`DEBUG` and the simulator: a test language has no place in any shipped binary). Serves a pseudo-language's table in place of the stored language's; the plural rule, locale and typesetting follow its base (en, ja). The picker and the stored `appLanguage` are untouched, and the language reverts on a launch without the argument. See § Localization, Pseudo-languages. |
 | `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor, medicines and plural-sweep seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |

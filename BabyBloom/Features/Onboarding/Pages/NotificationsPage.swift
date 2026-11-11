@@ -108,12 +108,14 @@ struct NotificationsPage: View {
 
             VStack(spacing: BBTheme.Spacing.sm) {
                 BBPrimaryButton("onboarding.notify.cta".l, icon: "bell.fill") { ask() }
+                    .accessibilityIdentifier("onboarding.next")
                 Button(action: skip) {
                     Text("onboarding.notify.later".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
+                .accessibilityIdentifier("onboarding.skip")
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
             .padding(.bottom, 36)

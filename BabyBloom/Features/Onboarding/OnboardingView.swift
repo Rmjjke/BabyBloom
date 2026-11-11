@@ -83,6 +83,7 @@ struct OnboardingView: View {
                                                  : "onboarding.premium")
                     }
                 }
+                .onboardingPageIdentifier(pageIdentifier)
                 .transition(.asymmetric(
                     insertion: .move(edge: .trailing).combined(with: .opacity),
                     removal:   .move(edge: .leading).combined(with: .opacity)
@@ -125,12 +126,30 @@ struct OnboardingView: View {
         .padding(.bottom, 8)
     }
 
+    // Nil for the two pages that carry their own identifier: an outer one
+    // must not wrap theirs.
+    private var pageIdentifier: String? {
+        switch step {
+        case .welcome: "onboarding.page.welcome"
+        case .name: "onboarding.page.name"
+        case .birth: "onboarding.page.birth"
+        case .feeding: "onboarding.page.feeding"
+        case .growth: "onboarding.page.growth"
+        case .fact: "onboarding.page.fact"
+        case .growthShowcase: "onboarding.page.growth_showcase"
+        case .notifications: "onboarding.page.notifications"
+        case .widgets: "onboarding.page.widgets"
+        case .generating, .premium: nil
+        }
+    }
+
     // MARK: Bottom nav
     private var bottomNav: some View {
         VStack(spacing: BBTheme.Spacing.sm) {
             BBPrimaryButton("button.next".l, icon: "arrow.right") {
                 withAnimation(.easeInOut(duration: 0.3)) { next() }
             }
+            .accessibilityIdentifier("onboarding.next")
             .disabled(!canAdvance)
             .opacity(canAdvance ? 1 : 0.45)
         }
@@ -178,6 +197,18 @@ struct OnboardingView: View {
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 400_000_000)
             onComplete()
+        }
+    }
+}
+
+private extension View {
+    /// A container id for one onboarding page; `.contain` keeps the page's
+    /// buttons addressable by their own ids. Nil leaves the page untouched.
+    @ViewBuilder func onboardingPageIdentifier(_ id: String?) -> some View {
+        if let id {
+            accessibilityElement(children: .contain).accessibilityIdentifier(id)
+        } else {
+            self
         }
     }
 }
