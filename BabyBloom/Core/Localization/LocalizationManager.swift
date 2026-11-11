@@ -201,7 +201,9 @@ final class LocalizationManager: @unchecked Sendable {
     static let shared = LocalizationManager()
 
     private(set) var currentLanguage: String
-    private var strings: [String: String] = [:]
+    /// The language's table and the English fallback, swapped as one value so
+    /// a reader never pairs a new table with the previous fallback.
+    private var tables: (strings: [String: String], fallback: [String: String]) = ([:], [:])
     /// Always loaded: every key a language's file lacks reads English rather
     /// than its raw key, so a half-translated file is usable, not broken.
     private let english: [String: String]
@@ -353,11 +355,12 @@ final class LocalizationManager: @unchecked Sendable {
     }
 
     func string(for key: String) -> String {
-        if let value = strings[key] { return value }
+        let current = tables
+        if let value = current.strings[key] { return value }
         #if DEBUG
         reportMissing(key)
         #endif
-        return Self.lookup(key, in: strings, english: english)
+        return Self.lookup(key, in: current.strings, english: current.fallback)
     }
 
     /// The language's value, else English, else the key itself — the raw key
@@ -369,7 +372,28 @@ final class LocalizationManager: @unchecked Sendable {
     // MARK: Private
 
     private func load(_ language: SupportedLanguage) {
-        strings = language == .fallback ? english : (Self.loadJSON(language.rawValue) ?? [:])
+        let table = language == .fallback ? english : (Self.loadJSON(language.rawValue) ?? [:])
+        tables = Self.branded(table, english: english)
+    }
+
+    static let brandKey = "brand.name"
+    static let brandToken = "{brand}"
+
+    /// The language's table and its English fallback with `{brand}` replaced by
+    /// the language's `brand.name` (English's when the file has none), once per
+    /// load — so renaming the app is one value per language, not a hunt through
+    /// every sentence that names it. The fallback takes the language's name too,
+    /// so a key the language lacks never shows another language's name. A
+    /// language that declines the name (ru «в Ночку») writes those forms inline;
+    /// only its nominative uses the token.
+    static func branded(_ table: [String: String], english: [String: String])
+        -> (strings: [String: String], fallback: [String: String]) {
+        let brand = table[brandKey] ?? english[brandKey] ?? ""
+        return (fill(table, brand: brand), fill(english, brand: brand))
+    }
+
+    private static func fill(_ table: [String: String], brand: String) -> [String: String] {
+        table.mapValues { $0.contains(brandToken) ? $0.replacingOccurrences(of: brandToken, with: brand) : $0 }
     }
 
     #if DEBUG
