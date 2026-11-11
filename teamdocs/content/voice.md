@@ -74,11 +74,12 @@ and the Live Activity read the byte-identical copies in
   an hour and in hours under 48 hours. From 48 hours it counts whole days,
   rounded down: «4 дня назад», "4 days ago", «hace 4 días». «131 ч назад»
   left the arithmetic to the parent.
-  - The days form is `stats.days_ago_fmt` around the number and its day
-    word from the age plurals (`age.day.*`: one / few / many in Russian,
-    one / other in English and Spanish). The number and the word are joined
-    by a no-break space, so no count needs a key of its own and the plural
-    rule is the one the age already uses.
+  - The days form is `stats.days_ago_fmt` around a count of days from the
+    plural family `duration.days.<category>` (one / few / many in Russian,
+    one / other in English and Spanish), read through
+    `PluralFamily.durationDays.text`. Each value of the family holds the
+    number and its day word, joined by a no-break space, so the line needs
+    no key per count and the code glues nothing.
   - Medications tell a dose's age the same way (`medications.md`).
 - **Counts on Home and the stat tiles.** A count takes no unit word: «шт» /
   "pcs" / «uds» and «раз» / "times" / «veces» do not agree with every
@@ -288,6 +289,14 @@ and the Live Activity read the byte-identical copies in
     («100–200 g/» / «week.»), so a word joiner follows it:
     `g/\u{2060}week`, `г/\u{2060}нед`, `g/\u{2060}sem`. A UI test that
     matches such a value takes `.?` after the slash.
+  - The paywall's price per period (`premium.price_per_month_fmt`,
+    `_year_fmt`, `_week_fmt`) has a space before the slash and a no-break
+    space after it: "$6.99 /\u{00A0}month", «549 ₽ /\u{00A0}месяц»,
+    «$6.99 /\u{00A0}mes». The line may break only before the slash, so the
+    price stays whole on one line and "/ month" whole on the next. With the
+    no-break space before the slash it broke after it, leaving "$6.99 /"
+    and "month". Glued as one run, the price and its period would break
+    inside a word at AX2.
   - The gain card's big number (`velocity.per_week_fmt`) keeps the plain
     slash. It stands alone beside the interval, and when it is wider than its
     room (English from xxL on a 320 pt screen, every language at AX2 on a
@@ -338,16 +347,19 @@ and the Live Activity read the byte-identical copies in
     them as a plain space or as nothing, so a value is checked with a script
     that prints its code points.
   - A count «5 из 7» / "5 of 7" at the end of a line that wraps stays whole:
-    `%d\u{00A0}of\u{00A0}%d` in `weekly.days_logged_fmt` and
-    `report.days_logged_fmt`. These lines wrap on a 320 pt screen, and a
-    break inside the count («…entries: 18» / «of 20») leaves 18 at a line's
-    end, where it reads as a number of its own. The run is short, so it never
-    has to break inside a word, at AX2 either.
+    `%1$d\u{00A0}of\u{00A0}%2$d` in `report.days_logged_fmt` and
+    `%d\u{00A0}of\u{00A0}7` in `weekly.days_logged_fmt`. These lines wrap on
+    a 320 pt screen, and a break inside the count («…entries: 18» / «of 20»)
+    leaves 18 at a line's end, where it reads as a number of its own. The run
+    is short, so it never has to break inside a word, at AX2 either.
   - Not glued:
     - the PDF page number `report.pdf.page_fmt` ("Page 2 of 3"), which
       never wraps;
     - Home's progress count `progress.of_fmt` («0 из 6»), a short value on
       one line beside the card's title;
+    - the medication's count in 24 hours, `medication.count_24h.<category>`
+      ("2 of the 4 you set"): the line wraps as a sentence, and a break
+      before the second number reads well;
     - a date or a name after an English or Spanish preposition, where
       wrapping is normal;
     - strings that VoiceOver speaks and the screen never shows;
@@ -361,7 +373,7 @@ and the Live Activity read the byte-identical copies in
     Besides a number and its unit it glues:
     - a counted word before its number: "day 14", «día 14», «день 14»,
       «percentil 50», "Day %d";
-    - a duration as a whole: `duration.h_min` "%d h %d min";
+    - a duration as a whole: `duration.h_min` "%1$d h %2$d min";
     - a short Russian preposition before a number, in every key: «до 12
       раз», «от 3 дней», «К 3 месяцам».
   - A Russian ordinal (a number, the end of a range or `%d`, then a hyphen
@@ -404,9 +416,11 @@ and the Live Activity read the byte-identical copies in
   - Left to the code: a key whose every use passes through
     `gluingNumbersToUnits` keeps its plain space in the JSON, because the
     code glues each digit to the space after it when it shows the line.
-    These are `stats.min_ago`, `stats.h_ago`, `premium.cta_trial_fmt` and
-    `velocity.interval_fmt`. A new use of one of them outside that function
-    needs the no-break space in the JSON.
+    These are `stats.min_ago` and `stats.h_ago`. A new use of one of them
+    outside that function needs the no-break space in the JSON. The plural
+    families `premium.cta_trial.*` and `velocity.interval.*` carry the
+    no-break space in every value, like every plural family, and read the
+    same with the function or without it.
   - Left loose, because glued it would break inside a word: Russian «на 6–8
     кормлений» in `onboarding.fact.infant2`. The fact page's text is 224 pt
     wide on a 320 pt screen. Glued whole, «на 6–8 кормлений» would break
@@ -417,17 +431,21 @@ and the Live Activity read the byte-identical copies in
 
 ## Changes
 
+Key names below are the ones the app ships today. A key that has since
+become a plural family is named by its family (`trend.drop.*`), and a key
+renamed when it took a new argument by its new name.
+
 - 2026-10-28 — 1.1.0 Live Activity, Settings switch, widget descriptions
   (`live_activity.*`, `settings.live_activity*`, `widget.description_*`).
 - 2026-10-29 — `live_activity.title.bottle` added, `live_activity.stale`
   removed (no stale state in the build), `settings.live_activity_off_in_ios`
   added.
 - 2026-11-03 — 1.2.0 no-break spaces around short words next to numbers.
-  ru: `nutrition.per_day_fmt`, `nutrition.window_fmt`, `breakdown.gain_fmt`,
-  `breakdown.feeds_fmt`, `breakdown.nappies_fmt`, `velocity.interval_fmt`,
-  `trend.drop_fmt`, `report.change_since_fmt`, `report.empty_*_fmt`. es:
-  `nutrition.per_day_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`.
-  Text unchanged.
+  ru: `nutrition.per_day_fmt`, `nutrition.window_days_fmt`,
+  `breakdown.gain_days_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`,
+  `velocity.interval.*`, `trend.drop.*`, `report.change_since_fmt`,
+  `report.empty_*_fmt`. es: `nutrition.per_day_fmt`, `breakdown.feeds_fmt`,
+  `breakdown.nappies_fmt`. Text unchanged.
 - 2026-11-03 — es: one verb for "add", «agregar». Eleven values that said
   «Añadir» / «añade» now say «Agregar» / «agrega»: `dashboard.growth.empty`,
   `growth.add_weighing`, `newborn.needs_weighing`, `newborn.info_body`,
@@ -441,8 +459,8 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — number ranges never split across lines. A word joiner after
   the dash in en/ru/es `diaper.norm.hint` (es: no-break spaces in «de 6 a
   10»), `newborn.info_body` (three ranges), `velocity.expected_fmt`,
-  `breakdown.gain_fmt`, `breakdown.feeds_fmt`, `percentile.info_body` (es:
-  no-break spaces in «15 al 85»), `onboarding.fact.infant2`,
+  `breakdown.gain_days_fmt`, `breakdown.feeds_fmt`, `percentile.info_body`
+  (es: no-break spaces in «15 al 85»), `onboarding.fact.infant2`,
   `onboarding.fact.breast1`, `onboarding.fact.formula1`, `chart.who_corridor`.
   Text unchanged.
 - 2026-11-04 — the sheet-title budget is 166 pt on every width (was 96 pt
@@ -461,19 +479,19 @@ and the Live Activity read the byte-identical copies in
 - 2026-11-04 — English "a day" and "or more" on the Nutrition card and in
   the feeding breakdown are glued to their number (`nutrition.per_day_fmt`,
   `breakdown.feeds_fmt`, `breakdown.nappies_fmt`), and so are the number and
-  unit of `nutrition.window_fmt` and `breakdown.gain_fmt` in English and
-  Spanish ("over 9 days", "119 g/week", «9 días», «119 g/sem»). Russian had
-  them already.
+  unit of `nutrition.window_days_fmt` and `breakdown.gain_days_fmt` in
+  English and Spanish ("over 9 days", "119 g/week", «9 días», «119 g/sem»).
+  Russian had them already.
 - 2026-11-04 — Russian `widget.last_feed` «Последнее кормление» → «С
   кормления», whole in the medium widget's row on the iPhone SE and the
   10.2" iPad. English and Spanish fit as they are.
 - 2026-11-04 — A word joiner after the unit's slash in `velocity.expected_fmt`,
-  `weekly.gain_fmt` and `breakdown.gain_fmt` (en/ru/es), and a no-break space
-  between `velocity.expected_fmt`'s range and its unit. `velocity.per_week_fmt`
-  keeps the plain slash.
+  `weekly.gain_fmt` and `breakdown.gain_days_fmt` (en/ru/es), and a no-break
+  space between `velocity.expected_fmt`'s range and its unit.
+  `velocity.per_week_fmt` keeps the plain slash.
 - 2026-11-04 — The rule for the time since the last feed on Home is written
   down: minutes, hours under 48, then whole days through `stats.days_ago_fmt`
-  and `age.day.*`. These words have been in the app since 2026-11-02.
+  and `duration.days.*`. These words have been in the app since 2026-11-02.
 - 2026-11-04 — The days-with-entries line says that the "a day" figures
   above it are averages, on the weekly card and in the doctor report
   (`weekly.days_logged_fmt`, `report.days_logged_fmt`): "Averages over the
@@ -507,11 +525,11 @@ and the Live Activity read the byte-identical copies in
   `dashboard.growth.percentile_fmt` (en, es), `diaper.norm.hint`,
   `duration.min_sec`, `duration.sec`, `export.range.week` / `month` /
   `three_months`, `feeding.title.formula_ml` / `pumped_ml`,
-  `history.free_window`, `newborn.day_fmt`, `newborn.flag_loss` (ru),
+  `history.free_window.*`, `newborn.day_fmt`, `newborn.flag_loss` (ru),
   `newborn.flag_not_regained` (en, es), `newborn.info_body`,
   `notification.feeding_long_body` / `idle_body` / `measurements_body`, the
   eight `onboarding.fact.*`, `percentile.info_body` (es),
-  `percentile.out_of_range`, `trend.drop_fmt` (en, es), `velocity.info_body`,
+  `percentile.out_of_range`, `trend.drop.*` (en, es), `velocity.info_body`,
   `velocity.needs_two` / `needs_second` / `no_reference`. A UI test that
   matches one of these lines takes `.` where the no-break space now is.
 - 2026-11-04 — The four percentile band labels are deleted:
@@ -606,3 +624,14 @@ and the Live Activity read the byte-identical copies in
   the report's period line and questions line, the export's footer, the
   Lock Screen's breastfeeding titles and saved line and the paywall's price
   line, with nothing else changed in them.
+- 2026-11-11 — A count is a plural family, and the code glues no number to
+  a word (§ Line breaks around numbers). The days since the last feed come
+  from `duration.days.*` inside `stats.days_ago_fmt`; the trial button is
+  `premium.cta_trial.*`, the gain interval `velocity.interval.*`, the
+  history window `history.free_window.*` and the weight drop `trend.drop.*`.
+  A format with two or more arguments numbers them (`%1$d`, `%2$@`), and a
+  format that took a new argument has a new name: `nutrition.window_days_fmt`,
+  `breakdown.gain_days_fmt`. The paywall's price per period breaks before
+  the slash, not after it: "$6.99 /\u{00A0}month" in
+  `premium.price_per_month_fmt`, `_year_fmt` and `_week_fmt`, en/ru/es.
+  Only the space characters of these three keys changed.
