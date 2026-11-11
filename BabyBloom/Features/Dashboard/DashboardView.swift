@@ -421,8 +421,7 @@ struct DashboardView: View {
         guard word != .firstWeeks else { return status }
         guard store.isPremium, let reading = gainReading else { return status }
         let grams = Int(reading.gramsPerWeek.rounded())
-        let signed = grams > 0 ? "+\(grams)" : "\(grams)"
-        return String(format: "velocity.per_week_fmt".l, signed) + ReportFormat.listSeparator + status
+        return String(format: "velocity.per_week_fmt".l, grams.appSigned) + ReportFormat.listSeparator + status
     }
 
     // MARK: - Growth derivations

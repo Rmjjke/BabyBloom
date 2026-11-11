@@ -14,7 +14,8 @@ enum ExportDateRange: String, CaseIterable {
     case all        = "export.range.all"
 
     func startDate(now: Date = Date()) -> Date? {
-        let cal = Calendar.current
+        // The app's Gregorian calendar: a lunar phone calendar has other months.
+        let cal = LocalizationManager.shared.language.calendar
         switch self {
         case .week:        return cal.date(byAdding: .day,   value: -7,  to: now)
         case .month:       return cal.date(byAdding: .month, value: -1,  to: now)

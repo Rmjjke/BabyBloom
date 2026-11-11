@@ -162,7 +162,8 @@ struct DoctorReportView: View {
         let summary = DoctorReportSummary.make(
             input: .load(baby: baby, periodStart: periodStart, in: modelContext),
             periodStart: periodStart, now: now,
-            startsAtVisit: DoctorPeriod.latestVisit(visits) != nil, calendar: .current)
+            startsAtVisit: DoctorPeriod.latestVisit(visits) != nil,
+            calendar: LocalizationManager.shared.language.calendar)
         let data = DoctorReportPDF.data(summary: summary, baby: baby,
                                         openQuestions: openQuestions.map(\.text),
                                         periodStart: periodStart, now: now)
