@@ -99,11 +99,13 @@ struct MoreView: View {
                     MoreProfileRowLabel(baby: baby)
                         .padding(.vertical, 4)
                 }
+                .accessibilityIdentifier("more.profile")
                 NavigationLink(destination: GrowthView()) {
                     ListTitleRowLabel(title: "nav.growth".l,
                                       systemImage: "chart.line.uptrend.xyaxis",
                                       iconColor: BBTheme.Colors.growth)
                 }
+                .accessibilityIdentifier("more.growth")
                 // Right after Growth: the report reads growth first.
                 NavigationLink(destination: DoctorReportView()) {
                     ListTitleRowLabel(title: "report.title".l,
@@ -117,6 +119,7 @@ struct MoreView: View {
                                       systemImage: "clock.arrow.circlepath",
                                       iconColor: BBTheme.Colors.primary)
                 }
+                .accessibilityIdentifier("more.recent_activity")
                 NavigationLink(destination: EventsView()) {
                     ListTitleRowLabel(title: "nav.events".l,
                                       systemImage: "star.fill",
