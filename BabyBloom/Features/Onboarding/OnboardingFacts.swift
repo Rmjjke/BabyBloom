@@ -84,10 +84,10 @@ enum OnboardingFacts {
         return fill(fact.key.l, name: trimmed.isEmpty ? "baby.default_name".l : trimmed)
     }
 
-    /// Only a text that holds `%@` goes through `String(format:)`: in one
-    /// without it, a translation's "80% s" would read as a specifier with no
-    /// matching argument and crash.
+    /// Only a text that takes a string argument (`%@`, `%1$@`) goes through
+    /// `String(format:)`: in one without it, a translation's "80% s" would
+    /// read as a specifier with no matching argument and crash.
     static func fill(_ text: String, name: String) -> String {
-        text.contains("%@") ? String(format: text, name) : text
+        FormatSplit.arguments(in: text).contains { $0.conversion == "@" } ? String(format: text, name) : text
     }
 }

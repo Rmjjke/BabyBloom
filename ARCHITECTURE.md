@@ -332,6 +332,26 @@ digits and passed as `%@`; the category is read from those same digits, so
 A family may leave out a category its rule names when no count it shows
 reaches it (es and fr `.many` is whole millions); `.other` is always there.
 
+A family's arguments are declared in `PluralFamily.arguments`: one count for
+most (`["1d"]`, `["1@"]` for a decimal), and two for the 24-hour medication
+line (`["1@", "2d"]`: the dose phrase, then the prescribed count that picks
+the form, «из 21 указанной» / «из 22 указанных»). Such a family is filled
+from `template(_:)` with every argument, never through `text(_:)`.
+
+**A string with two or more arguments numbers every one** (`%1$@`, `%2$d`),
+so a translation can reorder them. A sentence is one template with its
+arguments, never fragments glued in code: the medication status lines
+(`medication.passed_primary_fmt`, `waiting_secondary_*_fmt`, `meta_fmt`), the
+price per period (`premium.price_per_*_fmt`), a type with its count
+(`report.type_count_fmt`) and a number with its unit
+(`unit.weeks_short_fmt`) each carry their own separators and no-break spaces.
+Lists of separate facts (`reportDoseLine`, the PDF's event rows) stay joined
+by « · » in code. Where one argument is styled apart from the rest — the
+bold value of a report row on screen and in the PDF — `FormatSplit`
+(`Core/Localization/FormatSplit.swift`) cuts the localized format at that
+argument **by its number**, fills the others, and gives the text before and
+after it, so «**+320 g** desde el 28 oct.» bolds the right value too.
+
 The JSONs exist in **two physical locations**:
 
 - `BabyBloom/Resources/Localization/<lang>.json` — the source of truth.
@@ -367,8 +387,10 @@ against `en.json`:
   between Han or Kana and Latin text (`{brand}` counts as Latin); ko: no
   space between a number and the Hangul after it (Apple's «7日», «7일»).
 - Format strings (a `_fmt` key, or one whose English value formats):
-  positional and plain arguments never mixed, no stray `%`. A `%` in a plain
-  string is text: the onboarding facts format only a text that holds `%@`.
+  positional and plain arguments never mixed, every argument numbered when
+  there are two or more, no stray `%`. A `%` in a plain
+  string is text: the onboarding facts format only a text that takes a `@`
+  argument (`%@` or `%1$@`).
 - `{brand}` is the only `{…}` token. No value is empty.
 - The widget copies are byte-equal to the app's, with no orphan.
 - Each `InfoPlist.strings` has English's keys and a `CFBundleDisplayName`

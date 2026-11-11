@@ -162,5 +162,9 @@ final class PluralRulesTests: XCTestCase {
             XCTAssertEqual(family.kind, .integer, "\(family)")
         }
         XCTAssertEqual(PluralFamily.ageDays.key(.many), "age.days.many")
+        XCTAssertEqual(PluralFamily.ageDays.arguments, ["1d"])
+        XCTAssertEqual(PluralFamily.trendDrop.arguments, ["1@"])
+        // The 24-hour count line: the dose phrase, then the counted number.
+        XCTAssertEqual(PluralFamily.medicationCount24h.arguments, ["1@", "2d"])
     }
 }
