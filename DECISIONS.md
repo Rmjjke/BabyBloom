@@ -14,6 +14,29 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Plurals: our own CLDR table in code, no `.stringsdict`, the JSON stays the one source
+
+A count selects its sentence by CLDR category from the operands of the number
+as shown (n, i, v, f, t), through a rule table for the 15 languages in
+`PluralRules.swift`. Each category is a whole template in the language's JSON
+(`age.days.few`: `"%d дня"`). A family may leave out a category no count it
+shows reaches; the lookup falls back to `.other`, which every family holds.
+
+**Why.** The two hand-written rules covered en/es and ru only: French and
+Portuguese (0 is singular), Ukrainian and the one-form languages (ja, ko,
+zh-Hant) could not be written, and the code glued the number to its word, so
+the space before a counter was the code's, not the language's. Not taken:
+`.stringsdict` / String Catalogs, which would split every string between two
+formats, take plurals out of the JSON the widget copies, the lint and the
+review read, and give back the `NSLocalizedString` path the app dropped.
+`Foundation`'s inflection (`^[…](inflect: true)`) covers a few languages and
+no count shown with decimals. The table is one switch of eight rules copied
+from CLDR, tested row by row against its samples; it changes only when CLDR
+changes a rule. Reading the category from the shown digits, not the Double,
+is what makes «1,0» and «0,96 → 1,0» read as the copy says. `.many` is
+optional where it means millions (es, fr, pt): no count in the app reaches
+it, and requiring it would make translators write a sentence nobody sees.
+
 ## 2026-11-11 — Sentences name the app with `{brand}`; declined forms stay inline
 
 Every sentence that names the app writes `{brand}`, filled from the

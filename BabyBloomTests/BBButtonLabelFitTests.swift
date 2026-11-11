@@ -14,7 +14,7 @@ final class BBButtonLabelFitTests: XCTestCase {
     private let small: CGFloat = 240
     private let regular: CGFloat = 295
 
-    private let trial = "Попробовать 7\u{00A0}дн. бесплатно"
+    private let trial = "Попробовать 7\u{00A0}дней бесплатно"
     private let notify = "Включить уведомления"
     private let activar = "Activar notificaciones"
     private let export = "Экспортировать"
@@ -58,7 +58,7 @@ final class BBButtonLabelFitTests: XCTestCase {
     /// UIFontMetrics sets 22.26, so its long lines run 1.4 to 1.9 pt wide.
     func testOneLineIsTheGlyphAndTheWords() {
         let cases: [(title: String, icon: String, size: UIContentSizeCategory, width: CGFloat)] = [
-            (trial, "arrow.right", .large, 270.7),
+            (trial, "arrow.right", .large, 286.7),
             (notify, "bell.fill", .large, 223.8),
             (notify, "bell.fill", .accessibilityMedium, 337.1),
             (activar, "bell.fill", .large, 198.2),

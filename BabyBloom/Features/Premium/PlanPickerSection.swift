@@ -343,7 +343,7 @@ struct PlanPickerCTA: View {
               store.isEligibleForIntroOffer,
               let offer = product.subscription?.introductoryOffer,
               offer.paymentMode == .freeTrial else { return "premium.cta_subscribe".l }
-        return String(format: "premium.cta_trial_fmt".l, Self.days(in: offer.period)).gluingNumbersToUnits
+        return PluralFamily.premiumCtaTrial.text(Self.days(in: offer.period)).gluingNumbersToUnits
     }
 
     /// The line above the button. Reads the trial from the SELECTED product
@@ -360,7 +360,7 @@ struct PlanPickerCTA: View {
             return String(format: "premium.price_only_fmt".l, product.displayPrice)
         }
         let days = Self.days(in: offer.period)
-        return String(format: "premium.trial_fmt".l, days, days.dayWord, product.displayPrice).gluingNumbersToUnits
+        return String(format: "premium.trial_days_fmt".l, PluralFamily.durationDays.text(days), product.displayPrice).gluingNumbersToUnits
     }
 
     /// An introductory period expressed in days, so the copy can decline the

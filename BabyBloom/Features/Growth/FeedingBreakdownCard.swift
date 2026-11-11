@@ -63,10 +63,9 @@ struct FeedingBreakdownCard: View {
     /// match.
     private var gainLine: String? {
         guard let reading, let expected = reading.expectedPerWeek else { return nil }
-        return String(format: "breakdown.gain_fmt".l,
+        return String(format: "breakdown.gain_days_fmt".l,
                       Int(reading.gramsPerWeek.rounded()),
-                      reading.intervalDays,
-                      reading.intervalDays.dayWord,
+                      PluralFamily.durationDays.text(reading.intervalDays),
                       Int(expected.lowerBound.rounded()),
                       Int(expected.upperBound.rounded())).gluingNumbersToUnits
     }

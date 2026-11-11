@@ -101,7 +101,7 @@ enum WidgetCopy {
         let hours = Int(max(0, interval) / 3600)
         guard hours >= 48 else { return minutesText(interval) }
         let days = hours / 24
-        return "\(days)\u{00A0}\(days.dayWord)"
+        return PluralFamily.durationDays.text(days)
     }
 
     /// `nil` in the due state on purpose: the hero there is already a whole

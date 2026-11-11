@@ -112,6 +112,12 @@ enum SeedScenario: String, CaseIterable {
     /// (allowed now). Plus two medication events from before medicines, one
     /// named and one bare.
     case medsTwoCourses
+    /// One count `n` (`-BBCount`, default 21) on every screen that can carry
+    /// it, for reading plural forms live: `n` doses in the last 24 hours, `n`
+    /// questions asked at today's visit, and either an age of `n` days
+    /// (below 7) or a weight gain over `n` days with a trend falling by
+    /// `-BBDrop` centile spaces (default 1.5). See `seedPluralSweep`.
+    case pluralSweep
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -124,8 +130,9 @@ enum SeedScenario: String, CaseIterable {
     /// line is that a flow's log capture can read it —
     /// `log stream --predicate 'subsystem CONTAINS "nenita"'` would otherwise
     /// show `<private>`, since os.Logger redacts interpolated strings by
-    /// default.
-    private static let log = Logger(subsystem: "com.nenita.app", category: "SeedScenario")
+    /// default. Internal, not private, so the scenario extensions in their
+    /// own files log under the same category.
+    static let log = Logger(subsystem: "com.nenita.app", category: "SeedScenario")
 
     /// Whether this process has already seeded. The root view's `.onAppear`
     /// re-fires whenever its identity changes (it is keyed on `appLanguage`),
@@ -229,6 +236,9 @@ enum SeedScenario: String, CaseIterable {
         }
         if self == .medsTwoCourses {
             return seedMedicines(into: context)
+        }
+        if self == .pluralSweep {
+            return seedPluralSweep(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)
