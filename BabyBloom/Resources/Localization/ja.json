@@ -60,7 +60,7 @@
   "medication.alert_before_message_fmt": "%1$@\n前回の服薬：%2$@\n保存すると、次の服薬は%3$@以降になります",
   "medication.alert_between_title_fmt": "記録した服薬から%@未満です",
   "medication.alert_between_message_fmt": "%1$@\n記録した服薬：%2$@\n保存すると、次の服薬は%3$@以降になります",
-  "medication.alert_after_title_fmt": "記録した服薬の前、%@未満です",
+  "medication.alert_after_title_fmt": "記録した服薬まで%@未満です",
   "medication.alert_after_message_fmt": "%1$@\n記録した服薬：%2$@\n間隔：%3$@",
   "medication.alert_max_title_fmt": "この服薬で24時間に%@になります",
   "medication.alert_max_message_fmt": "%1$@\n設定した24時間の最大回数：%2$d回\n保存すると、次の服薬は%3$@以降になります",

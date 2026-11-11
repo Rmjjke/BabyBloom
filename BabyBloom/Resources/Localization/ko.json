@@ -48,7 +48,7 @@
   "medication.field_max_placeholder": "설명서에 적힌 대로",
   "medication.field_max_range_hint": "투여 횟수를 1에서 24까지 입력하거나, 칸을 비워 두세요.",
   "medication.reminder_switch": "간격이 지나면 알림",
-  "medication.reminder_footer": "투여할 때마다 간격이 지나면 알림이 한 번 와요. 이 기기에만 오고, 밤에도 와요.",
+  "medication.reminder_footer": "투여를 기록할 때마다 간격이 지나면 알림이 한 번 와요. 이 기기에만 오고, 밤에도 와요.",
   "medication.reminder_at_fmt": "알림: %@",
   "medication.reminder_off_in_settings": "{brand} 알림이 설정에서 꺼져 있어요.",
   "medication.open_settings": "설정 열기",
