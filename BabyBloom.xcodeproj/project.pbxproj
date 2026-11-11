@@ -71,6 +71,8 @@
 		2F251A53C6AA48D1BBC30803 /* QuestionsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC61B36B29C0F41B11EE8C7 /* QuestionsCard.swift */; };
 		2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A33EF75066D5F610B2C61D /* BabyBloomWidget.swift */; };
 		30EC29754302AB7D72557995 /* CorrectedAgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19EBDE3B155EB65145815815 /* CorrectedAgeTests.swift */; };
+		310BD9BD468558BD7D9C5996 /* PseudoLanguageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F672465FABDAAD81704B576A /* PseudoLanguageTests.swift */; };
+		3184ACEFA5AA624E4FD87CB2 /* PseudoLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8009FB6D35AF3CE9A36A48B4 /* PseudoLanguage.swift */; };
 		31BB1B37CCA865560D696B8F /* WeeklyNotificationPlanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E6C36D64BC0C13BD65E0C3 /* WeeklyNotificationPlanTests.swift */; };
 		3554F6FEB23B684E3524475B /* VisitFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A4CE9D07416E214B134A54 /* VisitFields.swift */; };
 		37127A4B98A4CA923F322113 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */; };
@@ -297,6 +299,7 @@
 		EA56E266F7A5EDE5ABA1B699 /* BBHistorySection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */; };
 		EAB93DDC960BEACCE29B13B3 /* LoggingAnalyticsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C0635F821A377DF6E6181B /* LoggingAnalyticsBackend.swift */; };
 		EB978D64368978FDE7EBC7B2 /* GrowthTrendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914F0ED73B40E0FCBE7FDDBB /* GrowthTrendTests.swift */; };
+		EC2E57A12790DC576E5D9168 /* PseudoLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8009FB6D35AF3CE9A36A48B4 /* PseudoLanguage.swift */; };
 		ED958D4B266F8232386E459D /* PercentileCardRenderDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D7CBB786BB36751F59299E /* PercentileCardRenderDump.swift */; };
 		EE2AC86005BA353531DB8CA5 /* SleepReportCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD141629365BF41788321AFD /* SleepReportCard.swift */; };
 		EFD4F190E4209DC5B4DC698B /* SeedScenario+PluralSweep.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BB61A81ECDC3B2A88E075A /* SeedScenario+PluralSweep.swift */; };
@@ -510,6 +513,7 @@
 		7F16E118F33FF497A01BC913 /* BrandMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandMark.swift; sourceTree = "<group>"; };
 		7F97DF502FBCF71FF60C1CAA /* SeedScenario+Medicine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SeedScenario+Medicine.swift"; sourceTree = "<group>"; };
 		7F983790E90D48BBE646AF78 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		8009FB6D35AF3CE9A36A48B4 /* PseudoLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PseudoLanguage.swift; sourceTree = "<group>"; };
 		80CD9E9FC340B4479EAAF3F4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		810BD1DFD0414BBC19437480 /* AnalyticsFacadeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsFacadeTests.swift; sourceTree = "<group>"; };
 		81EBDB06F0A203F086BCC22F /* BabyBloomWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BabyBloomWidget.entitlements; sourceTree = "<group>"; };
@@ -645,6 +649,7 @@
 		F472AD0410592AC8EF7E83D9 /* TransactionFailureFlagTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionFailureFlagTests.swift; sourceTree = "<group>"; };
 		F4BABEBB11A523432C800F65 /* DurationText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationText.swift; sourceTree = "<group>"; };
 		F614D122F7220F420487F06E /* PluralRulesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluralRulesTests.swift; sourceTree = "<group>"; };
+		F672465FABDAAD81704B576A /* PseudoLanguageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PseudoLanguageTests.swift; sourceTree = "<group>"; };
 		F691DCEBF4864F06700FFE43 /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
 		F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrphanedEntryAdoption.swift; sourceTree = "<group>"; };
 		FA907ECC9EED5E022C2749E4 /* TypographyCapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypographyCapTests.swift; sourceTree = "<group>"; };
@@ -939,6 +944,7 @@
 				167683C6FB84AABD9FFC660F /* PeriodSummaryTests.swift */,
 				F614D122F7220F420487F06E /* PluralRulesTests.swift */,
 				05D2859DB3616E11498B8A60 /* ProgressCardScaleTests.swift */,
+				F672465FABDAAD81704B576A /* PseudoLanguageTests.swift */,
 				A1FACAF9EAB18D2F44141D94 /* RecentActivityDayLabelTests.swift */,
 				96FEC8E9C21E1552873021F0 /* ReviewPromptClinicalBlockerTests.swift */,
 				A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */,
@@ -1087,6 +1093,7 @@
 				F4BABEBB11A523432C800F65 /* DurationText.swift */,
 				1883B0809C4A2B4CF1567AFB /* LocalizationManager.swift */,
 				50BDFBB351F1E94297122F3B /* PluralRules.swift */,
+				8009FB6D35AF3CE9A36A48B4 /* PseudoLanguage.swift */,
 				833D4E931E3BC4A0715B9DC8 /* String+UnitGlue.swift */,
 			);
 			path = Localization;
@@ -1558,6 +1565,7 @@
 				94E74F7B8EFFB86F3C59C73A /* Medicine.swift in Sources */,
 				F78531E67DE1326C5E770B0B /* OrphanedEntryAdoption.swift in Sources */,
 				1E69E65C0677B8C2E92C871A /* PluralRules.swift in Sources */,
+				3184ACEFA5AA624E4FD87CB2 /* PseudoLanguage.swift in Sources */,
 				1A45DED5808BB595C09AF275 /* SleepEntry.swift in Sources */,
 				14620DE015779520AC2B3E48 /* StartFeedingIntent.swift in Sources */,
 				BC4783BBA3A0571C324F94BA /* StopTimerIntent.swift in Sources */,
@@ -1688,6 +1696,7 @@
 				3DE89E27B2D408B1A1316EF7 /* PluralRules.swift in Sources */,
 				FEB2DE2A2E53DB4BDB98FE2F /* PremiumHero.swift in Sources */,
 				D81E16D3FC98473869A72423 /* PremiumPage.swift in Sources */,
+				EC2E57A12790DC576E5D9168 /* PseudoLanguage.swift in Sources */,
 				99E3BB9DED45B8E9638F8569 /* QuestionSheet.swift in Sources */,
 				2F251A53C6AA48D1BBC30803 /* QuestionsCard.swift in Sources */,
 				E78FAF366FEABEACBBABFD84 /* RecentActivityView.swift in Sources */,
@@ -1817,6 +1826,7 @@
 				6FA7380311C26ACE16E9D287 /* PeriodSummaryTests.swift in Sources */,
 				A608AFA1BA0F022EF2170121 /* PluralRulesTests.swift in Sources */,
 				B217A9715DAACD6BA6C10F24 /* ProgressCardScaleTests.swift in Sources */,
+				310BD9BD468558BD7D9C5996 /* PseudoLanguageTests.swift in Sources */,
 				2712D54D13E24ADCB4DE0672 /* RecentActivityDayLabelTests.swift in Sources */,
 				10FD5305B5AAEFD55DEA86C5 /* ReviewPromptClinicalBlockerTests.swift in Sources */,
 				9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */,
