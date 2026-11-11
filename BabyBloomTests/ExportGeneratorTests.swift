@@ -336,11 +336,11 @@ final class ExportGeneratorTests: XCTestCase {
         let out = html(growth: GrowthEntry(weightKg: 4.25, heightCm: 54.3, headCircumferenceCm: 37.0),
                        feeding: feeding, sleep: sleep)
 
-        XCTAssertTrue(out.contains("4,25\(nbsp)\("unit.kg".l)"), "kg: comma + NBSP + ru unit")
-        XCTAssertTrue(out.contains("54,3\(nbsp)\("unit.cm".l)"))
-        XCTAssertTrue(out.contains("37,0\(nbsp)\("unit.cm".l)"))
-        XCTAssertTrue(out.contains("120\(nbsp)\("unit.ml".l)"))
-        XCTAssertTrue(out.contains("15\(nbsp)\("unit.min".l)"))
+        XCTAssertTrue(out.contains("4,25\(nbsp)кг"), "kg: comma + NBSP + ru unit")
+        XCTAssertTrue(out.contains("54,3\(nbsp)см"))
+        XCTAssertTrue(out.contains("37,0\(nbsp)см"))
+        XCTAssertTrue(out.contains("120\(nbsp)мл"))
+        XCTAssertTrue(out.contains("15\(nbsp)мин"))
         XCTAssertTrue(out.contains(String(format: "duration.h_min".l, 1, 30)), "sleep: hours and minutes, glued")
         XCTAssertFalse(out.contains("4.25"))
         XCTAssertFalse(out.contains("%."), "a format specifier leaked into the document")

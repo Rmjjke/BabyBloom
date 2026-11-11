@@ -256,8 +256,7 @@ struct DashboardView: View {
                 if let weightKg = latestWeighing?.weightKg {
                     BBStatCard(
                         title: "stat.weight",
-                        value: weightKg.appDecimal(2),
-                        unit: "unit.kg",
+                        value: Units.kg(weightKg.appDecimal(2)),
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth,
                         action: { showQuickGrowthSheet = true }
@@ -266,7 +265,6 @@ struct DashboardView: View {
                     BBStatCard(
                         title: "tab.growth",
                         value: "—",
-                        unit: "",
                         icon: "chart.line.uptrend.xyaxis",
                         color: BBTheme.Colors.growth,
                         action: { showQuickGrowthSheet = true }

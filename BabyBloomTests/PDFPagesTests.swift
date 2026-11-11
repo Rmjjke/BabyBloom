@@ -484,7 +484,7 @@ final class PDFPagesTests: XCTestCase {
                     assertFace(selection, centile)
                 }
                 for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
-                    let label = "\(kg) \("unit.kg".l)"
+                    let label = Units.kg("\(kg)").replacingOccurrences(of: "\u{00A0}", with: " ")
                     // A centile on the same baseline joins the label's line.
                     let line = try XCTUnwrap(lines.first { plainText($0) == label || plainText($0).hasPrefix(label + " ") },
                                              "\(language): y label «\(label)»")

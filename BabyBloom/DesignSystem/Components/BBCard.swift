@@ -3,10 +3,9 @@ import SwiftUI
 // MARK: - Stat Card
 struct BBStatCard: View {
     let title: String
+    /// The figure with its unit words inside («3,40 кг», «1 ч 15 мин»); a
+    /// count has none.
     let value: String
-    /// A unit key drawn beside the value (kg, cm). A count has none, and a
-    /// duration carries its unit words inside the value («1 ч 15 мин»).
-    var unit: String = ""
     let icon: String
     let color: Color
     var trend: String? = nil
@@ -61,16 +60,9 @@ struct BBStatCard: View {
             Spacer()
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .lastTextBaseline, spacing: 2) {
-                    Text(Self.valueText(value))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
-                    if !unit.isEmpty {
-                        Text(unit.l)
-                            .font(Self.wordFont)
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                    }
-                }
+                Text(Self.valueText(value))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                 Text(title.l)
                     .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .regular, design: .rounded))
                     .foregroundStyle(BBTheme.Colors.textSecondary)

@@ -185,7 +185,7 @@ enum DoctorReportPDF {
             let y = chartY(Double(kg), chart)
             svg += line(Chart.plotLeft, y, Chart.plotRight, y, rowRule)
             svg += "<text x=\"\(n(Chart.labelMin))\" y=\"\(n(y + midCap))\" text-anchor=\"end\">"
-                + "\(esc("\(kg)\(ReportFormat.nbsp)\("unit.kg".l)"))</text>"
+                + "\(esc(Units.kg("\(kg)")))</text>"
         }
         let width = { (text: String) in (text as NSString).size(withAttributes: [.font: font]).width }
         for label in chartXLabels(chart, now: now, width: width) {

@@ -382,9 +382,7 @@ final class DoctorReportPDFTests: XCTestCase {
 
     func testRussianWeightHasACommaAndANoBreakSpace() {
         LocalizationManager.shared.setLanguage(.ru)
-        let unit = "unit.kg".l
-        XCTAssertNotEqual(unit, "unit.kg")
-        XCTAssertTrue(html(makeSummary(latestWeight: 4.25)).contains("4,25\u{00A0}\(unit)"))
+        XCTAssertTrue(html(makeSummary(latestWeight: 4.25)).contains("4,25\u{00A0}кг"))
     }
 
     // MARK: d) File name
@@ -568,7 +566,7 @@ final class DoctorReportPDFTests: XCTestCase {
                 XCTAssertTrue(page.contains(">\(centile)</text>"), "\(language): \(centile)")
             }
             for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
-                let label = esc("\(kg)\(ReportFormat.nbsp)\("unit.kg".l)")
+                let label = esc(Units.kg("\(kg)"))
                 XCTAssertTrue(page.contains(">\(label)</text>"), "\(language): \(kg) kg")
             }
             let labels = DoctorReportPDF.chartXLabels(chart, now: now, width: labelWidth)
