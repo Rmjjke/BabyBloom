@@ -115,6 +115,9 @@ local only, and Settings without its iCloud Sync row (§ 3, § 7, G30). Decided
 on 2026-11-08, in code at 9815b28: the pinned Save at the bottom of seven entry
 sheets gone while the keyboard is up and back once it is down, the bar's ✓
 saving meanwhile (§ 3, § 7 `BBSheetFooter`).
+Decided on 2026-11-11, planned: CJK tracking 0 and the PDF font per script
+(§ 11). Proposed on 2026-11-11: one length budget per tight place, with
+G42–G45 (§ 11).
 Proposed on 2026-11-06: Home's header name under the greeting's row where it
 misses beside the avatar (§ 7, G37).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
@@ -2188,3 +2191,146 @@ G41 are fixed for 1.3.0; G37 is proposed.
   on the orange@0.1 wash, are 2.13:1 in light (2.03 on iOS 17–18; 6.14 in
   dark; at 4f3c86c, `DiaperView.swift:510–515`). They stay orange with the
   triangle and the wash: the exception is its whole look (2026-11-04).
+
+## 11. Localization
+
+triggers: a language added; a tight place's room changed (columns, insets, a font size); a script's font changed in the app or the PDFs
+check: `grep -rn 'tracking\|kern' BabyBloom/DesignSystem/BBTheme.swift BabyBloom/Features/Splash/SplashView.swift` → every tracked style reads 0 for ja, ko and zh-Hant once the rule is in code
+
+Read on main 468a07c on 2026-11-11, with pseudo-language captures (en-XA:
+each word ~40 % longer, accented; ja-XB: full-width Latin, no spaces) on
+320 × 568 pt at Large and AX2 and on the iPad in portrait. Widths were
+measured with CoreText (the system cascade, the same fonts as iOS).
+
+### Rules
+
+- **CJK tracking 0** (decided 2026-11-11, planned). For ja, ko and zh-Hant every
+  text style tracks 0: the titles (largeTitle −0.4, title1 −0.3, title2 −0.2
+  in § 3), the caption (+0.3) and the splash tagline (+4.5, and no uppercase
+  effect there). Latin and Cyrillic keep their values. Why: the values are
+  tuned to SF's Latin; on full-width glyphs negative tracking crowds strokes,
+  and +4.5 pulls a CJK word apart. Read in the ja-XB captures: no tracked
+  style; the wide look of full-width Latin is its 1-em advance, not tracking.
+- **The PDF font per script** (decided 2026-11-11, planned). Helvetica Neue
+  stays for Latin and Cyrillic (uk included), body and footer, in both PDFs.
+  For CJK the script's own family goes first in the cascade, the rest kept:
+  ja Hiragino Sans, ko Apple SD Gothic Neo, zh-Hant PingFang TC. The footer
+  follows the same order. This narrows "Helvetica Neue in every language"
+  (§ 9) for CJK only. Why: with Simplified Chinese first, a Japanese or
+  Traditional reader gets wrong glyph forms (骨, 直) in a document for a
+  doctor. Check: one ja and one zh-Hant PDF print 骨 and 直 in their own forms.
+- **CJK line height** is measured, not assumed. The system picks the UI
+  variants (Hiragino Sans UI, PingFang TC UI), whose line equals SF's
+  (10 pt → 11.8, 13 → 15.3, 14 → 16.5); ko (Apple SD Gothic Neo) is
+  0.3–0.4 pt taller (12.1, 15.7, 16.9). The widget's stat row (10 over 13,
+  spacing 1) is 28.8 pt in ko within its 30 minimum; the 36 pt capsule's
+  14 pt line is at most 16.9 within 28. Glyph forms, line breaking (no
+  closing bracket at a line start) and real-string line height are read on
+  real strings, not pseudo text.
+- **CJK counts as one word.** The fit measures (`WordWrappingText`,
+  `WidestWordIdeal`, `BBScreenHeading`) split words at plain spaces, so a CJK
+  label is one word: it takes fewer columns, stacks or steps its heading down
+  where Latin would wrap. Safe (nothing is cut, and the text engine breaks
+  between CJK characters once it wraps), but it spends room; for ja, ko and
+  zh-Hant a "widest word" budget below means the whole label. Splitting the
+  measure at line-break opportunities is open until real strings exist.
+- **One length budget per tight place**, not per string (proposed
+  2026-11-11). Translators get the table below through
+  `teamdocs/content/localization.md`. Why: about twenty measured places age
+  with the layout, not with every copy edit.
+
+### Budgets
+
+Room = the width on a 320 pt screen from the code; "~" = where the system
+sets the width. Characters = room ÷ (k × point size), k = Latin 0.50,
+Cyrillic 0.55, CJK 1.00 (measured averages: Latin 0.42–0.49, Cyrillic 0.53,
+Hangul 0.68, kana and Han 0.92–0.94; ko gets about a third more than its
+count). At AX2 a size relative to `.body` grows ×40/22 and stops. Verdicts:
+**wrap** (more lines between words; the budget is the widest single word,
+since a word never breaks inside itself, § 3), **step down** (fewer columns,
+stacked, a smaller style; the budget says when), **one line** (the whole
+string must fit). Budgets are characters Latin / Cyrillic / CJK.
+
+| place | type | room 320, Large / AX2 | verdict | budget |
+|---|---|---|---|---|
+| Tab bar, iPhone (system) | 10 medium, fixed | the five labels share ~240; the system gives each 34–64 by its label | one line; the system shrinks a label to ~0.9 (reads), past ~63 pt it cuts | a label ≤ 57 pt: 11 / 9 / 5, one word; the five together ≤ 48 / 43 / 24 |
+| Tab bar, iPad floating (system) | system | five labels share the bar | one line; the system's paging is the accepted fallback | the five together ≤ 34 / 31 / 17 |
+| Appearance segments (system) | 13 | 77 a segment | one line | 11 / 10 / 5 |
+| History filter (`BBHistoryFilterPicker`) | 13 semibold rounded, fixed | 68.5 a segment | one line | 10 / 9 / 5 |
+| Feed type tiles | 12 medium | 90.7 (3 columns) / 140 (2) | step down, then wrap | widest word 15 / 13 / 7 (Large), 12 / 11 / 6 (AX2) |
+| Side chips | 15 medium | ~68 / ~118 | step down, then wrap | widest word 9 / 8 / 4, 8 / 7 / 4 |
+| Medication interval chips | 15 | 224 | wrap (flow) | 15 / 13 / 7 a chip |
+| Stat tile title (`BBStatCard`) | 13 regular rounded | 108 (2 columns) / 256 (1) | wrap | widest word 16 / 15 / 8; unit ≤ 4 / 4 / 2 |
+| Primary button, 16 inset | 17 semibold rounded; 31.0 at AX2 | 256, ~231 with an icon | wrap | one line at Large ≤ 27 / 24 / 13; widest word at AX2 16 / 15 / 8 |
+| Primary button, 24 inset (onboarding, paywall) | as above | 240, ~215 with the arrow | wrap | one line at Large ≤ 25 / 22 / 12; widest word at AX2 15 / 14 / 7 |
+| Paywall plan title | 15 semibold | ~212 less the price | wrap, then the price under it | widest word 21 / 19 / 10 (Large), 15 / 14 / 7 (AX2) |
+| Paywall savings badge | 11 bold rounded | 87 pt | one line | 15 / 14 / 7, number and % included |
+| PDF table header | 10–11 px | each column's own width (Export: in proportion to the column's characters, down to ~26 pt) | wrap in its cell; a head word never breaks (G45) | no character budget: the shortest common word |
+| PDF footer | 9 pt | 435 pt | one line (its tail is cut) | ≤ 96 / 87 / 48 |
+| Splash tagline | 14 medium, uppercase, +4.5 (CJK 0) | ~246, fixed size | one line (a wrap is centred and reads, but the budget keeps one) | 18 / 18 / 17, spaces included |
+| Screen title in the bar | largeTitle bar, 34 bold | 288 | step down into the content, then wrap | one line in the bar 16 / 15 / 8; widest word at AX2 ≤ 16 / 14 / 8 |
+| Sheet bar title (`BBSheetTitle`) | 17 semibold, down to 13 | 166 | one line (shrinks, then cuts) | 19 / 17 / 9 |
+| Settings and More rows | body 17; 31.0 at AX2 | ~200; at AX2 158 beside the icon, 218 under it | step down (icon above), then wrap | widest word ≤ 14 / 12 / 7 |
+| Onboarding title | title1 26 semibold | 272 | wrap | widest word 20 / 19 / 10 (Large), 13 / 11 / 6 (AX2) |
+| Onboarding card title | 15 semibold | 124 beside / 240 stacked | step down (stack), then wrap | widest word 16 / 15 / 8 beside |
+| Onboarding measure label (`BBOptionalMeasureToggle`) | 16 semibold rounded; 29.1 at AX2 | 224.7 at AX2 | wrap; the switch goes under by fit | widest word ≤ 15 / 14 / 7 at AX2 |
+| Home medication card | 15 | ~172 | wrap | widest word 22 / 20 / 11 (Large), 12 / 11 / 6 (AX2); a typed drug name is not budgeted |
+| Weekly chart day label | 11 medium rounded, fixed | ~36.6 a day | one line | 3 / 3 / 1 |
+| Chart month title | 14 semibold | ~120 | one line | 17 / 15 / 8 |
+| Growth chart x label | 11 medium | quarter of ~240 | one line (dropped on collision) | 7 / 7 / 6 |
+| Export section header | 13 semibold rounded, uppercase, fixed | 256 | wrap | widest word ≤ 39 / 35 / 19 |
+| Export format tile name | 15 bold | 108 (2 columns) | step down (stack), then wrap | widest word 14 / 13 / 7 (Large), 7 / 7 / 3 (AX2) |
+| Language picker endonyms (system list) | body 17 | ~200 | wrap | none needed (widest, «Português (Portugal)», 158.9 pt) |
+| Widget small headline | 12 medium, down to 0.8 | ~116 | one line | 19 / 17 / 9 |
+| Widget stat title | 10 medium | ~112 | one line | 22 / 20 / 11 |
+| Widget capsule | 14 semibold rounded, 14 → 12 → the tab word | ~72 small / ~146 medium | one line | small: the tab word 10 / 9 / 5; medium: the full label ≤ 146 pt |
+| Live Activity title, Lock Screen | 17 semibold rounded | ~230 | one line (cut at its cap allowed) | 27 / 24 / 13 |
+| Live Activity Stop | 15 semibold, down to 0.8 | ≥ 64 | one line | 12 / 11 / 6 |
+
+Measured against the budgets: in the app's fit tests on 320 pt, ru
+«Кормление» (58.8 pt in 57.0) and «Подгузники» (62.3 in 60.3) shrink to
+0.97 in their tab items, which does not show; they mark the label's edge.
+ru «Экономия 40%» 86.9 pt sets the badge (fr «Économisez 40 %» 97.5 and pt
+«Economize 40%» 88.5 need shorter forms). de «Benachrichtigungen» (18
+letters) breaks inside the word at AX2 as a screen title or row, so de takes
+the system's «Mitteilungen». ru «Попробовать 7 дней бесплатно» (258.8 pt
+without the arrow) wraps to two centred lines in the paywall button and
+reads well; a no-break space inside «7 дней бесплатно» puts the break after
+«Попробовать». Why the badge has a number rather than "en + 30 %": ru
+already ships above en + 30 % (76.8 pt), and a number does not move with a
+copy edit. The onboarding measure label's real widest words at AX2: en
+«Circumference» 196.3, fi «Päänympärys» 180.1, ru «Окружность» 173.6, ja
+頭囲（cm） 148.1, in 224.7.
+
+Pseudo-language misses in the fit tests that are the layout at work, not
+gaps: a screen title that leaves the bar for the content; a More row that
+steps its word down; the Home growth card taking its stacked form; the
+splash tagline wrapping to two centred lines. Pseudo words past a budget
+(17-letter accented words, full-width Latin with no spaces) are read
+against the budget, not the layout; real words of every shipped language
+fit there.
+
+### Gaps found (2026-11-11, at 468a07c)
+
+- **G42 · Profile's and More's titles cut at AX2.** Both set a plain
+  `.navigationTitle` (`MainTabView.swift:371`, `:133`), outside the screen
+  title rule (§ 3: a large title that misses the bar's line moves into the
+  content). ja-XB at AX2 cuts Profile. Direction: both take `bbScreenTitle`
+  and `BBScreenHeading`, as the other tab screens do. Major.
+- **G43 · The welcome tagline cut at AX2.** The welcome hero has a fixed
+  height of 320 (`WelcomePage.swift`), so a long tagline runs out of height.
+  Direction: a minimum height of 320 that grows with its words; the page
+  already scrolls. Major.
+- **G44 · The paywall title cut in en-XA at AX2** («[[Bííttýý] Pré…»). The
+  title is `title1` with no line limit (`PremiumHero.swift:30`); the likely
+  cause is one pseudo word wider than the 272 pt line. Real titles
+  («{brand} Premium», widest word 7 letters, ~190 pt at AX2) fit. Direction:
+  a heading never cuts; a word that misses the line steps the style down, as
+  `BBScreenHeading` does. Minor.
+- **G45 · A PDF table head breaks inside its word.** The Export table sizes
+  each column in proportion to its characters (`ExportGenerator.swift:579`,
+  `table-layout: fixed`), so a short column falls under its head: ru
+  «Время» 30.1 pt in 26.1. The report's medication table does the same with
+  «Количество доз», 55.9 in 49.1 (`DoctorReportPDF.swift`). Direction: no
+  column narrower than its head's widest word, in both PDFs; copy alone
+  cannot hold it in every language. Major.
