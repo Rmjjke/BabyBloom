@@ -130,7 +130,7 @@
   "medication.reminder_switch": "Напомнить, когда пройдёт интервал",
   "medication.reminder_footer": "Одно уведомление после каждой дозы, только на этом устройстве, в том числе ночью.",
   "medication.reminder_at_fmt": "Уведомление: %@",
-  "medication.reminder_off_in_settings": "Уведомления для Ночки выключены в настройках.",
+  "medication.reminder_off_in_settings": "Уведомления для приложения «{brand}» выключены в настройках.",
   "medication.open_settings": "Открыть настройки",
   "medication.a11y_reminder_on": "Напоминание включено",
   "medication.picker_label": "Лекарство",
