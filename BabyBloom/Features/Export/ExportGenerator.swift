@@ -569,16 +569,13 @@ struct ExportGenerator {
             rows: rows.map { row in "<tr>" + row.map { "<td>\(htmlEscape($0))</td>" }.joined() + "</tr>" }))
     }
 
-    /// Every page prints its own table and would size its own columns, so the widths
-    /// come from all the rows: each column's share follows its longest text. The cap
-    /// keeps one long note from squeezing the rest; the note wraps instead.
+    /// The table's columns, from all its rows (`PDFColumns`). The table is the
+    /// 612-px page less the body's 24 and the card's 16 a side; `th` and `td`
+    /// pad 10 a side at 11 px, and `th` is bold.
     static func columnWidths(headers: [String], rows: [[String]]) -> String {
-        let lengths = headers.indices.map { column in
-            min(32, rows.map { $0[column].count }.reduce(headers[column].count, max)) + 3
-        }
-        let total = lengths.reduce(0, +)
-        let columns = lengths.map { "<col style=\"width: \(String(format: "%.1f", Double($0) * 100 / Double(total)))%\">" }
-        return "<colgroup>\(columns.joined())</colgroup>"
+        PDFColumns.colgroup(PDFColumns.shares(
+            heads: headers, rows: rows, headFont: PagedPDF.font(ofSize: 11, bold: true),
+            cellFont: PagedPDF.font(ofSize: 11), width: 612 - 2 * 24 - 2 * 16, padding: 10))
     }
 
     // MARK: - Temp file helpers

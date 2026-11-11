@@ -55,10 +55,12 @@ enum PagedPDF {
     /// The same face and list for what is drawn around the HTML, like the report's
     /// footer. UIKit's own fallback sends a sign like ❤ to the colour emoji font,
     /// which a PDF context prints as a box and a gap.
-    static func font(ofSize size: CGFloat,
+    static func font(ofSize size: CGFloat, bold: Bool = false,
                      language: SupportedLanguage = LocalizationManager.shared.language) -> UIFont {
-        let list = fallbackFamilies(for: language).map { UIFontDescriptor(fontAttributes: [.family: $0]) }
-        let descriptor = UIFontDescriptor(name: "HelveticaNeue", size: size).addingAttributes([.cascadeList: list])
+        let traits: [UIFontDescriptor.TraitKey: Any] = [.weight: bold ? UIFont.Weight.bold : .regular]
+        let list = fallbackFamilies(for: language).map { UIFontDescriptor(fontAttributes: [.family: $0, .traits: traits]) }
+        let descriptor = UIFontDescriptor(name: bold ? "HelveticaNeue-Bold" : "HelveticaNeue", size: size)
+            .addingAttributes([.cascadeList: list])
         return UIFont(descriptor: descriptor, size: size)
     }
 

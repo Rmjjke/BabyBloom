@@ -222,8 +222,13 @@ final class PDFPagesTests: XCTestCase {
     /// Without them the columns come out equal: a short time takes as much as a long note.
     func testExportColumnWidthsFollowTheLongestText() {
         let note = String(repeating: "x", count: 60)
-        XCTAssertEqual(ExportGenerator.columnWidths(headers: ["Time", "Notes"], rows: [["08:00", note]]),
-                       "<colgroup><col style=\"width: 18.6%\"><col style=\"width: 81.4%\"></colgroup>")
+        let shares = PDFColumns.shares(heads: ["Time", "Notes"], rows: [["08:00", note]],
+                                       headFont: PagedPDF.font(ofSize: 11, bold: true),
+                                       cellFont: PagedPDF.font(ofSize: 11), width: 532, padding: 10)
+        XCTAssertEqual(shares.reduce(0, +), 100, accuracy: 0.01)
+        XCTAssertGreaterThan(shares[1], 3 * shares[0], "the note takes the room the time leaves")
+        XCTAssertTrue(ExportGenerator.columnWidths(headers: ["Time", "Notes"], rows: [["08:00", note]])
+            .hasPrefix("<colgroup><col style=\"width: "))
         let page = ExportGenerator.buildHTML(baby: nil, feedings: [], sleeps: [],
                                              diapers: [DiaperEntry(time: Date(), type: .wet, notes: note)],
                                              growths: [], events: [], categories: [.diapers], range: .all)

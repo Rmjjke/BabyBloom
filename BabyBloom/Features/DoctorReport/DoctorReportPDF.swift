@@ -339,16 +339,31 @@ enum DoctorReportPDF {
     /// Newest first, as the summary hands them; every page the table reaches prints
     /// its head. The columns are fixed, or each page would size its own.
     private static func weighingsTable(_ weighings: [DoctorReportSummary.Weighing], now: Date) -> PagedPDF.Item {
-        let heads = ["export.col.date", "export.col.weight", "export.col.height", "export.col.head"]
-            .map { "<th>\(esc($0.l))</th>" }.joined()
-        let rows = weighings.map { weighing in
-            let cells = [ReportFormat.date(weighing.date, now: now), ReportFormat.kg(weighing.weightKg),
-                         weighing.heightCm.map(ReportFormat.cm) ?? "", weighing.headCm.map(ReportFormat.cm) ?? ""]
-            return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
+        let cells = weighings.map { weighing in
+            [ReportFormat.date(weighing.date, now: now), ReportFormat.kg(weighing.weightKg),
+             weighing.heightCm.map(ReportFormat.cm) ?? "", weighing.headCm.map(ReportFormat.cm) ?? ""]
         }
-        let table = "<table class=\"weighings\"><thead><tr>\(heads)</tr></thead><tbody>"
+        let heads = weighingHeads.map(\.l)
+        let columns = PDFColumns.colgroup(tableShares(heads: heads, rows: cells))
+        let rows = cells.map { "<tr>" + $0.map { "<td>\(esc($0))</td>" }.joined() + "</tr>" }
+        let table = "<table class=\"weighings\">\(columns)<thead><tr>\(headRow(heads))</tr></thead><tbody>"
         return .rows(.init(opening: "<p class=\"sub\">\(esc("report.weighings".l))</p>" + table,
                            continuation: { _ in table }, closing: "</tbody></table>", rows: rows))
+    }
+
+    static let weighingHeads = ["export.col.date", "export.col.weight", "export.col.height", "export.col.head"]
+    static let medicationHeads = ["medication.report_col_name", "medication.report_col_dose",
+                                  "medication.report_col_count", "medication.report_col_dates"]
+
+    /// A report table's columns (`PDFColumns`): the full 612-px width, `th` and
+    /// `td` padded 8 a side at 11 px, `th` at 600, which Helvetica Neue prints Bold.
+    static func tableShares(heads: [String], rows: [[String]]) -> [CGFloat] {
+        PDFColumns.shares(heads: heads, rows: rows, headFont: PagedPDF.font(ofSize: 11, bold: true),
+                          cellFont: PagedPDF.font(ofSize: 11), width: 612, padding: 8)
+    }
+
+    private static func headRow(_ heads: [String]) -> String {
+        heads.map { "<th>\(esc($0))</th>" }.joined()
     }
 
     /// Medications given in the period, a row each, names and dose text as
@@ -357,23 +372,21 @@ enum DoctorReportPDF {
     /// its own.
     private static func medications(_ medications: [DoctorReportSummary.Medication], now: Date) -> PagedPDF.Item? {
         guard !medications.isEmpty else { return nil }
-        let columns = [34, 30, 12, 24].map { "<col style=\"width: \($0)%\">" }.joined()
-        let heads = ["medication.report_col_name", "medication.report_col_dose",
-                     "medication.report_col_count", "medication.report_col_dates"]
-            .map { "<th>\(esc($0.l))</th>" }.joined()
         // A line whose dose changed takes a row per text with the name
         // repeated, so every row reads whole on whatever page it lands.
-        let rows = medications.flatMap { medication -> [String] in
+        let cells = medications.flatMap { medication -> [[String]] in
             let name = medication.name ?? "medication.report_without_name".l
             let lines = medication.texts.count > 1
                 ? medication.texts.map { (MedicationFormat.reportDoseText($0.text), $0.count, $0.first, $0.last) }
                 : [(medication.doseText ?? "", medication.count, medication.first, medication.last)]
             return lines.map { dose, count, first, last in
-                let cells = [name, dose, "\(count)", ReportFormat.dayRange(first, last, now: now)]
-                return "<tr>" + cells.map { "<td>\(esc($0))</td>" }.joined() + "</tr>"
+                [name, dose, "\(count)", ReportFormat.dayRange(first, last, now: now)]
             }
         }
-        let table = "<table class=\"weighings\"><colgroup>\(columns)</colgroup><thead><tr>\(heads)</tr></thead><tbody>"
+        let heads = medicationHeads.map(\.l)
+        let columns = PDFColumns.colgroup(tableShares(heads: heads, rows: cells))
+        let rows = cells.map { "<tr>" + $0.map { "<td>\(esc($0))</td>" }.joined() + "</tr>" }
+        let table = "<table class=\"weighings\">\(columns)<thead><tr>\(headRow(heads))</tr></thead><tbody>"
         // What was given is read as one list: a table that fits a page moves
         // to the next one whole, rather than leaving a row alone under a
         // repeated head.
