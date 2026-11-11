@@ -54,7 +54,7 @@ struct BBLockedHistoryFooter: View {
         // they cannot open: the one failure worse than showing no padlock at
         // all. `bbLockedAccessibility` appends `premium.locked_a11y` as the
         // VALUE, so the row reads «Показаны последние 15 дней, Доступно с
-        // Премиум, кнопка» — the state, the gate, the affordance, once each.
+        // Premium, кнопка» — the state, the gate, the affordance, once each.
         // A hint would repeat the gate a third time, since the visible second
         // line already says it.
         .accessibilityLabel(Text("history.free_window".l))

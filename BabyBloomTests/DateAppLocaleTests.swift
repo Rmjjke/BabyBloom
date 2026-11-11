@@ -36,7 +36,8 @@ final class DateAppLocaleTests: XCTestCase {
 
     /// The clock is the device's and the words are the language's: on a
     /// 12-hour phone English says PM where Spanish says p. m.; on a 24-hour
-    /// phone every language reads 14:30. Pinned to each cycle so the test does
+    /// phone every language reads 14:30 (Danish and Finnish 14.30, their own
+    /// separator). Pinned to each cycle so the test does
     /// not depend on the simulator's own setting.
     func testTimeOfDayTakesTheLanguagesWordsOnTheDevicesClock() {
         let en = reference.appTimeOfDay(in: SupportedLanguage.en.environmentLocale(hourCycle: .oneToTwelve))
@@ -46,7 +47,7 @@ final class DateAppLocaleTests: XCTestCase {
 
         for language in SupportedLanguage.allCases {
             let text = reference.appTimeOfDay(in: language.environmentLocale(hourCycle: .zeroToTwentyThree))
-            XCTAssertTrue(text.contains("14:30"), "\(language) on a 24-hour clock: \(text)")
+            XCTAssertNotNil(text.range(of: "14[:.]30", options: .regularExpression), "\(language) on a 24-hour clock: \(text)")
         }
     }
 

@@ -14,7 +14,7 @@ enum WeeklyFormat {
         }
         // The month is written once, on the side the language puts it:
         // "Oct 19 – 25" in English, "19 – 25 окт." in Russian.
-        let dayOnly = { (date: Date) in date.formatted(.dateTime.day().locale(locale)) }
+        let dayOnly = { (date: Date) in date.formatted(SupportedLanguage.dateFormat(locale: locale).day()) }
         let monthFirst = !(last.appDayMonth.first?.isNumber ?? true)
         return monthFirst
             ? String(format: "weekly.range_fmt".l, week.start.appDayMonth, dayOnly(last))

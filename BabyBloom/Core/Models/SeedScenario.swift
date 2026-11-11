@@ -552,9 +552,21 @@ enum SeedScenario: String, CaseIterable {
     /// assembled rather than shot.
     private static var showcaseBabyName: String {
         switch LocalizationManager.shared.language {
+        case .en: return "Mia"
         case .ru: return "Лея"
         case .es: return "Lucía"
-        case .en: return "Mia"
+        case .uk: return "Соломія"
+        case .ja: return "陽葵"
+        case .ko: return "서아"
+        case .fr: return "Léa"
+        case .de: return "Emma"
+        case .sv: return "Alice"
+        case .nb: return "Nora"
+        case .da: return "Ida"
+        case .fi: return "Aino"
+        case .ptBR: return "Helena"
+        case .ptPT: return "Leonor"
+        case .zhHant: return "子晴"
         }
     }
 
