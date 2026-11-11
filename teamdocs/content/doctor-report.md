@@ -84,7 +84,8 @@ Nothing on it grades the baby.
   `report.change_since_fmt` "Since 12 Oct: +640 g". It is hidden in the
   newborn window. A small loss just after birth is normal, and a minus there
   reads as a verdict (`DECISIONS.md` 2026-09-05).
-- **Counts by type**: `report.type_count_fmt` "%@ %d" joined by " · ", inside
+- **Counts by type**: `report.type_count_fmt` "%1$@ %2$d", with a no-break
+  space between the name and its count, joined by " · ", inside
   `report.feeds_by_type_fmt` ("Feeds by type, in total: Breast 120 · Formula
   30") and `report.stool_colors_fmt` ("Dirty by color, in total: Yellow 18 ·
   Green 2").
@@ -95,17 +96,17 @@ Nothing on it grades the baby.
     name and count, and the doctor judges it.
 - **A count of questions is a word, not a bare number**:
   `question.asked_at_count_fmt` "Asked at the visit on Oct 13 · 2 questions".
-  - `%@` is `question.count.one` / `.few` / `.many`, picked by the app's
-    one/few/many rule (`Int.plural`).
+  - `%@` is the plural family `question.count.<category>` (CLDR categories,
+    `.other` always), read through `PluralFamily.questionCount.text(n)`.
   - The older `question.asked_at_fmt` (`· %d`) is no longer read by the app.
     It stays in the JSON until every branch that reads it is merged, so that
     no branch reaches main without a key it reads. Then it is deleted.
 - **Composed in code, no key**:
   - "value · date" on the height and head rows and in the weighings list (a
     mid-dot between);
-  - the period length ("20 days") from `age.*`; a period that starts today
-    reads `report.period_today` ("today", lowercase: it follows a mid-dot or
-    stands in brackets);
+  - the period length ("20 days") from `duration.days.<category>`; a period
+    that starts today reads `report.period_today` ("today", lowercase: it
+    follows a mid-dot or stands in brackets);
   - the footer "brand · name · period".
 - A number never wraps away from its unit: a no-break space (` `),
   `growth.head_fmt` included.
@@ -140,6 +141,7 @@ sentences, which have a `report.pdf.*` twin.
 
 **Keys.** The test reads each value from the JSON of the language under test.
 For a key with placeholders, it scans the longest fixed stretch between them.
+A plural family is scanned value by value.
 - Percentile bands: `percentile.normal`, `percentile.below_normal`,
   `percentile.above_normal`, `percentile.very_low`, `percentile.very_high`,
   `percentile.below3`, `percentile.above97`. The badges
@@ -148,9 +150,10 @@ For a key with placeholders, it scans the longest fixed stretch between them.
 - Gain against the reference: `velocity.below`, `velocity.within`,
   `velocity.above`, `velocity.expected_fmt`, `nutrition.status_below`,
   `nutrition.status_within`, `nutrition.status_above`, `breakdown.title`,
-  `breakdown.gain_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`,
+  `breakdown.gain_days_fmt`, `breakdown.feeds_fmt`, `breakdown.nappies_fmt`,
   `breakdown.disclaimer`.
-- Centile trend: `trend.stable`, `trend.crossing_up`, `trend.drop_fmt`.
+- Centile trend: `trend.stable`, `trend.crossing_up`, `trend.drop.*` (every
+  value of the family).
 - First weeks: `newborn.regained`, `newborn.not_regained`,
   `newborn.flag_loss`, `newborn.flag_not_regained`.
 - Diapers: `diaper.color.warning`, `diaper.norm.fmt`, `diaper.norm.label`,
@@ -205,9 +208,9 @@ and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
 - **Questions:** `question.add`, `question.new_title` / `question.title` (sheet,
   new / edit), `question.placeholder`, `question.empty`, `question.asked`,
   `question.not_asked` (VoiceOver value and hint of the toggle),
-  `question.asked_at_count_fmt` (date · count) with `question.count.one` /
-  `.few` / `.many`, `question.back_to_list`, `question.delete`; `button.edit`
-  (new, generic).
+  `question.asked_at_count_fmt` (date · count) with the family
+  `question.count.<category>`, `question.back_to_list`, `question.delete`;
+  `button.edit` (new, generic).
 - **Visit:** `visit.title` (sheet title, Events row), `visit.log`, `visit.date`,
   `visit.questions_header`, `visit.carry_over`, `visit.asked_here`,
   `visit.delete`, `visit.delete_title`, `visit.delete_message`;
@@ -279,3 +282,10 @@ and so do `report.pdf.chart_title` and `.chart_curves` (2026-11-05).
   gone too; the report's durations come from the app's one writer, in hours
   and minutes. A spaced dash in the app now takes a no-break space before
   it; no key on the closed list changed with it.
+- 2026-11-11 — Counts are plural families: `question.count.<category>` and
+  the period length from `duration.days.<category>`. The closed list
+  names the gain line `breakdown.gain_days_fmt`, which takes the period as
+  a duration, and the drop line by its family `trend.drop.*`; the word
+  regexes are unchanged.
+  `report.type_count_fmt` numbers its arguments, "%1$@ %2$d", with a no-break
+  space before the count.

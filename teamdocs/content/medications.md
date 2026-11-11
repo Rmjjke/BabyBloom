@@ -320,11 +320,10 @@ space. The report's words also pass the pediatrician report's verdict list
 - 2026-11-03 — `medication.field_max_range_hint` added (the maximum outside
   1 to 24). No-break spaces, text unchanged: ru «или позже» and es «o más
   tarde» glued whole; es «de» glued to the duration after it
-  (`status_next_fmt`, the passed-interval and meta short forms, now inside
-  `passed_primary_fmt` and `meta_fmt`,
-  `alert_before_title_fmt`, `alert_before_message_fmt`,
-  `alert_after_title_fmt`, `alert_max_message_fmt`). Ages from 48 h are told
-  in days.
+  (`status_next_fmt`, `alert_before_title_fmt`, `alert_before_message_fmt`,
+  `alert_after_title_fmt`, `alert_max_message_fmt`, and the passed-interval
+  and meta pieces now inside `passed_primary_fmt` and `meta_fmt`). Ages from
+  48 h are told in days.
 - 2026-11-03 — The confirmation's time is the one after Save. The last line
   of `alert_before_message_fmt` and `alert_max_message_fmt` opens with "If
   you save," / «Если сохранить,» / «Si guardas,», and ru names «следующая
@@ -338,3 +337,10 @@ space. The report's words also pass the pediatrician report's verdict list
   the medication's newest dose.
 - 2026-11-03 — `report_dose_not_written` added: on a report line, the doses
   with no dose text beside doses that have one.
+- 2026-11-11 — Every line joined by a middle dot is one whole template, so
+  each language orders its pieces: `passed_primary_fmt`,
+  `waiting_secondary_ago_fmt`, `waiting_secondary_just_now_fmt` and
+  `meta_fmt` replace the short forms and the joins made in code. The counts
+  are plural families: `medication.dose_count.<category>` and line C's
+  `medication.count_24h.<category>`, picked by the maximum. Ages from 48 h
+  read `duration.days.<category>`.
