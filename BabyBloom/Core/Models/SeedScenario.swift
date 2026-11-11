@@ -565,18 +565,19 @@ enum SeedScenario: String, CaseIterable {
         case .en: return "Mia"
         case .ru: return "Лея"
         case .es: return "Lucía"
-        case .uk: return "Соломія"
-        case .ja: return "陽葵"
+        case .uk: return "Злата"
+        // Hiragana, so no kanji reading has to be chosen.
+        case .ja: return "ひまり"
         case .ko: return "서아"
-        case .fr: return "Léa"
+        case .fr: return "Jade"
         case .de: return "Emma"
-        case .sv: return "Alice"
+        case .sv: return "Maja"
         case .nb: return "Nora"
-        case .da: return "Ida"
+        case .da: return "Alma"
         case .fi: return "Aino"
-        case .ptBR: return "Helena"
+        case .ptBR: return "Alice"
         case .ptPT: return "Leonor"
-        case .zhHant: return "子晴"
+        case .zhHant: return "詠晴"
         }
     }
 

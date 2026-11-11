@@ -20,8 +20,9 @@ import XCTest
 /// - ja and zh-Hant write no space between a number and a counter or between
 ///   Han/Kana and Latin text; ko none between a number and its counter;
 /// - the widget's copies are byte-equal to the app's, and each language's
-///   `InfoPlist.strings` has English's keys and a display name equal to
-///   `brand.name`.
+///   `InfoPlist.strings`, in the app and in the widget, has a display name
+///   equal to `brand.name` and no key English lacks — and, for a complete
+///   language, every key English has.
 ///
 /// What it cannot see: layout (the fit tests) and formatting that comes from
 /// the environment locale (dates, numbers).
@@ -107,20 +108,40 @@ final class LocalizationLintTests: XCTestCase {
         XCTAssertEqual(Set(widgetLanguages), Set(shipped.map(\.rawValue)), "the widget holds a language the app does not ship")
     }
 
+    /// A language still being translated holds only the prompts it has: iOS
+    /// reads the base Info.plist's English for the rest.
     func testEveryLanguageNamesTheAppInItsInfoPlist() throws {
         let english = try infoPlistStrings("en")
+        let complete = Set(try completeLanguages())
         for language in shipped.map(\.rawValue) {
             let problems = LocalizationLint.infoPlistProblems(try infoPlistStrings(language), english: english,
-                                                              brandName: try table(language)["brand.name"])
+                                                              brandName: try table(language)["brand.name"],
+                                                              complete: complete.contains(language))
             XCTAssertEqual(problems, [], "\(language): InfoPlist.strings")
         }
     }
 
+    /// The widget's `.lproj` is what lists the language among the extension's
+    /// own localizations; its name follows the app's.
+    func testEveryLanguageNamesTheWidgetInItsInfoPlist() throws {
+        let widget = try XCTUnwrap(
+            Bundle.main.builtInPlugInsURL.flatMap { Bundle(url: $0.appendingPathComponent("BabyBloomWidget.appex")) },
+            "the widget extension is not in the app bundle")
+        let english = try infoPlistStrings("en", in: widget)
+        for language in shipped.map(\.rawValue) {
+            let problems = LocalizationLint.infoPlistProblems(try infoPlistStrings(language, in: widget), english: english,
+                                                              brandName: try table(language)["brand.name"])
+            XCTAssertEqual(problems, [], "\(language): the widget's InfoPlist.strings")
+        }
+        XCTAssertEqual(Set(widget.localizations.filter { $0 != "Base" }), Set(shipped.map(\.rawValue)),
+                       "the widget's localizations differ from the shipped languages")
+    }
+
     /// Compiled into a binary plist in the bundle; `NSDictionary` reads either form.
-    private func infoPlistStrings(_ language: String) throws -> [String: String] {
+    private func infoPlistStrings(_ language: String, in bundle: Bundle = .main) throws -> [String: String] {
         let url = try XCTUnwrap(
-            Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: nil, localization: language),
-            "\(language).lproj/InfoPlist.strings is not in the app bundle")
+            bundle.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: nil, localization: language),
+            "\(language).lproj/InfoPlist.strings is not in \(bundle.bundleURL.lastPathComponent)")
         return try XCTUnwrap(NSDictionary(contentsOf: url) as? [String: String], "\(language): unreadable InfoPlist.strings")
     }
 
@@ -313,6 +334,13 @@ final class LocalizationLintTests: XCTestCase {
         let russian = ["CFBundleDisplayName": "Bitty"]
         XCTAssertEqual(LocalizationLint.infoPlistProblems(russian, english: english, brandName: "Ночка"),
                        ["CFBundleDisplayName: Bitty, brand.name Ночка", "NSFaceIDUsageDescription: missing"])
+        // A language being translated may lack a prompt, never the name or a key English lacks.
+        let ukrainian = ["CFBundleDisplayName": "Нічка", "NSCameraUsageDescription": "Камера"]
+        XCTAssertEqual(LocalizationLint.infoPlistProblems(ukrainian, english: english, brandName: "Нічка", complete: false),
+                       ["NSCameraUsageDescription: not in English"])
+        XCTAssertEqual(LocalizationLint.infoPlistProblems(["CFBundleDisplayName": "Bitty"], english: english,
+                                                          brandName: "Нічка", complete: false),
+                       ["CFBundleDisplayName: Bitty, brand.name Нічка"])
     }
 
     func testAnEmptyValueFails() {
@@ -404,9 +432,11 @@ enum LocalizationLint {
         return found.sorted()
     }
 
-    /// The home-screen name is `brand.name`; every permission prompt English has.
-    static func infoPlistProblems(_ strings: [String: String], english: [String: String], brandName: String?) -> [String] {
-        var found = Set(english.keys).subtracting(strings.keys).map { "\($0): missing" }
+    /// The home-screen name is `brand.name`; a complete language has every
+    /// permission prompt English has.
+    static func infoPlistProblems(_ strings: [String: String], english: [String: String], brandName: String?,
+                                  complete: Bool = true) -> [String] {
+        var found = complete ? Set(english.keys).subtracting(strings.keys).map { "\($0): missing" } : []
         found += Set(strings.keys).subtracting(english.keys).map { "\($0): not in English" }
         if strings["CFBundleDisplayName"] != brandName {
             found.append("CFBundleDisplayName: \(strings["CFBundleDisplayName"] ?? "none"), brand.name \(brandName ?? "none")")

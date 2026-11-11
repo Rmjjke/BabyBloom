@@ -14,9 +14,11 @@ import os
 ///      `WidgetResources/Localization/` (the pre-build script checks every
 ///      JSON in that folder; a file may hold only part of the keys, the rest
 ///      read English);
-///   3. `BabyBloom/Resources/it.lproj/InfoPlist.strings` — the presence of the
-///      `.lproj` folder is what makes iOS (and the App Store listing) treat the
-///      app as localized for that language.
+///   3. `BabyBloom/Resources/it.lproj/InfoPlist.strings` and
+///      `WidgetResources/Localization/it.lproj/InfoPlist.strings`, each with
+///      `CFBundleDisplayName` equal to `brand.name`, then `xcodegen generate` —
+///      the presence of the `.lproj` folder is what makes iOS (and the App
+///      Store listing) treat the app as localized for that language.
 ///
 /// Raw values are BCP-47 tags and double as the JSON file names, so a regional
 /// or script variant is its own language: `pt-BR` and `pt-PT`, `zh-Hant`.
