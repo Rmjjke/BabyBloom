@@ -355,6 +355,12 @@ arguments, never fragments glued in code: the medication status lines
 price per period (`premium.price_per_*_fmt`), a type with its count
 (`report.type_count_fmt`) and a number with its unit
 (`unit.weeks_short_fmt`) each carry their own separators and no-break spaces.
+A weight, mass, length or volume goes through `Units`
+(`Core/Localization/Units.swift`) and its template (`unit.kg_fmt`,
+`unit.g_fmt`, `unit.cm_fmt`, `unit.ml_fmt`), so a language places the unit
+and the space, or none, as Japanese, Korean and Chinese write «3.4kg»; a
+number before its unit stays on its line. A stat card takes its value with the unit
+already inside.
 Lists of separate facts (`reportDoseLine`, the PDF's event rows) stay joined
 by « · » in code. Where one argument is styled apart from the rest — the
 bold value of a report row on screen and in the PDF — `FormatSplit`
@@ -462,8 +468,9 @@ it is given.
 (4 days in the first week) in every language, an en_US phone included: the
 week chart and the weekly card (`WeeklySummary.calendar`) agree on the same
 seven days. The history's "week" is the last seven days, not a calendar
-week, and the system date pickers still take their first column from the
-phone's region. Month and year arithmetic (the chart ranges, the export and
+week. The system date pickers read the environment calendar the app root
+sets, so they also start on Monday in any region (`DatePickerWeekTests`).
+Month and year arithmetic (the chart ranges, the export and
 report periods, `Baby`'s age) never reads `Calendar.current`, so a phone set
 to a lunar calendar does not count months of 29 or 30 days; day counts and
 same-day checks are the same in every calendar and may.
@@ -478,7 +485,12 @@ start-of-sentence form, so Russian reads «Октябрь 2026 г.» without the
 «г.» turning into a capital. Only the chart axis trims: the year word after
 the year (Russian «г.», Ukrainian «р.») is dropped, since four in a row
 collide on a phone. A fixed `dateFormat` such as `"LLL yyyy"` is a defect:
-it guesses one language's order for all.
+it guesses one language's order for all. A range read later carries its year
+once (`dateRange`, `yMMMd`: «Nov 2 – 20, 2026», «2—20 нояб. 2026 г.»): the
+PDF's period line always, a report row (`ReportFormat.dayRange`) only when an
+end is not this year's. The locale's own dash and the thin spaces around it
+stay; a report range's plain spaces turn unbreakable, so a wrapped range
+breaks after its dash, never inside «28 Oct».
 
 **Signed numbers carry the language's sign.** `Int.appSigned` writes a change
 as «+210» or «−30» with the locale's own minus: Swedish, Norwegian and Finnish
@@ -496,7 +508,9 @@ is why the language travels through the App Group. It also outlives a language
 change — iOS reuses the extension process — so the provider calls
 `refreshFromStore()` before reading anything, and the app asks for a timeline
 reload when the language changes rather than leaving the widget stale for up
-to 15 minutes.
+to 15 minutes. The widget gallery reads each widget's name and description
+from its body with no timeline involved, so both read them through
+`WidgetGallery`, which refreshes the language from the App Group first.
 
 **A span of time has one writer.** `DurationText.minutes`
 (`Core/Localization/DurationText.swift`) writes whole minutes as «45 мин»,
@@ -1514,6 +1528,21 @@ is no other call site.
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
 `onAppBackgrounded()` on every `.background`.
 
+**A language change re-words what is pending.** A pending request holds
+resolved strings, so each one also carries the keys and arguments it was
+written from and the moment it fires (`NotificationWords`, in its
+`userInfo`). After a change in the app or in iOS Settings, every pending
+request is added again under its own id in the new language, with the time
+left on its trigger (a calendar or repeating trigger as it is); the weekly
+summary and medication reminders are planned again in the same pass. The
+language the requests were worded in is stored (`bb.notifications.language`),
+so a launch after the phone's language changed re-words them too. An id the
+manager posts or cancels while a pass runs is skipped by it: the pass read
+the pending list before that newer request. Re-wording in place rather than planning again: most
+kinds count from a moment the store does not keep (a save, the day's first
+feed). The default baby name travels as a marker, so it follows the
+language too.
+
 **Weekly summary.** Last calendar week, Monday to Sunday whatever the
 locale, is `Core/Weekly/WeeklySummary` — pure, fed by
 `WeeklySummary.Input` (built from the Dashboard's queries, or fetched for the
@@ -1893,17 +1922,31 @@ document hands over its blocks and rows, every page is composed as its own
 small HTML document with its own formatter, and the engine's page count says
 what fits: rows move whole, a table prints its head on every page it reaches,
 and a document that fits one page is laid out once, as it is. Each page's table
-would size its own columns, so their widths are fixed in advance: the export's
-from all of a table's rows (`ExportGenerator.columnWidths`). The report's own
+would size its own columns, so their widths are fixed in advance from all of
+a table's rows, measured at the faces the page prints in (`PDFColumns`): every
+column first gets its head's widest unbreakable piece plus its padding, and
+the rest goes by what each would take, its head on one line or its longest
+cell, capped so one long note wraps rather than squeezing the others. Heads
+too wide for the table together are a copy problem: the header fit test names
+the head. The report's own
 `UIPrintPageRenderer` subclass draws the footer (brand · name · period, «Page
 N of M») on every page. Both PDFs print in Helvetica Neue with a named fallback
-list and no colour emoji, the footer included (DECISIONS 2026-11-02).
+list and no colour emoji, the footer included (DECISIONS 2026-11-02). Both
+carry the app language in `<html lang>`, and the fallback list's Han block
+starts with the language's face (`PagedPDF`): Hiragino Sans for Japanese,
+Apple SD Gothic Neo for Korean, PingFang TC for Traditional Chinese. The
+first family holding a character draws it, so 骨 and 直 print in that
+language's forms; the footer takes the same order.
 `PDFPagesTests` reads rendered files back with PDFKit to pin all of it.
 The button has no `@Query` of its own: `DoctorReportSummary.Input.load`
 fetches with `Input.window(periodStart:)`, the same window
 `ReportDataSection`'s queries use. Every PDF prints numbers in the app
 language; every CSV stays dot-decimal with units in its headers (DECISIONS
-2026-11-02). A file name cleans and caps the baby's name alone
+2026-11-02), comma-delimited, and starts with a UTF-8 byte-order mark
+(`ExportGenerator.csvData`): without it Excel reads the file in the system's
+legacy code page and Cyrillic or CJK turns to mojibake. A field holding a
+comma, a quote or any line break is quoted.
+A file name cleans and caps the baby's name alone
 (`ExportGenerator.fileNamePart`), and `ExportGenerator.fileName(fitting:_:)`
 lets that name give way, a whole character at a time, until the whole fits
 the 255 UTF-8 bytes a file name may take: the day and the extension always

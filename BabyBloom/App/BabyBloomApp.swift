@@ -26,13 +26,17 @@ struct BabyBloomApp: App {
         // Before anything reads the language: a choice made in iOS Settings
         // since the last launch (which relaunched the app) becomes the stored
         // one, so `appLanguage` below already reads it.
-        LocalizationManager.adoptPerAppLanguageChange()
+        _ = LocalizationManager.adoptPerAppLanguageChange()
         // The manager starts from the App Group, which the widget needs; the
         // app's truth is the picker's value. Handed over before the first view:
         // a launch that skips the splash would otherwise draw its first screen
         // in one language and format its dates in another.
         LocalizationManager.shared.setLanguage(
             UserDefaults.standard.string(forKey: LocalizationManager.languageKey) ?? LocalizationManager.deviceDefault)
+        // The requests pending from before the relaunch still read the old
+        // one, whether the change came from the app's page in Settings or
+        // from the phone's language.
+        NotificationManager.shared.rewordIfLanguageMoved()
     }
 
     var body: some Scene {
@@ -114,6 +118,7 @@ struct BabyBloomApp: App {
             .onChange(of: appLanguage) { _, newValue in
                 LocalizationManager.shared.setLanguage(newValue)
                 WidgetRefresh.languageChanged()
+                NotificationManager.shared.languageChanged()
             }
         }
         .onChange(of: scenePhase) { _, phase in

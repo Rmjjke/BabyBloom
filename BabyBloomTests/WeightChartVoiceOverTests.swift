@@ -98,6 +98,6 @@ final class WeightChartVoiceOverTests: XCTestCase {
     }
 
     private func weight(_ weighing: WeightMeasurement) -> String {
-        "\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)"
+        Units.kg(weighing.weightKg.appDecimal(2))
     }
 }

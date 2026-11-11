@@ -78,9 +78,9 @@ struct ExportGenerator {
     }
 
     /// Escapes a single CSV field per RFC 4180: fields containing a comma,
-    /// double-quote or newline are wrapped in quotes with inner quotes doubled.
+    /// double-quote or line break are wrapped in quotes with inner quotes doubled.
     static func csvField(_ raw: String) -> String {
-        if raw.contains(",") || raw.contains("\"") || raw.contains("\n") {
+        if raw.contains(where: { $0 == "," || $0 == "\"" || $0.isNewline }) {
             return "\"" + raw.replacingOccurrences(of: "\"", with: "\"\"") + "\""
         }
         return raw
@@ -390,7 +390,7 @@ struct ExportGenerator {
 
         let head = """
         <!DOCTYPE html>
-        <html>
+        <html lang="\(LocalizationManager.shared.language.rawValue)">
         <head>
         <meta charset="UTF-8">
         <style>
@@ -569,16 +569,13 @@ struct ExportGenerator {
             rows: rows.map { row in "<tr>" + row.map { "<td>\(htmlEscape($0))</td>" }.joined() + "</tr>" }))
     }
 
-    /// Every page prints its own table and would size its own columns, so the widths
-    /// come from all the rows: each column's share follows its longest text. The cap
-    /// keeps one long note from squeezing the rest; the note wraps instead.
+    /// The table's columns, from all its rows (`PDFColumns`). The table is the
+    /// 612-px page less the body's 24 and the card's 16 a side; `th` and `td`
+    /// pad 10 a side at 11 px, and `th` is bold.
     static func columnWidths(headers: [String], rows: [[String]]) -> String {
-        let lengths = headers.indices.map { column in
-            min(32, rows.map { $0[column].count }.reduce(headers[column].count, max)) + 3
-        }
-        let total = lengths.reduce(0, +)
-        let columns = lengths.map { "<col style=\"width: \(String(format: "%.1f", Double($0) * 100 / Double(total)))%\">" }
-        return "<colgroup>\(columns.joined())</colgroup>"
+        PDFColumns.colgroup(PDFColumns.shares(
+            heads: headers, rows: rows, headFont: PagedPDF.font(ofSize: 11, bold: true),
+            cellFont: PagedPDF.font(ofSize: 11), width: 612 - 2 * 24 - 2 * 16, padding: 10))
     }
 
     // MARK: - Temp file helpers
@@ -611,7 +608,13 @@ struct ExportGenerator {
     }
 
     static func writeTempCSV(name: String, content: String) -> URL? {
-        guard let data = content.data(using: .utf8) else { return nil }
-        return writeTempFile(name: name, data: data)
+        writeTempFile(name: name, data: csvData(content))
+    }
+
+    /// UTF-8 behind a byte-order mark: without it Excel reads a CSV in the
+    /// system's legacy code page, and Cyrillic or CJK text opens as mojibake.
+    /// Numbers and every other reader skip the mark.
+    static func csvData(_ content: String) -> Data {
+        Data([0xEF, 0xBB, 0xBF]) + Data(content.utf8)
     }
 }
