@@ -314,7 +314,10 @@ final class LocalizationManager: @unchecked Sendable {
         let resolved = Self.storedLanguage()
         currentLanguage = resolved.rawValue
         #if DEBUG && targetEnvironment(simulator)
-        pseudo = UserDefaults.standard.string(forKey: "BBPseudoLanguage").flatMap(PseudoLanguage.init)
+        // The launch argument only: a value persisted in the app's domain would
+        // keep the simulator in a pseudo-language after a plain launch.
+        pseudo = (UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)["BBPseudoLanguage"] as? String)
+            .flatMap(PseudoLanguage.init)
         #endif
         load(resolved)
     }
