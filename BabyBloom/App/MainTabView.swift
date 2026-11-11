@@ -391,22 +391,34 @@ struct ProfileView: View {
 }
 
 
-// SwiftUI drops an identifier set inside .tabItem; UIKit copies the bar
-// item's own identifier to the tab bar button, so set it there. Order matches
-// the TabView above. Layout passes re-run it because the bar can be rebuilt
-// (language change); it is idempotent.
+// SwiftUI drops an identifier set inside .tabItem, so a UIKit probe sets it.
+// The iOS 17/18 bar copies the bar item's identifier to its button. The iOS 26
+// bar builds its buttons before any probe runs and never reads the item again,
+// so the probe also sets it on the button views (both layers, the plain one and
+// the selected one). Order matches the TabView above. Every pass is idempotent.
 private struct TabBarIdentifiers: UIViewControllerRepresentable {
     private static let ids = ["tabbar.home", "tabbar.feeding", "tabbar.sleep", "tabbar.diapers", "tabbar.more"]
 
     final class Probe: UIViewController {
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            apply()
+            applyWhenTheBarIsUp(attempts: 20)
         }
         override func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
             apply()
         }
+
+        // Inserted by the splash's or onboarding's animated swap, the probe can
+        // appear before the tab bar controller joins the window, and a zero-size
+        // view gets no later layout pass: look again for up to two seconds.
+        func applyWhenTheBarIsUp(attempts: Int) {
+            guard !apply(), attempts > 0 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.applyWhenTheBarIsUp(attempts: attempts - 1)
+            }
+        }
+
         private static func tabBarController(in controller: UIViewController) -> UITabBarController? {
             if let tab = controller as? UITabBarController { return tab }
             for child in controller.children {
@@ -415,15 +427,45 @@ private struct TabBarIdentifiers: UIViewControllerRepresentable {
             return controller.presentedViewController.flatMap { tabBarController(in: $0) }
         }
 
-        private func apply() {
+        @discardableResult
+        private func apply() -> Bool {
             guard let root = view.window?.rootViewController,
-                  let items = Self.tabBarController(in: root)?.tabBar.items else { return }
+                  let bar = Self.tabBarController(in: root)?.tabBar,
+                  let items = bar.items, !items.isEmpty else { return false }
             for (item, id) in zip(items, TabBarIdentifiers.ids) where item.accessibilityIdentifier != id {
                 item.accessibilityIdentifier = id
             }
+            // The button class is private: matched by name, so a renamed class
+            // costs the ids, never a crash. Each layer is one row, in item order
+            // read in the bar's layout direction.
+            let rightToLeft = bar.effectiveUserInterfaceLayoutDirection == .rightToLeft
+            for row in Self.buttonRows(in: bar).values {
+                let ordered = row.sorted { rightToLeft ? $0.frame.minX > $1.frame.minX : $0.frame.minX < $1.frame.minX }
+                for (button, id) in zip(ordered, TabBarIdentifiers.ids) where button.accessibilityIdentifier != id {
+                    button.accessibilityIdentifier = id
+                }
+            }
+            return true
+        }
+
+        private static func buttonRows(in bar: UITabBar) -> [ObjectIdentifier: [UIView]] {
+            var rows: [ObjectIdentifier: [UIView]] = [:]
+            func collect(_ view: UIView) {
+                let name = String(describing: type(of: view))
+                if name.hasSuffix("TabButton") || name.hasSuffix("TabBarButton"), let parent = view.superview {
+                    rows[ObjectIdentifier(parent), default: []].append(view)
+                }
+                view.subviews.forEach(collect)
+            }
+            collect(bar)
+            return rows
         }
     }
 
     func makeUIViewController(context: Context) -> Probe { Probe() }
-    func updateUIViewController(_ controller: Probe, context: Context) {}
+    // A tab switch can rebuild the selected layer's buttons: label them again
+    // once the bar has laid out.
+    func updateUIViewController(_ controller: Probe, context: Context) {
+        DispatchQueue.main.async { controller.applyWhenTheBarIsUp(attempts: 5) }
+    }
 }
