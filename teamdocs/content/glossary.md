@@ -162,7 +162,9 @@ Notes:
 - "Home" and "More" are the iOS tab words (the TV and Podcasts apps for Home, the system tab bar for More). uk
   «Домівка» is Apple's Home tab; «Ще» is the system "More" item.
 - The tab labels must fit the tab bar at 320 pt (each no wider than ru «Подгузники» at the tab font). Measured with
-  CoreText per language; the widest new ones are «Crescimento», «Croissance», «Mahlzeiten» and «Startseite».
+  CoreText per language; the widest new ones are «Mahlzeiten» and «Startseite». Growth is not in the tab bar (it
+  opens from More): its word is a screen title and a Dashboard card title, so «Crescimento» and «Croissance» are
+  measured against the screen-title budget, not the tab budget.
 - "History" is a list of past entries. ko 기록 and zh-Hant 記錄 are also the words for "log" (§ 6); in ko and
   zh-Hant a history title may read 기록 / 記錄 because Apple uses the same word there.
 - "Timer" is the running feeding or sleep timer, which counts up. Apple's nb «Nedtelling» is the Clock app's
