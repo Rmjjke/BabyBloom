@@ -11,7 +11,8 @@ import Foundation
 /// app's language the same way `BBCharts` pins its axis labels; clock times
 /// take the device's 12/24-hour cycle on top. The export PDF prints its times
 /// on that same locale; the CSV's machine-readable columns are pinned to
-/// `en_US_POSIX` instead (see `ExportGenerator`).
+/// `en_US_POSIX` instead (see `ExportGenerator`). All of them start from
+/// `SupportedLanguage.dateFormat`, which also pins the Gregorian calendar.
 extension Date {
     /// Time of day in the app's language on the device's 12/24-hour clock:
     /// "14:30" or "2:30 PM" in English alike, as the phone is set. The same
@@ -22,17 +23,17 @@ extension Date {
     static var appTimeLocale: Locale { LocalizationManager.shared.language.environmentLocale }
 
     func appTimeOfDay(in locale: Locale) -> String {
-        formatted(.dateTime.hour().minute().locale(locale))
+        formatted(SupportedLanguage.dateFormat(locale: locale).hour().minute())
     }
 
     /// Day and month — "Aug 25", "25 авг.", "25 ago.".
     var appDayMonth: String {
-        formatted(.dateTime.day().month().locale(LocalizationManager.shared.language.locale))
+        formatted(LocalizationManager.shared.language.dateFormat.day().month())
     }
 
     /// Day, month and year — "Aug 25, 2026". For the visit detail, where an
     /// old visit is ambiguous without its year.
     var appDayMonthYear: String {
-        formatted(.dateTime.day().month().year().locale(LocalizationManager.shared.language.locale))
+        formatted(LocalizationManager.shared.language.dateFormat.day().month().year())
     }
 }

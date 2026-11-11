@@ -14,6 +14,33 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — The device language is matched by Foundation; each language pins one region; a Simplified-Chinese device gets English
+
+The app grows from three languages to fifteen, with regional pairs
+(`pt-BR`/`pt-PT`) and a script variant (`zh-Hant`). Matching only the primary
+subtag of the first preferred language made the pairs collide, mapped `no` and
+`nn` to nothing and never read a second preferred language.
+
+**Rule.** The device list is matched with `Bundle.preferredLocalizations`
+over the languages whose file ships, English first. Each language pins one
+region for its formats (`es_419`, `zh_Hant_TW` for Hong Kong and Macau too);
+the phone's region does not change them. Dates are always Gregorian. A
+missing key reads English. A device on Simplified Chinese only gets English.
+
+**Why.** Foundation's matcher is the one iOS uses to pick an app's
+localization and its App Store page, so the app agrees with the system on
+every device; a hand-written subtag table would re-derive `pt-AO` → `pt-PT`
+or `zh-MO` → `zh-Hant` and drift from it. One region per language gives one
+format per language, which a translator and a reviewer can check once.
+Simplified Chinese is not shipped, and Traditional reads as foreign to a
+mainland reader; English matches what iOS and the store already show that
+user, and 繁體中文 stays one tap away in the picker. A doctor reading a report
+needs a Gregorian year whatever calendar the parent's phone uses.
+
+**Rejected.** Following the device region (a Spanish app on a US phone would
+mix formats per phone); falling back to Traditional for `zh-Hans`; showing raw
+keys for an incomplete file (a half-translated file would be unusable).
+
 ## 2026-11-08 — A sheet's pinned Save leaves while the keyboard is up; the bar's ✓ saves meanwhile
 
 Pinned under the form (2026-10-28), an entry sheet's big Save rode up on the
