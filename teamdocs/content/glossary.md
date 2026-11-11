@@ -270,6 +270,11 @@ Notes:
   - fi normaali;
   - uk норма / нормальний.
   The WHO standards' title is the one place «standard» appears.
+  - The source wording: the 15–85 band is the "usual range" (ru «обычный диапазон», es «el rango habitual»);
+    a small loss after birth and one-off wobbles are "common" (ru «обычное дело», es «habitual»); weight
+    "growing steadily" (ru «стабильно», es «de forma estable»). Translate these, not a word for "normal".
+  - The diaper goal ("Daily Goal", ru «Норма в день») is the parent's own target, not a reference: the rule
+    does not touch it.
 - **(S) A drop "by N centile channels"** stays a count of the bands between the chart lines. It is never a
   percentage and never "points".
 
