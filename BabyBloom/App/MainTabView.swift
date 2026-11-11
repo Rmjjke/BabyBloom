@@ -50,6 +50,7 @@ struct MainTabView: View {
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
+        .background(TabBarIdentifiers().frame(width: 0, height: 0))
         // Here and not at the app root: onboarding must never see a live
         // trigger, and everything that saves an entry lives under this view.
         .reviewPromptHost()
@@ -242,11 +243,13 @@ struct ProfileView: View {
                     ForEach(SupportedLanguage.pickerOrder(current: LocalizationManager.effective(appLanguage),
                                                           available: SupportedLanguage.available)) { language in
                         Text(language.endonym).tag(language.rawValue)
+                            .accessibilityIdentifier("settings.language.\(language.rawValue)")
                     }
                 } label: {
                     Label("settings.language".l, systemImage: "globe")
                 }
                 .pickerStyle(.navigationLink)
+                .accessibilityIdentifier("settings.language")
             }
 
             // ── Appearance ────────────────────────────────────────────
@@ -260,6 +263,7 @@ struct ProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .accessibilityIdentifier("settings.appearance")
             }
 
             Section("settings.notifications".l) {
@@ -381,4 +385,42 @@ struct ProfileView: View {
             }
         }
     }
+}
+
+
+// SwiftUI drops an identifier set inside .tabItem; UIKit copies the bar
+// item's own identifier to the tab bar button, so set it there. Order matches
+// the TabView above. Layout passes re-run it because the bar can be rebuilt
+// (language change); it is idempotent.
+private struct TabBarIdentifiers: UIViewControllerRepresentable {
+    private static let ids = ["tabbar.home", "tabbar.feeding", "tabbar.sleep", "tabbar.diapers", "tabbar.more"]
+
+    final class Probe: UIViewController {
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            apply()
+        }
+        override func viewDidLayoutSubviews() {
+            super.viewDidLayoutSubviews()
+            apply()
+        }
+        private static func tabBarController(in controller: UIViewController) -> UITabBarController? {
+            if let tab = controller as? UITabBarController { return tab }
+            for child in controller.children {
+                if let found = tabBarController(in: child) { return found }
+            }
+            return controller.presentedViewController.flatMap { tabBarController(in: $0) }
+        }
+
+        private func apply() {
+            guard let root = view.window?.rootViewController,
+                  let items = Self.tabBarController(in: root)?.tabBar.items else { return }
+            for (item, id) in zip(items, TabBarIdentifiers.ids) where item.accessibilityIdentifier != id {
+                item.accessibilityIdentifier = id
+            }
+        }
+    }
+
+    func makeUIViewController(context: Context) -> Probe { Probe() }
+    func updateUIViewController(_ controller: Probe, context: Context) {}
 }

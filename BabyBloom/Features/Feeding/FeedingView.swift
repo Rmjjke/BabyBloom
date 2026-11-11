@@ -407,6 +407,7 @@ struct AddFeedingSheet: View {
                 .bbSelectedBorder(selectedType == type)
             }
             .buttonStyle(BBScaleButtonStyle())
+            .accessibilityIdentifier("feeding.type.\(type.rawValue)")
         }
     }
 
@@ -557,6 +558,7 @@ struct AddFeedingSheet: View {
                                     icon: startTimer ? "play.fill" : "checkmark") {
                         save()
                     }
+                    .accessibilityIdentifier("feeding.save")
                 }
             }
             .bbSheetTitle("sheet.new_feeding".l)

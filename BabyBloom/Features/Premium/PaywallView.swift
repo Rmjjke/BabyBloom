@@ -33,6 +33,8 @@ struct PaywallView: View {
                 PlanPickerCTA(state: planPicker)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("paywall")
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .overlay(alignment: .topTrailing) { closeButton }
         .navigationTitle("settings.premium".l)
@@ -121,6 +123,7 @@ struct PaywallView: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel("button.close".l)
+        .accessibilityIdentifier("paywall.close")
         .padding(.trailing, BBTheme.Spacing.sm)
         .padding(.top, BBTheme.Spacing.sm)
     }

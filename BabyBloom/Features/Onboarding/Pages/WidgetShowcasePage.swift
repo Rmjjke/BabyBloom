@@ -75,6 +75,7 @@ struct WidgetShowcasePage: View {
             // The commitment CTA sits here, on the last page before Generating:
             // "Build my tracker" is what the loader then visibly does.
             BBPrimaryButton("onboarding.widget.cta".l, icon: "arrow.right", action: onContinue)
+                .accessibilityIdentifier("onboarding.next")
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, 40)
                 .opacity(appear ? 1 : 0)
