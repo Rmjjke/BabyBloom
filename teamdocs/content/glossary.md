@@ -290,13 +290,13 @@ minimum, not before, most in 24 hours, since / before / after, counts / does not
 | dose (the amount) **(S)** | доза | Dosis | dose | 用量 | 용량 | 劑量 | dose | dose | dos | dose | dosis | annos |
 | dose (one logged event) **(S)** | доза | Dosis | dose | 服薬 | 투여 | 一劑 | dose | dose | dos | dose | dosis | annos |
 | N doses (a count) **(S)** | N доз | N Dosen | N doses | N回 | N회 | N次 | N doses | N doses | N doser | N doser | N doser | N annosta |
-| last dose **(S)** | остання доза | letzte Dosis | dernière dose | 前回の服薬 | 마지막 투여 | 最後一劑 | última dose | última dose | sista dosen | siste dose | sidste dosis | viimeinen annos |
+| last dose **(S)** | остання доза | letzte Dosis | dernière dose | 前回の服薬 | 마지막 투여 | 最後一劑 | última dose | última dose | sista dosen | siste dose | sidste dosis | viimeisin annos |
 | logged dose **(S)** | записана доза | eingetragene Dosis | dose enregistrée | 記録した服薬 | 기록된 투여 | 已記錄的一劑 | dose registrada | dose registada | loggad dos | loggført dose | registreret dosis | kirjattu annos |
 | log (a dose) | записати | eintragen | enregistrer | 記録 | 기록 | 記錄 | registrar | registar | logga | loggføre | registrere | kirjata |
 | interval **(S)** | інтервал | Abstand | intervalle | 間隔 | 간격 | 間隔 | intervalo | intervalo | intervall | intervall | interval | annosväli |
 | minimum time between doses **(S)** | мінімальний інтервал між дозами | Mindestabstand zwischen den Dosen | intervalle minimal entre deux doses | 服薬の最短間隔 | 최소 투여 간격 | 兩劑至少間隔 | intervalo mínimo entre doses | intervalo mínimo entre doses | minsta tid mellan doser | minste tid mellom doser | mindste tid mellem doser | vähimmäisaika annosten välillä |
 | most doses in 24 hours **(S)** | максимум доз за 24 години | höchstens … Dosen in 24 Stunden | au maximum … doses en 24 heures | 24時間の最大回数 | 24시간 최대 투여 횟수 | 24小時內最多次數 | máximo de doses em 24 horas | máximo de doses em 24 horas | högst … doser per dygn | høyst … doser per døgn | højst … doser pr. døgn | enintään … annosta vuorokaudessa |
-| not before **(S)** | не раніше ніж | frühestens | pas avant | 〜以降 | ~ 이후 | 最早 | não antes de | não antes das | tidigast | tidligst | tidligst | aikaisintaan |
+| not before **(S)** | не раніше ніж | frühestens | pas avant | 〜以降 | ~ 이후 | 最早 | não antes de | não antes de | tidigast | tidligst | tidligst | aikaisintaan |
 | the interval has passed **(S)** | інтервал минув | der Abstand ist vorbei | l’intervalle est écoulé | 間隔が過ぎました | 간격이 지났어요 | 已過間隔 / 間隔已過 | o intervalo já passou | o intervalo já passou | intervallet har gått | intervallet er over | intervallet er gået | annosväli on kulunut |
 | ended (medications) | завершені | beendet | terminés | 終了 | 종료됨 | 已結束 | encerrados | terminados | avslutade | avsluttet | afsluttede | päättyneet |
 
@@ -311,12 +311,17 @@ Notes:
   - A count: 回 / 회 (the leaflets: 1日5回, 1일 5회).
   - Never ja 服用 for "dose": it means "taking", and next to a time it reads as a call to take.
 - **zh-Hant**: the amount is 劑量, one event is 一劑 (Apple: 最後一劑), and a count is 次 (the leaflet: 每24小時之內不可超過5次).
+- **pt-PT «não antes de»**, not «não antes das»: the slot takes a time («de 01:30») and a day with a time
+  («de amanhã às 01:30»); «das» breaks before a day. The pt-PT time phrases carry «às» («ontem às 22:10»).
 - **de «Abstand»**: the leaflet writes «Der zeitliche Abstand zwischen zwei Einnahmen soll mindestens 6 Stunden
   betragen». Apple's «Intervall» is fine in the chips («Abstand: 6 Std.»); keep one word per screen.
 - **sv, nb and da write "24 hours" as «dygn» / «døgn»** in the maximum, as the leaflets do («högst 4 gånger per
   dygn», «Maksimal døgndose», «døgndosis»). The digits "24" then leave the sentence; the digit check accepts
   dygn / døgn for 24 h.
 - **fi «annosväli»** is the leaflet word for the interval («Annosten välillä pitää olla vähintään 4 tuntia»).
+- **fi «viimeisin annos»**, not «viimeinen annos»: «viimeinen» also reads as the final dose of a course;
+  «viimeisin» is only the most recent one. The before/after alert titles carry «jälkeen» / «ennen», never a bare
+  case ending («kirjatusta» / «kirjattuun» leave the direction to the reader).
 - **de «frühestens» stands alone before a time slot**: the when-strings carry «um» themselves («morgen um 01:30»),
   so «frühestens um» would double it. "Log a dose" is «eintragen», as in «eingetragene Dosis».
 - **"Not before" is the earliest time, never a prompt.** de «frühestens», sv/nb/da «tidigast / tidligst»,
