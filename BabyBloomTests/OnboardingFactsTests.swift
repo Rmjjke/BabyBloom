@@ -66,6 +66,11 @@ final class OnboardingFactsTests: XCTestCase {
         }
     }
 
+    func testATextWithoutTheNameIsNeverFormatted() {
+        XCTAssertEqual(OnboardingFacts.fill("El 80% suele", name: "Ana"), "El 80% suele")
+        XCTAssertEqual(OnboardingFacts.fill("%@ duerme al 100%%", name: "Ana"), "Ana duerme al 100%")
+    }
+
     func testBodySubstitutesTheNameAndFallsBackWhenEmpty() {
         let named = OnboardingFacts.body(for: OnboardingFacts.pool[0], name: "Vlad")
         XCTAssertTrue(named.contains("Vlad"))
