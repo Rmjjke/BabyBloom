@@ -14,6 +14,25 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Sentences name the app with `{brand}`; declined forms stay inline
+
+Every sentence that names the app writes `{brand}`, filled from the
+language's `brand.name` when the table loads. A language whose grammar changes
+the name's ending (ru «в Ночку», «для Ночки») writes those forms inline and
+lists the sentence in `Localization/brand-declined.txt`; its nominative uses
+the token like every other language.
+
+**Why.** The name was typed into 16 sentences per language, and the copies
+drift: a Spanish fact said "Bitty" for a release. Renaming the app in a
+language is now one value, and a test fails any sentence that types a shipped
+name by hand. A declining language still rewrites its declined forms by hand
+on a rename; the test fails until it does. Not taken: case tokens (`{brand.gen}`, `{brand.acc}`), which
+need a case table per language and put grammar into the engine for the few
+languages that decline a name (ru, uk); filling at each lookup instead of at
+load (a replace on every view render). The English fallback is filled with the
+current language's name too, so a key a language lacks never shows another
+language's name.
+
 ## 2026-11-11 — The device language is matched by Foundation; each language pins one region; a Simplified-Chinese device gets English
 
 The app grows from three languages to fifteen, with regional pairs
