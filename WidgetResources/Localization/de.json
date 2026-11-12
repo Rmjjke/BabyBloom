@@ -6,7 +6,7 @@
   "dashboard.growth.empty": "Trag das erste Gewicht ein, dann beginnt hier der Wachstumsverlauf",
   "dashboard.growth.locked_title": "Zunahme und Perzentilen",
   "dashboard.growth.locked_teaser": "Sieh die wöchentliche Zunahme neben den WHO-Richtwerten und wo dein Baby auf der Kurve liegt",
-  "dashboard.growth.percentile_fmt": "%d. Perzentile",
+  "dashboard.growth.percentile_fmt": "%d.",
   "tab.home": "Startseite",
   "tab.feeding": "Mahlzeiten",
   "tab.sleep": "Schlaf",
