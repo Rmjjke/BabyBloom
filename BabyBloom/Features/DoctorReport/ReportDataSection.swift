@@ -48,9 +48,9 @@ struct ReportDataSection: View {
         if summary.showsNewPeriodCard {
             ReportNewPeriodCard(periodStart: periodStart)
         } else {
-            FeedingReportCard(feeding: summary.feeding, periodStart: periodStart, isShort: summary.isShort)
-            SleepReportCard(sleep: summary.sleep, periodStart: periodStart, isShort: summary.isShort)
-            DiapersReportCard(diapers: summary.diapers, periodStart: periodStart, isShort: summary.isShort)
+            FeedingReportCard(feeding: summary.feeding, periodStart: periodStart)
+            SleepReportCard(sleep: summary.sleep, periodStart: periodStart)
+            DiapersReportCard(diapers: summary.diapers, periodStart: periodStart)
             // Absent with no dose in the period: no medicine is not a missing record.
             if !summary.medications.isEmpty {
                 MedicationsReportCard(medications: summary.medications, now: summary.now)
