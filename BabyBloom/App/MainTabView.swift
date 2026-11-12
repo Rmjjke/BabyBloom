@@ -50,7 +50,7 @@ struct MainTabView: View {
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
-        .background(TabBarIdentifiers().frame(width: 0, height: 0))
+        .background(TabBarIdentifiers(selection: selectedTab).frame(width: 0, height: 0))
         // Here and not at the app root: onboarding must never see a live
         // trigger, and everything that saves an entry lives under this view.
         .reviewPromptHost()
@@ -405,6 +405,10 @@ struct ProfileView: View {
 // the selected one). Order matches the TabView above. Every pass is idempotent.
 private struct TabBarIdentifiers: UIViewControllerRepresentable {
     private static let ids = ["tabbar.home", "tabbar.feeding", "tabbar.sleep", "tabbar.diapers", "tabbar.more"]
+    /// Unused in the probe itself: an input that changes on every tab switch is
+    /// what makes SwiftUI call `updateUIViewController`. A probe with no input
+    /// compares equal to itself and is skipped on a tab switch.
+    let selection: MainTabView.Tab
 
     final class Probe: UIViewController {
         override func viewDidAppear(_ animated: Bool) {
@@ -470,9 +474,14 @@ private struct TabBarIdentifiers: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> Probe { Probe() }
-    // A tab switch can rebuild the selected layer's buttons: label them again
-    // once the bar has laid out.
+    // A tab switch rebuilds the selected layer's buttons while the selection
+    // animates, so one pass right after the switch can label buttons that are
+    // about to go: label again at points across the transition.
     func updateUIViewController(_ controller: Probe, context: Context) {
-        DispatchQueue.main.async { controller.applyWhenTheBarIsUp(attempts: 5) }
+        for delay in [0.0, 0.15, 0.35, 0.7] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                controller.applyWhenTheBarIsUp(attempts: 5)
+            }
+        }
     }
 }
