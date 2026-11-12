@@ -310,6 +310,10 @@ struct AddEventSheet: View {
     /// Start at `.large` so all fields are visible without a manual drag.
     @State private var selectedDetent: PresentationDetent = .large
 
+    init(type: CustomEvent.EventType = .bath) {
+        _selectedType = State(initialValue: type)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -498,7 +502,7 @@ struct AddEventSheet: View {
         VStack(spacing: BBTheme.Spacing.sm) {
             // Vertical, so a long name wraps at large text instead of shrinking.
             TextField("form.medication_name".l, text: $medicationName, axis: .vertical)
-                .bbPlaceholderLabel(design: .default)
+                .bbPlaceholderLabel("form.medication_name".l, text: medicationName, design: .default)
                 .oneParagraph($medicationName)
                 .medicationField()
             // The name field's face; the placeholder is one word and needs no
