@@ -237,7 +237,7 @@
   "unit.kg_fmt": "%@⁠公⁠斤",
   "unit.g_fmt": "%@⁠克",
   "unit.cm_fmt": "%@⁠公⁠分",
-  "unit.ml_fmt": "%@毫升",
+  "unit.ml_fmt": "%@⁠毫⁠升",
   "duration.sec": "%d⁠秒",
   "duration.h_min": "%1$d⁠小⁠時%2$d⁠分⁠鐘",
   "duration.h_only": "%d⁠小⁠時",
