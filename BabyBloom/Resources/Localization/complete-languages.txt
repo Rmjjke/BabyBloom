@@ -16,3 +16,4 @@ zh-Hant
 sv
 nb
 da
+fi
