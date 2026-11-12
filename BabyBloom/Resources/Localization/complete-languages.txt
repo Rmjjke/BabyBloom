@@ -13,3 +13,6 @@ fr
 ja
 ko
 zh-Hant
+sv
+nb
+da

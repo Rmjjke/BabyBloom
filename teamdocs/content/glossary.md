@@ -95,6 +95,9 @@ Notes:
 - Privacy Policy: Apple's strings use short or legal variants (de «Datenschutzvereinbarung», fr «Confidentialité»,
   nb «Personvern», da «Anonymitetspolitik»). The row above gives the plain title of a policy page in each
   language. Use it unless the linked page carries its own title.
+- The Appearance control has three segments of 78 pt at 320 pt (13 pt semibold rounded, bold included). sv, nb
+  and da write «Auto» for Automatic, as en does and as sv iOS labels the camera flash («Auto, På, Av»). sv
+  «Automatiskt» measures 78.2 pt in bold. «Automatisk» stays the word in running text.
 
 ### 3.2 Buttons and actions
 
@@ -205,6 +208,10 @@ Notes:
   - fr «repas»: «tétée» is a breastfeed only.
   - ja 授乳 covers breast and bottle; Apple's Health app also uses 授乳 for breastfeeding.
   - pt «mamada» covers both, in pt-BR and pt-PT.
+- **Formula in a tile or a title.** nb and da write «Erstatning» in the feed-type tile, the feeding titles and the
+  baby's feeding option, as sv writes «Ersättning». The tile allows a widest word of 15 characters at Large;
+  «morsmelkerstatning» has 18 and «modermælkserstatning» 20. Running text keeps the full word. The da feeding title
+  for pumped milk is «Udmalket mælk»; running text keeps «udmalket modermælk».
 - **Side words agree with the language's word for breast.**
   - fr «sein» is masculine, so gauche / droit.
   - pt-BR «peito» is masculine (esquerdo / direito); pt-PT «mama» is feminine (esquerda / direita).
