@@ -43,6 +43,10 @@ and the Live Activity read the byte-identical copies in
     expanded island. A formula or pumped feed can run as a timer too and has
     no side, so it has one title, `live_activity.title.bottle`.
   - The started / saved line fits 30; "goes on in the app" fits 32.
+  - The started line keeps its time whole at the Lock Screen's largest
+    text: the line is about as wide as «Started 03:12», and a label plus
+    the time is safer than a verb phrase. French reads «Début : 03:12».
+    «Commencé à 03:12» lost its time at AX2.
   - There is no frozen or stale timer: after ~8 h the activity shows
     `started_fmt` + `continues_in_app` instead of digits. Elapsed time is
     system-rendered, no string.
