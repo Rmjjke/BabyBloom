@@ -103,7 +103,7 @@ struct MedicationFormSheet: View {
             divider
             // Vertical, so a long name wraps at large text instead of shrinking.
             TextField("medication.field_name_placeholder".l, text: $input.name, axis: .vertical)
-                .bbPlaceholderLabel()
+                .bbPlaceholderLabel("medication.field_name_placeholder".l, text: input.name)
                 .oneParagraph($input.name)
                 .accessibilityLabel(Text("medication.field_name".l))
                 .accessibilityIdentifier("medication.name")
@@ -137,7 +137,7 @@ struct MedicationFormSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             // The placeholders are long: single-line, they shrank at large text.
             TextField("medication.field_dose_placeholder".l, text: $input.doseText, axis: .vertical)
-                .bbPlaceholderLabel()
+                .bbPlaceholderLabel("medication.field_dose_placeholder".l, text: input.doseText)
                 .oneParagraph($input.doseText)
                 .accessibilityLabel(Text("medication.field_dose".l))
                 .accessibilityIdentifier("medication.dose")
@@ -146,7 +146,7 @@ struct MedicationFormSheet: View {
             // Labelled above, but the placeholder is the example of what to
             // type, and in es it needs a second line at accessibility sizes.
             TextField("medication.field_max_placeholder".l, text: $input.maximumText, axis: .vertical)
-                .bbPlaceholderLabel()
+                .bbPlaceholderLabel("medication.field_max_placeholder".l, text: input.maximumText)
                 .keyboardType(.numberPad)
                 .padding(.top, BBTheme.Spacing.xs)
                 .accessibilityLabel(Text("medication.field_max".l))
@@ -164,7 +164,7 @@ struct MedicationFormSheet: View {
             }
             divider
             TextField("form.notes_optional".l, text: $input.note, axis: .vertical)
-                .bbPlaceholderLabel()
+                .bbPlaceholderLabel("form.notes_optional".l, text: input.note)
         }
         .medicationField()
     }
