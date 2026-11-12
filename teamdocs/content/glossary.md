@@ -177,7 +177,7 @@ Notes:
 | breast | груди | Brust | sein | 胸 (左 / 右) | 가슴 | 乳房 | peito | mama | bröst | bryst | bryst | rinta |
 | left / right / both | ліва / права / обидві | links / rechts / beide | gauche / droit / les deux | 左 / 右 / 両方 | 왼쪽 / 오른쪽 / 양쪽 | 左側 / 右側 / 兩側 | esquerdo / direito / ambos | esquerda / direita / ambas | vänster / höger / båda | venstre / høyre / begge | venstre / højre / begge | vasen / oikea / molemmat |
 | bottle | пляшечка | Fläschchen | biberon | 哺乳瓶 | 젖병 | 奶瓶 | mamadeira | biberão | flaska | flaske | flaske | pullo |
-| formula | суміш | Säuglingsnahrung | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
+| formula | суміш | Pulvermilch ³ | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
 | pumped milk | зціджене молоко | abgepumpte Milch | lait maternel tiré | 搾乳 | 유축 모유 | 擠出的母乳 | leite materno ordenhado | leite materno extraído | urpumpad bröstmjölk | utpumpet morsmelk | udmalket modermælk | pumpattu rintamaito |
 | sleep | сон | Schlaf | sommeil | 睡眠 | 수면 | 睡眠 | sono | sono | sömn | søvn | søvn | uni |
 | nap | денний сон | Tagschlaf | sieste | お昼寝 | 낮잠 | 小睡 | soneca | sesta | tupplur | lur | lur | päiväunet |
@@ -193,6 +193,8 @@ Notes:
 - **Feeding is one word for every kind** (breast, bottle, formula, pumped). The tab, the event, the timer and the
   stat use it.
   - de «Mahlzeit» rather than «Fütterung», which is said of animals.
+- ³ de formula is «Pulvermilch», the parents' word. «Säuglingsnahrung» does not fit the feeding rows at 320 pt
+  and AX2 (256 pt in 240), and it also means baby food in jars. The AAP source title keeps «Säuglingsnahrung».
   - fr «repas»: «tétée» is a breastfeed only.
   - ja 授乳 covers breast and bottle; Apple's Health app also uses 授乳 for breastfeeding.
   - pt «mamada» covers both, in pt-BR and pt-PT.
