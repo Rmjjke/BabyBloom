@@ -5,4 +5,4 @@
 
 "NSUserNotificationsUsageDescription" = "Bitty-appi lähettää muistutuksia syötöistä, unesta ja muista vauvan hoitotapahtumista.";
 "NSPhotoLibraryUsageDescription" = "Käytetään vauvasi profiilikuvan valitsemiseen.";
-"NSFaceIDUsageDescription" = "Käytetään appin nopeaan avaamiseen.";
+"NSFaceIDUsageDescription" = "Käytetään appin lukituksen nopeaan avaamiseen.";
