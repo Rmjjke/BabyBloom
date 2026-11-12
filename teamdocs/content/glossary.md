@@ -81,13 +81,16 @@ the same meaning.
 | Delete App | Видалити програму | App löschen | Supprimer l’app | アプリを削除 | 앱 삭제 | 刪除App | Apagar App | Apagar aplicação | Radera app | Slett app | Slet app | Poista appi |
 | Subscriptions | Підписки | Abonnements | Abonnements | サブスクリプション | 구독 | 訂閱項目 | Assinaturas | Assinaturas | Abonnemang | Abonnementer | Abonnementer | Tilaukset |
 | Language | Мова | Sprache | Langue | 言語 | 언어 | 語言 | Idioma | Idioma | Språk | Språk | Sprog | Kieli |
-| Appearance | Вигляд | Erscheinungsbild | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
+| Appearance | Вигляд | Darstellung | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
 | Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Tons claros / Tons escuros / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
 | Privacy Policy | Політика конфіденційності | Datenschutzrichtlinie | Politique de confidentialité | プライバシーポリシー | 개인정보 처리방침 | 隱私權政策 | Política de Privacidade | Política de Privacidade | Integritetspolicy | Personvernerklæring | Privatlivspolitik | Tietosuojakäytäntö |
 | Terms of Use | Умови використання | Nutzungsbedingungen | Conditions d’utilisation | 利用規約 | 이용 약관 | 使用條款 | Termos de Uso | Termos de Utilização | Användarvillkor | Bruksvilkår | Brugsvilkår | Käyttöehdot |
 
 Notes:
 - ko «라이트 모드 / 다크 모드» is Apple's long form; the 3-segment control takes the short 라이트 / 다크 / 자동.
+- de Appearance is «Darstellung». Apple's «Erscheinungsbild» breaks inside the word in the Settings section
+  header at AX2 on 320 pt. The segment for Automatic reads «Auto», because «Automatisch» does not fit the
+  three-segment control at 320 pt.
 - uk «Замкнений екран» is the noun; Apple writes «на замкненому екрані» in sentences.
 - Privacy Policy: Apple's strings use short or legal variants (de «Datenschutzvereinbarung», fr «Confidentialité»,
   nb «Personvern», da «Anonymitetspolitik»). The row above gives the plain title of a policy page in each
