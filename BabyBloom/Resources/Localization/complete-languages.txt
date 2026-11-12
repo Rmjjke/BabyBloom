@@ -5,6 +5,15 @@
 en
 ru
 es
+uk
+pt-BR
+de
+fr
+ja
+ko
+zh-Hant
+pt-PT
 sv
 nb
 da
+fi

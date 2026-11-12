@@ -82,7 +82,7 @@ the same meaning.
 | Subscriptions | Підписки | Abonnements | Abonnements | サブスクリプション | 구독 | 訂閱項目 | Assinaturas | Assinaturas | Abonnemang | Abonnementer | Abonnementer | Tilaukset |
 | Language | Мова | Sprache | Langue | 言語 | 언어 | 語言 | Idioma | Idioma | Språk | Språk | Sprog | Kieli |
 | Appearance | Вигляд | Erscheinungsbild | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
-| Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Tons claros / Tons escuros / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
+| Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Claro / Escuro / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
 | Privacy Policy | Політика конфіденційності | Datenschutzrichtlinie | Politique de confidentialité | プライバシーポリシー | 개인정보 처리방침 | 隱私權政策 | Política de Privacidade | Política de Privacidade | Integritetspolicy | Personvernerklæring | Privatlivspolitik | Tietosuojakäytäntö |
 | Terms of Use | Умови використання | Nutzungsbedingungen | Conditions d’utilisation | 利用規約 | 이용 약관 | 使用條款 | Termos de Uso | Termos de Utilização | Användarvillkor | Bruksvilkår | Brugsvilkår | Käyttöehdot |
 
@@ -165,11 +165,15 @@ Notes:
 - "Home" and "More" are the iOS tab words (the TV and Podcasts apps for Home, the system tab bar for More). uk
   «Домівка» is Apple's Home tab; «Ще» is the system "More" item.
 - The tab labels must fit the tab bar at 320 pt (each no wider than ru «Подгузники» at the tab font). Measured with
-  CoreText per language; the widest new ones are «Crescimento», «Croissance», «Mahlzeiten» and «Startseite».
+  CoreText per language; the widest new ones are «Mahlzeiten» and «Startseite». Growth is not in the tab bar (it
+  opens from More): its word is a screen title and a Dashboard card title, so «Crescimento» and «Croissance» are
+  measured against the screen-title budget, not the tab budget.
 - "History" is a list of past entries. ko 기록 and zh-Hant 記錄 are also the words for "log" (§ 6); in ko and
   zh-Hant a history title may read 기록 / 記錄 because Apple uses the same word there.
 - "Timer" is the running feeding or sleep timer, which counts up. Apple's nb «Nedtelling» is the Clock app's
   countdown, so nb takes «Tidtaker» (a timer that measures). da «Tidtagning» is Apple's stopwatch word and fits.
+- Light / Dark / Automatic sit in a three-segment control at 320 pt (78 pt per segment). pt-PT takes the single
+  words «Claro» / «Escuro», as in iOS's own pt-PT Display settings: «Tons escuros» measures 80.1 pt.
 
 ## 5. Feeding, sleep, diapers
 
