@@ -249,6 +249,9 @@ Notes:
   - nb is spelled «prosentil» (Helsedirektoratet), never «persentil».
   - sv clinics chart SD and pt-BR clinics chart z-scores. Our charts show percentiles, so the word stays
     «percentil» there, and the help text says what it is.
+- **Pediatrician.** The fi More row and the report screen's title read «Lääkärille» (`report.title`).
+  «Lastenlääkärille» is one word of 218.9 pt at AX2 in a row of 219.0 pt on a 320-pt screen, so it would be
+  drawn at the very edge of its room. The PDF title, the file name and every sentence keep «lastenlääkäri».
 - **Ordinals** (3rd / 97th percentile):
   - fr «3e / 97e»;
   - de «3. / 97. Perzentile»;

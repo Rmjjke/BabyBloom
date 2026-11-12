@@ -621,7 +621,7 @@
   "source.nhs_baby_weight": "NHS — vauvan pituus ja paino",
   "source.nhs_sleep": "NHS — vauvan nukkumisen tukeminen",
   "source.nhs_nappy_chart": "NHS Cambridge — märkien vaippojen taulukko",
-  "report.title": "Lastenlääkärille",
+  "report.title": "Lääkärille",
   "report.a11y_hint": "Luvut edellisestä käynnistä lähtien ja kysymyksesi",
   "report.since_visit_fmt": "Käynnin %1$@ jälkeen · %2$@",
   "report.since_birth_fmt": "Syntymästä lähtien · %@",
