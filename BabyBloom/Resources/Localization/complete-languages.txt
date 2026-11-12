@@ -5,4 +5,5 @@
 en
 ru
 es
+pt-PT
 pt-BR
