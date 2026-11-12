@@ -81,13 +81,16 @@ the same meaning.
 | Delete App | Видалити програму | App löschen | Supprimer l’app | アプリを削除 | 앱 삭제 | 刪除App | Apagar App | Apagar aplicação | Radera app | Slett app | Slet app | Poista appi |
 | Subscriptions | Підписки | Abonnements | Abonnements | サブスクリプション | 구독 | 訂閱項目 | Assinaturas | Assinaturas | Abonnemang | Abonnementer | Abonnementer | Tilaukset |
 | Language | Мова | Sprache | Langue | 言語 | 언어 | 語言 | Idioma | Idioma | Språk | Språk | Sprog | Kieli |
-| Appearance | Вигляд | Erscheinungsbild | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
+| Appearance | Вигляд | Darstellung | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
 | Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Claro / Escuro / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
 | Privacy Policy | Політика конфіденційності | Datenschutzrichtlinie | Politique de confidentialité | プライバシーポリシー | 개인정보 처리방침 | 隱私權政策 | Política de Privacidade | Política de Privacidade | Integritetspolicy | Personvernerklæring | Privatlivspolitik | Tietosuojakäytäntö |
 | Terms of Use | Умови використання | Nutzungsbedingungen | Conditions d’utilisation | 利用規約 | 이용 약관 | 使用條款 | Termos de Uso | Termos de Utilização | Användarvillkor | Bruksvilkår | Brugsvilkår | Käyttöehdot |
 
 Notes:
 - ko «라이트 모드 / 다크 모드» is Apple's long form; the 3-segment control takes the short 라이트 / 다크 / 자동.
+- de Appearance is «Darstellung». Apple's «Erscheinungsbild» breaks inside the word in the Settings section
+  header at AX2 on 320 pt. The segment for Automatic reads «Auto», because «Automatisch» does not fit the
+  three-segment control at 320 pt.
 - uk «Замкнений екран» is the noun; Apple writes «на замкненому екрані» in sentences.
 - Privacy Policy: Apple's strings use short or legal variants (de «Datenschutzvereinbarung», fr «Confidentialité»,
   nb «Personvern», da «Anonymitetspolitik»). The row above gives the plain title of a policy page in each
@@ -184,7 +187,7 @@ Notes:
 | breast | груди | Brust | sein | 胸 (左 / 右) | 가슴 | 乳房 | peito | mama | bröst | bryst | bryst | rinta |
 | left / right / both | ліва / права / обидві | links / rechts / beide | gauche / droit / les deux | 左 / 右 / 両方 | 왼쪽 / 오른쪽 / 양쪽 | 左側 / 右側 / 兩側 | esquerdo / direito / ambos | esquerda / direita / ambas | vänster / höger / båda | venstre / høyre / begge | venstre / højre / begge | vasen / oikea / molemmat |
 | bottle | пляшечка | Fläschchen | biberon | 哺乳瓶 | 젖병 | 奶瓶 | mamadeira | biberão | flaska | flaske | flaske | pullo |
-| formula | суміш | Säuglingsnahrung | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
+| formula | суміш | Pulvermilch ³ | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
 | pumped milk | зціджене молоко | abgepumpte Milch | lait maternel tiré | 搾乳 | 유축 모유 | 擠出的母乳 | leite materno ordenhado | leite materno extraído | urpumpad bröstmjölk | utpumpet morsmelk | udmalket modermælk | pumpattu rintamaito |
 | sleep | сон | Schlaf | sommeil | 睡眠 | 수면 | 睡眠 | sono | sono | sömn | søvn | søvn | uni |
 | nap | денний сон | Tagschlaf | sieste | お昼寝 | 낮잠 | 小睡 | soneca | sesta | tupplur | lur | lur | päiväunet |
@@ -200,6 +203,8 @@ Notes:
 - **Feeding is one word for every kind** (breast, bottle, formula, pumped). The tab, the event, the timer and the
   stat use it.
   - de «Mahlzeit» rather than «Fütterung», which is said of animals.
+- ³ de formula is «Pulvermilch», the parents' word. «Säuglingsnahrung» does not fit the feeding rows at 320 pt
+  and AX2 (256 pt in 240), and it also means baby food in jars. The AAP source title keeps «Säuglingsnahrung».
   - fr «repas»: «tétée» is a breastfeed only.
   - ja 授乳 covers breast and bottle; Apple's Health app also uses 授乳 for breastfeeding.
   - pt «mamada» covers both, in pt-BR and pt-PT.
@@ -236,9 +241,9 @@ Notes:
 | height (length) | зріст | Größe | taille | 身長 | 신장 | 身高 | comprimento | comprimento | längd | lengde | længde | pituus |
 | head circumference | обвід голови | Kopfumfang | périmètre crânien | 頭囲 | 머리둘레 | 頭圍 | perímetro cefálico | perímetro cefálico | huvudomfång | hodeomkrets | hovedomfang | päänympärys |
 | measurements | виміри | Messwerte | mesures | 測定値 | 측정값 | 測量值 | medidas | medidas | mått | mål | mål | mitat |
-| weighing | зважування | Wiegen | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
-| weight gain | набір ваги | Gewichtszunahme | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
-| percentile **(S)** | перцентиль | Perzentile | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
+| weighing | зважування | Wiegen / Wägung ² | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
+| weight gain | набір ваги | Gewichtszunahme / Zunahme ⁴ | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
+| percentile **(S)** | перцентиль | Perzentile ⁵ | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
 | centile channel **(S)** | перцентильний коридор | Perzentilenkanal | couloir de percentiles | パーセンタイル帯 | 백분위 구간 | 百分位區間 | faixa de percentil | faixa de percentil | percentilkanal | prosentilkanal | percentilkanal | persentiilikanava |
 | WHO **(S)** | ВООЗ | WHO | OMS | WHO | WHO | WHO | OMS | OMS | WHO | WHO | WHO | WHO |
 | WHO Child Growth Standards | стандарти росту дітей ВООЗ | WHO-Wachstumsstandards | normes de croissance de l’enfant de l’OMS | WHOの子どもの成長基準 | WHO 아동 성장 기준 | WHO兒童生長標準 | padrões de crescimento infantil da OMS | padrões de crescimento infantil da OMS | WHO:s tillväxtstandard | WHOs vekststandard | WHO’s vækststandard | WHO:n kasvustandardit |
@@ -249,6 +254,17 @@ Notes:
 
 ¹ de: «Kinderarzt» is masculine. A title or line about the visit names the practice («für die Kinderarztpraxis»,
 «beim Kinderarzttermin»), so it needs no gender.
+
+² de: «Wiegen» is the act and has no plural («Zeit zum Wiegen»). A weighing as one logged entry, which can be
+counted, is «Wägung / Wägungen» («Wägung hinzufügen», «Zwei Wägungen im Abstand von …», the report's «Wägungen»).
+
+⁴ de: a title names the subject in full («Gewichtszunahme», the gain card's info title). A label beside a value,
+a weekly line or a notification reads «Zunahme»: the screen already says it is about weight, and the long word
+does not fit beside the value on the Home growth card at 320 pt or the nutrition card at 375 pt.
+
+⁵ de: on the Home growth card the label «Gewichtsperzentile» names the scale, and the value beside it is the
+ordinal alone («50.»), like the values past the chart's edge in the same place («> 97.», «< 3.»). With the word
+in both, the row does not fit beside at 320 pt from Large bold up. Every other place keeps «Perzentile» in full.
 
 Notes:
 - **Height.** Babies are measured lying down, so several national records say "length".
