@@ -4,5 +4,5 @@
 "CFBundleDisplayName" = "Bitty";
 
 "NSUserNotificationsUsageDescription" = "Bitty skickar påminnelser om matning, sömn och annan babyvård.";
-"NSPhotoLibraryUsageDescription" = "Används för att välja ett foto till barnets profil.";
+"NSPhotoLibraryUsageDescription" = "Används för att välja ett foto till bebisens profil.";
 "NSFaceIDUsageDescription" = "Används för att snabbt låsa upp appen.";

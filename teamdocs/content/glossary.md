@@ -92,6 +92,9 @@ Notes:
 - Privacy Policy: Apple's strings use short or legal variants (de «Datenschutzvereinbarung», fr «Confidentialité»,
   nb «Personvern», da «Anonymitetspolitik»). The row above gives the plain title of a policy page in each
   language. Use it unless the linked page carries its own title.
+- The Appearance control has three segments of 78 pt at 320 pt (13 pt semibold rounded, bold included). sv, nb
+  and da write «Auto» for Automatic, as en does and as sv iOS labels the camera flash («Auto, På, Av»). sv
+  «Automatiskt» measures 78.2 pt in bold. «Automatisk» stays the word in running text.
 
 ### 3.2 Buttons and actions
 
