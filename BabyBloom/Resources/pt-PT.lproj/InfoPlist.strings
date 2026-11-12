@@ -2,3 +2,7 @@
    in Resources/Localization/pt-PT.json. A permission prompt this file does
    not hold reads the English of the base Info.plist. */
 "CFBundleDisplayName" = "Bitty";
+
+"NSUserNotificationsUsageDescription" = "A aplicação Bitty envia lembretes sobre mamadas, sono e outros cuidados com o bebé.";
+"NSPhotoLibraryUsageDescription" = "Usada para escolher uma fotografia para o perfil do bebé.";
+"NSFaceIDUsageDescription" = "Usado para desbloquear a aplicação rapidamente.";

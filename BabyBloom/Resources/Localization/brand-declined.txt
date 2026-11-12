@@ -4,7 +4,6 @@
 # those forms itself. Every other sentence that names the app uses {brand}.
 ru dashboard.welcome
 ru live_activity.continues_in_app
-ru medication.reminder_off_in_settings
 ru onboarding.fact.older2
 ru onboarding.gen.title
 ru onboarding.gen.title_named
