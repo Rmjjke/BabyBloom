@@ -200,6 +200,9 @@ Notes:
   - fr «sein» is masculine, so gauche / droit.
   - pt-BR «peito» is masculine (esquerdo / direito); pt-PT «mama» is feminine (esquerda / direita).
   - uk «груди» is plural only; the side is «ліва / права» (грудь), as Ukrainian feeding apps write it.
+  - fi: the side chip in the feeding sheet reads «Kumpikin», because «Molemmat» (72.9 pt at 15 pt rounded medium)
+    breaks inside the word in a third of a 320-pt sheet at Large, while «Kumpikin» (64.2 pt) fits as «Izquierdo»
+    does. Every other place keeps «molemmat»: «Molemmat rinnat», «Imetys · molemmat» and the diaper's «Molemmat».
 - **"Woke up" without gender.**
   - The past tense has no gender in pt, the Nordic languages and fi.
   - de «Wach», fr «Réveil» and ja/ko/zh-Hant need no gender either.
