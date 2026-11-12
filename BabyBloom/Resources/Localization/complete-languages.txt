@@ -9,3 +9,4 @@ pt-BR
 uk
 de
 fr
+ja
