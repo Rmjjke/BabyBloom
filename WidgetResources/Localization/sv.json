@@ -591,7 +591,7 @@
   "onboarding.fact.formula1": "Bebisar på ersättning äter vanligtvis var 3–⁠4:e timme. En logg gör nästa matning förutsägbar i stället för en gissning.",
   "onboarding.gen.step_named": "Anpassar för %1$@ — %2$@",
   "onboarding.notify.title": "%@ äter och sover i sin egen takt — vi påminner dig när det är dags",
-  "onboarding.notify.b1": "Matningspåminnelsen lär sig din rytm: efter några loggade matningar använder den ditt eget genomsnittliga intervall i stället för en tabell.",
+  "onboarding.notify.b1": "Påminnelsen om matning lär sig din rytm: efter några loggade matningar använder den ditt eget genomsnittliga intervall i stället för en tabell.",
   "onboarding.notify.b2": "Efter en tupplur räknar vi ut vakenhetsfönstret för bebisens ålder, så att nästa sömn föreslås vid rätt tidpunkt.",
   "onboarding.notify.b3": "Ingen spam: högst en väntande påminnelse av varje slag, och bara en lång matning eller en lång sömn tar sig igenom Stör ej.",
   "onboarding.notify.cta": "Slå på notiser",
