@@ -235,6 +235,8 @@ Notes:
 
 ¹ de: «Kinderarzt» is masculine. A title or line about the visit names the practice («für die Kinderarztpraxis»,
 «beim Kinderarzttermin»), so it needs no gender.
+ja: the person is 小児科医 (question.section, report.*). The visit names the department, as Japanese does
+(小児科を受診): the event is 小児科の受診 (visit.title), and the delete confirmations say 小児科の受診記録.
 
 Notes:
 - **Height.** Babies are measured lying down, so several national records say "length".
