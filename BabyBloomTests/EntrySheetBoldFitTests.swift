@@ -112,15 +112,25 @@ final class EntrySheetBoldFitTests: XCTestCase {
             configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
         let birth = Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 28, hour: 12))!
         let baby = Baby(name: "Mia", birthDate: birth, gender: .female, feedingType: .breast)
+        // Never saved: a save posts SwiftData's did-save notification to every
+        // live query observer, the earlier sheets' among them. The sheets'
+        // queries read the pending insert all the same.
+        container.mainContext.autosaveEnabled = false
         container.mainContext.insert(baby)
-        try container.mainContext.save()
-        // The app root hands every screen the subscription state.
-        let root = try accessibility.host(sheet(baby).modelContainer(container).environment(SubscriptionManager()),
-                                          size: screen, bold: bold)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
-        let elements = accessibility.elements(root, automation: true)
-        let scrolls = scrollViews(in: root)
-        accessibility.close()
+        // The sheet's view graph goes before its store: left to the test's
+        // autorelease pool, every torn-down sheet went at the test's end, long
+        // after its store, and the heap broke there.
+        let (elements, scrolls) = try autoreleasepool {
+            // The app root hands every screen the subscription state.
+            let root = try accessibility.host(sheet(baby).modelContainer(container).environment(SubscriptionManager()),
+                                              size: screen, bold: bold)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+            let read = (accessibility.elements(root, automation: true), scrollViews(in: root))
+            accessibility.close()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            return read
+        }
+        withExtendedLifetime(container) {}
         XCTAssertGreaterThan(elements.count, 5, "\(name): the sheet did not draw")
         XCTAssertFalse(scrolls.isEmpty, "\(name): the sheet has no scroll")
         let room = String(format: "%.1f", screen.width)
