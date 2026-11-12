@@ -7,3 +7,4 @@ ru
 es
 pt-BR
 uk
+de
