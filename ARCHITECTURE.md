@@ -518,7 +518,10 @@ from its body with no timeline involved, so both read them through
 (`Core/Localization/DurationText.swift`) writes whole minutes as «45 мин»,
 «1 ч», «1 ч 15 мин» for every screen, the widget, the weekly card, medications
 and the export. Each caller turns seconds into minutes its own way: a clock
-floors, a countdown rounds up. Seconds show only under a minute and on a
+floors, a countdown rounds up. A summary floors like the clock
+(`WeeklyFormat.wholeMinutes`, after rounding to the millisecond so an average
+a hair under a minute keeps it), so a feed reads the same minutes in its
+history row and in the weekly card or the report. Seconds show only under a minute and on a
 running timer. A count carries no unit word: a stat tile shows the figure
 alone, and a progress card reads «0 из 6» (`progress.of_fmt`). Home's sleep
 card is a span of time, so both sides go through the writer: «2 ч 55 мин из
@@ -1902,7 +1905,13 @@ It feeds `PeriodSummary` (`Core/Summary/`), the calendar-day core the weekly
 card also runs on, with the REPORT's input: running timers out and a sleep
 that began before the period clipped to it — the weekly card counts a running
 feed and files a sleep whole on its start day, so those rules live in what
-each caller passes in, never in the core. The share button ⑩ (Premium) makes
+each caller passes in, never in the core. Feeding, sleep and diapers each
+average over their FINISHED days with entries (today stays in the counts, but
+the report is opened mid-morning); with none — a period under 3 days, or a
+longer one whose finished days hold nothing of that kind — the section prints
+its raw counts instead. The per-day figure is nil exactly then, and the card
+and the PDF branch on it (`averaged`), never on the period's length, so the
+«days with entries» line, which qualifies an average, goes with it. The share button ⑩ (Premium) makes
 `DoctorReportPDF`: an HTML page over the SAME `DoctorReportSummary` and the
 same `ReportFormat` / `WeeklyFormat` helpers (`Core/Formatting/`, shared with
 the export and the weekly card), so the PDF cannot print a number

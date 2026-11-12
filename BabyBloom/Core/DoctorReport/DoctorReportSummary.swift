@@ -136,7 +136,8 @@ struct DoctorReportSummary: Equatable {
 
     struct Feeding: Equatable {
         let totalFeeds: Int
-        /// nil in a short period — the view prints `report.feeds_count_fmt` then.
+        /// nil in a short period or when no finished day has a feed — the view
+        /// prints `report.feeds_count_fmt` then.
         let feedsPerDay: Double?
         /// Only when more than one type was logged; most frequent first.
         let byType: [TypeCount]
@@ -150,6 +151,9 @@ struct DoctorReportSummary: Equatable {
         let breastfeedMedian: TimeInterval?
         let days: Days
 
+        /// false: raw counts stand in for the averages, and no days line.
+        var averaged: Bool { feedsPerDay != nil }
+
         struct TypeCount: Equatable {
             let type: FeedingEntry.FeedingType
             let count: Int
@@ -158,23 +162,29 @@ struct DoctorReportSummary: Equatable {
 
     struct Sleep: Equatable {
         let total: TimeInterval
-        /// nil in a short period — the view prints `report.sleep_total_fmt`.
+        /// nil in a short period or when no finished day has a sleep — the
+        /// view prints `report.sleep_total_fmt`.
         let perDay: TimeInterval?
         let longest: TimeInterval?
         let longestStart: Date?
         let days: Days
+
+        var averaged: Bool { perDay != nil }
     }
 
     struct Diapers: Equatable {
         /// `both` counts in wet AND dirty.
         let wetCount: Int
         let dirtyCount: Int
-        /// nil in a short period — the view prints the counts.
+        /// Both nil in a short period or when no finished day has a diaper —
+        /// the view prints the counts.
         let wetPerDay: Double?
         let dirtyPerDay: Double?
         /// Most frequent first; empty when no colour was logged.
         let colors: [ColorCount]
         let days: Days
+
+        var averaged: Bool { wetPerDay != nil }
 
         struct ColorCount: Equatable {
             let color: DiaperEntry.StoolColor
@@ -186,7 +196,9 @@ struct DoctorReportSummary: Equatable {
     let now: Date
     /// Whole calendar days from the period start's day to today's (`DoctorPeriod.periodDays`).
     let periodDays: Int
-    /// Fewer than 3 days: raw counts, no averages, no days lines.
+    /// Fewer than 3 days: raw counts, no averages, no days lines. A longer
+    /// period whose finished days hold none of a kind does the same for that
+    /// section: today alone is never averaged, so the counts are all there is.
     var isShort: Bool { periodDays < 3 }
 
     var growth: Growth
