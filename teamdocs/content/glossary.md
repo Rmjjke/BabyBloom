@@ -222,7 +222,7 @@ Notes:
 | height (length) | зріст | Größe | taille | 身長 | 신장 | 身高 | comprimento | comprimento | längd | lengde | længde | pituus |
 | head circumference | обвід голови | Kopfumfang | périmètre crânien | 頭囲 | 머리둘레 | 頭圍 | perímetro cefálico | perímetro cefálico | huvudomfång | hodeomkrets | hovedomfang | päänympärys |
 | measurements | виміри | Messwerte | mesures | 測定値 | 측정값 | 測量值 | medidas | medidas | mått | mål | mål | mitat |
-| weighing | зважування | Wiegen | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
+| weighing | зважування | Wiegen / Wägung ² | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
 | weight gain | набір ваги | Gewichtszunahme | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
 | percentile **(S)** | перцентиль | Perzentile | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
 | centile channel **(S)** | перцентильний коридор | Perzentilenkanal | couloir de percentiles | パーセンタイル帯 | 백분위 구간 | 百分位區間 | faixa de percentil | faixa de percentil | percentilkanal | prosentilkanal | percentilkanal | persentiilikanava |
@@ -235,6 +235,9 @@ Notes:
 
 ¹ de: «Kinderarzt» is masculine. A title or line about the visit names the practice («für die Kinderarztpraxis»,
 «beim Kinderarzttermin»), so it needs no gender.
+
+² de: «Wiegen» is the act and has no plural («Zeit zum Wiegen»). A weighing as one logged entry, which can be
+counted, is «Wägung / Wägungen» («Wägung hinzufügen», «Zwei Wägungen im Abstand von …», the report's «Wägungen»).
 
 Notes:
 - **Height.** Babies are measured lying down, so several national records say "length".
