@@ -555,7 +555,7 @@
   "widget.today_short": "%d heute",
   "section.nutrition": "Ernährung",
   "nutrition.window_days_fmt": "Zeitraum: %1$@",
-  "nutrition.row_gain": "Gewichtszunahme",
+  "nutrition.row_gain": "Zunahme",
   "nutrition.row_feeds": "Mahlzeiten",
   "nutrition.row_nappies": "Nasse Windeln",
   "nutrition.status_below": "unter dem Richtwert",

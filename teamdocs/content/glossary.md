@@ -228,7 +228,7 @@ Notes:
 | head circumference | обвід голови | Kopfumfang | périmètre crânien | 頭囲 | 머리둘레 | 頭圍 | perímetro cefálico | perímetro cefálico | huvudomfång | hodeomkrets | hovedomfang | päänympärys |
 | measurements | виміри | Messwerte | mesures | 測定値 | 측정값 | 測量值 | medidas | medidas | mått | mål | mål | mitat |
 | weighing | зважування | Wiegen / Wägung ² | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
-| weight gain | набір ваги | Gewichtszunahme | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
+| weight gain | набір ваги | Gewichtszunahme / Zunahme ⁴ | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
 | percentile **(S)** | перцентиль | Perzentile | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
 | centile channel **(S)** | перцентильний коридор | Perzentilenkanal | couloir de percentiles | パーセンタイル帯 | 백분위 구간 | 百分位區間 | faixa de percentil | faixa de percentil | percentilkanal | prosentilkanal | percentilkanal | persentiilikanava |
 | WHO **(S)** | ВООЗ | WHO | OMS | WHO | WHO | WHO | OMS | OMS | WHO | WHO | WHO | WHO |
@@ -243,6 +243,10 @@ Notes:
 
 ² de: «Wiegen» is the act and has no plural («Zeit zum Wiegen»). A weighing as one logged entry, which can be
 counted, is «Wägung / Wägungen» («Wägung hinzufügen», «Zwei Wägungen im Abstand von …», the report's «Wägungen»).
+
+⁴ de: a title names the subject in full («Gewichtszunahme», the gain card's info title). A label beside a value,
+a weekly line or a notification reads «Zunahme»: the screen already says it is about weight, and the long word
+does not fit beside the value on the Home growth card at 320 pt or the nutrition card at 375 pt.
 
 Notes:
 - **Height.** Babies are measured lying down, so several national records say "length".
