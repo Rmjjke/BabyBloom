@@ -344,7 +344,7 @@
   "form.end_time": "Fin",
   "settings.language": "Langue",
   "settings.appearance": "Apparence",
-  "settings.appearance.system": "Automatique",
+  "settings.appearance.system": "Auto",
   "settings.appearance.light": "Claire",
   "settings.appearance.dark": "Sombre",
   "settings.live_activity": "Minuteur sur l’écran verrouillé",
