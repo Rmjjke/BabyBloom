@@ -381,6 +381,11 @@ Notes:
 Notes:
 - ja 月額 / 年額 and ko 월 / 연 go **before** the price («月額 ¥480», «월 ₩4,400»); the price-per-period
   templates are written that way.
+- Per month / per year / per week: the row gives the words for running text. The paywall's price
+  lines (`premium.price_per_*_fmt`) carry the price, a space, a slash, a no-break space and the period
+  word in its dictionary form: «/ місяць», «/ Monat», «/ mois», «/ mês», «/ månad», «/ måned»,
+  «/ kuukausi». Danish keeps «pr. måned / pr. år / pr. uge» (no-break space after «pr.»). ja, ko and
+  zh-Hant put the period word first, with no slash: 月額%1$@, 월 %1$@, 每月%1$@. voice.md has the rule.
 - The trial wording names the length with the plural template ("7 days free"), never a bare number.
 - zh-Hant 最划算 is Taiwan usage (划 is also a Traditional character); it is not a Simplified slip.
 

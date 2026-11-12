@@ -5,14 +5,14 @@
 en
 ru
 es
-pt-PT
-pt-BR
 uk
+pt-BR
 de
 fr
 ja
 ko
 zh-Hant
+pt-PT
 sv
 nb
 da
