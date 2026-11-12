@@ -10,3 +10,4 @@ uk
 de
 fr
 ja
+ko
