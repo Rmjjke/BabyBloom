@@ -81,13 +81,16 @@ the same meaning.
 | Delete App | Видалити програму | App löschen | Supprimer l’app | アプリを削除 | 앱 삭제 | 刪除App | Apagar App | Apagar aplicação | Radera app | Slett app | Slet app | Poista appi |
 | Subscriptions | Підписки | Abonnements | Abonnements | サブスクリプション | 구독 | 訂閱項目 | Assinaturas | Assinaturas | Abonnemang | Abonnementer | Abonnementer | Tilaukset |
 | Language | Мова | Sprache | Langue | 言語 | 언어 | 語言 | Idioma | Idioma | Språk | Språk | Sprog | Kieli |
-| Appearance | Вигляд | Erscheinungsbild | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
-| Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Tons claros / Tons escuros / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
+| Appearance | Вигляд | Darstellung | Apparence | 外観モード | 화면 모드 | 外觀 | Aparência | Apresentação | Utseende | Utseende | Udseende | Ulkoasu |
+| Light / Dark / Automatic | Світлий / Темний / Автоматично | Hell / Dunkel / Automatisch | Claire / Sombre / Automatique | ライト / ダーク / 自動 | 라이트 / 다크 / 자동 | 淺色 / 深色 / 自動 | Clara / Escura / Automático | Claro / Escuro / Automático | Ljust / Mörkt / Automatiskt | Lyst / Mørkt / Automatisk | Lys / Mørk / Automatisk | Vaalea / Tumma / Automaattinen |
 | Privacy Policy | Політика конфіденційності | Datenschutzrichtlinie | Politique de confidentialité | プライバシーポリシー | 개인정보 처리방침 | 隱私權政策 | Política de Privacidade | Política de Privacidade | Integritetspolicy | Personvernerklæring | Privatlivspolitik | Tietosuojakäytäntö |
 | Terms of Use | Умови використання | Nutzungsbedingungen | Conditions d’utilisation | 利用規約 | 이용 약관 | 使用條款 | Termos de Uso | Termos de Utilização | Användarvillkor | Bruksvilkår | Brugsvilkår | Käyttöehdot |
 
 Notes:
 - ko «라이트 모드 / 다크 모드» is Apple's long form; the 3-segment control takes the short 라이트 / 다크 / 자동.
+- de Appearance is «Darstellung». Apple's «Erscheinungsbild» breaks inside the word in the Settings section
+  header at AX2 on 320 pt. The segment for Automatic reads «Auto», because «Automatisch» does not fit the
+  three-segment control at 320 pt.
 - uk «Замкнений екран» is the noun; Apple writes «на замкненому екрані» in sentences.
 - Privacy Policy: Apple's strings use short or legal variants (de «Datenschutzvereinbarung», fr «Confidentialité»,
   nb «Personvern», da «Anonymitetspolitik»). The row above gives the plain title of a policy page in each
@@ -165,11 +168,15 @@ Notes:
 - "Home" and "More" are the iOS tab words (the TV and Podcasts apps for Home, the system tab bar for More). uk
   «Домівка» is Apple's Home tab; «Ще» is the system "More" item.
 - The tab labels must fit the tab bar at 320 pt (each no wider than ru «Подгузники» at the tab font). Measured with
-  CoreText per language; the widest new ones are «Crescimento», «Croissance», «Mahlzeiten» and «Startseite».
+  CoreText per language; the widest new ones are «Mahlzeiten» and «Startseite». Growth is not in the tab bar (it
+  opens from More): its word is a screen title and a Dashboard card title, so «Crescimento» and «Croissance» are
+  measured against the screen-title budget, not the tab budget.
 - "History" is a list of past entries. ko 기록 and zh-Hant 記錄 are also the words for "log" (§ 6); in ko and
   zh-Hant a history title may read 기록 / 記錄 because Apple uses the same word there.
 - "Timer" is the running feeding or sleep timer, which counts up. Apple's nb «Nedtelling» is the Clock app's
   countdown, so nb takes «Tidtaker» (a timer that measures). da «Tidtagning» is Apple's stopwatch word and fits.
+- Light / Dark / Automatic sit in a three-segment control at 320 pt (78 pt per segment). pt-PT takes the single
+  words «Claro» / «Escuro», as in iOS's own pt-PT Display settings: «Tons escuros» measures 80.1 pt.
 
 ## 5. Feeding, sleep, diapers
 
@@ -180,7 +187,7 @@ Notes:
 | breast | груди | Brust | sein | 胸 (左 / 右) | 가슴 | 乳房 | peito | mama | bröst | bryst | bryst | rinta |
 | left / right / both | ліва / права / обидві | links / rechts / beide | gauche / droit / les deux | 左 / 右 / 両方 | 왼쪽 / 오른쪽 / 양쪽 | 左側 / 右側 / 兩側 | esquerdo / direito / ambos | esquerda / direita / ambas | vänster / höger / båda | venstre / høyre / begge | venstre / højre / begge | vasen / oikea / molemmat |
 | bottle | пляшечка | Fläschchen | biberon | 哺乳瓶 | 젖병 | 奶瓶 | mamadeira | biberão | flaska | flaske | flaske | pullo |
-| formula | суміш | Säuglingsnahrung | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
+| formula | суміш | Pulvermilch ³ | lait infantile | ミルク | 분유 | 配方奶 | fórmula | leite de fórmula | ersättning | morsmelkerstatning | modermælkserstatning | korvike |
 | pumped milk | зціджене молоко | abgepumpte Milch | lait maternel tiré | 搾乳 | 유축 모유 | 擠出的母乳 | leite materno ordenhado | leite materno extraído | urpumpad bröstmjölk | utpumpet morsmelk | udmalket modermælk | pumpattu rintamaito |
 | sleep | сон | Schlaf | sommeil | 睡眠 | 수면 | 睡眠 | sono | sono | sömn | søvn | søvn | uni |
 | nap | денний сон | Tagschlaf | sieste | お昼寝 | 낮잠 | 小睡 | soneca | sesta | tupplur | lur | lur | päiväunet |
@@ -196,6 +203,8 @@ Notes:
 - **Feeding is one word for every kind** (breast, bottle, formula, pumped). The tab, the event, the timer and the
   stat use it.
   - de «Mahlzeit» rather than «Fütterung», which is said of animals.
+- ³ de formula is «Pulvermilch», the parents' word. «Säuglingsnahrung» does not fit the feeding rows at 320 pt
+  and AX2 (256 pt in 240), and it also means baby food in jars. The AAP source title keeps «Säuglingsnahrung».
   - fr «repas»: «tétée» is a breastfeed only.
   - ja 授乳 covers breast and bottle; Apple's Health app also uses 授乳 for breastfeeding.
   - pt «mamada» covers both, in pt-BR and pt-PT.
@@ -207,6 +216,9 @@ Notes:
   - fr «sein» is masculine, so gauche / droit.
   - pt-BR «peito» is masculine (esquerdo / direito); pt-PT «mama» is feminine (esquerda / direita).
   - uk «груди» is plural only; the side is «ліва / права» (грудь), as Ukrainian feeding apps write it.
+  - fi: the side chip in the feeding sheet reads «Kumpikin», because «Molemmat» (72.9 pt at 15 pt rounded medium)
+    breaks inside the word in a third of a 320-pt sheet at Large, while «Kumpikin» (64.2 pt) fits as «Izquierdo»
+    does. Every other place keeps «molemmat»: «Molemmat rinnat», «Imetys · molemmat» and the diaper's «Molemmat».
 - **"Woke up" without gender.**
   - The past tense has no gender in pt, the Nordic languages and fi.
   - de «Wach», fr «Réveil» and ja/ko/zh-Hant need no gender either.
@@ -229,9 +241,9 @@ Notes:
 | height (length) | зріст | Größe | taille | 身長 | 신장 | 身高 | comprimento | comprimento | längd | lengde | længde | pituus |
 | head circumference | обвід голови | Kopfumfang | périmètre crânien | 頭囲 | 머리둘레 | 頭圍 | perímetro cefálico | perímetro cefálico | huvudomfång | hodeomkrets | hovedomfang | päänympärys |
 | measurements | виміри | Messwerte | mesures | 測定値 | 측정값 | 測量值 | medidas | medidas | mått | mål | mål | mitat |
-| weighing | зважування | Wiegen | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
-| weight gain | набір ваги | Gewichtszunahme | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
-| percentile **(S)** | перцентиль | Perzentile | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
+| weighing | зважування | Wiegen / Wägung ² | pesée | 体重測定 | 체중 측정 | 量體重 | pesagem | pesagem | vägning | veiing | vejning | punnitus |
+| weight gain | набір ваги | Gewichtszunahme / Zunahme ⁴ | prise de poids | 体重増加 | 체중 증가 | 體重增加 | ganho de peso | aumento de peso | viktökning | vektøkning | vægtøgning | painonnousu |
+| percentile **(S)** | перцентиль | Perzentile ⁵ | percentile | パーセンタイル | 백분위수 | 百分位 | percentil | percentil | percentil | prosentil | percentil | persentiili |
 | centile channel **(S)** | перцентильний коридор | Perzentilenkanal | couloir de percentiles | パーセンタイル帯 | 백분위 구간 | 百分位區間 | faixa de percentil | faixa de percentil | percentilkanal | prosentilkanal | percentilkanal | persentiilikanava |
 | WHO **(S)** | ВООЗ | WHO | OMS | WHO | WHO | WHO | OMS | OMS | WHO | WHO | WHO | WHO |
 | WHO Child Growth Standards | стандарти росту дітей ВООЗ | WHO-Wachstumsstandards | normes de croissance de l’enfant de l’OMS | WHOの子どもの成長基準 | WHO 아동 성장 기준 | WHO兒童生長標準 | padrões de crescimento infantil da OMS | padrões de crescimento infantil da OMS | WHO:s tillväxtstandard | WHOs vekststandard | WHO’s vækststandard | WHO:n kasvustandardit |
@@ -242,6 +254,19 @@ Notes:
 
 ¹ de: «Kinderarzt» is masculine. A title or line about the visit names the practice («für die Kinderarztpraxis»,
 «beim Kinderarzttermin»), so it needs no gender.
+ja: the person is 小児科医 (question.section, report.*). The visit names the department, as Japanese does
+(小児科を受診): the event is 小児科の受診 (visit.title), and the delete confirmations say 小児科の受診記録.
+
+² de: «Wiegen» is the act and has no plural («Zeit zum Wiegen»). A weighing as one logged entry, which can be
+counted, is «Wägung / Wägungen» («Wägung hinzufügen», «Zwei Wägungen im Abstand von …», the report's «Wägungen»).
+
+⁴ de: a title names the subject in full («Gewichtszunahme», the gain card's info title). A label beside a value,
+a weekly line or a notification reads «Zunahme»: the screen already says it is about weight, and the long word
+does not fit beside the value on the Home growth card at 320 pt or the nutrition card at 375 pt.
+
+⁵ de: on the Home growth card the label «Gewichtsperzentile» names the scale, and the value beside it is the
+ordinal alone («50.»), like the values past the chart's edge in the same place («> 97.», «< 3.»). With the word
+in both, the row does not fit beside at 320 pt from Large bold up. Every other place keeps «Perzentile» in full.
 
 Notes:
 - **Height.** Babies are measured lying down, so several national records say "length".
@@ -253,6 +278,9 @@ Notes:
   - nb is spelled «prosentil» (Helsedirektoratet), never «persentil».
   - sv clinics chart SD and pt-BR clinics chart z-scores. Our charts show percentiles, so the word stays
     «percentil» there, and the help text says what it is.
+- **Pediatrician.** The fi More row and the report screen's title read «Lääkärille» (`report.title`).
+  «Lastenlääkärille» is one word of 218.9 pt at AX2 in a row of 219.0 pt on a 320-pt screen, so it would be
+  drawn at the very edge of its room. The PDF title, the file name and every sentence keep «lastenlääkäri».
 - **Ordinals** (3rd / 97th percentile):
   - fr «3e / 97e»;
   - de «3. / 97. Perzentile»;
@@ -302,7 +330,7 @@ minimum, not before, most in 24 hours, since / before / after, counts / does not
 | log (a dose) | записати | eintragen | enregistrer | 記録 | 기록 | 記錄 | registrar | registar | logga | loggføre | registrere | kirjata |
 | interval **(S)** | інтервал | Abstand | intervalle | 間隔 | 간격 | 間隔 | intervalo | intervalo | intervall | intervall | interval | annosväli |
 | minimum time between doses **(S)** | мінімальний інтервал між дозами | Mindestabstand zwischen den Dosen | intervalle minimal entre deux doses | 服薬の最短間隔 | 최소 투여 간격 | 兩劑至少間隔 | intervalo mínimo entre doses | intervalo mínimo entre doses | minsta tid mellan doser | minste tid mellom doser | mindste tid mellem doser | vähimmäisaika annosten välillä |
-| most doses in 24 hours **(S)** | максимум доз за 24 години | höchstens … Dosen in 24 Stunden | au maximum … doses en 24 heures | 24時間の最大回数 | 24시간 최대 투여 횟수 | 24小時內最多次數 | máximo de doses em 24 horas | máximo de doses em 24 horas | högst … doser per dygn | høyst … doser per døgn | højst … doser pr. døgn | enintään … annosta vuorokaudessa |
+| most doses in 24 hours **(S)** | максимум доз за 24 години | höchstens … Dosen in 24 Stunden | au maximum … doses en 24 heures | 24時間の最大回数 | 24시간 최대 투여 횟수 | 24小時內最多次數 | máximo de doses em 24 horas | máximo de doses em 24 horas | högst … doser per dygn | høyst … doser per døgn | højst … doser pr. døgn | enintään … annosta 24 tunnissa |
 | not before **(S)** | не раніше ніж | frühestens | pas avant | 〜以降 | ~ 이후 | 最早 | não antes de | não antes de | tidigast | tidligst | tidligst | aikaisintaan |
 | the interval has passed **(S)** | інтервал минув | der Abstand ist vorbei | l’intervalle est écoulé | 間隔が過ぎました | 간격이 지났어요 | 已過間隔 / 間隔已過 | o intervalo já passou | o intervalo já passou | intervallet har gått | intervallet er over | intervallet er gået | annosväli on kulunut |
 | ended (medications) | завершені | beendet | terminés | 終了 | 종료됨 | 已結束 | encerrados | terminados | avslutade | avsluttet | afsluttede | päättyneet |
@@ -325,6 +353,9 @@ Notes:
 - **sv, nb and da write "24 hours" as «dygn» / «døgn»** in the maximum, as the leaflets do («högst 4 gånger per
   dygn», «Maksimal døgndose», «døgndosis»). The digits "24" then leave the sentence; the digit check accepts
   dygn / døgn for 24 h.
+- **fi writes the maximum as «24 tunnissa», not the leaflets' «vuorokaudessa».** The detail screen already reads
+  «Viimeiset 24 tuntia», so one screen keeps one word. «vuorokaudessa» (228 pt semibold) also breaks inside the
+  word in the dose-limit alert's title at AX2 on a 320-pt screen. «vähintään vuorokausi» between weighings stays.
 - **fi «annosväli»** is the leaflet word for the interval («Annosten välillä pitää olla vähintään 4 tuntia»).
 - **fi «viimeisin annos»**, not «viimeinen annos»: «viimeinen» also reads as the final dose of a course;
   «viimeisin» is only the most recent one. The before/after alert titles carry «jälkeen» / «ennen», never a bare
@@ -350,6 +381,11 @@ Notes:
 Notes:
 - ja 月額 / 年額 and ko 월 / 연 go **before** the price («月額 ¥480», «월 ₩4,400»); the price-per-period
   templates are written that way.
+- Per month / per year / per week: the row gives the words for running text. The paywall's price
+  lines (`premium.price_per_*_fmt`) carry the price, a space, a slash, a no-break space and the period
+  word in its dictionary form: «/ місяць», «/ Monat», «/ mois», «/ mês», «/ månad», «/ måned»,
+  «/ kuukausi». Danish keeps «pr. måned / pr. år / pr. uge» (no-break space after «pr.»). ja, ko and
+  zh-Hant put the period word first, with no slash: 月額%1$@, 월 %1$@, 每月%1$@. voice.md has the rule.
 - The trial wording names the length with the plural template ("7 days free"), never a bare number.
 - zh-Hant 最划算 is Taiwan usage (划 is also a Traditional character); it is not a Simplified slip.
 

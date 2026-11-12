@@ -29,6 +29,30 @@ final class SideBySideIdealTests: XCTestCase {
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 339.7, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 360.3, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 272.3, room: 256.0),
+        // Brazilian Portuguese «Ganho de peso» beside «+180 g/semana · abaixo da
+        // referência» stacks from xLarge, every word whole: the card's designed
+        // shape when the pair cannot sit side by side.
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXL", width: 270.7, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 284.0, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 292.3, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 307.0, room: 256.0),
+        // European Portuguese «Aumento de peso» beside «+180 g/semana · abaixo da
+        // referência» stacks from xLarge, every word whole: the card's designed
+        // shape when the pair cannot sit side by side.
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXL", width: 288.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 303.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 311.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 328.0, room: 256.0),
+        // Finnish «Painonnousu» beside «+180 g/viikko · Viitearvon alapuolella»
+        // stacks at xxLarge (regular and bold) and xxxLarge bold, every word
+        // whole: the card's designed shape when the pair cannot sit side by side.
+        KnownMiss(.real(.fi), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 259.0, room: 256.0),
+        KnownMiss(.real(.fi), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 274.3, room: 256.0),
+        KnownMiss(.real(.fi), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 264.7, room: 256.0),
+        // French «Prise de poids» beside «+180 g/sem · sous le repère» stacks
+        // at xxLarge bold, every word whole: the card's designed shape when
+        // the pair cannot sit side by side.
+        KnownMiss(.real(.fr), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 268.7, room: 256.0),
         // Swedish «Viktökning» beside «+180 g/vecka · Under riktvärdet» and
         // Norwegian «Vektøkning» beside «… · Under referanseverdien» stack from
         // xxLarge bold (Norwegian also at xxxLarge), every word whole: the
