@@ -301,7 +301,7 @@ minimum, not before, most in 24 hours, since / before / after, counts / does not
 | log (a dose) | записати | eintragen | enregistrer | 記録 | 기록 | 記錄 | registrar | registar | logga | loggføre | registrere | kirjata |
 | interval **(S)** | інтервал | Abstand | intervalle | 間隔 | 간격 | 間隔 | intervalo | intervalo | intervall | intervall | interval | annosväli |
 | minimum time between doses **(S)** | мінімальний інтервал між дозами | Mindestabstand zwischen den Dosen | intervalle minimal entre deux doses | 服薬の最短間隔 | 최소 투여 간격 | 兩劑至少間隔 | intervalo mínimo entre doses | intervalo mínimo entre doses | minsta tid mellan doser | minste tid mellom doser | mindste tid mellem doser | vähimmäisaika annosten välillä |
-| most doses in 24 hours **(S)** | максимум доз за 24 години | höchstens … Dosen in 24 Stunden | au maximum … doses en 24 heures | 24時間の最大回数 | 24시간 최대 투여 횟수 | 24小時內最多次數 | máximo de doses em 24 horas | máximo de doses em 24 horas | högst … doser per dygn | høyst … doser per døgn | højst … doser pr. døgn | enintään … annosta vuorokaudessa |
+| most doses in 24 hours **(S)** | максимум доз за 24 години | höchstens … Dosen in 24 Stunden | au maximum … doses en 24 heures | 24時間の最大回数 | 24시간 최대 투여 횟수 | 24小時內最多次數 | máximo de doses em 24 horas | máximo de doses em 24 horas | högst … doser per dygn | høyst … doser per døgn | højst … doser pr. døgn | enintään … annosta 24 tunnissa |
 | not before **(S)** | не раніше ніж | frühestens | pas avant | 〜以降 | ~ 이후 | 最早 | não antes de | não antes de | tidigast | tidligst | tidligst | aikaisintaan |
 | the interval has passed **(S)** | інтервал минув | der Abstand ist vorbei | l’intervalle est écoulé | 間隔が過ぎました | 간격이 지났어요 | 已過間隔 / 間隔已過 | o intervalo já passou | o intervalo já passou | intervallet har gått | intervallet er over | intervallet er gået | annosväli on kulunut |
 | ended (medications) | завершені | beendet | terminés | 終了 | 종료됨 | 已結束 | encerrados | terminados | avslutade | avsluttet | afsluttede | päättyneet |
@@ -324,6 +324,9 @@ Notes:
 - **sv, nb and da write "24 hours" as «dygn» / «døgn»** in the maximum, as the leaflets do («högst 4 gånger per
   dygn», «Maksimal døgndose», «døgndosis»). The digits "24" then leave the sentence; the digit check accepts
   dygn / døgn for 24 h.
+- **fi writes the maximum as «24 tunnissa», not the leaflets' «vuorokaudessa».** The detail screen already reads
+  «Viimeiset 24 tuntia», so one screen keeps one word. «vuorokaudessa» (228 pt semibold) also breaks inside the
+  word in the dose-limit alert's title at AX2 on a 320-pt screen. «vähintään vuorokausi» between weighings stays.
 - **fi «annosväli»** is the leaflet word for the interval («Annosten välillä pitää olla vähintään 4 tuntia»).
 - **fi «viimeisin annos»**, not «viimeinen annos»: «viimeinen» also reads as the final dose of a course;
   «viimeisin» is only the most recent one. The before/after alert titles carry «jälkeen» / «ennen», never a bare
