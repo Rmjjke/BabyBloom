@@ -551,7 +551,7 @@
   "nutrition.status_below": "참고 범위 미만",
   "nutrition.status_within": "참고 범위 내",
   "nutrition.status_above": "참고 범위 초과",
-  "nutrition.status_unknown": "데이터 부족",
+  "nutrition.status_unknown": "기록 부족",
   "nutrition.status_first_weeks": "생후 첫 몇 주",
   "nutrition.per_day_fmt": "하루 %@회",
   "nutrition.need_weighing": "하루 이상 간격을 둔 체중 측정이 두 번 필요해요",
