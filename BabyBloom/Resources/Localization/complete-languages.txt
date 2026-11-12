@@ -6,3 +6,4 @@ en
 ru
 es
 sv
+nb
