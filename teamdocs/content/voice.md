@@ -297,6 +297,11 @@ and the Live Activity read the byte-identical copies in
     no-break space before the slash it broke after it, leaving "$6.99 /"
     and "month". Glued as one run, the price and its period would break
     inside a word at AX2.
+  - Japanese puts the period first, as a word before the price, with no
+    space and no slash: «月額%1$@», «年額%1$@», «週額%1$@». That is how prices
+    read in Japan, in stores and on the App Store (月額980円). A slash shape
+    («¥980 / 月») reads as a translation. Japanese breaks between
+    characters, so the line may break after 月額, but never inside the price.
   - The gain card's big number (`velocity.per_week_fmt`) keeps the plain
     slash. It stands alone beside the interval, and when it is wider than its
     room (English from xxL on a 320 pt screen, every language at AX2 on a
