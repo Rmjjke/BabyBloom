@@ -115,6 +115,9 @@ local only, and Settings without its iCloud Sync row (§ 3, § 7, G30). Decided
 on 2026-11-08, in code at 9815b28: the pinned Save at the bottom of seven entry
 sheets gone while the keyboard is up and back once it is down, the bar's ✓
 saving meanwhile (§ 3, § 7 `BBSheetFooter`).
+Decided on 2026-11-11, planned: CJK tracking 0 and the PDF font per script
+(§ 11). Proposed on 2026-11-11: one length budget per tight place, with
+G42–G45 (§ 11).
 Proposed on 2026-11-06: Home's header name under the greeting's row where it
 misses beside the avatar (§ 7, G37).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
@@ -404,7 +407,8 @@ medication path:
   the writer: one source leaves no caller to forget, and the screen and the
   PDF break the same way.
 - A label that shares a line with its controls stacks above them; a date
-  picker's label stands above its pills at every size: `BBLabeledPicker` (§ 7).
+  picker's label stands above its pills at every size: `BBLabeledPicker`, or
+  `BBLabeledDateTimePicker` for a date and a time (§ 7).
 - A placeholder that is a field's only label stays whole:
   `bbPlaceholderLabel` (§ 7).
 - A sheet's title moves from the bar into the content, from xLarge on:
@@ -964,11 +968,12 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBTimerCardHeader | BBElapsedTimer | **from 1.3.0** — the Feeding and Sleep cards' top: a 13 pt medium rounded label in BBTextPrimary (G24, from fa5c55f; the card's colour before) over the title (title3), 4 apart (15.3 and 21.2 pt lines at Large), beside or above the digits as `BBTimerFit` decides | Feeding (`FeedingTimerCard`), Sleep (`SleepTimerCard`, `showsHours`) |
 | BBMeasureSlider | BBMeasureSlider | elevated labelled slider with mono value and min/max | Growth, Onboarding GrowthPage |
 | BBOptionalMeasureToggle | BBMeasureSlider | **from 1.3.0** — a switch that reveals a slider for an optional measure (`BBMeasureSlider.swift:45`). The title, 16 semibold rounded in BBTextPrimary, over the hint, 12 regular rounded in BBTextSecondary, 2 apart, both relative to `.body`, leading and wrapping (18.8 and 14.1 pt lines at Large, default tracking); the system switch tinted in the caller's colour. The box: md 16 padding, BBSurface, radius md 16, the card shadow, its blocks sm 8 apart. Switched on, the value (20 semibold rounded, monospaced digits, relative to `.title3`, 23.5 pt line, BBTextPrimary, trailing), the slider in the caller's colour and its ends (11 medium rounded, 12.9 pt line, BBTextSecondary, `:109`) come in under the title, by `easeInOut(0.25)`. The switch's place is chosen by fit alone (decided 2026-11-07, in code at 22721cf; `ViewThatFits(in: .horizontal)`, `:83`): beside the title and hint, trailing, while every word of both fits there (`WordWrappingText`, whose ideal width is its widest word), else under them at the title's x, sm 8 below the hint. No text-size threshold, unlike SettingsSwitchRow (under at every accessibility size) and the paywall feature card (under from AX1): where the words fit, the larger sizes keep it beside. On 320 pt the ru preterm switch goes under from AX1 and the ru and en head circumference switches at AX2, while en preterm and every es switch stay beside at AX2; on 375 pt every switch stays beside. Before, on 320 pt, ru «корректированному» broke inside itself from AX1 (175.0 pt at AX1, 201.7 at AX2), «Окружность» at AX2 (172.3) and en «Circumference» at AX2 (194.0) (G40). Gap: the switch has no VoiceOver name (`Toggle("")`, `:58`) | Growth (`GrowthView.swift:949`, `:963`), BabyProfileEditSheet (`:131`, `:146`), Onboarding (`BirthPage.swift:70`, `GrowthPage.swift:78`) |
-| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | Diaper (Time), Sleep (Start, End), Growth (measurement date), VisitFields (date), DoseSheet (time), Events (Time). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
+| BBLabeledPicker | BBFieldLabels | **from 1.3.0** — a picker with its label above it at every size (decided 2026-11-04, in code at b8e9a41): the label in the row's text style, then the picker with `labelsHidden()`, sm 8 apart, both leading, at the row's full width. One shape, not a fit: a row that fit by its date would change shape while the parent picks one. VoiceOver reads the label once: the picker keeps its own, and the visible label is hidden from VoiceOver | the date-only rows: Growth (measurement date), VisitFields (date); a date and a time take `BBLabeledDateTimePicker` (in code at 9bb980d). The profile sheet's birth date takes the same two halves without the helper: a caption above, hidden from VoiceOver, and the picker named «Дата рождения» (in code at 427d55e) |
+| BBLabeledDateTimePicker | BBFieldLabels | **from 1.3.0** — `BBLabeledPicker` for a date-and-time picker (in code at 4d18ba4), whose compact style sets the date and time pills side by side. The label in the row's text style, then sm 8 below it the picker with `labelsHidden()`, leading, at the row's full width. Below the accessibility sizes the pair is tried at the user's size, then capped at xxLarge only (a cap, never above the user's size), and stays one row wherever it fits; where it misses at xxLarge too, the time goes under the date. At the accessibility sizes the time always goes under the date, with no smaller pair tried first: there the system wraps its own pair and sets the time pill at the trailing edge (en at AX2, 104 pt in from the label). Stacked: two pickers on one selection, the date (`.date`) and sm 8 below it the time (`.hourAndMinute`), each a button that hugs its pill and starts at the label's edge, each whole and stepping down by itself from the user's size to AX1, xxxLarge and xxLarge while it misses (`BBFitsByTextSize(hugging: true)`), so the full date shows at the first size it fits. The last step is not hugged: a date that misses even at xxLarge shortens («12/11/2026») instead of passing the screen edge. Why the hugging: a compact picker handed less than its full date shows the short one but keeps the width measured for the full one and draws its pill at the trailing end of it, away from the label's edge (G46). Why the stack at all: at AX2 with Bold Text on 320 pt the pt-BR «12 de nov. de 2026» with the time beside it outgrew the sheet's card even at xxLarge, and the sheet scrolled sideways. Below the accessibility sizes the stacked shape is the last child because a nested `ViewThatFits` offers its first child's width. VoiceOver as `BBLabeledPicker`: the visible label is hidden and every picker carries the row's label, so stacked, the date and the time each carry it. The dose sheet's stacked time keeps an id of its own | Sleep (Start, End), Diaper (Time), Events (Time), DoseSheet (time) |
 | `bbPlaceholderLabel(design:maxLines:)` | BBFieldLabels | **from 1.3.0** — for a vertical text field whose placeholder is its only label, or is the example of what to type. A placeholder wraps only into lines the field already has, and only in a point-size face, so: 17 regular relative to `.body` (rounded, or default), and 1…`maxLines` lines below AX1, 2…`maxLines` + 1 at accessibility sizes (default 3); nil lets the field grow without a bound | Diaper (note), Events (free-text name), MedicationFormSheet (name, dose, maximum, note; the maximum has a label above, and its es example takes two lines at AX2), QuestionSheet (unbounded) |
 | BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:404`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:308`) as the header above Large |
 | `bbSelectedBorder(_:shape:)` + BBSelectionShape | BBTheme | **from 1.3.0** (decided 2026-11-04, in code at 1187418, `BBTheme.swift:327`; § 3, G29) — a selected tile's or chip's border, drawn outside its fill: a 1.5 pt `strokeBorder` in BBPrimary, clear when not selected so the tree is the same in both states, on the tile's shape padded −1.5, its inner edge on the fill's edge; `.tile` a rounded rectangle of Radius.md + 1.5 = 17.5, `.capsule` a capsule. Laid after `cornerRadius(Radius.md)` and `bbShadow`, so the shadow keeps the fill's outline. It takes no layout, so a word's room is its tile's (§ 3); the ring reaches 1.5 pt into the gap (sm 8 → 6.5, md 16 → 14.5), and VoiceOver's frame grows by it | Feeding (type tiles, breast-side chips, the timer's side pills as `.capsule`), Sleep (type, location), Diaper (type), Add Event (type, mood), the profile sheet (gender, feeding), onboarding (gender, feeding rows). Not on: Export's format tiles (their own outline, G29), the plan rows, the stool swatches' 2.5 pt ring, the medication interval chips, the retry capsule |
-| BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05; in code at 7b886b1). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen puts the heading in its first section's header, `.textCase(nil)` | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List; ≤ 207.0 pt at AX2) once a title would miss |
+| BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05; in code at 7b886b1). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold, then title3 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280; with Bold Text on, the system sets title2 heavier than the measure asks, 290 pt in 288 at AX2, so it lands on title3). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen takes `BBScreenListHeading`: the heading as the list's own first section, neither a section header (a header brings its own style and insets) nor a row of the first section (that section's card would draw behind it). Its row has zero insets, so the heading stands flush with the sections' edges, where the bar's large title stands; a clear row background, on the screen's ground; no separator; top padding 0, the list placing it; lg 24 to the first card (`listSectionSpacing`), as in a stack, where the list's own gap between sections is wider. Where the bar holds the title the section is no row at all, so the list starts where it did | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List, `BBScreenListHeading`; in code at 162d1b6) |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -2188,3 +2193,177 @@ G41 are fixed for 1.3.0; G37 is proposed.
   on the orange@0.1 wash, are 2.13:1 in light (2.03 on iOS 17–18; 6.14 in
   dark; at 4f3c86c, `DiaperView.swift:510–515`). They stay orange with the
   triangle and the wash: the exception is its whole look (2026-11-04).
+
+## 11. Localization
+
+triggers: a language added; a tight place's room changed (columns, insets, a font size); a script's font changed in the app or the PDFs
+check: `grep -rn 'tracking\|kern' BabyBloom/DesignSystem/BBTheme.swift BabyBloom/Features/Splash/SplashView.swift` → every tracked style reads 0 for ja, ko and zh-Hant once the rule is in code
+
+Read on main 468a07c on 2026-11-11, with pseudo-language captures (en-XA:
+each word ~40 % longer, accented; ja-XB: full-width Latin, no spaces) on
+320 × 568 pt at Large and AX2 and on the iPad in portrait. Widths were
+measured with CoreText (the system cascade, the same fonts as iOS).
+
+### Rules
+
+- **CJK tracking 0** (decided 2026-11-11, planned). For ja, ko and zh-Hant every
+  text style tracks 0: the titles (largeTitle −0.4, title1 −0.3, title2 −0.2
+  in § 3), the caption (+0.3) and the splash tagline (+4.5, and no uppercase
+  effect there). Latin and Cyrillic keep their values. Why: the values are
+  tuned to SF's Latin; on full-width glyphs negative tracking crowds strokes,
+  and +4.5 pulls a CJK word apart. Read in the ja-XB captures: no tracked
+  style; the wide look of full-width Latin is its 1-em advance, not tracking.
+- **The PDF font per script** (decided 2026-11-11, planned). Helvetica Neue
+  stays for Latin and Cyrillic (uk included), body and footer, in both PDFs.
+  For CJK the script's own family goes first in the cascade, the rest kept:
+  ja Hiragino Sans, ko Apple SD Gothic Neo, zh-Hant PingFang TC. The footer
+  follows the same order. This narrows "Helvetica Neue in every language"
+  (§ 9) for CJK only. Why: with Simplified Chinese first, a Japanese or
+  Traditional reader gets wrong glyph forms (骨, 直) in a document for a
+  doctor. Check: one ja and one zh-Hant PDF print 骨 and 直 in their own forms.
+- **CJK line height** is measured, not assumed. The system picks the UI
+  variants (Hiragino Sans UI, PingFang TC UI), whose line equals SF's
+  (10 pt → 11.8, 13 → 15.3, 14 → 16.5); ko (Apple SD Gothic Neo) is
+  0.3–0.4 pt taller (12.1, 15.7, 16.9). The widget's stat row (10 over 13,
+  spacing 1) is 28.8 pt in ko within its 30 minimum; the 36 pt capsule's
+  14 pt line is at most 16.9 within 28. Glyph forms, line breaking (no
+  closing bracket at a line start) and real-string line height are read on
+  real strings, not pseudo text.
+- **CJK counts as one word.** The fit measures (`WordWrappingText`,
+  `WidestWordIdeal`, `BBScreenHeading`) split words at plain spaces, so a CJK
+  label is one word: it takes fewer columns, stacks or steps its heading down
+  where Latin would wrap. Safe (nothing is cut, and the text engine breaks
+  between CJK characters once it wraps), but it spends room; for ja, ko and
+  zh-Hant a "widest word" budget below means the whole label. Splitting the
+  measure at line-break opportunities is open until real strings exist.
+- **One length budget per tight place**, not per string (proposed
+  2026-11-11). Translators get the table below through
+  `teamdocs/content/localization.md`. Why: about twenty measured places age
+  with the layout, not with every copy edit.
+
+### Budgets
+
+Room = the width on a 320 pt screen from the code; "~" = where the system
+sets the width. Characters = room ÷ (k × point size), k = Latin 0.50,
+Cyrillic 0.55, CJK 1.00 (measured averages: Latin 0.42–0.49, Cyrillic 0.53,
+Hangul 0.68, kana and Han 0.92–0.94; ko gets about a third more than its
+count). At AX2 a size relative to `.body` grows ×40/22 and stops. Verdicts:
+**wrap** (more lines between words; the budget is the widest single word,
+since a word never breaks inside itself, § 3), **step down** (fewer columns,
+stacked, a smaller style; the budget says when), **one line** (the whole
+string must fit). Budgets are characters Latin / Cyrillic / CJK.
+
+| place | type | room 320, Large / AX2 | verdict | budget |
+|---|---|---|---|---|
+| Tab bar, iPhone (system) | 10 medium, fixed | the five labels share ~240; the system gives each 34–64 by its label | one line; the system shrinks a label to ~0.9 (reads), past ~63 pt it cuts | a label ≤ 57 pt: 11 / 9 / 5, one word; the five together ≤ 48 / 43 / 24 |
+| Tab bar, iPad floating (system) | system | five labels share the bar | one line; the system's paging is the accepted fallback | the five together ≤ 34 / 31 / 17 |
+| Appearance segments (system) | 13 | 77 a segment | one line | 11 / 10 / 5 |
+| History filter (`BBHistoryFilterPicker`) | 13 semibold rounded, fixed | 68.5 a segment | one line | 10 / 9 / 5 |
+| Feed type tiles | 12 medium | 90.7 (3 columns) / 140 (2) | step down, then wrap | widest word 15 / 13 / 7 (Large), 12 / 11 / 6 (AX2) |
+| Side chips | 15 medium | ~68 / ~118 | step down, then wrap | widest word 9 / 8 / 4, 8 / 7 / 4 |
+| Medication interval chips | 15 | 224 | wrap (flow) | 15 / 13 / 7 a chip |
+| Stat tile title (`BBStatCard`) | 13 regular rounded | 108 (2 columns) / 256 (1) | wrap | widest word 16 / 15 / 8; unit ≤ 4 / 4 / 2 |
+| Primary button, 16 inset | 17 semibold rounded; 31.0 at AX2 | 256, ~231 with an icon | wrap | one line at Large ≤ 27 / 24 / 13; widest word at AX2 16 / 15 / 8 |
+| Primary button, 24 inset (onboarding, paywall) | as above | 240, ~215 with the arrow | wrap | one line at Large ≤ 25 / 22 / 12; widest word at AX2 15 / 14 / 7 |
+| Paywall plan title | 15 semibold | ~212 less the price | wrap, then the price under it | widest word 21 / 19 / 10 (Large), 15 / 14 / 7 (AX2) |
+| Paywall savings badge | 11 bold rounded | 87 pt | one line | 15 / 14 / 7, number and % included |
+| PDF table header | 10–11 px | each column's own width (Export: in proportion to the column's characters, down to ~26 pt) | wrap in its cell; a head word never breaks (G45) | no character budget: the shortest common word |
+| PDF footer | 9 pt | 435 pt | one line (its tail is cut) | ≤ 96 / 87 / 48 |
+| Splash tagline | 14 medium, uppercase, +4.5 (CJK 0) | ~246, fixed size | one line (a wrap is centred and reads, but the budget keeps one) | 18 / 18 / 17, spaces included |
+| Screen title in the bar | largeTitle bar, 34 bold | 288 | step down into the content, then wrap | one line in the bar 16 / 15 / 8; widest word at AX2 ≤ 16 / 14 / 8 |
+| Sheet bar title (`BBSheetTitle`) | 17 semibold, down to 13 | 166 | one line (shrinks, then cuts) | 19 / 17 / 9 |
+| Settings and More rows | body 17; 31.0 at AX2 | ~200; at AX2 158 beside the icon, 218 under it | step down (icon above), then wrap | widest word ≤ 14 / 12 / 7 |
+| Onboarding title | title1 26 semibold | 272 | wrap | widest word 20 / 19 / 10 (Large), 13 / 11 / 6 (AX2) |
+| Onboarding card title | 15 semibold | 124 beside / 240 stacked | step down (stack), then wrap | widest word 16 / 15 / 8 beside |
+| Onboarding measure label (`BBOptionalMeasureToggle`) | 16 semibold rounded; 29.1 at AX2 | 224.7 at AX2 | wrap; the switch goes under by fit | widest word ≤ 15 / 14 / 7 at AX2 |
+| Home medication card | 15 | ~172 | wrap | widest word 22 / 20 / 11 (Large), 12 / 11 / 6 (AX2); a typed drug name is not budgeted |
+| Weekly chart day label | 11 medium rounded, fixed | ~36.6 a day | one line | 3 / 3 / 1 |
+| Chart month title | 14 semibold | ~120 | one line | 17 / 15 / 8 |
+| Growth chart x label | 11 medium | quarter of ~240 | one line (dropped on collision) | 7 / 7 / 6 |
+| Export section header | 13 semibold rounded, uppercase, fixed | 256 | wrap | widest word ≤ 39 / 35 / 19 |
+| Export format tile name | 15 bold | 108 (2 columns) | step down (stack), then wrap | widest word 14 / 13 / 7 (Large), 7 / 7 / 3 (AX2) |
+| Language picker endonyms (system list) | body 17 | ~200 | wrap | none needed (widest, «Português (Portugal)», 158.9 pt) |
+| Widget small headline | 12 medium, down to 0.8 | ~116 | one line | 19 / 17 / 9 |
+| Widget stat title | 10 medium | ~112 | one line | 22 / 20 / 11 |
+| Widget capsule | 14 semibold rounded, 14 → 12 → the tab word | ~72 small / ~146 medium | one line | small: the tab word 10 / 9 / 5; medium: the full label ≤ 146 pt |
+| Live Activity title, Lock Screen | 17 semibold rounded | ~230 | one line (cut at its cap allowed) | 27 / 24 / 13 |
+| Live Activity Stop | 15 semibold, down to 0.8 | ≥ 64 | one line | 12 / 11 / 6 |
+
+Measured against the budgets: in the app's fit tests on 320 pt, ru
+«Кормление» (58.8 pt in 57.0) and «Подгузники» (62.3 in 60.3) shrink to
+0.97 in their tab items, which does not show; they mark the label's edge.
+ru «Экономия 40%» 86.9 pt sets the badge (fr «Économisez 40 %» 97.5 and pt
+«Economize 40%» 88.5 need shorter forms). de «Benachrichtigungen» (18
+letters) breaks inside the word at AX2 as a screen title or row, so de takes
+the system's «Mitteilungen». ru «Попробовать 7 дней бесплатно» (258.8 pt
+without the arrow) wraps to two centred lines in the paywall button and
+reads well; a no-break space inside «7 дней бесплатно» puts the break after
+«Попробовать». Why the badge has a number rather than "en + 30 %": ru
+already ships above en + 30 % (76.8 pt), and a number does not move with a
+copy edit. The onboarding measure label's real widest words at AX2: en
+«Circumference» 196.3, fi «Päänympärys» 180.1, ru «Окружность» 173.6, ja
+頭囲（cm） 148.1, in 224.7.
+
+Pseudo-language misses in the fit tests that are the layout at work, not
+gaps: a screen title that leaves the bar for the content; a More row that
+steps its word down; the Home growth card taking its stacked form; the
+splash tagline wrapping to two centred lines. Pseudo words past a budget
+(17-letter accented words, full-width Latin with no spaces) are read
+against the budget, not the layout; real words of every shipped language
+fit there.
+
+### Gaps found (2026-11-11, at 468a07c)
+
+- **G42 · Profile's and More's titles cut at AX2.** Both set a plain
+  `.navigationTitle` (`MainTabView.swift:371`, `:133`), outside the screen
+  title rule (§ 3: a large title that misses the bar's line moves into the
+  content). ja-XB at AX2 cuts Profile. Direction: both take `bbScreenTitle`
+  and `BBScreenHeading`, as the other tab screens do. Major. In code at
+  162d1b6: both take `bbScreenTitle`, the heading as the list's first section
+  (§ 7, `BBScreenListHeading`).
+- **G43 · The welcome tagline cut at AX2.** The welcome hero has a fixed
+  height of 320 (`WelcomePage.swift`), so a long tagline runs out of height.
+  Direction: a minimum height of 320 that grows with its words; the page
+  already scrolls. Major. In code at 162d1b6 (`minHeight` 320).
+- **G44 · The paywall title cut in en-XA at AX2** («[[Bííttýý] Pré…»). The
+  cause was not a word wider than the line: the widest, «Préémííüüm]», is
+  246 pt in 272. The hero laid its words over the gradient in a stack,
+  beside which they were offered less than their height, and the title, the
+  one text that gives way, fell to one cut line (271 × 52 pt). Real titles
+  («{brand} Premium», widest word 7 letters, ~190 pt at AX2) fit. Minor. In
+  code at 162d1b6, the form kept: the gradient is the band's background, so
+  the band takes its words' height (the same title, two whole lines,
+  246 × 104 pt). The title is centred at every size, on one axis with the
+  mark above and the headline below; it breaks between words only and keeps
+  every line it needs; while its widest word misses the line with sm 8 to
+  spare it steps from title1 (26 semibold) to title2 (21) and title3 (18),
+  the steps `BBScreenHeading` takes, in the app's own title faces. White on
+  the gradient as before (G12).
+- **G45 · A PDF table head breaks inside its word.** The Export table sizes
+  each column in proportion to its characters (`ExportGenerator.swift:579`,
+  `table-layout: fixed`), so a short column falls under its head: ru
+  «Время» 30.1 pt in 26.1. The report's medication table does the same with
+  «Количество доз», 55.9 in 49.1 (`DoctorReportPDF.swift`). Direction: no
+  column narrower than its head's widest word, in both PDFs; copy alone
+  cannot hold it in every language. Major.
+- **G46 · The stacked date and time pills miss the label's edge** (read at
+  9bb980d). Where `BBLabeledDateTimePicker` stacks (§ 7), the system draws
+  each compact picker's pill at the trailing end of its own frame, so the
+  stack is not leading as the row is. On 320 pt at AX2 with Bold Text, with
+  the card's content edge at x 32: pt-BR (Sleep, Diaper, Events, the dose
+  sheet) sets the time pill at 35 and the date pill «12/11/2026» at 58, 23 pt
+  to the right of the time, in a frame wider than the pill; en (Sleep) sets
+  the date at 37 and the time at 142, its frame as wide as the date's and
+  the pill at its end (both end at 248). Nothing is cut and every pill keeps
+  its full target, but the label, the date and the time stand on two or
+  three edges, and how far in a pill sits changes with the language. Not by
+  design: the row's rule is one leading edge, as every caption over a
+  control in the sheets, and no copy can hold it in every language. A defect,
+  minor; settled. Direction: each stacked pill starts at the label's x,
+  within 1 pt, in every language; each picker's frame hugs its pill. In code
+  at 4d18ba4: each stacked button hugs its pill (`BBFitsByTextSize(hugging:
+  true)`), and at the accessibility sizes the row always stacks, so the
+  system's own wrapped pair (en time 104 pt in) no longer shows. On 320 pt at
+  AX2 with Bold Text the label, the date and the time stand on one edge in
+  pt-BR (Sleep, Diaper, Events, the dose sheet) and en (Sleep), and the
+  pt-BR date shows in full («12 de nov. de 2026») (§ 7).
