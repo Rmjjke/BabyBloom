@@ -29,6 +29,14 @@ final class SideBySideIdealTests: XCTestCase {
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 339.7, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 360.3, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 272.3, room: 256.0),
+        // Swedish «Viktökning» beside «+180 g/vecka · under riktvärdet» and
+        // Norwegian «Vektøkning» beside «under referanseverdien» stack from
+        // xxLarge bold (Norwegian also at xxxLarge), every word whole: the
+        // card's designed shape when the pair cannot sit side by side.
+        KnownMiss(.real(.sv), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 256.3, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 262.7, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXXL", width: 268.0, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 286.7, room: 256.0),
     ]
 
     // MARK: - The least room, from known widths
