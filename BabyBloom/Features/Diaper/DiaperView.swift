@@ -567,7 +567,7 @@ struct AddDiaperSheet: View {
                     }
 
                     TextField("form.notes_optional".l, text: $notes, axis: .vertical)
-                        .bbPlaceholderLabel(design: .default)
+                        .bbPlaceholderLabel("form.notes_optional".l, text: notes, design: .default)
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
