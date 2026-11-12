@@ -361,8 +361,8 @@ struct AddSleepSheet: View {
                     }
 
                     // Times
-                    BBLabeledPicker("form.start_time".l) { label in
-                        DatePicker(label, selection: $startTime, displayedComponents: [.date, .hourAndMinute])
+                    BBLabeledDateTimePicker("form.start_time".l) { label, components in
+                        DatePicker(label, selection: $startTime, displayedComponents: components)
                             .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                     }
                     .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
@@ -374,8 +374,8 @@ struct AddSleepSheet: View {
                         if endTime < start { endTime = start }
                     }
 
-                    BBLabeledPicker("form.end_time".l) { label in
-                        DatePicker(label, selection: $endTime, in: startTime..., displayedComponents: [.date, .hourAndMinute])
+                    BBLabeledDateTimePicker("form.end_time".l) { label, components in
+                        DatePicker(label, selection: $endTime, in: startTime..., displayedComponents: components)
                             .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                     }
                     .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)

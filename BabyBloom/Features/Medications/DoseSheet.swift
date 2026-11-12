@@ -173,12 +173,12 @@ struct DoseSheet: View {
     /// The range ends at now: a dose that has not happened cannot be picked.
     /// Save clamps too, since the picker clamps only its display.
     private var timeField: some View {
-        BBLabeledPicker("form.time".l) { label in
-            DatePicker(label, selection: $time, in: ...AppClock.now,
-                       displayedComponents: [.date, .hourAndMinute])
+        BBLabeledDateTimePicker("form.time".l) { label, components in
+            DatePicker(label, selection: $time, in: ...AppClock.now, displayedComponents: components)
                 .datePickerStyle(.compact)
                 .tint(BBTheme.Colors.primary)
-                .accessibilityIdentifier("dose.time")
+                // Stacked, the time button below the date keeps an id of its own.
+                .accessibilityIdentifier(components.contains(.date) ? "dose.time" : "dose.clock")
         }
     }
 
