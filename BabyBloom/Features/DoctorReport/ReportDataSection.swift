@@ -40,7 +40,7 @@ struct ReportDataSection: View {
             periodStart: periodStart,
             now: AppClock.now,
             startsAtVisit: startsAtVisit,
-            calendar: .current)
+            calendar: LocalizationManager.shared.language.calendar)
 
         GrowthReportCard(growth: summary.growth, periodStart: periodStart,
                          hidesPeriodRows: summary.showsNewPeriodCard,

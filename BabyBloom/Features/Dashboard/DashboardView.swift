@@ -256,8 +256,7 @@ struct DashboardView: View {
                 if let weightKg = latestWeighing?.weightKg {
                     BBStatCard(
                         title: "stat.weight",
-                        value: weightKg.appDecimal(2),
-                        unit: "unit.kg",
+                        value: Units.kg(weightKg.appDecimal(2)),
                         icon: "scalemass.fill",
                         color: BBTheme.Colors.growth,
                         action: { showQuickGrowthSheet = true }
@@ -266,7 +265,6 @@ struct DashboardView: View {
                     BBStatCard(
                         title: "tab.growth",
                         value: "—",
-                        unit: "",
                         icon: "chart.line.uptrend.xyaxis",
                         color: BBTheme.Colors.growth,
                         action: { showQuickGrowthSheet = true }
@@ -421,8 +419,7 @@ struct DashboardView: View {
         guard word != .firstWeeks else { return status }
         guard store.isPremium, let reading = gainReading else { return status }
         let grams = Int(reading.gramsPerWeek.rounded())
-        let signed = grams > 0 ? "+\(grams)" : "\(grams)"
-        return String(format: "velocity.per_week_fmt".l, signed) + ReportFormat.listSeparator + status
+        return String(format: "velocity.per_week_fmt".l, grams.appSigned) + ReportFormat.listSeparator + status
     }
 
     // MARK: - Growth derivations

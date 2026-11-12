@@ -23,7 +23,8 @@ final class BBScreenTitleFitTests: XCTestCase {
     /// The languages whose bar misses were read off the simulator and pinned.
     private let pinned: [FitLanguage] = [.real(.en), .real(.ru), .real(.es)]
     private let keys = ["tab.feeding", "tab.sleep", "tab.growth", "nav.diapers", "nav.events",
-                        "nav.recent_activity", "medication.title", "settings.export", "report.title"]
+                        "nav.recent_activity", "medication.title", "settings.export", "report.title",
+                        "tab.more", "nav.profile"]
 
     /// The first size at which a title misses the bar on 320, 375, 402 and
     /// 440 pt; nil where it fits up to the AX2 cap. Every other title fits
@@ -283,6 +284,119 @@ final class BBScreenTitleFitTests: XCTestCase {
         XCTAssertEqual(height(stack, size: .large, width: 320), 10, accuracy: 0.01)
         XCTAssertGreaterThan(height(stack.environment(\.bbScreenTitleInBar, false), size: .large, width: 320),
                              10 + 24 + 34)
+    }
+
+    /// In a List the heading is the first section: no row at all where the
+    /// bar holds the title, so the rows start where they did; where it does
+    /// not, above them, lg above the next section's cell, its glyphs starting
+    /// at the sections' leading edge, left of the row's text, which the cell
+    /// insets. A row is one combined element whose frame is the cell's, so
+    /// where the glyphs start is read from the rendered pixels.
+    func testAListHeadingTheBarHoldsIsNoRow() throws {
+        let accessibility = HostedAccessibility()
+        defer { accessibility.close() }
+        func look<V: View>(_ list: V) throws -> (cells: [String: CGRect], image: UIImage) {
+            let root = try accessibility.host(list.environment(\.colorScheme, .light),
+                                              size: CGSize(width: 320, height: 600))
+            defer { accessibility.close() }
+            let cells = Dictionary(accessibility.elements(root, automation: true).map { ($0.label, $0.frame) },
+                                   uniquingKeysWith: { $0.width >= $1.width ? $0 : $1 })
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            format.preferredRange = .standard  // 8 bits a channel, as firstInkX reads them
+            let image = UIGraphicsImageRenderer(bounds: root.bounds, format: format).image { _ in
+                root.drawHierarchy(in: root.bounds, afterScreenUpdates: true)
+            }
+            return (cells, image)
+        }
+        let plain = try look(List { Section { Text("Row") } })
+        let held = try look(List {
+            BBScreenListHeading(title: "Feeding")
+            Section { Text("Row") }
+        })
+        let open = try look(List {
+            BBScreenListHeading(title: "Feeding")
+            Section { Text("Row") }
+        }
+        .environment(\.bbScreenTitleInBar, false))
+        let row = try XCTUnwrap(plain.cells["Row"], "\(plain.cells)")
+        XCTAssertNil(held.cells["Feeding"], "\(held.cells)")
+        XCTAssertEqual(try XCTUnwrap(held.cells["Row"], "\(held.cells)").minY, row.minY, accuracy: 0.5)
+        let heading = try XCTUnwrap(open.cells["Feeding"], "\(open.cells)")
+        let rowCell = try XCTUnwrap(open.cells["Row"], "\(open.cells)")
+        XCTAssertEqual(rowCell.minY - heading.maxY, BBTheme.Spacing.lg, accuracy: 2, "\(open.cells)")
+        let headingInk = try XCTUnwrap(firstInkX(open.image, in: heading), "no heading glyphs in \(heading)")
+        let rowInk = try XCTUnwrap(firstInkX(open.image, in: rowCell), "no row glyphs in \(rowCell)")
+        XCTAssertEqual(headingInk, rowCell.minX, accuracy: 4, "the heading starts at the section edge")
+        XCTAssertGreaterThan(rowInk - headingInk, 8, "the cell insets its text, the heading does not")
+    }
+
+    /// A List's heading scrolled under the bar hands the title to the bar,
+    /// and takes it back on the way up.
+    func testAListHeadingScrolledAwayShowsTheBarsTitle() throws {
+        let title = "For the pediatrician"
+        try assertScrolledAwayHandsOver(title, List {
+            BBScreenListHeading(title: title)
+            Section { ForEach(0..<30) { Text("Row \($0)") } }
+        })
+    }
+
+    /// The same in a stack, the other screens' shape.
+    func testAStackHeadingScrolledAwayShowsTheBarsTitle() throws {
+        let title = "For the pediatrician"
+        try assertScrolledAwayHandsOver(title, ScrollView {
+            VStack(spacing: 0) {
+                BBScreenHeading(title: title)
+                ForEach(0..<30) { Text("Row \($0)").frame(height: 50) }
+            }
+        })
+    }
+
+    /// `title` misses the bar's line on 320 pt at Large, so the content's
+    /// heading holds it: the bar's own title is hidden at the top, shown once
+    /// the heading has gone under the bar (a jump of 300 pt, which also takes
+    /// the List's row out), hidden again back at the top.
+    private func assertScrolledAwayHandsOver(_ title: String, _ content: some View,
+                                             file: StaticString = #filePath, line: UInt = #line) throws {
+        let accessibility = HostedAccessibility()
+        defer { accessibility.close() }
+        let root = try accessibility.host(NavigationStack { content.bbScreenTitle(title) },
+                                          size: CGSize(width: 320, height: 600))
+        // The bar's own title is one 17-pt line; the heading is larger.
+        func barTitle() -> HostedAccessibility.Element? {
+            accessibility.elements(root, automation: true).first { $0.label == title && $0.frame.height < 30 }
+        }
+        XCTAssertNil(barTitle(), "\(accessibility.elements(root, automation: true))", file: file, line: line)
+        let scroll = try XCTUnwrap(scrollView(in: root), file: file, line: line)
+        let top = scroll.contentOffset
+        scroll.setContentOffset(CGPoint(x: top.x, y: top.y + 300), animated: false)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.8))
+        XCTAssertNotNil(barTitle(), "\(accessibility.elements(root, automation: true))", file: file, line: line)
+        scroll.setContentOffset(top, animated: false)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.8))
+        XCTAssertNil(barTitle(), "\(accessibility.elements(root, automation: true))", file: file, line: line)
+    }
+
+    private func scrollView(in view: UIView) -> UIScrollView? {
+        if let scroll = view as? UIScrollView { return scroll }
+        return view.subviews.lazy.compactMap { self.scrollView(in: $0) }.first
+    }
+
+    /// The leftmost column inside `rect` with a dark pixel: where the text's
+    /// first glyph starts on a light ground.
+    private func firstInkX(_ image: UIImage, in rect: CGRect) -> CGFloat? {
+        guard let cg = image.cgImage, cg.bitsPerComponent == 8,
+              let data = cg.dataProvider?.data,
+              let bytes = CFDataGetBytePtr(data) else { return nil }
+        let perPixel = cg.bitsPerPixel / 8
+        let box = rect.integral.intersection(CGRect(x: 0, y: 0, width: cg.width, height: cg.height))
+        for x in Int(box.minX)..<Int(box.maxX) {
+            for y in Int(box.minY)..<Int(box.maxY) {
+                let pixel = bytes + y * cg.bytesPerRow + x * perPixel
+                if (Int(pixel[0]) + Int(pixel[1]) + Int(pixel[2])) / 3 < 100 { return CGFloat(x) }
+            }
+        }
+        return nil
     }
 
     // MARK: - Helpers

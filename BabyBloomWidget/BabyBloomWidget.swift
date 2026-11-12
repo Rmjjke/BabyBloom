@@ -168,12 +168,13 @@ struct BabyBloomWidget: Widget {
     let kind: String = "BabyBloomWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
+        let gallery = WidgetGallery.small()
+        return StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
             BabyBloomSmallWidgetView(entry: entry)
                 .containerBackground(for: .widget) { WidgetBackground() }
         }
-        .configurationDisplayName("brand.name".l)
-        .description("widget.description_small".l)
+        .configurationDisplayName(gallery.name)
+        .description(gallery.description)
         .supportedFamilies([.systemSmall])
     }
 }
@@ -182,12 +183,13 @@ struct BabyBloomMediumWidget: Widget {
     let kind: String = "BabyBloomMediumWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
+        let gallery = WidgetGallery.medium()
+        return StaticConfiguration(kind: kind, provider: BabyBloomProvider()) { entry in
             BabyBloomMediumWidgetView(entry: entry)
                 .containerBackground(for: .widget) { WidgetBackground() }
         }
-        .configurationDisplayName(String(format: "widget.name_medium".l, "brand.name".l))
-        .description("widget.description_medium".l)
+        .configurationDisplayName(gallery.name)
+        .description(gallery.description)
         .supportedFamilies([.systemMedium])
     }
 }

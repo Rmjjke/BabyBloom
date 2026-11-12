@@ -11,7 +11,7 @@ enum HistoryFilter: String, CaseIterable {
 
     /// The earliest date that falls within this filter period (start of that day).
     func startDate() -> Date {
-        let cal = Calendar.current
+        let cal = LocalizationManager.shared.language.calendar
         let today = cal.startOfDay(for: Date())
         switch self {
         case .day:   return today
@@ -100,32 +100,23 @@ struct BBWeeklyBarChart: View {
     private var canGoForward: Bool { weekOffset < 0 }
     private let chartHeight: CGFloat = 150
 
-    private func mondayOf(_ date: Date) -> Date {
-        let cal = Calendar.current
-        let weekday = cal.component(.weekday, from: date)   // 1=Sun … 7=Sat
-        let daysFromMonday = (weekday - 2 + 7) % 7          // Mon=0 … Sun=6
-        return cal.date(byAdding: .day, value: -daysFromMonday, to: cal.startOfDay(for: date))!
-    }
-
+    /// The app's calendar starts every week on Monday, in every language.
     private var weekDays: [Date] {
-        let cal = Calendar.current
-        let monday = mondayOf(Date())
+        let cal = LocalizationManager.shared.language.calendar
+        let monday = cal.dateInterval(of: .weekOfYear, for: Date())!.start
         let weekStart = cal.date(byAdding: .weekOfYear, value: weekOffset, to: monday)!
         return (0..<7).map { cal.date(byAdding: .day, value: $0, to: weekStart)! }
     }
 
-    /// Materialise the 7-day dataset **once**. Runs `valueFor` exactly 7× and
-    /// reuses a single `DateFormatter` for weekday abbreviations.
+    /// Materialise the 7-day dataset **once**: runs `valueFor` exactly 7×.
     private func makeDays() -> [Day] {
-        let cal  = Calendar.current
-        let f    = DateFormatter()
-        f.locale = LocalizationManager.shared.language.locale
-        f.dateFormat = "EEE"
+        let language = LocalizationManager.shared.language
+        let cal = language.calendar
         let todayStart = cal.startOfDay(for: Date())
         return weekDays.map { date in
             Day(date: date,
                 value: valueFor(date),
-                shortLabel: String(f.string(from: date).prefix(2)).capitalized,
+                shortLabel: LocaleDates.shortWeekday(date, locale: language.locale),
                 dayNumber: "\(cal.component(.day, from: date))",
                 isToday: cal.isDateInToday(date),
                 isFuture: date > todayStart)
@@ -133,21 +124,8 @@ struct BBWeeklyBarChart: View {
     }
 
     private var monthTitle: String {
-        let first = weekDays.first!
-        let last  = weekDays.last!
-        let cal   = Calendar.current
-        let f     = DateFormatter()
-        f.locale  = LocalizationManager.shared.language.locale
-        if cal.component(.month, from: first) == cal.component(.month, from: last) {
-            f.dateFormat = "LLLL yyyy"
-            return f.string(from: first).capitalized
-        } else {
-            f.dateFormat = "LLL"
-            let m1 = f.string(from: first).capitalized
-            let m2 = f.string(from: last).capitalized
-            f.dateFormat = "yyyy"
-            return "\(m1) – \(m2) \(f.string(from: last))"
-        }
+        LocaleDates.monthTitle(weekDays.first!, weekDays.last!,
+                               locale: LocalizationManager.shared.language.locale)
     }
 
     /// Bar fill: today at full saturation, other days slightly muted; both fade

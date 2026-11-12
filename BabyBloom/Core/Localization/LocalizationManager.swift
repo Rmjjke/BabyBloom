@@ -14,9 +14,11 @@ import os
 ///      `WidgetResources/Localization/` (the pre-build script checks every
 ///      JSON in that folder; a file may hold only part of the keys, the rest
 ///      read English);
-///   3. `BabyBloom/Resources/it.lproj/InfoPlist.strings` — the presence of the
-///      `.lproj` folder is what makes iOS (and the App Store listing) treat the
-///      app as localized for that language.
+///   3. `BabyBloom/Resources/it.lproj/InfoPlist.strings` and
+///      `WidgetResources/Localization/it.lproj/InfoPlist.strings`, each with
+///      `CFBundleDisplayName` equal to `brand.name`, then `xcodegen generate` —
+///      the presence of the `.lproj` folder is what makes iOS (and the App
+///      Store listing) treat the app as localized for that language.
 ///
 /// Raw values are BCP-47 tags and double as the JSON file names, so a regional
 /// or script variant is its own language: `pt-BR` and `pt-PT`, `zh-Hant`.
@@ -105,8 +107,8 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         return Locale(components: components)
     }
 
-    /// Always Gregorian, speaking the app language: weekday names and the
-    /// first weekday follow the language's region, as the month names do. Not
+    /// Always Gregorian, speaking the app language: weekday and month names
+    /// follow the language, the week starts on Monday (`gregorian`). Not
     /// the device's calendar: a phone set to the Japanese or Buddhist calendar
     /// would otherwise date a birth «Reiwa 8» in an English app, and the
     /// report a doctor reads would carry a year they cannot place.
@@ -123,10 +125,20 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
         Date.FormatStyle(locale: locale, calendar: gregorian(locale: locale))
     }
 
-    private static func gregorian(locale: Locale) -> Calendar {
+    /// The calendar the app counts its own weeks and months in: the charts'
+    /// week and range, the export and report periods.
+    var calendar: Calendar { Self.gregorian(locale: locale) }
+
+    /// Gregorian in the given language, the week starting on Monday in every
+    /// language (ISO weeks, as the weekly summary counts them): a US phone's
+    /// Sunday week would make the chart's week and the weekly card two
+    /// different seven days.
+    static func gregorian(locale: Locale) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = locale
         calendar.timeZone = .current
+        calendar.firstWeekday = 2
+        calendar.minimumDaysInFirstWeek = 4
         return calendar
     }
 
@@ -281,17 +293,19 @@ final class LocalizationManager: @unchecked Sendable {
     /// anything reads the language: a per-app list that changed since the last
     /// launch becomes the stored choice. Only the app's OWN domain counts —
     /// the global list is the device language, which a stored choice is meant
-    /// to outrank.
-    static func adoptPerAppLanguageChange() {
-        guard let bundleID = Bundle.main.bundleIdentifier else { return }
+    /// to outrank. Returns whether a language was adopted.
+    @discardableResult
+    static func adoptPerAppLanguageChange() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return false }
         let standard = UserDefaults.standard
         let current = standard.persistentDomain(forName: bundleID)?["AppleLanguages"] as? [String]
         let seen = standard.array(forKey: seenAppleLanguagesKey) as? [String]
         standard.set(current ?? [], forKey: seenAppleLanguagesKey)
         guard let adopted = perAppLanguageChange(current: current, seen: seen, device: Locale.preferredLanguages,
-                                                 available: SupportedLanguage.available) else { return }
+                                                 available: SupportedLanguage.available) else { return false }
         standard.set(adopted.rawValue, forKey: languageKey)
         sharedDefaults?.set(adopted.rawValue, forKey: languageKey)
+        return true
     }
 
     /// The language to adopt, or nil. `seen == nil` is the first launch that

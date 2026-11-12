@@ -59,20 +59,20 @@ struct GrowthPage: View {
                             title: "form.birth_weight_kg".l,
                             value: $weightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: "\(weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)",
+                            display: Units.kg(weightKg.appDecimal(2)),
                             color: BBTheme.Colors.growth,
-                            minLabel: "\(0.5.appDecimal(1))\u{00A0}\("unit.kg".l)",
-                            maxLabel: "6\u{00A0}\("unit.kg".l)"
+                            minLabel: Units.kg(0.5.appDecimal(1)),
+                            maxLabel: Units.kg("6")
                         )
 
                         BBMeasureSlider(
                             title: "form.birth_height_cm".l,
                             value: $heightCm,
                             range: 30.0...60.0, step: 0.5,
-                            display: "\(heightCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
+                            display: Units.cm(heightCm.appDecimal(1)),
                             color: BBTheme.Colors.primary,
-                            minLabel: "30\u{00A0}\("unit.cm".l)",
-                            maxLabel: "60\u{00A0}\("unit.cm".l)"
+                            minLabel: Units.cm("30"),
+                            maxLabel: Units.cm("60")
                         )
 
                         BBOptionalMeasureToggle(
@@ -81,9 +81,9 @@ struct GrowthPage: View {
                             isOn: $includeHead,
                             value: $headCm,
                             range: 25.0...55.0, step: 0.5,
-                            display: "\(headCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
-                            minLabel: "25\u{00A0}\("unit.cm".l)",
-                            maxLabel: "55\u{00A0}\("unit.cm".l)",
+                            display: Units.cm(headCm.appDecimal(1)),
+                            minLabel: Units.cm("25"),
+                            maxLabel: Units.cm("55"),
                             color: BBTheme.Colors.accent
                         )
                     } else {

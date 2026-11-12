@@ -1,0 +1,8 @@
+/* The app's name under its icon in this language; it equals "brand.name"
+   in Resources/Localization/da.json. A permission prompt this file does
+   not hold reads the English of the base Info.plist. */
+"CFBundleDisplayName" = "Bitty";
+
+"NSUserNotificationsUsageDescription" = "Bitty sender påmindelser om madning, søvn og andre begivenheder med babyen.";
+"NSPhotoLibraryUsageDescription" = "Bruges til at vælge et foto til babyens profil.";
+"NSFaceIDUsageDescription" = "Bruges til hurtigt at låse appen op.";

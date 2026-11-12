@@ -14,6 +14,111 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — More and Profile take the screen-title rule; a List's heading is its own first section; the paywall title steps down
+
+More and Profile set their titles through `bbScreenTitle` like the other
+scrolling screens. In their Lists the heading is a section of its own, a row
+with no insets, background or separator, lg above the next section. The
+paywall hero's title steps from title1 to title2 and title3 while its widest
+word misses the line, and its gradient is the stack's background, not a layer
+beside it.
+
+**Why.** A plain `navigationTitle` cut «Profile» in ja-XB at AX2 on 320 pt.
+The heading as the first section's header would take the header's own
+style and insets; as a
+row in the first section it would draw that section's card behind it. A row
+of its own is flush with the cards' edge, where the bar's large title stands,
+and where the bar holds the title the section is empty, so the list is as it
+was. The paywall's cut in en-XA at AX2 was not a word wider than the line
+(the widest, «Préémííüüm]», is 246 pt in 272): in the hero's `ZStack` the
+gradient layer left the text stack less than its ideal height and the title
+fell to one cut line; as a background it sets two whole lines. The step-down
+then covers a word that would miss the line, as `BBScreenHeading` does.
+
+## 2026-11-11 — A PDF column is measured, never counted in characters
+
+Both PDFs give every table column at least its head's widest unbreakable
+piece, measured with the face the page prints in, and share the rest by what
+each column would take (`PDFColumns`).
+
+**Why not characters.** A character count says nothing about width across
+the languages the app ships: a Han or kana character is about twice a Latin
+one, a bold Cyrillic head is wider than its count suggests, a German head can
+be one long word. Proportional character shares gave a 26-pt column to a
+Russian head that needs 30, which broke inside the word.
+
+**Why not a wider page or smaller type.** The page is Letter at the report's
+type size; the text is what changes per language, so the table follows it.
+When the heads together do not fit, the shorter word is the fix.
+
+## 2026-11-11 — Pending notifications are re-worded in place after a language change
+
+A switch of language rewrites every pending request in the new language
+under its own id, keeping its fire moment, instead of cancelling and
+planning everything again.
+
+**Why in place.** Most reminders count from a moment the store does not keep:
+the save that started a feeding countdown, the day's first feed. Planning
+again would have to guess them, and a guessed moment fires a reminder at the
+wrong time, which is worse than one in the old language. The request
+therefore carries its own keys, arguments and fire moment. The kinds that
+are planned from the store (the weekly summary, medication reminders) are
+planned again in the same pass.
+
+## 2026-11-11 — Fifteen languages ship their files before their copy; a missing key reads English, never an English copy
+
+uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT and zh-Hant join en, ru and
+es. Each ships its JSON (app and widget) and an `.lproj` in the app and the
+widget before any of its copy exists; the JSON starts with `brand.name`
+alone (Ukrainian «Нічка», the rest «Bitty»), and every key it lacks reads
+English at run time.
+
+**Why no English copies in the file.** A key present in a language's file is
+a key that language has translated. Copying English in would hide what is
+left to translate from the lint and from the translator, and would freeze
+stale English into the file when the English changes.
+
+**Why the lint asks for every permission prompt only of a complete
+language.** The same rule as the JSON parity: a language in
+`complete-languages.txt` must hold every key; one still being translated
+holds the display name and nothing English lacks. A prompt its
+`InfoPlist.strings` does not hold reads the base `Info.plist`'s English.
+
+**What a phone in one of these languages sees meanwhile.** iOS resolves to
+the language as soon as its `.lproj` ships, so the app's locale follows it:
+English sentences carry that language's dates, weekdays and decimal commas,
+and system controls speak the language. iOS Settings › Bitty › Language and
+the App Store listing name every shipped language. A build released before
+a language's copy lands presents that language as supported while its text
+reads English.
+
+**Brand.** This extends the per-language brand below: Ukrainian declines
+«Нічка» as Russian declines «Ночка»; the other new languages keep «Bitty»
+for now.
+
+## 2026-11-11 — The week starts on Monday in every language; date forms come from the locale's templates
+
+**Monday first, everywhere.** The week chart used the phone's first weekday
+while the weekly card always counted Monday to Sunday, so an en_US phone
+showed a Sunday-to-Saturday chart beside a card about "last week" that meant
+other days. The app's calendar now starts
+every week on Monday (ISO weeks). The region's own first weekday was
+rejected: a language is pinned to one region already, so the first weekday
+would differ between, say, English and Russian on the same phone, and the
+weekly card and its Monday notification could not follow it without changing
+what "last week" means.
+
+**Templates, never patterns.** Fixed patterns (`"LLLL yyyy"`, a range glued
+as `"d MMM – d"`) put the month before the year and the day before the month
+for every language, which reads wrong in Japanese, Korean and Chinese
+(«10月 2026» instead of «2026年10月») and in German («19 Okt – 25»). The
+locale knows its own order, separators and abbreviations, so `LocaleDates`
+asks for a template. Weekday names are the locale's short form, never the
+first two letters of a longer name: «週一» or «lun.» cut to two characters is
+not how either language abbreviates.
+
+---
+
 ## 2026-11-11 — Two or more arguments are always numbered; a styled value is cut out by its number; sentences are whole templates
 
 **Every string with two or more arguments numbers them.** Word order is the

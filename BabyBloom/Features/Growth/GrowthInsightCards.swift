@@ -684,8 +684,7 @@ struct WeightGainCard: View {
 
     /// Signed, so a week of loss reads unmistakably as loss.
     private func formatted(_ gramsPerWeek: Double) -> String {
-        let rounded = Int(gramsPerWeek.rounded())
-        return rounded > 0 ? "+\(rounded)" : "\(rounded)"
+        Int(gramsPerWeek.rounded()).appSigned
     }
 
     private func gainNumber(_ reading: WeightVelocity.Reading) -> some View {

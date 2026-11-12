@@ -13,10 +13,8 @@ import UIKit
 final class PDFHeaderFitTests: XCTestCase {
 
     /// Allowed misses, keyed "<file> <string key>" ("export feeding export.col.duration").
-    private static let knownMisses: [KnownMiss] = [
-        KnownMiss(.real(.ru), "export diapers export.col.time", width: 30.1, room: 26.1),
-        KnownMiss(.real(.ru), "report medication.report_col_count", width: 55.9, room: 49.1),
-    ]
+    /// None: a head the columns cannot hold whole is shorter copy, not a row here.
+    private static let knownMisses: [KnownMiss] = []
 
     private let cssWidth: CGFloat = 612
     private let pointsPerPixel: CGFloat = 523.2 / 612
@@ -52,18 +50,29 @@ final class PDFHeaderFitTests: XCTestCase {
         }
     }
 
-    /// The doctor report's medication table: fixed 34/30/12/24 % of the full
-    /// 612 px, `th` padding 8 a side, weight 600.
-    func testEveryMedicationHeadFitsItsColumn() {
-        let columns: [(key: String, share: CGFloat)] = [
-            ("medication.report_col_name", 34), ("medication.report_col_dose", 30),
-            ("medication.report_col_count", 12), ("medication.report_col_dates", 24),
-        ]
+    /// The doctor report's tables, over the full 612 px with `th` padded 8 a
+    /// side, weight 600, sized by `DoctorReportPDF.tableShares` from a typical
+    /// row: a name at the length a parent types, a dose as written, a count and
+    /// a range of days.
+    func testEveryReportHeadFitsItsColumn() {
+        let now = Date(timeIntervalSince1970: 1_793_000_000)
+        let earlier = now.addingTimeInterval(-9 * 86_400)
         for language in FitLanguage.all {
             language.apply()
-            for column in columns {
-                let room = column.share / 100 * cssWidth - 2 * 8
-                check(language, "report \(column.key)", column.key.l, font: head, room: room)
+            let tables: [(String, [String], [String])] = [
+                ("medications", DoctorReportPDF.medicationHeads,
+                 ["medication.report_without_name".l, "2,5 ml", "12", ReportFormat.dayRange(earlier, now, now: now)]),
+                ("weighings", DoctorReportPDF.weighingHeads,
+                 [ReportFormat.date(earlier, now: now), ReportFormat.kg(4.35), ReportFormat.cm(55.5), ReportFormat.cm(38.5)]),
+            ]
+            for (name, keys, row) in tables {
+                let heads = keys.map(\.l)
+                let shares = DoctorReportPDF.tableShares(heads: heads, rows: [row])
+                XCTAssertEqual(shares.reduce(0, +), 100, accuracy: 0.01)
+                for (index, key) in keys.enumerated() {
+                    let room = shares[index] / 100 * cssWidth - 2 * 8
+                    check(language, "report \(name) \(key)", heads[index], font: head, room: room)
+                }
             }
         }
     }

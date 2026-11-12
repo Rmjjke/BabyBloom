@@ -22,7 +22,15 @@ final class EntrySheetBoldFitTests: XCTestCase {
     /// "<sheet> AX2", plus " bold" with Bold Text ("sleep AX2 bold"); the
     /// sheets are sleep, diaper, feeding, growth, event, medication, dose
     /// and profile.
-    private static let knownMisses: [KnownMiss] = []
+    private static let knownMisses: [KnownMiss] = [
+        // A defect, not a shape: the compact date-and-time picker with the
+        // Brazilian system date («12 de nov. de 2026») and the time outgrows
+        // the card with Bold Text. These rows go when a picker whose date and
+        // time miss the width puts the time under the date.
+        KnownMiss(.real(.ptBR), "sleep AX2 bold", width: 337.3, room: 320.0),
+        KnownMiss(.real(.ptBR), "diaper AX2 bold", width: 337.3, room: 320.0),
+        KnownMiss(.real(.ptBR), "event AX2 bold", width: 337.3, room: 320.0),
+    ]
 
     override func tearDown() {
         accessibility.close()

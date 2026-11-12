@@ -29,6 +29,13 @@ final class SideBySideIdealTests: XCTestCase {
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 339.7, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 360.3, room: 256.0),
         KnownMiss(.pseudo(.enXA), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 272.3, room: 256.0),
+        // Brazilian Portuguese «Ganho de peso» beside «+180 g/semana · abaixo da
+        // referência» stacks from xLarge, every word whole: the card's designed
+        // shape when the pair cannot sit side by side.
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXL", width: 270.7, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 284.0, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 292.3, room: 256.0),
+        KnownMiss(.real(.ptBR), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 307.0, room: 256.0),
     ]
 
     // MARK: - The least room, from known widths
@@ -210,10 +217,14 @@ final class SideBySideIdealTests: XCTestCase {
     /// on 320, but for en at xxLarge with Bold Text (the next test), and at
     /// xxxLarge the free card's rows still do: the fit stacks the card only
     /// where a row needs it. Every language is held to that; the en exception
-    /// is a measured design pin, so it stays en's alone.
+    /// is a measured design pin on the English rows, so it covers a language's
+    /// row only while that row reads the same English words (keys it has not
+    /// translated yet).
     func testHomesGrowthCardStaysBesideWhereEveryWordFits() throws {
         try requireLarge()
         let room: CGFloat = 256
+        var english: Set<String> = []
+        try inLanguage(.real(.en)) { english = Set(homeGrowthTexts(premium: true).map(words)) }
         for language in FitLanguage.all {
             try inLanguage(language) {
                 for bold in [false, true] {
@@ -223,7 +234,10 @@ final class SideBySideIdealTests: XCTestCase {
                         (.extraExtraLarge, homeGrowthTexts(premium: true)),
                         (.extraExtraExtraLarge, homeGrowthTexts(premium: false)),
                     ]
-                    for (size, rows) in cases where !(language == .real(.en) && bold && size == .extraExtraLarge) {
+                    for (size, all) in cases {
+                        let pinned = bold && size == .extraExtraLarge
+                        let rows = pinned ? all.filter { !english.contains(words($0)) } : all
+                        if rows.isEmpty { continue }
                         let style = Style(size: size, bold: bold)
                         let ideals = rows.map { homeIdeal($0, style) }
                         let widest = ideals.max() ?? 0
@@ -277,6 +291,10 @@ final class SideBySideIdealTests: XCTestCase {
         let status = word.localizationKey.l
         let value = grams.map { String(format: "velocity.per_week_fmt".l, $0) + ReportFormat.listSeparator + status } ?? status
         return ("nutrition.row_gain".l, value, word.dot)
+    }
+
+    private func words(_ row: (String, String, Color?)) -> String {
+        "\(row.0) | \(row.1)"
     }
 
     private func percentileRow() -> (String, String, Color?) {
