@@ -5,7 +5,6 @@ struct DiapersReportCard: View {
     /// nil = no diaper in the period.
     let diapers: DoctorReportSummary.Diapers?
     let periodStart: Date
-    let isShort: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
@@ -24,16 +23,12 @@ struct DiapersReportCard: View {
 
     @ViewBuilder
     private func rows(_ diapers: DoctorReportSummary.Diapers) -> some View {
-        if isShort {
+        if let wet = diapers.wetPerDay, let dirty = diapers.dirtyPerDay {
+            ReportRow(format: "report.wet_a_day_fmt".l, value: WeeklyFormat.perDay(wet))
+            ReportRow(format: "report.dirty_a_day_fmt".l, value: WeeklyFormat.perDay(dirty))
+        } else {
             ReportRow(format: "report.wet_count_fmt".l, value: "\(diapers.wetCount)")
             ReportRow(format: "report.dirty_count_fmt".l, value: "\(diapers.dirtyCount)")
-        } else {
-            if let wet = diapers.wetPerDay {
-                ReportRow(format: "report.wet_a_day_fmt".l, value: WeeklyFormat.perDay(wet))
-            }
-            if let dirty = diapers.dirtyPerDay {
-                ReportRow(format: "report.dirty_a_day_fmt".l, value: WeeklyFormat.perDay(dirty))
-            }
         }
         // Names and counts only: no swatch and no warning.
         if !diapers.colors.isEmpty {
@@ -42,6 +37,6 @@ struct DiapersReportCard: View {
                           ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
                       }))
         }
-        ReportDaysLine(days: diapers.days, isShort: isShort)
+        ReportDaysLine(days: diapers.days, averaged: diapers.averaged)
     }
 }

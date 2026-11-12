@@ -105,11 +105,12 @@ struct ReportCaption: View {
 /// «Days with entries: N of M» and the empty line, shared by the three period cards.
 struct ReportDaysLine: View {
     let days: DoctorReportSummary.Days
-    let isShort: Bool
+    /// The line qualifies an average: under raw counts it would count days
+    /// for a figure that is not there.
+    let averaged: Bool
 
     var body: some View {
-        // Short periods print raw counts and no days line.
-        if days.showsLine && !isShort {
+        if days.showsLine && averaged {
             ReportCaption(String(format: "report.days_logged_fmt".l, days.withEntries, days.counted))
         }
     }
