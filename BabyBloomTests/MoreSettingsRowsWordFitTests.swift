@@ -98,7 +98,7 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
         var roomShown: CGFloat = 0
         var unseenBreaks: [(language: FitLanguage, key: String, title: String, word: String, width: CGFloat)] = []
         for language in FitLanguage.all {
-            var regularEvents: CGFloat?
+            var regularEvents: (frame: CGFloat, word: CGFloat)?
             for bold in [false, true] {
                 language.apply()
                 let qualifier = "\(sizeName(size))\(bold ? " bold" : "")"
@@ -173,13 +173,16 @@ final class MoreSettingsRowsWordFitTests: XCTestCase {
                     }
                     if key == "nav.events" {
                         // Bold Text reaches the hosted tab: a miss would only
-                        // compare regular widths with regular. The shortest
-                        // title stays one line beside its icon either way.
+                        // compare regular widths with regular. Beside its icon
+                        // the title's frame fills the row's room; under it the
+                        // frame hugs the drawn word (Danish «Hændelser» in bold),
+                        // so there it is held to the word's regular width.
                         if let regularEvents {
-                            XCTAssertGreaterThan(text.frame.width, regularEvents,
+                            XCTAssertGreaterThan(text.frame.width,
+                                                 isBeside ? regularEvents.frame : regularEvents.word + 0.5,
                                                  "\(run): «\(title)» is drawn no wider than without Bold Text")
                         } else {
-                            regularEvents = text.frame.width
+                            regularEvents = (text.frame.width, word.1)
                         }
                     }
                 }
