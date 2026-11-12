@@ -1,0 +1,40 @@
+# Which language the app resolves from the device list, with no stored
+# choice and no -appLanguage. Run on a clean install.
+#   maestro test --device <id> -e "DEVICE_LANGS=(pt-PT, en)" -e ROW=pt-PT l10n-resolve.yaml
+# DEVICE_LANGS reaches the app as -AppleLanguages (the argument domain), the
+# same list iOS hands an app whose device language is that list.
+# The seed does not touch the language (SeedScenario.seedIfRequested).
+# Both -e values are required: a flow-level `env:` default wins over the
+# CLI's -e in this Maestro, so the flow declares none.
+appId: com.nenita.app
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-AppleLanguages": "${DEVICE_LANGS}"
+      "-hasCompletedOnboarding": "true"
+      "-BBSkipSplash": "true"
+      "-BBSeedScenario": "healthy"
+- extendedWaitUntil:
+    visible:
+      id: "home.quick.feeding"
+    timeout: 60000
+- takeScreenshot: ${ROW}-01-home
+- tapOn:
+    id: "tabbar.more"
+- tapOn:
+    id: "more.profile"
+- scrollUntilVisible:
+    element:
+      id: "settings.language"
+    direction: DOWN
+    visibilityPercentage: 50
+- takeScreenshot: ${ROW}-02-settings
+- tapOn:
+    id: "settings.language"
+- extendedWaitUntil:
+    visible:
+      id: "settings.language.en"
+    timeout: 10000
+- takeScreenshot: ${ROW}-03-language-picker
