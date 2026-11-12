@@ -114,19 +114,18 @@ struct MedicineSchedule: Equatable {
         // One confirmation per save, so it names the limit that sets the
         // screen's «not before» once this dose is saved, the time it states:
         // the maximum only when, with this dose, it holds the next one back
-        // past the interval's end. On a tie, and for a dose put before a
-        // logged one, the interval.
+        // past the interval's end. On a tie, the interval. A dose put before
+        // a logged one is measured the same way: the interval then ends after
+        // the latest dose, not after this one, and a maximum that ends later
+        // still is the time the parent must hear.
         if result.daily != nil {
-            switch result.neighbour {
-            case nil:
+            if result.neighbour == nil {
                 result.showsDaily = true
-            case .earlier:
+            } else {
                 let after = adding(time)
                 if let last = after.lastDose, let maximumEnds = after.maximumEnds {
                     result.showsDaily = maximumEnds > last.addingTimeInterval(interval)
                 }
-            case .later:
-                result.showsDaily = false
             }
         }
         return result
@@ -188,11 +187,11 @@ extension Medicine {
     }
 
     /// An ended course has no next time; its doses stay where they were.
-    /// `excluding`: the dose being edited, so the dose sheet shows the state
-    /// before that entry.
-    func status(now: Date, excluding: CustomEvent? = nil) -> MedicineStatus {
+    /// Every logged dose counts, on every screen and in an opened dose's
+    /// sheet alike: only the check on save leaves the edited dose out.
+    func status(now: Date) -> MedicineStatus {
         if let endedAt { return .ended(endedAt) }
-        let schedule = schedule(now: now, excluding: excluding)
+        let schedule = schedule(now: now)
         guard let last = schedule.lastDose, let next = schedule.nextAllowed else { return .noDose }
         return now < next ? .waiting(lastDose: last, until: next) : .allowed(lastDose: last)
     }

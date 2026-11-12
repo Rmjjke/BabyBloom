@@ -181,6 +181,20 @@ final class MedicationConfirmationTests: XCTestCase {
         XCTAssertFalse(lines(result?.message).contains { $0.hasPrefix("If you save") })
     }
 
+    /// Every 6 h, at most 4, with 02:02, 08:02, 14:06 and 21:06 logged: a
+    /// dose put at 09:10 sits before 14:06 and is the 5th in 24 hours. Once
+    /// saved the maximum ends at 08:02 tomorrow, after the interval's 03:06,
+    /// so the alert names the maximum and 08:02, not the logged dose.
+    func testADosePutBeforeALoggedOneOverTheMaximumNamesTheMaximumsTime() {
+        let now = d(10, 21, 11)
+        let doses = [d(10, 2, 2), d(10, 8, 2), d(10, 14, 6), d(10, 21, 6)]
+        let result = confirm(interval: 360, max: 4, doses: doses, now: now, at: d(10, 9, 10))
+        XCTAssertEqual(result?.title, String(format: "medication.alert_max_title_fmt".l, F.doseCount(5)))
+        XCTAssertEqual(result?.message,
+                       String(format: "medication.alert_max_message_fmt".l, "Paracetamol", 4,
+                              when(d(11, 8, 2), now: now)))
+    }
+
     func testABackDatedDoseOverTheMaximumNamesTheScreensTime() {
         let now = d(10, 21)
         let doses = [d(10, 0), d(10, 6), d(10, 20)]
