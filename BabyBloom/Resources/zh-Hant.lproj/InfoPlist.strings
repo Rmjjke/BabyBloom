@@ -2,3 +2,7 @@
    in Resources/Localization/zh-Hant.json. A permission prompt this file does
    not hold reads the English of the base Info.plist. */
 "CFBundleDisplayName" = "Bitty";
+
+"NSUserNotificationsUsageDescription" = "Bitty會傳送餵奶、睡眠及其他寶寶照護事件的提醒。";
+"NSPhotoLibraryUsageDescription" = "用於為寶寶的個人檔案選擇照片。";
+"NSFaceIDUsageDescription" = "用於快速解鎖App。";
