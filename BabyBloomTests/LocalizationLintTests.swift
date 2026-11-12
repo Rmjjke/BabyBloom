@@ -372,6 +372,11 @@ final class LocalizationLintTests: XCTestCase {
                                                            language: .ko), [])
         XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "생후 %d 일"], language: .ko),
                        ["age.days.other: a space in \"%d 일\""])
+        XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["count_fmt": "총 %2$d 회"], language: .ko),
+                       ["count_fmt: a space in \"%2$d 회\""])
+        // A `%@` brings its own unit, so the noun after it is spaced.
+        XCTAssertEqual(LocalizationLint.cjkSpacingProblems(
+            ["under": "%@ 미만", "since": "%1$@ 지났어요", "after": "%3$@ 이후예요"], language: .ko), [])
         // Every other language may space as it likes.
         XCTAssertEqual(LocalizationLint.cjkSpacingProblems(["age.days.other": "%d 日"], language: .en), [])
     }
@@ -525,6 +530,9 @@ enum LocalizationLint {
     // MARK: Number and counter in ja, ko, zh-Hant
 
     private static let number = "(?:\\d|%(?:\\d+\\$)?[d@])"
+    // In ko a `%@` is a formatted duration, time or date that brings its own
+    // unit («2시간», «5분»), and a noun after it takes a space: «%@ 미만».
+    private static let koreanNumber = "(?:\\d|%(?:\\d+\\$)?d)"
     private static let space = "[ \\u00A0\\u2009\\u202F\\u3000]+"
     private static let hanKana = "[\\p{Han}\\p{Hiragana}\\p{Katakana}\\u30FC]"
     // `{brand}` reads as Latin text; the `d` of `%d` / `%1$d` is the number's, not a word.
@@ -535,7 +543,7 @@ enum LocalizationLint {
             "\(number)\(space)\(hanKana)", "\(hanKana)\(space)\(number)",
             "\(latin)\(space)\(hanKana)", "\(hanKana)\(space)\(latin)",
         ].map { try! NSRegularExpression(pattern: $0) }
-        let korean = [try! NSRegularExpression(pattern: "\(number)\(space)\\p{Hangul}")]
+        let korean = [try! NSRegularExpression(pattern: "\(koreanNumber)\(space)\\p{Hangul}")]
         return [.ja: hanRules, .zhHant: hanRules, .ko: korean]
     }()
 
