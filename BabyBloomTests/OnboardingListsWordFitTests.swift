@@ -86,8 +86,11 @@ final class OnboardingListsWordFitTests: XCTestCase {
                  font: noteFont),
             List(name: "generating steps",
                  view: AnyView(GeneratingPage(babyName: name, birthDate: birth, onDone: {})),
-                 texts: { ["onboarding.gen.step1".l, "onboarding.gen.step2".l,
-                           "onboarding.gen.step3".l, "onboarding.gen.step4".l] },
+                 // The named step is the one in progress 0.45…1.45 s after the
+                 // page appears, where the read may land.
+                 texts: { ["onboarding.gen.step1".l,
+                           String(format: "onboarding.gen.step_named".l, name, Baby.describeAge(from: birth)),
+                           "onboarding.gen.step2".l, "onboarding.gen.step3".l, "onboarding.gen.step4".l] },
                  font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded),
                  somePresent: true),
             List(name: "paywall features",
