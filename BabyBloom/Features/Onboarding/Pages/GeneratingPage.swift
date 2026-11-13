@@ -81,7 +81,7 @@ struct GeneratingPage: View {
 
             VStack(spacing: BBTheme.Spacing.sm) {
                 let name = babyName.trimmingCharacters(in: .whitespaces)
-                BBTheme.Typography.title3(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
+                BBSteppedText(name.isEmpty ? "onboarding.gen.title".l : String(format: "onboarding.gen.title_named".l, name))
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
 

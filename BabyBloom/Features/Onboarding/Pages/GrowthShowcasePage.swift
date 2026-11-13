@@ -57,7 +57,7 @@ struct GrowthShowcasePage: View {
             // way forward off a page that has no back button.
             ScrollView(showsIndicators: false) {
                 VStack(spacing: BBTheme.Spacing.lg) {
-                    BBTheme.Typography.title3(String(format: "onboarding.showcase.title".l, name))
+                    BBSteppedText(String(format: "onboarding.showcase.title".l, name))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)

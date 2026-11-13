@@ -31,9 +31,11 @@ enum ReportFormat {
     }
 
     /// A range's spaces made unbreakable except the one after its dash, so a
-    /// wrapped range breaks after «–», never inside «28 Oct».
+    /// wrapped range breaks after «–», never inside «28 Oct»; a number keeps
+    /// its counter in Japanese, Korean and Chinese («11月3日»).
     static func rangeGlued(_ text: String) -> String {
         text.replacingOccurrences(of: "(?<![–—]) ", with: nbsp, options: .regularExpression)
+            .gluingNumbersToCounters
     }
 
     /// «> 97» held together.

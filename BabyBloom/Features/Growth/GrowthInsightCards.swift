@@ -32,20 +32,36 @@ struct InsightCard<Content: View>: View {
 /// A hidden one-line box in the title's face carries that line's baseline, and
 /// the badge is centred in it, so beside a one-line title it sits exactly where
 /// the centred badge always sat.
+///
+/// Where a word of the title misses the width beside the badge, the badge
+/// takes a line of its own above the title, at the trailing edge where it
+/// stood; only a word wider than the whole card sets the title smaller.
 struct InsightCardHeader: View {
     let title: String
     var info: InfoBadgeRole = .none
     @Environment(\.explainerAction) private var explainerAction
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            InsightCardTitle(title)
-            Spacer()
-            if hasBadge {
-                ZStack {
-                    BBTheme.Typography.title3(" ").hidden()
-                    badge
+        if hasBadge {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    InsightCardTitle(title, stepping: false)
+                    Spacer()
+                    ZStack {
+                        BBTheme.Typography.title3(" ").hidden()
+                        badge
+                    }
                 }
+                VStack(alignment: .trailing, spacing: BBTheme.Spacing.xs) {
+                    badge
+                    InsightCardTitle(title)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline) {
+                InsightCardTitle(title)
+                Spacer()
             }
         }
     }
@@ -108,14 +124,24 @@ enum InfoBadgeRole {
 /// that cannot be checked is a feature nobody knows they have. A title is an
 /// element with certainty. It is also where the "?" sits, so what a sighted
 /// reader sees and what VoiceOver offers are in the same place.
+///
+/// Its words stay whole: a word wider than the width steps the title down
+/// (`BBSteppedText`), and a word that already holds a hyphen may break after
+/// it, as the design system allows.
 struct InsightCardTitle: View {
     let title: String
+    /// Off draws the reader's size only: the header tries the title beside
+    /// its badge before it moves the badge away.
+    var stepping = true
     @Environment(\.explainerAction) private var explainerAction
 
-    init(_ title: String) { self.title = title }
+    init(_ title: String, stepping: Bool = true) {
+        self.title = title
+        self.stepping = stepping
+    }
 
     var body: some View {
-        BBTheme.Typography.title3(title)
+        BBSteppedText(title, breaksAfterHyphens: true, stepping: stepping)
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .accessibilityActions {
                 if let explainerAction {
