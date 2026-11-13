@@ -492,7 +492,10 @@ once (`dateRange`, `yMMMd`: «Nov 2 – 20, 2026», «2—20 нояб. 2026 г.�
 PDF's period line always, a report row (`ReportFormat.dayRange`) only when an
 end is not this year's. The locale's own dash and the thin spaces around it
 stay; a report range's plain spaces turn unbreakable, so a wrapped range
-breaks after its dash, never inside «28 Oct».
+breaks after its dash, never inside «28 Oct». The report's ranges and the
+weekly chart's month title also pass `gluingNumbersToCounters`
+(`String+UnitGlue.swift`): a word joiner between a digit and the Han, kana or
+Hangul counter after it, so ja «11月3日» never ends a line at «11».
 
 **Signed numbers carry the language's sign.** `Int.appSigned` writes a change
 as «+210» or «−30» with the locale's own minus: Swedish, Norwegian and Finnish
@@ -503,7 +506,13 @@ the app language's collation, not the phone's.
 the calendar and the typesetting language (which picks the Japanese or the
 Traditional-Chinese forms of shared characters such as 骨 and 直). The app's
 window, both widget families and every Live Activity region apply it: the
-system renders those apart, so none inherits it from another.
+system renders those apart, so none inherits it from another. A text the app
+lays out by measuring its whole words takes `wordFitTypesetting()` (same
+file) on top: the undetermined language «zxx», which breaks only between
+words, because the language's own typesetting hyphenates a word that fits a
+line alone when the line before leaves room for a part (uk, de), and Korean's
+breaks a word between two syllables. Japanese and Chinese keep the app's
+typesetting, for their glyph forms and phrase breaks.
 
 The widget process cannot see the app's `UserDefaults.standard` at all, which
 is why the language travels through the App Group. It also outlives a language
@@ -865,8 +874,11 @@ at AX2). More's rows below the first (`ListTitleRowLabel`)
 do the same over their title, and a word wider than the whole row under the
 icon is drawn at AX1's size, then xxxLarge's (es «Medicamentos» with Bold Text
 at AX2 on 320 pt), so it breaks only if it misses the row even at xxxLarge.
-The Settings rows have no such step: under the icon every word of today's
-texts fits the row at AX2 on 320 pt.
+A Settings switch row steps the same way under its icon: a title word wider
+than the row (sv «Användningsstatistik», 295 pt at AX2 in a 256-pt row on
+320 pt) sets the title at AX1's size, then xxxLarge's, and the line under it
+steps only if one of its own words still misses (`SettingsRowTextSizes`, the
+sizes one shape draws at).
 Neither can measure the system row it draws: at those sizes a Label's ideal
 width is its icon's column alone, and a switch whose label answered a custom
 ideal stood its List row as tall as that label's ideal. So each draws the
@@ -880,6 +892,31 @@ them, sm 8 apart; on 320 pt «Александра» goes under from xxxLarge. T
 no-break space keeps «11 месяцев» one word in that copy, but a glued phrase
 wider than its line is broken at the no-break space, so it is the row's room,
 not the glue, that keeps it whole beside the 56-pt avatar.
+
+The medication reminder switch (`MedicationReminderCard.reminderSwitch`)
+stands as a Settings switch row: the system switch row while every word of its
+title keeps whole beside the switch, else the switch under the title at its x,
+else also the bell on a line above; one switch with the same identifier in
+every shape, carrying the title for VoiceOver. The weekly chart's month title
+(`BBCharts`, `monthHeader`) sits between the week buttons while the widest
+word of every title the header can show that year (each month, each week
+across two months, December into January) fits there, else on its own line
+above them; the buttons keep their 44-pt tap zones. Its ideal width is that
+probe's (`WidestWordIdeal(holdsIdeal: true)`) and its digits are even
+(`monospacedDigit`), so the layout never changes from one week to the next.
+`startingWeekOffset` opens the chart on a past week. The Growth insight
+cards' titles (`InsightCardTitle`), the report cards' headers
+(`ReportCardHeader`, `ReportRow.swift`) and the headings of the growth and
+widget showcases, the notifications page and the generating page are
+`BBSteppedText` (`DesignSystem/Components/BBSteppedText.swift`): title3 that
+wraps between words and steps to AX1's size, then down to Large's, only where
+a word misses the whole width. The badge or glyph beside a title takes a line
+of its own before the title steps. The insight titles measure a word that
+already holds a hyphen by its parts. `RowAndHeadingWordFitTests` hosts these
+views and the other switches beside a text (the feeding timer, the export
+categories, the optional measure) with the app's typesetting and reads the
+drawn lines back with Vision (`DrawnTextReader`) in the 15 languages at 320
+and 375 pt, with and without Bold Text, at the simulator's text size.
 
 A row of content-sized parts whose fit changes with the width or the running
 time takes its shape from the fit instead, with `ViewThatFits`: the row while
