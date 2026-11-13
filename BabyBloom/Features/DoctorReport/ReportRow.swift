@@ -68,6 +68,10 @@ struct ReportRow: View {
 
 /// A card's header: a decorative glyph in the category tint and the title.
 /// The glyph is hidden because the title already names the section.
+///
+/// Where a word of the title misses the width beside the glyph, the glyph
+/// goes above the title, as a list row's icon does; only a word wider than
+/// the whole card sets the title smaller (`BBSteppedText`).
 struct ReportCardHeader: View {
     let icon: String
     let tint: Color
@@ -76,15 +80,29 @@ struct ReportCardHeader: View {
     @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: glyph))
-                .foregroundStyle(tint)
-                .accessibilityHidden(true)
-            BBTheme.Typography.title3(title)
-                .foregroundStyle(BBTheme.Colors.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: BBTheme.Spacing.sm) {
+                glyphView
+                titleView(stepping: false)
+            }
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                glyphView
+                titleView(stepping: true)
+            }
         }
+    }
+
+    private var glyphView: some View {
+        Image(systemName: icon)
+            .font(.system(size: glyph))
+            .foregroundStyle(tint)
+            .accessibilityHidden(true)
+    }
+
+    private func titleView(stepping: Bool) -> some View {
+        BBSteppedText(title, stepping: stepping)
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 

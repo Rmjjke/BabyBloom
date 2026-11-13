@@ -20,20 +20,7 @@ struct MedicationReminderCard: View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
             // A closure, not `set: turn`: the method reference crashed the
             // compiler (Swift 6, Xcode 26.2) emitting its isolation thunk.
-            Toggle(isOn: Binding(get: { isOn && !denied }, set: { turn($0) })) {
-                Label {
-                    BBTheme.Typography.callout("medication.reminder_switch".l)
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                } icon: {
-                    Image(systemName: "bell.fill")
-                        .foregroundStyle(BBTheme.Colors.primary)
-                }
-            }
-            .tint(BBTheme.Colors.primary)
-            .frame(minHeight: 44)
-            .disabled(denied)
-            .accessibilityIdentifier("medication.reminder")
+            reminderSwitch(Binding(get: { isOn && !denied }, set: { turn($0) }), denied: denied)
             if denied {
                 line("medication.reminder_off_in_settings".l)
                 Button(action: openSettings) {
@@ -62,6 +49,88 @@ struct MedicationReminderCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .task { await permission.refresh() }
+    }
+
+    /// The switch beside its title while every word of the title keeps whole
+    /// there, else under the title at its x, as a Settings switch row stands
+    /// (uk «Сповіщати» missed beside it on a 320-pt screen at AX2); with no
+    /// room for a word beside the bell either, the bell goes above. One
+    /// switch either way, with the same identifier and the title for
+    /// VoiceOver.
+    private func reminderSwitch(_ binding: Binding<Bool>, denied: Bool) -> some View {
+        let title = "medication.reminder_switch".l
+        return ViewThatFits(in: .horizontal) {
+            ProbedIdealWidth {
+                Toggle(isOn: binding) {
+                    Label {
+                        reminderTitle(title)
+                    } icon: {
+                        bell
+                    }
+                }
+                .tint(BBTheme.Colors.primary)
+                .frame(minHeight: 44)
+                .disabled(denied)
+                .accessibilityIdentifier("medication.reminder")
+                // The same row one word a line: its ideal width is the
+                // narrowest the drawn row keeps every word whole at.
+                Toggle(isOn: .constant(false)) {
+                    Label {
+                        reminderTitle(title.oneWordALine)
+                    } icon: {
+                        bell
+                    }
+                }
+                .hidden()
+                .accessibilityHidden(true)
+            }
+            ProbedIdealWidth {
+                Label {
+                    switchUnder(title, binding, denied: denied)
+                } icon: {
+                    bell
+                }
+                Label {
+                    reminderTitle(title.oneWordALine)
+                } icon: {
+                    bell
+                }
+                .hidden()
+                .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                bell
+                switchUnder(title, binding, denied: denied)
+            }
+        }
+        .wordFitTypesetting()
+    }
+
+    private func switchUnder(_ title: String, _ binding: Binding<Bool>, denied: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            // The switch carries the title for VoiceOver.
+            reminderTitle(title)
+                .accessibilityHidden(true)
+            Toggle(isOn: binding) {
+                Text(title)
+            }
+            .labelsHidden()
+            .fixedSize()
+            .tint(BBTheme.Colors.primary)
+            .disabled(denied)
+            .accessibilityIdentifier("medication.reminder")
+        }
+    }
+
+    private func reminderTitle(_ text: String) -> some View {
+        BBTheme.Typography.callout(text)
+            .foregroundStyle(BBTheme.Colors.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var bell: some View {
+        Image(systemName: "bell.fill")
+            .foregroundStyle(BBTheme.Colors.primary)
     }
 
     /// The first turn-on asks iOS once, through the app's one ask. A refusal

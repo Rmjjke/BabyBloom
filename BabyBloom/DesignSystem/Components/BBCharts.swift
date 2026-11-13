@@ -95,7 +95,11 @@ struct BBWeeklyBarChart: View {
     /// a duration plotted in hours would read as «2,08».
     var voiceOverValue: ((Double) -> String)? = nil
 
-    @State private var weekOffset = 0   // 0 = current week, -1 = last week, …
+    /// The week shown first, counted from the current one (-1 = last week):
+    /// a past month opens straight away, without stepping back to it.
+    var startingWeekOffset = 0
+    @State private var weekStep = 0   // the reader's steps from the first week
+    private var weekOffset: Int { startingWeekOffset + weekStep }   // 0 = current week
 
     private var canGoForward: Bool { weekOffset < 0 }
     private let chartHeight: CGFloat = 150
@@ -126,6 +130,104 @@ struct BBWeeklyBarChart: View {
     private var monthTitle: String {
         LocaleDates.monthTitle(weekDays.first!, weekDays.last!,
                                locale: LocalizationManager.shared.language.locale)
+            .gluingNumbersToCounters
+    }
+
+    /// Every title the header can show around this week's year, one word a
+    /// line: each month alone and each week across two months, December into
+    /// the next January included. The header picks its layout on the widest
+    /// of them, so it never changes between two weeks.
+    private var everyMonthTitleProbe: String {
+        let locale = LocalizationManager.shared.language.locale
+        let cal = SupportedLanguage.gregorian(locale: locale)
+        let year = cal.component(.year, from: weekDays.first!)
+        let starts = (1...13).compactMap { cal.date(from: DateComponents(year: year, month: $0, day: 1)) }
+        var titles: [String] = []
+        for (start, next) in zip(starts, starts.dropFirst()) {
+            titles.append(LocaleDates.monthTitle(start, start, locale: locale))
+            let lastDay = cal.date(byAdding: .day, value: -1, to: next)!
+            titles.append(LocaleDates.monthTitle(lastDay, next, locale: locale))
+        }
+        return titles.map { $0.gluingNumbersToCounters.oneWordALine }.joined(separator: "\n")
+    }
+
+    /// Even digits: a year then measures the same in every title, so the
+    /// probe of one year holds for all.
+    private var monthTitleFont: Font {
+        BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded).monospacedDigit()
+    }
+
+    /// The month title between the week buttons while the widest word of any
+    /// month title fits there (fi «Marraskuu 2026» missed on a 320-pt screen
+    /// at AX2), else on a line of its own above them. Its words wrap, never
+    /// break; the buttons keep their 44-pt tap zones in both.
+    private var monthHeader: some View {
+        let probe = everyMonthTitleProbe
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: BBTheme.Spacing.sm) {
+                previousWeekButton
+                Spacer(minLength: 0)
+                monthTitleText(probe: probe)
+                Spacer(minLength: 0)
+                nextWeekButton
+            }
+            VStack(spacing: BBTheme.Spacing.xs) {
+                monthTitleText(probe: probe)
+                    .frame(maxWidth: .infinity)
+                HStack {
+                    previousWeekButton
+                    Spacer()
+                    nextWeekButton
+                }
+            }
+        }
+        .wordFitTypesetting()
+    }
+
+    private func monthTitleText(probe: String) -> some View {
+        // The ideal is the probe's, not this title's: the header's layout
+        // must not change from one week to the next.
+        WidestWordIdeal(holdsIdeal: true) {
+            Text(probe).font(monthTitleFont).hidden().accessibilityHidden(true)
+            Text(monthTitle).font(monthTitleFont).multilineTextAlignment(.center)
+        }
+        .foregroundStyle(BBTheme.Colors.textPrimary)
+        .id(monthTitle)   // triggers transition on week change
+    }
+
+    private var previousWeekButton: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { weekStep -= 1 }
+        } label: {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(BBTheme.Colors.primary)
+                .frame(width: 28, height: 28)
+                .background(BBTheme.Colors.primary.opacity(0.1))
+                .cornerRadius(8)
+                .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("chart_prev_week")
+        .accessibilityLabel("chart.previous_week".l)
+    }
+
+    private var nextWeekButton: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { weekStep += 1 }
+        } label: {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(canGoForward ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.3))
+                .frame(width: 28, height: 28)
+                .background(canGoForward ? BBTheme.Colors.primary.opacity(0.1) : Color.clear)
+                .cornerRadius(8)
+                .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
+                .contentShape(Rectangle())
+        }
+        .accessibilityIdentifier("chart_next_week")
+        .accessibilityLabel("chart.next_week".l)
+        .disabled(!canGoForward)
     }
 
     /// Bar fill: today at full saturation, other days slightly muted; both fade
@@ -153,48 +255,7 @@ struct BBWeeklyBarChart: View {
 
         VStack(spacing: BBTheme.Spacing.sm) {
 
-            // Month header + navigation
-            HStack(spacing: BBTheme.Spacing.sm) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { weekOffset -= 1 }
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                        .frame(width: 28, height: 28)
-                        .background(BBTheme.Colors.primary.opacity(0.1))
-                        .cornerRadius(8)
-                        .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityIdentifier("chart_prev_week")
-                .accessibilityLabel("chart.previous_week".l)
-
-                Spacer()
-
-                Text(monthTitle)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
-                    .foregroundStyle(BBTheme.Colors.textPrimary)
-                    .id(monthTitle)   // triggers transition on week change
-
-                Spacer()
-
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) { weekOffset += 1 }
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(canGoForward ? BBTheme.Colors.primary : BBTheme.Colors.textSecondary.opacity(0.3))
-                        .frame(width: 28, height: 28)
-                        .background(canGoForward ? BBTheme.Colors.primary.opacity(0.1) : Color.clear)
-                        .cornerRadius(8)
-                        .frame(width: 44, height: 44)      // ≥44pt tap zone (visual stays 28)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityIdentifier("chart_next_week")
-                .accessibilityLabel("chart.next_week".l)
-                .disabled(!canGoForward)
-            }
+            monthHeader
 
             // Swift Charts bar chart
             Chart(week) { day in
@@ -254,9 +315,9 @@ struct BBWeeklyBarChart: View {
             DragGesture(minimumDistance: 30, coordinateSpace: .local)
                 .onEnded { value in
                     if value.translation.width < 0 {
-                        withAnimation(.easeInOut(duration: 0.2)) { weekOffset -= 1 }
+                        withAnimation(.easeInOut(duration: 0.2)) { weekStep -= 1 }
                     } else if value.translation.width > 0, canGoForward {
-                        withAnimation(.easeInOut(duration: 0.2)) { weekOffset += 1 }
+                        withAnimation(.easeInOut(duration: 0.2)) { weekStep += 1 }
                     }
                 }
         )

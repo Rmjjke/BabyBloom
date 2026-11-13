@@ -8,38 +8,68 @@ import SwiftUI
 /// 320-pt screen. The probe holds every word, not each text's first: with no
 /// size gate, a later word that misses its room beside the icon breaks there
 /// as well.
+///
+/// A word wider than the whole row under the icon is drawn smaller: the title
+/// at AX1 and then at xxxLarge, as `ListTitleRowLabel` steps; the line under
+/// it only when one of its own words still misses (sv «Användningsstatistik»
+/// takes 295 pt at AX2 in a 256-pt row on a 320-pt screen). One flat list of
+/// shapes: a `ViewThatFits` inside another answers a wrong ideal width.
 struct SettingsRowLabel<Texts: View, Words: View>: View {
+    typealias Sizes = SettingsRowTextSizes
+
     let systemImage: String
-    /// One view: the texts' column.
-    @ViewBuilder let texts: () -> Texts
-    /// Each text one word a line, in the font it is drawn in: its ideal width
-    /// is the widest word, what must fit beside the icon.
-    @ViewBuilder let words: () -> Words
+    /// One view: the texts' column at the sizes given.
+    @ViewBuilder let texts: (Sizes) -> Texts
+    /// Each text one word a line, in the font and at the size it is drawn at:
+    /// its ideal width is the widest word, what must fit beside the icon.
+    @ViewBuilder let words: (Sizes) -> Words
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
+        let natural = Sizes(title: dynamicTypeSize, detail: dynamicTypeSize)
         ViewThatFits(in: .horizontal) {
             ProbedIdealWidth {
                 Label {
-                    texts()
+                    texts(natural)
                 } icon: {
                     RowIcon(systemImage: systemImage)
                 }
                 IconColumn(systemImage: systemImage)
-                // The body font set here, as the List's Label sets it on
-                // its title: a word left on the default font beside the
-                // Label measured without Bold Text and passed for fitting.
-                VStack(alignment: .leading, spacing: 0) { words() }
-                    .font(.body)
-                    .hidden()
-                    .accessibilityHidden(true)
+                probe(natural)
             }
-            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
-                RowIcon(systemImage: systemImage)
-                texts()
-            }
-            .font(.body)
+            above(natural)
+            above(Sizes(title: min(dynamicTypeSize, .accessibility1), detail: dynamicTypeSize))
+            above(Sizes(title: min(dynamicTypeSize, .xxxLarge), detail: dynamicTypeSize))
+            above(Sizes(title: min(dynamicTypeSize, .xxxLarge), detail: min(dynamicTypeSize, .xxxLarge)))
         }
     }
+
+    private func above(_ sizes: Sizes) -> some View {
+        ProbedIdealWidth {
+            VStack(alignment: .leading, spacing: BBTheme.Spacing.xs) {
+                RowIcon(systemImage: systemImage)
+                texts(sizes)
+            }
+            .font(.body)
+            probe(sizes)
+        }
+    }
+
+    /// The body font set here, as the List's Label sets it on its title: a
+    /// word left on the default font beside the Label measured without Bold
+    /// Text and passed for fitting.
+    private func probe(_ sizes: Sizes) -> some View {
+        VStack(alignment: .leading, spacing: 0) { words(sizes) }
+            .font(.body)
+            .hidden()
+            .accessibilityHidden(true)
+    }
+}
+
+/// The text sizes one shape of `SettingsRowLabel` draws its texts at.
+struct SettingsRowTextSizes {
+    let title: DynamicTypeSize
+    let detail: DynamicTypeSize
 }
 
 /// A list row's icon and title, as More's rows below the first: the system
@@ -192,7 +222,7 @@ struct SettingsBabyRowLabel: View {
 /// own ideal width is its icon's column alone (59.7 pt at AX2), which every
 /// row fits, and a switch whose label answered a custom ideal stood its List
 /// row as tall as that label's ideal, cutting or stretching it.
-private struct ProbedIdealWidth: Layout {
+struct ProbedIdealWidth: Layout {
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let drawn = subviews[0].sizeThatFits(proposal)
         guard proposal.width == nil else { return drawn }
@@ -221,27 +251,30 @@ struct SettingsSwitchRow: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
-        if dynamicTypeSize.isAccessibilitySize {
-            under
-        } else {
-            ViewThatFits(in: .horizontal) {
-                ProbedIdealWidth {
-                    beside
-                    // The same row one word a line: its ideal width is the
-                    // narrowest the drawn row keeps every word whole at.
-                    Toggle(isOn: .constant(false)) {
-                        Label {
-                            texts(title.oneWordALine, hint.oneWordALine)
-                        } icon: {
-                            icon
-                        }
-                    }
-                    .hidden()
-                    .accessibilityHidden(true)
-                }
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
                 under
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    ProbedIdealWidth {
+                        beside
+                        // The same row one word a line: its ideal width is the
+                        // narrowest the drawn row keeps every word whole at.
+                        Toggle(isOn: .constant(false)) {
+                            Label {
+                                texts(title.oneWordALine, hint.oneWordALine)
+                            } icon: {
+                                icon
+                            }
+                        }
+                        .hidden()
+                        .accessibilityHidden(true)
+                    }
+                    under
+                }
             }
         }
+        .wordFitTypesetting()
     }
 
     /// The system row.
@@ -258,12 +291,12 @@ struct SettingsSwitchRow: View {
     /// The switch in the texts' column, where it starts at the title's x
     /// whether the icon stands beside or above.
     private var under: some View {
-        SettingsRowLabel(systemImage: systemImage) {
+        SettingsRowLabel(systemImage: systemImage) { sizes in
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                 // The switch carries these words for VoiceOver: read beside
                 // it, the List row merged them into one element that read the
                 // hint alone.
-                texts(title, hint)
+                texts(title, hint, sizes: sizes)
                     .accessibilityHidden(true)
                 Toggle(isOn: $isOn) {
                     texts(title, hint)
@@ -271,10 +304,12 @@ struct SettingsSwitchRow: View {
                 .labelsHidden()
                 .fixedSize()
             }
-        } words: {
+        } words: { sizes in
             Text(title.oneWordALine)
+                .dynamicTypeSize(sizes.title)
             Text(hint.oneWordALine)
                 .font(.footnote)
+                .dynamicTypeSize(sizes.detail)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -284,13 +319,19 @@ struct SettingsSwitchRow: View {
             .foregroundStyle(BBTheme.Colors.textPrimary)
     }
 
-    private func texts(_ title: String, _ hint: String) -> some View {
+    /// The system's text styles follow the environment's size, so a size
+    /// given here steps the text the way the reader's setting would.
+    @ViewBuilder
+    private func texts(_ title: String, _ hint: String,
+                       sizes: SettingsRowTextSizes? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .foregroundStyle(BBTheme.Colors.textPrimary)
+                .dynamicTypeSize(sizes?.title ?? dynamicTypeSize)
             Text(hint)
                 .font(.footnote)
                 .foregroundStyle(BBTheme.Colors.textSecondary)
+                .dynamicTypeSize(sizes?.detail ?? dynamicTypeSize)
         }
     }
 }

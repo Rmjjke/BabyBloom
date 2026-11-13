@@ -144,6 +144,8 @@ struct BBStatCard: View {
 /// it wraps as any text does, and `ViewThatFits` keeps a row only while every
 /// word fits it, so the text breaks between words and never inside one. Words
 /// part at plain spaces; a no-break space keeps a number with its unit.
+/// Drawn with no hyphenation (`wordFitTypesetting`), so a word that fits
+/// its line stays whole.
 struct WordWrappingText: View {
     let text: String
 
@@ -152,23 +154,37 @@ struct WordWrappingText: View {
             Text(text.oneWordALine).hidden()
             Text(text)
         }
+        .wordFitTypesetting()
     }
 }
 
 /// Lays out its second subview; the first, one word a line, only sets the
 /// ideal width, plus `spare`. Every other proposal reaches the text
-/// unchanged, so a stack still sizes it as plain text.
+/// unchanged, so a stack still sizes it as plain text. With `holdsIdeal`
+/// the ideal is that width itself rather than the text's own at it, so a
+/// text that changes (a month title) keeps one ideal width for all it shows.
 struct WidestWordIdeal: Layout {
     var spare: CGFloat = 0
+    var holdsIdeal = false
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = proposal.width ?? subviews[0].sizeThatFits(.unspecified).width + spare
-        return subviews[1].sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+        let size = subviews[1].sizeThatFits(ProposedViewSize(width: width, height: proposal.height))
+        guard holdsIdeal, proposal.width == nil else { return size }
+        return CGSize(width: max(width, size.width), height: size.height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         subviews[0].place(at: bounds.origin, proposal: .zero)
         subviews[1].place(at: bounds.origin, proposal: ProposedViewSize(bounds.size))
+    }
+
+    /// The drawn text's baselines, so a row aligned by first baseline sets a
+    /// glyph beside its first line; the probe, placed at zero size, has none
+    /// worth merging.
+    func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
+                           subviews: Subviews, cache: inout ()) -> CGFloat? {
+        bounds.minY + subviews[1].dimensions(in: ProposedViewSize(bounds.size))[guide]
     }
 }
 
