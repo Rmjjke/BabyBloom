@@ -169,26 +169,11 @@ struct GrowthShowcasePage: View {
     /// Three capabilities that exist TODAY — percentiles, the gain verdict, the
     /// newborn window — and no fourth one the app would have to grow into.
     private var bulletList: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            ForEach(bullets, id: \.key) { bullet in
-                HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
-                    Image(systemName: bullet.icon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(BBTheme.Colors.growth)
-                        .frame(width: 32, height: 32)
-                        .background(BBTheme.Colors.growth.opacity(0.18), in: Circle())
-                    Text(bullet.takesName ? String(format: bullet.key.l, name) : bullet.key.l)
-                        .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                }
-            }
-        }
-        .padding(BBTheme.Spacing.lg)
-        .background(BBTheme.Colors.surface)
-        .cornerRadius(BBTheme.Radius.lg)
-        .bbShadow(BBTheme.Shadow.card)
+        OnboardingBulletList(
+            bullets: bullets.map { ($0.icon, $0.takesName ? String(format: $0.key.l, name) : $0.key.l) },
+            tint: BBTheme.Colors.growth,
+            badgeOpacity: 0.18
+        )
     }
 }
 

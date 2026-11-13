@@ -55,6 +55,61 @@ func onboardingHeroIcon(_ systemName: String, color: Color) -> some View {
         .background(color.opacity(0.22), in: Circle())
 }
 
+/// The bullet card of the info pages: one shape for all its rows, each text
+/// beside its icon while every word fits there, else each text under its
+/// icon, so a long word (ru «бодрствования», de «Gewichtszunahme») on a
+/// 320-pt screen at the accessibility sizes is never broken.
+struct OnboardingBulletList: View {
+    let bullets: [(icon: String, text: String)]
+    let tint: Color
+    let badgeOpacity: Double
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            rows(stacked: false)
+            rows(stacked: true)
+        }
+        .padding(BBTheme.Spacing.lg)
+        .background(BBTheme.Colors.surface)
+        .cornerRadius(BBTheme.Radius.lg)
+        .bbShadow(BBTheme.Shadow.card)
+    }
+
+    /// Beside, each text's ideal width is its widest word's, so the stack's
+    /// is its widest word's beside the icon: the width the ViewThatFits compares.
+    private func rows(stacked: Bool) -> some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            ForEach(Array(bullets.enumerated()), id: \.offset) { _, bullet in
+                let icon = Image(systemName: bullet.icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .frame(width: 32, height: 32)
+                    .background(tint.opacity(badgeOpacity), in: Circle())
+                if stacked {
+                    VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                        icon
+                        styled(Text(bullet.text))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    HStack(alignment: .top, spacing: BBTheme.Spacing.md) {
+                        icon
+                        styled(WordWrappingText(text: bullet.text))
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
+    }
+
+    private func styled(_ text: some View) -> some View {
+        text
+            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 /// Vertically centred content that falls back to scrolling. Pages built on
 /// bare Spacers squeeze their texts at large type sizes and truncate the
 /// question; a scroll view lets the title take the height it needs.
