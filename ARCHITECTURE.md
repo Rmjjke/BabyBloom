@@ -1393,11 +1393,14 @@ one-step column is in `onboardingCenteredScroll` as the net. The layout tests
 pin both forms and, by sampling the page as it runs, the title's place
 (DECISIONS 2026-11-07).
 
-The welcome cards, the notifications bullets and the feeding rows are each
-one `ViewThatFits(in: .horizontal)` over the page's whole set: beside their
-icons while every word fits there, else every text under its icon. The beside
-texts are `WordWrappingText`, whose ideal width is the widest word's, so the
-choice follows the language, the width and Bold Text rather than a text size.
+The welcome cards, the notifications and growth-showcase bullets and the
+feeding rows are each one `ViewThatFits(in: .horizontal)` over the page's
+whole set: beside their icons while every word fits there, else every text
+under its icon. The beside texts are `WordWrappingText`, whose ideal width is
+the widest word's, so the choice follows the language, the width and Bold Text
+rather than a text size. The two bullet lists are one view,
+`OnboardingBulletList` (`Features/Onboarding/OnboardingHelpers.swift`), each
+page giving its tint.
 Every feeding row draws the check (opacity 0 where unselected, hidden from
 VoiceOver), so the shape does not follow the selection. `BBOptionalMeasureToggle`
 chooses the same way between its switch beside the texts and under them, and
