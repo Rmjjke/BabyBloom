@@ -14,6 +14,28 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-13 — Onboarding's page titles step down where a word misses; the percentile card's label steps down in a fixed column
+
+- **The four setup pages' titles (name, birth, feeding, growth) are
+  `BBSteppedTitle`.** title1, stepping to title2 and title3 while the widest
+  word misses the column with sm 8 to spare, the rule `BBScreenHeading` and the
+  paywall title already follow. Why: the titles were a plain title1, and at AX2
+  on a 320-pt screen de «Geburtsdatum» and sv «Födelsedatum» broke inside the
+  word. A smaller face is a smaller loss than a broken word, and where every
+  word fits title1 the page draws as before. One view, not a copy per page: the
+  paywall hero's private step-down was the same code and now uses it.
+- **The percentile card's label has a fixed column and steps through sizes.**
+  The label takes everything the 64-pt ring leaves, sm 8 from it, instead of
+  sitting beside a `Spacer`; a word wider than that column at the reader's size
+  sets the label at AX1's size, then xxxLarge's, xxLarge's, xLarge's and
+  Large's, as the feeding hint steps. Why: beside a `Spacer` the label's width
+  was whatever the stack gave it, so no size could be chosen against it, and
+  de «Gewichtsperzentile» and fi «Painopersentiili» broke at AX2 on 320 pt,
+  where the column is 168 pt on the onboarding showcase and 184 on the Growth
+  screen. The column is narrow enough that one or two steps still leave such a
+  word broken, hence the steps down to Large. The figure under the label keeps
+  its size. Existing strings only.
+
 ## 2026-11-13 — The report falls back to raw counts per section; minutes are floored on every surface
 
 - **No finished day with entries: raw counts and no days line.** A section of
