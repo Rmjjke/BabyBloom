@@ -16,7 +16,7 @@ struct NamePage: View {
                 onboardingHeroIcon("person.text.rectangle", color: BBTheme.Colors.primary)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    BBTheme.Typography.title1("onboarding.name_title".l)
+                    BBSteppedTitle("onboarding.name_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)

@@ -1292,7 +1292,10 @@ onboarding showcase page renders it bare, with one caption line and
 `tone: .neutralOnly`. Its figure is the percentile itself,
 `PercentileReading.badge` («61», «> 97», «< 3»), in `textPrimary` under
 «Weight Percentile», and the two are one VoiceOver element; there is no band
-word. The ring beside it draws the reading in its tier tint (`percentileTint`),
+word. The label is `PercentileLabel` (same file), in a fixed column, everything
+the 64-pt ring leaves with sm 8 between: it wraps between words at the
+reader's size and steps to AX1's size, then xxxLarge's down to Large's, only
+where a word misses that column (de «Gewichtsperzentile» at AX2 on 320 pt). The ring beside it draws the reading in its tier tint (`percentileTint`),
 carries no number and is hidden from VoiceOver, because the figure states what
 it pictures. The tone is the only behavioural difference: below the 3rd
 centile or above the 97th the ring takes the neutral `textPrimary` instead of
@@ -1347,10 +1350,15 @@ Every feeding row draws the check (opacity 0 where unselected, hidden from
 VoiceOver), so the shape does not follow the selection. `BBOptionalMeasureToggle`
 chooses the same way between its switch beside the texts and under them, and
 the feeding subtitle (`FeedingHint`) steps down from the reader's size to
-AX1's, then xxxLarge's, only where one word misses its column.
+AX1's, then xxxLarge's, only where one word misses its column. The setup
+pages' titles (name, birth, feeding, growth) and the paywall hero's are
+`BBSteppedTitle` (`DesignSystem/Components/BBScreenTitle.swift`): title1,
+stepping to title2 and title3 while the widest word misses the column with
+sm 8 to spare, as `BBScreenHeading` steps.
 `OnboardingWordFitTests` pins the shapes in narrow windows at Large and, when
-the simulator runs at AX1 or AX2, every word whole on 320 and 375 pt
-(DECISIONS 2026-11-07).
+the simulator runs at AX1 or AX2, every word whole on 320 and 375 pt, with
+each title's face and the percentile card's label size, on the showcase and
+as the Growth screen sets the card (DECISIONS 2026-11-07, 2026-11-13).
 
 Two of those pages show the REAL product rather than a picture of it.
 `WidgetShowcasePage` renders `BabyBloomMediumWidgetView` with a constructed
