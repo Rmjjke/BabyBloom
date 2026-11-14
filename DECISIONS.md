@@ -14,6 +14,26 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-14 — A line that appears under a field while typing scrolls into view with the field
+
+On New and Edit Medication, a «Most doses in 24 hours» of 0, 25 or 41 turns Save
+off and adds a range hint under the field. iOS keeps the focused field above
+the keyboard but not that hint, so the number pad covered the one line that says
+why Save went off. In ru no line of it showed. The number pad has no key to put
+it away.
+
+**Rule.** A hint or error that appears under a field while its keyboard is up
+sits in one id'd block with the field, and the form scrolls that block's bottom
+to the keyboard's edge. It does so when the line appears and again when the
+keyboard rises over a field whose line is already showing. The second scroll
+runs after the system's own scroll of the field into view, which drops any
+scroll made while it runs. The words stay as written: the fix is the scroll,
+never a shorter string.
+
+**Rejected: moving the hint above the field.** It would sit between the label
+and the field, away from the number it explains. And it would still need a
+scroll at accessibility sizes, where the hint takes two or three lines.
+
 ## 2026-11-14 — A date's own period is not doubled where a sentence or a spoken join puts one after it
 
 - **A localized sentence that takes a date goes through
