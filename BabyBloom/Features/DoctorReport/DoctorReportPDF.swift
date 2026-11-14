@@ -462,7 +462,7 @@ enum DoctorReportPDF {
 
     private static func emptySection(_ titleKey: String, _ emptyKey: String, _ periodStart: Date) -> String {
         "<div><h2>\(esc(titleKey.l))</h2><p class=\"muted\">"
-            + "\(esc(String(format: emptyKey.l, fullDate(periodStart))))</p></div>"
+            + "\(esc(ReportFormat.sentence(emptyKey.l, date: fullDate(periodStart))))</p></div>"
     }
 
     // MARK: Questions
