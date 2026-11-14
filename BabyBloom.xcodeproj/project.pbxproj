@@ -15,6 +15,7 @@
 		00FB7039F4D8DB40051C099C /* BBScreenTitle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB75C908DE32A3AF04E426B2 /* BBScreenTitle.swift */; };
 		01E8B778484C233A0DE9B63B /* DoctorPeriod.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D6CBB2DD36A7C6C2D25F41 /* DoctorPeriod.swift */; };
 		02CAE4B039DE1A0A44D31600 /* GrowthEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445916578FF3112912C0E02D /* GrowthEntry.swift */; };
+		03003B927FC5A2BB0C4D02B4 /* MedicationFormKeyboardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B23C77A6F94D0AFFA13DC9C /* MedicationFormKeyboardTests.swift */; };
 		03C7164075FA330097A87835 /* BBCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82422A5254915B1796A78F89 /* BBCard.swift */; };
 		0601964837FB1AC5934733F0 /* DiapersReportCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219FABEEE0FC69A8D52D9809 /* DiapersReportCard.swift */; };
 		062B20F0B3E73BA745361F65 /* TimeHourCycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1790705297FE5EC4604EEC97 /* TimeHourCycleTests.swift */; };
@@ -444,6 +445,7 @@
 		0A2C98BBDFF5F24BF5543402 /* MedicationEventsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationEventsTests.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
+		0B23C77A6F94D0AFFA13DC9C /* MedicationFormKeyboardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationFormKeyboardTests.swift; sourceTree = "<group>"; };
 		0D4B65CE6EED6923042E789C /* TimerActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerActionsTests.swift; sourceTree = "<group>"; };
 		0DCF40129B7E6C6949A5EEEF /* MedicationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationsListView.swift; sourceTree = "<group>"; };
 		0DFD34DEDAB68F247AB473AA /* DecimalFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalFormatTests.swift; sourceTree = "<group>"; };
@@ -1063,6 +1065,7 @@
 				0A2C98BBDFF5F24BF5543402 /* MedicationEventsTests.swift */,
 				FD8B9A9A40688AC4D176E215 /* MedicationFormatTests.swift */,
 				5332E6C0888F642F987506E0 /* MedicationFormInputTests.swift */,
+				0B23C77A6F94D0AFFA13DC9C /* MedicationFormKeyboardTests.swift */,
 				BDC1C148D2C64F3492DC8613 /* MedicationHomeTests.swift */,
 				7EC89049C21351A785B9D14A /* MedicationReminderTests.swift */,
 				674082C5CACCFB2C1153391A /* MedicationReportSummaryTests.swift */,
@@ -2047,6 +2050,7 @@
 				627BCE77B53BD869EE4C528E /* MedicationCopyTests.swift in Sources */,
 				BA316D7C54A6C8E8BBE5BE5E /* MedicationEventsTests.swift in Sources */,
 				92D69E3860B1946A1721B49E /* MedicationFormInputTests.swift in Sources */,
+				03003B927FC5A2BB0C4D02B4 /* MedicationFormKeyboardTests.swift in Sources */,
 				453CE2715B6A94686369812D /* MedicationFormatTests.swift in Sources */,
 				C8C01ECBF688EAE390CBE4F7 /* MedicationHomeTests.swift in Sources */,
 				DA9C4593DD1D8F1AB98D0114 /* MedicationReminderTests.swift in Sources */,
