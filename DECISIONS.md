@@ -14,6 +14,24 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-14 — A date's own period is not doubled where a sentence or a spoken join puts one after it
+
+- **A localized sentence that takes a date goes through
+  `ReportFormat.sentence(_:date:)`**, which drops the sentence's period
+  right after a date that already ends in one. The report's new-period line
+  and the empty-section lines (screen and PDF) use it.
+- **`MedicationFormat.spoken` joins with ". " only after a line that does not
+  already end in a period.** The dose row's label and the other medication
+  labels go through it.
+
+**Why.** Russian's short month ends in a period («2 нояб.», «1 нояб.»), as
+German's does («2. Nov.»), so «начался %@. Новые…» showed «2 нояб.. Новые».
+Whether a month's short form ends in a period is up to CLDR, varies by month
+(«нояб.» but «мая») and can change between iOS releases. So the fix is made
+where the date and the period meet, not by rewording the 11 translations that
+end on the date or by switching to another date format. A new sentence that
+ends on a date takes the same helper.
+
 ## 2026-11-13 — Texts laid out by whole words draw with no hyphenation; switch rows, the chart's month title and card headings keep every word whole
 
 - **A text the app lays out by measuring its words draws with no hyphenation

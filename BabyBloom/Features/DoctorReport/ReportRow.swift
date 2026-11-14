@@ -139,7 +139,7 @@ struct ReportEmptyLine: View {
     let periodStart: Date
 
     var body: some View {
-        BBTheme.Typography.callout(String(format: format.l, ReportFormat.dayMonth(periodStart)))
+        BBTheme.Typography.callout(ReportFormat.sentence(format.l, date: ReportFormat.dayMonth(periodStart)))
             .foregroundStyle(BBTheme.Colors.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
