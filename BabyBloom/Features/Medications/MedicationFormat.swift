@@ -159,9 +159,12 @@ enum MedicationFormat {
                        duration(minutes: minutes), when(lastDose, now: fireDate, calendar: calendar)))
     }
 
-    /// A VoiceOver label: the visible lines read in order.
+    /// A VoiceOver label: the visible lines read in order. A line that already
+    /// ends in a period, as a short month does («1 нояб.»), takes no second one.
     static func spoken(_ parts: [String?]) -> String {
-        parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ". ")
+        parts.compactMap { $0 }.filter { !$0.isEmpty }.reduce("") { text, part in
+            text.isEmpty ? part : text + (text.hasSuffix(".") ? " " : ". ") + part
+        }
     }
 
     /// A medication event's row on Events. A dose takes its medicine's name,

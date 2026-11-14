@@ -45,6 +45,16 @@ enum ReportFormat {
     /// screen reads the current period, the PDF (a record read later) adds it.
     static func dayMonth(_ date: Date) -> String { glued(date.appDayMonth) }
 
+    /// `format` filled with `date`, one period after the date: a short month
+    /// that ends in its own period («2 нояб.») takes none from the sentence,
+    /// so «начался 2 нояб.. Новые» never shows. A date with no period of its
+    /// own («Nov 2», «2 мая») keeps the sentence's.
+    static func sentence(_ format: String, date: String) -> String {
+        let text = String(format: format, date)
+        guard date.hasSuffix(".") else { return text }
+        return text.replacingOccurrences(of: date + ".", with: date)
+    }
+
     /// «20 days», or «today» for a visit today: the period's length, one
     /// writer for the screen and the PDF.
     static func periodLength(days: Int) -> String {
