@@ -225,20 +225,22 @@ struct ProfileView: View {
             // A pushed list rather than a segmented control: the segments only
             // fit two languages, and the shipped set grows. The row reads
             // "Language  ›  Español" like the system Settings app; every option
-            // is written in its own language (SupportedLanguage.endonym).
+            // is written in its own language (SupportedLanguage.endonym), the
+            // current one on top. Only languages whose file ships are listed.
             Section {
                 // Update the localization dictionary BEFORE @AppStorage
                 // triggers the view-tree rebuild — otherwise views rebuilt
                 // by .id(appLanguage) (incl. UIKit-cached tab bar items)
                 // read `.l` from the previous language's dictionary.
                 Picker(selection: Binding(
-                    get: { appLanguage },
+                    get: { LocalizationManager.effective(appLanguage).rawValue },
                     set: { newValue in
                         LocalizationManager.shared.setLanguage(newValue)
                         appLanguage = newValue
                     }
                 )) {
-                    ForEach(SupportedLanguage.allCases) { language in
+                    ForEach(SupportedLanguage.pickerOrder(current: LocalizationManager.effective(appLanguage),
+                                                          available: SupportedLanguage.available)) { language in
                         Text(language.endonym).tag(language.rawValue)
                     }
                 } label: {

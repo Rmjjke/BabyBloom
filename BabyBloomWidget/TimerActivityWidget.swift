@@ -13,7 +13,7 @@ struct TimerActivityWidget: Widget {
             let _ = LocalizationManager.shared.refreshFromStore()
             TimerLockScreenView(attributes: context.attributes, state: context.state,
                                 isStale: context.isStale)
-                .environment(\.locale, WidgetCopy.formattingLocale)
+                .appLanguageEnvironment(LocalizationManager.shared.language)
                 .activityBackgroundTint(Color("BBSurface"))
                 .activitySystemActionForegroundColor(Color("BBPrimary"))
         } dynamicIsland: { context in
@@ -22,23 +22,26 @@ struct TimerActivityWidget: Widget {
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     TimerIslandExpandedLeading(kind: context.attributes.kind, title: context.state.title)
+                        .appLanguageEnvironment(LocalizationManager.shared.language)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     TimerIslandExpandedTrailing(startTime: context.attributes.startTime, isStale: stale)
-                        .environment(\.locale, WidgetCopy.formattingLocale)
+                        .appLanguageEnvironment(LocalizationManager.shared.language)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     TimerIslandExpandedBottom(attributes: context.attributes, state: context.state,
                                               isStale: stale)
-                        .environment(\.locale, WidgetCopy.formattingLocale)
+                        .appLanguageEnvironment(LocalizationManager.shared.language)
                 }
             } compactLeading: {
                 TimerIslandCompactLeading(kind: context.attributes.kind, title: context.state.title)
+                    .appLanguageEnvironment(LocalizationManager.shared.language)
             } compactTrailing: {
                 TimerIslandCompactTrailing(startTime: context.attributes.startTime, isStale: stale)
-                    .environment(\.locale, WidgetCopy.formattingLocale)
+                    .appLanguageEnvironment(LocalizationManager.shared.language)
             } minimal: {
                 TimerIslandMinimal(kind: context.attributes.kind, title: context.state.title)
+                    .appLanguageEnvironment(LocalizationManager.shared.language)
             }
             .keylineTint(Color("BBPrimary"))
         }

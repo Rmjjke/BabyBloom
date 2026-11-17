@@ -5,6 +5,9 @@ options:
     iOS: "17.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
+  # The language the source strings and Info.plist are written in; the
+  # project's region list follows the .lproj folders.
+  developmentLanguage: en
   defaultConfig: Debug
 
 configs:
@@ -56,10 +59,20 @@ targets:
         basedOnDependencyAnalysis: false
         script: |
           cd "$PROJECT_DIR"
-          # Keep this list in sync with LocalizationManager.SupportedLanguage.
-          for f in en ru es; do
-            if ! cmp -s "BabyBloom/Resources/Localization/$f.json" "WidgetResources/Localization/$f.json"; then
-              echo "error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json"
+          # Every language file the app ships, and every file the widget holds:
+          # a widget copy with no app original is a language removed from one
+          # side only. No list to keep in sync with SupportedLanguage.
+          for app in BabyBloom/Resources/Localization/*.json; do
+            f=$(basename "$app")
+            if ! cmp -s "$app" "WidgetResources/Localization/$f"; then
+              echo "error: WidgetResources/Localization/$f is missing or out of sync with $app. Run: cp $app WidgetResources/Localization/$f"
+              exit 1
+            fi
+          done
+          for widget in WidgetResources/Localization/*.json; do
+            f=$(basename "$widget")
+            if [ ! -f "BabyBloom/Resources/Localization/$f" ]; then
+              echo "error: $widget has no original in BabyBloom/Resources/Localization. Delete it or add the app's file."
               exit 1
             fi
           done

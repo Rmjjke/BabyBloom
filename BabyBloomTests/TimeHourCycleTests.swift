@@ -26,7 +26,8 @@ final class TimeHourCycleTests: XCTestCase {
     func testEveryLanguageFollowsA12HourDevice() {
         for language in SupportedLanguage.allCases {
             let text = halfPastTwo.appTimeOfDay(in: language.environmentLocale(hourCycle: .oneToTwelve))
-            XCTAssertTrue(text.contains("2:30"), "\(language): «\(text)»")
+            // Danish and Finnish separate with a dot: 2.30 PM.
+            XCTAssertNotNil(text.range(of: "2[:.]30", options: .regularExpression), "\(language): «\(text)»")
             XCTAssertFalse(text.contains("14"), "\(language): «\(text)»")
         }
     }
@@ -67,7 +68,8 @@ final class TimeHourCycleTests: XCTestCase {
                     baby: nil, feedings: [feed], sleeps: [], diapers: [], growths: [], events: [],
                     categories: [.feeding], range: .all, hourCycle: cycle)
                 let time = halfPastTwo.appTimeOfDay(in: language.environmentLocale(hourCycle: cycle))
-                XCTAssertTrue(time.contains(cycle == .oneToTwelve ? "2:30" : "14:30"), "\(language) \(cycle): \(time)")
+                XCTAssertNotNil(time.range(of: cycle == .oneToTwelve ? "2[:.]30" : "14[:.]30", options: .regularExpression),
+                                "\(language) \(cycle): \(time)")
                 XCTAssertTrue(page.contains(ExportGenerator.htmlEscape(time)), "\(language) \(cycle): \(time)")
             }
             let devicePage = ExportGenerator.buildHTML(

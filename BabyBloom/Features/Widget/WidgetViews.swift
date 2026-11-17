@@ -71,12 +71,12 @@ struct WidgetBackground: View {
 /// differently.
 enum WidgetCopy {
     /// The locale any future `Text(_:style:)` in the widget would format
-    /// through. Kept pinned on both views even though the current widget
-    /// renders no live text: a Russian widget once read "1 hr, 11 min"
-    /// because nothing set this, and the pin is what stops a reintroduced
-    /// `Text(style:)` from regressing silently (the render-dump guard test
-    /// leans on it too). The environment locale, so a future clock time
-    /// keeps the device's 12/24-hour cycle like the app's own.
+    /// through — the one `appLanguageEnvironment` pins on both views (the
+    /// language's `environmentLocale`), named here for the render-dump guard
+    /// test. The widget renders no live text today, but a Russian widget once
+    /// read "1 hr, 11 min" because nothing set the locale, and the pin stops a
+    /// reintroduced `Text(style:)` from regressing silently. A future clock
+    /// time keeps the device's 12/24-hour cycle like the app's own.
     static var formattingLocale: Locale { LocalizationManager.shared.language.environmentLocale }
 
     /// A duration as the widget speaks it: whole minutes through the app's
@@ -312,7 +312,7 @@ struct BabyBloomSmallWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         // The small family takes one tap target; the control above is its own.
         .widgetURL(isInteractive ? DeepLink.url(.feeding) : nil)
-        .environment(\.locale, WidgetCopy.formattingLocale)
+        .appLanguageEnvironment(LocalizationManager.shared.language)
     }
 }
 
@@ -410,7 +410,7 @@ struct BabyBloomMediumWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         // Anything outside the links and the control opens Feeding too.
         .widgetURL(isInteractive ? DeepLink.url(.feeding) : nil)
-        .environment(\.locale, WidgetCopy.formattingLocale)
+        .appLanguageEnvironment(LocalizationManager.shared.language)
     }
 
     private var control: some View {

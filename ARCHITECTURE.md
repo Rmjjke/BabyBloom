@@ -281,34 +281,89 @@ One consequence worth knowing before you debug something:
 
 ## Localization
 
-Three languages: `en`, `ru`, `es` (`SupportedLanguage` in
-`Core/Localization/LocalizationManager.swift`).
+`SupportedLanguage` (`Core/Localization/LocalizationManager.swift`) lists
+every language the app knows, 15 cases with BCP-47 raw values (`pt-BR`,
+`pt-PT`, `nb`, `zh-Hant`) that double as the JSON file names. A case alone
+ships nothing: `SupportedLanguage.available` holds the cases whose
+`<raw>.json` is in the bundle (English always), and the picker, the device
+step and stored values all read only that list. A language goes live when
+its file lands.
 
 **`NSLocalizedString` is never called.** Every UI string resolves through a
 JSON dictionary per language and the `.l` extension. The `.lproj/
-Localizable.strings` files are gone; `{en,ru,es}.lproj/InfoPlist.strings` is
-still live and is what makes the app icon's caption change per language.
+Localizable.strings` files are gone; `<lang>.lproj/InfoPlist.strings` is
+still live and is what makes the app icon's caption change per language (and
+what tells iOS and the App Store the app speaks that language).
+
+**A missing key reads English.** The English table is always loaded; a lookup
+goes language → English → the key itself. A language file may therefore hold
+only part of the keys. Debug builds log each missing key once per language
+(subsystem `com.nenita.app`, category `Localization`).
 
 The JSONs exist in **two physical locations**:
 
-- `BabyBloom/Resources/Localization/{en,ru,es}.json` — the source of truth.
-- `WidgetResources/Localization/{en,ru,es}.json` — a copy the widget target
+- `BabyBloom/Resources/Localization/<lang>.json` — the source of truth.
+- `WidgetResources/Localization/<lang>.json` — a copy the widget target
   bundles. It must be a distinct path outside any other scanned source root,
   or XcodeGen dedupes the file references with the app target and the `.appex`
   ends up with no Resources build phase at all — the widget then renders raw
   i18n keys.
 
-A pre-build script (`preBuildScripts` in `project.yml`) `cmp`s the two sets
-and fails the build on drift. Do not disable it; sync instead:
+A pre-build script (`preBuildScripts` in `project.yml`) `cmp`s every JSON in
+the app folder against its widget copy, fails on a widget file with no app
+original, and fails the build on drift. It globs the folder, so a new
+language needs no edit there. Do not disable it; sync instead:
 
     cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json
 
-**Language resolution order** (`LocalizationManager.storedLanguage`):
-launch argument → App Group suite → this process's own `UserDefaults`
-(legacy, so upgrading users keep their choice) → device default. The launch
-argument must be read explicitly via `volatileDomain(forName:)`: the argument
-domain's precedence applies only within `UserDefaults.standard`, and the App
-Group is a separate store that would otherwise shadow it.
+**Language resolution order.** In the app the picker's
+`@AppStorage("appLanguage")` is the truth: launch argument → the app's own
+`UserDefaults` → device. `BabyBloomApp.init` hands that value to
+`LocalizationManager` before the first view, and every `setLanguage` mirrors
+it to the App Group suite, which is what the widget reads.
+`LocalizationManager.storedLanguage` serves a reader with no `@AppStorage` —
+the widget, and the manager's first value: launch argument → App Group suite
+→ this process's own `UserDefaults` → device. In both, the first stored value
+that names an available language wins; one that does not falls through. The
+launch argument must be read explicitly via `volatileDomain(forName:)`: the
+argument domain's precedence applies only within `UserDefaults.standard`, and
+the App Group is a separate store that would otherwise shadow it.
+
+The device step is `SupportedLanguage.resolve(preferred:available:)` over the
+whole `Locale.preferredLanguages` list: Foundation's
+`Bundle.preferredLocalizations`, the matcher iOS itself uses for an app's
+localizations. It maps regional variants (`pt-AO` → `pt-PT`, `no`/`nn` →
+`nb`, `zh-HK` → `zh-Hant`), reads past an unshipped first language
+(`[it, de]` → `de`) and never crosses scripts: a Simplified-Chinese device
+gets English, as its App Store page does.
+
+**iOS Settings › the app › Language.** iOS writes the per-app list into the
+app's own defaults and relaunches it, but a stored choice outranks the
+device, so on its own the change would do nothing.
+`LocalizationManager.adoptPerAppLanguageChange()` runs first thing in the
+app's `init`: it keeps the last per-app list it saw, and a list that changed
+since becomes the stored choice. A list that went away (the app set back to
+the device's language) is a change too: the device list is adopted. The first
+launch that records the list adopts nothing, so an older per-app setting
+never overturns a choice made in the app.
+
+**One region per language.** `SupportedLanguage.locale` pins a region (`es`
+is `es_419`, `zh-Hant` is `zh_Hant_TW`, Hong Kong included): formats follow
+the language, never the phone's region. Clock times take the device's
+12/24-hour cycle on top (`environmentLocale`).
+
+**Gregorian dates.** `environmentCalendar` and `SupportedLanguage.dateFormat`
+are Gregorian whatever the device calendar. Every format style the app builds
+starts from `dateFormat`: `.formatted(.dateTime….locale(x))` keeps the device
+calendar however the locale is pinned (a Japanese-calendar phone printed
+"Oct 26, Reiwa 8"), while a `DateFormatter` takes the calendar of the locale
+it is given.
+
+**Roots carry the language.** `appLanguageEnvironment(_:)` sets the locale,
+the calendar and the typesetting language (which picks the Japanese or the
+Traditional-Chinese forms of shared characters such as 骨 and 直). The app's
+window, both widget families and every Live Activity region apply it: the
+system renders those apart, so none inherits it from another.
 
 The widget process cannot see the app's `UserDefaults.standard` at all, which
 is why the language travels through the App Group. It also outlives a language

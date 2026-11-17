@@ -167,6 +167,7 @@
 		86970C565912142FA062C7B2 /* GrowthTrend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */; };
 		86A0A8C5FECF6EA69911BD0E /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EAFFAF4A6FAA3CA40D47703 /* ExportView.swift */; };
 		86B839117FC5C4F04310E5D5 /* ReviewPromptTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5230125C35C32871E5BA08D4 /* ReviewPromptTrigger.swift */; };
+		86D262C798E72BA7E5088E87 /* AppLanguageEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0990F722EFC78E17500E6421 /* AppLanguageEnvironment.swift */; };
 		88C7E3EA50B8EC23CCF7F377 /* DoctorReportPDFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 850950E53910EDD07BD7A452 /* DoctorReportPDFTests.swift */; };
 		89E85DAD7C0F3F5A41AA8CA5 /* HistoryMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B83837F382661630F8C1467 /* HistoryMergeTests.swift */; };
 		89F85B792E32D376E18832E9 /* BBButtonInsetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D159D7A1D44A9E0B77C031 /* BBButtonInsetTests.swift */; };
@@ -203,6 +204,7 @@
 		9F9F88576E92F22DC64C8B30 /* ReviewPromptPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D795B56A24508A9A86FB44 /* ReviewPromptPolicyTests.swift */; };
 		A0A6A7192806E9F55BAA4AF9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00E206A2E013B64EC6C14D22 /* InfoPlist.strings */; };
 		A0F652BB5D04ADDC5005ABA0 /* OrphanedEntryAdoption.swift in Sources */ = {isa = PBXBuildFile; fileRef = F900D11CA7C3C0330EEC91DF /* OrphanedEntryAdoption.swift */; };
+		A155BD619592AA035B1DDB47 /* AppLanguageEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0990F722EFC78E17500E6421 /* AppLanguageEnvironment.swift */; };
 		A407F3798D9B0C9BE27C095A /* EndBeforeStartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526D5DD7B224C300E3C96135 /* EndBeforeStartTests.swift */; };
 		A562933A5E643F81B1F28050 /* FeedingRhythmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB739E0E857BDB2519FE7E6 /* FeedingRhythmTests.swift */; };
 		A5DBC483D11DD0BF4ACB66B7 /* SeedScenario+Weekly.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A12F9DE413A81B2C7F0C6E6 /* SeedScenario+Weekly.swift */; };
@@ -222,6 +224,7 @@
 		B217A9715DAACD6BA6C10F24 /* ProgressCardScaleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D2859DB3616E11498B8A60 /* ProgressCardScaleTests.swift */; };
 		B436604BCEF9E5ABC00BFE7B /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F983790E90D48BBE646AF78 /* OnboardingView.swift */; };
 		B4BA5EFCF1ADFB6E0F4DD64E /* DoctorVisit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4C84A1553CBF7BDCFCC9D76 /* DoctorVisit.swift */; };
+		B65C14F9BF9A8A8A8432B755 /* LanguageResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA04A3C63D6570216ECA550 /* LanguageResolutionTests.swift */; };
 		B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96AF18E1355A04D9F979B421 /* AppAppearance.swift */; };
 		B7AE8456B2459E9DDBDCEB66 /* ReportDataSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB6DB51AF7C71F0934F3C2DC /* ReportDataSection.swift */; };
 		B93F9C1F26EDBEF8D2DCEBF8 /* VisitDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E99C54B55877CEDA85C0912 /* VisitDetailSheet.swift */; };
@@ -366,6 +369,7 @@
 		07A9A34B7CC513189E619F5F /* DoctorReportSummary+Make.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DoctorReportSummary+Make.swift"; sourceTree = "<group>"; };
 		07CD0E2F84FF7B0DB88B67C2 /* WeightVelocityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightVelocityTests.swift; sourceTree = "<group>"; };
 		08481481275F9B15129634B6 /* OnboardingBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingBackground.swift; sourceTree = "<group>"; };
+		0990F722EFC78E17500E6421 /* AppLanguageEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguageEnvironment.swift; sourceTree = "<group>"; };
 		0A2C98BBDFF5F24BF5543402 /* MedicationEventsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationEventsTests.swift; sourceTree = "<group>"; };
 		0A856FE301431E425A94C4CA /* NamePage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamePage.swift; sourceTree = "<group>"; };
 		0B217ED0F0CC3AC41D0A0BC6 /* GrowthTrend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowthTrend.swift; sourceTree = "<group>"; };
@@ -594,6 +598,7 @@
 		D8768F1C61CA49F9DE3FFC1F /* es.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = es.json; sourceTree = "<group>"; };
 		D8783F783EDF7B8C17DE5BAC /* FeedingRhythm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedingRhythm.swift; sourceTree = "<group>"; };
 		D9EA9809404B9EBD73B4555E /* ReportFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportFormat.swift; sourceTree = "<group>"; };
+		DAA04A3C63D6570216ECA550 /* LanguageResolutionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageResolutionTests.swift; sourceTree = "<group>"; };
 		DAE7C80A290A93593D96A530 /* WeeklySummaryRenderDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryRenderDump.swift; sourceTree = "<group>"; };
 		DB3444E6FEB52FD73D93E544 /* BBHistorySection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBHistorySection.swift; sourceTree = "<group>"; };
 		DBAD656B5B3DA52CD41F1F67 /* BabyBloomTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BabyBloomTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -883,6 +888,7 @@
 				1B83837F382661630F8C1467 /* HistoryMergeTests.swift */,
 				F2829BF3677E75E42A8E0FBF /* HistoryWindowTests.swift */,
 				17E29E2FEDCD28D5632BFF64 /* HostedAccessibility.swift */,
+				DAA04A3C63D6570216ECA550 /* LanguageResolutionTests.swift */,
 				4D98D87FDCBA2812CB46C65C /* LiveActivityPlannerTests.swift */,
 				ECC89795169A77B9054F5942 /* LiveActivityRenderDump.swift */,
 				57C22E5993E7E324F511A378 /* LocalStoreTests.swift */,
@@ -1054,6 +1060,7 @@
 		77F93CE06E083049FB882844 /* Localization */ = {
 			isa = PBXGroup;
 			children = (
+				0990F722EFC78E17500E6421 /* AppLanguageEnvironment.swift */,
 				EB099489849C8F3143CBA8C4 /* Date+AppLocale.swift */,
 				D180AE05B613883F4456A0EB /* Double+AppRate.swift */,
 				F4BABEBB11A523432C800F65 /* DurationText.swift */,
@@ -1499,7 +1506,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"\n# Keep this list in sync with LocalizationManager.SupportedLanguage.\nfor f in en ru es; do\n  if ! cmp -s \"BabyBloom/Resources/Localization/$f.json\" \"WidgetResources/Localization/$f.json\"; then\n    echo \"error: WidgetResources/Localization/$f.json is out of sync with BabyBloom/Resources/Localization/$f.json. Run: cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json\"\n    exit 1\n  fi\ndone\n# Same rule for the widget's copy of the brand colorsets. Keep this\n# list in sync with the colorsets WidgetResources/Colors.xcassets holds.\nfor c in BBGradientStart BBGradientEnd BBAccent BBSurface BBPrimary BBOnPrimary BBTextPrimary BBTextSecondary BBFeeding BBSleep; do\n  app=\"BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json\"\n  widget=\"WidgetResources/Colors.xcassets/$c.colorset/Contents.json\"\n  if ! cmp -s \"$app\" \"$widget\"; then\n    echo \"error: $widget is out of sync with $app. Run: cp \\\"$app\\\" \\\"$widget\\\"\"\n    exit 1\n  fi\ndone\n";
+			shellScript = "cd \"$PROJECT_DIR\"\n# Every language file the app ships, and every file the widget holds:\n# a widget copy with no app original is a language removed from one\n# side only. No list to keep in sync with SupportedLanguage.\nfor app in BabyBloom/Resources/Localization/*.json; do\n  f=$(basename \"$app\")\n  if ! cmp -s \"$app\" \"WidgetResources/Localization/$f\"; then\n    echo \"error: WidgetResources/Localization/$f is missing or out of sync with $app. Run: cp $app WidgetResources/Localization/$f\"\n    exit 1\n  fi\ndone\nfor widget in WidgetResources/Localization/*.json; do\n  f=$(basename \"$widget\")\n  if [ ! -f \"BabyBloom/Resources/Localization/$f\" ]; then\n    echo \"error: $widget has no original in BabyBloom/Resources/Localization. Delete it or add the app's file.\"\n    exit 1\n  fi\ndone\n# Same rule for the widget's copy of the brand colorsets. Keep this\n# list in sync with the colorsets WidgetResources/Colors.xcassets holds.\nfor c in BBGradientStart BBGradientEnd BBAccent BBSurface BBPrimary BBOnPrimary BBTextPrimary BBTextSecondary BBFeeding BBSleep; do\n  app=\"BabyBloom/Resources/Assets.xcassets/Colors/$c.colorset/Contents.json\"\n  widget=\"WidgetResources/Colors.xcassets/$c.colorset/Contents.json\"\n  if ! cmp -s \"$app\" \"$widget\"; then\n    echo \"error: $widget is out of sync with $app. Run: cp \\\"$app\\\" \\\"$widget\\\"\"\n    exit 1\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1508,6 +1515,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86D262C798E72BA7E5088E87 /* AppLanguageEnvironment.swift in Sources */,
 				7416A64D3CDFD1F3D84592E5 /* AppSchema.swift in Sources */,
 				7B6FC7DF616E116021B47307 /* Baby.swift in Sources */,
 				2FDA645A35375A2681B7A8E8 /* BabyBloomWidget.swift in Sources */,
@@ -1548,6 +1556,7 @@
 				F251C878780E8A4C77140E27 /* AnalyticsEvent.swift in Sources */,
 				B7356C1F4BAE165CACDEE760 /* AppAppearance.swift in Sources */,
 				5B943F4DA76291B065D2F84A /* AppClock.swift in Sources */,
+				A155BD619592AA035B1DDB47 /* AppLanguageEnvironment.swift in Sources */,
 				903BBA91510F94E84A770E2B /* AppSchema.swift in Sources */,
 				7D8C6334D7A69970C5C129F3 /* BBBarButton.swift in Sources */,
 				5B595DCB4B92FA95A061206A /* BBButton.swift in Sources */,
@@ -1746,6 +1755,7 @@
 				89E85DAD7C0F3F5A41AA8CA5 /* HistoryMergeTests.swift in Sources */,
 				D755C7DF7251C68F54558C31 /* HistoryWindowTests.swift in Sources */,
 				43B00C75994AF4F8F50D9CBF /* HostedAccessibility.swift in Sources */,
+				B65C14F9BF9A8A8A8432B755 /* LanguageResolutionTests.swift in Sources */,
 				426F59D296FD17ABD3C5378D /* LiveActivityPlannerTests.swift in Sources */,
 				BE518771B478E9C1A657213F /* LiveActivityRenderDump.swift in Sources */,
 				969A9F9420B39D82C0DDA0FB /* LocalStoreTests.swift in Sources */,

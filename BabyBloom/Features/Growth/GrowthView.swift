@@ -742,13 +742,13 @@ struct WeightChartView: View {
     /// year — "Sep 25" reads as a day — and not the locale's own month-year
     /// style either: Russian appends "г.", and three of those collide.
     private static func tickLabel(_ date: Date, spanDays: Int) -> String {
-        let locale = LocalizationManager.shared.language.locale
+        let language = LocalizationManager.shared.language
         switch spanDays {
-        case ..<120: return date.formatted(.dateTime.day().month().locale(locale))
-        case ..<330: return date.formatted(.dateTime.month().locale(locale))
+        case ..<120: return date.formatted(language.dateFormat.day().month())
+        case ..<330: return date.formatted(language.dateFormat.month())
         default:
             let formatter = DateFormatter()
-            formatter.locale = locale
+            formatter.locale = language.locale
             formatter.dateFormat = "LLL yyyy"
             return formatter.string(from: date)
         }

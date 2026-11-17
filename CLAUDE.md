@@ -38,16 +38,19 @@ carry the canonical invocations and how to report results.
 ## Localization
 
 - ALL UI strings go through the JSON `LocalizationManager`
-  (`BabyBloom/Resources/Localization/{en,ru,es}.json`). `NSLocalizedString`
+  (`BabyBloom/Resources/Localization/<lang>.json`). `NSLocalizedString`
   is never used; the `.lproj/Localizable.strings` files were deleted (PR #14).
-- `{en,ru,es}.lproj/InfoPlist.strings` IS live — it drives the per-language
+  A key a language lacks reads English.
+- `<lang>.lproj/InfoPlist.strings` IS live — it drives the per-language
   app name.
 - The widget reads a **physical copy** of the JSONs in
   `WidgetResources/Localization/`. A pre-build script fails the build when
   the copies drift. To sync:
   `cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json`
-- Adding a language means touching `SupportedLanguage`, all three JSON
-  locations and the pre-build script's language list.
+- A `SupportedLanguage` case is offered only once its JSON ships
+  (`SupportedLanguage.available`). Adding a language means the case, the
+  app's JSON, its widget copy and the `.lproj` folder; the pre-build script
+  checks every JSON in the folder by itself.
 
 ## Theming
 
