@@ -82,7 +82,7 @@ enum MedicationFormat {
         guard let dose = doseText?.trimmingCharacters(in: .whitespacesAndNewlines), !dose.isEmpty else {
             return String(format: "medication.interval_fmt".l, interval)
         }
-        return dose + separator + String(format: "medication.interval_short_fmt".l, interval)
+        return String(format: "medication.meta_fmt".l, dose, interval)
     }
 
     /// Lines A, B and C for a status. The look never changes with the state;
@@ -96,10 +96,7 @@ enum MedicationFormat {
                       calendar: Calendar = .current) -> MedicationLines {
         let interval = duration(minutes: intervalMinutes)
         let count = maxPer24h.map {
-            String(format: "medication.count_24h_fmt".l, doseCount(dosesInLast24Hours), $0)
-        }
-        func lastAt(_ dose: Date) -> String {
-            String(format: "medication.status_last_at_fmt".l, when(dose, now: now, calendar: calendar))
+            String(format: PluralFamily.medicationCount24h.template($0), doseCount(dosesInLast24Hours), $0)
         }
         switch status {
         case .ended(let endedAt):
@@ -114,19 +111,21 @@ enum MedicationFormat {
                                    secondary: String(format: "medication.interval_fmt".l, interval),
                                    count: nil)
         case .waiting(let last, let until):
-            let age = Self.age(now.timeIntervalSince(last))
-                .map { String(format: "medication.ago_fmt".l, $0) } ?? "medication.just_now".l
+            let lastAt = when(last, now: now, calendar: calendar)
+            let secondary = Self.age(now.timeIntervalSince(last))
+                .map { String(format: "medication.waiting_secondary_ago_fmt".l, lastAt, $0) }
+                ?? String(format: "medication.waiting_secondary_just_now_fmt".l, lastAt)
             return MedicationLines(
                 primary: String(format: "medication.status_next_fmt".l, when(until, now: now, calendar: calendar)),
-                secondary: lastAt(last) + separator + age,
+                secondary: secondary,
                 count: count)
         case .allowed(let last):
             // An interval of at least 15 minutes has passed, so the age is
             // never under a minute; the fallback only guards a bad stored value.
             let age = Self.age(now.timeIntervalSince(last)) ?? duration(minutes: 0)
             return MedicationLines(
-                primary: lastAt(last) + separator
-                    + String(format: "medication.status_passed_short_fmt".l, interval),
+                primary: String(format: "medication.passed_primary_fmt".l,
+                                when(last, now: now, calendar: calendar), interval),
                 secondary: String(format: "medication.status_ago_fmt".l, age),
                 count: count)
         }

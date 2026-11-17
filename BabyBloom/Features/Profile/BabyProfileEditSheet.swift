@@ -151,9 +151,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $wasBornEarly,
                             value: $gestationalWeeks,
                             range: 22...36, step: 1,
-                            display: "\(Int(gestationalWeeks))\u{00A0}\("unit.weeks_short".l)",
-                            minLabel: "22\u{00A0}\("unit.weeks_short".l)",
-                            maxLabel: "36\u{00A0}\("unit.weeks_short".l)",
+                            display: String(format: "unit.weeks_short_fmt".l, Int(gestationalWeeks)),
+                            minLabel: String(format: "unit.weeks_short_fmt".l, 22),
+                            maxLabel: String(format: "unit.weeks_short_fmt".l, 36),
                             color: BBTheme.Colors.accent
                         )
                     }

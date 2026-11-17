@@ -14,7 +14,8 @@ import XCTest
 ///   names; every family value takes exactly one argument of the family's kind;
 /// - the same arguments with the same types as English in every other value
 ///   (`%d` read as `%@` crashes `String(format:)`); in a format string, never
-///   positional and plain mixed, no stray `%`;
+///   positional and plain mixed, no stray `%`, and every argument numbered
+///   (`%1$@`) when there are two or more, so a translation may reorder them;
 /// - `{brand}` is the only `{…}` token, with no stray brace; no value is empty;
 /// - ja and zh-Hant write no space between a number and a counter or between
 ///   Han/Kana and Latin text; ko none between a number and its counter;
@@ -129,7 +130,7 @@ final class LocalizationLintTests: XCTestCase {
         "brand.name": "Bitty",
         "plain": "Weight is 10% below birth weight",
         "count_fmt": "%d feeds",
-        "pair_fmt": "%@ at %@",
+        "pair_fmt": "%1$@ at %2$@",
         "percent_fmt": "%d%% of birth weight",
         "question.count.one": "%d question",
         "question.count.other": "%d questions",
@@ -140,7 +141,7 @@ final class LocalizationLintTests: XCTestCase {
         "brand.name": "Ночка",
         "plain": "Вес на 10% ниже веса при рождении",
         "count_fmt": "%d кормлений",
-        "pair_fmt": "%@ в %@",
+        "pair_fmt": "%1$@ в %2$@",
         "percent_fmt": "%d%% от веса при рождении",
         "question.count.one": "%d вопрос",
         "question.count.few": "%d вопроса",
@@ -239,7 +240,7 @@ final class LocalizationLintTests: XCTestCase {
         var table = english
         table["question.count.one"] = "One question"
         XCTAssertEqual(problems(table), ["question.count.one: arguments [], the family takes [1d]"])
-        table["question.count.one"] = "%d question of %@"
+        table["question.count.one"] = "%1$d question of %2$@"
         XCTAssertEqual(problems(table), ["question.count.one: arguments [1d, 2@], the family takes [1d]"])
         table = english
         table["trend.drop.other"] = "Dropped about %d centile spaces."
@@ -263,7 +264,7 @@ final class LocalizationLintTests: XCTestCase {
     func testAMissingOrAddedArgumentFails() {
         var table = english
         table["pair_fmt"] = "%@"
-        table["count_fmt"] = "%d feeds of %@"
+        table["count_fmt"] = "%1$d feeds of %2$@"
         XCTAssertEqual(problems(table), ["count_fmt: arguments [1d, 2@], English [1d]",
                                          "pair_fmt: arguments [1@], English [1@, 2@]"])
     }
@@ -272,6 +273,16 @@ final class LocalizationLintTests: XCTestCase {
         var table = english
         table["pair_fmt"] = "%2$@ at %@"
         XCTAssertEqual(problems(table), ["pair_fmt: positional and plain arguments mixed"])
+    }
+
+    func testSeveralArgumentsMustBeNumbered() {
+        var table = english
+        table["pair_fmt"] = "%@ at %@"
+        XCTAssertEqual(problems(table), ["pair_fmt: plain arguments in a string with several"])
+        // A translation may reorder numbered arguments; one argument needs no number.
+        table["pair_fmt"] = "%2$@ — %1$@"
+        table["count_fmt"] = "%1$d feeds"
+        XCTAssertEqual(problems(table), [])
     }
 
     func testAStrayPercentInAFormatStringFails() {
@@ -464,11 +475,14 @@ enum LocalizationLint {
         if key.hasSuffix("_fmt") || reference.contains(where: { !$0.arguments.isEmpty || $0.escapes }) {
             if own.mixed { found.append("\(key): positional and plain arguments mixed") }
             if own.stray { found.append("\(key): a stray %") }
+            if own.plain && !own.mixed && Set(own.arguments.map { $0.dropLast() }).count > 1 {
+                found.append("\(key): plain arguments in a string with several")
+            }
         }
         if let member = member(key) {
             // The category, not the copy, picks the word for the number, so
             // every form shows it: «один вопрос» would read for 21 too.
-            let expected = member.family.kind == .integer ? ["1d"] : ["1@"]
+            let expected = member.family.arguments
             if own.arguments != expected {
                 found.append("\(key): arguments \(list(own.arguments)), the family takes \(list(expected))")
             }
@@ -523,13 +537,13 @@ enum LocalizationLint {
     /// may reorder with `%2$@` but not change what it reads. The space flag is
     /// left out on purpose: "10% of" would read as `% o`, so a `%` followed by
     /// a space counts as stray in a format string and as text elsewhere.
-    struct Scan { var arguments: [String]; var mixed: Bool; var stray: Bool; var escapes: Bool }
+    struct Scan { var arguments: [String]; var mixed: Bool; var plain: Bool; var stray: Bool; var escapes: Bool }
 
     private static let specifier = try! NSRegularExpression(
         pattern: "%(?:(%)|(\\d+\\$)?[-+0#']*\\d*(?:\\.\\d+)?(?:hh|h|ll|l|q|z|t|j|L)?([@dDiuUxXoOfFeEgGaAcCsSp]))")
 
     static func scan(_ value: String) -> Scan {
-        var result = Scan(arguments: [], mixed: false, stray: false, escapes: false)
+        var result = Scan(arguments: [], mixed: false, plain: false, stray: false, escapes: false)
         var next = 0, positional = false, plain = false, covered = 0
         let ns = value as NSString
         for match in specifier.matches(in: value, range: NSRange(location: 0, length: ns.length)) {
@@ -550,6 +564,7 @@ enum LocalizationLint {
         // "%1$@ … %1$@" reads one argument twice: still one argument.
         result.arguments = Set(result.arguments).sorted()
         result.mixed = positional && plain
+        result.plain = plain
         result.stray = value.filter { $0 == "%" }.count > covered
         return result
     }

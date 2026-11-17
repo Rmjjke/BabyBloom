@@ -509,17 +509,12 @@ private func focusAfterSwap(_ focus: () -> Void) async {
 /// The SwiftUI half of `WeeklyFormat` (Core/Formatting): it builds a `Text`.
 extension WeeklyFormat {
     /// "Feeds a day: 7.4" as one Text, the value in the metric style: the
-    /// format is split at its `%@`, so word order stays the translator's.
+    /// format is split at its argument, so word order stays the translator's.
     static func labelled(_ format: String, value: String) -> Text {
-        let parts = format.components(separatedBy: "%@")
         let label = BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .regular)
-        var text = Text(parts.first ?? "").font(label)
-        if parts.count > 1 {
-            text = text + BBTheme.Typography.metricSmall(value)
-                + Text(parts.dropFirst().joined(separator: value)).font(label)
-        } else {
-            text = text + Text(" ") + BBTheme.Typography.metricSmall(value)
+        guard let split = FormatSplit(format, value: value) else {
+            return Text(format).font(label) + Text(" ") + BBTheme.Typography.metricSmall(value)
         }
-        return text
+        return Text(split.head).font(label) + BBTheme.Typography.metricSmall(value) + Text(split.tail).font(label)
     }
 }

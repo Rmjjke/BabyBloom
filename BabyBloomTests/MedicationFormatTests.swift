@@ -227,6 +227,42 @@ final class MedicationFormatTests: XCTestCase {
         XCTAssertEqual(result.count, "Last 24\u{00A0}hours: 2\u{00A0}doses of the 4 you set")
     }
 
+    /// The prescribed number picks the form too: «из 21 указанной»,
+    /// «de la 1 indicada».
+    func testTheCountLineAgreesWithThePrescribedNumber() {
+        let now = d(10, 12)
+        let last = now.addingTimeInterval(-3600)
+        func count(_ max: Int) -> String? {
+            lines(.waiting(lastDose: last, until: last.addingTimeInterval(6 * 3600)), max: max, last24: 1, now: now).count
+        }
+        LocalizationManager.shared.setLanguage("ru")
+        XCTAssertEqual(count(21)?.hasSuffix("из 21 указанной"), true, count(21) ?? "")
+        XCTAssertEqual(count(4)?.hasSuffix("из 4 указанных"), true, count(4) ?? "")
+        XCTAssertEqual(count(5)?.hasSuffix("из 5 указанных"), true, count(5) ?? "")
+        LocalizationManager.shared.setLanguage("es")
+        XCTAssertEqual(count(1)?.hasSuffix("de la 1 indicada"), true, count(1) ?? "")
+        XCTAssertEqual(count(4)?.hasSuffix("de las 4 indicadas"), true, count(4) ?? "")
+    }
+
+    /// The meta line and the status lines are whole sentences per language;
+    /// none keeps a format specifier or glues a piece in code.
+    func testTheWholeTemplatesFillInEveryLanguage() {
+        let now = d(10, 12)
+        let last = now.addingTimeInterval(-3600)
+        for language in ["en", "ru", "es"] {
+            LocalizationManager.shared.setLanguage(language)
+            let meta = F.meta(doseText: "2.5 ml", intervalMinutes: 360)
+            XCTAssertTrue(meta.hasPrefix("2.5 ml\u{00A0}· "), "\(language): \(meta)")
+            let waiting = lines(.waiting(lastDose: last, until: last.addingTimeInterval(6 * 3600)), now: now)
+            let allowed = lines(.allowed(lastDose: now.addingTimeInterval(-7 * 3600)), now: now)
+            let fresh = lines(.waiting(lastDose: now.addingTimeInterval(-20), until: now.addingTimeInterval(6 * 3600)), now: now)
+            for text in [meta, waiting.secondary, allowed.primary ?? "", fresh.secondary] {
+                XCTAssertFalse(text.contains("%"), "\(language): \(text)")
+                XCTAssertTrue(text.contains("\u{00A0}· "), "\(language): \(text)")
+            }
+        }
+    }
+
     // MARK: ordering
 
     func testByNameIsCaseInsensitive() {

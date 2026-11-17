@@ -37,6 +37,15 @@ final class MedicationCopyTests: XCTestCase {
         strings.keys.filter { $0.hasPrefix("medication.") || $0.hasPrefix("notification.medication_") }.sorted()
     }
 
+    /// A plural family's keys read as its `.other` key: each language holds
+    /// the categories its own rule selects (ru `.few`, `.many`).
+    private func byFamily(_ keys: [String]) -> Set<String> {
+        let members = Dictionary(uniqueKeysWithValues: PluralFamily.allCases.flatMap { family in
+            PluralCategory.allCases.map { (family.key($0), family.key(.other)) }
+        })
+        return Set(keys.map { members[$0] ?? $0 })
+    }
+
     /// Each specifier as (position, type): "%@ … %d" and "%1$@ … %2$d" give the
     /// same list, so a translation may reorder its arguments but not change them.
     private func placeholders(_ value: String) throws -> [String] {
@@ -79,7 +88,7 @@ final class MedicationCopyTests: XCTestCase {
         let enKeys = medicationKeys(en) + Self.extraKeys
         for language in Self.languages {
             let other = try strings(language)
-            XCTAssertEqual(Set(medicationKeys(other) + Self.extraKeys), Set(enKeys), "\(language): key sets differ")
+            XCTAssertEqual(byFamily(medicationKeys(other) + Self.extraKeys), byFamily(enKeys), "\(language): key sets differ")
             for key in enKeys {
                 let value = try XCTUnwrap(other[key], "\(language) \(key): missing")
                 XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "\(language) \(key): empty")

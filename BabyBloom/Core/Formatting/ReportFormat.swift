@@ -54,10 +54,10 @@ enum ReportFormat {
         WeeklyFormat.duration(seconds).replacingOccurrences(of: " ", with: nbsp)
     }
 
-    /// «Breast 120», the name and its count held together.
+    /// «Breast 120», the name and its count held together: the template's own
+    /// space is unbreakable, and so are the spaces inside a two-word name.
     static func countItem(name: String, count: Int) -> String {
-        String(format: "report.type_count_fmt".l, name, count)
-            .replacingOccurrences(of: " ", with: nbsp)
+        String(format: "report.type_count_fmt".l, name.replacingOccurrences(of: " ", with: nbsp), count)
     }
 
     static func countList(_ items: [String]) -> String { items.joined(separator: listSeparator) }

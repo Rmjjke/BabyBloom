@@ -129,10 +129,10 @@ final class DoctorReportPDFTests: XCTestCase {
         (key.l.components(separatedBy: "%").first ?? "").trimmingCharacters(in: .whitespaces)
     }
 
-    /// «label <b>value</b> tail», as the PDF's row builder splits the key at `%@`.
+    /// «label <b>value</b> tail», as the PDF's row builder splits the key.
     private func rowHTML(_ key: String, _ value: String) -> String {
-        let parts = key.l.replacingOccurrences(of: "%d", with: "%@").components(separatedBy: "%@")
-        return "\(esc(parts.first ?? ""))<b>\(esc(value))</b>\(esc(parts.dropFirst().joined()))"
+        let split = FormatSplit(key.l, value: value)
+        return "\(esc(split?.head ?? key.l))<b>\(esc(value))</b>\(esc(split?.tail ?? ""))"
     }
 
     private func esc(_ text: String) -> String { ExportGenerator.htmlEscape(text) }
@@ -450,7 +450,7 @@ final class DoctorReportPDFTests: XCTestCase {
             let page = html(makeSummary(), baby: makeBaby())
             XCTAssertFalse(page.contains(esc(fixedPrefix("report.pdf.due_fmt"))), "\(language)")
             // The text between the two placeholders: «(corrected age: ».
-            let corrected = "report.age_corrected_fmt".l.components(separatedBy: "%@")[1]
+            let corrected = (FormatSplit("report.age_corrected_fmt".l, at: 2, filling: [""])?.head ?? "")
                 .trimmingCharacters(in: .whitespaces)
             XCTAssertFalse(corrected.isEmpty)
             XCTAssertFalse(page.contains(esc(corrected)), "\(language)")
