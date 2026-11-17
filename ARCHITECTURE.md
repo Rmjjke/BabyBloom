@@ -1104,6 +1104,20 @@ saves. The medication, dose and event bars' ✓ carry `medication.bar_save`,
 goal editor keep their Save at the end of the scroll, where it cannot cover a
 field.
 
+iOS scrolls a focused field above the keyboard, but not a line that appears
+under it while typing. The medication form's «Most doses in 24 hours» range hint
+is such a line, the only one on a keyboard-raising field of the medication and
+dose sheets.
+The field, its hint and the divider under them are one block with an id; a
+`ScrollViewReader` scrolls that block's bottom to the keyboard's edge when the
+hint appears while the field is focused, and on `keyboardDidShow` when the field
+is focused with the hint already up. That second scroll waits 0.4 s: the system
+ends the keyboard's rise with its own 0.3 s scroll of the field into view, and a
+scroll made during it is dropped. `MedicationFormKeyboardTests` checks it
+against the simulator's real number pad, with the form presented as a sheet as
+the app presents it: hosted full-screen, the form sat higher and hid the bug in
+two of the three languages.
+
 The widget extension bundles its own small catalog, `WidgetResources/Colors.xcassets`,
 holding the brand colorsets it uses. It cannot share the app's catalog: that
 path sits inside the tree the app target already scans, and XcodeGen then

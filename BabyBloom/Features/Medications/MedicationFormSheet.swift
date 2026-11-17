@@ -18,6 +18,10 @@ struct MedicationFormSheet: View {
     @State private var selectedDetent: PresentationDetent = .large
     /// This device's reminder switch, stored on Save with the rest.
     @State private var reminderOn: Bool
+    @FocusState private var maximumFocused: Bool
+
+    /// The maximum field and its range hint, scrolled into view as one.
+    private static let maximumBlock = "medication.max.block"
 
     init(medicine: Medicine?, onDelete: (() -> Void)? = nil) {
         self.medicine = medicine
@@ -32,30 +36,47 @@ struct MedicationFormSheet: View {
         medicine == nil ? "medication.form_new_title".l : "medication.form_edit_title".l
     }
 
+    private var showsMaximumHint: Bool { input.maximum == .invalid }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
-                        BBSheetHeading(title: title)
-                        mainGroup
-                        detailsGroup
-                        if medicine?.isEnded != true {
-                            MedicationReminderCard(isOn: $reminderOn, fireDate: reminderFireDate,
-                                                   now: AppClock.now)
-                                .medicationField()
-                        }
-                        if medicine != nil, onDelete != nil {
-                            Button(role: .destructive) { confirmDelete = true } label: {
-                                Text("medication.delete".l)
-                                    .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                                    .frame(minHeight: 44, alignment: .leading)
-                                    .contentShape(Rectangle())
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: BBTheme.Spacing.lg) {
+                            BBSheetHeading(title: title)
+                            mainGroup
+                            detailsGroup
+                            if medicine?.isEnded != true {
+                                MedicationReminderCard(isOn: $reminderOn, fireDate: reminderFireDate,
+                                                       now: AppClock.now)
+                                    .medicationField()
                             }
-                            .accessibilityIdentifier("medication.delete")
+                            if medicine != nil, onDelete != nil {
+                                Button(role: .destructive) { confirmDelete = true } label: {
+                                    Text("medication.delete".l)
+                                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+                                        .frame(minHeight: 44, alignment: .leading)
+                                        .contentShape(Rectangle())
+                                }
+                                .accessibilityIdentifier("medication.delete")
+                            }
                         }
+                        .padding(BBTheme.Spacing.md)
                     }
-                    .padding(BBTheme.Spacing.md)
+                    // iOS keeps the focused field above the keyboard, not the
+                    // hint added under it: the number pad covered the reason
+                    // Save had gone off, and the pad has no key to hide it.
+                    .onChange(of: showsMaximumHint) { _, shown in
+                        if shown, maximumFocused { revealMaximum(proxy) }
+                    }
+                    // Back in the field with the hint already up. The pad's
+                    // rise ends with the system's own 0.3 s scroll of the
+                    // field into view, which drops any scroll made during it;
+                    // ours runs once it is over.
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+                        if showsMaximumHint, maximumFocused { revealMaximum(proxy, after: 0.4) }
+                    }
                 }
                 BBSheetFooter {
                     // BBPrimaryButton has no disabled look of its own.
@@ -143,26 +164,31 @@ struct MedicationFormSheet: View {
                 .accessibilityIdentifier("medication.dose")
             divider
             fieldLabel("medication.field_max")
-            // Labelled above, but the placeholder is the example of what to
-            // type, and in es it needs a second line at accessibility sizes.
-            TextField("medication.field_max_placeholder".l, text: $input.maximumText, axis: .vertical)
-                .bbPlaceholderLabel("medication.field_max_placeholder".l, text: input.maximumText)
-                .keyboardType(.numberPad)
-                .padding(.top, BBTheme.Spacing.xs)
-                .accessibilityLabel(Text("medication.field_max".l))
-                .accessibilityIdentifier("medication.max")
-                .onChange(of: input.maximumText) { _, text in
-                    let digits = MedicationFormInput.maximumDigits(text)
-                    if digits != text { input.maximumText = digits }
-                }
-            if input.maximum == .invalid {
-                // Why Save is off, in the field's own grey: a range to type,
-                // not an error to fix.
-                fieldLabel("medication.field_max_range_hint")
+            VStack(alignment: .leading, spacing: 0) {
+                // Labelled above, but the placeholder is the example of what to
+                // type, and in es it needs a second line at accessibility sizes.
+                TextField("medication.field_max_placeholder".l, text: $input.maximumText, axis: .vertical)
+                    .bbPlaceholderLabel("medication.field_max_placeholder".l, text: input.maximumText)
+                    .keyboardType(.numberPad)
+                    .focused($maximumFocused)
                     .padding(.top, BBTheme.Spacing.xs)
-                    .accessibilityIdentifier("medication.max_hint")
+                    .accessibilityLabel(Text("medication.field_max".l))
+                    .accessibilityIdentifier("medication.max")
+                    .onChange(of: input.maximumText) { _, text in
+                        let digits = MedicationFormInput.maximumDigits(text)
+                        if digits != text { input.maximumText = digits }
+                    }
+                if showsMaximumHint {
+                    // Why Save is off, in the field's own grey: a range to type,
+                    // not an error to fix.
+                    fieldLabel("medication.field_max_range_hint")
+                        .padding(.top, BBTheme.Spacing.xs)
+                        .accessibilityIdentifier("medication.max_hint")
+                }
+                // Inside the block, so the hint stops a gap above the pad.
+                divider
             }
-            divider
+            .id(Self.maximumBlock)
             TextField("form.notes_optional".l, text: $input.note, axis: .vertical)
                 .bbPlaceholderLabel("form.notes_optional".l, text: input.note)
         }
@@ -170,6 +196,17 @@ struct MedicationFormSheet: View {
     }
 
     // MARK: Parts
+
+    /// Scrolls the maximum field and its hint up to the keyboard's edge. On
+    /// a later pass at the earliest, once the hint is laid out: in the same
+    /// pass the block still ends at the field.
+    private func revealMaximum(_ proxy: ScrollViewProxy, after delay: TimeInterval = 0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) {
+                proxy.scrollTo(Self.maximumBlock, anchor: .bottom)
+            }
+        }
+    }
 
     /// The pending time as it will be after Save: the form's interval and
     /// maximum over the doses already logged. None for a new medication.
