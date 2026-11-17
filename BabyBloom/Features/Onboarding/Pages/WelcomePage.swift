@@ -43,7 +43,9 @@ struct WelcomePage: View {
                         }
                     }
                 }
-                .frame(height: 320)
+                // A floor, not a height: at the largest sizes the tagline
+                // takes more lines than 320 pt holds and the hero grows.
+                .frame(minHeight: 320)
 
                 // Feature cards: one shape for all four, beside while every
                 // title's words fit beside the icon.

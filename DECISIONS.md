@@ -14,6 +14,27 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — More and Profile take the screen-title rule; a List's heading is its own first section; the paywall title steps down
+
+More and Profile set their titles through `bbScreenTitle` like the other
+scrolling screens. In their Lists the heading is a section of its own, a row
+with no insets, background or separator, lg above the next section. The
+paywall hero's title steps from title1 to title2 and title3 while its widest
+word misses the line, and its gradient is the stack's background, not a layer
+beside it.
+
+**Why.** A plain `navigationTitle` cut «Profile» in ja-XB at AX2 on 320 pt.
+The heading as the first section's header would take the header's own
+style and insets; as a
+row in the first section it would draw that section's card behind it. A row
+of its own is flush with the cards' edge, where the bar's large title stands,
+and where the bar holds the title the section is empty, so the list is as it
+was. The paywall's cut in en-XA at AX2 was not a word wider than the line
+(the widest, «Préémííüüm]», is 246 pt in 272): in the hero's `ZStack` the
+gradient layer left the text stack less than its ideal height and the title
+fell to one cut line; as a background it sets two whole lines. The step-down
+then covers a word that would miss the line, as `BBScreenHeading` does.
+
 ## 2026-11-11 — A PDF column is measured, never counted in characters
 
 Both PDFs give every table column at least its head's widest unbreakable

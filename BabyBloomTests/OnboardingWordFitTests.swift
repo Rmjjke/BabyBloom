@@ -21,7 +21,8 @@ final class OnboardingWordFitTests: XCTestCase {
 
     /// Places a language is known not to fit, keyed by the string key, the
     /// window's width, the size (Large, AX1, AX2) and " bold" with Bold Text
-    /// ("onboarding.notify.b1 320 AX2 bold"); a page past the screen's edges
+    /// ("onboarding.notify.b1 320 AX2 bold"; a cut tagline is
+    /// "onboarding.tagline lines 320 AX2"); a page past the screen's edges
     /// is keyed by the page ("welcome edges 272 Large"; also notifications,
     /// feeding, growth, birth); feeding rows of uneven heights are keyed
     /// "feeding rows <width> <size>[ bold]" (width = the heights' spread,
@@ -58,9 +59,9 @@ final class OnboardingWordFitTests: XCTestCase {
         for language in FitLanguage.all {
             language.apply()
             let qualifier = "272 Large"
-            let titles = try texts(welcomeTitleKeys,
-                                   in: page(WelcomePage(onStart: {}), screen, language, "welcome edges \(qualifier)"),
-                                   "\(language) \(qualifier)")
+            let welcome = try page(WelcomePage(onStart: {}), screen, language, "welcome edges \(qualifier)")
+            let titles = try texts(welcomeTitleKeys, in: welcome, "\(language) \(qualifier)")
+            try assertTaglineWhole(in: welcome, language, qualifier)
             // Unpinned languages: only whole words, no shape.
             if let stacked = stackedIn[language] {
                 assertShape(titles.map(\.element), stacked: stacked, under: 40, beside: 98, "\(language) \(qualifier)")
@@ -216,10 +217,10 @@ final class OnboardingWordFitTests: XCTestCase {
                         expectedStacked(surface, width: width, language: language, bold: bold, size: size)
                     }
 
-                    let titles = try texts(welcomeTitleKeys,
-                                           in: page(WelcomePage(onStart: {}), screen, language,
-                                                    "welcome edges \(qualifier)", weight: weight),
-                                           "\(name) welcome")
+                    let welcome = try page(WelcomePage(onStart: {}), screen, language,
+                                           "welcome edges \(qualifier)", weight: weight)
+                    let titles = try texts(welcomeTitleKeys, in: welcome, "\(name) welcome")
+                    try assertTaglineWhole(in: welcome, bold: bold, language, qualifier)
                     if let stacked = expected(.welcome) {
                         assertShape(titles.map(\.element), stacked: stacked, under: 40, beside: 98, "\(name) welcome")
                     }
@@ -277,6 +278,7 @@ final class OnboardingWordFitTests: XCTestCase {
 
     private var welcomeFont: Font { BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, design: .rounded) }
     private var bulletFont: Font { BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded) }
+    private var taglineFont: Font { BBTheme.Typography.scaled(18, relativeTo: .body, weight: .medium, design: .rounded) }
     private var switchTitleFont: Font { BBTheme.Typography.scaled(16, relativeTo: .body, weight: .semibold, design: .rounded) }
     private var switchHintFont: Font { BBTheme.Typography.scaled(12, relativeTo: .body, weight: .regular, design: .rounded) }
     private var feedingNameFont: Font { BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded) }
@@ -465,6 +467,22 @@ final class OnboardingWordFitTests: XCTestCase {
         // broken; its height tells the size it was set at.
         XCTAssertEqual(hint.frame.height, height(of: plainHint(text, at: setAt), in: column, bold: bold),
                        accuracy: 1, "\(name): not set at \(setAt.rawValue)", file: file, line: line)
+    }
+
+    /// The tagline under the brand name keeps every line it needs: as tall as
+    /// the same text needs at its own width, and no word broken. The hero once
+    /// had a fixed 320-pt height, and at AX2 the tagline lost its last lines.
+    private func assertTaglineWhole(in elements: [HostedAccessibility.Element], bold: Bool = false,
+                                    _ language: FitLanguage, _ qualifier: String,
+                                    file: StaticString = #filePath, line: UInt = #line) throws {
+        let tagline = try texts(["onboarding.tagline"], in: elements, "\(language) \(qualifier)")
+        assertWordsWhole(tagline, taglineFont, bold: bold, language, qualifier, file: file, line: line)
+        let text = tagline[0].element
+        let needed = height(of: Text(text.label).font(taglineFont).multilineTextAlignment(.center),
+                            in: text.frame.width + 0.5, bold: bold)
+        check(language, "onboarding.tagline lines \(qualifier)",
+              text.frame.height + 1 < needed ? "cut: \(points(text.frame.height)) tall of \(points(needed))" : nil,
+              file: file, line: line)
     }
 
     /// A text laid out narrower than its widest unit has broken that unit.
