@@ -140,8 +140,7 @@ sentences, which have a `report.pdf.*` twin.
 
 **Keys.** The test reads each value from the JSON of the language under test.
 For a key with placeholders, it scans the longest fixed stretch between them.
-- Percentile bands: `percentile.normal`, `percentile.below_normal`,
-  `percentile.above_normal`, `percentile.very_low`, `percentile.very_high`,
+- Percentile bands: `percentile.very_low`, `percentile.very_high`,
   `percentile.below3`, `percentile.above97`. The badges
   `percentile.badge_below3` / `_above97` are allowed, because they are the
   number.
