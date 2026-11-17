@@ -14,6 +14,28 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-13 — The report falls back to raw counts per section; minutes are floored on every surface
+
+- **No finished day with entries: raw counts and no days line.** A section of
+  the pediatrician report (feeding, sleep, diapers) averages over its finished
+  days with entries, and today never averages. In a period of 3 or more days
+  whose finished days hold nothing of that kind, the section prints its counts
+  (feeds, sleep in total, wet and dirty), exactly as a period under 3 days does.
+  Why: the counts hung on the period's length and the averages on finished
+  days, so that case got neither. The diapers card showed no row at all, and a
+  line «Averages over the days with entries: 0 of 3» sat under no average. The
+  card and the PDF now branch on whether the section has an average, not on
+  the length, so the days line, which only qualifies an average, cannot
+  outlive it. Existing count keys only: no new string.
+- **Minutes are floored on every surface.** `WeeklyFormat.duration`, behind the
+  weekly card and the report's `ReportFormat.duration`, rounded minutes; every
+  history row, timer total and the export floor them. One 1 min 40 s feed read
+  «1 min» in history and «2 min» as the report's typical breastfeed. Floor is
+  the majority and what a clock shows, so the summary moved, not the history.
+  The weekly sleep arrow compares the two floored values it shows. The seconds
+  are rounded to the millisecond first: an average of doubles can land a hair
+  under a whole minute and would lose it.
+
 ## 2026-11-11 — More and Profile take the screen-title rule; a List's heading is its own first section; the paywall title steps down
 
 More and Profile set their titles through `bbScreenTitle` like the other

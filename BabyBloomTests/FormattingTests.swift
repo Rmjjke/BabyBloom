@@ -79,6 +79,38 @@ final class FormattingTests: XCTestCase {
         }
     }
 
+    /// One feed reads the same minutes in its history row and in a summary:
+    /// both floor, so 90–119 s is «1 min» everywhere.
+    func testASummaryFloorsMinutesAsTheHistoryRowDoes() {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        for language in [SupportedLanguage.en, .ru, .fr] {
+            LocalizationManager.shared.setLanguage(language)
+            for seconds in [60.0, 90, 100, 119, 119.6, 179.9, 3599.5] {
+                let feed = FeedingEntry(startTime: start, type: .breast, side: .left)
+                feed.endTime = start.addingTimeInterval(seconds)
+                XCTAssertEqual(WeeklyFormat.duration(seconds), feed.durationFormatted, "\(language) \(seconds) s")
+                XCTAssertEqual(ReportFormat.duration(seconds).replacingOccurrences(of: nbsp, with: " "),
+                               feed.durationFormatted.replacingOccurrences(of: nbsp, with: " "),
+                               "\(language) \(seconds) s")
+            }
+            XCTAssertEqual(WeeklyFormat.duration(100), DurationText.minutes(1), "\(language)")
+        }
+        // An average of doubles a hair under a whole minute keeps that minute.
+        XCTAssertEqual(WeeklyFormat.wholeMinutes(26_999.9999), 450)
+        XCTAssertEqual(WeeklyFormat.wholeMinutes(59.4), 0)
+    }
+
+    /// The weekly card's arrow compares the two shown values, not the raw seconds.
+    func testTheSleepDeltaIsTheDifferenceOfTheFlooredMinutes() {
+        LocalizationManager.shared.setLanguage(.en)
+        XCTAssertNil(WeeklyFormat.sleepDelta(8 * 3600 + 59, 8 * 3600), "both read 8 h 0 min")
+        let delta = WeeklyFormat.sleepDelta(8 * 3600 + 60, 8 * 3600 + 59)
+        XCTAssertEqual(delta?.up, true)
+        XCTAssertEqual(delta?.text, WeeklyFormat.duration(60))
+        XCTAssertEqual(WeeklyFormat.sleepDelta(7 * 3600, 7 * 3600 + 150)?.up, false)
+        XCTAssertEqual(WeeklyFormat.sleepDelta(7 * 3600, 7 * 3600 + 150)?.text, WeeklyFormat.duration(120))
+    }
+
     /// The report screen's period line: «20 days» and «13 окт.» never split,
     /// and a visit today reads the word, not «0 days».
     func testTheReportPeriodAndDateHoldTogether() {

@@ -160,6 +160,47 @@ final class DoctorReportSummaryTests: XCTestCase {
         XCTAssertEqual(summary.diapers?.wetCount, 19)
     }
 
+    /// Three full days with nothing logged, then this morning's entries: today
+    /// is never averaged, so each section falls back to the counts, as a
+    /// short period does, and prints no days line under them.
+    func testALongPeriodWithOnlyTodaysEntriesHasCountsAndNoDaysLine() {
+        let summary = make(input(
+            feeds: [feed(at(1, 6, month: 11)), feed(at(1, 8, month: 11), .formula, ml: 90)],
+            sleeps: [sleep(at(1, 3, month: 11), at(1, 5, month: 11))],
+            diapers: [Diaper(time: at(1, 7, month: 11), type: .wet), Diaper(time: at(1, 8, month: 11), type: .both)]),
+                           start: at(29, 0))
+        XCTAssertFalse(summary.isShort)
+        let feeding = summary.feeding
+        XCTAssertEqual(feeding?.totalFeeds, 2)
+        XCTAssertNil(feeding?.feedsPerDay)
+        XCTAssertEqual(feeding?.averaged, false)
+        let sleepSection = summary.sleep
+        XCTAssertEqual(sleepSection?.total, 2 * 3600)
+        XCTAssertNil(sleepSection?.perDay)
+        XCTAssertEqual(sleepSection?.averaged, false)
+        let diapers = summary.diapers
+        XCTAssertEqual(diapers?.wetCount, 2)
+        XCTAssertEqual(diapers?.dirtyCount, 1)
+        XCTAssertNil(diapers?.wetPerDay)
+        XCTAssertNil(diapers?.dirtyPerDay)
+        XCTAssertEqual(diapers?.averaged, false)
+
+        // One finished day with entries: the averages are back, over that day only.
+        let oneDay = make(input(
+            feeds: [feed(at(30, 10)), feed(at(30, 14)), feed(at(1, 6, month: 11))],
+            sleeps: [sleep(at(30, 13), at(30, 15)), sleep(at(1, 3, month: 11), at(1, 5, month: 11))],
+            diapers: [Diaper(time: at(30, 9), type: .dirty), Diaper(time: at(1, 7, month: 11), type: .wet)]),
+                          start: at(29, 0))
+        XCTAssertEqual(oneDay.feeding?.feedsPerDay, 2)
+        XCTAssertEqual(oneDay.feeding?.averaged, true)
+        XCTAssertEqual(oneDay.feeding?.days, Days(withEntries: 1, counted: 3))
+        XCTAssertEqual(oneDay.sleep?.perDay, 2 * 3600)
+        XCTAssertEqual(oneDay.sleep?.averaged, true)
+        XCTAssertEqual(oneDay.diapers?.wetPerDay, 0)
+        XCTAssertEqual(oneDay.diapers?.dirtyPerDay, 1)
+        XCTAssertEqual(oneDay.diapers?.averaged, true)
+    }
+
     func testAShortPeriodHasCountsAndNoPerDayFigures() {
         let summary = make(input(
             feeds: [feed(at(31, 8), .formula, ml: 90), feed(at(31, 12)), feed(at(1, 7, month: 11), .formula, ml: 60)],

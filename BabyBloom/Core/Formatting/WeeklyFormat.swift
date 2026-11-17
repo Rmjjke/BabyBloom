@@ -15,8 +15,16 @@ enum WeeklyFormat {
         value.formatted(.number.precision(.fractionLength(0...1)).locale(locale))
     }
 
+    /// Floored, as the history rows and the timers floor: a 1 min 50 s feed
+    /// is «1 min» on every surface, never «2 min» in a summary. Rounded to the
+    /// millisecond first, so an average or a sum of doubles that lands a hair
+    /// under a whole minute keeps that minute.
+    static func wholeMinutes(_ seconds: TimeInterval) -> Int {
+        Int((seconds * 1000).rounded()) / 60_000
+    }
+
     static func duration(_ seconds: TimeInterval) -> String {
-        DurationText.minutes(Int((seconds / 60).rounded()))
+        DurationText.minutes(wholeMinutes(seconds))
     }
 
     /// nil when there is nothing to compare or the shown values are equal.
@@ -29,9 +37,10 @@ enum WeeklyFormat {
 
     static func sleepDelta(_ current: TimeInterval?, _ previous: TimeInterval?) -> (up: Bool, text: String)? {
         guard let current, let previous else { return nil }
-        let difference = (current / 60).rounded() - (previous / 60).rounded()
+        // The difference of the two shown values, so the arrow never disagrees with them.
+        let difference = wholeMinutes(current) - wholeMinutes(previous)
         guard difference != 0 else { return nil }
-        return (difference > 0, duration(abs(difference) * 60))
+        return (difference > 0, duration(TimeInterval(abs(difference) * 60)))
     }
 
     /// M T W T F S S in the app's language, Monday first.

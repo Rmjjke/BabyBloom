@@ -39,9 +39,9 @@ enum DoctorReportPDF {
             // period and nothing was logged since.
             items.append(.block("<p class=\"muted\">\(esc("report.pdf.no_entries".l))</p>"))
         } else {
-            items.append(.block(feeding(summary.feeding, periodStart: periodStart, isShort: summary.isShort)))
-            items.append(.block(sleep(summary.sleep, periodStart: periodStart, isShort: summary.isShort, now: now)))
-            items.append(.block(diapers(summary.diapers, periodStart: periodStart, isShort: summary.isShort)))
+            items.append(.block(feeding(summary.feeding, periodStart: periodStart)))
+            items.append(.block(sleep(summary.sleep, periodStart: periodStart, now: now)))
+            items.append(.block(diapers(summary.diapers, periodStart: periodStart)))
             if let medications = medications(summary.medications, now: now) { items.append(medications) }
         }
         if let questions = questions(openQuestions) { items.append(questions) }
@@ -396,13 +396,13 @@ enum DoctorReportPDF {
 
     // MARK: Feeding, sleep, diapers
 
-    private static func feeding(_ feeding: DoctorReportSummary.Feeding?, periodStart: Date, isShort: Bool) -> String {
+    private static func feeding(_ feeding: DoctorReportSummary.Feeding?, periodStart: Date) -> String {
         guard let feeding else { return emptySection("export.cat.feeding", "report.empty_feeding_fmt", periodStart) }
         var cells: [String] = []
-        if isShort {
-            cells.append(row("report.feeds_count_fmt", "\(feeding.totalFeeds)"))
-        } else if let perDay = feeding.feedsPerDay {
+        if let perDay = feeding.feedsPerDay {
             cells.append(row("weekly.feeds_fmt", WeeklyFormat.perDay(perDay)))
+        } else {
+            cells.append(row("report.feeds_count_fmt", "\(feeding.totalFeeds)"))
         }
         if !feeding.byType.isEmpty {
             cells.append(row("report.feeds_by_type_fmt", ReportFormat.countList(feeding.byType.map {
@@ -413,34 +413,33 @@ enum DoctorReportPDF {
         if let typical = feeding.breastfeedMedian {
             cells.append(row("report.breastfeed_avg_fmt", ReportFormat.duration(typical)))
         }
-        return section("export.cat.feeding", cells, days: feeding.days, isShort: isShort)
+        return section("export.cat.feeding", cells, days: feeding.days, averaged: feeding.averaged)
     }
 
-    private static func sleep(_ sleep: DoctorReportSummary.Sleep?, periodStart: Date, isShort: Bool,
-                              now: Date) -> String {
+    private static func sleep(_ sleep: DoctorReportSummary.Sleep?, periodStart: Date, now: Date) -> String {
         guard let sleep else { return emptySection("export.cat.sleep", "report.empty_sleep_fmt", periodStart) }
         var cells: [String] = []
-        if isShort {
-            cells.append(row("report.sleep_total_fmt", ReportFormat.duration(sleep.total)))
-        } else if let perDay = sleep.perDay {
+        if let perDay = sleep.perDay {
             cells.append(row("weekly.sleep_fmt", ReportFormat.duration(perDay)))
+        } else {
+            cells.append(row("report.sleep_total_fmt", ReportFormat.duration(sleep.total)))
         }
         if let longest = sleep.longest {
             cells.append(row("weekly.longest_sleep_fmt", ReportFormat.duration(longest),
                              suffix: sleep.longestStart.map { ReportFormat.date($0, now: now) }))
         }
-        return section("export.cat.sleep", cells, days: sleep.days, isShort: isShort)
+        return section("export.cat.sleep", cells, days: sleep.days, averaged: sleep.averaged)
     }
 
-    private static func diapers(_ diapers: DoctorReportSummary.Diapers?, periodStart: Date, isShort: Bool) -> String {
+    private static func diapers(_ diapers: DoctorReportSummary.Diapers?, periodStart: Date) -> String {
         guard let diapers else { return emptySection("export.cat.diapers", "report.empty_diapers_fmt", periodStart) }
         var cells: [String] = []
-        if isShort {
+        if let wet = diapers.wetPerDay, let dirty = diapers.dirtyPerDay {
+            cells.append(row("report.wet_a_day_fmt", WeeklyFormat.perDay(wet)))
+            cells.append(row("report.dirty_a_day_fmt", WeeklyFormat.perDay(dirty)))
+        } else {
             cells.append(row("report.wet_count_fmt", "\(diapers.wetCount)"))
             cells.append(row("report.dirty_count_fmt", "\(diapers.dirtyCount)"))
-        } else {
-            if let wet = diapers.wetPerDay { cells.append(row("report.wet_a_day_fmt", WeeklyFormat.perDay(wet))) }
-            if let dirty = diapers.dirtyPerDay { cells.append(row("report.dirty_a_day_fmt", WeeklyFormat.perDay(dirty))) }
         }
         // Names and counts only: no swatch, no warning.
         if !diapers.colors.isEmpty {
@@ -448,14 +447,14 @@ enum DoctorReportPDF {
                 ReportFormat.countItem(name: $0.color.displayName.l, count: $0.count)
             })))
         }
-        return section("export.cat.diapers", cells, days: diapers.days, isShort: isShort)
+        return section("export.cat.diapers", cells, days: diapers.days, averaged: diapers.averaged)
     }
 
     private static func section(_ titleKey: String, _ cells: [String],
-                                days: DoctorReportSummary.Days, isShort: Bool) -> String {
+                                days: DoctorReportSummary.Days, averaged: Bool) -> String {
         var html = "<div><h2>\(esc(titleKey.l))</h2>" + twoColumns(cells)
-        // Short periods print raw counts and no days line.
-        if days.showsLine && !isShort {
+        // The days line qualifies an average; raw counts take none.
+        if days.showsLine && averaged {
             html += "<p class=\"sub\">\(esc(String(format: "report.days_logged_fmt".l, days.withEntries, days.counted)))</p>"
         }
         return html + "</div>"

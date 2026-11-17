@@ -5,7 +5,6 @@ struct SleepReportCard: View {
     /// nil = no finished sleep in the period.
     let sleep: DoctorReportSummary.Sleep?
     let periodStart: Date
-    let isShort: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
@@ -24,15 +23,15 @@ struct SleepReportCard: View {
 
     @ViewBuilder
     private func rows(_ sleep: DoctorReportSummary.Sleep) -> some View {
-        if isShort {
-            ReportRow(format: "report.sleep_total_fmt".l, value: ReportFormat.duration(sleep.total))
-        } else if let perDay = sleep.perDay {
+        if let perDay = sleep.perDay {
             ReportRow(format: "weekly.sleep_fmt".l, value: ReportFormat.duration(perDay))
+        } else {
+            ReportRow(format: "report.sleep_total_fmt".l, value: ReportFormat.duration(sleep.total))
         }
         if let longest = sleep.longest {
             ReportRow(format: "weekly.longest_sleep_fmt".l, value: ReportFormat.duration(longest),
                       suffix: sleep.longestStart.map { ReportFormat.date($0) })
         }
-        ReportDaysLine(days: sleep.days, isShort: isShort)
+        ReportDaysLine(days: sleep.days, averaged: sleep.averaged)
     }
 }

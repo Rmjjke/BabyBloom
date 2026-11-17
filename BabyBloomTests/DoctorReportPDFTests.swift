@@ -512,6 +512,65 @@ final class DoctorReportPDFTests: XCTestCase {
         }
     }
 
+    /// A period of 3 full days from 29 Oct. `finishedDays` lists the October
+    /// days with an entry of each kind; today (1 Nov) always has one.
+    private func makeLongSummary(finishedDays: [Int]) -> DoctorReportSummary {
+        let days = finishedDays + [1]
+        func stamp(_ day: Int, _ hour: Int) -> Date { day == 1 ? at(1, hour, month: 11) : at(day, hour) }
+        let input = DoctorReportSummary.Input(
+            feeds: days.map { Feed(start: stamp($0, 7), end: stamp($0, 7).addingTimeInterval(600), type: .breast, volumeML: nil) },
+            sleeps: days.map { Sleep(start: stamp($0, 1), end: stamp($0, 3)) },
+            diapers: days.flatMap { [Diaper(time: stamp($0, 6), type: .wet, color: nil),
+                                     Diaper(time: stamp($0, 8), type: .dirty, color: .yellow)] },
+            birthDate: at(2, 12, month: 9), correctedBirthDate: at(2, 12, month: 9),
+            birthWeightKg: nil, isMale: false)
+        return DoctorReportSummary.make(input: input, periodStart: at(29, 0), now: now,
+                                        startsAtVisit: true, calendar: calendar)
+    }
+
+    /// Not short, but no finished day holds an entry: today is never averaged,
+    /// so every section prints its counts and no «days with entries» line.
+    func testALongPeriodWithOnlyTodaysEntriesPrintsRawCountsAndNoDaysLine() throws {
+        let summary = makeLongSummary(finishedDays: [])
+        XCTAssertFalse(summary.isShort)
+        let feeding = try XCTUnwrap(summary.feeding)
+        let sleep = try XCTUnwrap(summary.sleep)
+        let diapers = try XCTUnwrap(summary.diapers)
+
+        for language in [SupportedLanguage.en, .ru, .fr] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary, periodStart: at(29, 0))
+            XCTAssertTrue(page.contains(rowHTML("report.feeds_count_fmt", "\(feeding.totalFeeds)")), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.sleep_total_fmt", ReportFormat.duration(sleep.total))), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.wet_count_fmt", "\(diapers.wetCount)")), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.dirty_count_fmt", "\(diapers.dirtyCount)")), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.days_logged_fmt"))), "\(language)")
+            for key in ["weekly.feeds_fmt", "weekly.sleep_fmt", "report.wet_a_day_fmt", "report.dirty_a_day_fmt"] {
+                XCTAssertFalse(page.contains(esc(fixedPrefix(key))), "\(language): \(key)")
+            }
+        }
+    }
+
+    /// One finished day with entries keeps the averages over it and the days line.
+    func testALongPeriodWithOneFinishedDayKeepsTheAveragesAndTheDaysLine() throws {
+        let summary = makeLongSummary(finishedDays: [30])
+        let feeding = try XCTUnwrap(summary.feeding)
+        let sleep = try XCTUnwrap(summary.sleep)
+        let diapers = try XCTUnwrap(summary.diapers)
+        XCTAssertEqual(feeding.days, DoctorReportSummary.Days(withEntries: 1, counted: 3))
+
+        for language in [SupportedLanguage.en, .ru, .fr] {
+            LocalizationManager.shared.setLanguage(language)
+            let page = html(summary, periodStart: at(29, 0))
+            XCTAssertTrue(page.contains(rowHTML("weekly.feeds_fmt", WeeklyFormat.perDay(try XCTUnwrap(feeding.feedsPerDay)))), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("weekly.sleep_fmt", ReportFormat.duration(try XCTUnwrap(sleep.perDay)))), "\(language)")
+            XCTAssertTrue(page.contains(rowHTML("report.wet_a_day_fmt", WeeklyFormat.perDay(try XCTUnwrap(diapers.wetPerDay)))), "\(language)")
+            XCTAssertTrue(page.contains(esc(String(format: "report.days_logged_fmt".l, 1, 3))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.feeds_count_fmt"))), "\(language)")
+            XCTAssertFalse(page.contains(esc(fixedPrefix("report.wet_count_fmt"))), "\(language)")
+        }
+    }
+
     // MARK: i) No visit
 
     func testAPeriodFromBirthRendersTheSectionsAndNoEntriesLine() {
