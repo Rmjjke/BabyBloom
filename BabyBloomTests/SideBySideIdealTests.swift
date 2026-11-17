@@ -40,6 +40,13 @@ final class SideBySideIdealTests: XCTestCase {
         // at xxLarge bold, every word whole: the card's designed shape when
         // the pair cannot sit side by side.
         KnownMiss(.real(.fr), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 268.7, room: 256.0),
+        // European Portuguese «Aumento de peso» beside «+180 g/semana · abaixo da
+        // referência» stacks from xLarge, every word whole: the card's designed
+        // shape when the pair cannot sit side by side.
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXL", width: 288.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 303.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 311.7, room: 256.0),
+        KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 328.0, room: 256.0),
     ]
 
     // MARK: - The least room, from known widths
