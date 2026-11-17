@@ -49,7 +49,9 @@ Full suite per `platform-test-runner` on `main` at the bump commit.
 
 - After any key change, compare the archived key's sha256 prefix with the
   last good one (sha8 `c5b38caf` since build 24):
-  `PlistBuddy -c "Print :AmplitudeAPIKey" <xcarchive>/Products/Applications/BabyBloom.app/Info.plist | shasum -a 256 | cut -c1-8`
+  `PlistBuddy -c "Print :AmplitudeAPIKey" <xcarchive>/Products/Applications/BabyBloom.app/Info.plist | tr -d '\n' | shasum -a 256 | cut -c1-8`
+  (PlistBuddy ends the value with a newline; the reference prefix is the hash
+  of the key alone, so the newline is stripped first)
   — and probe it (`POST https://api2.amplitude.com/2/httpapi` with an empty
   events list → 200 / `events_ingested: 0`).
 
