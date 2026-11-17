@@ -5,10 +5,13 @@ import XCTest
 /// scripts that write spaces, line-break runs for Chinese and Japanese.
 final class LineBreakUnitsTests: XCTestCase {
 
-    /// Every shipped value parts exactly as the plain-space split did, so no
-    /// en, ru or es measure moves.
+    /// Every shipped value in a language that writes spaces parts exactly as
+    /// the plain-space split did, so no en, ru or es measure moves. Japanese
+    /// and Traditional Chinese write no spaces and break between characters,
+    /// as the tests below pin.
     func testShippedLanguagesPartAtSpacesAsBefore() throws {
-        for language in SupportedLanguage.available {
+        let breaksBetweenCharacters: Set<SupportedLanguage> = [.ja, .zhHant]
+        for language in SupportedLanguage.available where !breaksBetweenCharacters.contains(language) {
             let table = try PseudoLanguageTests.json(language.rawValue)
             for (key, value) in table {
                 XCTAssertEqual(value.lineBreakUnits,
@@ -33,6 +36,13 @@ final class LineBreakUnitsTests: XCTestCase {
     /// the screen draws. A small kana stays with the character before it.
     func testJapaneseBreaksBetweenCharactersLikeTheScreen() {
         XCTAssertEqual("今日は赤ちゃん".lineBreakUnits, ["今", "日", "は", "赤", "ちゃ", "ん"])
+    }
+
+    /// Traditional Chinese wraps between characters too, and a bracket stays
+    /// with the character it encloses.
+    func testTraditionalChineseBreaksBetweenCharactersLikeTheScreen() {
+        XCTAssertEqual("刪除藥品".lineBreakUnits, ["刪", "除", "藥", "品"])
+        XCTAssertEqual("保留在「記錄」中。".lineBreakUnits, ["保", "留", "在", "「記", "錄」", "中。"])
     }
 
     /// Kinsoku: no piece starts with a closing mark or small kana, none ends
