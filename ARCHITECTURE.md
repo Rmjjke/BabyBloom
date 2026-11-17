@@ -707,11 +707,18 @@ outgrew a 320-pt sheet's card and widened the whole sheet past the screen.
 A date-and-time picker (Sleep's start and end, Diaper, Events, the dose
 sheet) uses `BBLabeledDateTimePicker` instead: its compact style sets the
 date and time buttons side by side, and where that pair misses the width
-after the same steps, the time goes under the date, each button whole and
-stepping on its own. The pt-BR «12 de nov. de 2026» with the time beside it
-outgrew the card at AX2 with Bold Text even at xxLarge. The call site builds
-the picker for the components it is handed, so the stacked buttons are two
-pickers on one selection. The profile edit sheet's birth date keeps that
+after the steps (xxLarge below the accessibility sizes), the time goes under
+the date, each button whole and stepping on its own. The pt-BR «12 de nov. de
+2026» with the time beside it outgrew the card at AX2 with Bold Text even at
+xxLarge. At accessibility sizes the time always goes under the date: there
+the system wraps its own pair and sets the time at the trailing edge. The
+stacked buttons step with `BBFitsByTextSize(hugging: true)`, each step at the
+picker's own width: handed less than its full date, a compact picker shows
+the short date at the trailing end of the width it measured for the full one,
+away from the label's edge. The last step is not hugged, so a date that
+misses even at xxLarge shortens instead of passing the screen. The call site
+builds the picker for the components it is handed, so the stacked buttons
+are two pickers on one selection. The profile edit sheet's birth date keeps that
 form's smaller caption above the picker, so it takes the same two halves without the helper: the caption
 is hidden from VoiceOver and the picker carries the name. Its picker steps
 through `BBFitsByTextSize` too. `bbPlaceholderLabel`

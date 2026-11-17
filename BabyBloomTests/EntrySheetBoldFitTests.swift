@@ -8,7 +8,8 @@ import UIKit
 /// Display Zoom) at AX2, with Bold Text on and off. Add Sleep, Add Diaper,
 /// Add Event and Log Dose carry a date-and-time picker, whose ru date with
 /// Bold Text once outgrew the screen, and the pt-BR date with the time beside
-/// it after that; the others are held to the same rule, and so is Edit
+/// it after that; stacked, the date and the time start at the label's edge.
+/// The others are held to the same rule, and so is Edit
 /// Profile's birth-date picker. Every shipped language runs, and both
 /// pseudo-languages.
 ///
@@ -63,32 +64,91 @@ final class EntrySheetBoldFitTests: XCTestCase {
         }
     }
 
-    /// Where the date and time buttons miss the card even after the text-size
-    /// steps (pt-BR «12 de nov. de 2026» with Bold Text), the time goes under
-    /// the date at its leading edge, each button whole on the screen. Where
-    /// the pair fits, as en does at AX2, the system picker may wrap its own
-    /// time under the date at the trailing edge: that is the pair, not this.
-    func testTheTimeGoesUnderTheDateWhereThePairMisses() throws {
+    /// Where the time goes under the date, the date's button and the time's
+    /// start at the label's leading edge, the card's content edge. pt-BR
+    /// stacks them because «12 de nov. de 2026» and the time miss the card
+    /// together; there the date once showed its short form at the trailing
+    /// end of a frame measured for the full one, 11 to 16 pt in. en stacks them
+    /// because at accessibility sizes the system wraps its own pair and sets
+    /// the time at the trailing edge, 104 pt in. The buttons' grey is read
+    /// from the drawn sheet: a picker's frame can start where its button
+    /// does not.
+    func testTheDateAndTheTimeStartAtTheLabelsEdge() throws {
         try requireSize(.accessibilityLarge)
-        let language = FitLanguage.real(.ptBR)
+        let ptBR = FitLanguage.real(.ptBR)
+        try assertPillsStartAtTheEdge("sleep", ptBR, count: 4) { _ in AddSleepSheet() }
+        try assertPillsStartAtTheEdge("diaper", ptBR, count: 2) { _ in AddDiaperSheet() }
+        try assertPillsStartAtTheEdge("event", ptBR, count: 2) { _ in AddEventSheet() }
+        try assertPillsStartAtTheEdge("dose", ptBR, count: 2) {
+            // A medication outside any store reads as deleted: the sheet
+            // would draw its title alone, with no time row.
+            let medicine = Medicine(name: "Paracetamol", intervalMinutes: 360)
+            $0.mainContext.insert(medicine)
+            return DoseSheet(choosingFrom: [medicine])
+        }
+        try assertPillsStartAtTheEdge("sleep", .real(.en), count: 4) { _ in AddSleepSheet() }
+    }
+
+    /// Every date and time button on the sheet, with Bold Text, starts within
+    /// a point of the card's content edge, one under the other.
+    private func assertPillsStartAtTheEdge<V: View>(_ sheetName: String, _ language: FitLanguage, count: Int,
+                                                    sheet: (ModelContainer) -> V) throws {
+        let name = "\(language) \(sheetName) AX2 bold"
         language.apply()
-        let root = try accessibility.host(AddSleepSheet().environment(\.locale, language.environmentLocale)
-                                            .modelContainer(try storeWithBaby()).environment(SubscriptionManager()),
-                                          size: screen, bold: true)
+        let container = try storeWithBaby()
+        // Tall, so the rows under the fold are drawn too.
+        let root = try accessibility.host(sheet(container).environment(\.locale, language.environmentLocale)
+                                            .environment(\.colorScheme, .light)
+                                            .modelContainer(container).environment(SubscriptionManager()),
+                                          size: CGSize(width: screen.width, height: 1400), bold: true)
         RunLoop.main.run(until: Date().addingTimeInterval(0.5))
         let elements = accessibility.elements(root, automation: true)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.preferredRange = .standard  // 8 bits a channel, as firstFillX reads them
+        let image = UIGraphicsImageRenderer(bounds: root.bounds, format: format).image { _ in
+            root.drawHierarchy(in: root.bounds, afterScreenUpdates: true)
+        }
         accessibility.close()
-        func first(_ pattern: String) -> HostedAccessibility.Element? {
-            elements.first { "\($0.label) \($0.value)".range(of: pattern, options: .regularExpression) != nil }
+        // A picker shows as nested elements on its button's text; the
+        // outermost one is the picker's frame.
+        let matches = elements.filter {
+            "\($0.label) \($0.value)".range(of: #"\d{4}|\d{1,2}:\d{2}"#, options: .regularExpression) != nil
         }
-        // The start time is the first picker on the sheet.
-        let date = try XCTUnwrap(first(#"\d{4}"#), "no date button among \(elements)")
-        let time = try XCTUnwrap(first(#"\d{1,2}:\d{2}"#), "no time button among \(elements)")
-        XCTAssertGreaterThanOrEqual(time.frame.minY, date.frame.maxY - 0.5, "the time \(time) is not under the date \(date)")
-        XCTAssertEqual(time.frame.minX, date.frame.minX, accuracy: 0.5, "the time \(time) does not start under the date \(date)")
-        for button in [date, time] {
-            XCTAssertTrue(button.frame.minX >= -0.5 && button.frame.maxX <= screen.width + 0.5, "\(button) leaves the screen")
+        var pickers: [CGRect] = []
+        for frame in matches.map(\.frame) where !pickers.contains(frame)
+            && !matches.contains(where: { $0.frame != frame && $0.frame.contains(frame) }) {
+            pickers.append(frame)
         }
+        pickers.sort { $0.minY < $1.minY }
+        XCTAssertEqual(pickers.count, count, "\(name): the date and time buttons among \(elements)")
+        let edge = BBTheme.Spacing.md * 2  // the screen's margin and the card's
+        for (index, picker) in pickers.enumerated() {
+            let fill = try XCTUnwrap(firstFillX(image, from: edge - 8, to: picker.maxX, atY: picker.midY),
+                                     "\(name): no button drawn in \(picker)")
+            XCTAssertEqual(fill, edge, accuracy: 1, "\(name): the button in \(picker) starts at \(fill), the label at \(edge)")
+            XCTAssertLessThanOrEqual(picker.maxX, screen.width - edge + 0.5, "\(name): \(picker) passes the card")
+            if index > 0 {
+                XCTAssertGreaterThanOrEqual(picker.minY, pickers[index - 1].maxY - 0.5,
+                                            "\(name): \(picker) is beside \(pickers[index - 1]), not under it")
+            }
+        }
+    }
+
+    /// The first column from `minX` on the row at `y` that differs from the
+    /// ground at `minX`: where a button's grey starts on the card.
+    private func firstFillX(_ image: UIImage, from minX: CGFloat, to maxX: CGFloat, atY y: CGFloat) -> CGFloat? {
+        guard let cg = image.cgImage, cg.bitsPerComponent == 8,
+              let data = cg.dataProvider?.data,
+              let bytes = CFDataGetBytePtr(data) else { return nil }
+        let perPixel = cg.bitsPerPixel / 8
+        let row = bytes + Int(y) * cg.bytesPerRow
+        let ground = row + Int(minX) * perPixel
+        for x in Int(minX)..<min(Int(maxX), cg.width) {
+            let pixel = row + x * perPixel
+            if (0..<3).contains(where: { abs(Int(pixel[$0]) - Int(ground[$0])) > 6 }) { return CGFloat(x) }
+        }
+        return nil
     }
 
     private func storeWithBaby() throws -> ModelContainer {

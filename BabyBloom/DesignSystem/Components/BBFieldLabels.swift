@@ -34,7 +34,10 @@ struct BBLabeledPicker<Content: View>: View {
 /// date and time buttons side by side. Where the pair misses the width after
 /// the text-size steps, the time goes under the date, each button whole: at
 /// AX2 with Bold Text the Brazilian «12 de nov. de 2026» and the time
-/// outgrew a 320-pt sheet's card even at xxLarge.
+/// outgrew a 320-pt sheet's card even at xxLarge. At accessibility sizes the
+/// time always goes under the date: there the system wraps its own pair and
+/// sets the time at the trailing edge (en at AX2, 104 pt in from the label).
+/// Stacked, each button starts at the label's leading edge.
 ///
 /// The closure builds the picker for the components it is handed: both for
 /// the pair, then `.date` and `.hourAndMinute` for the stacked buttons, on
@@ -42,6 +45,7 @@ struct BBLabeledPicker<Content: View>: View {
 struct BBLabeledDateTimePicker<Picker: View>: View {
     private let label: String
     private let picker: (String, DatePickerComponents) -> Picker
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(_ label: String,
          @ViewBuilder picker: @escaping (_ label: String, _ components: DatePickerComponents) -> Picker) {
@@ -54,19 +58,22 @@ struct BBLabeledDateTimePicker<Picker: View>: View {
             Text(label)
                 .accessibilityHidden(true)
             let pair = picker(label, [.date, .hourAndMinute])
-            // The stacked shape comes last: a nested ViewThatFits offers its
-            // first child's width, so earlier it would win only by that.
-            ViewThatFits(in: .horizontal) {
-                pair
-                pair.dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                pair.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                pair.dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                    BBFitsByTextSize { picker(label, .date) }
-                    BBFitsByTextSize { picker(label, .hourAndMinute) }
-                }
+            let stacked = VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                BBFitsByTextSize(hugging: true) { picker(label, .date) }
+                BBFitsByTextSize(hugging: true) { picker(label, .hourAndMinute) }
             }
-            .labelsHidden()
+            if dynamicTypeSize.isAccessibilitySize {
+                stacked.labelsHidden()
+            } else {
+                // The stacked shape comes last: a nested ViewThatFits offers
+                // its first child's width, so earlier it would win only by that.
+                ViewThatFits(in: .horizontal) {
+                    pair
+                    pair.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                    stacked
+                }
+                .labelsHidden()
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -77,16 +84,42 @@ struct BBLabeledDateTimePicker<Picker: View>: View {
 /// BBScreenHeading does; where it fits it keeps the user's size. At AX2 with
 /// Bold Text ru «10 нояб. 2026 г.» outgrew a 320-pt sheet's card and widened
 /// the whole sheet past the screen.
+///
+/// `hugging` sizes each step to the control's own width. A compact date
+/// picker handed less than its full date switches to the short one
+/// («12/11/2026») but keeps the width it measured for the full one and draws
+/// its button at the trailing end of it, away from the label's edge. Hugging,
+/// the button shows the full date at the first size it fits and starts at
+/// the leading edge; the last step is not hugged, so a date that misses
+/// even at xxLarge shortens instead of passing the screen edge.
 struct BBFitsByTextSize<Content: View>: View {
-    @ViewBuilder let content: Content
+    private let hugging: Bool
+    private let content: Content
+
+    init(hugging: Bool = false, @ViewBuilder content: () -> Content) {
+        self.hugging = hugging
+        self.content = content()
+    }
 
     var body: some View {
         // Ranges, so a step never sets a size above the user's.
         ViewThatFits(in: .horizontal) {
-            content
-            content.dynamicTypeSize(...DynamicTypeSize.accessibility1)
-            content.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-            content.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            step(content)
+            step(content.dynamicTypeSize(...DynamicTypeSize.accessibility1))
+            step(content.dynamicTypeSize(...DynamicTypeSize.xxxLarge))
+            step(content.dynamicTypeSize(...DynamicTypeSize.xxLarge))
+            if hugging {
+                content.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func step(_ view: some View) -> some View {
+        if hugging {
+            view.fixedSize()
+        } else {
+            view
         }
     }
 }
