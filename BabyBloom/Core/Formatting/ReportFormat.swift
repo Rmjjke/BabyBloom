@@ -36,7 +36,7 @@ enum ReportFormat {
     /// «20 days», or «today» for a visit today: the period's length, one
     /// writer for the screen and the PDF.
     static func periodLength(days: Int) -> String {
-        days == 0 ? "report.period_today".l : "\(days)\(nbsp)\(days.dayWord)"
+        days == 0 ? "report.period_today".l : PluralFamily.durationDays.text(days)
     }
 
     static func kg(_ value: Double) -> String { "\(value.appDecimal(2))\(nbsp)\("unit.kg".l)" }
@@ -64,13 +64,13 @@ enum ReportFormat {
 
     /// «12 min ago», «5 h ago», then whole days from 48 h: «131 h ago» read as
     /// a number to work out, not an answer. Days are floored (2 d 23 h is «2
-    /// days»), the word from the age plurals, glued to its number.
+    /// days»), the phrase from the duration plurals, glued to its number.
     static func ago(from date: Date, to now: Date) -> String {
         let minutes = max(0, Int(now.timeIntervalSince(date) / 60))
         if minutes < 60 { return String(format: "stats.min_ago".l, minutes).gluingNumbersToUnits }
         let hours = minutes / 60
         if hours < 48 { return String(format: "stats.h_ago".l, hours).gluingNumbersToUnits }
         let days = hours / 24
-        return String(format: "stats.days_ago_fmt".l, "\(days)\(nbsp)\(days.dayWord)")
+        return String(format: "stats.days_ago_fmt".l, PluralFamily.durationDays.text(days))
     }
 }

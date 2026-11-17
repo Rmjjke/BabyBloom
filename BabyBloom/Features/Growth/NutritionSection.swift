@@ -29,8 +29,8 @@ struct NutritionSection: View {
         InsightCard(title: "section.nutrition".l) {
             if let assessment {
                 VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
-                    Text(String(format: "nutrition.window_fmt".l,
-                                assessment.windowDays, assessment.windowDays.dayWord).gluingNumbersToUnits)
+                    Text(String(format: "nutrition.window_days_fmt".l,
+                                PluralFamily.durationDays.text(assessment.windowDays)).gluingNumbersToUnits)
                         .font(BBTheme.Typography.scaled(13, relativeTo: .caption1,
                                                         weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)

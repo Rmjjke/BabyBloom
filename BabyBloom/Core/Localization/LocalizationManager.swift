@@ -136,22 +136,6 @@ enum SupportedLanguage: String, CaseIterable, Identifiable, Sendable {
     /// The locale alone does not reach the text renderer.
     var typesettingLanguage: Locale.Language { locale.language }
 
-    /// How the language builds the age words ("3 days" / "3 дня" / "3 días").
-    var pluralRule: PluralRule {
-        switch self {
-        case .ru, .uk: return .slavic
-        case .en, .es, .ja, .ko, .fr, .de, .sv, .nb, .da, .fi, .ptBR, .ptPT, .zhHant:
-            return .singularPlural
-        }
-    }
-
-    enum PluralRule: Sendable {
-        /// One form for 1, one form for everything else.
-        case singularPlural
-        /// Russian-style one / few / many split.
-        case slavic
-    }
-
     // MARK: Which languages ship
 
     /// The cases whose JSON is in this bundle, in declaration order. Read once
@@ -361,6 +345,14 @@ final class LocalizationManager: @unchecked Sendable {
         reportMissing(key)
         #endif
         return Self.lookup(key, in: current.strings, english: current.fallback)
+    }
+
+    /// The template of `family` for a number with these operands in the app's
+    /// language; the chain is in `pluralTemplate(_:_:language:in:english:)`.
+    func pluralTemplate(_ family: PluralFamily, _ operands: PluralOperands) -> String {
+        let current = tables
+        return Self.pluralTemplate(family, operands, language: language,
+                                   in: current.strings, english: current.fallback)
     }
 
     /// The language's value, else English, else the key itself — the raw key

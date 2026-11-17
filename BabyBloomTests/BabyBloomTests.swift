@@ -31,18 +31,18 @@ final class BabyBloomTests: XCTestCase {
     }
 
     // MARK: - Russian Pluralization Tests
-    func testIntDayWord() {
-        XCTAssertEqual(1.dayWord, "день")
-        XCTAssertEqual(2.dayWord, "дня")
-        XCTAssertEqual(5.dayWord, "дней")
-        XCTAssertEqual(11.dayWord, "дней")
-        XCTAssertEqual(21.dayWord, "день")
+    func testAgeDaysPhrase() {
+        XCTAssertEqual(PluralFamily.ageDays.text(1), "1\u{00A0}день")
+        XCTAssertEqual(PluralFamily.ageDays.text(2), "2\u{00A0}дня")
+        XCTAssertEqual(PluralFamily.ageDays.text(5), "5\u{00A0}дней")
+        XCTAssertEqual(PluralFamily.ageDays.text(11), "11\u{00A0}дней")
+        XCTAssertEqual(PluralFamily.ageDays.text(21), "21\u{00A0}день")
     }
 
-    func testIntMonthWord() {
-        XCTAssertEqual(1.monthWord, "месяц")
-        XCTAssertEqual(3.monthWord, "месяца")
-        XCTAssertEqual(12.monthWord, "месяцев")
+    func testAgeMonthsPhrase() {
+        XCTAssertEqual(PluralFamily.ageMonths.text(1), "1\u{00A0}месяц")
+        XCTAssertEqual(PluralFamily.ageMonths.text(3), "3\u{00A0}месяца")
+        XCTAssertEqual(PluralFamily.ageMonths.text(12), "12\u{00A0}месяцев")
     }
 
     // MARK: - Notification Manager Tests

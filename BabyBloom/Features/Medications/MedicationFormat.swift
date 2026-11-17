@@ -32,7 +32,7 @@ enum MedicationFormat {
         guard minutes >= 1 else { return nil }
         if minutes < 48 * 60 { return duration(minutes: minutes) }
         let days = minutes / (24 * 60)
-        return "\(days)\u{00A0}\(days.dayWord)"
+        return PluralFamily.durationDays.text(days)
     }
 
     /// A clock time, with "yesterday", "tomorrow" or the date when it is not
@@ -59,9 +59,7 @@ enum MedicationFormat {
 
     /// "1 dose", "3 doses"; the plural forms of the app's language.
     static func doseCount(_ count: Int) -> String {
-        String(format: count.plural(one: "medication.dose_count.one",
-                                    few: "medication.dose_count.few",
-                                    many: "medication.dose_count.many"), count)
+        PluralFamily.medicationDoseCount.text(count)
     }
 
     /// A dose text in the report as written, or the words for the doses

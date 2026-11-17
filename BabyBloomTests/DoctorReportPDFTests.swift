@@ -217,8 +217,10 @@ final class DoctorReportPDFTests: XCTestCase {
         "percentile.very_high", "percentile.below3", "percentile.above97",
         "velocity.below", "velocity.within", "velocity.above", "velocity.expected_fmt",
         "nutrition.status_below", "nutrition.status_within", "nutrition.status_above",
-        "breakdown.title", "breakdown.gain_fmt", "breakdown.feeds_fmt", "breakdown.nappies_fmt",
-        "breakdown.disclaimer", "trend.stable", "trend.crossing_up", "trend.drop_fmt",
+        "breakdown.title", "breakdown.gain_days_fmt", "breakdown.feeds_fmt", "breakdown.nappies_fmt",
+        "breakdown.disclaimer", "trend.stable", "trend.crossing_up",
+        // Every form the copy holds; a form a language leaves out reads as its key and is skipped.
+        "trend.drop.one", "trend.drop.other",
         "newborn.regained", "newborn.not_regained", "newborn.flag_loss", "newborn.flag_not_regained",
         "diaper.color.warning", "diaper.norm.fmt", "diaper.norm.label", "diaper.norm.hint",
         "stat.daily_norm", "growth.who_footnote",

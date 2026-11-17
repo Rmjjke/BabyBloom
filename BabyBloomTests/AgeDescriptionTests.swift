@@ -36,39 +36,39 @@ final class AgeDescriptionTests: XCTestCase {
 
     func testDay30OfA31DayMonthIsWeeksNotZeroMonths() {
         // 23 Jul → 22 Aug: 30 days, and no calendar month has elapsed yet.
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 8, 22)), "4\(nbsp)\(4.weekWord)")
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 8, 22)), PluralFamily.ageWeeks.text(4))
     }
 
     func testMonthsStartOnceACalendarMonthHasElapsed() {
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 8, 23)), "1\(nbsp)\(1.monthWord)")
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 8, 23)), PluralFamily.ageMonths.text(1))
     }
 
     func testAFebruaryBirthStaysInWeeksUntilDay30() {
         // A whole calendar month that is shorter than 30 days is still weeks:
         // the day-30 floor applies even once a month has passed. 28 days, and
         // 29 in a leap year — the case that pins the floor at exactly 30.
-        XCTAssertEqual(age(day(2026, 2, 1), day(2026, 3, 1)), "4\(nbsp)\(4.weekWord)")
-        XCTAssertEqual(age(day(2028, 2, 1), day(2028, 3, 1)), "4\(nbsp)\(4.weekWord)")
+        XCTAssertEqual(age(day(2026, 2, 1), day(2026, 3, 1)), PluralFamily.ageWeeks.text(4))
+        XCTAssertEqual(age(day(2028, 2, 1), day(2028, 3, 1)), PluralFamily.ageWeeks.text(4))
     }
 
     func testAnEndOfMonthBirthReachesAMonthByDay30() {
         // 31 Jan → 2 Mar is 30 days, and the calendar counts it a month
         // (31 Jan + 1 month clamps to 28 Feb), so both conditions hold.
-        XCTAssertEqual(age(day(2026, 1, 31), day(2026, 3, 2)), "1\(nbsp)\(1.monthWord)")
+        XCTAssertEqual(age(day(2026, 1, 31), day(2026, 3, 2)), PluralFamily.ageMonths.text(1))
     }
 
     // MARK: - Days and weeks
 
     func testTheFirstWeekCountsDays() {
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 23)), "0\(nbsp)\(0.dayWord)")
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 26)), "3\(nbsp)\(3.dayWord)")
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 23)), PluralFamily.ageDays.text(0))
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 26)), PluralFamily.ageDays.text(3))
         // Day 6 is the last in days: switching a day earlier would print "0 weeks".
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 29)), "6\(nbsp)\(6.dayWord)")
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 30)), "1\(nbsp)\(1.weekWord)")
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 29)), PluralFamily.ageDays.text(6))
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 30)), PluralFamily.ageWeeks.text(1))
     }
 
     func testAnEndBeforeTheStartClampsToZeroDays() {
-        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 20)), "0\(nbsp)\(0.dayWord)")
+        XCTAssertEqual(age(day(2026, 7, 23), day(2026, 7, 20)), PluralFamily.ageDays.text(0))
     }
 
     // MARK: - The `to:` parameter
@@ -85,6 +85,8 @@ final class AgeDescriptionTests: XCTestCase {
     func testRussianWording() {
         let birth = day(2026, 7, 23)
         XCTAssertEqual(age(birth, birth), "0\u{00A0}дней")
+        XCTAssertEqual(age(birth, day(2026, 7, 24)), "1\u{00A0}день")
+        XCTAssertEqual(age(birth, day(2026, 7, 25)), "2\u{00A0}дня")
         XCTAssertEqual(age(birth, day(2026, 8, 22)), "4\u{00A0}недели")
         XCTAssertEqual(age(birth, day(2026, 9, 23)), "2\u{00A0}месяца")
         XCTAssertEqual(age(birth, day(2026, 12, 23)), "5\u{00A0}месяцев")
@@ -93,9 +95,11 @@ final class AgeDescriptionTests: XCTestCase {
     func testEnglishAndSpanishWording() {
         let birth = day(2026, 7, 23)
         LocalizationManager.shared.setLanguage("en")
+        XCTAssertEqual(age(birth, day(2026, 7, 24)), "1\u{00A0}day")
         XCTAssertEqual(age(birth, day(2026, 7, 30)), "1\u{00A0}week")
         XCTAssertEqual(age(birth, day(2026, 9, 23)), "2\u{00A0}months")
         LocalizationManager.shared.setLanguage("es")
+        XCTAssertEqual(age(birth, day(2026, 7, 24)), "1\u{00A0}día")
         XCTAssertEqual(age(birth, day(2026, 7, 26)), "3\u{00A0}días")
         XCTAssertEqual(age(birth, day(2026, 9, 23)), "2\u{00A0}meses")
     }
