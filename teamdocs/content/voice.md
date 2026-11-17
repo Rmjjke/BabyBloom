@@ -43,6 +43,10 @@ and the Live Activity read the byte-identical copies in
     expanded island. A formula or pumped feed can run as a timer too and has
     no side, so it has one title, `live_activity.title.bottle`.
   - The started / saved line fits 30; "goes on in the app" fits 32.
+  - The started line keeps its time whole at the Lock Screen's largest
+    text: the line is about as wide as «Started 03:12», and a label plus
+    the time is safer than a verb phrase. French reads «Début : 03:12».
+    «Commencé à 03:12» lost its time at AX2.
   - There is no frozen or stale timer: after ~8 h the activity shows
     `started_fmt` + `continues_in_app` instead of digits. Elapsed time is
     system-rendered, no string.
@@ -635,3 +639,10 @@ renamed when it took a new argument by its new name.
   the slash, not after it: "$6.99 /\u{00A0}month" in
   `premium.price_per_month_fmt`, `_year_fmt` and `_week_fmt`, en/ru/es.
   Only the space characters of these three keys changed.
+- 2026-11-12 — The weekly gain unit is short in the languages whose word for
+  "week" is long: Spanish «g/sem», German «g/Wo.», French «g/sem». It is the
+  same in all four keys that carry it (`velocity.per_week_fmt`,
+  `velocity.expected_fmt`, `weekly.gain_fmt`, `breakdown.gain_days_fmt`). On
+  Home the number, its unit and the « · » are one unbreakable run beside
+  «Prise de poids». With «g/semaine», the row did not fit beside at 320 pt
+  from XL up. The paywall's price per week keeps the word («/ semaine»).
