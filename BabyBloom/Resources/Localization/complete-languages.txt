@@ -14,3 +14,6 @@ ja
 ko
 zh-Hant
 fi
+sv
+nb
+da

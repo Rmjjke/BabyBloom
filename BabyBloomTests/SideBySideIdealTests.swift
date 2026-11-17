@@ -47,6 +47,14 @@ final class SideBySideIdealTests: XCTestCase {
         KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXL bold", width: 303.7, room: 256.0),
         KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL", width: 311.7, room: 256.0),
         KnownMiss(.real(.ptPT), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 328.0, room: 256.0),
+        // Swedish «Viktökning» beside «+180 g/vecka · Under riktvärdet» and
+        // Norwegian «Vektøkning» beside «… · Under referanseverdien» stack from
+        // xxLarge bold (Norwegian also at xxxLarge), every word whole: the
+        // card's designed shape when the pair cannot sit side by side.
+        KnownMiss(.real(.sv), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 256.3, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXL bold", width: 262.7, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXXL", width: 268.0, room: 256.0),
+        KnownMiss(.real(.nb), "home growth card on 320 at UICTContentSizeCategoryXXXL bold", width: 286.7, room: 256.0),
         // Finnish «Painonnousu» beside «+180 g/viikko · Viitearvon alapuolella»
         // stacks at xxLarge (regular and bold) and xxxLarge bold, every word
         // whole: the card's designed shape when the pair cannot sit side by side.
