@@ -5,4 +5,12 @@
 en
 ru
 es
+pt-PT
+pt-BR
+uk
+de
+fr
+ja
+ko
+zh-Hant
 fi

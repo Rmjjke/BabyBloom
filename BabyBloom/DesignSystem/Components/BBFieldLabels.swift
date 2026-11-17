@@ -30,6 +30,48 @@ struct BBLabeledPicker<Content: View>: View {
     }
 }
 
+/// BBLabeledPicker for a date-and-time picker, whose compact style sets the
+/// date and time buttons side by side. Where the pair misses the width after
+/// the text-size steps, the time goes under the date, each button whole: at
+/// AX2 with Bold Text the Brazilian «12 de nov. de 2026» and the time
+/// outgrew a 320-pt sheet's card even at xxLarge.
+///
+/// The closure builds the picker for the components it is handed: both for
+/// the pair, then `.date` and `.hourAndMinute` for the stacked buttons, on
+/// one selection, so each edits its own half of the same moment.
+struct BBLabeledDateTimePicker<Picker: View>: View {
+    private let label: String
+    private let picker: (String, DatePickerComponents) -> Picker
+
+    init(_ label: String,
+         @ViewBuilder picker: @escaping (_ label: String, _ components: DatePickerComponents) -> Picker) {
+        self.label = label
+        self.picker = picker
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+            Text(label)
+                .accessibilityHidden(true)
+            let pair = picker(label, [.date, .hourAndMinute])
+            // The stacked shape comes last: a nested ViewThatFits offers its
+            // first child's width, so earlier it would win only by that.
+            ViewThatFits(in: .horizontal) {
+                pair
+                pair.dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                pair.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                pair.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
+                    BBFitsByTextSize { picker(label, .date) }
+                    BBFitsByTextSize { picker(label, .hourAndMinute) }
+                }
+            }
+            .labelsHidden()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 /// A control that never wraps or shrinks, such as a compact date picker's
 /// date button, steps down a text size while it misses the width, as
 /// BBScreenHeading does; where it fits it keeps the user's size. At AX2 with
