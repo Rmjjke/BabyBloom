@@ -37,8 +37,30 @@ final class MedicationsEmptyWordFitTests: XCTestCase {
         KnownMiss(.pseudo(.enXA), "medication.title AX2 bold", width: 311.2, room: 280.0),
     ]
 
+    /// One in-memory store for the whole case, never saved: a save posts
+    /// SwiftData's did-save notification to every live query observer, and a
+    /// hosted query an earlier test left behind traps on it once its own
+    /// store is gone. The baby is a pending insert, which the list's query
+    /// reads all the same.
+    private var container: ModelContainer?
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        let container = try ModelContainer(
+            for: AppSchema.schema,
+            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
+        // Autosave would save the insert at the next run-loop turn.
+        container.mainContext.autosaveEnabled = false
+        container.mainContext.insert(Baby(name: "Mia", birthDate: Date().addingTimeInterval(-90 * 86_400),
+                                          gender: .female, feedingType: .breast))
+        self.container = container
+    }
+
     override func tearDown() {
         accessibility.close()
+        // The closed windows' views let go of the store before it goes.
+        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        container = nil
         FitLanguage.restore()
         super.tearDown()
     }
@@ -122,12 +144,7 @@ final class MedicationsEmptyWordFitTests: XCTestCase {
 
     /// The list with no medicines, in its navigation stack, read once settled.
     private func emptyList(language: FitLanguage, bold: Bool) throws -> [HostedAccessibility.Element] {
-        let container = try ModelContainer(
-            for: AppSchema.schema,
-            configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
-        container.mainContext.insert(Baby(name: "Mia", birthDate: Date().addingTimeInterval(-90 * 86_400),
-                                          gender: .female, feedingType: .breast))
-        try container.mainContext.save()
+        let container = try XCTUnwrap(self.container)
         // The app sets the locale at its root.
         let view = NavigationStack { MedicationsListView() }
             .environment(\.locale, language.environmentLocale)

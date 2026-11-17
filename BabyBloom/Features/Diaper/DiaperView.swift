@@ -571,8 +571,8 @@ struct AddDiaperSheet: View {
                         .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
                         .cornerRadius(BBTheme.Radius.md).bbShadow(BBTheme.Shadow.card)
 
-                    BBLabeledPicker("form.time".l) { label in
-                        DatePicker(label, selection: $time, displayedComponents: [.date, .hourAndMinute])
+                    BBLabeledDateTimePicker("form.time".l) { label, components in
+                        DatePicker(label, selection: $time, displayedComponents: components)
                             .datePickerStyle(.compact).tint(BBTheme.Colors.primary)
                     }
                     .padding(BBTheme.Spacing.md).background(BBTheme.Colors.surface)
