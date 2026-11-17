@@ -87,7 +87,7 @@ final class PercentileCardRenderDump: XCTestCase {
             badge: badge,
             captionLines: [
                 String(format: "onboarding.showcase.caption_fmt".l, "Mia",
-                       String(format: "%.2f %@", 3.45, "unit.kg".l)),
+                       Units.kg(String(format: "%.2f", 3.45))),
             ],
             tone: .neutralOnly
         )

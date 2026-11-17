@@ -17,27 +17,58 @@ enum PagedPDF {
     // The list is long because this engine has no system fallback: a glyph no named
     // family holds prints as a boxed «?». It follows the system's cascade list, but
     // never name Apple Color Emoji: with it in the list the whole text prints boxed.
-    private static let fallbackFamilies = [
-        "Helvetica", "Arial", "PingFang SC", "PingFang TC", "Hiragino Sans",
-        "Apple SD Gothic Neo", "Geeza Pro", "Noto Nastaliq Urdu", "Noto Sans Myanmar", "Thonburi", "Arial Hebrew",
+    private static let latinFamilies = ["Helvetica", "Arial"]
+    private static let hanFamilies = ["PingFang SC", "PingFang TC", "Hiragino Sans", "Apple SD Gothic Neo"]
+    private static let otherFamilies = [
+        "Geeza Pro", "Noto Nastaliq Urdu", "Noto Sans Myanmar", "Thonburi", "Arial Hebrew",
         "Kohinoor Devanagari", "Kailasa", "Kohinoor Bangla", "Kohinoor Gujarati", "Mukta Mahee", "Noto Sans Kannada",
         "Khmer Sangam MN", "Lao Sangam MN", "Malayalam Sangam MN", "Noto Sans Oriya", "Sinhala Sangam MN",
         "Tamil Sangam MN", "Kohinoor Telugu", "Noto Sans Armenian", "Euphemia UCAS", "Apple Symbols",
         "STIX Two Math", "Zapf Dingbats", "Kefa III", "Galvji"
     ]
 
-    static let cssType = """
-        font-family: 'Helvetica Neue', \(fallbackFamilies.map { "'\($0)'" }.joined(separator: ", ")), sans-serif; \
-        font-variant-ligatures: none; -webkit-font-variant-ligatures: none;
+    /// The fallback list in the order a document in `language` reads it. Japanese,
+    /// Korean and Traditional Chinese draw the shared Han characters in forms of
+    /// their own (骨, 直), and the first family that holds a character draws it, so
+    /// the language's face leads the Han block. Latin and Cyrillic never reach the
+    /// block: Helvetica Neue holds them.
+    static func fallbackFamilies(for language: SupportedLanguage) -> [String] {
+        let han: [String] = switch language {
+        case .ja: ["Hiragino Sans", "PingFang TC", "PingFang SC", "Apple SD Gothic Neo"]
+        case .ko: ["Apple SD Gothic Neo", "PingFang TC", "Hiragino Sans", "PingFang SC"]
+        case .zhHant: ["PingFang TC", "PingFang SC", "Hiragino Sans", "Apple SD Gothic Neo"]
+        default: hanFamilies
+        }
+        return latinFamilies + han + otherFamilies
+    }
+
+    /// The type of a document in the app's current language.
+    static var cssType: String { cssType(for: LocalizationManager.shared.language) }
+
+    static func cssType(for language: SupportedLanguage) -> String {
         """
+        font-family: 'Helvetica Neue', \(fallbackFamilies(for: language).map { "'\($0)'" }.joined(separator: ", ")), \
+        sans-serif; font-variant-ligatures: none; -webkit-font-variant-ligatures: none;
+        """
+    }
 
     /// The same face and list for what is drawn around the HTML, like the report's
     /// footer. UIKit's own fallback sends a sign like ❤ to the colour emoji font,
     /// which a PDF context prints as a box and a gap.
-    static func font(ofSize size: CGFloat) -> UIFont {
-        let list = fallbackFamilies.map { UIFontDescriptor(fontAttributes: [.family: $0]) }
-        let descriptor = UIFontDescriptor(name: "HelveticaNeue", size: size).addingAttributes([.cascadeList: list])
+    static func font(ofSize size: CGFloat, bold: Bool = false,
+                     language: SupportedLanguage = LocalizationManager.shared.language) -> UIFont {
+        let traits: [UIFontDescriptor.TraitKey: Any] = [.weight: bold ? UIFont.Weight.bold : .regular]
+        let list = fallbackFamilies(for: language).map { UIFontDescriptor(fontAttributes: [.family: $0, .traits: traits]) }
+        let descriptor = UIFontDescriptor(name: bold ? "HelveticaNeue-Bold" : "HelveticaNeue", size: size)
+            .addingAttributes([.cascadeList: list])
         return UIFont(descriptor: descriptor, size: size)
+    }
+
+    /// The language tag for text UIKit draws into the PDF, so Core Text picks Han
+    /// forms by it too.
+    static func languageAttribute(_ language: SupportedLanguage = LocalizationManager.shared.language)
+        -> [NSAttributedString.Key: Any] {
+        [NSAttributedString.Key(kCTLanguageAttributeName as String): language.rawValue]
     }
 
     /// A user's text as the PDF may print it, for the render only: this engine can

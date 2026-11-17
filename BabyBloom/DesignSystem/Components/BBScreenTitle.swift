@@ -120,6 +120,7 @@ private struct BBScreenTitle: ViewModifier {
                                                  boldText: legibilityWeight == .bold)
             content
                 .environment(\.bbScreenTitleInBar, inBar)
+                .environment(\.bbScreenBarBottom, proxy.frame(in: .global).minY)
                 .environment(\.bbScreenHeadingScrolledAway, { headingScrolledAway = $0 })
                 .navigationTitle(title)
                 .navigationBarTitleDisplayMode(inBar ? .large : .inline)
@@ -129,9 +130,6 @@ private struct BBScreenTitle: ViewModifier {
                     }
                 }
         }
-        // y = 0 is the bar's bottom edge: the heading has gone once its last
-        // line is above it.
-        .coordinateSpace(.named(BBScreenHeading.coordinateSpace))
     }
 
     /// Kept in the bar while hidden: an empty principal item let the system
@@ -158,8 +156,6 @@ private struct BBScreenTitle: ViewModifier {
 /// ask for (es «Medicamentos» in `.title2` at AX2: 290 pt against 288 on a
 /// 320-pt screen), so `.title3` is the step the layout lands on there.
 struct BBScreenHeading: View {
-    nonisolated static let coordinateSpace = "bbScreenTitle"
-
     let title: String
     /// sm below the bar on the screens whose content starts flush at the top;
     /// 0 where the content's own padding already stands there.
@@ -169,6 +165,8 @@ struct BBScreenHeading: View {
 
     @Environment(\.bbScreenTitleInBar) private var inBar
     @Environment(\.bbScreenHeadingScrolledAway) private var reportScrolledAway
+    @Environment(\.bbScreenBarBottom) private var barBottom
+    @State private var scrolledAway = false
 
     var body: some View {
         if !inBar {
@@ -182,11 +180,21 @@ struct BBScreenHeading: View {
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityAddTraits(.isHeader)
+            // Window coordinates on both sides: inside a List row a named space
+            // of the screen's resolves as the window, so its zero was the
+            // screen's top and the List dropped the row before it got there.
             .onGeometryChange(for: Bool.self) { proxy in
-                proxy.frame(in: .named(BBScreenHeading.coordinateSpace)).maxY <= 0
-            } action: { scrolledAway in
-                reportScrolledAway?(scrolledAway)
+                proxy.frame(in: .global).maxY <= barBottom
+            } action: { gone in
+                scrolledAway = gone
+                reportScrolledAway?(gone)
             }
+            // A List takes the row out when a fast scroll carries it past the
+            // screen's top between two frames, with no last report; a heading
+            // that has left the screen is under the bar. Back on screen it
+            // says where it is again.
+            .onDisappear { reportScrolledAway?(true) }
+            .onAppear { reportScrolledAway?(scrolledAway) }
             .padding(.top, topPadding)
             .padding(.horizontal, horizontalPadding)
         }
@@ -203,6 +211,25 @@ struct BBScreenHeading: View {
     }
 }
 
+/// `BBScreenHeading` as a List's first section: flush with the sections'
+/// edges, where the bar's large title stands, on the screen's ground, with
+/// no separator, and lg above the next section as in a stack (the list's
+/// own section gap is half as much again). Where the bar holds the title it
+/// is no row at all, so the list starts where it did.
+struct BBScreenListHeading: View {
+    let title: String
+
+    var body: some View {
+        Section {
+            BBScreenHeading(title: title, topPadding: 0)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+        }
+        .listSectionSpacing(BBTheme.Spacing.lg)
+    }
+}
+
 /// Tells the bar's own title when the heading has scrolled under the bar.
 typealias BBScreenHeadingScrolledAway = @MainActor @Sendable (Bool) -> Void
 
@@ -216,6 +243,12 @@ private struct BBScreenHeadingScrolledAwayKey: EnvironmentKey {
     static let defaultValue: BBScreenHeadingScrolledAway? = nil
 }
 
+/// The bar's bottom edge in window coordinates: the heading has gone once
+/// its last line is above it.
+private struct BBScreenBarBottomKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
 extension EnvironmentValues {
     var bbScreenTitleInBar: Bool {
         get { self[BBScreenTitleInBarKey.self] }
@@ -225,5 +258,10 @@ extension EnvironmentValues {
     var bbScreenHeadingScrolledAway: BBScreenHeadingScrolledAway? {
         get { self[BBScreenHeadingScrolledAwayKey.self] }
         set { self[BBScreenHeadingScrolledAwayKey.self] = newValue }
+    }
+
+    var bbScreenBarBottom: CGFloat {
+        get { self[BBScreenBarBottomKey.self] }
+        set { self[BBScreenBarBottomKey.self] = newValue }
     }
 }

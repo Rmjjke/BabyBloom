@@ -32,6 +32,32 @@ final class ExportGeneratorTests: XCTestCase {
         XCTAssertEqual(ExportGenerator.csvField("plain"), "plain")
     }
 
+    func testACarriageReturnIsQuotedToo() {
+        XCTAssertEqual(ExportGenerator.csvField("a\rb"), "\"a\rb\"")
+    }
+
+    /// Excel takes a CSV for UTF-8 only behind a byte-order mark; the text after
+    /// it must read back whole, a comma inside a field included.
+    func testAUkrainianCSVStartsWithABOMAndReadsBack() throws {
+        LocalizationManager.shared.setLanguage("uk")
+        addTeardownBlock { LocalizationManager.shared.setLanguage("en") }
+        let diaper = DiaperEntry(time: Date(), type: .wet, color: .yellow, notes: "Годування, ніч")
+        let content = ExportGenerator.csvString(
+            feedings: [], sleeps: [], diapers: [diaper], growths: [], events: [],
+            categories: [.diapers]
+        ).first { $0.name == "diapers.csv" }!.content
+
+        let url = try XCTUnwrap(ExportGenerator.writeTempCSV(name: "uk-bom-test.csv", content: content))
+        addTeardownBlock { try? FileManager.default.removeItem(at: url) }
+        let data = try Data(contentsOf: url)
+        XCTAssertEqual(Array(data.prefix(3)), [0xEF, 0xBB, 0xBF])
+
+        let text = try XCTUnwrap(String(data: data.dropFirst(3), encoding: .utf8))
+        XCTAssertEqual(text, content)
+        XCTAssertTrue(text.contains("\"Годування, ніч\""))
+        XCTAssertTrue(text.hasPrefix(ExportGenerator.csvField("export.csv.date".l)))
+    }
+
     // MARK: - CSV localization
 
     func testCSVUsesLocalizedValues() {
@@ -310,11 +336,11 @@ final class ExportGeneratorTests: XCTestCase {
         let out = html(growth: GrowthEntry(weightKg: 4.25, heightCm: 54.3, headCircumferenceCm: 37.0),
                        feeding: feeding, sleep: sleep)
 
-        XCTAssertTrue(out.contains("4,25\(nbsp)\("unit.kg".l)"), "kg: comma + NBSP + ru unit")
-        XCTAssertTrue(out.contains("54,3\(nbsp)\("unit.cm".l)"))
-        XCTAssertTrue(out.contains("37,0\(nbsp)\("unit.cm".l)"))
-        XCTAssertTrue(out.contains("120\(nbsp)\("unit.ml".l)"))
-        XCTAssertTrue(out.contains("15\(nbsp)\("unit.min".l)"))
+        XCTAssertTrue(out.contains("4,25\(nbsp)кг"), "kg: comma + NBSP + ru unit")
+        XCTAssertTrue(out.contains("54,3\(nbsp)см"))
+        XCTAssertTrue(out.contains("37,0\(nbsp)см"))
+        XCTAssertTrue(out.contains("120\(nbsp)мл"))
+        XCTAssertTrue(out.contains("15\(nbsp)мин"))
         XCTAssertTrue(out.contains(String(format: "duration.h_min".l, 1, 30)), "sleep: hours and minutes, glued")
         XCTAssertFalse(out.contains("4.25"))
         XCTAssertFalse(out.contains("%."), "a format specifier leaked into the document")

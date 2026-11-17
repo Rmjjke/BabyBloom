@@ -39,7 +39,7 @@ extension SeedScenario {
         // days and a bit, so several pairs sit across midnight. The latest is
         // two hours ago: the next is four hours from launch, and the count of
         // the last 24 hours reads 4 of 4.
-        course("Paracetamol", every: 6 * 60, dose: "\(2.5.appDecimal(1))\u{00A0}\("unit.ml".l)", max: 4,
+        course("Paracetamol", every: 6 * 60, dose: Units.ml(2.5.appDecimal(1)), max: 4,
                latest: now.addingTimeInterval(-2 * 3600), count: 13)
 
         // Once a day. The latest is 26 hours ago, so the next is allowed at

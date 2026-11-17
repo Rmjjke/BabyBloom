@@ -137,16 +137,14 @@ struct GrowthView: View {
                 // by default), so the newest entry would print «—».
                 BBStatCard(
                     title: "stat.weight",
-                    value: measurements.last.map { $0.weightKg.appDecimal(2) } ?? "—",
-                    unit: "unit.kg",
+                    value: measurements.last.map { Units.kg($0.weightKg.appDecimal(2)) } ?? "—",
                     icon: "scalemass.fill",
                     color: BBTheme.Colors.growth,
                     action: { showAddSheet = true }
                 )
                 BBStatCard(
                     title: "stat.height",
-                    value: entries.first(where: { $0.heightCm != nil })?.heightCm.map { $0.appDecimal(1) } ?? "—",
-                    unit: "unit.cm",
+                    value: entries.first(where: { $0.heightCm != nil })?.heightCm.map { Units.cm($0.appDecimal(1)) } ?? "—",
                     icon: "ruler.fill",
                     color: BBTheme.Colors.primary,
                     action: { showAddSheet = true }
@@ -154,8 +152,7 @@ struct GrowthView: View {
                 BBStatCard(
                     title: "stat.head",
                     value: entries.first(where: { $0.headCircumferenceCm != nil })?.headCircumferenceCm
-                        .map { $0.appDecimal(1) } ?? "—",
-                    unit: "unit.cm",
+                        .map { Units.cm($0.appDecimal(1)) } ?? "—",
                     icon: "circle.dotted",
                     color: BBTheme.Colors.accent,
                     action: { showAddSheet = true }
@@ -567,7 +564,7 @@ struct WeightChartView: View {
 
     private func readout(_ weighing: WeightMeasurement) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
+            Text(Units.kg(weighing.weightKg.appDecimal(2)))
                 .font(BBTheme.Typography.scaled(20, relativeTo: .title3, weight: .bold))
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Text(caption(weighing))
@@ -638,7 +635,7 @@ struct WeightChartView: View {
                     .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.12))
                 AxisValueLabel {
                     if let kg = value.as(Double.self) {
-                        Text("\(Self.axisWeight(kg))\u{00A0}\("unit.kg".l)")
+                        Text(Units.kg(Self.axisWeight(kg)))
                             .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(BBTheme.Colors.textSecondary)
                     }
@@ -698,7 +695,7 @@ struct WeightChartView: View {
                             .position(x: origin.x + x, y: origin.y + y)
                             .accessibilityElement()
                             .accessibilityLabel(caption(weighing))
-                            .accessibilityValue("\(weighing.weightKg.appDecimal(2))\u{00A0}\("unit.kg".l)")
+                            .accessibilityValue(Units.kg(weighing.weightKg.appDecimal(2)))
                             // Screen order would put a later weighing first
                             // where two share a day; the list's order holds.
                             .accessibilitySortPriority(Double(measurements.count - index))
@@ -856,13 +853,13 @@ struct GrowthEntryRow: View {
 
     @ViewBuilder private var weightLabel: some View {
         if let w = entry.weightKg {
-            valueLabel("\(w.appDecimal(2))\u{00A0}\("unit.kg".l)", icon: "scalemass")
+            valueLabel(Units.kg(w.appDecimal(2)), icon: "scalemass")
         }
     }
 
     @ViewBuilder private var lengthLabel: some View {
         if let h = entry.heightCm {
-            valueLabel("\(h.appDecimal(0))\u{00A0}\("unit.cm".l)", icon: "ruler")
+            valueLabel(Units.cm(h.appDecimal(0)), icon: "ruler")
         }
     }
 
@@ -935,10 +932,10 @@ struct AddGrowthSheet: View {
                         title: "form.weight_kg".l,
                         value: $weightKg,
                         range: 1.0...20.0, step: 0.1,
-                        display: "\(weightKg.appDecimal(1))\u{00A0}\("unit.kg".l)",
+                        display: Units.kg(weightKg.appDecimal(1)),
                         color: BBTheme.Colors.growth,
-                        minLabel: "1\u{00A0}\("unit.kg".l)",
-                        maxLabel: "20\u{00A0}\("unit.kg".l)"
+                        minLabel: Units.kg("1"),
+                        maxLabel: Units.kg("20")
                     )
 
                     BBOptionalMeasureToggle(
@@ -949,9 +946,9 @@ struct AddGrowthSheet: View {
                         value: $heightCm,
                         range: 30.0...130.0, step: 0.5,
                         // One decimal: the step is 0.5, and «50 cm» hid a saved 50.5.
-                        display: "\(heightCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
-                        minLabel: "30\u{00A0}\("unit.cm".l)",
-                        maxLabel: "130\u{00A0}\("unit.cm".l)",
+                        display: Units.cm(heightCm.appDecimal(1)),
+                        minLabel: Units.cm("30"),
+                        maxLabel: Units.cm("130"),
                         color: BBTheme.Colors.primary
                     )
 
@@ -961,9 +958,9 @@ struct AddGrowthSheet: View {
                         isOn: $includeHead,
                         value: $headCm,
                         range: 25.0...55.0, step: 0.5,
-                        display: "\(headCm.appDecimal(1))\u{00A0}\("unit.cm".l)",
-                        minLabel: "25\u{00A0}\("unit.cm".l)",
-                        maxLabel: "55\u{00A0}\("unit.cm".l)",
+                        display: Units.cm(headCm.appDecimal(1)),
+                        minLabel: Units.cm("25"),
+                        maxLabel: Units.cm("55"),
                         color: BBTheme.Colors.accent
                     )
 

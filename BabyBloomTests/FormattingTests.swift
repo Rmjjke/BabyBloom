@@ -93,4 +93,24 @@ final class FormattingTests: XCTestCase {
         LocalizationManager.shared.setLanguage(.ru)
         XCTAssertEqual(ReportFormat.periodLength(days: 21), "21\(nbsp)день")
     }
+
+    /// A report range is the language's own interval, its year only when an
+    /// end is not this year's, and it breaks only after its dash.
+    func testAReportRangeIsTheLanguagesIntervalWithTheYearOnlyWhenOld() throws {
+        let thin = "\u{2009}"
+        LocalizationManager.shared.setLanguage(.en)
+        let calendar = LocalizationManager.shared.language.calendar
+        func day(_ year: Int, _ month: Int, _ day: Int) throws -> Date {
+            try XCTUnwrap(calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12)))
+        }
+        // `now` is 15 January 2027.
+        XCTAssertEqual(ReportFormat.dayRange(try day(2027, 1, 3), try day(2027, 1, 9), now: now),
+                       "Jan\(nbsp)3\(thin)–\(thin)9")
+        XCTAssertEqual(ReportFormat.dayRange(try day(2027, 1, 3), try day(2027, 1, 3), now: now), "Jan\(nbsp)3")
+        XCTAssertEqual(ReportFormat.dayRange(try day(2026, 12, 28), try day(2027, 1, 3), now: now),
+                       "Dec\(nbsp)28,\(nbsp)2026\(thin)–\(thin)Jan\(nbsp)3,\(nbsp)2027")
+        LocalizationManager.shared.setLanguage(.ru)
+        XCTAssertEqual(ReportFormat.dayRange(try day(2026, 11, 2), try day(2026, 11, 20), now: now),
+                       "2—20\(nbsp)нояб.\(nbsp)2026\u{202F}г.")
+    }
 }

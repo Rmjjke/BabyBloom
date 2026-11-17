@@ -20,24 +20,48 @@ struct PremiumHero: View {
     var badgeScale: CGFloat = 1
 
     var body: some View {
-        ZStack {
-            BBTheme.Colors.premiumGradient
+        VStack(spacing: BBTheme.Spacing.sm) {
+            BrandMark(diameter: 52, onGradient: true)
+                .scaleEffect(badgeScale)
 
-            VStack(spacing: BBTheme.Spacing.sm) {
-                BrandMark(diameter: 52, onGradient: true)
-                    .scaleEffect(badgeScale)
+            title
 
-                BBTheme.Typography.title1("onboarding.premium.title".l)
-                    .foregroundStyle(.white)
-
-                Text("onboarding.premium.headline".l)
-                    .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.horizontal, BBTheme.Spacing.lg)
-            .padding(.vertical, BBTheme.Spacing.md)
+            Text("onboarding.premium.headline".l)
+                .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .regular, design: .rounded))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
         }
+        .padding(.horizontal, BBTheme.Spacing.lg)
+        .padding(.vertical, BBTheme.Spacing.md)
+        .frame(maxWidth: .infinity)
+        // A background, not a ZStack layer: beside the greedy gradient the
+        // stack was proposed less than its ideal height, and the title, the
+        // one text that gives way, fell to a single cut line at AX2. The
+        // closure form keeps the gradient inside the band; the style form
+        // runs it under the status and navigation bars.
+        .background { BBTheme.Colors.premiumGradient }
         .cornerRadius(BBTheme.Radius.xl, corners: [.bottomLeft, .bottomRight])
+    }
+
+    /// Breaks between words, never inside one: steps from title1 to title2
+    /// and title3 while its widest word misses the line, as `BBScreenHeading`
+    /// does, and keeps every line it needs.
+    private var title: some View {
+        let text = "onboarding.premium.title".l
+        return ViewThatFits(in: .horizontal) {
+            stepped(BBTheme.Typography.title1, text)
+            stepped(BBTheme.Typography.title2, text)
+            stepped(BBTheme.Typography.title3, text)
+        }
+        .foregroundStyle(.white)
+        .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func stepped(_ style: (String) -> Text, _ text: String) -> some View {
+        WidestWordIdeal(spare: BBScreenTitleFit.spare) {
+            style(text.oneWordALine).hidden().accessibilityHidden(true)
+            style(text)
+        }
     }
 }

@@ -32,8 +32,68 @@ final class NotificationManager: @unchecked Sendable {
     private let kFirstGrowth     = "hasFirstGrowthEntry"
     private let kBabyName        = "bb.storedBabyName"
     private let kLastGainSignal  = "bb.growth.lastGainSignalAt"
+    private let kWordedLanguage  = "bb.notifications.language"
 
     private static let log = Logger(subsystem: "com.nenita.app", category: "Notifications")
+
+    /// Every add, cancel and read goes through here; tests swap in a fake.
+    var center: NotificationCenterSeam = SystemNotificationCenter()
+
+    // MARK: - Language
+
+    /// After the app's language changes, in the app or in iOS Settings (which
+    /// relaunches it): every pending request is written again in the new
+    /// language, then the weekly summary and the medication reminders are
+    /// planned again, so nothing waits for the next foregrounding.
+    @MainActor
+    func languageChanged() {
+        UserDefaults.standard.set(LocalizationManager.shared.language.rawValue, forKey: kWordedLanguage)
+        touched.withLock { $0.passes += 1 }
+        Task { @MainActor in
+            let ids = await NotificationRewording.reword(center: center, now: Date(),
+                                                         skipping: { self.touched.withLock { $0.ids } })
+            touched.withLock { state in
+                state.passes -= 1
+                if state.passes == 0 { state.ids = [] }
+            }
+            Self.log.info("language change: \(ids.count, privacy: .public) pending re-worded")
+            // After the re-wording, which would otherwise put back the weekly
+            // request it read before this pass replaced it.
+            rescheduleWeeklySummary()
+            MedicationReminderSync.shared.reconcile()
+        }
+    }
+
+    /// At launch, once the language is set: a change the app was not running
+    /// for (the phone's language, with no choice made in the app) re-words
+    /// what is pending, as a change in the app does.
+    @MainActor
+    func rewordIfLanguageMoved() {
+        let current = LocalizationManager.shared.language.rawValue
+        let worded = UserDefaults.standard.string(forKey: kWordedLanguage)
+        if Self.shouldReword(worded: worded, current: current) {
+            languageChanged()
+        } else if worded == nil {
+            UserDefaults.standard.set(current, forKey: kWordedLanguage)
+        }
+    }
+
+    /// Nothing is known before the first launch that records the language:
+    /// requests from earlier builds carry no words to re-word anyway.
+    static func shouldReword(worded: String?, current: String) -> Bool {
+        worded.map { $0 != current } ?? false
+    }
+
+    /// Ids posted or cancelled while a re-wording pass runs. Its snapshot of
+    /// the pending list is older than them (an idle reminder posted again at
+    /// foregrounding), so the pass skips them.
+    private let touched = OSAllocatedUnfairLock(initialState: (passes: 0, ids: Set<String>()))
+
+    private func touch(_ id: String) {
+        touched.withLock { state in
+            if state.passes > 0 { state.ids.insert(id) }
+        }
+    }
 
     // MARK: - Permission
 
@@ -80,13 +140,18 @@ final class NotificationManager: @unchecked Sendable {
             MedicationReminderSync.shared.reconcile()
             await NotificationPermission.shared.refresh()
         }
+        scheduleIdleReminder()
+    }
+
+    /// Two days from the last visit, once anything has been logged.
+    func scheduleIdleReminder() {
         guard UserDefaults.standard.bool(forKey: kFirstFeeding) ||
               UserDefaults.standard.bool(forKey: kFirstSleep) else { return }
         let name = storedBabyName
         cancel(.engageIdle)
         post(id: .engageIdle,
-             title: "notification.idle_title".l,
-             body:  String(format: "notification.idle_body".l, name),
+             title: .init("notification.idle_title"),
+             body:  .init("notification.idle_body", name),
              in:    48 * 3600)
     }
 
@@ -108,16 +173,16 @@ final class NotificationManager: @unchecked Sendable {
         cancel(.feedingReminder)
         if let interval = feedingReminderInterval(ageMonths: ageMonths, recentFeedingTimes: recentFeedingTimes) {
             post(id: .feedingReminder,
-                 title: "notification.feeding_title".l,
-                 body:  "notification.feeding_body".l,
+                 title: .init("notification.feeding_title"),
+                 body:  .init("notification.feeding_body"),
                  in:    interval)
         }
         // BF active-session alert
         cancel(.feedingActiveBF)
         if isActiveBF {
             post(id: .feedingActiveBF,
-                 title: "notification.feeding_long_title".l,
-                 body:  "notification.feeding_long_body".l,
+                 title: .init("notification.feeding_long_title"),
+                 body:  .init("notification.feeding_long_body"),
                  in:    40 * 60,
                  timeSensitive: true)
         }
@@ -129,8 +194,8 @@ final class NotificationManager: @unchecked Sendable {
         cancel(.feedingReminder)
         if let interval = feedingInterval(ageMonths: ageMonths) {
             post(id: .feedingReminder,
-                 title: "notification.feeding_title".l,
-                 body:  "notification.feeding_body".l,
+                 title: .init("notification.feeding_title"),
+                 body:  .init("notification.feeding_body"),
                  in:    interval)
         }
     }
@@ -148,8 +213,8 @@ final class NotificationManager: @unchecked Sendable {
         cancel(.sleepWakeWindow)
         cancel(.sleepActive)
         post(id: .sleepActive,
-             title: "notification.sleep_active_title".l,
-             body:  "notification.sleep_active_body".l,
+             title: .init("notification.sleep_active_title"),
+             body:  .init("notification.sleep_active_body"),
              in:    activeSleepInterval(isNight: isNight, ageMonths: ageMonths),
              timeSensitive: true)
     }
@@ -164,8 +229,8 @@ final class NotificationManager: @unchecked Sendable {
         let remaining = ww - Date().timeIntervalSince(endedAt)
         guard remaining > 0 else { return }
         post(id: .sleepWakeWindow,
-             title: "notification.sleep_title".l,
-             body:  "notification.sleep_body".l,
+             title: .init("notification.sleep_title"),
+             body:  .init("notification.sleep_body"),
              in:    remaining)
     }
 
@@ -217,8 +282,8 @@ final class NotificationManager: @unchecked Sendable {
             anchor: remainingFeedingTimes.max()
         ) else { return }
         post(id: .feedingReminder,
-             title: "notification.feeding_title".l,
-             body:  "notification.feeding_body".l,
+             title: .init("notification.feeding_title"),
+             body:  .init("notification.feeding_body"),
              in:    delay)
     }
 
@@ -244,8 +309,8 @@ final class NotificationManager: @unchecked Sendable {
         guard let delay = reanchoredDelay(interval: diaperInterval(ageMonths: ageMonths),
                                           anchor: lastRemainingDiaperTime) else { return }
         post(id: .diaperReminder,
-             title: "notification.diaper_title".l,
-             body:  String(format: "notification.diaper_body".l, babyName),
+             title: .init("notification.diaper_title"),
+             body:  .init("notification.diaper_body", babyName),
              in:    delay)
     }
 
@@ -329,8 +394,8 @@ final class NotificationManager: @unchecked Sendable {
         let due = last.addingTimeInterval(interval)
         let delay = max(due.timeIntervalSince(now), 3600)
         post(id: .growthWeighIn,
-             title: "notification.weigh_in_title".l,
-             body:  String(format: "notification.weigh_in_body".l, babyName),
+             title: .init("notification.weigh_in_title"),
+             body:  .init("notification.weigh_in_body", babyName),
              in:    delay)
     }
 
@@ -353,10 +418,8 @@ final class NotificationManager: @unchecked Sendable {
         // A few hours out, not instantly: the card already says this on screen,
         // so the notification's job is to catch a parent who has closed the app.
         post(id: .growthNewbornFlag,
-             title: "notification.newborn_flag_title".l,
-             body:  flag == .lossExceeds10Percent
-                    ? "newborn.flag_loss".l
-                    : "newborn.flag_not_regained".l,
+             title: .init("notification.newborn_flag_title"),
+             body:  .init(flag == .lossExceeds10Percent ? "newborn.flag_loss" : "newborn.flag_not_regained"),
              in:    4 * 3600)
     }
 
@@ -398,8 +461,8 @@ final class NotificationManager: @unchecked Sendable {
         UserDefaults.standard.set(now, forKey: kLastGainSignal)
 
         post(id: .growthGainLow,
-             title: "notification.gain_low_title".l,
-             body:  "notification.gain_low_body".l,
+             title: .init("notification.gain_low_title"),
+             body:  .init("notification.gain_low_body"),
              in:    4 * 3600)
     }
 
@@ -475,8 +538,8 @@ final class NotificationManager: @unchecked Sendable {
         cancel(.diaperReminder)
         guard let interval = diaperInterval(ageMonths: ageMonths) else { return }
         post(id: .diaperReminder,
-             title: "notification.diaper_title".l,
-             body:  String(format: "notification.diaper_body".l, babyName),
+             title: .init("notification.diaper_title"),
+             body:  .init("notification.diaper_body", babyName),
              in:    interval)
     }
 
@@ -486,8 +549,8 @@ final class NotificationManager: @unchecked Sendable {
         guard !UserDefaults.standard.bool(forKey: kFirstGrowth) else { return }
         cancel(.engageMeasurements)
         post(id: .engageMeasurements,
-             title: String(format: "notification.measurements_title".l, babyName),
-             body:  "notification.measurements_body".l,
+             title: .init("notification.measurements_title", babyName),
+             body:  .init("notification.measurements_body"),
              in:    3 * 24 * 3600)
     }
 
@@ -499,16 +562,21 @@ final class NotificationManager: @unchecked Sendable {
         cancel(.engageWeekly)
         let now = AppClock.now
         let enabled = UserDefaults.standard.object(forKey: WeeklyNotificationPlan.enabledKey) as? Bool ?? true
+        let title = NotificationWords.Line("notification.weekly_title")
+        let body = NotificationWords.Line("notification.weekly_body")
         let content      = UNMutableNotificationContent()
-        content.title    = "notification.weekly_title".l
-        content.body     = "notification.weekly_body".l
+        content.title    = title.resolved
+        content.body     = body.resolved
         content.sound    = .default
+        content.userInfo = NotificationWords(title: title, body: body, fireAt: nil).userInfo
 
         #if targetEnvironment(simulator)
         // `-BBWeeklyNotifyIn 5` shows the banner in five seconds, whatever
         // the week holds, so its text can be looked at without waiting a week.
         let fireIn = UserDefaults.standard.integer(forKey: "BBWeeklyNotifyIn")
         if fireIn > 0 {
+            content.userInfo = NotificationWords(title: title, body: body,
+                                                 fireAt: Date().addingTimeInterval(TimeInterval(fireIn))).userInfo
             add(content, UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(fireIn), repeats: false))
             Self.log.info("weekly summary: lever, fires in \(fireIn, privacy: .public) s")
             return
@@ -534,9 +602,9 @@ final class NotificationManager: @unchecked Sendable {
     @MainActor
     private func add(_ content: UNNotificationContent, _ trigger: UNNotificationTrigger) {
         let request = UNNotificationRequest(identifier: NID.engageWeekly.rawValue, content: content, trigger: trigger)
-        Task { @MainActor in
-            try? await UNUserNotificationCenter.current().add(request)
-            self.logPendingIfAsked()
+        touch(request.identifier)
+        center.add(request) {
+            Task { @MainActor in self.logPendingIfAsked() }
         }
     }
 
@@ -547,8 +615,8 @@ final class NotificationManager: @unchecked Sendable {
     func logPendingIfAsked() {
         #if targetEnvironment(simulator)
         guard UserDefaults.standard.bool(forKey: "BBLogPendingNotifications") else { return }
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            for request in requests {
+        Task {
+            for request in await center.pending() {
                 let next: Date? = switch request.trigger {
                 case let calendar as UNCalendarNotificationTrigger: calendar.nextTriggerDate()
                 case let interval as UNTimeIntervalNotificationTrigger: interval.nextTriggerDate()
@@ -562,15 +630,15 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Private: Baby name storage
 
+    /// The name as a notification argument. The default is a marker, not
+    /// the word: it lands in text the parent reads, written again in the new
+    /// language after a switch (see `NotificationWords.arg`).
     private var storedBabyName: String {
-        // Localized, not the literal "Baby": this lands in notification text
-        // the parent reads, so an English word inside a Spanish notification
-        // is the same defect the export had.
-        UserDefaults.standard.string(forKey: kBabyName) ?? "baby.default_name".l
+        UserDefaults.standard.string(forKey: kBabyName) ?? NotificationWords.arg("baby.default_name".l)
     }
 
     private func storeBabyName(_ name: String) {
-        UserDefaults.standard.set(name, forKey: kBabyName)
+        UserDefaults.standard.set(NotificationWords.arg(name), forKey: kBabyName)
     }
 
     // MARK: - Average interval
@@ -624,21 +692,25 @@ final class NotificationManager: @unchecked Sendable {
 
     // MARK: - Private: Core post / cancel
 
-    private func post(id: NID, title: String, body: String, in seconds: TimeInterval, timeSensitive: Bool = false) {
+    private func post(id: NID, title: NotificationWords.Line, body: NotificationWords.Line,
+                      in seconds: TimeInterval, timeSensitive: Bool = false) {
+        let delay        = max(1, seconds)
         let content      = UNMutableNotificationContent()
-        content.title    = title
-        content.body     = body
+        content.title    = title.resolved
+        content.body     = body.resolved
         content.sound    = .default
+        content.userInfo = NotificationWords(title: title, body: body,
+                                             fireAt: Date().addingTimeInterval(delay)).userInfo
         if timeSensitive {
             content.interruptionLevel = .timeSensitive
         }
-        let trigger  = UNTimeIntervalNotificationTrigger(timeInterval: max(1, seconds), repeats: false)
-        let request  = UNNotificationRequest(identifier: id.rawValue, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request)
+        let trigger  = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
+        touch(id.rawValue)
+        center.add(UNNotificationRequest(identifier: id.rawValue, content: content, trigger: trigger))
     }
 
     private func cancel(_ id: NID) {
-        UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [id.rawValue])
+        touch(id.rawValue)
+        center.remove([id.rawValue])
     }
 }

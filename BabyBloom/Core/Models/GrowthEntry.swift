@@ -30,19 +30,19 @@ final class GrowthEntry {
     var weightFormatted: String {
         guard let w = weightKg else { return "—" }
         if w >= 1 {
-            return "\(w.appDecimal(2))\u{00A0}\("unit.kg".l)"
+            return Units.kg(w.appDecimal(2))
         } else {
-            return "\(Int(w * 1000))\u{00A0}\("unit.g".l)"
+            return Units.g("\(Int(w * 1000))")
         }
     }
 
     var heightFormatted: String {
         guard let h = heightCm else { return "—" }
-        return "\(h.appDecimal(1))\u{00A0}\("unit.cm".l)"
+        return Units.cm(h.appDecimal(1))
     }
 
     var headFormatted: String {
         guard let h = headCircumferenceCm else { return "—" }
-        return "\(h.appDecimal(1))\u{00A0}\("unit.cm".l)"
+        return Units.cm(h.appDecimal(1))
     }
 }

@@ -19,11 +19,21 @@ enum ReportFormat {
         return text.replacingOccurrences(of: " ", with: nbsp)
     }
 
-    /// «2 Nov – 5 Nov», or the one date when both are on the same day.
+    /// «Nov 2 – 5», «28 дек. 2025 — 3 янв. 2026 г.» as the language writes a range,
+    /// or the one date when both are on the same day. The years only when an
+    /// end is not this year's, as in `date`.
     static func dayRange(_ first: Date, _ last: Date, now: Date = AppClock.now) -> String {
-        Calendar.current.isDate(first, inSameDayAs: last)
-            ? date(first, now: now)
-            : date(first, now: now) + nbsp + "– " + date(last, now: now)
+        let language = LocalizationManager.shared.language
+        let thisYear = [first, last].allSatisfy { language.calendar.isDate($0, equalTo: now, toGranularity: .year) }
+        return rangeGlued(thisYear
+            ? LocaleDates.dayRange(first, last, locale: language.locale)
+            : LocaleDates.dateRange(first, last, locale: language.locale))
+    }
+
+    /// A range's spaces made unbreakable except the one after its dash, so a
+    /// wrapped range breaks after «–», never inside «28 Oct».
+    static func rangeGlued(_ text: String) -> String {
+        text.replacingOccurrences(of: "(?<![–—]) ", with: nbsp, options: .regularExpression)
     }
 
     /// «> 97» held together.
@@ -39,13 +49,13 @@ enum ReportFormat {
         days == 0 ? "report.period_today".l : PluralFamily.durationDays.text(days)
     }
 
-    static func kg(_ value: Double) -> String { "\(value.appDecimal(2))\(nbsp)\("unit.kg".l)" }
-    static func cm(_ value: Double) -> String { "\(value.appDecimal(1))\(nbsp)\("unit.cm".l)" }
-    static func ml(_ value: Double) -> String { "\(value.appDecimal(0))\(nbsp)\("unit.ml".l)" }
+    static func kg(_ value: Double) -> String { Units.kg(value.appDecimal(2)) }
+    static func cm(_ value: Double) -> String { Units.cm(value.appDecimal(1)) }
+    static func ml(_ value: Double) -> String { Units.ml(value.appDecimal(0)) }
 
     /// «+640 g», signed, with the unit attached.
     static func grams(_ grams: Int) -> String {
-        "\(WeeklySummary.signed(grams))\(nbsp)\("unit.g".l)"
+        Units.g(WeeklySummary.signed(grams))
     }
 
     /// `WeeklyFormat.duration` with its internal spaces made unbreakable:

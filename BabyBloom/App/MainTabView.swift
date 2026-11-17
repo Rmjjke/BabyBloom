@@ -92,50 +92,54 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
-                // One destination for both the baby's details and the app
-                // settings. The subtitle spells out what moved in here so the
-                // settings do not become undiscoverable.
-                NavigationLink(destination: ProfileView()) {
-                    MoreProfileRowLabel(baby: baby)
-                        .padding(.vertical, 4)
+                BBScreenListHeading(title: "tab.more".l)
+                // A section of its own, so the heading stays out of the rows'
+                // rounded group.
+                Section {
+                    // One destination for both the baby's details and the app
+                    // settings. The subtitle spells out what moved in here so the
+                    // settings do not become undiscoverable.
+                    NavigationLink(destination: ProfileView()) {
+                        MoreProfileRowLabel(baby: baby)
+                            .padding(.vertical, 4)
+                    }
+                    .accessibilityIdentifier("more.profile")
+                    NavigationLink(destination: GrowthView()) {
+                        ListTitleRowLabel(title: "nav.growth".l,
+                                          systemImage: "chart.line.uptrend.xyaxis",
+                                          iconColor: BBTheme.Colors.growth)
+                    }
+                    .accessibilityIdentifier("more.growth")
+                    // Right after Growth: the report reads growth first.
+                    NavigationLink(destination: DoctorReportView()) {
+                        ListTitleRowLabel(title: "report.title".l,
+                                          systemImage: "stethoscope",
+                                          iconColor: BBTheme.Colors.primary)
+                    }
+                    .accessibilityHint("report.a11y_hint".l)
+                    .accessibilityIdentifier("more.doctor_report")
+                    NavigationLink(destination: RecentActivityView()) {
+                        ListTitleRowLabel(title: "nav.recent_activity".l,
+                                          systemImage: "clock.arrow.circlepath",
+                                          iconColor: BBTheme.Colors.primary)
+                    }
+                    .accessibilityIdentifier("more.recent_activity")
+                    NavigationLink(destination: EventsView()) {
+                        ListTitleRowLabel(title: "nav.events".l,
+                                          systemImage: "star.fill",
+                                          iconColor: BBTheme.Colors.events)
+                    }
+                    .accessibilityIdentifier("more.events")
+                    NavigationLink(destination: MedicationsListView()) {
+                        ListTitleRowLabel(title: "medication.title".l,
+                                          systemImage: "pills.fill",
+                                          iconColor: BBTheme.Colors.primary)
+                    }
+                    .accessibilityHint("medication.a11y_hint".l)
+                    .accessibilityIdentifier("more.medications")
                 }
-                .accessibilityIdentifier("more.profile")
-                NavigationLink(destination: GrowthView()) {
-                    ListTitleRowLabel(title: "nav.growth".l,
-                                      systemImage: "chart.line.uptrend.xyaxis",
-                                      iconColor: BBTheme.Colors.growth)
-                }
-                .accessibilityIdentifier("more.growth")
-                // Right after Growth: the report reads growth first.
-                NavigationLink(destination: DoctorReportView()) {
-                    ListTitleRowLabel(title: "report.title".l,
-                                      systemImage: "stethoscope",
-                                      iconColor: BBTheme.Colors.primary)
-                }
-                .accessibilityHint("report.a11y_hint".l)
-                .accessibilityIdentifier("more.doctor_report")
-                NavigationLink(destination: RecentActivityView()) {
-                    ListTitleRowLabel(title: "nav.recent_activity".l,
-                                      systemImage: "clock.arrow.circlepath",
-                                      iconColor: BBTheme.Colors.primary)
-                }
-                .accessibilityIdentifier("more.recent_activity")
-                NavigationLink(destination: EventsView()) {
-                    ListTitleRowLabel(title: "nav.events".l,
-                                      systemImage: "star.fill",
-                                      iconColor: BBTheme.Colors.events)
-                }
-                .accessibilityIdentifier("more.events")
-                NavigationLink(destination: MedicationsListView()) {
-                    ListTitleRowLabel(title: "medication.title".l,
-                                      systemImage: "pills.fill",
-                                      iconColor: BBTheme.Colors.primary)
-                }
-                .accessibilityHint("medication.a11y_hint".l)
-                .accessibilityIdentifier("more.medications")
             }
-            .navigationTitle("tab.more".l)
-            .navigationBarTitleDisplayMode(.large)
+            .bbScreenTitle("tab.more".l)
         }
     }
 }
@@ -214,6 +218,8 @@ struct ProfileView: View {
 
     var body: some View {
         List {
+            BBScreenListHeading(title: "nav.profile".l)
+
             // ── Baby ──────────────────────────────────────────────────
             if let baby {
                 Section {
@@ -378,7 +384,7 @@ struct ProfileView: View {
                 .accessibilityIdentifier("settings.premium")
             }
         }
-        .navigationTitle("nav.profile".l)
+        .bbScreenTitle("nav.profile".l)
         .task { await store.refreshEntitlements() }
         .sheet(isPresented: $showPaywall) {
             PaywallView(source: .settings)
