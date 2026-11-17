@@ -125,33 +125,74 @@ struct BBFitsByTextSize<Content: View>: View {
 }
 
 extension View {
-    /// For a vertical text field whose placeholder is its only visible label.
+    /// For a vertical text field whose placeholder is its only visible label:
+    /// `placeholder` is the field's title, `text` its value.
     ///
-    /// A placeholder wraps only into lines the field already has, and only in
-    /// a point-size font: with one line, or in a text-style font such as
-    /// `.body`, it ended in «…» at accessibility sizes. So the font is the body
-    /// size scaled up to the app's cap, and at accessibility sizes the field
-    /// keeps two lines. `maxLines` is the most lines below those sizes, one
-    /// more above them; nil lets the field grow.
-    func bbPlaceholderLabel(design: Font.Design = .rounded, maxLines: Int? = 3) -> some View {
-        modifier(BBPlaceholderLabel(design: design, maxLines: maxLines))
+    /// A vertical field sizes to its text, never its placeholder, and the
+    /// placeholder wraps only into lines the field already has, so an empty
+    /// field one line high cut a long placeholder with «…» (fr and ja at
+    /// Large). While the field is empty it reserves the lines the placeholder
+    /// takes at the field's width, measured with the same font; at the first
+    /// character it sizes to the text again. The font is a point size, the
+    /// body size scaled up to the app's cap: in a text-style font such as
+    /// `.body` the placeholder never wrapped. At accessibility sizes the field
+    /// keeps two lines even with text. `maxLines` is the most lines below
+    /// those sizes, one more above them; nil lets the field grow.
+    func bbPlaceholderLabel(_ placeholder: String, text: String,
+                            design: Font.Design = .rounded, maxLines: Int? = 3) -> some View {
+        modifier(BBPlaceholderLabel(placeholder: placeholder, isEmpty: text.isEmpty,
+                                    design: design, maxLines: maxLines))
     }
 }
 
 private struct BBPlaceholderLabel: ViewModifier {
+    let placeholder: String
+    let isEmpty: Bool
     let design: Font.Design
     let maxLines: Int?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @ViewBuilder
     func body(content: Content) -> some View {
+        let font = BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: design)
+        // The measure sits outside the line limit: under it the one-line copy
+        // also reserved the field's lines and the count never settled.
+        return limited(content.font(font))
+            .background(alignment: .topLeading) {
+                if isEmpty { measure(font) }
+            }
+    }
+
+    @ViewBuilder
+    private func limited(_ field: some View) -> some View {
         let reserved = dynamicTypeSize.isAccessibilitySize ? 2 : 1
-        let sized = content
-            .font(BBTheme.Typography.scaled(17, relativeTo: .body, weight: .regular, design: design))
+        let least = isEmpty ? max(reserved, placeholderLines) : reserved
         if let maxLines {
-            sized.lineLimit(reserved...max(reserved, maxLines + reserved - 1))
+            field.lineLimit(least...max(least, maxLines + reserved - 1))
         } else {
-            sized.lineLimit(reserved...)
+            field.lineLimit(least...)
         }
+    }
+
+    /// The placeholder's lines at the field's width: its height whole over
+    /// its height on one line. Hidden, so VoiceOver reads the field alone.
+    private func measure(_ font: Font) -> some View {
+        ZStack(alignment: .topLeading) {
+            Text(placeholder)
+                .lineLimit(1)
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) { oneLine = $0 }
+            Text(placeholder)
+                .fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) { whole = $0 }
+        }
+        .font(font)
+        .hidden()
+        .accessibilityHidden(true)
+    }
+
+    @State private var oneLine: CGFloat = 0
+    @State private var whole: CGFloat = 0
+
+    private var placeholderLines: Int {
+        oneLine > 0 ? max(1, Int((whole / oneLine).rounded())) : 1
     }
 }

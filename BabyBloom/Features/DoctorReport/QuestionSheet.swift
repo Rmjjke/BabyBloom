@@ -33,7 +33,7 @@ struct QuestionSheet: View {
                     // Unbounded: a question may run long, and the field grows
                     // with it.
                     TextField("question.placeholder".l, text: $text, axis: .vertical)
-                        .bbPlaceholderLabel(maxLines: nil)
+                        .bbPlaceholderLabel("question.placeholder".l, text: text, maxLines: nil)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .focused($focused)
                         .accessibilityIdentifier("doctor.question_sheet.field")

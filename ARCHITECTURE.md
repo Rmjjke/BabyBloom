@@ -725,12 +725,22 @@ form's smaller caption above the picker, so it takes the same two halves without
 is hidden from VoiceOver and the picker carries the name. Its picker steps
 through `BBFitsByTextSize` too. `bbPlaceholderLabel`
 is for a vertical `TextField` whose placeholder is its only visible label (the
-medication name, dose and note, the Diaper note, the doctor question; also
-the medication maximum, whose example placeholder needs two lines in es): it
-keeps two lines at accessibility sizes and takes the body size from
+medication name, dose, maximum and note, the Diaper note, the event's
+medication name, the doctor question): it takes the field's title and its
+text, keeps two lines at accessibility sizes and takes the body size from
 `Typography.scaled`. Both halves matter: on iOS 26 a placeholder wraps only into lines the field already
 has, and with a text-style font such as `.body` it stays on one line and ends
-in «…» however many lines the field keeps.
+in «…» however many lines the field keeps. The trap under both: a vertical
+field sizes to its text, never its placeholder, which is a label clipped to
+the field's height. So while the field is empty the modifier measures the
+placeholder at the field's width with the same font (two hidden texts, one
+line and whole, out of the accessibility tree) and sets the field's lower
+line limit to that count; at the first character the limit falls back to one
+line (two at accessibility sizes) and the field sizes to its text again. The
+field's own placeholder stays the one drawn and read, so VoiceOver, a tap on
+it and the field's identifier are the field's. At Large fr and ja cut the
+new medication's dose placeholder before this; `PlaceholderWrapFitTests`
+holds all seven fields whole in every language at Large and AX2.
 
 Words that had a fixed point size grow the same way: `Typography.scaled(<size>,
 relativeTo: .body, …)` keeps their size, weight and design at Large and then
