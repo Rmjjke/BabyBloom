@@ -54,11 +54,13 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   when-string: after a colon, after "at" or "not before" in en, before
   "or later", inside parentheses. No ru or es slot puts a preposition right
   before a time («в 1:30» breaks as «в завтра, 1:30»).
-- **Short forms after a middle dot.** `status_passed_short_fmt`,
-  `interval_short_fmt` and `ago_fmt` start in lower case, for lines such as
-  "Last dose at 2:10 AM · the 6 h interval has passed" or
-  "120 mg (5 ml) · interval 6 h". `status_ago_fmt` is the same age on a line
-  of its own (es «Hace 8 h»).
+- **Lines joined by a middle dot are whole templates.** `passed_primary_fmt`,
+  `waiting_secondary_ago_fmt`, `waiting_secondary_just_now_fmt` and
+  `meta_fmt` each hold both pieces and the dot, so every language orders the
+  pieces itself and code adds no word, space or dot. The piece after the dot
+  starts in lower case: "Last dose at 2:10 AM · the 6 h interval has passed",
+  "120 mg (5 ml) · interval 6 h". `status_ago_fmt` is the dose's age on a
+  line of its own (es «Hace 8 h»).
 - **The name the parent typed** stands in a nominative slot in Russian
   (first, before a colon, or as a title), as the baby's name does: typed text
   takes no case ending.
@@ -194,21 +196,27 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
   04:00, so its body reads "(10:00 PM yesterday)".
 - **Durations** ("6 h", "1 h 20 min") come from `duration.*`, which carry
   their no-break spaces. The interval chips use `duration.h_only`. An age of
-  48 h or more is days: the number, a no-break space and `age.day.*` by
-  plural.
-- **Counts:** `n.plural(one: "medication.dose_count.one", few: "….few",
-  many: "….many")`, then `String(format:)` with `n`, as `question.count.*`.
-  The result is the "dose count phrase" below.
-- **Joined lines** use the lower-case short forms (`status_passed_short_fmt`,
-  `interval_short_fmt`, `ago_fmt`) after a middle dot. The space before the
-  dot is a no-break space (`"\u{00A0}· "`), so at large text sizes the dot
-  stays at the end of the first line instead of opening the next one.
+  48 h or more is days: `duration.days.<category>`, whose value holds the
+  number and its no-break space.
+- **Counts:** `MedicationFormat.doseCount(n)` reads the plural family
+  `medication.dose_count.<category>` (CLDR categories, `.other` always), as
+  `question.count` does. The result is the "dose count phrase" below.
+- **Line C** is the family `medication.count_24h.<category>`, picked by the
+  second number, the maximum ("of the 4 you set"):
+  `PluralFamily.medicationCount24h.template(max)`, then filled with the dose
+  count phrase (`%1$@`) and the maximum (`%2$d`). Every form shows `%2$d`, with
+  a plain space on both sides: an "N of M" count is not glued (voice.md
+  § Line breaks around numbers).
+- **Joined lines** are the whole templates of the surface rules. The space
+  before the dot is a no-break space inside the template (`%1$@\u{00A0}· `),
+  so at large text sizes the dot stays at the end of the first line instead
+  of opening the next one.
 - **Existing keys reused:**
   - `button.save`, `button.cancel`, `button.delete` (alerts and sheets);
   - `button.edit` (the detail's toolbar);
   - `form.time`, `form.dose` (the dose sheet; the detail's "Dose" label);
   - `form.notes_optional` (the form's note field);
-  - `duration.*`, `age.day.*`;
+  - `duration.*`, `duration.days.*`;
   - `event.type.medication` (older history rows).
 - **Typed text is not a key.** The medication's name and dose text are
   shown as typed (sheet titles, the detail's first line, row titles), and
@@ -219,16 +227,17 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
 | state | line A | line B |
 |---|---|---|
 | no dose yet | `status_no_doses` | `interval_fmt` |
-| inside the interval | `status_next_fmt`(time) | `status_last_at_fmt`(time) · `ago_fmt`(duration), or · `just_now` |
-| interval passed | `status_last_at_fmt`(time) · `status_passed_short_fmt`(interval) | `status_ago_fmt`(duration) |
+| inside the interval | `status_next_fmt`(time) | `waiting_secondary_ago_fmt`(time, duration), or `waiting_secondary_just_now_fmt`(time) |
+| interval passed | `passed_primary_fmt`(time, interval) | `status_ago_fmt`(duration) |
 | next dose tomorrow or later | `status_next_fmt`(when-string) | as inside |
-| a maximum set | `status_next_fmt`(the later of the two limits) | as inside; line C `count_24h_fmt`(dose count phrase, maximum) |
+| a maximum set | `status_next_fmt`(the later of the two limits) | as inside; line C `count_24h.<category>`(dose count phrase, maximum) |
 | ended | — | `ended_on_fmt`(date, dose count phrase) |
 
 - One-line places (the list row, the Events line, the Home card) show line A only.
-- The list row's meta line is the dose text · `interval_short_fmt`, or `interval_fmt` alone when there is no dose text.
+- The list row's meta line is `meta_fmt`(dose text, interval), or `interval_fmt` alone when there is no dose text.
 - A dose row shows its time with `day_today`, `day_yesterday` or `appDayMonth`.
-- `status_last_at_fmt` takes the medication's newest dose only, as do the
+- `passed_primary_fmt` and the two `waiting_secondary_*` templates take the
+  medication's newest dose only, as do the
   alert's `alert_before_title_fmt` and `alert_before_message_fmt`. A
   confirmation that names an older dose uses `alert_between_title_fmt` and
   `alert_between_message_fmt` (see "The alert" below).
@@ -311,10 +320,10 @@ space. The report's words also pass the pediatrician report's verdict list
 - 2026-11-03 — `medication.field_max_range_hint` added (the maximum outside
   1 to 24). No-break spaces, text unchanged: ru «или позже» and es «o más
   tarde» glued whole; es «de» glued to the duration after it
-  (`status_next_fmt`, `status_passed_short_fmt`, `interval_short_fmt`,
-  `alert_before_title_fmt`, `alert_before_message_fmt`,
-  `alert_after_title_fmt`, `alert_max_message_fmt`). Ages from 48 h are told
-  in days.
+  (`status_next_fmt`, `alert_before_title_fmt`, `alert_before_message_fmt`,
+  `alert_after_title_fmt`, `alert_max_message_fmt`, and the passed-interval
+  and meta pieces now inside `passed_primary_fmt` and `meta_fmt`). Ages from
+  48 h are told in days.
 - 2026-11-03 — The confirmation's time is the one after Save. The last line
   of `alert_before_message_fmt` and `alert_max_message_fmt` opens with "If
   you save," / «Если сохранить,» / «Si guardas,», and ru names «следующая
@@ -328,3 +337,10 @@ space. The report's words also pass the pediatrician report's verdict list
   the medication's newest dose.
 - 2026-11-03 — `report_dose_not_written` added: on a report line, the doses
   with no dose text beside doses that have one.
+- 2026-11-11 — Every line joined by a middle dot is one whole template, so
+  each language orders its pieces: `passed_primary_fmt`,
+  `waiting_secondary_ago_fmt`, `waiting_secondary_just_now_fmt` and
+  `meta_fmt` replace the short forms and the joins made in code. The counts
+  are plural families: `medication.dose_count.<category>` and line C's
+  `medication.count_24h.<category>`, picked by the maximum. Ages from 48 h
+  read `duration.days.<category>`.
