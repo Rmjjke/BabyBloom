@@ -103,10 +103,13 @@ final class BrandTokenTests: XCTestCase {
         let declined = try declinedForms()
         for language in shipped {
             let displayName = try XCTUnwrap(try infoPlistStrings(language)["CFBundleDisplayName"])
-            let strings = LocalizationManager.branded(try table(language), english: english).strings
+            // What the screen shows: the language's own string, or the English
+            // one the language lacks, filled with the language's name.
+            let tables = LocalizationManager.branded(try table(language), english: english)
             for key in ["medication.reminder_off_in_settings", "settings.live_activity_off_in_ios"]
             where !declined.contains("\(language) \(key)") {
-                XCTAssertTrue(strings[key]?.contains(displayName) == true, "\(language) \(key) lacks \"\(displayName)\"")
+                let shown = tables.strings[key] ?? tables.fallback[key]
+                XCTAssertTrue(shown?.contains(displayName) == true, "\(language) \(key) lacks \"\(displayName)\"")
             }
         }
     }

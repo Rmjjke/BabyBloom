@@ -49,7 +49,9 @@ carry the canonical invocations and how to report results.
   `cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json`
 - A `SupportedLanguage` case is offered only once its JSON ships
   (`SupportedLanguage.available`). Adding a language means the case, the
-  app's JSON, its widget copy and the `.lproj` folder; the pre-build script
+  app's JSON, its widget copy and an `.lproj` folder in both
+  (`BabyBloom/Resources/` and `WidgetResources/Localization/`, each with
+  `CFBundleDisplayName` = `brand.name`), then `xcodegen generate`; the pre-build script
   checks every JSON in the folder by itself. Once its file holds every key,
   add its code to `Localization/complete-languages.txt`. From then on
   `LocalizationLintTests` fails on any key missing from that language.

@@ -287,13 +287,23 @@ every language the app knows, 15 cases with BCP-47 raw values (`pt-BR`,
 ships nothing: `SupportedLanguage.available` holds the cases whose
 `<raw>.json` is in the bundle (English always), and the picker, the device
 step and stored values all read only that list. A language goes live when
-its file lands.
+its file lands. All 15 ship a file: en, ru and es whole (the languages in
+`Localization/complete-languages.txt`), uk, ja, ko, fr, de, sv, nb, da, fi,
+pt-BR, pt-PT and zh-Hant as they are translated, starting from `brand.name`
+alone. A file never holds an English copy of a value: an untranslated key is
+simply absent and reads English.
 
 **`NSLocalizedString` is never called.** Every UI string resolves through a
 JSON dictionary per language and the `.l` extension. The `.lproj/
 Localizable.strings` files are gone; `<lang>.lproj/InfoPlist.strings` is
 still live and is what makes the app icon's caption change per language (and
-what tells iOS and the App Store the app speaks that language).
+what tells iOS and the App Store the app speaks that language, so iOS
+Settings › the app › Language offers it). Its `CFBundleDisplayName` equals
+the language's `brand.name`; a permission prompt the file does not hold yet
+reads the base `Info.plist`'s English. The widget has its own
+`WidgetResources/Localization/<lang>.lproj/InfoPlist.strings` per language,
+the extension's name only. `LocalizationLintTests` checks both against
+`brand.name`, and asks for every prompt only of a complete language.
 
 **A missing key reads English.** The English table is always loaded; a lookup
 goes language → English → the key itself. A language file may therefore hold

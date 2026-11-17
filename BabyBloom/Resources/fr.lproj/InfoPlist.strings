@@ -1,0 +1,4 @@
+/* The app's name under its icon in this language; it equals "brand.name"
+   in Resources/Localization/fr.json. A permission prompt this file does
+   not hold reads the English of the base Info.plist. */
+"CFBundleDisplayName" = "Bitty";

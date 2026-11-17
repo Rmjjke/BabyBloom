@@ -1,0 +1,3 @@
+/* The widget extension's name in this language; it equals "brand.name"
+   in Localization/en.json. */
+"CFBundleDisplayName" = "Bitty";
