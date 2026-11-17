@@ -344,3 +344,8 @@ space. The report's words also pass the pediatrician report's verdict list
   are plural families: `medication.dose_count.<category>` and line C's
   `medication.count_24h.<category>`, picked by the maximum. Ages from 48 h
   read `duration.days.<category>`.
+- 2026-11-12 — In every language the confirmation's last line opens with a
+  condition on the Save button: fr «Si vous enregistrez, prochaine dose :
+  pas avant 16:00» (the button reads «Enregistrer»), de «Nach dem Sichern:»
+  (button «Sichern»). A noun of time such as «Après enregistrement» names
+  no button. At the largest text size it also broke inside the word.
