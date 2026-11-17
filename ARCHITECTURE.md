@@ -697,14 +697,22 @@ Two field layouts have one helper each in
 or time picker's label above it at every size (beside the buttons it broke
 mid-word as the text grew, and at Large on a 320-pt screen it had no room
 beside the widest date) and hides that visible label from VoiceOver, so the
-picker's own label is read once; the entry sheets' date and time rows use it.
+picker's own label is read once; the date-only rows (Growth's measurement
+date, the visit date) use it.
 Its picker sits in `BBFitsByTextSize`, which steps a control that never wraps
 or shrinks down a text size, to AX1, xxxLarge and xxLarge, while it misses
 the width, and keeps the user's size where it fits: a compact picker's date
 neither wraps nor shrinks, and at AX2 with Bold Text the ru «10 нояб. 2026 г.»
 outgrew a 320-pt sheet's card and widened the whole sheet past the screen.
-The profile edit sheet's birth date keeps that form's smaller caption above
-the picker, so it takes the same two halves without the helper: the caption
+A date-and-time picker (Sleep's start and end, Diaper, Events, the dose
+sheet) uses `BBLabeledDateTimePicker` instead: its compact style sets the
+date and time buttons side by side, and where that pair misses the width
+after the same steps, the time goes under the date, each button whole and
+stepping on its own. The pt-BR «12 de nov. de 2026» with the time beside it
+outgrew the card at AX2 with Bold Text even at xxLarge. The call site builds
+the picker for the components it is handed, so the stacked buttons are two
+pickers on one selection. The profile edit sheet's birth date keeps that
+form's smaller caption above the picker, so it takes the same two halves without the helper: the caption
 is hidden from VoiceOver and the picker carries the name. Its picker steps
 through `BBFitsByTextSize` too. `bbPlaceholderLabel`
 is for a vertical `TextField` whose placeholder is its only visible label (the
