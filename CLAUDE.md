@@ -53,6 +53,10 @@ carry the canonical invocations and how to report results.
   checks every JSON in the folder by itself. Once its file holds every key,
   add its code to `Localization/complete-languages.txt`. From then on
   `LocalizationLintTests` fails on any key missing from that language.
+- A sentence that names the app writes `{brand}`, never the name itself
+  (filled from `brand.name` at load). A language that declines the name
+  writes those forms inline and lists each sentence in
+  `Localization/brand-declined.txt`.
 
 ## Theming
 

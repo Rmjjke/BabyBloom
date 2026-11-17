@@ -300,6 +300,21 @@ goes language → English → the key itself. A language file may therefore hold
 only part of the keys. Debug builds log each missing key once per language
 (subsystem `com.nenita.app`, category `Localization`).
 
+**The app's name is filled in at load.** A sentence that names the app
+writes `{brand}`; `LocalizationManager.branded` replaces it with the
+language's `brand.name` in the language's table and in the English fallback,
+once per load, so a missing key still shows the current language's name. A
+language that declines the name (ru) writes those forms inline and lists each
+such sentence in `Localization/brand-declined.txt` (`<language> <key>`).
+`BrandTokenTests` holds every sentence English writes with `{brand}` to the
+token or a declared declined form, fails a value that types any shipped
+`brand.name` by hand or a declined form that lost the name's stem (so a
+rename in ru fails until its forms are rewritten), and checks that the
+strings pointing at iOS Settings carry the `CFBundleDisplayName` unless they
+are declared declined (ru names the app there, «для Ночки», not the row). The three strings that pass the name as
+`%@` (`widget.name_medium`, `onboarding.widget.howto`,
+`export.generated_by_fmt`) keep it as an argument.
+
 The JSONs exist in **two physical locations**:
 
 - `BabyBloom/Resources/Localization/<lang>.json` — the source of truth.

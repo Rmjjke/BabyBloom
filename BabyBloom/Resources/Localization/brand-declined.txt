@@ -1,0 +1,12 @@
+# Sentences that name the app in a declined form, written inline instead of
+# {brand}: "<language> <key>", one per line. The token fills in brand.name,
+# the nominative; a language whose grammar changes the name's ending writes
+# those forms itself. Every other sentence that names the app uses {brand}.
+ru dashboard.welcome
+ru live_activity.continues_in_app
+ru medication.reminder_off_in_settings
+ru onboarding.fact.older2
+ru onboarding.gen.title
+ru onboarding.gen.title_named
+ru onboarding.ready_welcome_fmt
+ru onboarding.ready_welcome_plain
