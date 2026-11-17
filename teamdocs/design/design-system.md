@@ -118,6 +118,9 @@ saving meanwhile (§ 3, § 7 `BBSheetFooter`).
 Decided on 2026-11-11, planned: CJK tracking 0 and the PDF font per script
 (§ 11). Proposed on 2026-11-11: one length budget per tight place, with
 G42–G45 (§ 11).
+In code at 04f4eba (2026-11-13): the Growth showcase's bullets by fit like
+the notifications bullets, both pages drawing one bullet list,
+`OnboardingBulletList` (§ 3, G40).
 Proposed on 2026-11-06: Home's header name under the greeting's row where it
 misses beside the avatar (§ 7, G37).
 Every value marked `in force` is in code, in `DECISIONS.md` or in a product
@@ -1032,7 +1035,7 @@ check: `grep -hoE '^(struct|enum) [A-Za-z]+' BabyBloom/DesignSystem/Components/*
 | BBSheetHeading + `bbSheetTitle(_:placement:)` + BBSheetTitlePlacement | BBTheme | **from 1.3.0** — a sheet's title (in force, decided 2026-11-04, in code at b8e9a41 and 265557e). With `.barUpToLarge`, the default, it sits in the bar between the glyph buttons up to Large: one line, shrinking rather than cut to 13/17 of its size (13 pt at Large, the sheets' caption size, `BBTheme.swift:404`). Above Large the bar shows no title and `BBSheetHeading`, given the same placement, is the content's first line: title3 (32.8 pt at AX2), textPrimary, leading, wraps, header trait. With `.content` (the dose sheet, whose title is a medication's name) the heading is the content's first line at every size and the bar has none. The modifier and the heading go together: the modifier alone leaves no title where the bar has none, the heading alone shows it twice. The next block follows at the sheet stack's spacing (lg 24). A section label right under the heading keeps its own style (16 semibold): the heading's ratio to it is 18 : 16 at every size, and the label sits 15 pt above its tiles against 34 pt below the heading at AX2 (12.5 and 29.5 pt at xLarge on 375 pt), so it reads with its tiles. A decorative figure above the content (the Growth sheet's 48 pt ruler) is left out at accessibility sizes and is hidden from VoiceOver at every size. The ru profile title is «Профиль» (75.5 pt, decided 2026-11-04); until it ships «Редактировать профиль» (202.4) shrinks to about 14.4 pt at Large on 320 pt, whole | Add Event, Feeding, Growth, Sleep, Diaper, QuestionSheet, DoseSheet (`.content`), MedicationFormSheet, VisitSheet, VisitDetailSheet, BabyProfileEditSheet. The diaper norm editor does the same by hand: the system inline title up to Large, none above it, and «Норма в день» (`DiaperView.swift:308`) as the header above Large |
 | `bbSelectedBorder(_:shape:)` + BBSelectionShape | BBTheme | **from 1.3.0** (decided 2026-11-04, in code at 1187418, `BBTheme.swift:327`; § 3, G29) — a selected tile's or chip's border, drawn outside its fill: a 1.5 pt `strokeBorder` in BBPrimary, clear when not selected so the tree is the same in both states, on the tile's shape padded −1.5, its inner edge on the fill's edge; `.tile` a rounded rectangle of Radius.md + 1.5 = 17.5, `.capsule` a capsule. Laid after `cornerRadius(Radius.md)` and `bbShadow`, so the shadow keeps the fill's outline. It takes no layout, so a word's room is its tile's (§ 3); the ring reaches 1.5 pt into the gap (sm 8 → 6.5, md 16 → 14.5), and VoiceOver's frame grows by it | Feeding (type tiles, breast-side chips, the timer's side pills as `.capsule`), Sleep (type, location), Diaper (type), Add Event (type, mood), the profile sheet (gender, feeding), onboarding (gender, feeding rows). Not on: Export's format tiles (their own outline, G29), the plan rows, the stool swatches' 2.5 pt ring, the medication interval chips, the retry capsule |
 | BBScreenHeading + `bbScreenTitle(_:)` + BBScreenTitleFit + BBSteppedTitle | BBScreenTitle | **from 1.3.0** (§ 3, G31) — a screen's large title (in force, decided 2026-11-05; in code at 7b886b1). `BBSteppedTitle` (`BBScreenTitle.swift:221`; in code at bd60347) is a page's own title in the theme's faces by the same rule: `title1` (26 semibold relative to `.title2`, tracking −0.3), then `title2` (21 semibold relative to `.title3`, tracking −0.2), then `title3` (18 semibold relative to `.headline`) while its widest word misses the width with sm 8 to spare; where every word fits at `title1` it draws as a plain `title1`; the caller sets colour, alignment and `fixedSize`. Why: de «Geburtsdatum» and sv «Födelsedatum» broke inside the word at AX2 on 320 pt. It stands on the onboarding name, birth, feeding and growth pages and in the paywall's hero (`NamePage.swift:19`, `BirthPage.swift:27`, `FeedingPage.swift:25`, `GrowthPage.swift:45`, `PremiumHero.swift:50`). Both draw by words with no hyphen (§ 3; in code at eda8661). It stays in the bar while it fits the bar's one line: largeTitle bold against the bar's room, W − 32 pt below 414 pt of width and W − 40 from 414 (288 on 320, 370 on 402, 400 on 440), measured at the font's own width, which is 3 % wider than the bar draws it, so a title leaves the bar a size early rather than late. Where it misses, at that width and size, the bar goes inline and `BBScreenHeading` is the first child of the screen's content stack: largeTitle bold (SF Pro, the bar's large-title face) at the current size, 34 / 36 / 38 / 40 / 44 / 48 pt from Large to AX2 (lines 40.0 / 42.4 / 44.8 / 47.1 / 51.8 / 56.5), the font's own tracking, no added line spacing, BBTextPrimary, leading, wrapping between words with no line limit, header trait. Where its widest word misses the heading's width with sm 8 to spare it steps to title1 bold, then title2 bold, then title3 bold (today es «Medicamentos» on 320 pt only: 38 pt at AX1, 39 at AX2, 260.1 pt in 280; with Bold Text on, the system sets title2 heavier than the measure asks, 290 pt in 288 at AX2, so it lands on title3). It stands in the content column (x md 16, width W − 32, inside the screen's iPad column where it has one), sm 8 below the bar where the stack starts at the bar, at the stack's own md 16 where it has one (the report, Export); the next block follows at the stack's spacing (lg 24; md 16 on the report and Recent activity), as the sheets' heading does. Once its last line has passed under the bar, the bar's principal item shows the title: 17 pt semibold at every size, the system inline title's size, one line, shrinking to 13 pt, then cut at the tail, revealed with § 8's `easeInOut(0.25)` and at once with Reduce Motion. While hidden it stays in the layout at opacity 0 and hidden from VoiceOver, because an empty principal item let the system draw its own title, cut. `navigationTitle` stays set, so the next screen's back button and VoiceOver keep the name. A List screen takes `BBScreenListHeading`: the heading as the list's own first section, neither a section header (a header brings its own style and insets) nor a row of the first section (that section's card would draw behind it). Its row has zero insets, so the heading stands flush with the sections' edges, where the bar's large title stands; a clear row background, on the screen's ground; no separator; top padding 0, the list placing it; lg 24 to the first card (`listSectionSpacing`), as in a stack, where the list's own gap between sections is wider. Where the bar holds the title the section is no row at all, so the list starts where it did | the report, Recent activity, Export and Medications (whose titles miss today), Feeding, Sleep, Diapers, Events, Growth; More and Profile (List, `BBScreenListHeading`; in code at 162d1b6) |
-| BBSteppedText | BBSteppedText | **from 1.3.0** (in code at eda8661; `BBSteppedText.swift:15`) — a heading in a theme face that never breaks inside a word: `title3` (18 semibold relative to `.headline`) by default, the caller setting colour and alignment. It wraps between words at the reader's size with no hyphen (§ 3); only a word wider than the whole width it is given sets it at AX1's point size, then xxxLarge's, xxLarge's, xLarge's and Large's, each no larger than the reader's (the theme's fonts scale with the process's text size, so each try is the face at that size, not a `.dynamicTypeSize`). Where every word fits it draws as the plain face. `stepping: false` draws the reader's size only, for a layout that first tries the heading beside a neighbour and moves the neighbour before it steps; `breaksAfterHyphens` measures a word that holds a hyphen by its parts, where § 3 lets it break there (de «WHO-Perzentilen»). Why: es «Medicamentos» in a report card at AX2 on 320 pt | the report card header, the Growth cards' titles (`InsightCardTitle`), Onboarding (`GeneratingPage.swift:84`, `GrowthShowcasePage.swift:60`, `NotificationsPage.swift:82`, `WidgetShowcasePage.swift:47`) |
+| BBSteppedText | BBSteppedText | **from 1.3.0** (in code at eda8661; `BBSteppedText.swift:15`) — a heading in a theme face that never breaks inside a word: `title3` (18 semibold relative to `.headline`) by default, the caller setting colour and alignment. It wraps between words at the reader's size with no hyphen (§ 3); only a word wider than the whole width it is given sets it at AX1's point size, then xxxLarge's, xxLarge's, xLarge's and Large's, each no larger than the reader's (the theme's fonts scale with the process's text size, so each try is the face at that size, not a `.dynamicTypeSize`). Where every word fits it draws as the plain face. `stepping: false` draws the reader's size only, for a layout that first tries the heading beside a neighbour and moves the neighbour before it steps; `breaksAfterHyphens` measures a word that holds a hyphen by its parts, where § 3 lets it break there (de «WHO-Perzentilen»). Why: es «Medicamentos» in a report card at AX2 on 320 pt | the report card header, the Growth cards' titles (`InsightCardTitle`), Onboarding (`GeneratingPage.swift:84`, `GrowthShowcasePage.swift:60`, `NotificationsPage.swift:48`, `WidgetShowcasePage.swift:47`) |
 | `cornerRadius(_:corners:)` / RoundedCorner | RoundedCorner | per-corner rounding | PremiumHero |
 | EmptyStateView | *Features/Feeding/FeedingView.swift* | icon + title + subtitle empty state | Feeding, Events, Growth, BBHistorySection — shared, but lives outside `DesignSystem/` (§ 10 G11) |
 | AppAppearance | AppAppearance | system / light / dark preference; overrides the colour scheme only | BabyBloomApp, MainTabView |
@@ -1414,7 +1417,7 @@ G41 are fixed for 1.3.0; G37 is proposed.
   "Above the reference" and a gain figure without a band are BBTextPrimary,
   and "not enough data" and "first weeks" BBTextSecondary (4.92 / 6.11):
   those pass. Onboarding's growth page renders the percentile card itself
-  (`GrowthShowcasePage.swift:102`, a tail there in BBTextPrimary). Breaks P8.
+  (`GrowthShowcasePage.swift:103`, a tail there in BBTextPrimary). Breaks P8.
   The percentile card, decided 2026-11-04, in force (in code at e3d45e2: the
   figure `PercentileCard.swift:72`, one element `:75`, the ring `:80–89`;
   the band label and the ring number are gone): the band label goes; the
@@ -1982,24 +1985,34 @@ G41 are fixed for 1.3.0; G37 is proposed.
   need the fit).
 - **G40 · An onboarding page's words broke beside their icons at the
   accessibility sizes on 320 pt; fixed for 1.3.0, in code at 22721cf
-  (decided 2026-11-07)** (found 2026-11-07 at 5f48b61). The welcome cards,
-  the notifications bullets and the optional-measure switch set their texts
-  beside a fixed badge, icon or switch, and a word wider than the room left
-  broke inside itself. Frame dumps of the onboarding pages in en, ru and es on
+  (decided 2026-11-07)** (found 2026-11-07 at 5f48b61; the Growth
+  showcase's bullets found 2026-11-13 at eda8661 and fixed in code at
+  04f4eba). The welcome cards, the notifications bullets, the Growth
+  showcase's bullets and the optional-measure switch set their texts beside
+  a fixed badge, icon or switch, and a word wider than the room left broke
+  inside itself. Frame dumps of the onboarding pages in en, ru and es on
   320 and 375 pt, at Large, AX1 and AX2, regular and with Bold Text, found 10
   broken words at AX1 and 24 at AX2 at 5f48b61, all on 320 pt and none at
   Large, and none at 4787d5d. In the welcome card's 123 pt beside its badge,
   ru «Подгузники» is 134.3 / 157.0 pt at AX1 / AX2, «кормлений» 125.0 / 146.0
   and es «crecimiento» 125.3 / 146.0; in the bullet's 160 pt, ru
   «подстраивается» is 164.7 / 192.0 and «бодрствования» 181.7 at AX2 (164.7
-  with Bold Text at AX1); the switch's words are in § 7
+  with Bold Text at AX1); the Growth showcase's bullets, plain text beside
+  the icon until 04f4eba, broke in the same 160 pt: de «Gewichtszunahme» is
+  210.0 and «Geburtsgewicht» 180.7 at AX2, and the fix's test counted 26 such
+  words on 320 pt and 2 on 375 (de with Bold Text, 221.0 in 209.0) at AX2 at
+  eda8661; the switch's words are in § 7
   BBOptionalMeasureToggle; the feeding page's subtitle broke
   «персонализированного» at AX2 with Bold Text (287.0 pt in its 272), and
   its rows, which the dumps did not count, drew ru «Грудное» and «Смешанное»
   broken at AX2 in the renders. Broke § 3: a word is never broken inside
   itself. As built (`WelcomePage.swift:50`,
-  the card `:92`, beside `:130`, under `:137`; `NotificationsPage.swift:93`,
-  the bullets `:37`, beside `:52`; `FeedingPage.swift:36`, the row `:67`):
+  the card `:92`, beside `:130`, under `:137`; `OnboardingBulletList`,
+  `OnboardingHelpers.swift:62`, the one bullet card of the notifications page
+  (`NotificationsPage.swift:55`) and of the Growth showcase
+  (`GrowthShowcasePage.swift:172`), the set `:68`, beside `:95`, under `:89`,
+  each page giving its tint: BBPrimary with the icon's disc at 0.1, BBGrowth
+  at 0.18; `FeedingPage.swift:36`, the row `:67`):
   each page's set takes one shape, chosen by one `ViewThatFits(in:
   .horizontal)` over the whole set and by fit alone, with no text-size
   threshold (unlike the paywall feature card, under from AX1, and
@@ -2014,7 +2027,14 @@ G41 are fixed for 1.3.0; G37 is proposed.
   build: on 320 pt the welcome cards go under from AX1 in ru and es and stay
   beside at AX2 in en; the bullets and the feeding rows go under from AX1 in
   ru and stay beside at AX2 in en and es; on 375 pt every card, bullet and row
-  stays beside at AX2. The feeding page's subtitle (`FeedingHint`, `:115`)
+  stays beside at AX2. The Growth showcase's bullets, read on the fix's
+  captures on 320 pt at AX2: in de, sv and da every text goes under its icon,
+  sm 8 below the disc, at its leading edge, every word whole (de
+  «Gewichtszunahme», «Geburtsgewicht»); with Bold Text, sv and da break only
+  after the hyphen of «WHO-», as § 3 allows. The fix's test finds no word
+  broken in either bullet list in the 15 languages on 320 and 375 pt at Large,
+  AX1 and AX2, Bold Text off and on; the notifications bullets draw as before,
+  the same rows moved into the shared view. The feeding page's subtitle (`FeedingHint`, `:115`)
   takes the first of three sizes whose widest word fits its column, each read
   by `ViewThatFits(in: .horizontal)` (`:123`): the reader's size, then the
   AX1 size, then xxxLarge's, each no larger than the reader's (`:134`), as
