@@ -47,6 +47,7 @@ struct DiaperView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { showAddSheet = true }
+                    .accessibilityIdentifier("diaper.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
@@ -476,6 +477,7 @@ struct AddDiaperSheet: View {
                 .bbSelectedBorder(selectedType == type)
             }
             .buttonStyle(BBScaleButtonStyle())
+            .accessibilityIdentifier("diaper.type.\(type.rawValue)")
         }
     }
 
@@ -582,6 +584,7 @@ struct AddDiaperSheet: View {
             .safeAreaInset(edge: .bottom) {
                 BBSheetFooter {
                     BBPrimaryButton("button.save".l, icon: "checkmark") { save() }
+                        .accessibilityIdentifier("diaper.save")
                 }
             }
             .bbSheetTitle("sheet.diaper".l)

@@ -81,6 +81,7 @@ struct GrowthShowcasePage: View {
             }
 
             BBPrimaryButton("button.next".l, icon: "arrow.right", action: onContinue)
+                .accessibilityIdentifier("onboarding.next")
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, 36)
                 .opacity(appear ? 1 : 0)

@@ -91,9 +91,10 @@ extension SideBySideIdeal.Measure {
 }
 
 extension String {
-    /// The text one word a line, so its ideal width is its widest word. Words
-    /// part at plain spaces; a no-break space keeps a number with its unit.
+    /// The text one unbreakable piece a line, so its ideal width is its
+    /// widest piece (`lineBreakUnits`: words, and line-break runs in Chinese
+    /// and Japanese).
     var oneWordALine: String {
-        split(separator: " ").joined(separator: "\n")
+        lineBreakUnits.joined(separator: "\n")
     }
 }

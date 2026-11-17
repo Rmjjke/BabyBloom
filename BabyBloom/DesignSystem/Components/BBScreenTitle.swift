@@ -95,7 +95,7 @@ enum BBScreenTitleFit {
     /// by layout, at its real width; this is that choice by arithmetic.
     @MainActor
     static func headingStyle(_ title: String, width: CGFloat, size: DynamicTypeSize, boldText: Bool) -> Style {
-        let words = title.split(separator: " ").map(String.init)
+        let words = title.lineBreakUnits
         return Style.allCases.first { style in
             let font = font(style, size: size, boldText: boldText)
             let widest = words.map { Self.width(of: $0, in: font) }.max() ?? 0

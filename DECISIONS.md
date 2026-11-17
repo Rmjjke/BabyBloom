@@ -14,6 +14,35 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-11 — Pseudo-languages are a debug loader override, not languages; the widest piece follows the screen's line breaking
+
+**en-XA and ja-XB are a DEBUG-and-simulator override in the loader, never
+`SupportedLanguage` cases.** As cases they would reach the release picker, the
+plural table, the widget's exhaustive switches and the lint's list of complete
+languages. Every one of those would then need an exception, and a missed
+exception would ship a test language. As an override they exist only in debug
+simulator builds and in the tests, which build the same tables from `en.json`.
+Each one borrows a real language's rule and typesetting (en, ja), so
+plurals and the Japanese glyph forms run as they will in production.
+
+**A Chinese or Japanese piece is measured per line-break opportunity, with a
+fixed tokenizer locale.** Splitting on spaces measured a whole Japanese
+sentence as one word, so every fit would fail or be waived. The tokenizer under
+the "ja" locale segments by dictionary phrase («今日» / «赤ちゃん», and a
+full-width Latin run as one word), while Core Text wraps Japanese between any
+two characters the kinsoku rules allow. That held under ja, en and no language
+attribute. A measured piece wider than anything the screen keeps together
+would fail fits that are not misses, so the locale is fixed. Scripts that write
+spaces skip the tokenizer: it would also cut "e-mail" at the hyphen, and their
+measures are pinned.
+
+**Letter-spacing is 0 in ja, ko and zh-Hant.** The type scale's tracking was
+tuned for SF's Latin. On a full-width grid it opens gaps between characters,
+and on the splash tagline (4.5) it spreads a short Japanese phrase across the
+screen.
+
+---
+
 ## 2026-11-11 — Plurals: our own CLDR table in code, no `.stringsdict`, the JSON stays the one source
 
 A count selects its sentence by CLDR category from the operands of the number

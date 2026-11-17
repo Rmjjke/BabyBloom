@@ -1,9 +1,21 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import BabyBloom
 
-/// Where the splash puts its art and its words, window by window.
+/// Where the splash puts its art and its words, window by window, in every
+/// shipped language and both pseudo-languages.
 final class SplashLayoutTests: XCTestCase {
+
+    /// Places known not to fit yet. Keys: "splash.tagline on 320"; "art
+    /// height <window>", where the words beside push the figure so small that
+    /// the art no longer covers the window's height (width = the art's
+    /// height, room = the window's).
+    private static let knownMisses: [KnownMiss] = [
+        KnownMiss(.pseudo(.enXA), "splash.tagline on 320", width: 375.3, room: 272.0),
+        KnownMiss(.pseudo(.jaXB), "splash.tagline on 320", width: 278.3, room: 272.0),
+        KnownMiss(.pseudo(.enXA), "art height 320 landscape", width: 274.5, room: 320.0),
+    ]
 
     private struct Window {
         let name: String
@@ -18,10 +30,11 @@ final class SplashLayoutTests: XCTestCase {
     }
 
     /// The words' fitting size per language: the wordmark over the tagline row.
-    private let stacks: [String: CGSize] = [
-        "en": CGSize(width: 261.5, height: 83),
-        "ru": CGSize(width: 219.6, height: 83),
-        "es": CGSize(width: 256.1, height: 83),
+    /// Measured design pins; every other language is measured live (`stacks()`).
+    private let pinnedStacks: [FitLanguage: CGSize] = [
+        .real(.en): CGSize(width: 261.5, height: 83),
+        .real(.ru): CGSize(width: 219.6, height: 83),
+        .real(.es): CGSize(width: 256.1, height: 83),
     ]
 
     /// Windows where the words lie on the field under the figure, as they always have.
@@ -49,9 +62,11 @@ final class SplashLayoutTests: XCTestCase {
         window("iPad 13 split 2/3", 991, 1032, top: 24, bottom: 20),
     ]
 
-    private func layout(_ w: Window, _ lang: String, rightToLeft: Bool = false) -> SplashLayout {
-        SplashLayout(size: w.size, insets: w.insets, stack: stacks[lang]!, rightToLeft: rightToLeft)
+    private func layout(_ w: Window, _ stack: CGSize, rightToLeft: Bool = false) -> SplashLayout {
+        SplashLayout(size: w.size, insets: w.insets, stack: stack, rightToLeft: rightToLeft)
     }
+
+    private var english: CGSize { pinnedStacks[.real(.en)]! }
 
     private func scale(_ l: SplashLayout) -> CGFloat { l.artFrame.width / SplashLayout.art.width }
 
@@ -61,9 +76,8 @@ final class SplashLayoutTests: XCTestCase {
                       width: f.width * s, height: f.height * s)
     }
 
-    private func stack(_ l: SplashLayout, _ lang: String) -> CGRect {
-        let size = stacks[lang]!
-        return CGRect(x: l.stackCenter.x - size.width / 2, y: l.stackCenter.y - size.height / 2,
+    private func stack(_ l: SplashLayout, _ size: CGSize) -> CGRect {
+        CGRect(x: l.stackCenter.x - size.width / 2, y: l.stackCenter.y - size.height / 2,
                       width: size.width, height: size.height)
     }
 
@@ -73,19 +87,21 @@ final class SplashLayoutTests: XCTestCase {
                height: w.size.height - w.insets.top - w.insets.bottom)
     }
 
+    @MainActor
     func testTodaysLayoutWhereTheWordsClearTheFigure() {
+        let stacks = stacks()
         for w in today {
-            for lang in stacks.keys {
-                let l = layout(w, lang)
+            for (language, size) in stacks {
+                let l = layout(w, size)
                 let fill = max(w.size.width / 941, w.size.height / 1362)
-                XCTAssertFalse(l.isBeside, "\(w.name) \(lang)")
-                XCTAssertEqual(l.artFrame.width, 941 * fill, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertEqual(l.artFrame.height, 1362 * fill, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertEqual(l.artFrame.midX, w.size.width / 2, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertEqual(l.artFrame.midY, w.size.height / 2, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertEqual(l.stackCenter.x, w.size.width / 2, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertEqual(l.stackCenter.y, 0.82 * w.size.height, accuracy: 0.001, "\(w.name) \(lang)")
-                XCTAssertFalse(l.fadesLeft || l.fadesRight, "\(w.name) \(lang)")
+                XCTAssertFalse(l.isBeside, "\(w.name) \(language)")
+                XCTAssertEqual(l.artFrame.width, 941 * fill, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertEqual(l.artFrame.height, 1362 * fill, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertEqual(l.artFrame.midX, w.size.width / 2, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertEqual(l.artFrame.midY, w.size.height / 2, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertEqual(l.stackCenter.x, w.size.width / 2, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertEqual(l.stackCenter.y, 0.82 * w.size.height, accuracy: 0.001, "\(w.name) \(language)")
+                XCTAssertFalse(l.fadesLeft || l.fadesRight, "\(w.name) \(language)")
             }
         }
     }
@@ -105,8 +121,8 @@ final class SplashLayoutTests: XCTestCase {
         ]
         for w in beside {
             let (s, left, right, top, bottom) = try XCTUnwrap(expected[w.name])
-            let l = layout(w, "en")
-            let box = stack(l, "en")
+            let l = layout(w, english)
+            let box = stack(l, english)
             XCTAssertTrue(l.isBeside, w.name)
             XCTAssertEqual(scale(l), s, accuracy: 0.0001, w.name)
             XCTAssertEqual(box.minX, left, accuracy: 0.01, w.name)
@@ -116,15 +132,17 @@ final class SplashLayoutTests: XCTestCase {
         }
         // On a full iPad 13 the figure fits at the fill scale: the art is drawn as today.
         let ipad = try XCTUnwrap(beside.first { $0.name == "iPad 13 landscape" })
-        XCTAssertEqual(scale(layout(ipad, "en")), max(1376.0 / 941, 1032.0 / 1362), accuracy: 0.000_001)
+        XCTAssertEqual(scale(layout(ipad, english)), max(1376.0 / 941, 1032.0 / 1362), accuracy: 0.000_001)
     }
 
+    @MainActor
     func testBesideKeepsTheWordsOffTheFigureInEveryLanguage() {
+        let stacks = stacks()
         for w in beside {
-            for lang in stacks.keys {
-                let l = layout(w, lang)
-                let fig = figure(l), box = stack(l, lang), safe = safe(w)
-                let name = "\(w.name) \(lang)"
+            for (language, size) in stacks {
+                let l = layout(w, size)
+                let fig = figure(l), box = stack(l, size), safe = safe(w)
+                let name = "\(w.name) \(language)"
                 XCTAssertTrue(l.isBeside, name)
                 XCTAssertLessThanOrEqual(scale(l), max(w.size.width / 941, w.size.height / 1362) + 0.000_001, name)
                 XCTAssertGreaterThanOrEqual(box.minX - fig.maxX, 32 - 0.001, name)
@@ -135,8 +153,14 @@ final class SplashLayoutTests: XCTestCase {
                     XCTAssertGreaterThanOrEqual(rect.minY - safe.minY, 24 - 0.001, name)
                     XCTAssertGreaterThanOrEqual(safe.maxY - rect.maxY, 24 - 0.001, name)
                 }
-                XCTAssertLessThanOrEqual(l.artFrame.minY, 0.001, name)
-                XCTAssertGreaterThanOrEqual(l.artFrame.maxY, w.size.height - 0.001, name)
+                let covers = l.artFrame.minY <= 0.001 && l.artFrame.maxY >= w.size.height - 0.001
+                let missKey = "art height \(w.name)"
+                if KnownMiss.listed(Self.knownMisses, language, missKey) {
+                    XCTAssertFalse(covers, "\(language) \(missKey) fits now: remove its known-miss row")
+                } else {
+                    XCTAssertTrue(covers, "\(language) \(missKey): art \(String(format: "%.1f", Double(l.artFrame.minY)))"
+                                  + "…\(String(format: "%.1f", Double(l.artFrame.maxY))) in \(w.size.height)")
+                }
                 XCTAssertEqual(l.fadesLeft, l.artFrame.minX > 0, name)
                 XCTAssertEqual(l.fadesRight, l.artFrame.maxX < w.size.width, name)
             }
@@ -145,7 +169,7 @@ final class SplashLayoutTests: XCTestCase {
 
     func testRightToLeftPutsTheFigureOnTheRight() {
         for w in beside {
-            let ltr = layout(w, "en"), rtl = layout(w, "en", rightToLeft: true)
+            let ltr = layout(w, english), rtl = layout(w, english, rightToLeft: true)
             let width = w.size.width
             XCTAssertEqual(scale(rtl), scale(ltr), accuracy: 0.000_001, w.name)
             XCTAssertEqual(rtl.stackCenter.x, width - ltr.stackCenter.x, accuracy: 0.001, w.name)
@@ -173,5 +197,71 @@ final class SplashLayoutTests: XCTestCase {
         XCTAssertEqual(stops.map(\.opacity), [0, 0.15625, 0.5, 0.84375, 1, 1, 0.84375, 0.5, 0.15625, 0])
         // No side in the window: nothing fades.
         XCTAssertEqual(SplashLayout.fadeStops(left: false, right: false).map(\.opacity), [1, 1])
+    }
+
+    // MARK: - The words in every language
+
+    /// On a 320-pt phone the words lie under the figure, centred; the tagline
+    /// is one line by design, so it has to fit inside the splash's margins.
+    @MainActor
+    func testTheTaglineFitsA320WindowInEveryLanguage() {
+        defer { FitLanguage.restore() }
+        let room = 320 - 2 * SplashLayout.margin
+        let key = "splash.tagline on 320"
+        for language in FitLanguage.all {
+            language.apply()
+            let line = fittingSize(taglineRow(), language).width
+            let fits = line <= room
+            if KnownMiss.listed(Self.knownMisses, language, key) {
+                if fits { XCTFail("\(language) \(key) fits now: remove its known-miss row") }
+            } else {
+                XCTAssertTrue(fits, "\(language) \(key): line \(String(format: "%.1f", Double(line)))"
+                              + " in \(String(format: "%.1f", Double(room)))")
+            }
+        }
+    }
+
+    /// The pinned sizes where there are pins, the measured words elsewhere.
+    @MainActor
+    private func stacks() -> [(FitLanguage, CGSize)] {
+        defer { FitLanguage.restore() }
+        return FitLanguage.all.map { (language) -> (FitLanguage, CGSize) in
+            if let pinned = pinnedStacks[language] { return (language, pinned) }
+            language.apply()
+            return (language, fittingSize(words(), language))
+        }
+    }
+
+    @MainActor
+    private func fittingSize<V: View>(_ view: V, _ language: FitLanguage) -> CGSize {
+        let root = view.fixedSize().environment(\.locale, language.environmentLocale)
+        return UIHostingController(rootView: root)
+            .sizeThatFits(in: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude))
+    }
+
+    /// `SplashView`'s words, as it sets them: the wordmark over the tagline row.
+    @MainActor
+    private func words() -> some View {
+        VStack(spacing: 16) {
+            Text("brand.name".l)
+                .font(.system(size: 42, weight: .semibold, design: .serif))
+            taglineRow()
+        }
+    }
+
+    /// `SplashView`'s tagline with its leaves. The tracking is read here, after
+    /// the language is applied: the space-less scripts set it to zero.
+    @MainActor
+    private func taglineRow() -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 9))
+                .scaleEffect(x: -1)
+            Text("splash.tagline".l.uppercased())
+                .font(.system(size: 14, weight: .medium))
+                .tracking(BBTheme.Typography.tracking(4.5))
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 9))
+        }
     }
 }

@@ -58,7 +58,7 @@ struct BabyBloomApp: App {
             // Every DatePicker (and any date SwiftUI formats itself) speaks the
             // APP language, not the device region: a ru app on an en_US phone
             // showed «2 Nov 2026». Set at the root so sheets inherit it.
-            .appLanguageEnvironment(LocalizationManager.effective(appLanguage))
+            .appLanguageEnvironment(LocalizationManager.environmentLanguage(for: appLanguage))
             // At the root, not on MainTabView: a cold launch shows the splash
             // for ~5 s, and a URL delivered while no view listens is dropped.
             // Before onboarding is done a link just opens onboarding, so it is

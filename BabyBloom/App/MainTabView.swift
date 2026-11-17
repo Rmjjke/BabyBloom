@@ -50,6 +50,7 @@ struct MainTabView: View {
                 .tag(Tab.more)
         }
         .tint(BBTheme.Colors.primary)
+        .background(TabBarIdentifiers().frame(width: 0, height: 0))
         // Here and not at the app root: onboarding must never see a live
         // trigger, and everything that saves an entry lives under this view.
         .reviewPromptHost()
@@ -98,11 +99,13 @@ struct MoreView: View {
                     MoreProfileRowLabel(baby: baby)
                         .padding(.vertical, 4)
                 }
+                .accessibilityIdentifier("more.profile")
                 NavigationLink(destination: GrowthView()) {
                     ListTitleRowLabel(title: "nav.growth".l,
                                       systemImage: "chart.line.uptrend.xyaxis",
                                       iconColor: BBTheme.Colors.growth)
                 }
+                .accessibilityIdentifier("more.growth")
                 // Right after Growth: the report reads growth first.
                 NavigationLink(destination: DoctorReportView()) {
                     ListTitleRowLabel(title: "report.title".l,
@@ -116,6 +119,7 @@ struct MoreView: View {
                                       systemImage: "clock.arrow.circlepath",
                                       iconColor: BBTheme.Colors.primary)
                 }
+                .accessibilityIdentifier("more.recent_activity")
                 NavigationLink(destination: EventsView()) {
                     ListTitleRowLabel(title: "nav.events".l,
                                       systemImage: "star.fill",
@@ -242,11 +246,13 @@ struct ProfileView: View {
                     ForEach(SupportedLanguage.pickerOrder(current: LocalizationManager.effective(appLanguage),
                                                           available: SupportedLanguage.available)) { language in
                         Text(language.endonym).tag(language.rawValue)
+                            .accessibilityIdentifier("settings.language.\(language.rawValue)")
                     }
                 } label: {
                     Label("settings.language".l, systemImage: "globe")
                 }
                 .pickerStyle(.navigationLink)
+                .accessibilityIdentifier("settings.language")
             }
 
             // ── Appearance ────────────────────────────────────────────
@@ -260,6 +266,7 @@ struct ProfileView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .accessibilityIdentifier("settings.appearance")
             }
 
             Section("settings.notifications".l) {
@@ -368,6 +375,7 @@ struct ProfileView: View {
                             .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
                     }
                 }
+                .accessibilityIdentifier("settings.premium")
             }
         }
         .navigationTitle("nav.profile".l)
@@ -380,5 +388,85 @@ struct ProfileView: View {
                 BabyProfileEditSheet(baby: baby)
             }
         }
+    }
+}
+
+
+// SwiftUI drops an identifier set inside .tabItem, so a UIKit probe sets it.
+// The iOS 17/18 bar copies the bar item's identifier to its button. The iOS 26
+// bar builds its buttons before any probe runs and never reads the item again,
+// so the probe also sets it on the button views (both layers, the plain one and
+// the selected one). Order matches the TabView above. Every pass is idempotent.
+private struct TabBarIdentifiers: UIViewControllerRepresentable {
+    private static let ids = ["tabbar.home", "tabbar.feeding", "tabbar.sleep", "tabbar.diapers", "tabbar.more"]
+
+    final class Probe: UIViewController {
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            applyWhenTheBarIsUp(attempts: 20)
+        }
+        override func viewDidLayoutSubviews() {
+            super.viewDidLayoutSubviews()
+            apply()
+        }
+
+        // Inserted by the splash's or onboarding's animated swap, the probe can
+        // appear before the tab bar controller joins the window, and a zero-size
+        // view gets no later layout pass: look again for up to two seconds.
+        func applyWhenTheBarIsUp(attempts: Int) {
+            guard !apply(), attempts > 0 else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.applyWhenTheBarIsUp(attempts: attempts - 1)
+            }
+        }
+
+        private static func tabBarController(in controller: UIViewController) -> UITabBarController? {
+            if let tab = controller as? UITabBarController { return tab }
+            for child in controller.children {
+                if let found = tabBarController(in: child) { return found }
+            }
+            return controller.presentedViewController.flatMap { tabBarController(in: $0) }
+        }
+
+        @discardableResult
+        private func apply() -> Bool {
+            guard let root = view.window?.rootViewController,
+                  let bar = Self.tabBarController(in: root)?.tabBar,
+                  let items = bar.items, !items.isEmpty else { return false }
+            for (item, id) in zip(items, TabBarIdentifiers.ids) where item.accessibilityIdentifier != id {
+                item.accessibilityIdentifier = id
+            }
+            // The button class is private: matched by name, so a renamed class
+            // costs the ids, never a crash. Each layer is one row, in item order
+            // read in the bar's layout direction.
+            let rightToLeft = bar.effectiveUserInterfaceLayoutDirection == .rightToLeft
+            for row in Self.buttonRows(in: bar).values {
+                let ordered = row.sorted { rightToLeft ? $0.frame.minX > $1.frame.minX : $0.frame.minX < $1.frame.minX }
+                for (button, id) in zip(ordered, TabBarIdentifiers.ids) where button.accessibilityIdentifier != id {
+                    button.accessibilityIdentifier = id
+                }
+            }
+            return true
+        }
+
+        private static func buttonRows(in bar: UITabBar) -> [ObjectIdentifier: [UIView]] {
+            var rows: [ObjectIdentifier: [UIView]] = [:]
+            func collect(_ view: UIView) {
+                let name = String(describing: type(of: view))
+                if name.hasSuffix("TabButton") || name.hasSuffix("TabBarButton"), let parent = view.superview {
+                    rows[ObjectIdentifier(parent), default: []].append(view)
+                }
+                view.subviews.forEach(collect)
+            }
+            collect(bar)
+            return rows
+        }
+    }
+
+    func makeUIViewController(context: Context) -> Probe { Probe() }
+    // A tab switch can rebuild the selected layer's buttons: label them again
+    // once the bar has laid out.
+    func updateUIViewController(_ controller: Probe, context: Context) {
+        DispatchQueue.main.async { controller.applyWhenTheBarIsUp(attempts: 5) }
     }
 }

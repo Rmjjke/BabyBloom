@@ -113,20 +113,32 @@ enum BBTheme {
                     weight: weight, design: design)
         }
 
+        /// The tracking of a style tuned for SF's Latin, in the app's language.
+        /// Chinese, Japanese and Korean glyphs sit in full-width boxes that
+        /// carry their own spacing, so any tracking there only crowds or
+        /// spreads them; Latin and Cyrillic keep the tuned value.
+        static func tracking(_ latin: CGFloat,
+                             for language: SupportedLanguage = LocalizationManager.shared.language) -> CGFloat {
+            switch language {
+            case .ja, .ko, .zhHant: 0
+            default: latin
+            }
+        }
+
         static func largeTitle(_ text: String) -> Text {
             Text(text)
                 .font(scaled(30, relativeTo: .title1, weight: .semibold, design: .default))
-                .tracking(-0.4)
+                .tracking(tracking(-0.4))
         }
         static func title1(_ text: String) -> Text {
             Text(text)
                 .font(scaled(26, relativeTo: .title2, weight: .semibold, design: .default))
-                .tracking(-0.3)
+                .tracking(tracking(-0.3))
         }
         static func title2(_ text: String) -> Text {
             Text(text)
                 .font(scaled(21, relativeTo: .title3, weight: .semibold, design: .default))
-                .tracking(-0.2)
+                .tracking(tracking(-0.2))
         }
         static func title3(_ text: String) -> Text {
             Text(text).font(scaled(18, relativeTo: .headline, weight: .semibold, design: .default))
@@ -143,7 +155,7 @@ enum BBTheme {
         static func caption(_ text: String) -> Text {
             Text(text)
                 .font(scaled(12, relativeTo: .caption1, weight: .medium, design: .rounded))
-                .tracking(0.3)
+                .tracking(tracking(0.3))
         }
         /// Large KPI digits — rounded, monospaced so values don't shift width.
         static func metric(_ text: String) -> Text {

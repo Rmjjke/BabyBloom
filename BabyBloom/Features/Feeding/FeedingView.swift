@@ -71,6 +71,7 @@ struct FeedingView: View {
             .background(BBTheme.Colors.background.ignoresSafeArea())
             .overlay(alignment: .bottomTrailing) {
                 BBFab { addSheetRequest = FeedingSheetRequest(type: .breast) }
+                    .accessibilityIdentifier("feeding.add")
                     .padding(.trailing, BBTheme.Spacing.md)
                     .padding(.bottom, BBTheme.Spacing.md)
             }
@@ -407,6 +408,7 @@ struct AddFeedingSheet: View {
                 .bbSelectedBorder(selectedType == type)
             }
             .buttonStyle(BBScaleButtonStyle())
+            .accessibilityIdentifier("feeding.type.\(type.rawValue)")
         }
     }
 
@@ -557,6 +559,7 @@ struct AddFeedingSheet: View {
                                     icon: startTimer ? "play.fill" : "checkmark") {
                         save()
                     }
+                    .accessibilityIdentifier("feeding.save")
                 }
             }
             .bbSheetTitle("sheet.new_feeding".l)

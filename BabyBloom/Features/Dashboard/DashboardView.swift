@@ -201,8 +201,11 @@ struct DashboardView: View {
             QuickActionsLayout(counts: dynamicTypeSize.isAccessibilitySize ? [1] : [4, 2],
                                rowSpacing: BBTheme.Spacing.md) {
                 BBQuickActionButton(icon: "heart.fill",      title: "tab.feeding".l, color: BBTheme.Colors.feeding) { showQuickFeedingSheet = true }
+                    .accessibilityIdentifier("home.quick.feeding")
                 BBQuickActionButton(icon: "moon.fill",       title: "tab.sleep".l,   color: BBTheme.Colors.sleep)   { showQuickSleepSheet = true }
+                    .accessibilityIdentifier("home.quick.sleep")
                 BBQuickActionButton(icon: "drop.fill",       title: "nav.diapers".l, color: BBTheme.Colors.diaper)  { showQuickDiaperSheet = true }
+                    .accessibilityIdentifier("home.quick.diapers")
                 // Creating an event is Premium; the padlock says so before the
                 // tap. Viewing, editing and DELETING what is already recorded
                 // stays free — recorded data is never held hostage.
@@ -210,6 +213,7 @@ struct DashboardView: View {
                                     locked: !store.isPremium) {
                     if store.isPremium { showQuickEventSheet = true } else { paywallSource = .events }
                 }
+                .accessibilityIdentifier("home.quick.events")
             }
             .padding(BBTheme.Spacing.md)
             .background(BBTheme.Colors.surface)

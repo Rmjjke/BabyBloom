@@ -208,6 +208,8 @@ struct PlanPickerSection: View {
             .accessibilityElement(children: .combine)
         }
         .buttonStyle(BBScaleButtonStyle())
+        // Last dotted component of the product id: weekly, monthly, yearly.
+        .accessibilityIdentifier("paywall.plan.\(id.split(separator: ".").last.map(String.init) ?? id)")
     }
 
     // MARK: - Restore
@@ -221,6 +223,7 @@ struct PlanPickerSection: View {
                 .foregroundStyle(BBTheme.Colors.primary)
                 .underline()
         }
+        .accessibilityIdentifier("paywall.restore")
         .disabled(store.isLoading)
     }
 
@@ -234,8 +237,10 @@ struct PlanPickerSection: View {
             HStack(spacing: BBTheme.Spacing.lg) {
                 Link("premium.terms".l,
                      destination: LegalLinks.terms)
+                    .accessibilityIdentifier("paywall.terms")
                 Link("premium.privacy".l,
                      destination: LegalLinks.privacy)
+                    .accessibilityIdentifier("paywall.privacy")
             }
         }
         .font(.system(size: 11, design: .rounded))
@@ -302,6 +307,7 @@ struct PlanPickerCTA: View {
                     }
                 }
             }
+            .accessibilityIdentifier("paywall.cta")
             .disabled(store.isLoading || selectedProduct == nil)
             .opacity(selectedProduct == nil ? 0.5 : 1)
 

@@ -8,7 +8,8 @@ import UIKit
 /// settings subtitle, breaks its texts between words only, on a 320-pt screen
 /// (an SE with Display Zoom) at every text size. The avatar stands beside the
 /// texts while their widest word fits the column it leaves, else on a line of
-/// its own above them, where the texts take the row's whole width.
+/// its own above them, where the texts take the row's whole width. Every
+/// shipped language runs, and both pseudo-languages.
 ///
 /// The fonts scale by the device's content size, which a test cannot move:
 /// each size's case runs with the simulator at that size and skips otherwise.
@@ -21,9 +22,15 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     /// row's leading edge (x 32).
     private let besideMinX: CGFloat = 60
 
+    /// Places a language is known not to fit, keyed by what missed, the baby's
+    /// name, the size (Large, AX1, AX2) and " bold" with Bold Text:
+    /// "profile.settings_subtitle with Mia AX2 bold", "name Александра AX2",
+    /// "edges with Mia AX1" (any element past the screen's edges).
+    private static let knownMisses: [KnownMiss] = []
+
     override func tearDown() {
         accessibility.close()
-        LocalizationManager.shared.setLanguage(.en)
+        FitLanguage.restore()
         super.tearDown()
     }
 
@@ -48,13 +55,15 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     /// «Александра» is the long name; «Mia» leaves the subtitle alone to decide.
     private func assertRow(at size: UIContentSizeCategory) throws {
         for babyName in ["Александра", "Mia"] {
-            for language in [SupportedLanguage.en, .ru, .es] {
+            for language in FitLanguage.all {
                 var regularName: (drawn: CGFloat, measured: CGFloat)?
                 for bold in [false, true] {
-                    LocalizationManager.shared.setLanguage(language)
-                    let label = "\(babyName) \(language.rawValue)\(bold ? " bold" : "") \(size.rawValue)"
+                    language.apply()
+                    let qualifier = "\(sizeName(size))\(bold ? " bold" : "")"
+                    let label = "\(language) \(babyName) \(qualifier)"
                     let subtitle = "profile.settings_subtitle".l
-                    let elements = try moreTab(babyName: babyName, bold: bold)
+                    let elements = try moreTab(babyName: babyName, bold: bold, language: language,
+                                               key: "edges with \(babyName) \(qualifier)")
                     let nameText = try XCTUnwrap(elements.first { $0.label == babyName },
                                                  "\(label): «\(babyName)» is not in \(elements)")
                     let subtitleText = try XCTUnwrap(elements.first { $0.label == subtitle },
@@ -75,10 +84,9 @@ final class MoreFirstRowWordFitTests: XCTestCase {
                     } else {
                         regularName = (nameText.frame.width, nameWord.1)
                     }
-                    XCTAssertGreaterThanOrEqual(nameText.frame.width + 0.5, nameWord.1,
-                                                "\(label): «\(nameWord.0)» (\(nameWord.1)) is broken at \(nameText.frame.width)")
-                    XCTAssertGreaterThanOrEqual(subtitleText.frame.width + 0.5, subtitleWord.1,
-                                                "\(label): «\(subtitleWord.0)» (\(subtitleWord.1)) is broken at \(subtitleText.frame.width)")
+                    check(language, "name \(babyName) \(qualifier)", unit: nameWord, drawn: nameText.frame.width)
+                    check(language, "profile.settings_subtitle with \(babyName) \(qualifier)",
+                          unit: subtitleWord, drawn: subtitleText.frame.width)
                     // VoiceOver reads the row once, the hidden one-word-a-line
                     // copy of the texts never.
                     XCTAssertEqual(elements.filter { $0.label == "\(babyName), \(subtitle)" }.count, 1,
@@ -102,15 +110,21 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     /// and AX1 the texts keep beside. At AX2 «Александра» (180, in Bold Text
     /// 193) misses the column, and so do the bold ru «уведомления,» (175) and
     /// es «notificaciones,» (174); en «notifications,» (155 in Bold) fits.
-    private func expectedStacked(_ babyName: String, language: SupportedLanguage, bold: Bool,
+    private func expectedStacked(_ babyName: String, language: FitLanguage, bold: Bool,
                                  size: UIContentSizeCategory) -> Bool? {
+        let pinned: [FitLanguage] = [.real(.en), .real(.ru), .real(.es)]
+        // Only «Александра» at AX2 misses whatever the language; the other
+        // languages' shape is not pinned, their words are held whole.
+        guard pinned.contains(language) else {
+            return size == .accessibilityLarge && babyName == "Александра" ? true : nil
+        }
         switch size {
         case .large: return false
         case .accessibilityMedium: return bold ? nil : false
         case .accessibilityLarge:
             if babyName == "Александра" { return true }
             switch language {
-            case .en: return false
+            case .real(.en): return false
             default: return bold ? true : nil
             }
         default: return nil
@@ -120,7 +134,8 @@ final class MoreFirstRowWordFitTests: XCTestCase {
     // MARK: - The tab
 
     /// The More tab with one baby, read once it has settled.
-    private func moreTab(babyName: String, bold: Bool) throws -> [HostedAccessibility.Element] {
+    private func moreTab(babyName: String, bold: Bool, language: FitLanguage,
+                         key: String) throws -> [HostedAccessibility.Element] {
         let container = try ModelContainer(
             for: AppSchema.schema,
             configurations: [ModelConfiguration(schema: AppSchema.schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)])
@@ -132,27 +147,54 @@ final class MoreFirstRowWordFitTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(0.5))
         let elements = accessibility.elements(root, automation: true)
         accessibility.close()
+        var misses: [String] = []
         for element in elements {
-            XCTAssertGreaterThanOrEqual(element.frame.minX, -0.5, "\(element) is past the left edge")
-            XCTAssertLessThanOrEqual(element.frame.maxX, screen.width + 0.5, "\(element) is past the right edge")
+            if element.frame.minX < -0.5 {
+                misses.append("\(element) left edge \(points(element.frame.minX)) in \(points(screen.width))")
+            }
+            if element.frame.maxX > screen.width + 0.5 {
+                misses.append("\(element) right edge \(points(element.frame.maxX)) in \(points(screen.width))")
+            }
+        }
+        if KnownMiss.listed(Self.knownMisses, language, key) {
+            XCTAssertFalse(misses.isEmpty, "\(language) \(key) fits now: remove its known-miss row")
+        } else {
+            for miss in misses { XCTFail("\(language) \(key): \(miss)") }
         }
         return elements
+    }
+
+    /// A text drawn narrower than its widest unit has broken it.
+    private func check(_ language: FitLanguage, _ key: String, unit: (String, CGFloat), drawn: CGFloat) {
+        let broken = drawn + 0.5 < unit.1
+        if KnownMiss.listed(Self.knownMisses, language, key) {
+            XCTAssertTrue(broken, "\(language) \(key) fits now: remove its known-miss row")
+        } else {
+            XCTAssertFalse(broken, "\(language) \(key): widest unit «\(unit.0)» \(points(unit.1)) in \(points(drawn))")
+        }
+    }
+
+    private func sizeName(_ size: UIContentSizeCategory) -> String {
+        switch size {
+        case .accessibilityMedium: "AX1"
+        case .accessibilityLarge: "AX2"
+        case .large: "Large"
+        default: size.rawValue
+        }
+    }
+
+    private func points(_ value: CGFloat) -> String {
+        String(format: "%.1f", value)
     }
 
     private var nameFont: Font { BBTheme.Typography.scaled(17, relativeTo: .body, weight: .semibold, design: .rounded) }
     private var subtitleFont: Font { BBTheme.Typography.scaled(13, relativeTo: .caption1, weight: .regular, design: .rounded) }
 
-    /// Words part at plain spaces, as they wrap.
+    /// The widest piece a line cannot break inside, and its width.
     private func widestWord(_ text: String, _ font: Font, bold: Bool) -> (String, CGFloat) {
-        text.split(separator: " ")
-            .map { (String($0), wordWidth(String($0), font, bold: bold)) }
+        text.lineBreakUnits
+            .map { ($0, FitMeasure.wordWidth($0, font: font, bold: bold)) }
             .max { $0.1 < $1.1 } ?? ("", 0)
-    }
-
-    private func wordWidth(_ word: String, _ font: Font, bold: Bool) -> CGFloat {
-        let view = Text(word).font(font).fixedSize().environment(\.legibilityWeight, bold ? .bold : .regular)
-        return UIHostingController(rootView: view)
-            .sizeThatFits(in: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)).width
     }
 
     private func requireSize(_ size: UIContentSizeCategory) throws {

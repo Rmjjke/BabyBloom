@@ -8,14 +8,39 @@ import UIKit
 /// sets its text under its icon, the optional-measure switch goes under its
 /// title, and the feeding hint takes a smaller size; where the words fit, the
 /// shape is the beside one at every text size.
+///
+/// Every shipped language runs, and both pseudo-languages. The shapes are
+/// pinned for en, ru and es; the other languages are held to whole words,
+/// the screen's edges and the hint's computed size.
 @MainActor
 final class OnboardingWordFitTests: XCTestCase {
 
     private let accessibility = HostedAccessibility()
+    /// The languages whose shapes were read off the simulator and pinned.
+    private let pinned: [FitLanguage] = [.real(.en), .real(.ru), .real(.es)]
+
+    /// Places a language is known not to fit, keyed by the string key, the
+    /// window's width, the size (Large, AX1, AX2) and " bold" with Bold Text
+    /// ("onboarding.notify.b1 320 AX2 bold"); a page past the screen's edges
+    /// is keyed by the page ("welcome edges 272 Large"; also notifications,
+    /// feeding, growth, birth); feeding rows of uneven heights are keyed
+    /// "feeding rows <width> <size>[ bold]" (width = the heights' spread,
+    /// room = the 3.5-pt tolerance).
+    private static let knownMisses: [KnownMiss] = [
+        // Full-width names wrap per character beside their icons, to unequal line counts.
+        KnownMiss(.pseudo(.jaXB), "feeding rows 250 Large", width: 15.0, room: 3.5),
+        KnownMiss(.pseudo(.jaXB), "feeding rows 320 AX2", width: 37.0, room: 3.5),
+        KnownMiss(.pseudo(.jaXB), "feeding rows 320 AX2 bold", width: 37.0, room: 3.5),
+        KnownMiss(.pseudo(.jaXB), "feeding rows 375 AX1", width: 20.0, room: 3.5),
+        KnownMiss(.pseudo(.jaXB), "feeding rows 375 AX1 bold", width: 20.0, room: 3.5),
+        KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX1 bold", width: 252.0, room: 237.3),
+        KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX2", width: 272.3, room: 224.7),
+        KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX2 bold", width: 295.0, room: 226.3),
+    ]
 
     override func tearDown() {
         accessibility.close()
-        LocalizationManager.shared.setLanguage(.en)
+        FitLanguage.restore()
         super.tearDown()
     }
 
@@ -29,11 +54,18 @@ final class OnboardingWordFitTests: XCTestCase {
     func testTheWelcomeTitlesGoUnderTheBadgesWhereAWordMisses() throws {
         try requireSize(.large)
         let screen = CGSize(width: 272, height: 1000)
-        for (language, stacked) in [(SupportedLanguage.ru, true), (.en, false), (.es, true)] {
-            LocalizationManager.shared.setLanguage(language)
-            let titles = try texts(welcomeTitles(), in: page(WelcomePage(onStart: {}), screen), language.rawValue)
-            assertShape(titles, stacked: stacked, under: 40, beside: 98, language.rawValue)
-            assertWordsWhole(titles, welcomeFont, language.rawValue)
+        let stackedIn: [FitLanguage: Bool] = [.real(.ru): true, .real(.en): false, .real(.es): true]
+        for language in FitLanguage.all {
+            language.apply()
+            let qualifier = "272 Large"
+            let titles = try texts(welcomeTitleKeys,
+                                   in: page(WelcomePage(onStart: {}), screen, language, "welcome edges \(qualifier)"),
+                                   "\(language) \(qualifier)")
+            // Unpinned languages: only whole words, no shape.
+            if let stacked = stackedIn[language] {
+                assertShape(titles.map(\.element), stacked: stacked, under: 40, beside: 98, "\(language) \(qualifier)")
+            }
+            assertWordsWhole(titles, welcomeFont, language, qualifier)
         }
     }
 
@@ -47,13 +79,19 @@ final class OnboardingWordFitTests: XCTestCase {
     func testTheNotificationBulletsGoUnderTheIconsWhereAWordMisses() throws {
         try requireSize(.large)
         let screen = CGSize(width: 240, height: 1400)
-        for (language, stacked) in [(SupportedLanguage.ru, true), (.en, false), (.es, false)] {
-            LocalizationManager.shared.setLanguage(language)
-            let bullets = try texts(notificationBullets(),
-                                    in: page(NotificationsPage(babyName: "Mia", onContinue: {}), screen),
-                                    language.rawValue)
-            assertShape(bullets, stacked: stacked, under: 48, beside: 96, language.rawValue)
-            assertWordsWhole(bullets, bulletFont, language.rawValue)
+        let stackedIn: [FitLanguage: Bool] = [.real(.ru): true, .real(.en): false, .real(.es): false]
+        for language in FitLanguage.all {
+            language.apply()
+            let qualifier = "240 Large"
+            let bullets = try texts(notificationBulletKeys,
+                                    in: page(NotificationsPage(babyName: "Mia", onContinue: {}), screen,
+                                             language, "notifications edges \(qualifier)"),
+                                    "\(language) \(qualifier)")
+            // Unpinned languages: only whole words, no shape.
+            if let stacked = stackedIn[language] {
+                assertShape(bullets.map(\.element), stacked: stacked, under: 48, beside: 96, "\(language) \(qualifier)")
+            }
+            assertWordsWhole(bullets, bulletFont, language, qualifier)
         }
     }
 
@@ -67,17 +105,24 @@ final class OnboardingWordFitTests: XCTestCase {
     /// word fits and every switch stays beside.
     func testTheSwitchGoesUnderItsTitleWhereAWordMisses() throws {
         try requireSize(.large)
-        let cases: [(width: CGFloat, language: SupportedLanguage, surface: Surface, stacked: Bool)] = [
-            (240, .ru, .growthSwitch, true), (240, .en, .growthSwitch, true),
-            (240, .ru, .birthSwitch, true), (240, .en, .birthSwitch, false),
-            (320, .ru, .growthSwitch, false), (320, .en, .growthSwitch, false),
-            (320, .ru, .birthSwitch, false), (320, .en, .birthSwitch, false),
+        let stackedIn: [FitLanguage: [Surface: Bool]] = [
+            .real(.ru): [.growthSwitch: true, .birthSwitch: true],
+            .real(.en): [.growthSwitch: true, .birthSwitch: false],
         ]
-        for c in cases {
-            LocalizationManager.shared.setLanguage(c.language)
-            let name = "\(c.language.rawValue) \(Int(c.width)) \(c.surface)"
-            let screen = CGSize(width: c.width, height: 1400)
-            try assertSwitch(c.surface, on: screen, stacked: c.stacked, name)
+        for language in FitLanguage.all {
+            language.apply()
+            for width: CGFloat in [240, 320] {
+                for surface in [Surface.growthSwitch, .birthSwitch] {
+                    // Only en and ru are pinned: elsewhere the switch's place
+                    // is free, its texts' words are not.
+                    var stacked: Bool?
+                    if let pins = stackedIn[language] {
+                        stacked = width >= 320 ? false : pins[surface]
+                    }
+                    let screen = CGSize(width: width, height: 1400)
+                    try assertSwitch(surface, on: screen, stacked: stacked, language, "\(Int(width)) Large")
+                }
+            }
         }
     }
 
@@ -90,10 +135,13 @@ final class OnboardingWordFitTests: XCTestCase {
     func testTheFeedingNamesGoUnderTheIconsWhereAWordMisses() throws {
         try requireSize(.large)
         let screen = CGSize(width: 250, height: 1400)
-        for (language, stacked) in [(SupportedLanguage.ru, true), (.en, false), (.es, false)] {
-            LocalizationManager.shared.setLanguage(language)
-            let elements = try page(feedingPage(), screen)
-            try assertFeedingRows(in: elements, stacked: stacked, language.rawValue)
+        let stackedIn: [FitLanguage: Bool] = [.real(.ru): true, .real(.en): false, .real(.es): false]
+        for language in FitLanguage.all {
+            language.apply()
+            let qualifier = "250 Large"
+            let elements = try page(feedingPage(), screen, language, "feeding edges \(qualifier)")
+            // Unpinned languages: only whole words, no shape.
+            try assertFeedingRows(in: elements, stacked: stackedIn[language], language, qualifier)
         }
     }
 
@@ -103,7 +151,9 @@ final class OnboardingWordFitTests: XCTestCase {
     /// misses a 260-pt column, and in Bold Text the 272 a 320-pt screen
     /// leaves, so the hint is set at the AX1 size, where it fits; a column
     /// too narrow for that too takes xxxLarge's. On 375 (327), at AX1 and in
-    /// English and Spanish the hint keeps the reader's size.
+    /// English and Spanish the hint keeps the reader's size. Pins of measured
+    /// widths: every language's hint is held to its computed size on the
+    /// pages below.
     func testTheFeedingHintStepsDownOnlyWhereAWordMissesTheColumn() {
         let cases: [(language: SupportedLanguage, size: UIContentSizeCategory, column: CGFloat, bold: Bool,
                      setAt: UIContentSizeCategory)] = [
@@ -117,7 +167,7 @@ final class OnboardingWordFitTests: XCTestCase {
             (.es, .accessibilityLarge, 260, false, .accessibilityLarge),
         ]
         for c in cases {
-            LocalizationManager.shared.setLanguage(c.language)
+            FitLanguage.real(c.language).apply()
             let text = "onboarding.feeding_hint".l
             let name = "\(c.language.rawValue)\(c.bold ? " bold" : "") at \(c.size.rawValue) in \(Int(c.column))"
             let hint = height(of: FeedingHint(text: text, category: c.size), in: c.column, bold: c.bold)
@@ -150,46 +200,49 @@ final class OnboardingWordFitTests: XCTestCase {
     }
 
     /// The four surfaces and the preterm switch on a 320-pt screen (an SE
-    /// with Display Zoom) and on 375, in each language and in Russian with
-    /// Bold Text: every word whole, and the shape where the widths leave no
+    /// with Display Zoom) and on 375, in every language with Bold Text off
+    /// and on: every word whole, and the shape where the widths leave no
     /// doubt about it.
     private func assertEveryPage(at size: UIContentSizeCategory) throws {
-        let variants: [(language: SupportedLanguage, weight: LegibilityWeight)] = [
-            (.ru, .regular), (.en, .regular), (.es, .regular), (.ru, .bold),
-        ]
         for width in [CGFloat(320), 375] {
             let screen = CGSize(width: width, height: 2400)
-            for variant in variants {
-                LocalizationManager.shared.setLanguage(variant.language)
-                let bold = variant.weight == .bold
-                let name = "\(variant.language.rawValue)\(bold ? " bold" : "") \(Int(width)) \(size.rawValue)"
-                func expected(_ surface: Surface) -> Bool? {
-                    expectedStacked(surface, width: width, language: variant.language, bold: bold, size: size)
-                }
+            for language in FitLanguage.all {
+                for weight in [LegibilityWeight.regular, .bold] {
+                    language.apply()
+                    let bold = weight == .bold
+                    let qualifier = "\(Int(width)) \(sizeName(size))\(bold ? " bold" : "")"
+                    let name = "\(language) \(qualifier)"
+                    func expected(_ surface: Surface) -> Bool? {
+                        expectedStacked(surface, width: width, language: language, bold: bold, size: size)
+                    }
 
-                let titles = try texts(welcomeTitles(), in: page(WelcomePage(onStart: {}), screen, weight: variant.weight),
-                                       "\(name) welcome")
-                if let stacked = expected(.welcome) {
-                    assertShape(titles, stacked: stacked, under: 40, beside: 98, "\(name) welcome")
-                }
-                assertWordsWhole(titles, welcomeFont, bold: bold, "\(name) welcome")
+                    let titles = try texts(welcomeTitleKeys,
+                                           in: page(WelcomePage(onStart: {}), screen, language,
+                                                    "welcome edges \(qualifier)", weight: weight),
+                                           "\(name) welcome")
+                    if let stacked = expected(.welcome) {
+                        assertShape(titles.map(\.element), stacked: stacked, under: 40, beside: 98, "\(name) welcome")
+                    }
+                    assertWordsWhole(titles, welcomeFont, bold: bold, language, qualifier)
 
-                let bullets = try texts(notificationBullets(),
-                                        in: page(NotificationsPage(babyName: "Mia", onContinue: {}), screen,
-                                                 weight: variant.weight),
-                                        "\(name) notifications")
-                if let stacked = expected(.notifications) {
-                    assertShape(bullets, stacked: stacked, under: 48, beside: 96, "\(name) notifications")
-                }
-                assertWordsWhole(bullets, bulletFont, bold: bold, "\(name) notifications")
+                    let bullets = try texts(notificationBulletKeys,
+                                            in: page(NotificationsPage(babyName: "Mia", onContinue: {}), screen,
+                                                     language, "notifications edges \(qualifier)", weight: weight),
+                                            "\(name) notifications")
+                    if let stacked = expected(.notifications) {
+                        assertShape(bullets.map(\.element), stacked: stacked, under: 48, beside: 96,
+                                    "\(name) notifications")
+                    }
+                    assertWordsWhole(bullets, bulletFont, bold: bold, language, qualifier)
 
-                let feeding = try page(feedingPage(), screen, weight: variant.weight)
-                try assertFeedingRows(in: feeding, stacked: expected(.feedingRows), bold: bold, "\(name) feeding")
-                try assertFeedingHint(in: feeding, column: width - 48, size: size, bold: bold, "\(name) feeding hint")
+                    let feeding = try page(feedingPage(), screen, language, "feeding edges \(qualifier)", weight: weight)
+                    try assertFeedingRows(in: feeding, stacked: expected(.feedingRows), bold: bold, language, qualifier)
+                    try assertFeedingHint(in: feeding, column: width - 48, size: size, bold: bold, language, qualifier)
 
-                for surface in [Surface.growthSwitch, .birthSwitch] {
-                    try assertSwitch(surface, on: screen, stacked: expected(surface), weight: variant.weight,
-                                     "\(name) \(surface)")
+                    for surface in [Surface.growthSwitch, .birthSwitch] {
+                        try assertSwitch(surface, on: screen, stacked: expected(surface), weight: weight,
+                                         language, qualifier)
+                    }
                 }
             }
         }
@@ -199,12 +252,13 @@ final class OnboardingWordFitTests: XCTestCase {
 
     /// nil where a word lands within a few points of its column, or in Bold
     /// Text: there only the words are checked. On 375 every word fits beside.
-    private func expectedStacked(_ surface: Surface, width: CGFloat, language: SupportedLanguage, bold: Bool,
+    private func expectedStacked(_ surface: Surface, width: CGFloat, language: FitLanguage, bold: Bool,
                                  size: UIContentSizeCategory) -> Bool? {
-        if bold { return nil }
+        // The other languages' shape is not pinned: only their words are checked.
+        guard pinned.contains(language), !bold else { return nil }
         if width >= 375 { return false }
         let ax2 = size == .accessibilityLarge
-        switch (surface, language) {
+        switch (surface, language.base) {
         // «Подгузники», «Смешанное» and «корректированному» miss by 8 pt or more.
         case (.welcome, .ru), (.feedingRows, .ru), (.birthSwitch, .ru): return true
         case (.notifications, .ru): return ax2 ? true : nil
@@ -239,40 +293,37 @@ final class OnboardingWordFitTests: XCTestCase {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func welcomeTitles() -> [String] {
-        ["onboarding.feature.feeding", "onboarding.feature.sleep", "onboarding.feature.growth", "nav.diapers"].map(\.l)
-    }
-
-    private func notificationBullets() -> [String] {
-        ["onboarding.notify.b1", "onboarding.notify.b2", "onboarding.notify.b3"].map(\.l)
-    }
+    private let welcomeTitleKeys = ["onboarding.feature.feeding", "onboarding.feature.sleep",
+                                    "onboarding.feature.growth", "nav.diapers"]
+    private let notificationBulletKeys = ["onboarding.notify.b1", "onboarding.notify.b2", "onboarding.notify.b3"]
 
     private func feedingPage() -> FeedingPage {
         FeedingPage(feedingType: .constant(.breast), babyName: "Mia", onBack: {})
     }
 
     /// The page with the switch, the switch on so its slider shows too.
-    private func switchPage(_ surface: Surface, _ screen: CGSize,
-                            weight: LegibilityWeight) throws -> (title: String, hint: String,
+    private func switchPage(_ surface: Surface, _ screen: CGSize, _ language: FitLanguage, _ qualifier: String,
+                            weight: LegibilityWeight) throws -> (titleKey: String, hintKey: String,
                                                                  elements: [HostedAccessibility.Element]) {
         if surface == .growthSwitch {
             let elements = try page(GrowthPage(weightKg: .constant(3.5), heightCm: .constant(50),
                                                headCm: .constant(34), includeHead: .constant(true),
                                                knowsMeasurements: .constant(true), onBack: {}),
-                                    screen, weight: weight)
-            return ("form.head_cm".l, "onboarding.growth_head_optional".l, elements)
+                                    screen, language, "growth edges \(qualifier)", weight: weight)
+            return ("form.head_cm", "onboarding.growth_head_optional", elements)
         }
         let birth = Date().addingTimeInterval(-60 * 86_400)
         let elements = try page(BirthPage(birthDate: .constant(birth), gender: .constant(.female),
                                           gestationalWeeks: .constant(34), wasBornEarly: .constant(true),
                                           onBack: {}),
-                                screen, weight: weight)
-        return ("form.preterm".l, "form.preterm_hint".l, elements)
+                                screen, language, "birth edges \(qualifier)", weight: weight)
+        return ("form.preterm", "form.preterm_hint", elements)
     }
 
     /// The page on the flow's ground, as OnboardingView stacks them, read once
-    /// its entrance animations have settled.
-    private func page<V: View>(_ page: V, _ screen: CGSize,
+    /// its entrance animations have settled; `edgesKey` names its check
+    /// against the screen's edges.
+    private func page<V: View>(_ page: V, _ screen: CGSize, _ language: FitLanguage, _ edgesKey: String,
                                weight: LegibilityWeight = .regular) throws -> [HostedAccessibility.Element] {
         let root = try accessibility.host(ZStack {
             OnboardingBackground()
@@ -283,17 +334,26 @@ final class OnboardingWordFitTests: XCTestCase {
         RunLoop.main.run(until: Date().addingTimeInterval(1.5))
         let elements = accessibility.elements(root)
         accessibility.close()
+        var misses: [String] = []
         for element in elements {
-            XCTAssertGreaterThanOrEqual(element.frame.minX, -0.5, "\(element) is past the left edge")
-            XCTAssertLessThanOrEqual(element.frame.maxX, screen.width + 0.5, "\(element) is past the right edge")
+            if element.frame.minX < -0.5 {
+                misses.append("\(element) left edge \(points(element.frame.minX)) in \(points(screen.width))")
+            }
+            if element.frame.maxX > screen.width + 0.5 {
+                misses.append("\(element) right edge \(points(element.frame.maxX)) in \(points(screen.width))")
+            }
         }
+        check(language, edgesKey, misses.isEmpty ? nil : misses.joined(separator: "; "))
         return elements
     }
 
-    private func texts(_ labels: [String], in elements: [HostedAccessibility.Element],
-                       _ name: String) throws -> [HostedAccessibility.Element] {
-        try labels.map { label in
-            try XCTUnwrap(elements.first { $0.label == label }, "\(name): «\(label)» is not in \(elements)")
+    /// Each key's text on the page, found by the string it reads.
+    private func texts(_ keys: [String], in elements: [HostedAccessibility.Element],
+                       _ name: String) throws -> [(key: String, element: HostedAccessibility.Element)] {
+        try keys.map { key in
+            let label = key.l
+            let element = try XCTUnwrap(elements.first { $0.label == label }, "\(name): «\(label)» is not in \(elements)")
+            return (key, element)
         }
     }
 
@@ -312,29 +372,34 @@ final class OnboardingWordFitTests: XCTestCase {
     /// The switch has no label of its own; the sliders, also unlabelled, are
     /// wider than 100.
     private func assertSwitch(_ surface: Surface, on screen: CGSize, stacked: Bool?,
-                              weight: LegibilityWeight = .regular, _ name: String,
+                              weight: LegibilityWeight = .regular, _ language: FitLanguage, _ qualifier: String,
                               file: StaticString = #filePath, line: UInt = #line) throws {
-        let page = try switchPage(surface, screen, weight: weight)
-        let titleText = try XCTUnwrap(page.elements.first { $0.label == page.title }, "\(name): no «\(page.title)»",
+        let name = "\(language) \(qualifier) \(surface)"
+        let page = try switchPage(surface, screen, language, qualifier, weight: weight)
+        let title = page.titleKey.l
+        let hint = page.hintKey.l
+        let titleText = try XCTUnwrap(page.elements.first { $0.label == title }, "\(name): no «\(title)»",
                                       file: file, line: line)
-        let hintText = try XCTUnwrap(page.elements.first { $0.label == page.hint }, "\(name): no «\(page.hint)»",
+        let hintText = try XCTUnwrap(page.elements.first { $0.label == hint }, "\(name): no «\(hint)»",
                                      file: file, line: line)
         let toggle = try XCTUnwrap(page.elements.first { $0.label.isEmpty && $0.frame.width < 100 && $0.frame.height < 44 },
                                    "\(name): no switch in \(page.elements)", file: file, line: line)
         if stacked == true {
             XCTAssertGreaterThanOrEqual(toggle.frame.minY, hintText.frame.maxY - 0.5,
-                                        "\(name): the switch \(toggle) is not under «\(page.hint)»", file: file, line: line)
+                                        "\(name): the switch \(toggle) is not under «\(hint)»", file: file, line: line)
             XCTAssertEqual(toggle.frame.minX, titleText.frame.minX, accuracy: 12,
-                           "\(name): the switch \(toggle) is not at «\(page.title)»'s x", file: file, line: line)
+                           "\(name): the switch \(toggle) is not at «\(title)»'s x", file: file, line: line)
         } else if stacked == false {
             XCTAssertGreaterThanOrEqual(toggle.frame.minX, titleText.frame.maxX,
-                                        "\(name): the switch \(toggle) is not beside «\(page.title)»", file: file, line: line)
+                                        "\(name): the switch \(toggle) is not beside «\(title)»", file: file, line: line)
             XCTAssertLessThan(toggle.frame.minY, hintText.frame.maxY,
-                              "\(name): the switch \(toggle) is under «\(page.hint)»", file: file, line: line)
+                              "\(name): the switch \(toggle) is under «\(hint)»", file: file, line: line)
         }
         let bold = weight == .bold
-        assertWordsWhole([titleText], switchTitleFont, bold: bold, name, file: file, line: line)
-        assertWordsWhole([hintText], switchHintFont, bold: bold, name, file: file, line: line)
+        assertWordsWhole([(page.titleKey, titleText)], switchTitleFont, bold: bold, language, qualifier,
+                         file: file, line: line)
+        assertWordsWhole([(page.hintKey, hintText)], switchHintFont, bold: bold, language, qualifier,
+                         file: file, line: line)
     }
 
     /// Each row is one button labelled with its name. Beside, a row is the
@@ -343,12 +408,16 @@ final class OnboardingWordFitTests: XCTestCase {
     /// the gaps (130) beside, the padding (32) under. The selected row's
     /// border sits 1.5 pt outside it.
     private func assertFeedingRows(in elements: [HostedAccessibility.Element], stacked: Bool?, bold: Bool = false,
-                                   _ name: String, file: StaticString = #filePath, line: UInt = #line) throws {
-        let names = Baby.FeedingType.allCases.map(\.displayName.l)
-        let rows = try texts(names, in: elements, name)
+                                   _ language: FitLanguage, _ qualifier: String,
+                                   file: StaticString = #filePath, line: UInt = #line) throws {
+        let name = "\(language) \(qualifier) feeding"
+        let keys = Baby.FeedingType.allCases.map(\.displayName)
+        let rows = try texts(keys, in: elements, name).map(\.element)
         let heights = rows.map(\.frame.height)
-        XCTAssertLessThanOrEqual(heights.max()! - heights.min()!, 3.5, "\(name): the rows take two shapes: \(rows)",
-                                 file: file, line: line)
+        let spread = heights.max()! - heights.min()!
+        check(language, "feeding rows \(qualifier)",
+              spread > 3.5 ? "the rows take two shapes, heights \(points(spread)) apart in 3.5: \(rows)" : nil,
+              file: file, line: line)
         if let stacked {
             for row in rows {
                 if stacked {
@@ -362,46 +431,81 @@ final class OnboardingWordFitTests: XCTestCase {
         }
         let rowWidth = rows.map(\.frame.width).min()!
         let room = rowWidth - (rows[0].frame.height >= 100 ? 32 : 130)
-        for label in names {
-            let width = wordWidth(label, feedingNameFont, bold: bold)
-            XCTAssertGreaterThanOrEqual(room + 0.5, width, "\(name): «\(label)» (\(width)) is broken in \(room)",
-                                        file: file, line: line)
+        for key in keys {
+            let width = FitMeasure.widestUnit(key.l, font: feedingNameFont, bold: bold)
+            check(language, "\(key) \(qualifier)",
+                  width > room + 0.5 ? "widest unit \(points(width)) in \(points(room))" : nil,
+                  file: file, line: line)
         }
     }
 
     /// The hint takes the first of the reader's size, AX1's and xxxLarge's
-    /// at which its widest word fits the column, and keeps every word whole.
+    /// at which its widest unit fits the column, and keeps every unit whole.
     private func assertFeedingHint(in elements: [HostedAccessibility.Element], column: CGFloat,
-                                   size: UIContentSizeCategory, bold: Bool, _ name: String,
+                                   size: UIContentSizeCategory, bold: Bool, _ language: FitLanguage, _ qualifier: String,
                                    file: StaticString = #filePath, line: UInt = #line) throws {
-        let text = "onboarding.feeding_hint".l
+        let key = "onboarding.feeding_hint"
+        let name = "\(language) \(key) \(qualifier)"
+        let text = key.l
         let hint = try XCTUnwrap(elements.first { $0.label == text }, "\(name): no hint in \(elements)",
                                  file: file, line: line)
         let steps = [size, .accessibilityMedium, .extraExtraExtraLarge]
-        let setAt = steps.first { step in
-            text.split(separator: " ").allSatisfy { wordWidth(String($0), hintFont(step), bold: bold) <= column }
-        } ?? .extraExtraExtraLarge
-        assertWordsWhole([hint], hintFont(setAt), bold: bold, "\(name) at \(setAt.rawValue)", file: file, line: line)
+        let widest = steps.map { FitMeasure.widestUnit(text, font: hintFont($0), bold: bold) }
+        let index = widest.firstIndex { $0 <= column }
+        let setAt = steps[index ?? steps.count - 1]
+        // Past xxxLarge nothing is left to shrink: the unit breaks.
+        var miss: String?
+        if index == nil {
+            miss = "widest unit \(points(widest[steps.count - 1])) at xxxLarge in \(points(column))"
+        } else if hint.frame.width + 0.5 < widest[index!] {
+            miss = "widest unit \(points(widest[index!])) in \(points(hint.frame.width)), column \(points(column))"
+        }
+        check(language, "\(key) \(qualifier)", miss, file: file, line: line)
         // The width alone would pass a hint left at a larger size with a word
         // broken; its height tells the size it was set at.
         XCTAssertEqual(hint.frame.height, height(of: plainHint(text, at: setAt), in: column, bold: bold),
                        accuracy: 1, "\(name): not set at \(setAt.rawValue)", file: file, line: line)
     }
 
-    /// A text laid out narrower than its widest word has broken that word.
-    /// Words part at plain spaces, as they wrap.
-    private func assertWordsWhole(_ texts: [HostedAccessibility.Element], _ font: Font, bold: Bool = false,
-                                  _ name: String, file: StaticString = #filePath, line: UInt = #line) {
-        for text in texts {
-            let widest = text.label.split(separator: " ")
-                .map { (String($0), wordWidth(String($0), font, bold: bold)) }
+    /// A text laid out narrower than its widest unit has broken that unit.
+    private func assertWordsWhole(_ texts: [(key: String, element: HostedAccessibility.Element)], _ font: Font,
+                                  bold: Bool = false, _ language: FitLanguage, _ qualifier: String,
+                                  file: StaticString = #filePath, line: UInt = #line) {
+        for (key, text) in texts {
+            let widest = text.label.lineBreakUnits
+                .map { ($0, FitMeasure.wordWidth($0, font: font, bold: bold)) }
                 .max { $0.1 < $1.1 } ?? ("", 0)
-            XCTAssertGreaterThanOrEqual(text.frame.width + 0.5, widest.1,
-                                        "\(name): «\(widest.0)» (\(widest.1)) is broken in «\(text.label)» at \(text.frame.width)",
-                                        file: file, line: line)
+            check(language, "\(key) \(qualifier)",
+                  text.frame.width + 0.5 < widest.1
+                      ? "widest unit «\(widest.0)» \(points(widest.1)) in \(points(text.frame.width))" : nil,
+                  file: file, line: line)
         }
     }
 
+    /// Fails on a miss, unless the key is listed: then on no miss left.
+    private func check(_ language: FitLanguage, _ key: String, _ miss: String?,
+                       file: StaticString = #filePath, line: UInt = #line) {
+        if KnownMiss.listed(Self.knownMisses, language, key) {
+            XCTAssertNotNil(miss, "\(language) \(key) fits now: remove its known-miss row", file: file, line: line)
+        } else if let miss {
+            XCTFail("\(language) \(key): \(miss)", file: file, line: line)
+        }
+    }
+
+    private func sizeName(_ size: UIContentSizeCategory) -> String {
+        switch size {
+        case .large: "Large"
+        case .accessibilityMedium: "AX1"
+        case .accessibilityLarge: "AX2"
+        default: size.rawValue
+        }
+    }
+
+    private func points(_ value: CGFloat) -> String {
+        String(format: "%.1f", value)
+    }
+
+    /// The pinned measures of the hint test's literal word.
     private func wordWidth(_ word: String, _ font: Font, bold: Bool = false) -> CGFloat {
         let view = Text(word).font(font).fixedSize().environment(\.legibilityWeight, bold ? .bold : .regular)
         return UIHostingController(rootView: view)

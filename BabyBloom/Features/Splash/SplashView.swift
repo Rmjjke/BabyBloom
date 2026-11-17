@@ -71,7 +71,7 @@ struct SplashView: View {
                                 .accessibilityHidden(true)
                             Text("splash.tagline".l.uppercased())
                                 .font(.system(size: 14, weight: .medium))
-                                .tracking(4.5)
+                                .tracking(BBTheme.Typography.tracking(4.5))
                             Image(systemName: "leaf.fill")
                                 .font(.system(size: 9))
                                 .accessibilityHidden(true)

@@ -191,6 +191,9 @@ final class LocalizationManager: @unchecked Sendable {
     /// Always loaded: every key a language's file lacks reads English rather
     /// than its raw key, so a half-translated file is usable, not broken.
     private let english: [String: String]
+    /// A debug pseudo-language that replaces the table while the stored
+    /// language stays real; nil in every release and device build.
+    private(set) var pseudo: PseudoLanguage?
 
     #if DEBUG
     private static let log = Logger(subsystem: "com.nenita.app", category: "Localization")
@@ -211,7 +214,14 @@ final class LocalizationManager: @unchecked Sendable {
     /// The active language as a known case — the entry point for anything that
     /// needs more than the raw code (locale, plural rule, display name).
     var language: SupportedLanguage {
-        SupportedLanguage(rawValue: currentLanguage) ?? .fallback
+        pseudo?.base ?? SupportedLanguage(rawValue: currentLanguage) ?? .fallback
+    }
+
+    /// The language a root view hands to SwiftUI for a stored picker value:
+    /// the pseudo-language's base while one is on, so ja-XB typesets as
+    /// Japanese.
+    static func environmentLanguage(for stored: String) -> SupportedLanguage {
+        shared.pseudo?.base ?? effective(stored)
     }
 
     /// The App Group suite both targets can reach. The widget runs in its own
@@ -303,8 +313,22 @@ final class LocalizationManager: @unchecked Sendable {
         english = Self.loadJSON(SupportedLanguage.fallback.rawValue) ?? [:]
         let resolved = Self.storedLanguage()
         currentLanguage = resolved.rawValue
+        #if DEBUG && targetEnvironment(simulator)
+        // The launch argument only: a value persisted in the app's domain would
+        // keep the simulator in a pseudo-language after a plain launch.
+        pseudo = (UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)["BBPseudoLanguage"] as? String)
+            .flatMap(PseudoLanguage.init)
+        #endif
         load(resolved)
     }
+
+    #if DEBUG
+    /// Turns a pseudo-language on or off in-process, for hosted tests.
+    func setPseudo(_ language: PseudoLanguage?) {
+        pseudo = language
+        load(SupportedLanguage(rawValue: currentLanguage) ?? .fallback)
+    }
+    #endif
 
     /// Re-reads the stored language and reloads the table if it moved.
     ///
@@ -364,6 +388,10 @@ final class LocalizationManager: @unchecked Sendable {
     // MARK: Private
 
     private func load(_ language: SupportedLanguage) {
+        if let pseudo {
+            tables = Self.branded(PseudoLanguage.table(from: english, pseudo), english: english)
+            return
+        }
         let table = language == .fallback ? english : (Self.loadJSON(language.rawValue) ?? [:])
         tables = Self.branded(table, english: english)
     }
