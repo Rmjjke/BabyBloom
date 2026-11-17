@@ -294,18 +294,32 @@ and the Live Activity read the byte-identical copies in
     `g/\u{2060}week`, `г/\u{2060}нед`, `g/\u{2060}sem`. A UI test that
     matches such a value takes `.?` after the slash.
   - The paywall's price per period (`premium.price_per_month_fmt`,
-    `_year_fmt`, `_week_fmt`) has a space before the slash and a no-break
-    space after it: "$6.99 /\u{00A0}month", «549 ₽ /\u{00A0}месяц»,
-    «$6.99 /\u{00A0}mes». The line may break only before the slash, so the
-    price stays whole on one line and "/ month" whole on the next. With the
-    no-break space before the slash it broke after it, leaving "$6.99 /"
-    and "month". Glued as one run, the price and its period would break
-    inside a word at AX2.
-  - Japanese puts the period first, as a word before the price, with no
-    space and no slash: «月額%1$@», «年額%1$@», «週額%1$@». That is how prices
-    read in Japan, in stores and on the App Store (月額980円). A slash shape
-    («¥980 / 月») reads as a translation. Japanese breaks between
-    characters, so the line may break after 月額, but never inside the price.
+    `_year_fmt`, `_week_fmt`) has one rule in every file: the price, a
+    space, a slash, a no-break space, the period word in its dictionary
+    form. "$6.99 /\u{00A0}month", «549 ₽ /\u{00A0}месяц»,
+    «$6.99 /\u{00A0}mes», «4,99 € /\u{00A0}Monat», «/\u{00A0}mois»,
+    «/\u{00A0}mês», «/\u{00A0}månad», «/\u{00A0}måned», «/\u{00A0}kuukausi».
+    The line may break only before the slash, so the price stays whole on
+    one line and "/ month" whole on the next. With the no-break space
+    before the slash it broke after it, leaving "$6.99 /" and "month".
+    Glued as one run, the price and its period would break inside a word
+    at AX2. A word form («pro Monat», «per månad») is not used: the slash
+    is shorter and reads the same on every price line of the paywall.
+  - Danish keeps its written form: «%1$@ pr.\u{00A0}måned», «pr.\u{00A0}år»,
+    «pr.\u{00A0}uge» (decided 2026-11-12). «pr.» is how a Danish price
+    states its period, in shops and on the App Store, and it is the
+    glossary's Danish form. It breaks the same way as the slash: the space
+    before the marker is the one break, and the no-break space after «pr.»
+    keeps the marker with its period.
+  - Japanese, Korean and Traditional Chinese put the period first, as a
+    word before the price, with no slash: ja «月額%1$@», «年額%1$@»,
+    «週額%1$@»; ko «월\u{00A0}%1$@», «연\u{00A0}%1$@», «주\u{00A0}%1$@»;
+    zh-Hant «每月%1$@», «每年%1$@», «每週%1$@». That is how prices read in
+    those markets, in stores and on the App Store (月額980円, 월 ₩4,400,
+    每月 NT$150). A slash shape («¥980 / 月») reads as a translation.
+    Japanese and Chinese break between characters, so the line may break
+    after the period word, but never inside the price; Korean spaces its
+    words, so the no-break space keeps 월 with the price.
   - The gain card's big number (`velocity.per_week_fmt`) keeps the plain
     slash. It stands alone beside the interval, and when it is wider than its
     room (English from xxL on a 320 pt screen, every language at AX2 on a
@@ -651,3 +665,23 @@ renamed when it took a new argument by its new name.
   Home the number, its unit and the « · » are one unbreakable run beside
   «Prise de poids». With «g/semaine», the row did not fit beside at 320 pt
   from XL up. The paywall's price per week keeps the word («/ semaine»).
+- 2026-11-12 — One form across the 15 languages:
+  - The paywall's price per period follows one rule in every file (space,
+    slash, no-break space). German moved from «pro Monat» to
+    «/\u{00A0}Monat». Danish keeps «pr.\u{00A0}måned», Japanese, Korean and
+    Traditional Chinese keep the period first.
+  - The unit templates (`unit.kg_fmt`, `unit.g_fmt`, `unit.cm_fmt`,
+    `unit.ml_fmt`) carry a no-break space between the number and the unit
+    in every language that spaces them; English, Russian and Spanish had a
+    plain space. Korean writes the unit right after the number («%@kg»).
+    Traditional Chinese «毫升» takes word joiners, so it stays with its
+    number.
+  - Danish and Finnish percentile channels in `trend.drop.*` take a no-break
+    space after the number, and Brazilian Portuguese
+    `history.free_window.one` after «%d».
+  - Japanese and Korean write a digit for counts and durations wherever
+    the digit is the plain form: ja «4週間», «3回», «1日以上», «生後3週間»;
+    ko «4주», «첫 3주». A number word stays where it is the plain form: ko
+    «한 번», «두 가지», «세 번»; ja «一日» in a rate, «一度», «二つ». Number
+    and counter stay whole (U+2060, or a no-break space between Korean
+    words).

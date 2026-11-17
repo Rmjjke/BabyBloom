@@ -331,7 +331,7 @@
   "chart.axis.weight": "Peso",
   "chart.at_birth": "ao nascer",
   "button.delete_history": "Apagar histórico",
-  "history.free_window.one": "Mostrando o último %d dia",
+  "history.free_window.one": "Mostrando o último %d dia",
   "history.free_window.many": "Mostrando os últimos %d dias",
   "history.free_window.other": "Mostrando os últimos %d dias",
   "history.unlock": "O histórico completo está no Premium",

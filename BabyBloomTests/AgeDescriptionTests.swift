@@ -106,15 +106,23 @@ final class AgeDescriptionTests: XCTestCase {
 
     /// No plain space survives in any language or unit, from the birth day to
     /// past two years: a plain one lets a narrow line start with the word.
+    /// Japanese, Korean and Chinese write the counter straight after the
+    /// number, so there the phrase has no space of any kind; everywhere else
+    /// the space is a no-break one.
     func testNoAgeHasAPlainSpace() {
         let birth = day(2026, 1, 31)
+        let counterLanguages: Set<SupportedLanguage> = [.ja, .ko, .zhHant]
         for language in SupportedLanguage.allCases {
             LocalizationManager.shared.setLanguage(language)
             for offset in stride(from: 0, through: 800, by: 3) {
                 let end = Calendar.current.date(byAdding: .day, value: offset, to: birth)!
                 let phrase = age(birth, end)
                 XCTAssertFalse(phrase.contains(" "), "\(language) day \(offset): «\(phrase)»")
-                XCTAssertTrue(phrase.contains(nbsp), "\(language) day \(offset): «\(phrase)»")
+                if counterLanguages.contains(language) {
+                    XCTAssertFalse(phrase.contains(where: \.isWhitespace), "\(language) day \(offset): «\(phrase)»")
+                } else {
+                    XCTAssertTrue(phrase.contains(nbsp), "\(language) day \(offset): «\(phrase)»")
+                }
             }
         }
     }

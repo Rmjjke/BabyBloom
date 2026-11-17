@@ -32,9 +32,11 @@ final class UnitTemplatesTests: XCTestCase {
         XCTAssertEqual(Units.format("%@ ml", "120"), "120\u{00A0}ml")
     }
 
-    /// A language without the template yet reads the English one.
-    func testALanguageWithoutTheTemplateFallsBackToEnglish() {
+    /// Every language carries its own template, so Ukrainian writes its own
+    /// unit rather than the English one.
+    func testUkrainianWritesItsOwnUnit() {
         LocalizationManager.shared.setLanguage("uk")
-        XCTAssertEqual(Units.kg("3,4"), "3,4\u{00A0}kg")
+        XCTAssertEqual(Units.kg("3,4"), "3,4\u{00A0}кг")
+        XCTAssertEqual(Units.ml("120"), "120\u{00A0}мл")
     }
 }
