@@ -1,0 +1,7 @@
+# Languages whose file holds every key. A language listed here fails the
+# localization lint on a missing key; any other shipped language only has its
+# missing keys listed, and reads English for them. One code per line, the
+# file's name without .json.
+en
+ru
+es

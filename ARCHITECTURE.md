@@ -316,6 +316,30 @@ language needs no edit there. Do not disable it; sync instead:
 
     cp BabyBloom/Resources/Localization/$f.json WidgetResources/Localization/$f.json
 
+**Localization lint.** `LocalizationLintTests` checks every shipped language
+against `en.json`:
+- Keys: no key English lacks. Plural families (`age.day.one`, `.few`, …)
+  compare by their base name, so a language's own plural categories are not
+  read as extras. Which categories a family must hold is not checked yet.
+- Arguments: every value reads the same arguments, with the same types, as
+  English. A plural form may drop its number.
+- Format strings (a `_fmt` key, or one whose English value formats):
+  positional and plain arguments never mixed, no stray `%`. A `%` in a plain
+  string is text: the onboarding facts format only a text that holds `%@`.
+- `{brand}` is the only `{…}` token. No value is empty.
+- The widget copies are byte-equal to the app's, with no orphan.
+- Each `InfoPlist.strings` has English's keys and a `CFBundleDisplayName`
+  equal to the language's `brand.name`.
+
+A missing key fails only for a language listed in
+`Localization/complete-languages.txt`: a data file, one code per line, so a
+language's own change adds it there. It is `.txt`, so the widget copy check
+skips it. Any other shipped language falls back to English for its missing
+keys, and the completeness report lists them per language, printed as
+`LOCALIZATION_COMPLETENESS` and attached to the test run. The lint does not
+check layout (the fit tests do), formatting from the environment locale, or
+which plural categories a language's rule allows.
+
 **Language resolution order.** In the app the picker's
 `@AppStorage("appLanguage")` is the truth: launch argument → the app's own
 `UserDefaults` → device. `BabyBloomApp.init` hands that value to
