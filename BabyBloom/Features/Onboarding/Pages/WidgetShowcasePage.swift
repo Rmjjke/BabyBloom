@@ -44,7 +44,7 @@ struct WidgetShowcasePage: View {
             // phone the content scrolls and the button under it stays put.
             onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
-                BBTheme.Typography.title3("onboarding.widget.title".l)
+                BBSteppedText("onboarding.widget.title".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)

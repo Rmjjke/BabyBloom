@@ -14,6 +14,82 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-13 — Texts laid out by whole words draw with no hyphenation; switch rows, the chart's month title and card headings keep every word whole
+
+- **A text the app lays out by measuring its words draws with no hyphenation
+  (`wordFitTypesetting`).** `WordWrappingText`, the stepped texts
+  (`BBSteppedText`, `BBSteppedTitle`, `PercentileLabel`), the Settings switch
+  rows, the medication reminder switch, the optional-measure switch and the
+  chart's month title set the undetermined typesetting language «zxx», which
+  breaks only between words. Why: under its own language's typesetting the
+  system hyphenates a word that fits a line alone whenever the line before
+  leaves room for a part of it. uk «користу-ються» broke in the 256-pt column
+  of a Settings row at AX2 on 320 pt, at every width from 236 to 300 pt, and de
+  hints at 300; a layout chosen because every word fits still drew a broken
+  word. Rejected: zxx on every root, because a view with no fit then breaks a
+  word wider than its line between letters instead of at a hyphen (sv), and no
+  stop at all, because the fits then cannot hold what they measure. Korean
+  takes zxx too: its words are spaced, and its own typesetting broke the
+  usage-statistics hint inside «쓰이는지» at AX2 on 320 pt, and a switch-row
+  word between two syllables at most widths from 150 to 300 pt; zxx breaks it
+  only at spaces and draws a Hangul line that fits unchanged. A Han character
+  in such a text (李 in a baby's name) takes another CJK glyph form under zxx,
+  about 3 pt wider at footnote size; the word measure uses the same
+  typesetting, so the fit still holds. Korean running text
+  outside these views keeps the system's syllable breaks. Japanese
+  and Chinese keep the app's typesetting: it picks their glyph forms (骨, 直)
+  and breaks their lines at phrases, which zxx would trade for breaks at any
+  character. The tests host the views with the app's typesetting, as the app
+  draws them: hosted under English typesetting they could not see the hyphen.
+- **A Settings switch row steps a word down only where it misses the whole
+  row.** With the switch already under, a title word wider than the row under
+  the icon sets the title at AX1's size, then xxxLarge's; the line under it
+  steps only if one of its own words still misses. Why: sv
+  «Användningsstatistik» takes 295 pt at AX2 in a 256-pt row on 320 pt, and no
+  layout gives it more room. A smaller title is a smaller loss than a broken
+  word, and a text whose words fit keeps the reader's size.
+- **The medication reminder switch stands as a Settings switch row stands.**
+  Beside its title while every word keeps whole there, else under the title at
+  its x, and with no room beside the bell either, the bell above. Why: uk
+  «Сповіщати» broke beside the switch at AX2 on 320 pt. One switch, with the
+  same identifier and the title for VoiceOver, in every shape.
+- **The weekly chart's month title picks one layout for the whole year.**
+  Between the week buttons while the widest word of every title the header
+  can show (each month and each week across two months, December into January
+  included) fits there, else on its own line above the buttons, which keep
+  their 44-pt tap zones. Its digits are even (`monospacedDigit`), so the probe
+  of one year holds for all. Why: fi «Marraskuu 2026» broke at AX2 on 320 pt;
+  measured per title the header changed layout from one week to the next (en
+  with Bold Text: September and a December–January week above, the rest
+  beside), and a header that jumps under the reader's finger is worse than one
+  that sits above all year.
+- **Card and page headings step down by sizes, after a neighbour moves.**
+  The Growth insight cards' titles, the report cards' headers and the headings
+  of four onboarding pages (the growth and widget showcases, notifications,
+  generating) are `BBSteppedText`: title3 at the reader's size, stepping to
+  AX1's size and down to Large's only where a word is wider than the whole
+  width. A badge or a glyph beside the title takes a line of its own first.
+  Why: de «WHO-Perzentilen» broke inside «Perzentilen» at AX2 on 320 pt (and
+  with Bold Text in da, nb, sv and en-XA), pt-BR and es «Medicamentos» in the
+  report. Moving the
+  badge costs nothing, stepping costs size, so the cheaper fix goes first. A
+  word that already holds a hyphen (de «WHO-Perzentilen») is measured by its
+  parts in the insight titles: the design system allows a break after it.
+- **A number keeps its counter in Japanese, Korean and Chinese text the app
+  builds.** `gluingNumbersToCounters` puts a word joiner between a digit and a
+  Han, kana or Hangul counter after it; the report's day ranges and the
+  chart's month title use it. Why: Japanese and Chinese break between any two
+  ideographs, and Korean's typesetting between syllables, so a formatter's
+  «11月3日» could end a line at «11». Breaks after
+  a counter, after a range's dash and between 年 and the month stay. Applying
+  it twice changes nothing. The localized strings carry the same joiner.
+- **The word-fit tests read the drawn text back with the system's text
+  recognition.** A text renderer or a layout-key reader attached to the text
+  changes its line breaks inside a Label at the accessibility sizes, so it
+  measured a layout the app never draws. Recognition on the plain render reads
+  what a person sees: a line that starts inside a word is a break, a word
+  joined back across lines is not.
+
 ## 2026-11-13 — Onboarding's page titles step down where a word misses; the percentile card's label steps down in a fixed column
 
 - **The four setup pages' titles (name, birth, feeding, growth) are

@@ -176,6 +176,7 @@ struct BBScreenHeading: View {
                 styled(.title2)
                 styled(.title3)
             }
+            .wordFitTypesetting()
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -228,6 +229,7 @@ struct BBSteppedTitle: View {
             stepped(BBTheme.Typography.title2)
             stepped(BBTheme.Typography.title3)
         }
+        .wordFitTypesetting()
     }
 
     /// Ideal width: the widest word with `spare` free, so `ViewThatFits`

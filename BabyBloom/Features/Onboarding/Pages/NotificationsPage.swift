@@ -79,7 +79,7 @@ struct NotificationsPage: View {
                         .scaleEffect(appear ? 1 : 0.9)
                         .opacity(appear ? 1 : 0)
 
-                    BBTheme.Typography.title3(String(format: "onboarding.notify.title".l, name))
+                    BBSteppedText(String(format: "onboarding.notify.title".l, name))
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)

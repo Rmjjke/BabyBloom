@@ -92,6 +92,7 @@ struct BBOptionalMeasureToggle: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .wordFitTypesetting()
             if isOn {
                 HStack {
                     Spacer()
