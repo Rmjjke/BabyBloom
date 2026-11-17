@@ -21,7 +21,7 @@ extension DoctorReportSummary {
         let sleep = sleepSection(sleeps, frame: frame)
         let diaperSection = diapersSection(diapers, frame: frame)
         let medications = medicationsSection(input.doses.filter { frame.contains($0.time) },
-                                             locale: calendar.locale ?? Locale(identifier: "en_US_POSIX"))
+                                             locale: LocalizationManager.shared.language.locale)
 
         return DoctorReportSummary(
             periodStart: periodStart,

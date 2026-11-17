@@ -738,19 +738,14 @@ struct WeightChartView: View {
 
     /// Day and month while the window is a few months wide; month alone past
     /// that, where four day-precise labels would not fit; month and a
-    /// four-digit year for windows near a year and longer. Not a two-digit
-    /// year — "Sep 25" reads as a day — and not the locale's own month-year
-    /// style either: Russian appends "г.", and three of those collide.
+    /// four-digit year for windows near a year and longer, in the language's
+    /// order («2026年10月»). Not a two-digit year — "Sep 25" reads as a day.
     private static func tickLabel(_ date: Date, spanDays: Int) -> String {
         let language = LocalizationManager.shared.language
         switch spanDays {
         case ..<120: return date.formatted(language.dateFormat.day().month())
         case ..<330: return date.formatted(language.dateFormat.month())
-        default:
-            let formatter = DateFormatter()
-            formatter.locale = language.locale
-            formatter.dateFormat = "LLL yyyy"
-            return formatter.string(from: date)
+        default: return LocaleDates.axisMonthYear(date, locale: language.locale)
         }
     }
 }
@@ -867,7 +862,7 @@ struct GrowthEntryRow: View {
 
     @ViewBuilder private var lengthLabel: some View {
         if let h = entry.heightCm {
-            valueLabel(String(format: "%.0f\u{00A0}\("unit.cm".l)", h), icon: "ruler")
+            valueLabel("\(h.appDecimal(0))\u{00A0}\("unit.cm".l)", icon: "ruler")
         }
     }
 

@@ -447,6 +447,34 @@ calendar however the locale is pinned (a Japanese-calendar phone printed
 "Oct 26, Reiwa 8"), while a `DateFormatter` takes the calendar of the locale
 it is given.
 
+**The week starts on Monday.** `SupportedLanguage.calendar` and
+`environmentCalendar` set the first weekday to Monday and a week to ISO's
+(4 days in the first week) in every language, an en_US phone included: the
+week chart and the weekly card (`WeeklySummary.calendar`) agree on the same
+seven days. The history's "week" is the last seven days, not a calendar
+week, and the system date pickers still take their first column from the
+phone's region. Month and year arithmetic (the chart ranges, the export and
+report periods, `Baby`'s age) never reads `Calendar.current`, so a phone set
+to a lunar calendar does not count months of 29 or 30 days; day counts and
+same-day checks are the same in every calendar and may.
+
+**A date's word order is the locale's.** Ranges, a month with its year and a
+short weekday come from `LocaleDates` (`Core/Localization/LocaleDates.swift`),
+which asks the locale for a template (`DateIntervalFormatter` with `MMMd` or
+`MMMy`, `setLocalizedDateFormatFromTemplate("MMMMy")`, standalone `cccccc`)
+and never writes a pattern or cuts a name: Japanese reads «10月19日～25日» and
+«2026年10月», German «19.–25. Okt.». A title takes the locale's own
+start-of-sentence form, so Russian reads «Октябрь 2026 г.» without the
+«г.» turning into a capital. Only the chart axis trims: the year word after
+the year (Russian «г.», Ukrainian «р.») is dropped, since four in a row
+collide on a phone. A fixed `dateFormat` such as `"LLL yyyy"` is a defect:
+it guesses one language's order for all.
+
+**Signed numbers carry the language's sign.** `Int.appSigned` writes a change
+as «+210» or «−30» with the locale's own minus: Swedish, Norwegian and Finnish
+use U+2212, not the hyphen. A name list (the report's medications) sorts with
+the app language's collation, not the phone's.
+
 **Roots carry the language.** `appLanguageEnvironment(_:)` sets the locale,
 the calendar and the typesetting language (which picks the Japanese or the
 Traditional-Chinese forms of shared characters such as 骨 and 直). The app's

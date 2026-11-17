@@ -119,4 +119,23 @@ final class MedicationReportSummaryTests: XCTestCase {
                                   dose(13, 8)])
         XCTAssertEqual(result.map(\.name), ["Amoxicillin", "Paracetamol", "vitamin D"])
     }
+
+    /// The order is the app language's, not the phone's: Russian puts its own
+    /// script first, Spanish files ñ after n.
+    func testLinesSortInTheAppLanguage() {
+        let manager = LocalizationManager.shared
+        let before = manager.currentLanguage
+        defer { manager.setLanguage(before) }
+        let doses = [dose(11, 8, name: "Aspirin", linked: false),
+                     dose(12, 8, name: "Парацетамол", linked: false),
+                     dose(13, 8, name: "Nube", linked: false),
+                     dose(14, 8, name: "Ñame", linked: false)]
+
+        manager.setLanguage("en")
+        XCTAssertEqual(medications(doses).map(\.name), ["Aspirin", "Ñame", "Nube", "Парацетамол"])
+        manager.setLanguage("ru")
+        XCTAssertEqual(medications(doses).map(\.name), ["Парацетамол", "Aspirin", "Ñame", "Nube"])
+        manager.setLanguage("es")
+        XCTAssertEqual(medications(doses).map(\.name), ["Aspirin", "Nube", "Ñame", "Парацетамол"])
+    }
 }

@@ -13,7 +13,7 @@ enum ReportFormat {
     /// latest weighing of a 15-month-old may be last year's, and «28 Oct» would
     /// read as last week. Spaces made unbreakable, so «24 / Oct» never splits.
     static func date(_ date: Date, now: Date = AppClock.now) -> String {
-        let calendar = Calendar.current
+        let calendar = LocalizationManager.shared.language.calendar
         let text = calendar.component(.year, from: date) == calendar.component(.year, from: now)
             ? date.appDayMonth : date.appDayMonthYear
         return text.replacingOccurrences(of: " ", with: nbsp)
