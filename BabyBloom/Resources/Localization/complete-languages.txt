@@ -13,3 +13,4 @@ fr
 ja
 ko
 zh-Hant
+fi
