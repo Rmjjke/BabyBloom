@@ -242,6 +242,8 @@ Notes:
 
 ¹ de: «Kinderarzt» is masculine. A title or line about the visit names the practice («für die Kinderarztpraxis»,
 «beim Kinderarzttermin»), so it needs no gender.
+ja: the person is 小児科医 (question.section, report.*). The visit names the department, as Japanese does
+(小児科を受診): the event is 小児科の受診 (visit.title), and the delete confirmations say 小児科の受診記録.
 
 ² de: «Wiegen» is the act and has no plural («Zeit zum Wiegen»). A weighing as one logged entry, which can be
 counted, is «Wägung / Wägungen» («Wägung hinzufügen», «Zwei Wägungen im Abstand von …», the report's «Wägungen»).
