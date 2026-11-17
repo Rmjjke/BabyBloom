@@ -1,0 +1,121 @@
+# Localization smoke: walks the key screens on ids only, never on copy, so
+# one flow runs in every shipped language.
+#   maestro test --device <id> -e APP_LANG=ja l10n-smoke.yaml
+# APP_LANG is a SupportedLanguage raw value (en, ru, es, uk, ja, ko, fr, de,
+# sv, nb, da, fi, pt-BR, pt-PT, zh-Hant).
+# APP_LANG is required: a flow-level `env:` default wins over the CLI's -e in
+# this Maestro, so the flow declares none.
+# Tabs are tapped by their `tabbar.*` ids. Each tap is followed by an id that
+# proves the tab opened.
+appId: com.nenita.app
+---
+# Keys carry their leading dash and values are strings: without the dash
+# the app never sees them (onboarding shows).
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-appLanguage": "${APP_LANG}"
+      "-hasCompletedOnboarding": "true"
+      "-BBSkipSplash": "true"
+      "-BBSeedScenario": "healthy"
+- extendedWaitUntil:
+    visible:
+      id: "home.quick.feeding"
+    timeout: 60000
+- takeScreenshot: ${APP_LANG}-01-home
+
+# Feeding: open the sheet, pick a type, save one entry.
+- tapOn:
+    id: "tabbar.feeding"
+- extendedWaitUntil:
+    visible:
+      id: "feeding.add"
+    timeout: 10000
+- tapOn:
+    id: "feeding.add"
+- tapOn:
+    id: "feeding.type.formula"
+- takeScreenshot: ${APP_LANG}-02-feeding-sheet
+- tapOn:
+    id: "feeding.save"
+- extendedWaitUntil:
+    notVisible:
+      id: "feeding.save"
+    timeout: 10000
+- takeScreenshot: ${APP_LANG}-03-feeding
+
+# Sleep.
+- tapOn:
+    id: "tabbar.sleep"
+- extendedWaitUntil:
+    visible:
+      id: "sleep.add"
+    timeout: 10000
+- takeScreenshot: ${APP_LANG}-04-sleep
+
+# Diapers: one wet diaper.
+- tapOn:
+    id: "tabbar.diapers"
+- extendedWaitUntil:
+    visible:
+      id: "diaper.add"
+    timeout: 10000
+- tapOn:
+    id: "diaper.add"
+- tapOn:
+    id: "diaper.type.wet"
+- takeScreenshot: ${APP_LANG}-05-diaper-sheet
+- tapOn:
+    id: "diaper.save"
+- extendedWaitUntil:
+    notVisible:
+      id: "diaper.save"
+    timeout: 10000
+
+# Medication: a new medicine every 6 h.
+- tapOn:
+    id: "tabbar.more"
+- extendedWaitUntil:
+    visible:
+      id: "more.medications"
+    timeout: 10000
+- tapOn:
+    id: "more.medications"
+- tapOn:
+    id: "medication.add"
+- tapOn:
+    id: "medication.name"
+- inputText: "Vitamin D"
+- tapOn:
+    id: "medication.chip.6"
+- takeScreenshot: ${APP_LANG}-06-medication-form
+- tapOn:
+    id: "medication.bar_save"
+- extendedWaitUntil:
+    notVisible:
+      id: "medication.bar_save"
+    timeout: 10000
+- takeScreenshot: ${APP_LANG}-07-medications
+
+# Settings: the Language row and the picker with the current language on top.
+# A second tap on More pops its stack to the root.
+- tapOn:
+    id: "tabbar.more"
+- extendedWaitUntil:
+    visible:
+      id: "more.profile"
+    timeout: 10000
+- tapOn:
+    id: "more.profile"
+- scrollUntilVisible:
+    element:
+      id: "settings.language"
+    direction: DOWN
+    visibilityPercentage: 50
+- takeScreenshot: ${APP_LANG}-08-settings
+- tapOn:
+    id: "settings.language"
+- assertVisible:
+    id: "settings.language.${APP_LANG}"
+- takeScreenshot: ${APP_LANG}-09-language-picker
