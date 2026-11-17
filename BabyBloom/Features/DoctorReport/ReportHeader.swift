@@ -40,7 +40,7 @@ struct ReportNewPeriodCard: View {
     let periodStart: Date
 
     var body: some View {
-        BBTheme.Typography.callout(String(format: "report.new_period_fmt".l, ReportFormat.dayMonth(periodStart)))
+        BBTheme.Typography.callout(ReportFormat.sentence("report.new_period_fmt".l, date: ReportFormat.dayMonth(periodStart)))
             .foregroundStyle(BBTheme.Colors.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
