@@ -136,9 +136,9 @@ struct BabyProfileEditSheet: View {
                             isOn: $recordsBirthWeight,
                             value: $birthWeightKg,
                             range: 0.5...6.0, step: 0.05,
-                            display: "\(birthWeightKg.appDecimal(2))\u{00A0}\("unit.kg".l)",
-                            minLabel: "\(0.5.appDecimal(1))\u{00A0}\("unit.kg".l)",
-                            maxLabel: "6\u{00A0}\("unit.kg".l)",
+                            display: Units.kg(birthWeightKg.appDecimal(2)),
+                            minLabel: Units.kg(0.5.appDecimal(1)),
+                            maxLabel: Units.kg("6"),
                             color: BBTheme.Colors.growth
                         )
                     }

@@ -222,8 +222,13 @@ final class PDFPagesTests: XCTestCase {
     /// Without them the columns come out equal: a short time takes as much as a long note.
     func testExportColumnWidthsFollowTheLongestText() {
         let note = String(repeating: "x", count: 60)
-        XCTAssertEqual(ExportGenerator.columnWidths(headers: ["Time", "Notes"], rows: [["08:00", note]]),
-                       "<colgroup><col style=\"width: 18.6%\"><col style=\"width: 81.4%\"></colgroup>")
+        let shares = PDFColumns.shares(heads: ["Time", "Notes"], rows: [["08:00", note]],
+                                       headFont: PagedPDF.font(ofSize: 11, bold: true),
+                                       cellFont: PagedPDF.font(ofSize: 11), width: 532, padding: 10)
+        XCTAssertEqual(shares.reduce(0, +), 100, accuracy: 0.01)
+        XCTAssertGreaterThan(shares[1], 3 * shares[0], "the note takes the room the time leaves")
+        XCTAssertTrue(ExportGenerator.columnWidths(headers: ["Time", "Notes"], rows: [["08:00", note]])
+            .hasPrefix("<colgroup><col style=\"width: "))
         let page = ExportGenerator.buildHTML(baby: nil, feedings: [], sleeps: [],
                                              diapers: [DiaperEntry(time: Date(), type: .wet, notes: note)],
                                              growths: [], events: [], categories: [.diapers], range: .all)
@@ -479,7 +484,7 @@ final class PDFPagesTests: XCTestCase {
                     assertFace(selection, centile)
                 }
                 for kg in stride(from: chart.kgRange.lowerBound, through: chart.kgRange.upperBound, by: chart.kgStep) {
-                    let label = "\(kg) \("unit.kg".l)"
+                    let label = Units.kg("\(kg)").replacingOccurrences(of: "\u{00A0}", with: " ")
                     // A centile on the same baseline joins the label's line.
                     let line = try XCTUnwrap(lines.first { plainText($0) == label || plainText($0).hasPrefix(label + " ") },
                                              "\(language): y label «\(label)»")
@@ -516,6 +521,53 @@ final class PDFPagesTests: XCTestCase {
             for word in words + ["美玲"] { XCTAssertTrue(body.contains(word), word) }
             XCTAssertFalse(body.unicodeScalars.contains { $0.value == 0 || $0.value == 0xFFFD }, "a boxed glyph: \(body)")
             XCTAssertFalse(lines.contains { $0.hasPrefix("\(words.count + 1).") }, "a question of emoji alone prints no empty line")
+        }
+    }
+
+    /// 骨 and 直 differ between Japanese, Traditional and Simplified Chinese, and the
+    /// first family that holds them draws them: the faces the file embeds show which
+    /// forms printed, in the body and in the footer, which carries the name.
+    func testHanCharactersPrintInTheDocumentLanguagesForms() throws {
+        for (language, face) in [(SupportedLanguage.ja, "HiraginoSans-"), (.zhHant, "PingFangTC-")] {
+            try inLanguage(language) {
+                let report = try report(extraWeighings: 0, name: "骨直", questions: ["骨と直?"])
+                XCTAssertTrue(report.html.contains("<html lang=\"\(language.rawValue)\">"), "\(language)")
+                let note = DiaperEntry(time: Date(), type: .wet, notes: "骨直")
+                let data = ExportGenerator.pdfData(baby: nil, feedings: [], sleeps: [], diapers: [note], growths: [],
+                                                   events: [], categories: [.diapers], range: .all)
+                let export = try XCTUnwrap(PDFDocument(data: data))
+                XCTAssertTrue(try XCTUnwrap(export.string).contains("骨直"))
+                for (what, document) in [("report", report.document), ("export", export)] {
+                    let names = fontNames(document)
+                    XCTAssertTrue(names.contains { $0.contains(face) }, "\(language) \(what): \(names)")
+                    XCTAssertFalse(names.contains { $0.contains("PingFangSC") }, "\(language) \(what): \(names)")
+                }
+            }
+        }
+    }
+
+    /// Latin and Cyrillic never reach the Han block: the pinned face draws them.
+    func testLatinAndCyrillicStayInHelveticaNeue() throws {
+        for (language, name) in [(SupportedLanguage.en, "Mia"), (.ru, "Мия"), (.uk, "Їжачок")] {
+            try inLanguage(language) {
+                let names = fontNames(try report(extraWeighings: 0, name: name, questions: ["?"]).document)
+                    .union(fontNames(try exportPDF(rows: 2).document))
+                XCTAssertFalse(names.isEmpty)
+                XCTAssertTrue(names.allSatisfy { $0.contains("HelveticaNeue") }, "\(language): \(names)")
+            }
+        }
+    }
+
+    /// The footer's face takes the same order, and its text says its language.
+    func testTheFooterFaceFollowsTheLanguage() {
+        let range = CFRange(location: 0, length: 1)
+        for (language, face) in [(SupportedLanguage.ja, "HiraginoSans"), (.zhHant, "PingFangTC"),
+                                 (.ko, "AppleSDGothicNeo"), (.en, "PingFangSC")] {
+            let font = PagedPDF.font(ofSize: 9, language: language) as CTFont
+            let drawn = CTFontCopyPostScriptName(CTFontCreateForString(font, "骨" as CFString, range)) as String
+            XCTAssertTrue(drawn.hasPrefix(face), "\(language): \(drawn)")
+            XCTAssertEqual(PagedPDF.languageAttribute(language)[NSAttributedString.Key(kCTLanguageAttributeName as String)]
+                           as? String, language.rawValue)
         }
     }
 

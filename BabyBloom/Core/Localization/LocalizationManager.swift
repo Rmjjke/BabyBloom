@@ -293,17 +293,19 @@ final class LocalizationManager: @unchecked Sendable {
     /// anything reads the language: a per-app list that changed since the last
     /// launch becomes the stored choice. Only the app's OWN domain counts —
     /// the global list is the device language, which a stored choice is meant
-    /// to outrank.
-    static func adoptPerAppLanguageChange() {
-        guard let bundleID = Bundle.main.bundleIdentifier else { return }
+    /// to outrank. Returns whether a language was adopted.
+    @discardableResult
+    static func adoptPerAppLanguageChange() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return false }
         let standard = UserDefaults.standard
         let current = standard.persistentDomain(forName: bundleID)?["AppleLanguages"] as? [String]
         let seen = standard.array(forKey: seenAppleLanguagesKey) as? [String]
         standard.set(current ?? [], forKey: seenAppleLanguagesKey)
         guard let adopted = perAppLanguageChange(current: current, seen: seen, device: Locale.preferredLanguages,
-                                                 available: SupportedLanguage.available) else { return }
+                                                 available: SupportedLanguage.available) else { return false }
         standard.set(adopted.rawValue, forKey: languageKey)
         sharedDefaults?.set(adopted.rawValue, forKey: languageKey)
+        return true
     }
 
     /// The language to adopt, or nil. `seen == nil` is the first launch that
