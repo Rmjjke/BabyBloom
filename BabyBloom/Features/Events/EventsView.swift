@@ -487,10 +487,10 @@ struct AddEventSheet: View {
     /// moves under its selection redraws its date in the short style
     /// («11/3/26»), and with the time starting at now a choice never does.
     private var timeRow: some View {
-        BBLabeledPicker("form.time".l) { label in
+        BBLabeledDateTimePicker("form.time".l) { label, components in
             DatePicker(label, selection: $time,
                        in: Date.distantPast...(selectedType == .medication ? AppClock.now : Date.distantFuture),
-                       displayedComponents: [.date, .hourAndMinute])
+                       displayedComponents: components)
         }
     }
 
