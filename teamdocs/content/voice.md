@@ -30,6 +30,9 @@ and the Live Activity read the byte-identical copies in
 | pumped milk (a feed with no amount) | Pumped milk | Сцеженное молоко | Leche extraída | `feeding.title.pumped`; the type is Pumped / Сцеженное / Extraída |
 | timer | timer | таймер | cronómetro | es uses «cronómetro», as `form.start_timer` |
 | Lock Screen | Lock Screen | экран блокировки | pantalla bloqueada | Apple's own terms |
+| height (a measurement) | Height | Рост | Talla | every es string, the doctor's report and the export included; «Talla» is WHO's Spanish term ("longitud/talla para la edad") and the pediatric word in Spain and Latin America ("peso y talla"). Before, es said «Altura» in the stats and the report and «Talla» at birth, two words for one measurement |
+| stool | Stool | стул | caca / heces | two registers on purpose: «caca» where the parent reads it (`form.stool_color`, `diaper.color.warning`), «heces» in the CSV export a doctor reads (`export.csv.stool_color`) |
+| Premium | Premium | Premium | Premium | Latin in every language, VoiceOver labels included (`premium.locked_a11y`) |
 | stop a feeding | Stop | Завершить | Detener | `button.finish`, everywhere |
 | stop a sleep | Woke Up | Проснулся | Se despertó | `button.woke_up`, everywhere |
 | start a feeding | Start Feeding | Начать кормление | Iniciar toma | `button.start_feeding`, app and widget |
@@ -358,7 +361,7 @@ and the Live Activity read the byte-identical copies in
     «С рождения · %@», «Guardado · %@». With a plain space the report's
     period line read «С приёма 2 нояб.» / «· сегодня» on a 320 pt screen at
     AX2. The keys: `report.since_visit_fmt`, `report.since_birth_fmt`,
-    `question.asked_at_fmt`, `question.asked_at_count_fmt`,
+    `question.asked_at_count_fmt`,
     `export.generated_by_fmt`, `live_activity.title.bf_left` / `_right` /
     `_both`, `live_activity.saved_fmt`, `premium.price_only_fmt` and
     `medication.ended_on_fmt`. The glued run is the word before and the dot,
@@ -685,3 +688,16 @@ renamed when it took a new argument by its new name.
     «한 번», «두 가지», «세 번»; ja «一日» in a rate, «一度», «二つ». Number
     and counter stay whole (U+2060, or a no-break space between Korean
     words).
+- 2026-11-12 — Fixes in the source strings every translation copies:
+  - es height is «Talla» in all 8 strings that said «Altura» (Terms).
+  - es stool keeps its two registers on purpose (Terms).
+  - ru `premium.locked_a11y` writes "Premium" in Latin, like the rest of ru.
+  - "Show all" (`report.show_all_fmt`) carries its count in brackets in
+    all 15 languages: "Show all (12)", «Ver todos (12)», «Alle anzeigen
+    (12)», «전체 보기 (12)», «顯示全部（12）» with the full-width brackets
+    of Traditional Chinese. Russian, both Portuguese, French and Japanese
+    already did.
+  - Deleted from all 15 languages, because nothing reads them:
+    `form.weight_placeholder`, `form.height_placeholder` and
+    `form.head_placeholder` (each taught a decimal point, wrong where the
+    decimal mark is a comma), and `question.asked_at_fmt`.
