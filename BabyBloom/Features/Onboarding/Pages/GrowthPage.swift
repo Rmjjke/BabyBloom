@@ -42,7 +42,7 @@ struct GrowthPage: View {
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
-                        BBTheme.Typography.title1("onboarding.growth_title".l)
+                        BBSteppedTitle("onboarding.growth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)

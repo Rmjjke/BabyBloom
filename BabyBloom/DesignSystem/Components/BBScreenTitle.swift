@@ -211,6 +211,36 @@ struct BBScreenHeading: View {
     }
 }
 
+/// A page's own title in the theme's faces: `BBTheme.Typography.title1`,
+/// stepping to `title2` and `title3` while its widest word misses the width,
+/// the rule `BBScreenHeading` follows with the system's faces. Where every
+/// word fits at `title1` it draws exactly as a plain `title1` does; it never
+/// breaks inside a word that fits at `title3` (de «Geburtsdatum» on a 320-pt
+/// screen at AX2). The caller sets colour, alignment and `fixedSize`.
+struct BBSteppedTitle: View {
+    let text: String
+
+    init(_ text: String) { self.text = text }
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            stepped(BBTheme.Typography.title1)
+            stepped(BBTheme.Typography.title2)
+            stepped(BBTheme.Typography.title3)
+        }
+    }
+
+    /// Ideal width: the widest word with `spare` free, so `ViewThatFits`
+    /// takes the first face whose words all fit; a width it gets reaches the
+    /// text untouched.
+    private func stepped(_ style: (String) -> Text) -> some View {
+        WidestWordIdeal(spare: BBScreenTitleFit.spare) {
+            style(text.oneWordALine).hidden().accessibilityHidden(true)
+            style(text)
+        }
+    }
+}
+
 /// `BBScreenHeading` as a List's first section: flush with the sections'
 /// edges, where the bar's large title stands, on the screen's ground, with
 /// no separator, and lg above the next section as in a stack (the list's

@@ -22,7 +22,7 @@ struct FeedingPage: View {
                 onboardingHeroIcon("heart.fill", color: BBTheme.Colors.feeding)
 
                 VStack(spacing: BBTheme.Spacing.sm) {
-                    BBTheme.Typography.title1("onboarding.feeding_title".l)
+                    BBSteppedTitle("onboarding.feeding_title".l)
                         .foregroundStyle(BBTheme.Colors.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)

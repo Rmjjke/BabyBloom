@@ -47,21 +47,9 @@ struct PremiumHero: View {
     /// and title3 while its widest word misses the line, as `BBScreenHeading`
     /// does, and keeps every line it needs.
     private var title: some View {
-        let text = "onboarding.premium.title".l
-        return ViewThatFits(in: .horizontal) {
-            stepped(BBTheme.Typography.title1, text)
-            stepped(BBTheme.Typography.title2, text)
-            stepped(BBTheme.Typography.title3, text)
-        }
-        .foregroundStyle(.white)
-        .multilineTextAlignment(.center)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func stepped(_ style: (String) -> Text, _ text: String) -> some View {
-        WidestWordIdeal(spare: BBScreenTitleFit.spare) {
-            style(text.oneWordALine).hidden().accessibilityHidden(true)
-            style(text)
-        }
+        BBSteppedTitle("onboarding.premium.title".l)
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

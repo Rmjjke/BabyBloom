@@ -61,19 +61,19 @@ struct PercentileCard: View {
             InsightCardHeader(title: "section.who_percentiles".l)
 
             VStack(spacing: BBTheme.Spacing.md) {
-                HStack {
+                // The label's column is everything the ring leaves, a fixed
+                // width the label's size steps are chosen against.
+                HStack(spacing: BBTheme.Spacing.sm) {
                     // The percentile itself, as the report prints it: a
                     // position on the chart, in the text colour, with no band
                     // word. One VoiceOver stop: «Weight Percentile, 61».
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("percentile.weight".l)
-                            .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .medium, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
+                        PercentileLabel(text: "percentile.weight".l)
                         BBTheme.Typography.metric(badge)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                     }
                     .accessibilityElement(children: .combine)
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     // The tier tint pictures where the reading sits; the figure
                     // beside it states it, so the ring is silent and needs no
                     // number of its own.
@@ -103,5 +103,50 @@ struct PercentileCard: View {
             .cornerRadius(BBTheme.Radius.lg)
             .bbShadow(BBTheme.Shadow.card)
         }
+    }
+}
+
+/// The label over the card's figure. It wraps between words at the reader's
+/// size; only a word wider than its column beside the ring (de
+/// «Gewichtsperzentile», fi «Painopersentiili» on a 320-pt screen at the
+/// accessibility sizes) sets it a size smaller, from AX1's down to Large's,
+/// the way `FeedingHint` steps. The column is narrow enough that one or two
+/// steps would leave such a word broken.
+struct PercentileLabel: View {
+    let text: String
+    /// The text size the label is set for; nil follows the device.
+    var category: UIContentSizeCategory? = nil
+
+    /// The sizes tried after the reader's own, largest first.
+    static let steps: [UIContentSizeCategory] = [
+        .accessibilityMedium, .extraExtraExtraLarge, .extraExtraLarge, .extraLarge, .large,
+    ]
+
+    var body: some View {
+        // Each try's ideal width is its widest word's: a size is passed over
+        // only when a word misses the column.
+        ViewThatFits(in: .horizontal) {
+            label(size: naturalSize)
+            label(size: steppedSize(Self.steps[0]))
+            label(size: steppedSize(Self.steps[1]))
+            label(size: steppedSize(Self.steps[2]))
+            label(size: steppedSize(Self.steps[3]))
+            label(size: steppedSize(Self.steps[4]))
+        }
+    }
+
+    private var naturalSize: CGFloat {
+        BBTheme.Typography.scaledPointSize(14, relativeTo: .body, for: category)
+    }
+
+    private func steppedSize(_ step: UIContentSizeCategory) -> CGFloat {
+        min(naturalSize, BBTheme.Typography.scaledPointSize(14, relativeTo: .body, for: step))
+    }
+
+    private func label(size: CGFloat) -> some View {
+        WordWrappingText(text: text)
+            .font(.system(size: size, weight: .medium, design: .rounded))
+            .foregroundStyle(BBTheme.Colors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

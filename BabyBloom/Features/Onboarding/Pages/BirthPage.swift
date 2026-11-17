@@ -24,7 +24,7 @@ struct BirthPage: View {
                         .padding(.top, BBTheme.Spacing.md)
 
                     VStack(spacing: BBTheme.Spacing.sm) {
-                        BBTheme.Typography.title1("onboarding.birth_title".l)
+                        BBSteppedTitle("onboarding.birth_title".l)
                             .foregroundStyle(BBTheme.Colors.textPrimary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)

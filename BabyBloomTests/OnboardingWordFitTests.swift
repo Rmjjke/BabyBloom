@@ -7,7 +7,10 @@ import UIKit
 /// never inside one. Where a word misses its column, every card of the page
 /// sets its text under its icon, the optional-measure switch goes under its
 /// title, and the feeding hint takes a smaller size; where the words fit, the
-/// shape is the beside one at every text size.
+/// shape is the beside one at every text size. The pages' titles step from
+/// title1 to title2 and title3, and the percentile card's label to a smaller
+/// size, only where a word misses; the card is held on the growth showcase
+/// and as the Growth screen sets it.
 ///
 /// Every shipped language runs, and both pseudo-languages. The shapes are
 /// pinned for en, ru and es; the other languages are held to whole words,
@@ -34,6 +37,9 @@ final class OnboardingWordFitTests: XCTestCase {
         KnownMiss(.pseudo(.jaXB), "feeding rows 320 AX2 bold", width: 37.0, room: 3.5),
         KnownMiss(.pseudo(.jaXB), "feeding rows 375 AX1", width: 20.0, room: 3.5),
         KnownMiss(.pseudo(.jaXB), "feeding rows 375 AX1 bold", width: 20.0, room: 3.5),
+        // «Lait infantile» wraps between its words beside the icon; its
+        // neighbours keep one line.
+        KnownMiss(.real(.fr), "feeding rows 320 AX1", width: 17.0, room: 3.5),
         KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX1 bold", width: 252.0, room: 237.3),
         KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX2", width: 272.3, room: 224.7),
         KnownMiss(.pseudo(.enXA), "form.head_cm 320 AX2 bold", width: 295.0, room: 226.3),
@@ -239,6 +245,24 @@ final class OnboardingWordFitTests: XCTestCase {
                     let feeding = try page(feedingPage(), screen, language, "feeding edges \(qualifier)", weight: weight)
                     try assertFeedingRows(in: feeding, stacked: expected(.feedingRows), bold: bold, language, qualifier)
                     try assertFeedingHint(in: feeding, column: width - 48, size: size, bold: bold, language, qualifier)
+                    try assertTitle("onboarding.feeding_title", in: feeding, column: width - 48, bold: bold,
+                                    language, qualifier)
+
+                    let namePage = try page(NamePage(name: .constant("Mia"), onBack: {}), screen, language,
+                                            "name edges \(qualifier)", weight: weight)
+                    try assertTitle("onboarding.name_title", in: namePage, column: width - 48, bold: bold,
+                                    language, qualifier)
+
+                    // The page's 24 a side, the card's 16, the ring and its gap.
+                    let showcase = try page(showcasePage(), screen, language, "showcase edges \(qualifier)",
+                                            weight: weight)
+                    try assertPercentileCard(in: showcase, column: width - 48 - 32 - 72, size: size, bold: bold,
+                                             language, "\(qualifier) showcase")
+                    // The Growth screen's 16 a side, the card's 16, the ring and its gap.
+                    let growthCard = try page(growthScreenCard(), screen, language,
+                                              "growth card edges \(qualifier)", weight: weight)
+                    try assertPercentileCard(in: growthCard, column: width - 32 - 32 - 72, size: size, bold: bold,
+                                             language, "\(qualifier) growth screen")
 
                     for surface in [Surface.growthSwitch, .birthSwitch] {
                         try assertSwitch(surface, on: screen, stacked: expected(surface), weight: weight,
@@ -301,6 +325,22 @@ final class OnboardingWordFitTests: XCTestCase {
 
     private func feedingPage() -> FeedingPage {
         FeedingPage(feedingType: .constant(.breast), babyName: "Mia", onBack: {})
+    }
+
+    /// The showcase with a birth weight, so it shows the percentile card.
+    private func showcasePage() -> GrowthShowcasePage {
+        GrowthShowcasePage(babyName: "Mia", birthDate: Date().addingTimeInterval(-10 * 86_400), gender: .female,
+                           birthWeightKg: 3.45, gestationalWeeks: nil, onContinue: {})
+    }
+
+    /// The card as the Growth screen sets it: in its explainer, 16 from the
+    /// screen's edges.
+    private func growthScreenCard() -> some View {
+        ExplainerCard(explainer: .percentile) {
+            PercentileCard(percentile: 61, badge: "61",
+                           captionLines: ["percentile.by_who_newborn".l, "percentile.by_who_newborn".l])
+        }
+        .padding(.horizontal, BBTheme.Spacing.md)
     }
 
     /// The page with the switch, the switch on so its slider shows too.
@@ -386,6 +426,9 @@ final class OnboardingWordFitTests: XCTestCase {
                                      file: file, line: line)
         let toggle = try XCTUnwrap(page.elements.first { $0.label.isEmpty && $0.frame.width < 100 && $0.frame.height < 44 },
                                    "\(name): no switch in \(page.elements)", file: file, line: line)
+        try assertTitle(surface == .growthSwitch ? "onboarding.growth_title" : "onboarding.birth_title",
+                        in: page.elements, column: screen.width - 48, bold: weight == .bold, language, qualifier,
+                        file: file, line: line)
         if stacked == true {
             XCTAssertGreaterThanOrEqual(toggle.frame.minY, hintText.frame.maxY - 0.5,
                                         "\(name): the switch \(toggle) is not under «\(hint)»", file: file, line: line)
@@ -468,6 +511,90 @@ final class OnboardingWordFitTests: XCTestCase {
         XCTAssertEqual(hint.frame.height, height(of: plainHint(text, at: setAt), in: column, bold: bold),
                        accuracy: 1, "\(name): not set at \(setAt.rawValue)", file: file, line: line)
     }
+
+    /// A page's title takes the first of title1, title2 and title3 whose
+    /// widest unit fits the column with the heading's spare, title3 where none
+    /// does, and keeps every unit whole.
+    private func assertTitle(_ key: String, in elements: [HostedAccessibility.Element], column: CGFloat,
+                             bold: Bool, _ language: FitLanguage, _ qualifier: String,
+                             file: StaticString = #filePath, line: UInt = #line) throws {
+        let text = key.l
+        let name = "\(language) \(key) \(qualifier)"
+        let title = try XCTUnwrap(elements.first { $0.label == text }, "\(name): no title in \(elements)",
+                                  file: file, line: line)
+        let faces: [(name: String, style: (String) -> Text)] = [
+            ("title1", BBTheme.Typography.title1), ("title2", BBTheme.Typography.title2),
+            ("title3", BBTheme.Typography.title3),
+        ]
+        let widest = faces.map { widestUnit(text, $0.style, face: $0.name, bold: bold) }
+        let index = widest.firstIndex { $0.width + BBScreenTitleFit.spare <= column } ?? faces.count - 1
+        let face = faces[index]
+        check(language, "\(key) \(qualifier)",
+              title.frame.width + 0.5 < widest[index].width
+                  ? "widest unit «\(widest[index].unit)» \(points(widest[index].width)) in \(face.name) "
+                      + "in \(points(title.frame.width)), column \(points(column))" : nil,
+              file: file, line: line)
+        // A title left in title1 with a word broken can be as wide as the
+        // column; its height tells the face it was set in.
+        XCTAssertEqual(title.frame.height,
+                       height(of: face.style(text).multilineTextAlignment(.center), in: column, bold: bold),
+                       accuracy: 1, "\(name): not set in \(face.name)", file: file, line: line)
+    }
+
+    /// The card's label takes the first of the reader's size, AX1's,
+    /// xxxLarge's, xxLarge's, xLarge's and Large's at which its widest unit
+    /// fits the column the ring leaves; the label and the figure are one
+    /// element, so their height tells the size.
+    private func assertPercentileCard(in elements: [HostedAccessibility.Element], column: CGFloat,
+                                      size: UIContentSizeCategory, bold: Bool, _ language: FitLanguage,
+                                      _ qualifier: String, file: StaticString = #filePath, line: UInt = #line) throws {
+        let key = "percentile.weight"
+        let name = "\(language) \(key) \(qualifier)"
+        let text = key.l
+        let label = try XCTUnwrap(elements.first { $0.label.hasPrefix(text) }, "\(name): no label in \(elements)",
+                                  file: file, line: line)
+        let steps: [UIContentSizeCategory] = [size, .accessibilityMedium, .extraExtraExtraLarge, .extraExtraLarge,
+                                              .extraLarge, .large]
+        let natural = BBTheme.Typography.scaledPointSize(14, relativeTo: .body, for: size)
+        let sizes = steps.map { min(natural, BBTheme.Typography.scaledPointSize(14, relativeTo: .body, for: $0)) }
+        let widest = sizes.map { FitMeasure.widestUnit(text, font: labelFont($0), bold: bold) }
+        let index = widest.firstIndex { $0 <= column }
+        // Past Large nothing is left to shrink: the unit breaks.
+        check(language, "\(key) \(qualifier)",
+              index == nil ? "widest unit \(points(widest[steps.count - 1])) at Large in \(points(column))" : nil,
+              file: file, line: line)
+        let setAt = sizes[index ?? steps.count - 1]
+        let plain = VStack(alignment: .leading, spacing: 4) {
+            Text(text).font(labelFont(setAt)).fixedSize(horizontal: false, vertical: true)
+            BBTheme.Typography.metric("61")
+        }
+        XCTAssertEqual(label.frame.height, height(of: plain, in: column, bold: bold), accuracy: 1,
+                       "\(name): not set at \(points(setAt)) pt in \(points(column))", file: file, line: line)
+    }
+
+    private func labelFont(_ size: CGFloat) -> Font {
+        .system(size: size, weight: .medium, design: .rounded)
+    }
+
+    /// The widest line-break unit in one of the theme's text faces, its
+    /// tracking included; faces are the same on every page, so each unit is
+    /// measured once.
+    private func widestUnit(_ text: String, _ style: (String) -> Text, face: String,
+                            bold: Bool) -> (unit: String, width: CGFloat) {
+        text.lineBreakUnits.map { unit in
+            let key = "\(face)\(bold ? " bold" : "") \(unit)"
+            if let width = Self.faceWidths[key] { return (unit, width) }
+            let view = style(unit).fixedSize().environment(\.legibilityWeight, bold ? .bold : .regular)
+            let width = UIHostingController(rootView: view)
+                .sizeThatFits(in: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude))
+                .width
+            Self.faceWidths[key] = width
+            return (unit, width)
+        }
+        .max { $0.width < $1.width } ?? ("", 0)
+    }
+
+    private static var faceWidths: [String: CGFloat] = [:]
 
     /// The tagline under the brand name keeps every line it needs: as tall as
     /// the same text needs at its own width, and no word broken. The hero once
