@@ -194,10 +194,10 @@ extension Medicine {
             .sorted { $0.time > $1.time }
     }
 
-    /// The lines as of `now`; `excluding` leaves out the dose being edited.
-    func lines(now: Date, excluding: CustomEvent? = nil) -> MedicationLines {
-        let schedule = schedule(now: now, excluding: excluding)
-        return MedicationFormat.lines(status: status(now: now, excluding: excluding),
+    /// The lines as of `now`, with every logged dose counted.
+    func lines(now: Date) -> MedicationLines {
+        let schedule = schedule(now: now)
+        return MedicationFormat.lines(status: status(now: now),
                                       intervalMinutes: intervalMinutes,
                                       maxPer24h: schedule.maxPer24h,
                                       dosesInLast24Hours: schedule.dosesInLast24Hours,

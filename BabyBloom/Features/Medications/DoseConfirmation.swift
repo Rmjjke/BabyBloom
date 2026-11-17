@@ -24,8 +24,7 @@ extension MedicationFormat {
     ///
     /// One alert per save. The 24-hour variant shows only when the check says
     /// that, once this dose is saved, the maximum ends later than the
-    /// interval. On a tie, and for a dose put before a logged one, the
-    /// interval variant.
+    /// interval. On a tie, the interval variant.
     ///
     /// The «not before» of the before and 24-hour variants is `nextAfterSave`:
     /// the time the medication's screen shows once this dose is saved. The

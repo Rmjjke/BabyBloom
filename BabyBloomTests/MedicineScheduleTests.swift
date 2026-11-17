@@ -275,12 +275,39 @@ final class MedicineScheduleTests: XCTestCase {
         XCTAssertEqual(s.nextAllowed(adding: d(10, 8)), d(11, 0))
     }
 
-    func testADosePutBeforeALoggedOneNamesTheIntervalEvenOverTheMaximum() {
-        let s = schedule(hours: 2, max: 2, [d(10, 12), d(10, 13)], now: d(10, 20))
-        let result = s.check(d(10, 11))
-        XCTAssertEqual(result.neighbour, .later(dose: d(10, 12)))
+    /// Every 6 h, at most 4: 02:02, 08:02, 14:06 and 21:06 logged, a dose
+    /// put at 09:10. Once saved the interval ends at 03:06 tomorrow (after
+    /// 21:06) and the maximum at 08:02 tomorrow, so the maximum is named,
+    /// with the time the medication's screen shows after the save.
+    func testADosePutBeforeALoggedOneNamesTheMaximumWhenItEndsLaterOnceSaved() {
+        let doses = [d(10, 2, 2), d(10, 8, 2), d(10, 14, 6), d(10, 21, 6)]
+        let s = schedule(hours: 6, max: 4, doses, now: d(10, 21, 11))
+        let result = s.check(d(10, 9, 10))
+        XCTAssertEqual(result.neighbour, .later(dose: d(10, 14, 6)))
+        XCTAssertEqual(result.daily?.count, 5)
+        XCTAssertTrue(result.showsDaily)
+        XCTAssertEqual(s.nextAllowed(adding: d(10, 9, 10)), d(11, 8, 2))
+    }
+
+    /// Every 20 h, at most 2, a dose put before both logged ones. With 06:00
+    /// and 10:00 logged and the dose at 05:00, both limits end at 06:00
+    /// tomorrow once saved (10:00 + 20 h; 06:00 a day old): a tie. With
+    /// 00:00 and 10:00 logged and the dose at 23:00 the day before, the
+    /// interval ends at 06:00 tomorrow and the maximum at 00:00: later.
+    func testADosePutBeforeALoggedOneNamesTheIntervalOnATieOrWhenItEndsLater() {
+        let tie = schedule(hours: 20, max: 2, [d(10, 6), d(10, 10)], now: d(10, 12))
+        let tied = tie.check(d(10, 5))
+        XCTAssertEqual(tied.neighbour, .later(dose: d(10, 6)))
+        XCTAssertEqual(tied.daily?.count, 3)
+        XCTAssertEqual(tie.nextAllowed(adding: d(10, 5)), d(11, 6))
+        XCTAssertFalse(tied.showsDaily, "a tie names the interval")
+
+        let later = schedule(hours: 20, max: 2, [d(10, 0), d(10, 10)], now: d(10, 12))
+        let result = later.check(d(9, 23))
+        XCTAssertEqual(result.neighbour, .later(dose: d(10, 0)))
         XCTAssertEqual(result.daily?.count, 3)
-        XCTAssertFalse(result.showsDaily)
+        XCTAssertEqual(later.nextAllowed(adding: d(9, 23)), d(11, 6))
+        XCTAssertFalse(result.showsDaily, "the interval ends later")
     }
 
     func testAMaximumOfZeroOrLessIsNoMaximum() {

@@ -1,6 +1,8 @@
 # The three ways something leaves a medication: Delete Dose in the dose
 # sheet, a swipe on the dose list, and Delete Medication in the form. Each
 # leaves the screen it was on with no stale row, and the app keeps running.
+# Delete Dose asks first (Cancel keeps the dose and the sheet); the swipe's
+# Delete deletes at once.
 #
 # Seed medsTwoCourses with the clock pinned (-BBNow 10:00): Paracetamol every
 # 6 h, its latest doses at 08:00 and 02:00 today and 20:00 yesterday.
@@ -41,7 +43,8 @@ tags: [regression]
     visible: "Last dose at 08:00.· 2.h ago"
     timeout: 10000
 
-# Delete Dose in the sheet: the 08:00 dose goes, 02:00 is the last.
+# Delete Dose in the sheet asks; Cancel keeps the sheet open, then Delete
+# removes the 08:00 dose and 02:00 is the last.
 - tapOn:
     id: "medication.dose.1"
 - extendedWaitUntil:
@@ -53,6 +56,12 @@ tags: [regression]
       id: "dose.delete"
 - tapOn:
     id: "dose.delete"
+- tapOn: "Cancel"
+- assertVisible:
+    id: "dose.delete"
+- tapOn:
+    id: "dose.delete"
+- tapOn: "Delete"
 - extendedWaitUntil:
     visible: "Last dose at 02:00.· the 6.h interval has passed"
     timeout: 10000

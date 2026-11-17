@@ -107,9 +107,11 @@ the next dose back past the interval's end. `nextAllowed(adding:)` is the
 «not before» once a dose at `t` is logged too, never earlier than
 `nextAllowed`. `dosesInLast24Hours` is the count shown against the
 maximum. It is all elapsed time, never calendar arithmetic.
-`Medicine.status(now:excluding:)` reads `.ended`, `.noDose`, `.waiting` or
-`.allowed`; `excluding` and `Medicine.check(_:now:editing:)` leave the dose
-being edited out. A dose deleted from the context counts for nothing even
+`Medicine.status(now:)` reads `.ended`, `.noDose`, `.waiting` or
+`.allowed`, with every logged dose counted: the dose sheet's status box
+shows it for an opened dose too, so it says what the medication's screen
+says. Only `Medicine.check(_:now:editing:)` leaves the dose being edited
+out. A dose deleted from the context counts for nothing even
 before the save removes it from the relationship. Nothing
 about a medicine is sent to analytics; a dose sits in the daily activity
 count's `event` figure like every event.

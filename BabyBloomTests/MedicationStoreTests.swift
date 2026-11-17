@@ -120,26 +120,32 @@ final class MedicationStoreTests: XCTestCase {
         XCTAssertEqual(dose.medicationDose, "4 ml")
     }
 
-    // MARK: Excluding the dose being edited
+    // MARK: The status counts every dose; the check leaves the edited one out
 
-    func testTheEditedDoseIsLeftOutOfTheStatusAndTheLines() throws {
+    /// An opened dose's sheet shows these lines, so they must match the
+    /// medication's screen: the newer dose counts. Only the check on save
+    /// measures a moved dose without itself.
+    func testTheStatusAndTheLinesCountEveryDoseAndTheCheckLeavesTheEditedOneOut() throws {
         let context = try makeContext()
         let medicine = makeMedicine(context)
         let now = noon
-        let older = give(medicine, now.addingTimeInterval(-2 * 3600), in: context)
+        _ = give(medicine, now.addingTimeInterval(-2 * 3600), in: context)
         let newer = give(medicine, now.addingTimeInterval(-1 * 3600), in: context)
         try context.save()
 
-        XCTAssertEqual(medicine.status(now: now, excluding: newer),
-                       .waiting(lastDose: older.time, until: now.addingTimeInterval(4 * 3600)))
         XCTAssertEqual(medicine.status(now: now),
                        .waiting(lastDose: newer.time, until: now.addingTimeInterval(5 * 3600)))
-
-        let expected = MedicationFormat.lines(status: .waiting(lastDose: older.time,
-                                                               until: now.addingTimeInterval(4 * 3600)),
+        let expected = MedicationFormat.lines(status: .waiting(lastDose: newer.time,
+                                                               until: now.addingTimeInterval(5 * 3600)),
                                               intervalMinutes: 360, maxPer24h: nil,
-                                              dosesInLast24Hours: 1, doseCount: 2, now: now)
-        XCTAssertEqual(medicine.lines(now: now, excluding: newer), expected)
+                                              dosesInLast24Hours: 2, doseCount: 2, now: now)
+        XCTAssertEqual(medicine.lines(now: now), expected)
+
+        // The newer dose left where it is: no neighbour but the older one,
+        // never itself.
+        XCTAssertEqual(medicine.check(newer.time, now: now, editing: newer).neighbour,
+                       .earlier(dose: now.addingTimeInterval(-2 * 3600),
+                                intervalEnds: now.addingTimeInterval(4 * 3600)))
     }
 
     // MARK: doseEvents

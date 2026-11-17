@@ -151,20 +151,26 @@ struct DoseSheet: View {
                 .medicationField()
                 .accessibilityIdentifier("dose.note")
             if let medicine, !medicine.isEnded {
-                // The state before this entry, so an edited dose does not
-                // measure against itself.
-                MedicationStatusBox(lines: medicine.lines(now: AppClock.now, excluding: dose))
+                // Every logged dose counted, an opened one too: the box says
+                // what the medication's screen says. The check on Save leaves
+                // the edited dose out; the box shows the state, not the check.
+                MedicationStatusBox(lines: medicine.lines(now: AppClock.now))
             }
             if dose != nil, onDelete != nil {
                 // Beside the swipe on the list, which VoiceOver and Switch
-                // Control reach only with effort.
-                Button(role: .destructive) { deleteDose() } label: {
+                // Control reach only with effort. It asks first, as Delete
+                // Medication does: a sheet opened to read a dose has no undo.
+                Button(role: .destructive) { confirmDelete = true } label: {
                     Text("medication.dose_delete".l)
                         .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
                         .frame(minHeight: 44, alignment: .leading)
                         .contentShape(Rectangle())
                 }
                 .accessibilityIdentifier("dose.delete")
+                .alert("medication.dose_delete".l, isPresented: $confirmDelete) {
+                    Button("button.delete".l, role: .destructive) { deleteDose() }
+                    Button("button.cancel".l, role: .cancel) {}
+                }
             }
         }
         .padding(BBTheme.Spacing.md)
@@ -187,6 +193,7 @@ struct DoseSheet: View {
     @State private var confirmation: DoseConfirmation?
     @State private var confirmed: ConfirmedDose?
     @State private var confirming = false
+    @State private var confirmDelete = false
 
     /// The time a save stores: an edit that leaves the time alone keeps it;
     /// anything else is clamped to now.
