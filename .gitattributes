@@ -1,0 +1,5 @@
+# Each language that becomes complete, or declines the app's name, adds its
+# own lines at the end of these lists, so two such changes meet on the same
+# spot; keeping both sides' lines is always the right merge.
+BabyBloom/Resources/Localization/complete-languages.txt merge=union
+BabyBloom/Resources/Localization/brand-declined.txt merge=union
