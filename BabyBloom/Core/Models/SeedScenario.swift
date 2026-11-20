@@ -118,6 +118,14 @@ enum SeedScenario: String, CaseIterable {
     /// (below 7) or a weight gain over `n` days with a trend falling by
     /// `-BBDrop` centile spaces (default 1.5). See `seedPluralSweep`.
     case pluralSweep
+    /// The offer rule's thresholds (`seedOffer`, relative to `AppClock.now`):
+    /// records on 2, 3, 6 and 7 distinct days since onboarding ended; one
+    /// weighing added in the app today, clean or past the newborn loss flag;
+    /// an oldest record 14 or 16 days old; onboarding ended 27 or 28 days ago.
+    case offerDays2, offerDays3, offerDays6, offerDays7
+    case offerWeighingClean, offerWeighingFlagged
+    case offerOldest14, offerOldest16
+    case offerOnboarded27, offerOnboarded28
 
     #if targetEnvironment(simulator)
     /// The launch argument's UserDefaults key. Deliberately declared INSIDE the
@@ -213,6 +221,9 @@ enum SeedScenario: String, CaseIterable {
         for entry in (try? context.fetch(FetchDescriptor<DoctorVisit>())) ?? [] { context.delete(entry) }
         for entry in (try? context.fetch(FetchDescriptor<Medicine>())) ?? [] { context.delete(entry) }
         for baby in (try? context.fetch(FetchDescriptor<Baby>())) ?? [] { context.delete(baby) }
+        // A previous offer fixture's onboarding end would otherwise outlive
+        // its baby and move the offer rule's line for the next fixture.
+        UserDefaults.standard.removeObject(forKey: OnboardingEnd.key)
     }
 
     /// Days between the two weighings — also the stretch feeds and nappies are
@@ -239,6 +250,9 @@ enum SeedScenario: String, CaseIterable {
         }
         if self == .pluralSweep {
             return seedPluralSweep(into: context)
+        }
+        if Self.offerScenarios.contains(self) {
+            return seedOffer(into: context)
         }
         guard self != .newbornWindow, self != .newbornStalePair else {
             return Self.seedNewborn(into: context, observedOnDay: self == .newbornWindow ? 12 : 25)
