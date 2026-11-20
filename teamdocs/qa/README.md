@@ -22,7 +22,21 @@ relative to its root.
   `medications/` area with `list-form` (MEDLIST), `detail-dose` (MEDDOSE),
   `confirmation` (MEDALERT), `reminder` (MEDREM) and `home` (MEDHOME),
   plus rows in events, dashboard, reminders, the free history window, both
-  paywalls, export, and the pediatrician report and its PDF. Row ids are permanent
+  paywalls, export, and the pediatrician report and its PDF. Version
+  1.4.0 (tracking free, no paywall in onboarding) adds
+  `premium/weekly-chart-lock` (WLOCK: the calm card in place of the weekly
+  charts of feeding, sleep and diapers, the reason line for earlier
+  installs) and `premium/offer-card` (OFFER: the Premium offer on Home,
+  its contents, spacing, holds, the 3 days, the slower pace after three
+  closes, earlier installs). It retires `onboarding/generating-loader`
+  (OBLOAD) and `onboarding/onboarding-paywall` (OBPAY): onboarding has
+  nine steps and the profile is created on the widgets page's button,
+  rows now in onboarding-pages (OBPAGES-026…039). Events rows are
+  inverted (events are free); the Dashboard rows place the offer card;
+  the Premium screen carries the four-row 1.4.0 list (PREM-010,
+  PREM-025…033); the free history window and the trackers' weekly-chart
+  rows point to WLOCK. Retired checklists stay for history and are not
+  run, so the active count stays 35. Row ids are permanent
   (`FEED-001`, …). The P1 rows form the smoke set. Format:
   `qa/rules/local/checklist-format.md`.
 - **Bugs.** One file each, indexed in `bugs.md` (ids `Q-NNN`). Severity:
