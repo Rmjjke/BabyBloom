@@ -40,6 +40,47 @@ and the Live Activity read the byte-identical copies in
 
 ## Surface rules
 
+- **Paywall list** (`onboarding.premium.headline`, `onboarding.premium.f*`).
+  From 1.4.0 there is one paywall, the in-app sheet; onboarding has no
+  Premium page. What is free and what is Premium: `free-premium.md`.
+  - The list names only what Premium unlocks. Each row is a function a
+    buyer can check after paying.
+  - Four rows, in this order: history (f1), weekly charts (f5), growth
+    figures (f6), report and export (f3).
+  - A growth row names a figure (gain in grams, the centile trend), never a
+    free surface (the WHO curve, the percentile).
+  - No row sells a warning: the low-gain notification is Premium, but it is
+    not a row.
+  - A row that takes on a different function gets a new key (f6). A row
+    that names the same function more exactly keeps its key (f3, f5), and
+    all 15 languages re-read it in the same release.
+  - The headline says what Premium adds ("Charts, reports and your whole
+    history"). It never implies that a parent without Premium cares less.
+- **The Premium offer** (`offer.*`, one card on Home).
+  - The body says one true sentence about the person's own records, then
+    one thing Premium adds to them that the free app does not already show.
+  - No count of offers, no urgency word ("last chance", "only today",
+    "don't miss"), no price, saving or trial length.
+  - No paid value in text or VoiceOver: no percentile, no gain figure. The
+    card's visible stats are free numbers (`offer.stat.*`), and VoiceOver
+    reads those same stats.
+  - The words stay true when the card shows again: `month_report` and
+    `growth_point` recur.
+  - Nothing implies that care is incomplete without Premium.
+  - The count in `offer.history_edge_title.*` is the number of calendar
+    days that have at least one record, not the days since the first one.
+    The body's number is the free window, 15.
+  - With too few records for the chart, the card shows `offer.thin_data`
+    in the chart's place, and the body becomes
+    `offer.first_result_days.body_thin`, which says the same without "like
+    this".
+- **Locked weekly chart** (`premium.teaser_weekly_*`, `premium.weekly_reason`).
+  One teaser per tracker, in the pattern of `premium.teaser_gain`; an empty
+  week reads `premium.teaser_weekly_empty`, which makes no claim about the
+  data. The reason line, shown for a while to people who had the chart
+  before 1.4.0, says that recording stays free and no record was deleted.
+  It says "recording", not "records": records older than 15 days were
+  Premium before. No "expired" and no "locked" in any of these lines.
 - **Live Activity.**
   - Dynamic Island compact and minimal carry no words: glyph + timer only.
   - The title (kind · side) fits 26 characters on the Lock Screen and in the
@@ -701,3 +742,16 @@ renamed when it took a new argument by its new name.
     `form.weight_placeholder`, `form.height_placeholder` and
     `form.head_placeholder` (each taught a decimal point, wrong where the
     decimal mark is a comma), and `question.asked_at_fmt`.
+- 2026-11-20 — 1.4.0, en and ru: tracking is free.
+  - The last onboarding screen says so: `onboarding.widget.free_title`,
+    `.free_label`, `.free_list`, `.premium_label`, `.premium_list`.
+  - The Premium offer card on Home (`offer.*`) and the locked weekly chart
+    (`premium.teaser_weekly_*`, `premium.weekly_reason`,
+    `premium.opens_a11y_hint`).
+  - The paywall: the headline says what Premium adds; f3 and f5 are
+    reworded; the new f6 names the growth figures; f2 (events) leaves the
+    list, because events are free.
+  - `notification.measurements_body` (day 3) drops "3 days", which the offer
+    says on the same day.
+  - New rules above: Paywall list, The Premium offer, Locked weekly chart.
+    The free / Premium reference: `free-premium.md`.
