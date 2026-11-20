@@ -151,7 +151,7 @@ hint.
   text, Russian «ты»→«вы» and nominative-only name slots
   (`profile.photo_hint`, `notification.diaper_title/_body`,
   `notification.measurements_title/_body`, `notification.weigh_in_body`,
-  `notification.idle_body`, `onboarding.gen.title_named`).
+  `notification.idle_body`, the onboarding loader's title with the name).
 - 2026-10-29 — `weekly.gain_fmt` reads as a rate; `settings.notify_weekly`
   added.
 - 2026-10-30 — VoiceOver delta and header-state strings; the notification
