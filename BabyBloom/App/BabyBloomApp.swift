@@ -55,7 +55,11 @@ struct BabyBloomApp: App {
                     // its own notifications page, where the ask is motivated.
                     // Firing it from this closure put the system dialog on top
                     // of the Dashboard the instant onboarding ended.
-                    OnboardingView(onComplete: { hasCompletedOnboarding = true })
+                    OnboardingView(onComplete: {
+                        // The line the offer rule counts the app's own days from.
+                        OnboardingEnd.record(now: AppClock.now)
+                        hasCompletedOnboarding = true
+                    })
                 }
             }
             .id(appLanguage)
@@ -94,6 +98,9 @@ struct BabyBloomApp: App {
             .onAppear {
                 // Starts the review prompt's three-day clock; written once.
                 ReviewPromptService.shared.recordFirstLaunchIfNeeded()
+                // Before the seed, which may create a baby: the cohort is the
+                // install's state at its first launch with offers, written once.
+                OfferCohort.recordIfNeeded(onboardingCompleted: hasCompletedOnboarding, now: AppClock.now)
                 // Applies the stored opt-out before anything can be sent; a
                 // no-op build (no key, simulator, Debug) constructs no SDK.
                 // The counter is how `daily_activity` reads yesterday.
@@ -106,6 +113,9 @@ struct BabyBloomApp: App {
                 // the pass sees the seeded data — which is already linked to
                 // its Baby, so it finds nothing to adopt.
                 SeedScenario.seedIfRequested(in: sharedModelContainer.mainContext)
+                #if targetEnvironment(simulator)
+                OfferService.shared.applyLaunchLevers()
+                #endif
                 // Entries created before they were linked to their Baby still
                 // have a nil owner, which makes Baby's cascade rules inert.
                 // Runs at most once per install and is a no-op afterwards.
