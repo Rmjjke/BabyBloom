@@ -14,6 +14,34 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-20 — The app's notification delegate answers only the tap; a Premium card silences the rating for the process
+
+**The delegate implements `didReceive` and nothing else.** The offer must not
+show over a visit that began with a tap on one of our notifications (a feed
+reminder, a dose), and only a `UNUserNotificationCenter` delegate can tell a
+tap from an ordinary launch. `NotificationLaunch` is that delegate, installed
+in the app's `init` because the tap that cold-launches the app reaches only a
+delegate set before launching finishes. It deliberately has no `willPresent`.
+
+**Why no `willPresent`.** Without it, a notification that fires while the app
+is open stays silent — exactly the behaviour the app had before any delegate
+existed, which the medication screen's own "the interval has passed" line and
+NOTIFICATIONS.md are written around. Adding foreground banners is a product
+change of its own (which ones, with what sound, over which screen), not a side
+effect of wiring a hold. Whoever adds `willPresent` decides that on purpose and
+updates both documents.
+
+**After a Premium card shows on Home, no rating is asked until the process
+ends.** `ReviewPromptService.suppressForSession()` drops a save waiting for its
+sheet and refuses later ones. **Why.** One ask of the parent per visit: a
+rating sheet right after a card that asked for money reads as a second
+request, and both answers get worse. The process is the visit's natural
+boundary; the next launch asks again under the rating's own rules. The card's
+appearance is the trigger, not its close, so a card closed at once still
+counts. It holds the other way too: once a rating was asked, Home shows no
+Premium card until the process ends, and that moment waits for a later visit
+like under any hold.
+
 ## 2026-11-20 — Onboarding is nine pages, sells nothing and ends on the widgets page, whose button creates the profile
 
 Welcome → Name → Birth → Feeding → Growth → Fact → Growth showcase →
