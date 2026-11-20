@@ -133,6 +133,20 @@ final class OfferRuleTests: XCTestCase {
         // Seeds `offerOldest14` and `offerOldest16`.
         XCTAssertEqual(decide(facts(days: [0]), at: at(14, 18)), .wait(.notDue))
         XCTAssertEqual(decide(facts(days: [0]), at: at(16, 18)), show(.historyEdge))
+        // The edge itself: the free history keeps 15 days counting today.
+        XCTAssertEqual(decide(facts(days: [0]), at: at(14, 23, 59)), .wait(.notDue))
+        XCTAssertEqual(decide(facts(days: [0]), at: at(15, 0, 1)), show(.historyEdge))
+    }
+
+    func testAWeighingIsNotARecordDay() {
+        // Six record days and a weighing on the seventh: no first week.
+        XCTAssertEqual(Rule.dueMoments(facts: facts(days: Array(0...5), weighings: [weighing(6)]),
+                                       ended: ended, now: at(6, 18), calendar: calendar),
+                       [.firstResultDays])
+        // A weighing alone in the last week is not a recent record for the report.
+        XCTAssertEqual(Rule.dueMoments(facts: facts(days: [0], weighings: [weighing(25)]),
+                                       ended: ended, now: at(28, 18), calendar: calendar),
+                       [.firstResultPoint, .historyEdge])
     }
 
     func testMonthReportAfter28DaysWithARecentRecord() {

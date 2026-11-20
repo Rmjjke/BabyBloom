@@ -38,7 +38,7 @@ enum OfferRule {
     static let slowPaceCloses = 3
     static let slowGapDays = 90
     /// An install from before 1.4.0 sees no offer for this many days from its
-    /// first 1.4.0 launch (the locked chart's reason line is up then).
+    /// first 1.4.0 launch.
     static let cohortQuietDays = 14
     /// A shown card stays on Home on its day and the days after, this many
     /// days in all; then it leaves and counts as closed.
@@ -188,7 +188,8 @@ enum OfferRule {
 
         // Days count records dated from the end of onboarding on: a feed
         // logged during setup for earlier that morning is not the app at work.
-        let counted = (records.map(\.date) + added.map(\.date)).filter { $0 >= ended }.sorted()
+        // A weighing is not a record here; it is the first result's other path.
+        let counted = records.map(\.date).filter { $0 >= ended }.sorted()
         var days: [Date] = []      // the first record of each distinct day
         for date in counted where days.last.map({ !calendar.isDate($0, inSameDayAs: date) }) ?? true {
             days.append(date)
@@ -209,7 +210,7 @@ enum OfferRule {
             due.append(.historyEdge)
         }
         if self.days(from: ended, to: now, calendar: calendar) >= monthReportDays,
-           hasRecentRecord(records: records, weighings: added, now: now, calendar: calendar) {
+           hasRecentRecord(records: records, now: now, calendar: calendar) {
             due.append(.monthReport)
         }
         return due
@@ -262,9 +263,8 @@ enum OfferRule {
         if newClean { return .growthPoint }
 
         let last = ledger.lastMonthReport ?? ended
-        let added = facts.weighings.filter { $0.createdAt > ended }
         if days(from: last, to: now, calendar: calendar) >= monthReportDays,
-           hasRecentRecord(records: facts.records, weighings: added, now: now, calendar: calendar) {
+           hasRecentRecord(records: facts.records, now: now, calendar: calendar) {
             return .monthReport
         }
         return nil
@@ -289,10 +289,8 @@ enum OfferRule {
         return nil
     }
 
-    private static func hasRecentRecord(records: [Record], weighings: [Weighing],
-                                        now: Date, calendar: Calendar) -> Bool {
-        let dates = records.map(\.date) + weighings.map(\.date)
-        return dates.contains { date in
+    private static func hasRecentRecord(records: [Record], now: Date, calendar: Calendar) -> Bool {
+        records.map(\.date).contains { date in
             let distance = days(from: date, to: now, calendar: calendar)
             return distance >= 0 && distance < recentRecordDays
         }

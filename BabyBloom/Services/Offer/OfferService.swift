@@ -79,7 +79,7 @@ final class OfferService {
 
     func recordClosed(_ content: OfferContent) {
         var ledger = store.load()
-        ledger.recordClosed(content, now: clock())
+        guard ledger.recordClosed(content, now: clock()) else { return }
         store.save(ledger)
         track(.offerClosed(content, expired: false))
     }

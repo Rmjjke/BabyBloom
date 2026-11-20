@@ -3,7 +3,7 @@ import Foundation
 /// Whether this install finished onboarding before the version with offers,
 /// and when that version first launched. One flag, written in one place (the
 /// app root's first appearance) and never moved; the offer rule's quiet days
-/// and the locked chart's reason line both read it.
+/// read it.
 enum OfferCohort {
 
     enum Key {

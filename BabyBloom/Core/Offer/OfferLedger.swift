@@ -60,12 +60,16 @@ struct OfferLedger: Codable, Equatable, Sendable {
         updatedAt = now
     }
 
-    /// × on the card: one more close in the streak.
-    mutating func recordClosed(_ content: OfferContent, now: Date) {
-        if open?.content != content { stampShown(content, now: now) }
+    /// × on the card: one more close in the streak. A × on a card that is no
+    /// longer open (its days ran out meanwhile, and that already counted as a
+    /// close) changes nothing.
+    @discardableResult
+    mutating func recordClosed(_ content: OfferContent, now: Date) -> Bool {
+        guard open?.content == content else { return false }
         open = nil
         closesInRow += 1
         updatedAt = now
+        return true
     }
 
     /// A tap opens the paywall: the offer counts as shown and the streak ends.

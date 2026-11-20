@@ -2,8 +2,8 @@ import Foundation
 import SwiftData
 
 #if targetEnvironment(simulator)
-/// The offer-rule fixtures: each puts one moment on its threshold (or one
-/// short of it) relative to `AppClock.now`, so `-BBNow` moves the picture.
+/// The offer rule's fixtures: each puts one moment on or past its threshold,
+/// or one short of it, relative to `AppClock.now`, so `-BBNow` moves the picture.
 ///
 /// They also write the end of onboarding, which the rule counts from, and
 /// set every `createdAt` by hand: the rule tells records written during setup

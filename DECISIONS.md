@@ -50,7 +50,10 @@ meet four "your first result" offers about data from months ago.
 **The memory survives a reinstall.** The ledger is kept in UserDefaults and in
 a synchronizable Keychain item; deleting the app to reset the offers, or a
 second device, merges back with dates that can only make offers rarer (moment
-dates earliest-wins, pace dates latest-wins).
+dates earliest-wins, pace dates latest-wins). The synchronizable item follows
+the Apple ID, so a second device signed in to it shares the memory: an offer is
+made to a person, not to a phone. The ledger holds no baby data, only offer
+dates, so this does not reopen the store's local-only line.
 
 **The numbers are constants in one place** (`OfferRule`), each changeable
 without touching the logic; what each one is for is written beside it.

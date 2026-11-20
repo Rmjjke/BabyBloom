@@ -54,6 +54,18 @@ final class OfferLedgerTests: XCTestCase {
         XCTAssertEqual(ledger.lastShownAt, at(4))
     }
 
+    func testACloseOnACardNoLongerOpenChangesNothing() {
+        var ledger = OfferLedger.empty
+        ledger.recordShown(.firstResultDays, now: at(2))
+        XCTAssertEqual(ledger.settle(now: at(5), calendar: calendar), .firstResultDays)
+        let settled = ledger
+        XCTAssertEqual(settled.closesInRow, 1, "the stay ran out: one close")
+        XCTAssertFalse(ledger.recordClosed(.firstResultDays, now: at(5, 13)))
+        XCTAssertEqual(ledger, settled, "a stale × is not a second close")
+        XCTAssertFalse(ledger.recordClosed(.firstWeek, now: at(5, 14)))
+        XCTAssertNil(ledger.shownAt(.firstWeek), "a × on a card never shown stamps nothing")
+    }
+
     func testAMonthReportStampsItsOwnDateEveryTime() {
         var ledger = OfferLedger.empty
         ledger.recordShown(.monthReport, now: at(28))

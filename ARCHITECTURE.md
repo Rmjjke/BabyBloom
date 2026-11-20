@@ -1857,6 +1857,9 @@ course, a launch from a notification, an open sheet, a weekly card new today.
 
 **Pace** (`OfferRule.Wait`). From the last offer: 7 days in the first 30 after
 onboarding, 30 after them; the recurring offer is never closer than 30 days.
+The gap is the one in force on the day the next offer would show: after an
+offer on day 25 the next is not due on day 32, since by then the first 30 days
+are over and the gap is 30; it comes on day 55 at the earliest.
 After 3 closes in a row the gap is 90 days. A former subscriber waits 30 days
 from the later of the last offer and the last day seen subscribed. Each limit
 is checked on its own and the strictest wins.
@@ -2038,7 +2041,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `weekly_summary_viewed` | — | `WeeklySummaryCard.onAppear`, once per calendar week per device (`weekly.viewedWeek`, set only when the event was sent) |
 | `offer_shown` | `content`: `first_result_days` \| `first_result_point` \| `first_week` \| `history_edge` \| `month_report` \| `growth_point` | `OfferService.recordShown`, once per card however often Home redraws |
 | `offer_closed` | `content`, `expired`: Bool | `OfferService.recordClosed` (×, `expired: false`), or `evaluate` when a card's 3 days ran out (`expired: true`) |
-| `offer_tapped` | `content` | `OfferService.recordTapped`; the paywall it opens sends its own `paywall_shown` with `source: offer` and the same `content` |
+| `offer_tapped` | `content` | `OfferService.recordTapped`; the paywall it opens sends its own `paywall_shown` with `source: offer` the content as the `content` property |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and

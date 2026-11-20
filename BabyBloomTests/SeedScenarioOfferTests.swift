@@ -3,7 +3,7 @@ import SwiftData
 @testable import BabyBloom
 
 #if targetEnvironment(simulator)
-/// The offer fixtures land each moment exactly on its threshold or one short
+/// The offer fixtures land each moment on or past its threshold, or one short
 /// of it, read through the same loader and rule the app uses, at any hour a
 /// flow happens to run.
 @MainActor
@@ -72,9 +72,9 @@ final class SeedScenarioOfferTests: XCTestCase {
             XCTAssertEqual(clean.weighings.filter { $0.createdAt > clean.onboardingEndedAt! }.map(\.flagged), [false])
             let flagged = try facts(.offerWeighingFlagged, now: at)
             XCTAssertEqual(flagged.weighings.filter { $0.createdAt > flagged.onboardingEndedAt! }.map(\.flagged), [true])
-            guard case .hold = try decision(.offerWeighingFlagged, now: at) else {
-                return XCTFail("the flagged weighing at \(hour):30 must hold the offer")
-            }
+            // 3.0 kg eight days after 3.4 kg at birth stands as a clinical
+            // blocker, which comes before the flagged weighing's own day.
+            XCTAssertEqual(try decision(.offerWeighingFlagged, now: at), .hold(.clinical), "\(hour):30")
         }
     }
 
