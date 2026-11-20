@@ -326,7 +326,7 @@ struct DashboardView: View {
             // vanished after two days would read as breakage, in the one domain
             // where the app must never frighten (DECISIONS 2026-09-01).
             if !store.isPremium {
-                LockedInsightCard(
+                BBLockedCard(
                     title: "dashboard.growth.locked_title".l,
                     teaser: "dashboard.growth.locked_teaser".l
                 ) { paywallSource = .lockedCard }

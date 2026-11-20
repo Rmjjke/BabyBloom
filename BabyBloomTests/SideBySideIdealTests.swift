@@ -426,10 +426,44 @@ final class SideBySideIdealTests: XCTestCase {
                            "the dividers leave the list's ideal at its widest row's")
             let beside = height(list.rows(.beside), width: widest)
             let stacked = height(list.rows(.stacked), width: widest - 1)
-            XCTAssertGreaterThan(stacked, beside + 20, "the two shapes differ in height")
+            // Either shape may be the taller one; each must differ from the
+            // other at the width it is checked at, or the checks below prove nothing.
+            XCTAssertGreaterThan(abs(height(list.rows(.stacked), width: widest) - beside), 1)
+            XCTAssertGreaterThan(abs(height(list.rows(.beside), width: widest - 1) - stacked), 1)
             XCTAssertEqual(height(list, width: widest), beside, accuracy: 0.5, "beside at the widest row's ideal")
             XCTAssertEqual(height(list, width: widest - 1), stacked, accuracy: 0.5, "all under a point below it")
         }
+    }
+
+    /// Stacked, a text's ideal is its widest word, not its line: the ru
+    /// «Неограниченная история записей» row is wider than the card on one
+    /// line, and the stacked list still fits. And the last of the list's
+    /// stepped tries fits in every language, so some try always does and no
+    /// word is broken inside.
+    func testTheStackedFeatureListFitsByItsWidestWordsOn320InEveryLanguage() throws {
+        try requireLarge()
+        let card = 320 - 2 * BBTheme.Spacing.lg
+        let last = PremiumFeatureRow.pointSize(for: PercentileLabel.steps.last!)
+        for language in SupportedLanguage.available.map(FitLanguage.real) {
+            try inLanguage(language) {
+                let list = PremiumFeatureList()
+                check(language, "stacked feature list on 320", width: idealWidth(list.rows(.stacked)), room: card,
+                      what: "ideal")
+                check(language, "last stepped feature list on 320",
+                      width: idealWidth(list.rows(.stacked, pointSize: last)), room: card, what: "ideal")
+            }
+        }
+        // At the largest size the app draws, the steps run down from the
+        // reader's own size to Large's; below a step's size they hold the
+        // reader's.
+        let ax2 = BBTheme.Typography.scaledPointSize(15, relativeTo: .body, for: .accessibilityLarge)
+        let steps = PercentileLabel.steps.map { PremiumFeatureRow.pointSize(for: $0, reader: .accessibilityLarge) }
+        XCTAssertLessThan(steps.first!, ax2, "the first step is smaller than the reader's own size")
+        XCTAssertEqual(steps, steps.sorted(by: >), "every step is a size smaller than the one before")
+        XCTAssertEqual(steps.last!, last, accuracy: 0.01, "the last step is Large's size at any reader size")
+        XCTAssertEqual(PremiumFeatureRow.pointSize(for: .accessibilityMedium, reader: .large),
+                       BBTheme.Typography.scaledPointSize(15, relativeTo: .body, for: .large), accuracy: 0.01,
+                       "a step never sets the text above the reader's own size")
     }
 
     // MARK: - Rows built at a content size

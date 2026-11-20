@@ -251,4 +251,13 @@ final class OfferServiceTests: XCTestCase {
         let elsewhere = AnalyticsEvent.paywallShown(.settings, offer: .monthReport).payload(channel: .simulator)
         XCTAssertNil(elsewhere.properties["content"])
     }
+
+    func testThePaywallNamesTheTrackerOnlyFromTheWeeklyChartSource() {
+        let fromChart = AnalyticsEvent.paywallShown(.weeklyChart, tracker: .sleep).payload(channel: .simulator)
+        XCTAssertEqual(fromChart.properties["source"], .token(AnalyticsEvent.PaywallSource.weeklyChart))
+        XCTAssertEqual(fromChart.properties["tracker"], .token(AnalyticsEvent.ChartTracker.sleep))
+        XCTAssertNil(fromChart.properties["content"])
+        let elsewhere = AnalyticsEvent.paywallShown(.historyLock, tracker: .sleep).payload(channel: .simulator)
+        XCTAssertNil(elsewhere.properties["tracker"])
+    }
 }

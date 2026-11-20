@@ -482,6 +482,9 @@ struct BBSectionHeader: View {
                 .foregroundStyle(BBTheme.Colors.textPrimary)
             Spacer()
         }
+        // A rotor stop: VoiceOver reaches the section by its header.
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 

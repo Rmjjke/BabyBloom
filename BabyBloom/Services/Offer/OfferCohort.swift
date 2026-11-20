@@ -3,7 +3,8 @@ import Foundation
 /// Whether this install finished onboarding before the version with offers,
 /// and when that version first launched. One flag, written in one place (the
 /// app root's first appearance) and never moved; the offer rule's quiet days
-/// read it.
+/// read it, and so does the reason line on the locked weekly charts (someone
+/// who had them free is told why they are locked now).
 enum OfferCohort {
 
     enum Key {

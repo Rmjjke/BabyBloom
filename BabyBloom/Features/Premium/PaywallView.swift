@@ -6,6 +6,8 @@ struct PaywallView: View {
     /// Required, with no default: every presentation site has to say where the
     /// paywall was opened from, or the conversion funnel loses its first step.
     let source: AnalyticsEvent.PaywallSource
+    /// The screen whose weekly chart raised the paywall; analytics only.
+    var tracker: AnalyticsEvent.ChartTracker? = nil
 
     @Environment(SubscriptionManager.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -131,7 +133,7 @@ struct PaywallView: View {
     private func reportShownIfSelling() {
         guard shownAt == nil, store.hasResolvedEntitlements, !store.isPremium else { return }
         shownAt = Date()
-        Analytics.shared.track(.paywallShown(source))
+        Analytics.shared.track(.paywallShown(source, tracker: tracker))
     }
 
     // MARK: - Active Badge
@@ -172,30 +174,35 @@ struct PaywallView: View {
 /// a list, and a mix of the two does not. The texts stand beside their icons
 /// while every word of every row fits there, wrapping between words; otherwise,
 /// and at every accessibility size, each text goes under its icon and check.
+/// Stacked, a word still wider than the card (ru «Неограниченная» at the
+/// largest size the app draws, AX2, on a 320-pt screen) sets every row a size
+/// smaller, down the steps
+/// `PercentileLabel` takes, so the list stays one face and no word breaks.
 struct PremiumFeatureList: View {
-    /// `onboarding.premium.f4` («Несколько профилей детей») is deliberately
-    /// absent: the app has one baby and no way to add a second, so the line
-    /// sold something that does not exist. Numbering is left with the gap
-    /// rather than resequenced — renaming f5 to f4 would silently change what
-    /// every translation of those two keys says.
+    /// Exactly what is paid, in the order a buyer weighs it: the whole
+    /// history, the weekly charts, the growth figures, the report and export.
+    /// Events are free and have no line. Keys keep their numbers when a line
+    /// leaves or is reworded (f2 events and f4 several babies are gone):
+    /// renumbering would silently change what every translation of a key says.
     static let features: [(icon: String, key: String)] = [
         ("infinity",                  "onboarding.premium.f1"),
-        ("star.fill",                 "onboarding.premium.f2"),
-        ("square.and.arrow.up.fill",  "onboarding.premium.f3"),
         ("chart.bar.fill",            "onboarding.premium.f5"),
+        ("chart.line.uptrend.xyaxis", "onboarding.premium.f6"),
+        ("doc.text.fill",             "onboarding.premium.f3"),
     ]
 
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        Group {
-            if typeSize >= .accessibility1 {
-                rows(.stacked)
-            } else {
-                ViewThatFits(in: .horizontal) {
-                    rows(.beside)
-                    rows(.stacked)
-                }
+        // Each try's ideal width is its widest word's, so a try is passed
+        // over only when a word misses the room.
+        ViewThatFits(in: .horizontal) {
+            if typeSize < .accessibility1 {
+                rows(.beside)
+            }
+            rows(.stacked)
+            ForEach(PercentileLabel.steps, id: \.self) { step in
+                rows(.stacked, pointSize: PremiumFeatureRow.pointSize(for: step))
             }
         }
         .background(BBTheme.Colors.surface)
@@ -205,11 +212,11 @@ struct PremiumFeatureList: View {
 
     /// A stack's ideal width is its widest row's, so the beside form fits only
     /// where every row does.
-    func rows(_ shape: PremiumFeatureRow.Shape) -> some View {
+    func rows(_ shape: PremiumFeatureRow.Shape, pointSize: CGFloat? = nil) -> some View {
         let features = Self.features
         return VStack(spacing: 0) {
             ForEach(Array(features.enumerated()), id: \.offset) { i, feat in
-                PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: shape)
+                PremiumFeatureRow(icon: feat.icon, text: feat.key.l, shape: shape, pointSize: pointSize)
 
                 if i < features.count - 1 {
                     Divider().padding(.horizontal, BBTheme.Spacing.md)
@@ -232,6 +239,15 @@ struct PremiumFeatureRow: View {
     let icon: String
     let text: String
     let shape: Shape
+    /// A stepped-down text size; nil follows the reader's own.
+    var pointSize: CGFloat? = nil
+
+    /// The text's size at a smaller step, never above the reader's own.
+    /// `reader` sets the reader's size in a test; nil reads the device.
+    static func pointSize(for step: UIContentSizeCategory, reader: UIContentSizeCategory? = nil) -> CGFloat {
+        min(BBTheme.Typography.scaledPointSize(15, relativeTo: .body, for: reader),
+            BBTheme.Typography.scaledPointSize(15, relativeTo: .body, for: step))
+    }
 
     private var iconBadge: some View {
         Image(systemName: icon)
@@ -255,7 +271,8 @@ struct PremiumFeatureRow: View {
 
     private func styled(_ label: some View) -> some View {
         label
-            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
+            .font(pointSize.map { .system(size: $0, weight: .medium, design: .rounded) }
+                  ?? BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
             .foregroundStyle(BBTheme.Colors.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -277,7 +294,7 @@ struct PremiumFeatureRow: View {
                         Spacer()
                         check
                     }
-                    styled(Text(text))
+                    styled(WordWrappingText(text: text))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }

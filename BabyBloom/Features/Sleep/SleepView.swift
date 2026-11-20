@@ -9,10 +9,10 @@ struct SleepView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var historyFilter: HistoryFilter = .day
-    /// The history list's free window sells from here; nothing else on this
-    /// screen is gated.
+    /// Two things sell from here: the history list's free window and the
+    /// weekly chart; nothing else on this screen is gated.
     @Environment(SubscriptionManager.self) private var store
-    @State private var showPaywall = false
+    @State private var paywallSource: AnalyticsEvent.PaywallSource?
 
     private var baby: Baby? { babies.first }
 
@@ -92,8 +92,8 @@ struct SleepView: View {
         .entrySheet(isPresented: $showAddSheet) {
             AddSleepSheet()
         }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(source: .historyLock)
+        .sheet(item: $paywallSource) { source in
+            PaywallView(source: source, tracker: source == .weeklyChart ? .sleep : nil)
         }
     }
 
@@ -167,20 +167,21 @@ struct SleepView: View {
 
     // MARK: - Weekly Chart
     private var weeklyChartSection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.weekly_chart")
+        WeeklyChartSection(tracker: .sleep, valueFor: sleepHoursOn, onUnlock: { paywallSource = .weeklyChart }) {
             BBWeeklyBarChart(
-                valueFor: { date in
-                    let dayEntries = entries.filter {
-                        Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive
-                    }
-                    return dayEntries.reduce(0) { $0 + $1.duration } / 3600
-                },
+                valueFor: sleepHoursOn,
                 color: BBTheme.Colors.sleep,
                 formatValue: { v in v == 0 ? "0" : v.appDecimal(1) },
                 voiceOverValue: Self.chartVoiceOverValue(hours:)
             )
         }
+    }
+
+    private func sleepHoursOn(_ date: Date) -> Double {
+        let dayEntries = entries.filter {
+            Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive
+        }
+        return dayEntries.reduce(0) { $0 + $1.duration } / 3600
     }
 
     /// A day's bar as VoiceOver reads it: the day's sleep in whole minutes,
@@ -215,7 +216,7 @@ struct SleepView: View {
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
             lockSurface: .sleep,
-            onUnlock: { showPaywall = true }
+            onUnlock: { paywallSource = .historyLock }
         )
     }
 

@@ -11,10 +11,10 @@ struct DiaperView: View {
     @State private var showNormEditor = false
     @State private var historyFilter: HistoryFilter = .day
     @AppStorage("diaperDailyNorm") private var dailyNorm = 8
-    /// The history list's free window sells from here; nothing else on this
-    /// screen is gated.
+    /// Two things sell from here: the history list's free window and the
+    /// weekly chart; nothing else on this screen is gated.
     @Environment(SubscriptionManager.self) private var store
-    @State private var showPaywall = false
+    @State private var paywallSource: AnalyticsEvent.PaywallSource?
 
     private var baby: Baby? { babies.first }
 
@@ -70,8 +70,8 @@ struct DiaperView: View {
         .entrySheet(isPresented: $showAddSheet) {
             AddDiaperSheet()
         }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(source: .historyLock)
+        .sheet(item: $paywallSource) { source in
+            PaywallView(source: source, tracker: source == .weeklyChart ? .diaper : nil)
         }
     }
 
@@ -217,15 +217,13 @@ struct DiaperView: View {
 
     // MARK: - Weekly Chart
     private var weeklyChartSection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.weekly_chart")
-            BBWeeklyBarChart(
-                valueFor: { date in
-                    Double(entries.filter { Calendar.current.isDate($0.time, inSameDayAs: date) }.count)
-                },
-                color: BBTheme.Colors.diaper
-            )
+        WeeklyChartSection(tracker: .diaper, valueFor: changesOn, onUnlock: { paywallSource = .weeklyChart }) {
+            BBWeeklyBarChart(valueFor: changesOn, color: BBTheme.Colors.diaper)
         }
+    }
+
+    private func changesOn(_ date: Date) -> Double {
+        Double(entries.filter { Calendar.current.isDate($0.time, inSameDayAs: date) }.count)
     }
 
     // MARK: - History
@@ -243,7 +241,7 @@ struct DiaperView: View {
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
             lockSurface: .diaper,
-            onUnlock: { showPaywall = true }
+            onUnlock: { paywallSource = .historyLock }
         )
     }
 

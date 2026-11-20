@@ -17,11 +17,19 @@ struct InsightCard<Content: View>: View {
             InsightCardHeader(title: title, info: info)
             content
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(BBTheme.Spacing.md)
-        .background(BBTheme.Colors.surface)
-        .cornerRadius(BBTheme.Radius.lg)
-        .bbShadow(BBTheme.Shadow.card)
+        .insightCardShell()
+    }
+}
+
+extension View {
+    /// The insight card's surface, padding, corners and shadow, for a block
+    /// that has no header row of its own (`BBLockedCard` without a title).
+    func insightCardShell() -> some View {
+        frame(maxWidth: .infinity, alignment: .leading)
+            .padding(BBTheme.Spacing.md)
+            .background(BBTheme.Colors.surface)
+            .cornerRadius(BBTheme.Radius.lg)
+            .bbShadow(BBTheme.Shadow.card)
     }
 }
 
@@ -258,7 +266,7 @@ struct HintWithAddWeighing: View {
 /// leaves the children exactly as the card built them.
 ///
 /// **There is no double-activation guard here, and it is not an oversight.**
-/// `LockedInsightCard.sell()` can refuse to sell while its own explainer is up
+/// `BBLockedCard.sell()` can refuse to sell while its own explainer is up
 /// because one view owns both flags; this button owns neither. The explainer's
 /// state lives in the `ExplainerCard` above it and the sheet's in `GrowthView`,
 /// and neither can see the other. What makes the pair impossible is the
@@ -811,80 +819,6 @@ struct PercentileBeforeDueDateCard: View {
         InsightCard(title: "section.who_percentiles".l) {
             HintText(text: "percentile.before_due_date".l)
         }
-    }
-}
-
-// MARK: - Premium gate
-
-/// Stands in for a Premium-only card. Says what the block would tell them
-/// without showing the number itself.
-struct LockedInsightCard: View {
-    let title: String
-    let teaser: String
-    /// The explainer behind the "?" badge, for sections that have one. Left nil
-    /// where the card has nothing to explain beyond its own teaser.
-    var explainer: GrowthExplainer? = nil
-    let onUnlock: () -> Void
-
-    @State private var showExplainer = false
-
-    /// The card's tap SELLS, and that must survive: an explainer that ate the
-    /// sell tap would trade the paywall for a help sheet. So the badge is its
-    /// own button inside the card rather than the card itself being the way in
-    /// — the opposite of `ExplainerCard`, for the opposite reason.
-    private var badge: InfoBadgeRole {
-        guard explainer != nil else { return .none }
-        return .control { showExplainer = true }
-    }
-
-    var body: some View {
-        Button(action: sell) {
-            InsightCard(title: title, info: badge) {
-                HStack(alignment: .top, spacing: BBTheme.Spacing.sm) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 15))
-                        .foregroundStyle(BBTheme.Colors.primary)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(teaser)
-                            .font(.system(size: 13, weight: .regular, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .multilineTextAlignment(.leading)
-                        Text("premium.locked_hint".l)
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(BBTheme.Colors.primary)
-                    }
-                }
-            }
-        }
-        .buttonStyle(BBScaleButtonStyle())
-        // VoiceOver reads this card as ONE button whose activation sells —
-        // which is right, that is what the card is for — and the badge inside
-        // the label is not an element of its own there. So the explainer gets
-        // a named action on the card itself; without it the copy behind the "?"
-        // is reachable by sighted taps only.
-        .accessibilityActions {
-            if explainer != nil {
-                Button("explainer.action".l) { showExplainer = true }
-            }
-        }
-        .sheet(isPresented: $showExplainer) {
-            if let explainer {
-                ExplainerSheet(explainer: explainer)
-            }
-        }
-    }
-
-    /// A tap on the badge is answered by the badge: a child's gesture wins over
-    /// its ancestor's, so this action does not run at all. The guard is for the
-    /// case that arrangement stops holding — selling on top of a sheet that is
-    /// already on its way up is the double activation, and it is worth one
-    /// line to make it impossible rather than merely unobserved. `showExplainer`
-    /// is the flag AND the sheet's binding, so it cannot go stale: dismissing
-    /// the sheet clears it.
-    private func sell() {
-        guard !showExplainer else { return }
-        onUnlock()
     }
 }
 

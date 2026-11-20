@@ -251,10 +251,10 @@ struct GrowthView: View {
                 )
             }
         } else {
-            LockedInsightCard(
+            BBLockedCard(
                 title: "section.weight_gain".l,
-                teaser: "premium.teaser_gain".l,
-                explainer: .gain
+                explainer: .gain,
+                teaser: "premium.teaser_gain".l
             ) { showPaywall = true }
         }
     }
@@ -273,10 +273,10 @@ struct GrowthView: View {
                 ))
             }
         } else {
-            LockedInsightCard(
+            BBLockedCard(
                 title: "section.trend".l,
-                teaser: "premium.teaser_trend".l,
-                explainer: .trend
+                explainer: .trend,
+                teaser: "premium.teaser_trend".l
             ) { showPaywall = true }
         }
     }
@@ -328,7 +328,7 @@ struct GrowthView: View {
                 if store.isPremium {
                     FeedingBreakdownCard(assessment: assessment, reading: reading)
                 } else {
-                    LockedInsightCard(
+                    BBLockedCard(
                         title: "breakdown.title".l,
                         teaser: "premium.teaser_nutrition".l
                     ) { showPaywall = true }
