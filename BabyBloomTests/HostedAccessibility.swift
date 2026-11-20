@@ -16,6 +16,7 @@ final class HostedAccessibility {
         let value: String
         /// In the window's coordinates.
         let frame: CGRect
+        var traits: UIAccessibilityTraits = []
 
         var description: String {
             "\(label) | \(value) | x \(Int(frame.minX))…\(Int(frame.maxX)) y \(Int(frame.minY))…\(Int(frame.maxY))"
@@ -97,7 +98,8 @@ final class HostedAccessibility {
         if root.isAccessibilityElement {
             out.append(Element(label: root.accessibilityLabel ?? "",
                                value: root.accessibilityValue ?? "",
-                               frame: root.accessibilityFrame))
+                               frame: root.accessibilityFrame,
+                               traits: root.accessibilityTraits))
         }
         for child in children(of: root, automation: automation) {
             collect(child, automation: automation, seen: &seen, into: &out)
