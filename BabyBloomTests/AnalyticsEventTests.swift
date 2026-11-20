@@ -26,11 +26,15 @@ final class AnalyticsEventTests: XCTestCase {
     private static let kinds: Set<String> = ["feeding", "sleep", "diaper", "growth", "event"]
     /// One total across kinds, with edges clear of the clinical 8-12 feeds a day.
     private static let totals: Set<String> = ["0", "1-5", "6-15", "16+"]
+    private static let contents: Set<String> = [
+        "first_result_days", "first_result_point", "first_week", "history_edge", "month_report", "growth_point",
+    ]
 
     private static let allowList: [String: [String: Expected]] = [
         "onboarding_page_viewed":  ["page": .token(pages)],
         "onboarding_completed":    ["birth_measurements_known": .bool],
-        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report"])],
+        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report", "offer"]),
+                                    "content": .token(contents)],
         "plan_selected":           ["plan": .token(plans)],
         "purchase_result":         ["plan": .token(plans),
                                     "result": .token(["success", "cancelled", "failed", "pending",
@@ -54,6 +58,15 @@ final class AnalyticsEventTests: XCTestCase {
         "widget_feeding_logged":                  [:],
         // That the weekly card was seen, none of its figures.
         "weekly_summary_viewed":                  [:],
+        // Which offer card, and whether it timed out; none of its figures.
+        "offer_shown":             ["content": .token(contents)],
+        "offer_closed":            ["content": .token(contents), "expired": .bool],
+        "offer_tapped":            ["content": .token(contents)],
+    ]
+
+    /// Keys an event carries only in some of its forms.
+    private static let optionalKeys: [String: Set<String>] = [
+        "paywall_shown": ["content"],
     ]
 
     /// Every event carries this, added by the facade rather than by a case.
@@ -66,6 +79,7 @@ final class AnalyticsEventTests: XCTestCase {
         events += AnalyticsEvent.OnboardingPage.allCases.map { .onboardingPageViewed($0) }
         events += [true, false].map { .onboardingCompleted(birthMeasurementsKnown: $0) }
         events += AnalyticsEvent.PaywallSource.allCases.map { .paywallShown($0) }
+        events += OfferContent.allCases.map { .paywallShown(.offer, offer: $0) }
         events += AnalyticsEvent.Plan.allCases.map { .planSelected($0) }
         for plan in AnalyticsEvent.Plan.allCases {
             events += AnalyticsEvent.PurchaseOutcome.allCases.map { .purchaseResult(plan, $0) }
@@ -85,6 +99,9 @@ final class AnalyticsEventTests: XCTestCase {
         events.append(.reviewPromptRequested)
         events += [.liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged,
                    .weeklySummaryViewed]
+        events += OfferContent.allCases.map { .offerShown($0) }
+        events += OfferContent.allCases.flatMap { content in [true, false].map { .offerClosed(content, expired: $0) } }
+        events += OfferContent.allCases.map { .offerTapped($0) }
         return events
     }
 
@@ -96,7 +113,7 @@ final class AnalyticsEventTests: XCTestCase {
              .purchaseResult, .restoreResult, .paywallClosedX, .firstEntry, .dailyActivity,
              .notificationPermission, .widgetInstalled, .historyLockShown, .reviewPromptRequested,
              .liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged,
-             .weeklySummaryViewed:
+             .weeklySummaryViewed, .offerShown, .offerClosed, .offerTapped:
             break
         }
     }
@@ -113,9 +130,12 @@ final class AnalyticsEventTests: XCTestCase {
                 guard let expected = Self.allowList[payload.name] else {
                     XCTFail("\(payload.name) is not allow-listed"); continue
                 }
-                XCTAssertEqual(Set(payload.properties.keys),
-                               Set(expected.keys).union([Self.buildChannel.key]),
-                               "keys of \(payload.name)")
+                let keys = Set(payload.properties.keys)
+                let required = Set(expected.keys).subtracting(Self.optionalKeys[payload.name] ?? [])
+                XCTAssertTrue(keys.isSubset(of: Set(expected.keys).union([Self.buildChannel.key])),
+                              "keys of \(payload.name)")
+                XCTAssertTrue(required.union([Self.buildChannel.key]).isSubset(of: keys),
+                              "required keys of \(payload.name)")
                 for (key, value) in payload.properties {
                     if key == Self.buildChannel.key {
                         guard case .token(let token) = value.storage else {

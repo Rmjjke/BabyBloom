@@ -1805,6 +1805,105 @@ set it; a restore that finds nothing does. The system
 never says whether it showed anything: TestFlight builds never show it, so
 "no prompt on TestFlight" is not a bug (DECISIONS 2026-09-22).
 
+## The Premium offer
+
+When Home may show a Premium offer card, and which one. No card is drawn yet:
+the rule, its memory and its levers stand on their own, so the card only has
+to ask and report. Each offer is tied to a moment when the person's own data
+has just made a paid function useful — never to a timer alone — waits out any
+moment of worry or busyness, and slows down for people who keep closing it
+(DECISIONS 2026-11-20 gives the why of each number).
+
+**Pieces.** `OfferRule` (`Core/Offer/`, pure, like `ReviewPromptPolicy`)
+decides, with every number a named constant. `OfferLedger` (`Core/Offer/`,
+pure) is what has been shown. `OfferRule.Facts.load` (`Services/Offer/
+OfferFacts+Store.swift`) reads the store. `OfferLedgerStore` keeps the ledger,
+`OfferCohort` and `OnboardingEnd` hold two flags, and `OfferService` puts them
+together: Home calls `evaluate(in:isPremium:entitlementsResolved:situation:)`
+and reports the card's appearance, × and tap with `recordShown`,
+`recordClosed`, `recordTapped`. A day is a calendar day of the device's
+calendar throughout; `OfferRule.days(from:to:)` counts 23:59 → 00:01 as one.
+
+**The moments** (`OfferMoment`, each offered at most once per install; the case
+order is the priority when two are due together) and the content each shows
+(`OfferContent`, whose raw value is both the analytics `content` name and the
+stem of the card's copy keys):
+
+| Moment | Due when | Content |
+|---|---|---|
+| `first_result` | records on 3 distinct days, or the first weighing added in the app — whichever came first picks the content | `first_result_days` \| `first_result_point` |
+| `first_week` | records on 7 distinct days | `first_week` |
+| `history_edge` | the oldest record is past the free 15-day window (`HistoryWindow.cutoff`) | `history_edge` |
+| `month_report` | 28 days since onboarding ended, and a record in the last 7 days | `month_report` |
+
+Days count only records dated from the end of onboarding on: a feed entered
+during setup for earlier that morning is not the app at work. A weighing
+counts as added in the app when its `createdAt` is after that line, which is
+what keeps onboarding's birth weight out. A moment is read from the facts as
+they stand, not from the day it became true, so a person who opens the app a
+week after the third day still meets it.
+
+After all four are used the offer recurs: `growth_point` on a new clean
+weighing since the last offer, otherwise another `month_report` 28 days after
+the last one (with a record in the last 7 days). No new data, no offer.
+
+**Holds** (`OfferRule.Hold`) come first and spend nothing — a held moment is
+offered at the next clean evaluation: entitlements not yet resolved, a
+subscriber, the quiet days of an older install, the rating prompt's clinical
+blockers (`ReviewPromptPolicy.clinicalBlockers`, shared, so the two never
+disagree about a worrying week), a flagged weighing added today, and the
+situation only Home knows (`OfferRule.Situation`): a dose due on a shown
+course, a launch from a notification, an open sheet, a weekly card new today.
+
+**Pace** (`OfferRule.Wait`). From the last offer: 7 days in the first 30 after
+onboarding, 30 after them; the recurring offer is never closer than 30 days.
+The gap is the one in force on the day the next offer would show: after an
+offer on day 25 the next is not due on day 32, since by then the first 30 days
+are over and the gap is 30; it comes on day 55 at the earliest.
+After 3 closes in a row the gap is 90 days. A former subscriber waits 30 days
+from the later of the last offer and the last day seen subscribed. Each limit
+is checked on its own and the strictest wins.
+
+**A shown card** stays on Home on its day and the two days after
+(`stayDays = 3`), the days running while a hold hides it; then it leaves and
+counts as a close (`offer_closed` with `expired: true`). × is a close; a tap
+opens the paywall with `PaywallSource.offer`, counts as shown and ends the
+streak — closing that paywall does not bring the card back. `recordShown` for
+the card already open is a no-op, so a Home that redraws cannot restart the
+stay or report a second `offer_shown`.
+
+**The ledger** holds per moment the day it was shown or spent unshown, the
+last offer, the last month report, the closes in a row, the open card, the
+last day seen subscribed and the cohort spend. It lives twice: UserDefaults
+(`offer.ledger`) and a synchronizable Keychain item (service
+`com.nenita.app.offer`, `AfterFirstUnlock`), which survives a reinstall and
+follows iCloud Keychain to a second device. `load()` merges the two and writes
+the merge back to both: moment dates earliest-wins (used on either side stays
+used), the dates that hold the pace back latest-wins (a merge can only slow
+offers down), the streak and the open card from the copy written last, the
+cohort spend an OR. An unreadable copy counts as absent; every field decodes
+optionally, so a copy from an older or newer build still reads.
+
+**The cohort** (`OfferCohort`) is one flag written once, at the app root's
+first appearance with this code: onboarding already done means an install from
+before offers (`pre_1_4_0`, with the date of that launch), otherwise `new`.
+Such an install sees no offer for 14 days from that launch, and at its first
+evaluation the moments already true then are spent unshown, once
+(`OfferRule.spentAtCohortLaunch`, through the same `dueMoments` and the facts
+cut at the launch by `createdAt`), so it meets the moments that become true
+later and the recurring offer, not a burst of old ones.
+
+**The end of onboarding** (`OnboardingEnd`, `onboarding.endedAt`) is written by
+`OnboardingView`'s completion. An install that onboarded before the key
+existed falls back to a minute after the baby's `createdAt` — onboarding's
+last step creates the baby, the birth weight is saved with it, and the minute
+keeps that weighing on the setup side.
+
+`OfferService.evaluate` brings the ledger up to date before deciding: it
+settles an expired card, spends the cohort's moments, notes a subscriber (at
+most one write a day) and saves only when something changed. It logs each
+decision (category `Offer`).
+
 ## Analytics
 
 Product analytics go to Amplitude (US region) through one facade,
@@ -1925,7 +2024,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `doctor_report` (`events` is retired: creating an event is free and nothing raises it) | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `doctor_report` \| `offer` (`events` is retired: creating an event is free and nothing raises it); `content` (the offer card's name) only with `offer` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
@@ -1940,6 +2039,9 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 | `live_activity_stopped_from_lock_screen` | — | `StopTimerIntent.perform`, only when the tap actually stopped a running timer; sent from a background launch, so it may upload on a later launch |
 | `widget_feeding_logged` | — | `StartFeedingIntent.perform`, only when the widget's button actually started a feed (not when one was already running); background launch, as above |
 | `weekly_summary_viewed` | — | `WeeklySummaryCard.onAppear`, once per calendar week per device (`weekly.viewedWeek`, set only when the event was sent) |
+| `offer_shown` | `content`: `first_result_days` \| `first_result_point` \| `first_week` \| `history_edge` \| `month_report` \| `growth_point` | `OfferService.recordShown`, once per card however often Home redraws |
+| `offer_closed` | `content`, `expired`: Bool | `OfferService.recordClosed` (×, `expired: false`), or `evaluate` when a card's 3 days ran out (`expired: true`) |
+| `offer_tapped` | `content` | `OfferService.recordTapped`; the paywall it opens sends its own `paywall_shown` with `source: offer` the content as the `content` property |
 
 Every event also carries `build_channel`. `Resources/PrivacyInfo.xcprivacy`
 declares Product Interaction, Device ID and Purchase History (Analytics) and
@@ -2151,12 +2253,16 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | Argument | What it does |
 |---|---|
 | `-BBSkipSplash true` | Skips the splash. `@State`, so it needs a hook. |
-| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`; and `pluralSweep`, also from `AppClock.now`, which puts one count n (`-BBCount <n>`, default 21) on every screen that can carry it so plural forms are read live: n doses of a medicine in the last 24 hours with a maximum of n, n questions asked at a visit today, and either an age of n days (n below 7, no weighings) or, from 7, weighings past the newborn window that give a gain interval of n days and a trend drop of `-BBDrop <x.y>` centile spaces (default 1.5; the birth weight is under the 9th centile, so any drop from 1.0 is flagged). The age and the gain interval cannot share one n — the age reads in days only in the first week, the growth cards ignore the first 21 days — and the age wins below 7). An unrecognised name, or a `-BBCount`/`-BBDrop` that is not a positive number, logs the reason and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
+| `-BBSeedScenario <name>` | **Simulator only.** Wipes the database and seeds one deterministic fixture (`lowGain`, `healthy`, `sparseLogs`, `newbornWindow`, `newbornStalePair`, `showcase`, and two with RUNNING timers for the Live Activity: `runningLongFeed` — a left breastfeed at 7 h 58 min plus a 40 min nap, `runningBottle` — a 12 min formula feed; seven for the weekly card, built from `AppClock.now`: `weeklyNormal`, `weeklyFirstWeek`, `weeklyGaps`, `weeklyNewborn`, and three for its gain line without a pair, each `weeklyNormal` with other weighings — `weeklyOneWeighing` (one, in last week), `weeklyWeighedThisWeek` (last week's one plus one an hour before now, or at the week's end in Monday's first hour), `weeklyOlderPair` (a pair in the week before only); and five for the pediatrician screen, also from `AppClock.now`: `doctorMonth` — one visit 20 days ago with 2 asked and 3 open questions, `doctorNoVisit`, `doctorVisitToday`, `doctorTwoVisits` — two visits on one date plus an older one logged late, `doctorEventsCap` — `doctorMonth` plus 24 events (31 inside the free window) and a second visit on day 4, past the free list's 20-row cap. All five share a base of 10 weighings, 182 feeds, 41 sleeps, 140 diapers and 15 baths; the totals are pinned by `SeedScenarioDoctorTests`; and `medsTwoCourses`, also from `AppClock.now`: paracetamol every 6 h with a 24-hour maximum of 4, its latest dose two hours ago, so the next is still to come; vitamin D once a day, its latest 26 hours ago, so allowed now; and two medication events from before medicines, one named and one bare, pinned by `SeedScenarioMedicineTests`; and ten for the offer rule, also from `AppClock.now`, each putting one moment on its threshold or one short of it and writing the end of onboarding: `offerDays2`, `offerDays3`, `offerDays6`, `offerDays7` (records on that many distinct days), `offerWeighingClean` and `offerWeighingFlagged` (one weighing added today, a 3 % dip and a loss past 10 %), `offerOldest14` and `offerOldest16` (the oldest record that many days old), `offerOnboarded27` and `offerOnboarded28` (onboarding ended that many days ago), pinned at any hour by `SeedScenarioOfferTests`; and `pluralSweep`, also from `AppClock.now`, which puts one count n (`-BBCount <n>`, default 21) on every screen that can carry it so plural forms are read live: n doses of a medicine in the last 24 hours with a maximum of n, n questions asked at a visit today, and either an age of n days (n below 7, no weighings) or, from 7, weighings past the newborn window that give a gain interval of n days and a trend drop of `-BBDrop <x.y>` centile spaces (default 1.5; the birth weight is under the 9th centile, so any drop from 1.0 is flagged). The age and the gain interval cannot share one n — the age reads in days only in the first week, the growth cards ignore the first 21 days — and the age wins below 7). An unrecognised name, or a `-BBCount`/`-BBDrop` that is not a positive number, logs the reason and calls `fatalError` — a typo fails the run instead of quietly testing against the previous fixture's leftovers. |
 | `-BBPseudoLanguage en-XA\|ja-XB` | **Debug simulator builds only** (`DEBUG` and the simulator: a test language has no place in any shipped binary). Serves a pseudo-language's table in place of the stored language's; the plural rule, locale and typesetting follow its base (en, ja). The picker and the stored `appLanguage` are untouched, and the language reverts on a launch without the argument. See § Localization, Pseudo-languages. |
-| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor, medicines and plural-sweep seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», and the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), and the Add Event form's default time and its Medication bound read; nothing else moves. A value that does not parse calls `fatalError`. |
+| `-BBNow <ISO 8601>` | **Simulator only.** Pins `AppClock.now` (e.g. `2026-10-26T00:00:00`, local time), which the weekly card, the Monday notification, the weekly, doctor, medicines and plural-sweep seeds, the pediatrician period length, the visit date's default and upper bound, the Today tile's «last feed … ago», the medication screens (status lines, a dose's default time and the picker's upper bound, a course's end date, the confirmation), the Add Event form's default time and its Medication bound, and the offer rule and its seeds read; nothing else moves. A value that does not parse calls `fatalError`. |
 | `-BBWeeklyNotifyIn <s>` | **Simulator only.** Schedules the weekly notification N seconds out, whatever the week holds, so its banner can be looked at. |
 | `-BBLogPendingNotifications true` | **Simulator only.** On every foreground, and after each medication reminder pass, logs each pending notification request and its next fire date (category `Notifications`), so a reminder's delivery time is read rather than waited for. |
 | `-BBMedicationNotifyIn <seconds>` | **Simulator only.** Every pending medication reminder fires in N seconds instead of at its time, with the words of its real time, so the banner can be looked at. |
+| `-BBForceOffer <content>` | **Simulator only.** `OfferService` decides that offer card (an `OfferContent` raw value, e.g. `month_report`) whatever the moments and the pace — never past the holds, which are the part worth seeing hold. |
+| `-BBOfferLedgerReset true` | **Simulator only.** At launch, empties both copies of the offer ledger (UserDefaults and the Keychain item, which a reinstall does not clear). |
+| `-BBOfferLastShownDaysAgo <n>` `-BBOfferClosesInRow <k>` `-BBOfferShownMoments <m,…>` | **Simulator only.** At launch (after a reset, if both are given), any of the three writes a preset ledger: the last offer n days ago, k closes in a row, the listed moments (`first_result`, `first_week`, `history_edge`, `month_report`) already shown. |
+| `-BBOfferCohort pre\|new` `-BBOfferCohortLaunchDaysAgo <n>` | **Simulator only.** Reads the install cohort as given — `pre` with its first launch n days ago (default 0) — over the stored flag, never written into it. A fresh install launched with `-hasCompletedOnboarding true` records `pre` and holds every offer for 14 days, so a flow that wants a card passes `new`. |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |

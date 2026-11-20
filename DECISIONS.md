@@ -14,6 +14,52 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-20 — When the Premium offer is shown: moments in the person's data, holds, a slowing pace
+
+**The offer follows the person's data, not the calendar.** Four moments, each
+once per install: the first result (records on 3 days, or the first weighing
+added in the app), the first week (records on 7 days), the edge of the free
+history (the oldest record past 15 days) and the month report (28 days after
+onboarding, with a record in the last week). After them, an offer recurs only
+on new data: a new clean weighing, or another month report 28 days on.
+
+**Why.** A Premium offer works when it names something the person can see is
+worth having — their own three days drawn as a chart, a weighing on the curve,
+records about to slide out of the free window. A timer-driven offer asks for
+money at a random moment and teaches people to close it unread. One offer
+after the first days and nothing after is the opposite failure: the person who
+was not ready on day 3 never hears of it again while their data keeps growing.
+
+**It waits out worry and busyness.** A clinical flag (the same blockers that
+stop the rating prompt), a flagged weighing that day, a dose due, a launch
+from a notification, an open sheet, the weekly card on its first day — each
+holds the offer, and a hold spends nothing: the moment comes back at the next
+calm look. A parent worried about a weight loss is not a sales lead.
+
+**It slows down for people who say no.** 7 days between offers in the first
+month, 30 after it, never closer than 30 for the recurring one; after 3 closes
+in a row, 90 days. A former subscriber waits 30 days. A card stays 3 days (its
+day and the two after), then leaves as a close: one tap of × is enough, and a
+card nobody touched does not stand on Home for good.
+
+**Installs from before offers get 14 quiet days, and their old moments are
+spent unshown.** The weekly charts become paid in the same version and need
+that fortnight to explain themselves. Without the spend, a long-time user would
+meet four "your first result" offers about data from months ago.
+
+**The memory survives a reinstall.** The ledger is kept in UserDefaults and in
+a synchronizable Keychain item; deleting the app to reset the offers, or a
+second device, merges back with dates that can only make offers rarer (moment
+dates earliest-wins, pace dates latest-wins). The synchronizable item follows
+the Apple ID, so a second device signed in to it shares the memory: an offer is
+made to a person, not to a phone. The ledger holds no baby data, only offer
+dates, so this does not reopen the store's local-only line.
+
+**The numbers are constants in one place** (`OfferRule`), each changeable
+without touching the logic; what each one is for is written beside it.
+
+---
+
 ## 2026-11-20 — Creating an event is free; the Growth teaser, free deletion and the dose routing stand
 
 **Bath, walk, mood, medication and free-text events are created free.** The

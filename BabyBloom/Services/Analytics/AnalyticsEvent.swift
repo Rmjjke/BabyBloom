@@ -77,7 +77,9 @@ struct AnalyticsPayload: Equatable, Sendable {
 enum AnalyticsEvent: Equatable, Sendable {
     case onboardingPageViewed(OnboardingPage)
     case onboardingCompleted(birthMeasurementsKnown: Bool)
-    case paywallShown(PaywallSource)
+    /// `offer` names the card a paywall opened from, and only with
+    /// `source == .offer`.
+    case paywallShown(PaywallSource, offer: OfferContent? = nil)
     case planSelected(Plan)
     case purchaseResult(Plan, PurchaseOutcome)
     case restoreResult(RestoreOutcome)
@@ -93,6 +95,11 @@ enum AnalyticsEvent: Equatable, Sendable {
     case widgetFeedingLogged
     /// The weekly card came on screen, once per calendar week per device.
     case weeklySummaryViewed
+    /// The Premium offer card on Home: which card, never the figures on it.
+    case offerShown(OfferContent)
+    /// `expired`: the card's days on Home ran out rather than × being tapped.
+    case offerClosed(OfferContent, expired: Bool)
+    case offerTapped(OfferContent)
 
     /// Seconds since `shownAt`, never negative (a clock change must not send
     /// nonsense).
@@ -118,6 +125,9 @@ enum AnalyticsEvent: Equatable, Sendable {
         case liveActivityStoppedFromLockScreen = "live_activity_stopped_from_lock_screen"
         case widgetFeedingLogged    = "widget_feeding_logged"
         case weeklySummaryViewed    = "weekly_summary_viewed"
+        case offerShown             = "offer_shown"
+        case offerClosed            = "offer_closed"
+        case offerTapped            = "offer_tapped"
     }
 
     enum Key: String, CaseIterable, Sendable {
@@ -130,6 +140,8 @@ enum AnalyticsEvent: Equatable, Sendable {
         case kind
         case granted
         case surface
+        case content
+        case expired
         // `daily_activity`: whether each kind was logged at all, and one
         // bucketed total across kinds.
         case feeding, sleep, diaper, growth, event, total
@@ -156,6 +168,9 @@ enum AnalyticsEvent: Equatable, Sendable {
         case .liveActivityStoppedFromLockScreen: return .liveActivityStoppedFromLockScreen
         case .widgetFeedingLogged:    return .widgetFeedingLogged
         case .weeklySummaryViewed:    return .weeklySummaryViewed
+        case .offerShown:             return .offerShown
+        case .offerClosed:            return .offerClosed
+        case .offerTapped:            return .offerTapped
         }
     }
 
@@ -165,8 +180,9 @@ enum AnalyticsEvent: Equatable, Sendable {
             return [.page: .token(page)]
         case .onboardingCompleted(let known):
             return [.birthMeasurementsKnown: .bool(known)]
-        case .paywallShown(let source):
-            return [.source: .token(source)]
+        case .paywallShown(let source, let offer):
+            guard source == .offer, let offer else { return [.source: .token(source)] }
+            return [.source: .token(source), .content: .token(offer)]
         case .planSelected(let plan):
             return [.plan: .token(plan)]
         case .purchaseResult(let plan, let outcome):
@@ -185,6 +201,10 @@ enum AnalyticsEvent: Equatable, Sendable {
             return [.granted: .bool(granted)]
         case .historyLockShown(let surface):
             return [.surface: .token(surface)]
+        case .offerShown(let content), .offerTapped(let content):
+            return [.content: .token(content)]
+        case .offerClosed(let content, let expired):
+            return [.content: .token(content), .expired: .bool(expired)]
         case .widgetInstalled, .reviewPromptRequested,
              .liveActivityStarted, .liveActivityStoppedFromLockScreen, .widgetFeedingLogged,
              .weeklySummaryViewed:
@@ -207,6 +227,9 @@ enum AnalyticsEvent: Equatable, Sendable {
 }
 
 // MARK: - Tokens
+
+/// The offer card's content name is its analytics token as it is.
+extension OfferContent: AnalyticsToken {}
 
 extension AnalyticsEvent {
 
@@ -248,6 +271,8 @@ extension AnalyticsEvent {
         case events
         /// The report's «Share PDF»: the PDF is Premium like every export.
         case doctorReport = "doctor_report"
+        /// The Premium offer card on Home; the event names the card too.
+        case offer
 
         var id: String { rawValue }
     }
