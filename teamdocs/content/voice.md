@@ -755,3 +755,22 @@ renamed when it took a new argument by its new name.
     says on the same day.
   - New rules above: Paywall list, The Premium offer, Locked weekly chart.
     The free / Premium reference: `free-premium.md`.
+- 2026-11-20 — 1.4.0 in the other 13 languages (es, uk, de, fr, ja, ko,
+  zh-Hant, pt-BR, pt-PT, sv, nb, da, fi), with the same keys and changes as
+  en and ru.
+  - Where a language's `section.weekly_chart` title is not a plain word for
+    "charts", the sentences that name the weekly charts take that title
+    (de «Wochenverlauf», sv «Veckoutveckling», nb, da, fi, uk, fr, ja
+    週ごとの推移, ko 주간 추이, zh-Hant 每週變化): a second word for the
+    same screen would read as a second feature. es and pt write «gráficos
+    semanales / semanais», as en writes "weekly charts".
+  - fi names the doctor «lastenlääkärille» in every sentence, the paywall's
+    f3 row included. The short «Lääkärille» stays only in the More row and
+    `report.title`, where the room is 219 pt.
+  - ja and zh-Hant write the paywall's f3 as «…：PDF、CSV» with a
+    full-width colon, as f2 and the old f3 do, because CJK text takes no
+    space next to Latin. ko keeps its no-break space and dash, as its f2 does.
+  - ko joins a digit to 일 / 주 with U+2060, as in the rest of the file.
+  - The free side names no unlimited or forever history in any language.
+    «Unlimited history» stays only in the paywall's f1, which is a Premium
+    row.
