@@ -185,7 +185,7 @@ final class SubscriptionManager {
     /// and the branch above do not exist at all.
     ///
     /// Why the override is needed: `GrowthView` picks between
-    /// `FeedingBreakdownCard` and a `LockedInsightCard` that carries the SAME
+    /// `FeedingBreakdownCard` and a `BBLockedCard` that carries the SAME
     /// title string, so without a way to force the paid branch an e2e
     /// assertion on that title passes whether the paid card works or not.
     ///

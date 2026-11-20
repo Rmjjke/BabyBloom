@@ -33,8 +33,10 @@ final class AnalyticsEventTests: XCTestCase {
     private static let allowList: [String: [String: Expected]] = [
         "onboarding_page_viewed":  ["page": .token(pages)],
         "onboarding_completed":    ["birth_measurements_known": .bool],
-        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report", "offer"]),
-                                    "content": .token(contents)],
+        "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report", "offer",
+                                                      "weekly_chart"]),
+                                    "content": .token(contents),
+                                    "tracker": .token(["feeding", "sleep", "diaper"])],
         "plan_selected":           ["plan": .token(plans)],
         "purchase_result":         ["plan": .token(plans),
                                     "result": .token(["success", "cancelled", "failed", "pending",
@@ -66,7 +68,7 @@ final class AnalyticsEventTests: XCTestCase {
 
     /// Keys an event carries only in some of its forms.
     private static let optionalKeys: [String: Set<String>] = [
-        "paywall_shown": ["content"],
+        "paywall_shown": ["content", "tracker"],
     ]
 
     /// Every event carries this, added by the facade rather than by a case.
@@ -80,6 +82,7 @@ final class AnalyticsEventTests: XCTestCase {
         events += [true, false].map { .onboardingCompleted(birthMeasurementsKnown: $0) }
         events += AnalyticsEvent.PaywallSource.allCases.map { .paywallShown($0) }
         events += OfferContent.allCases.map { .paywallShown(.offer, offer: $0) }
+        events += AnalyticsEvent.ChartTracker.allCases.map { .paywallShown(.weeklyChart, tracker: $0) }
         events += AnalyticsEvent.Plan.allCases.map { .planSelected($0) }
         for plan in AnalyticsEvent.Plan.allCases {
             events += AnalyticsEvent.PurchaseOutcome.allCases.map { .purchaseResult(plan, $0) }

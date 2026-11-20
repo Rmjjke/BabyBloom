@@ -78,8 +78,9 @@ enum AnalyticsEvent: Equatable, Sendable {
     case onboardingPageViewed(OnboardingPage)
     case onboardingCompleted(birthMeasurementsKnown: Bool)
     /// `offer` names the card a paywall opened from, and only with
-    /// `source == .offer`.
-    case paywallShown(PaywallSource, offer: OfferContent? = nil)
+    /// `source == .offer`; `tracker` names the screen whose weekly chart
+    /// raised it, and only with `source == .weeklyChart`.
+    case paywallShown(PaywallSource, offer: OfferContent? = nil, tracker: ChartTracker? = nil)
     case planSelected(Plan)
     case purchaseResult(Plan, PurchaseOutcome)
     case restoreResult(RestoreOutcome)
@@ -142,6 +143,7 @@ enum AnalyticsEvent: Equatable, Sendable {
         case surface
         case content
         case expired
+        case tracker
         // `daily_activity`: whether each kind was logged at all, and one
         // bucketed total across kinds.
         case feeding, sleep, diaper, growth, event, total
@@ -180,9 +182,10 @@ enum AnalyticsEvent: Equatable, Sendable {
             return [.page: .token(page)]
         case .onboardingCompleted(let known):
             return [.birthMeasurementsKnown: .bool(known)]
-        case .paywallShown(let source, let offer):
-            guard source == .offer, let offer else { return [.source: .token(source)] }
-            return [.source: .token(source), .content: .token(offer)]
+        case .paywallShown(let source, let offer, let tracker):
+            if source == .offer, let offer { return [.source: .token(source), .content: .token(offer)] }
+            if source == .weeklyChart, let tracker { return [.source: .token(source), .tracker: .token(tracker)] }
+            return [.source: .token(source)]
         case .planSelected(let plan):
             return [.plan: .token(plan)]
         case .purchaseResult(let plan, let outcome):
@@ -230,6 +233,7 @@ enum AnalyticsEvent: Equatable, Sendable {
 
 /// The offer card's content name is its analytics token as it is.
 extension OfferContent: AnalyticsToken {}
+extension WeeklyChartTracker: AnalyticsToken {}
 
 extension AnalyticsEvent {
 
@@ -273,6 +277,9 @@ extension AnalyticsEvent {
         case doctorReport = "doctor_report"
         /// The Premium offer card on Home; the event names the card too.
         case offer
+        /// The locked card in place of a tracker's weekly chart; the event
+        /// names the tracker too.
+        case weeklyChart = "weekly_chart"
 
         var id: String { rawValue }
     }
@@ -356,6 +363,9 @@ extension AnalyticsEvent {
             self.reportedAt = reportedAt
         }
     }
+
+    /// The three trackers whose screen carries a weekly chart.
+    typealias ChartTracker = WeeklyChartTracker
 
     /// The five list surfaces that render `BBLockedHistoryFooter`.
     enum HistorySurface: String, AnalyticsToken {

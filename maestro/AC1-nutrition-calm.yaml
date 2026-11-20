@@ -5,7 +5,7 @@
 # for the wrong reason, so the flow pins down that the screen really rendered
 # AND that the paid branch is live before claiming anything is missing:
 # "Reference: ... g/week" is the WeightGainCard's own reference line, which a
-# LockedInsightCard structurally cannot produce — it renders a lock, a teaser
+# BBLockedCard structurally cannot produce — it renders a lock, a teaser
 # and a hint, and no figures at all.
 #
 # CASE IS NOT A DISCRIMINATOR. An earlier draft asserted "Within the reference"

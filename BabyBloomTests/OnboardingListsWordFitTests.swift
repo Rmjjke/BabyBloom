@@ -39,6 +39,10 @@ final class OnboardingListsWordFitTests: XCTestCase {
         let view: AnyView
         let texts: () -> [String]
         let font: Font
+        /// The smaller sizes a list steps down to when a word misses at
+        /// `font`, largest first: a word is judged at the first that fits,
+        /// as the list draws it.
+        var steps: [Font] = []
         /// Some texts only: the generating page shows the step in progress
         /// alone where the five do not fit its height.
         var somePresent = false
@@ -96,7 +100,10 @@ final class OnboardingListsWordFitTests: XCTestCase {
             List(name: "paywall features",
                  view: AnyView(PremiumPage(onPurchased: {}, onSkip: {}).environment(SubscriptionManager())),
                  texts: { PremiumFeatureList.features.map { $0.key.l } },
-                 font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded)),
+                 font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded),
+                 steps: PercentileLabel.steps.map {
+                     .system(size: PremiumFeatureRow.pointSize(for: $0), weight: .medium, design: .rounded)
+                 }),
         ]
     }
 
@@ -160,10 +167,13 @@ final class OnboardingListsWordFitTests: XCTestCase {
                 let room = element.frame.width
                 // A word that holds a hyphen may break after it (the design
                 // system's rule): its parts are what must stay whole.
-                let widest = text.lineBreakUnits
+                let pieces = text.lineBreakUnits
                     .flatMap { $0.replacingOccurrences(of: "-", with: "-\n").split(separator: "\n").map(String.init) }
-                    .map { ($0, FitMeasure.wordWidth($0, font: list.font, bold: bold)) }
-                    .max { $0.1 < $1.1 } ?? ("", 0)
+                let tries = ([list.font] + list.steps).map { font in
+                    pieces.map { ($0, FitMeasure.wordWidth($0, font: font, bold: bold)) }
+                        .max { $0.1 < $1.1 } ?? ("", 0)
+                }
+                let widest = tries.first { $0.1 <= room + 0.5 } ?? tries[tries.count - 1]
                 if room + 0.5 < widest.1 {
                     misses.append("\(tag) \(list.name): «\(widest.0)» \(points(widest.1)) in \(points(room))")
                 }

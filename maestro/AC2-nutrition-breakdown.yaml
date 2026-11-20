@@ -3,7 +3,7 @@
 # feeds and nappies.
 #
 # -BBForcePremium is what makes this flow mean anything. GrowthView picks
-# between FeedingBreakdownCard and a LockedInsightCard that is titled with the
+# between FeedingBreakdownCard and a BBLockedCard that is titled with the
 # SAME key ("breakdown.title" — "Gain is below the reference"), so an assertion
 # on that title alone passes whether the paid card works, throws or renders
 # blank. Everything asserted below is therefore a string that exists in ONE of

@@ -13,10 +13,10 @@ struct FeedingView: View {
     // opened showing the default (breast) instead of the just-tapped type.
     @State private var addSheetRequest: FeedingSheetRequest?
     @State private var historyFilter: HistoryFilter = .day
-    /// The history list's free window sells from here; nothing else on this
-    /// screen is gated.
+    /// Two things sell from here: the history list's free window and the
+    /// weekly chart; nothing else on this screen is gated.
     @Environment(SubscriptionManager.self) private var store
-    @State private var showPaywall = false
+    @State private var paywallSource: AnalyticsEvent.PaywallSource?
 
     private var baby: Baby? { babies.first }
 
@@ -94,8 +94,8 @@ struct FeedingView: View {
         .entrySheet(item: $addSheetRequest) { request in
             AddFeedingSheet(initialType: request.type)
         }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView(source: .historyLock)
+        .sheet(item: $paywallSource) { source in
+            PaywallView(source: source, tracker: source == .weeklyChart ? .feeding : nil)
         }
     }
 
@@ -202,15 +202,13 @@ struct FeedingView: View {
 
     // MARK: - Weekly Chart
     private var weeklyChartSection: some View {
-        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
-            BBSectionHeader(title: "section.weekly_chart")
-            BBWeeklyBarChart(
-                valueFor: { date in
-                    Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive }.count)
-                },
-                color: BBTheme.Colors.feeding
-            )
+        WeeklyChartSection(tracker: .feeding, valueFor: feedsOn, onUnlock: { paywallSource = .weeklyChart }) {
+            BBWeeklyBarChart(valueFor: feedsOn, color: BBTheme.Colors.feeding)
         }
+    }
+
+    private func feedsOn(_ date: Date) -> Double {
+        Double(entries.filter { Calendar.current.isDate($0.startTime, inSameDayAs: date) && !$0.isActive }.count)
     }
 
     // MARK: - History
@@ -228,7 +226,7 @@ struct FeedingView: View {
             onDelete: { delete($0) },
             onDeleteAll: { deleteAll($0) },
             lockSurface: .feeding,
-            onUnlock: { showPaywall = true }
+            onUnlock: { paywallSource = .historyLock }
         )
     }
 
