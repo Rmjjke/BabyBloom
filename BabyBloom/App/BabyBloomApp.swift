@@ -37,6 +37,8 @@ struct BabyBloomApp: App {
         // one, whether the change came from the app's page in Settings or
         // from the phone's language.
         NotificationManager.shared.rewordIfLanguageMoved()
+        // Before launching finishes, or the tap that launched the app is lost.
+        NotificationLaunch.shared.install()
     }
 
     var body: some Scene {
@@ -95,6 +97,12 @@ struct BabyBloomApp: App {
             // Transaction.updates only covers NEW transactions, never the
             // entitlements an install starts with.
             .task { await subscriptionManager.refreshEntitlements() }
+            // The former-subscriber mark the offer pace and the weekly charts'
+            // reason line read; written here so it never waits for Home.
+            .onChange(of: subscriptionManager.hasResolvedEntitlements && subscriptionManager.isPremium,
+                      initial: true) { _, premium in
+                OfferService.shared.noteAccount(isPremium: premium, resolved: premium)
+            }
             .onAppear {
                 // Starts the review prompt's three-day clock; written once.
                 ReviewPromptService.shared.recordFirstLaunchIfNeeded()
@@ -148,6 +156,7 @@ struct BabyBloomApp: App {
                 // app, so coming back is also the only moment to notice one.
                 Task { await Analytics.shared.appBecameActive() }
             } else if phase == .background {
+                NotificationLaunch.shared.sceneMovedToBackground()
                 // The Monday notification is planned from what is logged; this
                 // pass sees the entries made during the visit.
                 NotificationManager.shared.onAppBackgrounded()

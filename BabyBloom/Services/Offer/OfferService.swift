@@ -67,6 +67,16 @@ final class OfferService {
         return decision
     }
 
+    /// Writes the former-subscriber mark as soon as the account is known to
+    /// be Premium, from the app's root: a subscriber who never opens Home
+    /// before the subscription lapses still counts as a former subscriber.
+    func noteAccount(isPremium: Bool, resolved: Bool) {
+        guard isPremium && resolved else { return }
+        var ledger = store.load()
+        guard ledger.notePremium(now: clock(), calendar: calendar) else { return }
+        store.save(ledger)
+    }
+
     /// The card appeared. Reported once per card, however often Home redraws.
     func recordShown(_ content: OfferContent) {
         var ledger = store.load()

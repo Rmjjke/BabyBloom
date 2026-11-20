@@ -31,6 +31,11 @@ final class ReviewPromptService {
     /// launch, which is one of the moments we never ask in.
     private(set) var hasPendingSave = false
 
+    /// Set when a Premium card was shown on Home: one ask for money is enough
+    /// for a visit, so no rating is asked until the process ends. Process
+    /// lifetime, like the pending save.
+    private(set) var suppressedForSession = false
+
     init(defaults: UserDefaults = .standard,
          calendar: Calendar = .autoupdatingCurrent,
          clock: @escaping () -> Date = Date.init,
@@ -65,7 +70,17 @@ final class ReviewPromptService {
 
     // MARK: - Session
 
-    func noteEntrySaved() { hasPendingSave = true }
+    func noteEntrySaved() {
+        guard !suppressedForSession else { return }
+        hasPendingSave = true
+    }
+
+    /// Ends rating asks for the rest of the process and drops a save already
+    /// waiting for its sheet to close.
+    func suppressForSession() {
+        suppressedForSession = true
+        hasPendingSave = false
+    }
 
     /// Friction inside a quick sheet cancels the success before it: a parent
     /// who has just declined the paywall is not asked for a rating when they
@@ -78,7 +93,7 @@ final class ReviewPromptService {
     func consumePendingSave(in context: ModelContext,
                             transactionFailedThisSession: Bool,
                             now: Date? = nil) -> Bool {
-        guard hasPendingSave else { return false }
+        guard hasPendingSave, !suppressedForSession else { return false }
         hasPendingSave = false
         let now = now ?? clock()
 
