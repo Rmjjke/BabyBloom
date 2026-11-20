@@ -921,7 +921,7 @@ probe's (`WidestWordIdeal(holdsIdeal: true)`) and its digits are even
 `startingWeekOffset` opens the chart on a past week. The Growth insight
 cards' titles (`InsightCardTitle`), the report cards' headers
 (`ReportCardHeader`, `ReportRow.swift`) and the headings of the growth and
-widget showcases, the notifications page and the generating page are
+widget showcases and the notifications page are
 `BBSteppedText` (`DesignSystem/Components/BBSteppedText.swift`): title3 that
 wraps between words and steps to AX1's size, then down to Large's, only where
 a word misses the whole width. The badge or glyph beside a title takes a line
@@ -962,8 +962,8 @@ own line under the plate. In two columns on a 320-pt screen that room is
 about 32 pt of text at Large. `WordWrappingText` (in `BBCard.swift`) gives
 `ViewThatFits` the widest word as the text's ideal width, so the check is
 about words, not the whole line. `BBEventRow`'s title and subtitle are
-measured the same way, and so is the paywalls' feature card
-(`PremiumFeatureList`, one list for both paywalls): its texts stand beside
+measured the same way, and so is the paywall's feature card
+(`PremiumFeatureList`): its texts stand beside
 their 34-pt icons while every word of every row fits there, else every text
 goes under its icon and check, as at every accessibility size. The card takes
 one shape for all four rows, as the Nutrition card does: on 320 pt in ru the
@@ -1374,13 +1374,29 @@ drift this project has already paid for.
 
 ## Onboarding
 
-Eleven pages, and **the enum's case order is the flow**: `OnboardingStep` —
+Nine pages, and **the enum's case order is the flow**: `OnboardingStep` —
 welcome, name, birth, feeding, growth, fact, growthShowcase, notifications,
-widgets, generating, premium. The first four after welcome are the quiz
-(`isQuiz`, progress bar, shared bottom nav); the five info pages after `growth`
-— fact, growthShowcase, notifications, widgets, generating, and not the paywall,
-which sells rather than informs — are not, so inserting or reordering among them
+widgets. The first four after welcome are the quiz (`isQuiz`, progress bar,
+shared bottom nav); the four info pages after `growth` — fact, growthShowcase,
+notifications, widgets — are not, so inserting or reordering among them
 touches neither `quizProgress` nor the nav (DECISIONS 2026-09-01).
+
+Onboarding sells nothing and needs nothing from the store: no product load, no
+price, no plan, no Premium page, and no `SubscriptionManager` in any of its
+views (`OnboardingFlowTests` hosts every page through the flow's switch without one). The last page,
+`WidgetShowcasePage`, says what is free and what Premium adds in
+`OnboardingFreeCard` (fixed strings, no icons, lock or price, the paid half set
+quieter) and its button is the end of onboarding: it calls
+`createAndFinish()`, which tracks `onboarding_completed`, builds and saves the
+profile, refreshes the widget and hands over to Home 0.4 s later; its
+`isCreating` guard keeps the button disabled from the first tap, so a second
+tap cannot create a second profile. `BabyBloomApp`'s `onComplete` stores when
+onboarding ended (`OnboardingEnd`), which the offer rule reads. A subscriber
+on a new device is Premium on Home without a step of onboarding: entitlement
+is resolved by the app root (see Premium), not by any page. The step is
+`@State` and never persisted, so a kill restarts the quiz at welcome, a
+suspend keeps the answers, and an update from a version with more pages has no
+stored step to land on (DECISIONS 2026-11-20).
 
 `OnboardingView` stacks one `OnboardingBackground` under the page switcher in
 a `ZStack`, which lays every child out in its own bounds, so one child larger
@@ -1393,22 +1409,6 @@ button under it, outside the scroll, so the button never leaves the screen;
 the quiz pages scroll above the shared nav. `OnboardingPageLayoutTests` pins
 the ground's size to its proposal, portrait and landscape, and, in a window
 shorter than the content, the button inside the screen (DECISIONS 2026-11-06).
-
-The setup page (`GeneratingPage`) has no button and no scroll of its own: it
-moves on by itself. Its five step rows wrap between words while their column
-fits the page's height and every word fits its row, else the step in progress
-stands alone under the title. `ViewThatFits(in: .vertical)` makes the choice,
-so it follows the language, the width and Bold Text rather than a text size:
-on 320 pt every language takes the one step at AX2, and on 375 pt en keeps its
-rows there. The width check is a small layout around the rows that reports an
-unbounded height when their ideal width (the widest word beside its disc,
-through `WordWrappingText`) is wider than offered; without it a narrow, tall
-window would keep the rows with a word broken.
-All five steps are set in one box, the one in progress shown, so the box is as
-tall as the tallest and the title does not move from step to step; the
-one-step column is in `onboardingCenteredScroll` as the net. The layout tests
-pin both forms and, by sampling the page as it runs, the title's place
-(DECISIONS 2026-11-07).
 
 The welcome cards, the notifications and growth-showcase bullets and the
 feeding rows are each one `ViewThatFits(in: .horizontal)` over the page's
@@ -1447,12 +1447,6 @@ chart when they reach it. Only the baby's forward line is illustrative: it is
 dashed and labelled as a sketch, because it is the one thing the app cannot
 know yet. Nothing on either page is seeded, saved or read back.
 
-The loader-to-paywall hand-off is observable to tests: `GeneratingPage`'s
-`onDone` sets `generatingFinished`, and the paywall's accessibility identifier
-is `onboarding.premium.afterGenerating` only then (`onboarding.premium`
-otherwise). The e2e walks assert that id rather than the ~5 s loader, which
-Maestro cannot reliably catch (DECISIONS 2026-09-22).
-
 ## Premium
 
 StoreKit 2, three auto-renewable products in one subscription group:
@@ -1476,7 +1470,7 @@ subscription produces NO transaction (it just drops out of
 `currentEntitlements`), so `Transaction.updates` can never report expiry, and
 without the foreground re-ask a suspended app would serve premium to a lapsed
 subscriber until the next cold launch. Screens with skin in the game
-(profile, both paywalls) still re-ask on appearance; all of these are
+(profile, the paywall) still re-ask on appearance; all of these are
 idempotent reads of the same source.
 `restorePurchases` deliberately reports off `isEntitled`, so the override
 cannot fake a restore. `hasResolvedEntitlements` says whether StoreKit has been
@@ -1486,37 +1480,26 @@ that BRANCHES on entitlement — sell or do not sell — must wait for it; anyth
 that merely gates a feature reads `isPremium` and lets the gate close itself
 when the answer arrives.
 
-**Two paywalls, one selling half.** The selling half is two views in
+**The paywall and its selling half.** The selling half is two views in
 `PlanPickerSection.swift` over one `PlanPickerState` (the selected plan and
 whether the first product load returned), which the host owns:
 `PlanPickerSection` holds the plans, prices, restore and legal footer and goes
 inside the host's ScrollView; `PlanPickerCTA` holds the trial promise and the
 buy button and goes *below* the ScrollView, so the button is on screen at
-every text size up to AX2 (DECISIONS 2026-10-28). `PaywallView` (settings,
-modal) and `PremiumPage` (onboarding, page 11) compose both. Each host shows
+every text size up to AX2 (DECISIONS 2026-10-28). `PaywallView`, the one
+paywall, raised as a sheet from every site below, composes both. It shows
 the CTA only while it is selling and the load did not fail; the section's
 retry card stands alone then. The section has no
 "purchased" callback: reacting to entitlement is the host's job, because
 entitlement arrives from a purchase, from `restorePurchases()`, from
 `Transaction.updates`, or from the user having subscribed before the screen
 ever opened, and a callback on the purchase button covers only the first.
-**Both hosts wait for `hasResolvedEntitlements` before showing either half** —
-selling on an unresolved answer is the defect, and it is not specific to
-onboarding. `PaywallView` then swaps the section for its active badge and
-navigates nowhere; `PremiumPage` refreshes entitlements in its own `.task` and
-calls `onPurchased()` from a single `advanceIfEntitled()` — on arrival and on
-any later change to `isPremium` — so an already-subscribed user is never sold
-to and never stranded. Neither screen shows an empty gap while it waits.
-
-The advance rule itself is `SubscriptionManager.mayAdvanceOnEntitlement`, a
-pure function, because what it encodes is a race: `restorePurchases()`
-publishes `isEntitled` inside `refreshEntitlements()` and then awaits the
-networked intro-offer lookup before assigning `restoreState`, so a host
-watching only `restoreState` can slip through the gap and end onboarding
-before "Purchases restored" is drawn. `isRestoring` spans the whole call and
-closes it; `restoreState` covers the rest, while the alert is up. Both halves
-are unit-tested without a simulator, which is the only way a race can be
-pinned.
+**The paywall waits for `hasResolvedEntitlements` before showing either
+half** — selling on an unresolved answer is the defect. It refreshes
+entitlements in its own `.task`, then shows the plans to a free parent or
+swaps the section for its active badge, and navigates nowhere: a subscriber is
+never sold to, and nothing waits on the purchase to move on. It shows no empty
+gap while it waits.
 
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a
@@ -1550,7 +1533,6 @@ default, so a new site cannot slip in unnamed:
 
 | `PaywallSource` | Raised by |
 |---|---|
-| `onboarding` | `PremiumPage`, onboarding's Premium page |
 | `settings` | the Premium row in Settings, and Export's gated row |
 | `history_lock` | `BBLockedHistoryFooter` on Feeding, Sleep, Diapers, Events, Recent activity and a medicine's doses |
 | `locked_card` | the Growth cards' and the Dashboard Growth section's `BBLockedCard` |
@@ -1558,6 +1540,7 @@ default, so a new site cannot slip in unnamed:
 | `doctor_report` | the pediatrician report's «Share PDF» |
 | `offer` | the Premium offer card on Home, once Home draws it (`OfferService` decides it today; nothing presents it yet) |
 | `events` | nothing: retired when creating an event became free, kept so the token is never reused |
+| `onboarding` | nothing: retired when onboarding lost its Premium page (1.4.0), kept so the token is never reused |
 
 The three tracker screens present their paywall from one
 `.sheet(item: $paywallSource)`, so the history footer and the weekly card
@@ -1664,8 +1647,8 @@ triggers — is [NOTIFICATIONS.md](NOTIFICATIONS.md); it is a reference, keep it
 in step with the code.
 
 Permission is requested from onboarding's own notifications page (page 8 of
-11, before the Generating loader whose last step promises reminders) — never
-at launch and never over the Dashboard. A medication's reminder switch asks
+9, beside the pitch that motivates the answer) — never at launch and never
+over the Dashboard. A medication's reminder switch asks
 through the same `requestPermission` when iOS has not been asked yet; there
 is no other call site.
 `onAppForegrounded()` runs on every `scenePhase == .active`, and
@@ -2069,11 +2052,11 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 
 | Event | Properties | Emitted from |
 |---|---|---|
-| `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
-| `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `weekly_chart` \| `doctor_report` \| `offer` (`events` is retired: creating an event is free and nothing raises it); `content` (the offer card's name) only with `offer`; `tracker` (`feeding` \| `sleep` \| `diaper`) only with `weekly_chart` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `onboarding_page_viewed` | `page`: `welcome` \| `name` \| `birth` \| `feeding` \| `growth` \| `fact` \| `growth_showcase` \| `notifications` \| `widgets` (ids, never indexes; `generating` and `premium` are retired with the flow that ended on the paywall, kept so the ids are never reused); `flow_version` (Int, 2) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
+| `onboarding_completed` | `birth_measurements_known`; `flow_version` (Int, 2) | `OnboardingView.createAndFinish`, from the widgets page's button; its guard sends it once, and Home then replaces onboarding for good |
+| `paywall_shown` | `source`: `settings` \| `history_lock` \| `locked_card` \| `weekly_chart` \| `doctor_report` \| `offer` (`events` is retired: creating an event is free and nothing raises it; `onboarding` is retired: onboarding has no paywall since 1.4.0); `content` (the offer card's name) only with `offer`; `tracker` (`feeding` \| `sleep` \| `diaper`) only with `weekly_chart` | `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
-| `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
+| `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes, so it precedes anything the new entitlement triggers. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
 | `paywall_closed_x` | `seconds_visible` | the X of either paywall (not a swipe-down), once per paywall shown |
 | `first_entry` | `kind`: `feeding` \| `sleep` \| `diaper` \| `growth` \| `event` | `ReviewPromptTrigger.entrySaved(_:)` → `Analytics.noteEntrySaved`, once per kind per install (`analytics.firstEntryKinds`); an install already past onboarding when analytics arrives is seeded with every kind, so it reports no firsts |
@@ -2312,7 +2295,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | `-BBOfferCohort pre\|new` `-BBOfferCohortLaunchDaysAgo <n>` | **Simulator only.** Reads the install cohort as given — `pre` with its first launch n days ago (default 0) — over the stored flag, never written into it. A fresh install launched with `-hasCompletedOnboarding true` records `pre` and holds every offer for 14 days, so a flow that wants a card passes `new`. |
 | `-BBWeeklyReasonReset true` | **Simulator only.** At launch, forgets the first tap on a locked weekly card, so the reason line reads again for a `pre` cohort inside its 14 days (pair it with `-BBOfferCohort pre -BBOfferCohortLaunchDaysAgo <n>`). |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
-| `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
+| `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it from Settings → Premium (onboarding loads no products, so the failure is still unspent there). |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |
 | `-BBAnalyticsSpy true` | **Simulator only.** Swaps the no-op analytics backend for `LoggingAnalyticsBackend`, which writes every payload to the unified log (subsystem `com.nenita.app`, category `Analytics`) instead of sending it. It still requires a non-empty API key, so a spy run also proves the key reaches Info.plist; use a dummy one on the command line (`AMPLITUDE_API_KEY=dummy`). |
 | `-BBAnalyticsDayOffset N` | **Simulator only.** Moves the analytics facade's clock N days ahead (nothing else sees it), so a relaunch with `1` crosses midnight on demand and sends `daily_activity` for the real today. It leaves the day markers in the future; the next launch without it pulls them back to today without sending. |

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Measurements at birth (page 5 of 11)
+// MARK: - Measurements at birth (page 5 of 9)
 
 /// Asks for the BIRTH weight and height — the numbers on the discharge record.
 /// They fill `Baby.birthWeightKg` and the first `GrowthEntry`, dated at the

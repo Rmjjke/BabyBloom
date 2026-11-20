@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Growth showcase (page 7 of 11)
+// MARK: - Growth showcase (page 7 of 9)
 
 /// The app's strongest card, shown rather than described.
 ///
@@ -51,7 +51,7 @@ struct GrowthShowcasePage: View {
     var body: some View {
         VStack(spacing: 0) {
             // Pinned footer, scrolling pitch — the arrangement NotificationsPage
-            // and PremiumPage already use. At the app's AX2 ceiling a card, a
+            // already uses. At the app's AX2 ceiling a card, a
             // drawing and three bullets outgrow an SE-class screen, and an
             // overflowing VStack centres its children, which would push the only
             // way forward off a page that has no back button.

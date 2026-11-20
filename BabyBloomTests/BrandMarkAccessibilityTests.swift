@@ -3,8 +3,8 @@ import SwiftUI
 import UIKit
 @testable import BabyBloom
 
-/// The round brand badge always stands beside the brand name or the setup
-/// title, so VoiceOver passes over it. Built from a named asset without
+/// The round brand badge always stands beside the brand name or the
+/// paywall's title, so VoiceOver passes over it. Built from a named asset without
 /// `decorative:`, SwiftUI hands VoiceOver the file name, "BBLogo", in every
 /// language.
 @MainActor
@@ -12,7 +12,6 @@ final class BrandMarkAccessibilityTests: XCTestCase {
 
     private let accessibility = HostedAccessibility()
     private let screen = CGSize(width: 320, height: 568)
-    private let birth = Calendar.current.date(byAdding: .day, value: -40, to: Date())!
 
     override func tearDown() {
         accessibility.close()
@@ -30,16 +29,7 @@ final class BrandMarkAccessibilityTests: XCTestCase {
         }
     }
 
-    func testTheSetupPageReadsItsTitleAndNotTheBadge() throws {
-        for language in [SupportedLanguage.en, .ru] {
-            LocalizationManager.shared.setLanguage(language)
-            let page = GeneratingPage(babyName: "Mia", birthDate: birth, onDone: {})
-            let root = try accessibility.host(page, size: screen)
-            assertNoAssetName(in: root, reads: String(format: "onboarding.gen.title_named".l, "Mia"), language)
-        }
-    }
-
-    /// The masthead of both paywalls, the onboarding page and the one in the app.
+    /// The paywall's masthead.
     func testThePremiumHeroReadsItsTitleAndNotTheBadge() throws {
         for language in [SupportedLanguage.en, .ru] {
             LocalizationManager.shared.setLanguage(language)

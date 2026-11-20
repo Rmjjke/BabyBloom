@@ -69,35 +69,6 @@ extension SubscriptionManager {
     }
 }
 
-// MARK: - Advancing on entitlement
-
-extension SubscriptionManager {
-
-    /// Whether a host that finishes its flow the moment entitlement arrives may
-    /// act on the state as it stands.
-    ///
-    /// Pure, and deliberately not left inline in the view: what this encodes is
-    /// a RACE, and a race is the one thing a simulator pass cannot pin. Same
-    /// reasoning as `DashboardGrowthSummary`.
-    ///
-    /// - `hasResolvedEntitlements` — an unresolved `false` is "not asked yet",
-    ///   not "not subscribed"; nobody may branch on it.
-    /// - `isRestoring` / `hasUnreadRestoreOutcome` — a restore owns its own
-    ///   transition. The user is meant to read "Purchases restored" and advance
-    ///   by dismissing it, not to have the page vanish from under the alert.
-    ///   Both are needed: the flag covers the window before `restoreState` is
-    ///   assigned, the outcome covers the window after, while the alert is up.
-    nonisolated static func mayAdvanceOnEntitlement(
-        hasResolvedEntitlements: Bool,
-        isPremium: Bool,
-        isRestoring: Bool,
-        hasUnreadRestoreOutcome: Bool
-    ) -> Bool {
-        guard hasResolvedEntitlements, isPremium else { return false }
-        return !isRestoring && !hasUnreadRestoreOutcome
-    }
-}
-
 // MARK: - Subscription Manager
 
 @MainActor
@@ -230,18 +201,6 @@ final class SubscriptionManager {
     ///   was told there is none is exactly the annoyed parent the rule is for.
     private(set) var transactionFailedThisSession = false
 
-    /// True from the instant a restore starts until its outcome is published in
-    /// `restoreState`.
-    ///
-    /// `restoreState` alone cannot mark that window. `refreshEntitlements()`
-    /// writes `isEntitled` and then AWAITS the networked intro-offer lookup
-    /// before `restorePurchases()` gets to assign `restoreState` — and an
-    /// `@Observable` host is free to run in that gap. It would see "entitled,
-    /// no restore pending", finish onboarding, and the "Purchases restored"
-    /// confirmation would never be shown. This flag spans the whole call, so
-    /// the window has no gap to lose.
-    private(set) var isRestoring = false
-
     enum RestoreState {
         case success, nothingFound
     }
@@ -350,12 +309,9 @@ final class SubscriptionManager {
 
     func restorePurchases() async {
         isLoading = true
-        isRestoring = true
         purchaseError = nil
         restoreState = nil
-        // Cleared only on the way out — after `restoreState` has been assigned,
-        // which is the whole point of the flag.
-        defer { isLoading = false; isRestoring = false }
+        defer { isLoading = false }
         // Whatever a restore finds, an old Ask to Buy marker no longer speaks
         // for anything still to come.
         Analytics.shared.clearPendingPurchases()

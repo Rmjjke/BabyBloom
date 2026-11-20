@@ -36,11 +36,10 @@ final class PlanPickerState {
 
 // MARK: - Plan Picker Section
 
-/// The half of a paywall the two paywalls must never disagree on: plans,
-/// prices, restore, and the legal footer; `PlanPickerCTA` below is the other
-/// half (the trial promise and the purchase button). The onboarding paywall
-/// rotted precisely because it was a separate implementation; composing these
-/// two is what prevents a recurrence.
+/// The selling half of the paywall: plans, prices, restore, and the legal
+/// footer; `PlanPickerCTA` below is the other half (the trial promise and the
+/// purchase button). Kept apart so the paywall can swap this half for its
+/// active badge once the person is subscribed.
 struct PlanPickerSection: View {
     @Environment(SubscriptionManager.self) private var store
     let state: PlanPickerState
@@ -50,8 +49,8 @@ struct PlanPickerSection: View {
     // only way entitlement arrives (restore, `Transaction.updates`, and an
     // Apple ID that was already subscribed before the paywall ever appeared),
     // and a callback wired to the button covers exactly one of those. The
-    // onboarding host observes `store.isPremium`; the settings paywall swaps
-    // this section for its active badge and navigates nowhere.
+    // paywall observes `store.isPremium`, swaps this section for its active
+    // badge and navigates nowhere.
 
     var body: some View {
         VStack(spacing: BBTheme.Spacing.lg) {

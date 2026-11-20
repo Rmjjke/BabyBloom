@@ -7,8 +7,9 @@ import UIKit
 /// every shipped language, on a 320 and a 375-pt screen, with Bold Text off
 /// and on, at the content size the simulator runs (the gate runs the class at
 /// Large, AX1 and AX2): the growth showcase's bullets and its invitation, the
-/// notification bullets, the welcome cards, the feeding names, the generating
-/// steps, the growth page's note and the paywall's features.
+/// notification bullets, the welcome cards, the feeding names, the growth
+/// page's note, the last page's free and Premium lists and the paywall's
+/// features.
 ///
 /// A text laid out narrower than its widest word has broken that word. The
 /// pages stand side by side in one window per language, width and weight, as
@@ -43,9 +44,10 @@ final class OnboardingListsWordFitTests: XCTestCase {
         /// `font`, largest first: a word is judged at the first that fits,
         /// as the list draws it.
         var steps: [Font] = []
-        /// Some texts only: the generating page shows the step in progress
-        /// alone where the five do not fit its height.
-        var somePresent = false
+        /// The text is part of one element with its label (the last page's
+        /// card reads "Free, Feeds…"), so it is found inside that element's
+        /// label; the element's width is still the text's own.
+        var inCombined = false
     }
 
     private static let name = "Mia"
@@ -88,17 +90,13 @@ final class OnboardingListsWordFitTests: XCTestCase {
                                           onBack: {})),
                  texts: { ["onboarding.growth_unknown_note".l] },
                  font: noteFont),
-            List(name: "generating steps",
-                 view: AnyView(GeneratingPage(babyName: name, birthDate: birth, onDone: {})),
-                 // The named step is the one in progress 0.45…1.45 s after the
-                 // page appears, where the read may land.
-                 texts: { ["onboarding.gen.step1".l,
-                           String(format: "onboarding.gen.step_named".l, name, Baby.describeAge(from: birth)),
-                           "onboarding.gen.step2".l, "onboarding.gen.step3".l, "onboarding.gen.step4".l] },
-                 font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded),
-                 somePresent: true),
+            List(name: "free card",
+                 view: AnyView(WidgetShowcasePage(babyName: name, isFinishing: false, onFinish: {})),
+                 texts: { ["onboarding.widget.free_list".l, "onboarding.widget.premium_list".l] },
+                 font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .regular, design: .rounded),
+                 inCombined: true),
             List(name: "paywall features",
-                 view: AnyView(PremiumPage(onPurchased: {}, onSkip: {}).environment(SubscriptionManager())),
+                 view: AnyView(PaywallView(source: .settings).environment(SubscriptionManager())),
                  texts: { PremiumFeatureList.features.map { $0.key.l } },
                  font: BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded),
                  steps: PercentileLabel.steps.map {
@@ -154,13 +152,12 @@ final class OnboardingListsWordFitTests: XCTestCase {
         for (index, list) in lists.enumerated() {
             let column = CGFloat(index) * width ..< CGFloat(index + 1) * width
             let inColumn = elements.filter { column.contains($0.frame.midX) }
-            var found = 0
             for text in list.texts() {
-                guard let element = inColumn.first(where: { $0.label == text }) else {
-                    if !list.somePresent { misses.append("\(tag) \(list.name): «\(text)» is not on the page") }
+                let match: (String) -> Bool = list.inCombined ? { $0.contains(text) } : { $0 == text }
+                guard let element = inColumn.first(where: { match($0.label) }) else {
+                    misses.append("\(tag) \(list.name): «\(text)» is not on the page")
                     continue
                 }
-                found += 1
                 // The paywall's rows read as one element whose frame is their
                 // text's column (measured at 320 pt AX2: x 40…277, the text's own
                 // edges), so every list's room is its element's width.
@@ -177,9 +174,6 @@ final class OnboardingListsWordFitTests: XCTestCase {
                 if room + 0.5 < widest.1 {
                     misses.append("\(tag) \(list.name): «\(widest.0)» \(points(widest.1)) in \(points(room))")
                 }
-            }
-            if list.somePresent, found == 0 {
-                misses.append("\(tag) \(list.name): none of its texts is on the page")
             }
         }
         return misses

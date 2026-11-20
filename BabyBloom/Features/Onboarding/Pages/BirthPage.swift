@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Birth + gender (page 3 of 11)
+// MARK: - Birth + gender (page 3 of 9)
 
 struct BirthPage: View {
     @Binding var birthDate: Date

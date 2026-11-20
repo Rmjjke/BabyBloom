@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Name (page 2 of 11)
+// MARK: - Name (page 2 of 9)
 
 struct NamePage: View {
     @Binding var name: String

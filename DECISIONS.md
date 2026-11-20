@@ -14,6 +14,62 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-20 — Onboarding is nine pages, sells nothing and ends on the widgets page, whose button creates the profile
+
+Welcome → Name → Birth → Feeding → Growth → Fact → Growth showcase →
+Notifications → Widgets, then Home. The setup loader (`GeneratingPage`) and
+onboarding's Premium page (`PremiumPage`) are deleted; nothing in onboarding
+loads products, shows a price or a plan, or reads `SubscriptionManager`. The
+widgets page says what is free and what Premium adds, in fixed words, with no
+lock, icon or price, and its button runs `createAndFinish()` with its guard and
+its order unchanged (event, profile, widget refresh, Home 0.4 s later),
+disabled from the first tap. `onboarding_page_viewed` and
+`onboarding_completed` carry `flow_version` = 2; the 1.3 flow sent none, so
+the two funnels never mix. The `generating` and `premium` page ids and the
+`onboarding` paywall source are retired, not reused.
+
+**Why.** Basic tracking is free from 1.4.0, and the app stops putting payment
+in front of a person before they have tracked anything. A paywall reached by
+everyone in the first minute sells to someone with no reason yet to pay; it is
+raised now where a paid function is tapped and by the offer after a first
+result. The loader existed to hand a crescendo to that paywall; with no paywall
+behind it, it is five seconds of waiting that do nothing, so it goes rather
+than staying as decoration. The widgets page was already the commitment page
+(«Build My Tracker»), so the profile is created where the person committed.
+A version on the events, not a new event name, because page ids alone cannot
+tell the 1.3 `widgets` view (two pages before the end) from the 1.4 one (the
+end).
+
+**Supersedes.**
+- 2026-09-02, *Advancing on entitlement belongs to the paywall's host*: no
+  host in onboarding advances on entitlement any more, so
+  `mayAdvanceOnEntitlement`, its tests and the restore-span flag it needed are
+  removed. The entry's other rule stands for `PaywallView`: it waits for
+  `hasResolvedEntitlements` and never sells on an unresolved answer. A
+  subscriber on a new device is Premium on Home because the app root resolves
+  entitlement on every launch, not because a page waited for it.
+- 2026-09-22, *The onboarding paywall says whether the loader handed off to
+  it*: both of its lines, the `onboarding.premium.afterGenerating` marker and
+  the rejected loader-stretching flag, go with the loader and the paywall. The
+  e2e walks assert the widgets page and Home instead.
+- 2026-09-01, *The onboarding loader runs after the permission ask*: the lines
+  where the loader runs last and its "your tracker is ready" lands on the
+  paywall. What stands: notifications before the widgets page, the commitment
+  button on the widgets page, and the info pages after Growth outside the quiz.
+- 2026-11-06, the feature card's "one list for the paywall sheet and
+  onboarding's Premium page, the same offer at two moments": there is one
+  paywall, so one moment. `PremiumFeatureList` stays the single list of what is
+  paid.
+- 2026-11-07, *The onboarding setup page shows the step in progress alone*:
+  moot, the page is gone.
+
+**Rejected.** Keeping the loader without the paywall (a wait that informs
+nothing); a skippable Premium page (still a price in the first minute); moving
+the 5-second close rule to the paywall sheet (it existed for onboarding's exit
+and dies with it).
+
+---
+
 ## 2026-11-20 — The weekly charts of Feeding, Sleep and Diaper are Premium for everyone; the Home summary stays free
 
 **The weekly charts are Premium, for every install.** On Feeding, Sleep and

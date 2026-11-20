@@ -7,7 +7,6 @@ struct OnboardingView: View {
     let onComplete: () -> Void
 
     @Environment(\.modelContext) private var modelContext
-    @Environment(SubscriptionManager.self) private var store
     @State private var step: OnboardingStep = .welcome
     @State private var babyName = ""
     @State private var birthDate = Date()
@@ -24,10 +23,13 @@ struct OnboardingView: View {
     @State private var gestationalWeeks: Double = 34
     @State private var wasBornEarly: Bool = false
     @State private var isCreating = false
-    /// Set only by the loader's own completion, so the paywall can say it was
-    /// reached THROUGH Generating. The e2e walks assert this rather than the
-    /// loader, which is too short-lived to catch (DECISIONS 2026-09-22).
-    @State private var generatingFinished = false
+
+    /// The app always starts at the welcome page; tests open the flow on any
+    /// page to host every page through this same switch.
+    init(onComplete: @escaping () -> Void, startingAt first: OnboardingStep = .welcome) {
+        self.onComplete = onComplete
+        _step = State(initialValue: first)
+    }
 
     var body: some View {
         ZStack {
@@ -72,15 +74,10 @@ struct OnboardingView: View {
                                            gestationalWeeks: wasBornEarly ? Int(gestationalWeeks) : nil,
                                            onContinue: next)
                     case .notifications: NotificationsPage(babyName: babyName, onContinue: next)
-                    case .widgets: WidgetShowcasePage(babyName: babyName, onContinue: next)
-                    case .generating: GeneratingPage(babyName: babyName, birthDate: birthDate,
-                                                     onDone: { generatingFinished = true; next() })
-                    case .premium: PremiumPage(onPurchased: { createAndFinish() },
-                                               onSkip:      { createAndFinish() })
-                        .accessibilityElement(children: .contain)
-                        .accessibilityIdentifier(generatingFinished
-                                                 ? "onboarding.premium.afterGenerating"
-                                                 : "onboarding.premium")
+                    // The last page: its button creates the profile, and the
+                    // flag keeps it disabled from the first tap until Home shows.
+                    case .widgets: WidgetShowcasePage(babyName: babyName, isFinishing: isCreating,
+                                                      onFinish: createAndFinish)
                     }
                 }
                 .onboardingPageIdentifier(pageIdentifier)
@@ -98,11 +95,6 @@ struct OnboardingView: View {
                 }
             }
         }
-        // Prices must be on screen by page 10. Loading starts with page 1 so a
-        // slow network spends onboarding time, not paywall time. PlanPickerSection
-        // also calls loadProducts() on its own .task; the double call is
-        // deliberate and idempotent (SubscriptionManager is safe to reload).
-        .task { await store.loadProducts() }
         // Every page change goes through `step`, forward or back, so this is
         // the funnel's single choke point; `initial` reports the welcome page.
         .onChange(of: step, initial: true) { _, page in
@@ -126,9 +118,7 @@ struct OnboardingView: View {
         .padding(.bottom, 8)
     }
 
-    // Nil for the two pages that carry their own identifier: an outer one
-    // must not wrap theirs.
-    private var pageIdentifier: String? {
+    private var pageIdentifier: String {
         switch step {
         case .welcome: "onboarding.page.welcome"
         case .name: "onboarding.page.name"
@@ -139,7 +129,6 @@ struct OnboardingView: View {
         case .growthShowcase: "onboarding.page.growth_showcase"
         case .notifications: "onboarding.page.notifications"
         case .widgets: "onboarding.page.widgets"
-        case .generating, .premium: nil
         }
     }
 
@@ -203,12 +192,8 @@ struct OnboardingView: View {
 
 private extension View {
     /// A container id for one onboarding page; `.contain` keeps the page's
-    /// buttons addressable by their own ids. Nil leaves the page untouched.
-    @ViewBuilder func onboardingPageIdentifier(_ id: String?) -> some View {
-        if let id {
-            accessibilityElement(children: .contain).accessibilityIdentifier(id)
-        } else {
-            self
-        }
+    /// buttons addressable by their own ids.
+    func onboardingPageIdentifier(_ id: String) -> some View {
+        accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 }
