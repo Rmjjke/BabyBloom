@@ -62,7 +62,7 @@ tags: [regression]
     visible:
       id: "offer.card"
     timeout: 15000
-- assertVisible: "2 days of records.*"
+- assertVisible: "2.days of records.*"
 - assertVisible:
     id: "offer.card.close"
 - assertVisible:
