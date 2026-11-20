@@ -144,7 +144,7 @@ tags: [regression]
 - assertVisible:
     id: "dose.save"
 
-# The Add Event form (creating events is Premium) with Paracetamol chosen.
+# The Add Event form with Paracetamol chosen.
 - launchApp:
     clearState: true
     stopApp: true

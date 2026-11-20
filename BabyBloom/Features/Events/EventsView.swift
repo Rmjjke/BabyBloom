@@ -14,7 +14,7 @@ struct EventsView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showAddSheet = false
     @State private var showDoseSheet = false
-    /// The create gate and the history footer both sell; the source says which.
+    /// Only the history footer sells on this screen; creating is free.
     @State private var paywallSource: AnalyticsEvent.PaywallSource?
     @State private var detailVisit: DoctorVisit?
 
@@ -42,24 +42,12 @@ struct EventsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { addEvent() } label: {
-                    // A badge, not a substitution: replacing the plus with
-                    // a padlock loses the "this adds something" affordance,
-                    // and the gate reads just as clearly beside it.
-                    ZStack(alignment: .bottomTrailing) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(BBTheme.Colors.primary)
-                        if !store.isPremium {
-                            // Offset outwards: the disc is nearly as wide as
-                            // the 22pt plus, so a flush badge would hide it.
-                            LockBadge().offset(x: 8, y: 6)
-                        }
-                    }
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(BBTheme.Colors.primary)
                 }
-                // The plus is an icon-only control, so it needs its label
-                // spelled out before the gate can be appended to it.
+                // The plus is an icon-only control, so its label is spelled out.
                 .accessibilityLabel(Text("sheet.new_event".l))
-                .bbLockedAccessibility(!store.isPremium)
             }
         }
         .entrySheet(isPresented: $showAddSheet) {
@@ -75,19 +63,13 @@ struct EventsView: View {
         .visitDetailSheet(item: $detailVisit)
     }
 
-    /// The single gate for creating an event on this screen. Both creation
-    /// paths — the toolbar sheet and the quick-add tiles — go through it, so
-    /// the padlock cannot promise a gate that a tile below it walks around.
+    /// Both creation paths — the toolbar sheet and the quick-add tiles — go
+    /// through here, so the Medication tile's routing has one home.
     private func addEvent(_ type: CustomEvent.EventType? = nil) {
-        // A dose of a running medication logs free from the tile, as from its
-        // own screen: a one-tap dose with no name could not be linked, so it
-        // would walk around the medication's interval.
+        // While a medication runs, its tile opens the dose sheet: a one-tap
+        // dose with no name could not be linked, so it would time no interval.
         if type == .medication, !activeMedicines.isEmpty {
             showDoseSheet = true
-            return
-        }
-        guard store.isPremium else {
-            paywallSource = .events
             return
         }
         if let type {
@@ -107,19 +89,13 @@ struct EventsView: View {
                                      count: tileColumns.count(at: dynamicTypeSize)),
                       spacing: BBTheme.Spacing.md) {
                 ForEach([CustomEvent.EventType.bath, .walk, .medication, .mood], id: \.self) { type in
-                    let locked = isLocked(type)
                     Button {
                         addEvent(type)
                     } label: {
                         VStack(spacing: BBTheme.Spacing.sm) {
-                            ZStack(alignment: .bottomTrailing) {
-                                Image(systemName: type.icon)
-                                    .font(BBTheme.Typography.scaled(26, relativeTo: .body, weight: .regular, design: .default))
-                                    .foregroundStyle(Color(hex: type.colorHex))
-                                if locked {
-                                    LockBadge().offset(x: 8, y: 4)
-                                }
-                            }
+                            Image(systemName: type.icon)
+                                .font(BBTheme.Typography.scaled(26, relativeTo: .body, weight: .regular, design: .default))
+                                .foregroundStyle(Color(hex: type.colorHex))
                             Text(type.displayName.l)
                                 .font(BBTheme.Typography.scaled(14, relativeTo: .body, weight: .semibold, design: .rounded))
                                 .foregroundStyle(BBTheme.Colors.textPrimary)
@@ -128,7 +104,6 @@ struct EventsView: View {
                         .bbCardTonal(Color(hex: type.colorHex))
                     }
                     .buttonStyle(BBScaleButtonStyle())
-                    .bbLockedAccessibility(locked)
                     .accessibilityIdentifier("events.quick.\(type.rawValue)")
                 }
             }
@@ -138,10 +113,6 @@ struct EventsView: View {
     /// The running medications, by name; ended ones never show here.
     private var activeMedicines: [Medicine] {
         MedicationFormat.byName(medicines.filter { !$0.isEnded })
-    }
-
-    private func isLocked(_ type: CustomEvent.EventType) -> Bool {
-        !store.isPremium && !(type == .medication && !activeMedicines.isEmpty)
     }
 
     /// One line per running medication, to its detail. Redrawn each minute,
