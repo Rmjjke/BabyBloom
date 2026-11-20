@@ -56,7 +56,7 @@ struct WeeklySummaryCard: View {
 
     /// The Monday as a calendar date, not an instant: an instant shifts with
     /// the time zone, and a hidden card would come back after a flight.
-    private static func key(of week: WeeklySummary.Week) -> String {
+    static func key(of week: WeeklySummary.Week) -> String {
         let day = WeeklySummary.calendar.dateComponents([.year, .month, .day], from: week.start)
         return String(format: "%04d-%02d-%02d", day.year ?? 0, day.month ?? 0, day.day ?? 0)
     }

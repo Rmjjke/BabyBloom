@@ -14,6 +14,8 @@ struct DashboardView: View {
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
     /// Only for the weekly card's "days with entries": an event day counts.
     @Query private var events: [CustomEvent]
+    /// Only for the offer's hold: a dose that may be taken now.
+    @Query private var medicines: [Medicine]
 
     @State private var showQuickFeedingSheet = false
     @State private var showQuickSleepSheet = false
@@ -27,6 +29,19 @@ struct DashboardView: View {
     /// Drives the Growth push. A `@State` + `navigationDestination` rather than
     /// a `NavigationLink`, because the link is a Button — see `growthSection`.
     @State private var showGrowth = false
+    @State private var offer = OfferSlotState()
+    /// The card the open paywall came from, for its `paywall_shown`.
+    @State private var offerForPaywall: OfferContent?
+    /// Home is the shown tab: the offer is evaluated only at Home's appear.
+    @State private var homeVisible = false
+    /// Only a return from the background is a new visit: Control Center or a
+    /// system alert also pass through `.inactive`, and the card must not come
+    /// back while Home has stayed on screen.
+    @State private var returningFromBackground = false
+    @AppStorage("weekly.hiddenWeek") private var hiddenWeek = ""
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Honours `-BBForcePremium`, so the paid half of the Growth section is
     /// reachable in e2e without a purchase (see the platform-run skill).
@@ -85,6 +100,16 @@ struct DashboardView: View {
                         WeeklySummaryCard(summary: weeklySummary,
                                           onAddWeighing: { showQuickGrowthSheet = true })
                     }
+                    // After last week, before the quick actions: a calm card
+                    // under the things the parent came for.
+                    if let content = offer.content, let model = offerModel(content) {
+                        OfferCardSlot(state: offer, model: model,
+                                      medicationDue: { Medicine.doseDueOnHome(medicines, now: AppClock.now) },
+                                      onOpen: { opened in
+                                          offerForPaywall = opened
+                                          paywallSource = .offer
+                                      })
+                    }
                     quickActionsSection
                     statsSection
                     growthSection
@@ -115,12 +140,75 @@ struct DashboardView: View {
         .entrySheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
         .entrySheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
         .entrySheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
-        .sheet(item: $paywallSource) { PaywallView(source: $0) }
+        .sheet(item: $paywallSource) { source in
+            PaywallView(source: source, offer: source == .offer ? offerForPaywall : nil)
+        }
+        .onAppear {
+            homeVisible = true
+            evaluateOffer()
+        }
+        .onDisappear { homeVisible = false }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                returningFromBackground = true
+            } else if phase == .active, returningFromBackground {
+                returningFromBackground = false
+                // A warm tap's `didReceive` lands a moment after `.active`;
+                // evaluated at once, the card would show, and be counted,
+                // over a visit that began from a notification.
+                Task {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    evaluateOffer()
+                }
+            }
+        }
+        // Entitlements resolve a moment after launch: the launch's appear
+        // waits for them rather than missing its card.
+        .onChange(of: store.hasResolvedEntitlements) { _, resolved in
+            if resolved { evaluateOffer() }
+        }
+        .onChange(of: offerSituation.holdsLive) { _, held in
+            if held { offer.hold(reduceMotion: reduceMotion) }
+        }
+        .onChange(of: paywallSource) { old, new in
+            if old == .offer && new == nil { offer.paywallClosed() }
+        }
         .sheet(isPresented: $showProfileEdit) {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
             }
         }
+    }
+
+    // MARK: - Offer
+
+    private var anySheetOpen: Bool {
+        showQuickFeedingSheet || showQuickSleepSheet || showQuickDiaperSheet || showQuickEventSheet
+            || showQuickGrowthSheet || showProfileEdit || paywallSource != nil
+    }
+
+    private var offerSituation: OfferRule.Situation {
+        let now = AppClock.now
+        return OfferRule.Situation(
+            medicationDue: Medicine.doseDueOnHome(medicines, now: now),
+            launchedFromNotification: NotificationLaunch.shared.isActive,
+            sheetOpen: anySheetOpen,
+            weeklyCardNew: WeeklySummary.cardIsNew(weeklySummary, hiddenWeek: hiddenWeek, now: now))
+    }
+
+    private func evaluateOffer() {
+        // No profile, no card to draw: nothing is evaluated, so nothing is spent.
+        guard homeVisible, scenePhase == .active, baby != nil else { return }
+        offer.evaluate(in: modelContext, isPremium: store.isPremium,
+                       entitlementsResolved: store.hasResolvedEntitlements, situation: offerSituation)
+    }
+
+    private func offerModel(_ content: OfferContent) -> OfferCardModel? {
+        guard let baby else { return nil }
+        let onboardingEnded = OnboardingEnd.stored() ?? baby.createdAt.addingTimeInterval(OnboardingEnd.fallbackAfterBaby)
+        return OfferCardModel.make(content, input: OfferCardModel.Input(
+            baby: baby, feeds: feedings, sleeps: sleeps, diapers: diapers, growth: growthEntries,
+            events: events, onboardingEndedAt: onboardingEnded, now: AppClock.now))
     }
 
     // MARK: - Header

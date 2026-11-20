@@ -1,0 +1,184 @@
+# The pace with real closes. The clock moves by -BBNow and the seeds move with
+# it; the ledger keeps what each launch recorded.
+# Thursday 5 March: the first result, closed. 11 March (6 days on): the first
+# week is due but the early gap of 7 days holds. 12 March: the first week,
+# closed. 19 March: the history edge, closed: three closes in a row without a
+# tap. 16 June (89 days after the last offer): the month report is due, the
+# slow pace holds. 17 June (90 days): the month report.
+appId: com.nenita.app
+tags: [regression]
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-05T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBOfferLedgerReset": "true"
+      "-BBSeedScenario": "offerDays3"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "offer.card"
+    timeout: 15000
+- assertVisible: "Three days of records.*"
+- assertVisible:
+    id: "offer.card.close"
+- assertVisible:
+    id: "offer.card.action"
+- tapOn:
+    id: "offer.card.close"
+- extendedWaitUntil:
+    notVisible:
+      id: "offer.card"
+    timeout: 5000
+# Six days on: the next moment waits for its gap.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-11T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerDays7"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Weekly Dynamics"
+    timeout: 15000
+- tapOn:
+    point: "16%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 10000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "offer.card"
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-12T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerDays7"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "offer.card"
+    timeout: 15000
+- assertVisible: "Seven days of records.*"
+- assertVisible:
+    id: "offer.card.close"
+- assertVisible:
+    id: "offer.card.action"
+- tapOn:
+    id: "offer.card.close"
+- extendedWaitUntil:
+    notVisible:
+      id: "offer.card"
+    timeout: 5000
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-19T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerOldest16"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "offer.card"
+    timeout: 15000
+- assertVisible: "2.days of records.*"
+- assertVisible:
+    id: "offer.card.close"
+- assertVisible:
+    id: "offer.card.action"
+- tapOn:
+    id: "offer.card.close"
+- extendedWaitUntil:
+    notVisible:
+      id: "offer.card"
+    timeout: 5000
+# Three closes in a row: 90 days between offers.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-06-16T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerOnboarded28"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Weekly Dynamics"
+    timeout: 15000
+- tapOn:
+    point: "16%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 10000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "offer.card"
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-06-17T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerOnboarded28"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "offer.card"
+    timeout: 15000
+- assertVisible: "Your last four weeks.*"
+- assertVisible:
+    id: "offer.card.close"
+- assertVisible:
+    id: "offer.card.action"

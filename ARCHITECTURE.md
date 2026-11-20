@@ -1733,8 +1733,18 @@ switch off and disabled with «Open Settings», like the Live Activity
 switch. The switch sits in the medication form (stored on Save) and in a
 card on the detail (at once); the list row shows a bell while it is on,
 except on an ended course and while iOS has notifications off. With no
-`UNUserNotificationCenter` delegate in the app, a reminder that comes while
+`willPresent` in the app's notification delegate, a reminder that comes while
 the app is open is not shown; the medication's screen states the same fact.
+
+**The notification delegate answers only the tap.** `NotificationLaunch`
+(`Services/Notifications/`) is the `UNUserNotificationCenter` delegate,
+installed in `BabyBloomApp.init` (a cold launch's tap reaches only a delegate
+set before launching finishes). Its `didReceive` marks the visit as begun from
+a notification (`isActive`), which the Premium offer reads as a hold; the
+mark clears when the scene goes to the background. It has no `willPresent`, on
+purpose (DECISIONS 2026-11-20). A warm tap's `didReceive` arrives a moment
+after `.active`, so Home evaluates a return from the background half a second
+later, when the mark is already set.
 
 ## Timers and the Live Activity
 
@@ -1820,7 +1830,10 @@ until the parent is back on a tab. Onboarding sits outside `MainTabView` and
 gets the inert default, so it cannot reach the prompt; nor can launch, a tab
 switch or Cancel, because only a save sets the flag; `PaywallView` clears it
 on appearing, so a declined upsell inside a quick sheet is not followed by a
-rating prompt. Timer STOPS ask, because that is when the entry becomes a
+rating prompt. A Premium card shown on Home calls `suppressForSession()`:
+the waiting save is dropped and none is asked for until the process ends; the
+other way round, a rating asked (`askedThisSession`) keeps Home's card away
+until the process ends (DECISIONS 2026-11-20). Timer STOPS ask, because that is when the entry becomes a
 finished record; timer starts do not, because nothing is finished yet. Nothing
 is asked in quiet hours, 22:00–07:00 on the device's local clock, whatever the
 trigger; the refusal records nothing, so the next daytime save that meets the
@@ -1837,9 +1850,9 @@ never says whether it showed anything: TestFlight builds never show it, so
 
 ## The Premium offer
 
-When Home may show a Premium offer card, and which one. No card is drawn yet:
-the rule, its memory and its levers stand on their own, so the card only has
-to ask and report. Each offer is tied to a moment when the person's own data
+When Home may show a Premium offer card, and which one, and the card itself.
+The rule, its memory and its levers stand on their own; the card only asks
+and reports (**The card** below). Each offer is tied to a moment when the person's own data
 has just made a paid function useful — never to a timer alone — waits out any
 moment of worry or busyness, and slows down for people who keep closing it
 (DECISIONS 2026-11-20 gives the why of each number).
@@ -1933,6 +1946,48 @@ keeps that weighing on the setup side.
 settles an expired card, spends the cohort's moments, notes a subscriber (at
 most one write a day) and saves only when something changed. It logs each
 decision (category `Offer`).
+
+**The subscription mark** is also written from the app's root, without Home:
+`BabyBloomApp` watches `hasResolvedEntitlements && isPremium` and calls
+`OfferService.noteAccount`, so a subscriber who lapses before ever opening
+Home still counts as a former subscriber — for the offer's 30-day wait and
+for the weekly charts' reason line, which is only for people who never
+subscribed (`WeeklyChartReasonWindow`).
+
+**The card.** `OfferCardModel` (`Core/Offer/`, pure) builds what a content
+shows from the parent's own records only — record counts per day as bars (at
+most 7; feeds, sleeps and diapers, an event counts only as a record day), sleep totals, the Home weekly card's per-day
+averages for the month report, the newest weighing on the WHO band for the
+baby's sex, a day count for the history edge. Never a gain, a trend, a
+percentile or a price. Fewer than two record days in the bars' window draws
+`.thin`: a line of text in the chart's place and no stats. `BBOfferCard`
+(`DesignSystem/Components/`) draws it: the chart, a stats line, the body, the
+«What Premium adds» button and × from the first frame. Accessibility: the
+container `offer.card` holds one summary element (title, what the card
+shows, body), the button `offer.card.action` and × `offer.card.close`
+(«Close the Premium card»).
+
+`OfferSlotState` (`Features/Dashboard/OfferCardSlot.swift`) holds the shown
+content. `DashboardView` asks it to evaluate at Home's appear, half a second
+after a return from the background while Home is the shown tab (a pass through
+`.inactive` alone, Control Center or a system alert, is not a new visit; the
+delay lets a warm notification tap set its mark first), and when entitlements
+resolve (so the launch's appear does not miss its card); nothing is evaluated
+without a profile. It builds `OfferRule.Situation` from
+a dose due on a shown course (`Medicine.doseDueOnHome`), `NotificationLaunch`,
+any of Home's sheets open, and the weekly card new today
+(`WeeklySummary.cardIsNew`: its week turnover day, not hidden). The card sits
+after the weekly card, before the quick actions. It is decided at appear and
+never inserted while Home stays on screen, so it has no entrance animation at
+all, with or without Reduce Motion. A live hold (a sheet, a notification
+visit, a dose that turns due — re-read once a minute while the card shows)
+takes it away and spends nothing. × records a close and the stack closes the
+gap; with Reduce Motion the card fades in place first, so nothing below it
+slides. A tap records `offer_tapped` and opens `PaywallView(source: .offer,
+offer:)`, whose `paywall_shown` carries the content; the purchase is the
+paywall's own; the card leaves when that paywall closes. Every evaluation that
+shows a card also calls `ReviewPromptService.suppressForSession()`, and none
+shows one once a rating was asked in the process.
 
 ## Analytics
 

@@ -8,6 +8,8 @@ struct PaywallView: View {
     let source: AnalyticsEvent.PaywallSource
     /// The screen whose weekly chart raised the paywall; analytics only.
     var tracker: AnalyticsEvent.ChartTracker? = nil
+    /// The Home card that raised the paywall; analytics only.
+    var offer: OfferContent? = nil
 
     @Environment(SubscriptionManager.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -131,7 +133,7 @@ struct PaywallView: View {
     private func reportShownIfSelling() {
         guard shownAt == nil, store.hasResolvedEntitlements, !store.isPremium else { return }
         shownAt = Date()
-        Analytics.shared.track(.paywallShown(source, tracker: tracker))
+        Analytics.shared.track(.paywallShown(source, offer: offer, tracker: tracker))
     }
 
     // MARK: - Active Badge

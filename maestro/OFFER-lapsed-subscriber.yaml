@@ -1,0 +1,103 @@
+# A subscriber who lapses reads no reason line on the locked weekly charts.
+# The line is for an install from before 1.4.0 that had the charts free
+# (-BBOfferCohort pre): such an install that never subscribed reads it. Once
+# the app has seen the person subscribed (a launch with -BBForcePremium writes
+# the mark: the app's root writes it as soon as the account resolves, and Home's
+# evaluation would too), a later free launch
+# shows the locked card on Feeding without the line. The last launch empties
+# the ledger again, so the mark does not outlive the flow in the Keychain.
+appId: com.nenita.app
+tags: [regression]
+---
+# Never subscribed: the line is there.
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBOfferCohort": "pre"
+      "-BBOfferLedgerReset": "true"
+      "-BBWeeklyReasonReset": "true"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: ".*Weekly charts are now part of Premium.*"
+    timeout: 15000
+# A launch as a subscriber: the chart, no lock.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBOfferCohort": "pre"
+      "-BBForcePremium": "true"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Weekly Dynamics"
+    timeout: 15000
+- waitForAnimationToEnd
+- assertNotVisible: ".*(See how many feeds there were each day, week by week|A chart of each week, day by day, built from your records).*"
+# Free again: the locked card, without the line.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBOfferCohort": "pre"
+      "-BBWeeklyReasonReset": "true"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: ".*(See how many feeds there were each day, week by week|A chart of each week, day by day, built from your records).*"
+    timeout: 15000
+- assertNotVisible: ".*Weekly charts are now part of Premium.*"
+# Clean up: the ledger as a new install has it.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBOfferCohort": "new"
+      "-BBOfferLedgerReset": "true"
+      "-BBWeeklyReasonReset": "true"
+      "-BBSeedScenario": "weeklyNormal"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000

@@ -243,6 +243,7 @@ extension Color {
 /// (white@0.08) so it hints at an edge without glowing.
 struct BBCardModifier: ViewModifier {
     var padding: CGFloat = BBTheme.Spacing.md
+    var radius: CGFloat = BBTheme.Radius.md
     @Environment(\.colorScheme) private var colorScheme
 
     private var highlightColor: Color {
@@ -253,9 +254,9 @@ struct BBCardModifier: ViewModifier {
         content
             .padding(padding)
             .background(BBTheme.Colors.surface)
-            .cornerRadius(BBTheme.Radius.md)
+            .cornerRadius(radius)
             .overlay(
-                RoundedRectangle(cornerRadius: BBTheme.Radius.md)
+                RoundedRectangle(cornerRadius: radius)
                     .strokeBorder(highlightColor, lineWidth: 1)
                     .blendMode(.overlay)
             )
@@ -307,8 +308,8 @@ struct BBGlassModifier: ViewModifier {
 }
 
 extension View {
-    func bbCard(padding: CGFloat = BBTheme.Spacing.md) -> some View {
-        modifier(BBCardModifier(padding: padding))
+    func bbCard(padding: CGFloat = BBTheme.Spacing.md, radius: CGFloat = BBTheme.Radius.md) -> some View {
+        modifier(BBCardModifier(padding: padding, radius: radius))
     }
 
     /// Tonal (flat, tinted, shadowless) surface — see `BBCardTonalModifier`.
