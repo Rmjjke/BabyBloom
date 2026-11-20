@@ -4,15 +4,21 @@ Voice and terms: `voice.md` in this folder.
 
 ## Paywall feature list
 
-- Both paywalls (onboarding `PremiumPage`, in-app `PaywallView`) read the
-  same `onboarding.premium.f*` keys, so one value changes both.
+- From 1.4.0 there is one paywall, the in-app `PaywallView` sheet.
+  Onboarding has no Premium page. `PremiumHero` reads
+  `onboarding.premium.title` and `.headline`; the list reads
+  `onboarding.premium.f*`.
 - The list names only what Premium unlocks. A row for a free feature sells
   the parent something they already have.
-  - Before writing or changing a row, check it against the code's
-    `isPremium` gates.
-  - As of 2026-11-03 they are: history beyond the free 15-day window (f1),
-    export (f3), the gain, trend, percentile and nutrition cards (f5), and
-    creating events such as bath, walk and mood (f2).
+  - Before writing or changing a row, check it against `free-premium.md`
+    and the code's `isPremium` gates.
+  - The rows from 1.4.0, in this order: f1 history beyond the free 15-day
+    window, f5 the weekly charts of feeds, sleep and diapers, f6 the weekly
+    gain in grams and the centile trend, f3 the pediatrician report and
+    data export (PDF, CSV). The rules: `voice.md` § Surface rules, Paywall
+    list.
+  - Events (bath, walk, mood) are free from 1.4.0. f2 is not shown; its key
+    is deleted once nothing reads it.
   - Reminders are free and stay free: gating them would take a feature away
     from current users.
   - Medications are free (the list, doses, the early-dose confirmation and
@@ -21,8 +27,8 @@ Voice and terms: `voice.md` in this folder.
     parent is less safe. Notes: `medications.md`.
 - f4 («Несколько профилей детей») is not shown: the app has one baby. The
   key numbering keeps its gap on purpose (comment in `PaywallView`).
-- A non-breaking space stands before the dash in a row ("Events — …"),
-  so a wrapped row never starts with a dash.
+- A non-breaking space stands before the dash in a row ("export — PDF,
+  CSV"), so a wrapped row never starts with a dash.
 
 ## Settings rows
 
@@ -50,3 +56,8 @@ Each row that looks tappable does one thing.
 - 2026-11-08 — Settings has no sync row in 1.3.0: the entries stay on the
   device. Its four keys are deleted (`settings.icloud`, `settings.icloud_on`,
   `settings.icloud_off`, `settings.icloud_off_hint`).
+- 2026-11-20 — 1.4.0 (en, ru): four rows (f1, f5, f6, f3). The headline says
+  what Premium adds instead of "Everything for confident baby care". f3
+  names the pediatrician report with the export; f5 names the weekly charts;
+  the new f6 names the growth figures; f2 leaves the list, because events
+  are free.

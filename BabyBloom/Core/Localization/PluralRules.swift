@@ -129,6 +129,10 @@ enum PluralFamily: String, CaseIterable, Sendable {
     /// «0 of the 4 you set»: the category follows the prescribed number, the
     /// second argument; the first is the dose count, already a phrase.
     case medicationCount24h = "medication.count_24h"
+    /// The Home offer at the free history edge: «15 days of records» and the
+    /// sentence under it, both counted by the free window's length.
+    case offerHistoryEdgeTitle = "offer.history_edge_title"
+    case offerHistoryEdgeBody = "offer.history_edge_body"
 
     /// What the template's one argument is: an Int (`%d`), or a decimal shown
     /// with this many fraction digits and passed as text (`%@`).
