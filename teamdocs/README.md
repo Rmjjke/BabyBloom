@@ -12,15 +12,16 @@ to their owners; this file only points at them.
 | Weekly summary card | design | design/m1-weekly-summary.md | 2026-11-06 | 2026-11-18 | stale |
 | Doctor-visit report | design | design/m2-doctor-report.md | 2026-11-04 | 2026-11-18 | fresh |
 | Medications | design | design/m3-medications.md | 2026-11-13 | 2026-11-18 | fresh |
-| Voice, terms, surface rules | content | content/voice.md | 2026-11-12 | 2026-10-28 | unchecked |
-| Paywall + Settings copy rules | content | content/paywall-and-settings.md | 2026-11-08 | 2026-10-28 | unchecked |
+| Voice, terms, surface rules | content | content/voice.md | 2026-11-20 | 2026-10-28 | unchecked |
+| Paywall + Settings copy rules | content | content/paywall-and-settings.md | 2026-11-20 | 2026-10-28 | unchecked |
+| Free and Premium from 1.4.0 (the line every Premium string is checked against) | content | content/free-premium.md | 2026-11-20 | — | unchecked |
 | Weekly card + notification rules | content | content/weekly-and-notifications.md | 2026-11-04 | 2026-10-28 | unchecked |
 | Doctor-visit report copy | content | content/doctor-report.md | 2026-11-12 | — | unchecked |
 | Medications copy | content | content/medications.md | 2026-11-12 | — | unchecked |
 | Localization rules (engine, plurals, arguments, formats) | content | content/localization.md | 2026-11-11 | — | unchecked |
 | Glossary per language | content | content/glossary.md | 2026-11-12 | — | unchecked |
 | Tone per language | content | content/tone.md | 2026-11-11 | — | unchecked |
-| QA overview (tree, checklists, bugs) | qa | qa/README.md | 2026-11-06 | 2026-10-28 | unchecked |
+| QA overview (tree, checklists, bugs) | qa | qa/README.md | 2026-11-20 | 2026-10-28 | unchecked |
 
 Status: `fresh` (check passed on the date, and the section has not
 changed since) | `stale` (check failed, section is marked stale at its
@@ -74,5 +75,5 @@ compared with what the section lists.
 - Last App Store release: 1.2.0, 2026-11-11, the doctor-visit report (built as 1.2.0 (28), tag v1.2.0+28, branch release/1.2.0).
 - Before it: 1.1.0 (build 27), Live Activity for running timers, the interactive widget, the weekly summary card; 1.0.3 (build 26), 2026-09-27, metadata only.
 - In TestFlight: 1.3.0 (30), medications with a dosing interval and 12 more languages (uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT, zh-Hant; 15 with en, ru, es). Tag v1.3.0+30 on main; the regression check and the check of the build's tree passed. Not submitted yet.
-- Next on the roadmap: not set.
+- In work: 1.4.0, free tracking first. Creating events is free (on main since 2026-11-20); the weekly charts of Feeding, Sleep and Diaper move to Premium; onboarding ends without a paywall and Premium is offered later, on Home. The line between Free and Premium is in `content/free-premium.md`.
 - Team workflow files are local and untracked; nothing here depends on them.
