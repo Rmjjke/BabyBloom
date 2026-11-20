@@ -292,12 +292,10 @@ final class RowAndHeadingWordFitTests: XCTestCase {
                 babyName: name, birthDate: Date().addingTimeInterval(-10 * 86_400), gender: .female,
                 birthWeightKg: 3.45, gestationalWeeks: nil, onContinue: {})),
                    texts: [[String(format: "onboarding.showcase.title".l, name)], ["section.who_percentiles".l]]),
-            Column(width: w, view: screen(GeneratingPage(babyName: name, birthDate: Date(), onDone: {})),
-                   texts: [[String(format: "onboarding.gen.title_named".l, name)]]),
             Column(width: w, view: screen(NotificationsPage(babyName: name, onContinue: {})),
                    texts: [[String(format: "onboarding.notify.title".l, name)]]),
-            Column(width: w, view: screen(WidgetShowcasePage(babyName: name, onContinue: {})),
-                   texts: [["onboarding.widget.title".l]]),
+            Column(width: w, view: screen(WidgetShowcasePage(babyName: name, isFinishing: false, onFinish: {})),
+                   texts: [["onboarding.widget.free_title".l]]),
         ]
         return [settings, switches, feeding, export, headings] + charts + onboarding
     }

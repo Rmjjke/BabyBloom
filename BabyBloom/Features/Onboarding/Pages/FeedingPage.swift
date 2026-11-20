@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Feeding type (page 4 of 11)
+// MARK: - Feeding type (page 4 of 9)
 
 struct FeedingPage: View {
     @Binding var feedingType: Baby.FeedingType

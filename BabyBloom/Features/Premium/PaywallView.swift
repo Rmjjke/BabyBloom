@@ -70,7 +70,6 @@ struct PaywallView: View {
             VStack(spacing: 0) {
 
                 // ── Hero ────────────────────────────────────────────────
-                // Shared with onboarding's paywall.
                 PremiumHero()
 
                 VStack(spacing: BBTheme.Spacing.lg) {
@@ -80,8 +79,8 @@ struct PaywallView: View {
                     // is false because nothing has asked, and an entitled user
                     // opening Settings would be shown the selling half and
                     // could tap the CTA straight into "You are currently
-                    // subscribed". Unlike the onboarding host this screen
-                    // advances nowhere; it just waits.
+                    // subscribed". The screen advances nowhere; it just
+                    // waits.
                     if store.hasResolvedEntitlements {
                         if store.isPremium {
                             activeBadge
@@ -93,7 +92,6 @@ struct PaywallView: View {
                             .padding(.vertical, BBTheme.Spacing.xl)
                     }
 
-                    // Features — shared with onboarding's paywall.
                     PremiumFeatureList()
 
                     Spacer(minLength: BBTheme.Spacing.xl)
@@ -165,10 +163,8 @@ struct PaywallView: View {
 
 // MARK: - Feature List
 
-/// The feature card of both paywalls, the in-app one (for subscribers too) and
-/// onboarding's. One list for the two: they are the same offer seen at two
-/// moments, and a line present in one and missing from the other is a
-/// discrepancy a buyer can catch.
+/// The paywall's feature card, shown to subscribers too: what is paid, said
+/// once, wherever the paywall is raised from.
 ///
 /// One shape for every row, as in the Nutrition card: rows of one shape read as
 /// a list, and a mix of the two does not. The texts stand beside their icons

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Fact / delight (page 6 of 11)
+// MARK: - Fact / delight (page 6 of 9)
 
 struct FactPage: View {
     let babyName: String

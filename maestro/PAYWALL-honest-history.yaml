@@ -27,8 +27,7 @@
 #
 # **Only the FIRST launch carries `clearState`.** It has four launches, and
 # clearState reinstalls the app every time — enough simulator I/O, running
-# alongside the rest of the suite, to push the onboarding walks' Generating
-# discriminator over its known ~5s margin (knowledge.md ▸ Flaky). It is also
+# alongside the rest of the suite, to slow the flows that run beside it. It is also
 # unnecessary here: `-BBSeedScenario` wipes the store itself before seeding, so
 # the seeder is the isolation, and launch arguments live in the volatile
 # argument domain and do not survive a `stopApp` into the next launch — which

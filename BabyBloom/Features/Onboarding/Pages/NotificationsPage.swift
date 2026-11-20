@@ -1,10 +1,10 @@
 import SwiftUI
 
-// MARK: - Notifications (page 8 of 11)
+// MARK: - Notifications (page 8 of 9)
 
-/// The permission ask, placed BEFORE Generating — the loader's last step says
-/// smart reminders are being configured, which is only true once the parent has
-/// answered this page. It also keeps the dialog off the Dashboard entirely.
+/// The permission ask, placed inside onboarding rather than on its way out: the
+/// pitch beside it is what motivates the answer, and the dialog never lands on
+/// top of the Dashboard.
 ///
 /// Both buttons advance. A parent who declines has still finished onboarding,
 /// and the bullets are the only pitch they get — there is no second ask.
@@ -38,7 +38,7 @@ struct NotificationsPage: View {
             // ceiling the bullets alone outgrow an SE-class screen, and an
             // overflowing VStack centres its children — which pushed BOTH
             // buttons off a page that has no back button, dead-ending
-            // onboarding. Same arrangement as PremiumPage.
+            // onboarding.
             ScrollView(showsIndicators: false) {
                 VStack(spacing: BBTheme.Spacing.xl) {
                     onboardingHeroIcon("bell.badge.fill", color: BBTheme.Colors.primary)

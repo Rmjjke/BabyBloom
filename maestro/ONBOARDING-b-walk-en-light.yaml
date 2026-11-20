@@ -1,12 +1,12 @@
-# Stream B walk (en, light): the eleven-page onboarding, the permission dialog
+# Stream B walk (en, light): the nine-page onboarding, the permission dialog
 # raised ON the notifications page, and the Dashboard reached with the greeting
 # readable.
 #
-# Page order (growth showcase inserted 2026-09-21): Welcome → Name → Birth →
-# Feeding → Growth → Fact → Growth showcase → Notifications → Widget →
-# Generating → Premium. The commitment CTA "Build My Tracker" lives on the
-# WIDGET page, immediately before the loader it kicks off; the Fact page and
-# the showcase page both end with a plain "Next".
+# Page order: Welcome → Name → Birth → Feeding → Growth → Fact → Growth
+# showcase → Notifications → Widgets. The widgets page is the last one: it says
+# tracking is free, and its "Build My Tracker" creates the profile and opens
+# Home with no loader and no paywall in between. The Fact page and the showcase
+# page both end with a plain "Next".
 #
 # This flow is a SMOKE CHECK, not the regression guard for the old
 # dialog-over-Dashboard bug. It cannot be that guard: the same XCUITest driver
@@ -25,6 +25,10 @@
 # advances a page — pressKey: Enter instead; and the system alert is
 # auto-answered by the XCUITest driver ~3s after it appears, so the flow waits
 # for the NEXT page rather than tapping "Allow" itself.
+# The driver only answers an English alert, and the alert speaks the
+# DEVICE language (-appLanguage does not reach it): run on an en device.
+# The copy binds numbers to units and short words with no-break spaces, so a
+# "." stands for those spaces in the patterns below.
 appId: com.nenita.app
 ---
 - launchApp:
@@ -78,35 +82,25 @@ appId: com.nenita.app
 - takeScreenshot: 02-after-cta-auto-advanced-en-light
 
 # The alert is answered by the driver; the page advances on the callback.
-- extendedWaitUntil: { visible: "The widget on your Home Screen", timeout: 25000 }
+- extendedWaitUntil: { visible: "All set. Tracking is free", timeout: 25000 }
 - assertVisible: "Mia"
 - assertVisible: "Feeding in"
-- assertVisible: ".*40 min.*"
+- assertVisible: ".*40.min.*"
 - assertVisible: ".*Touch and hold the Home Screen.*Bitty.*"
+# Each half of the card is one VoiceOver element: its label, then its list.
+- assertVisible: "Free.*Feeds, sleep, diapers.*"
+- assertVisible: "Premium, if you want it.*Weekly charts.*"
 - assertVisible: "Build My Tracker"
 - takeScreenshot: 03-widget-en-light
 - tapOn: "Build My Tracker"
 
-# Generating runs here — self-advancing, ~5 s — and lands DIRECTLY on the
-# paywall. The loader itself is NOT asserted, positively or negatively: the
-# tap's own settle (a fixed ~3 s static-screen wait plus hierarchy reads) is as
-# long as the loader, so any assertion aimed inside it is a race (measured
-# 2026-09-22: tap returned 4.5–5.7 s after the touch, loader gone at ~5.5 s).
-# Instead the paywall carries `onboarding.premium.afterGenerating` only when
-# Generating's own completion handed off to it — present for as long as the
-# paywall is up, so the wait cannot miss it, and a build that skips the loader
-# shows plain `onboarding.premium` and fails here.
-- extendedWaitUntil: { visible: { id: "onboarding.premium.afterGenerating" }, timeout: 40000 }
-- extendedWaitUntil: { visible: "Bitty Premium", timeout: 40000 }
-- takeScreenshot: 04-premium-en-light
-- extendedWaitUntil: { visible: "Close", timeout: 20000 }
-- tapOn: "Close"
-
+# Straight to Home: no setup loader and no paywall after the last page.
 # The regression guard: the greeting is readable the instant the Dashboard
 # arrives, with no permission alert over it.
 - extendedWaitUntil: { visible: { id: "tab_home" }, timeout: 20000 }
+- assertNotVisible: "Bitty Premium"
 - assertVisible: "Welcome to Bitty"
 - assertVisible: "Mia"
 - assertNotVisible: "Allow"
 - assertNotVisible: "Don't Allow"
-- takeScreenshot: 05-dashboard-no-dialog-en-light
+- takeScreenshot: 04-dashboard-no-dialog-en-light

@@ -1,17 +1,20 @@
 import SwiftUI
 
-// MARK: - Widget showcase (page 9 of 11)
+// MARK: - Widget showcase (page 9 of 9)
 
+/// Onboarding's last page: the widget the parent can put on the Home Screen,
+/// and what is free and what Premium adds. Its button creates the profile and
+/// opens the app; there is no page after it.
+///
 /// The real widget views, not a screenshot: `BabyBloomMediumWidgetView` is the
 /// same type the extension renders, so this page cannot drift away from what
-/// the parent will actually put on their home screen.
-///
-/// Medium only. The small view beside it would either squeeze the medium below
-/// its natural proportions or float alone in half a row, and the copy here
-/// describes exactly what the medium answers — the countdown plus the stats.
+/// the parent will actually put on their home screen. Medium only: the small
+/// view beside it would squeeze the medium or float alone in half a row.
 struct WidgetShowcasePage: View {
     let babyName: String
-    let onContinue: () -> Void
+    /// True from the button's first tap until Home replaces onboarding.
+    let isFinishing: Bool
+    let onFinish: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appear = false
@@ -44,37 +47,39 @@ struct WidgetShowcasePage: View {
             // phone the content scrolls and the button under it stays put.
             onboardingCenteredScroll {
             VStack(spacing: BBTheme.Spacing.xl) {
-                BBSteppedText("onboarding.widget.title".l)
+                BBSteppedText("onboarding.widget.free_title".l)
                     .foregroundStyle(BBTheme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
                     .opacity(appear ? 1 : 0)
 
-                widgetSpecimen
-                    .scaleEffect(appear ? 1 : 0.94)
-                    .opacity(appear ? 1 : 0)
-
-                VStack(spacing: BBTheme.Spacing.md) {
-                    Text("onboarding.widget.subtitle".l)
-                        .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .medium, design: .rounded))
-                        .foregroundStyle(BBTheme.Colors.textPrimary)
+                // The caption sits under the specimen it describes; that saves
+                // a block gap, which is what lets ru fit an SE at Large.
+                VStack(spacing: BBTheme.Spacing.sm) {
+                    widgetSpecimen
+                        .scaleEffect(appear ? 1 : 0.94)
 
                     Text(String(format: "onboarding.widget.howto".l, "brand.name".l))
                         .font(BBTheme.Typography.scaled(13, relativeTo: .footnote, weight: .regular, design: .rounded))
                         .foregroundStyle(BBTheme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .offset(y: appear ? 0 : 20)
                 .opacity(appear ? 1 : 0)
+
+                OnboardingFreeCard()
+                    .offset(y: appear ? 0 : 20)
+                    .opacity(appear ? 1 : 0)
             }
             .padding(.horizontal, BBTheme.Spacing.lg)
             .padding(.vertical, BBTheme.Spacing.lg)
             }
 
-            // The commitment CTA sits here, on the last page before Generating:
-            // "Build my tracker" is what the loader then visibly does.
-            BBPrimaryButton("onboarding.widget.cta".l, icon: "arrow.right", action: onContinue)
+            // Disabled from the first tap: a second tap must not create a
+            // second profile while the 0.4 s hand-over to Home runs.
+            BBPrimaryButton("onboarding.widget.cta".l, icon: "arrow.right", action: onFinish)
+                .disabled(isFinishing)
                 .accessibilityIdentifier("onboarding.next")
                 .padding(.horizontal, BBTheme.Spacing.lg)
                 .padding(.bottom, 40)

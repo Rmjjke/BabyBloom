@@ -1,10 +1,12 @@
 # Stream B walk (ru, dark): same flow, and the "Не сейчас" branch — which
 # raises no system alert at all and advances immediately.
 #
-# Page order (growth showcase inserted 2026-09-21): Welcome → Name → Birth →
-# Feeding → Growth → Fact → Growth showcase → Notifications → Widget →
-# Generating → Premium. «Создать мой трекер» is the WIDGET page's CTA; the Fact
-# page and the showcase page both end with a plain «Далее».
+# Page order: Welcome → Name → Birth → Feeding → Growth → Fact → Growth
+# showcase → Notifications → Widgets. «Создать мой трекер» on the widgets page,
+# the last one, creates the profile and opens Home with no loader and no
+# paywall; the Fact page and the showcase page both end with a plain «Далее».
+# The copy binds short words to the next one with no-break spaces, so a "."
+# stands for those spaces in the patterns below.
 appId: com.nenita.app
 ---
 - launchApp:
@@ -44,7 +46,7 @@ appId: com.nenita.app
 - tapOn: "Далее"
 
 - extendedWaitUntil: { visible: "Включить уведомления", timeout: 20000 }
-- assertVisible: ".*Мия ест и спит.*"
+- assertVisible: ".*Мия ест и.спит.*"
 - assertVisible: ".*подстраивается под ваш ритм.*"
 - assertVisible: ".*окно бодрствования.*"
 - assertVisible: ".*Без спама.*"
@@ -52,26 +54,20 @@ appId: com.nenita.app
 
 # The secondary button: no dialog at all, straight to the widget page.
 - tapOn: "Не сейчас"
-- extendedWaitUntil: { visible: "Виджет на домашнем экране", timeout: 20000 }
+- extendedWaitUntil: { visible: "Всё готово. Трекинг бесплатный", timeout: 20000 }
 - assertNotVisible: "Разрешить"
 - assertVisible: "Мия"
 - assertVisible: ".*Долгое нажатие на домашний экран.*Ночка.*"
+- assertVisible: "Бесплатно.*Кормления, сон, подгузники.*"
+- assertVisible: "Premium.— если захотите.*Графики недели.*"
 - assertVisible: "Создать мой трекер"
 - takeScreenshot: 07-widget-ru-dark
 - tapOn: "Создать мой трекер"
 
-# Generating runs here — self-advancing — and lands DIRECTLY on the paywall.
-# The discriminator is the paywall's `onboarding.premium.afterGenerating`,
-# set only by the loader's completion (see the en walk's note for why the
-# loader itself cannot be asserted without a race).
-- extendedWaitUntil: { visible: { id: "onboarding.premium.afterGenerating" }, timeout: 40000 }
-- extendedWaitUntil: { visible: "Ночка Premium", timeout: 40000 }
-- takeScreenshot: 08-premium-ru-dark
-- extendedWaitUntil: { visible: "Закрыть", timeout: 20000 }
-- tapOn: "Закрыть"
-
+# Straight to Home: no setup loader and no paywall after the last page.
 - extendedWaitUntil: { visible: { id: "tab_home" }, timeout: 20000 }
-- assertVisible: "Добро пожаловать в Ночку"
+- assertNotVisible: "Ночка Premium"
+- assertVisible: "Добро пожаловать в.Ночку"
 - assertVisible: "Мия"
 - assertNotVisible: "Разрешить"
-- takeScreenshot: 09-dashboard-no-dialog-ru-dark
+- takeScreenshot: 08-dashboard-no-dialog-ru-dark

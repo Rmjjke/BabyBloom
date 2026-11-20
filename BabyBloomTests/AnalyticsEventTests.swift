@@ -3,7 +3,8 @@ import XCTest
 
 /// The payload guard: every event the app can send maps to an allow-listed
 /// name, allow-listed keys, and values of an allow-listed type — tokens from a
-/// closed vocabulary, Bools, and the one Int (`seconds_visible`). `.int` itself
+/// closed vocabulary, Bools, and two Ints (`seconds_visible`, the onboarding
+/// `flow_version`). `.int` itself
 /// takes any Int; what keeps other numbers out is this list, together with the
 /// closed enum and the exhaustiveness guard below.
 ///
@@ -18,10 +19,14 @@ final class AnalyticsEventTests: XCTestCase {
         case token(Set<String>)
     }
 
-    private static let pages: Set<String> = [
+    /// The pages the current flow walks, in no particular order.
+    private static let stepPages: Set<String> = [
         "welcome", "name", "birth", "feeding", "growth", "fact",
-        "growth_showcase", "notifications", "widgets", "generating", "premium",
+        "growth_showcase", "notifications", "widgets",
     ]
+    /// Every id the token may carry: the current pages plus the two retired
+    /// with the flow that ended on the paywall.
+    private static let pages: Set<String> = stepPages.union(["generating", "premium"])
     private static let plans: Set<String> = ["weekly", "monthly", "yearly"]
     private static let kinds: Set<String> = ["feeding", "sleep", "diaper", "growth", "event"]
     /// One total across kinds, with edges clear of the clinical 8-12 feeds a day.
@@ -31,8 +36,8 @@ final class AnalyticsEventTests: XCTestCase {
     ]
 
     private static let allowList: [String: [String: Expected]] = [
-        "onboarding_page_viewed":  ["page": .token(pages)],
-        "onboarding_completed":    ["birth_measurements_known": .bool],
+        "onboarding_page_viewed":  ["page": .token(pages), "flow_version": .int],
+        "onboarding_completed":    ["birth_measurements_known": .bool, "flow_version": .int],
         "paywall_shown":           ["source": .token(["onboarding", "settings", "history_lock", "locked_card", "events", "doctor_report", "offer",
                                                       "weekly_chart"]),
                                     "content": .token(contents),
@@ -173,7 +178,26 @@ final class AnalyticsEventTests: XCTestCase {
     func testEveryOnboardingStepHasItsOwnPageID() {
         let ids = OnboardingStep.allCases.map { AnalyticsEvent.OnboardingPage($0).rawValue }
         XCTAssertEqual(ids.count, Set(ids).count, "two steps share a page id")
-        XCTAssertEqual(Set(ids), Self.pages)
+        XCTAssertEqual(Set(ids), Self.stepPages)
+    }
+
+    /// The retired ids stay reserved: no step of the current flow sends them.
+    func testNoStepSendsARetiredPageID() {
+        let ids = Set(OnboardingStep.allCases.map { AnalyticsEvent.OnboardingPage($0) })
+        XCTAssertFalse(ids.contains(.generating))
+        XCTAssertFalse(ids.contains(.premium))
+    }
+
+    /// Both onboarding events carry the flow version, so the funnel of this
+    /// flow is never mixed with the one before it, which sent no version.
+    func testOnboardingEventsCarryTheFlowVersion() {
+        let events: [AnalyticsEvent] = [
+            .onboardingPageViewed(.welcome), .onboardingPageViewed(.widgets),
+            .onboardingCompleted(birthMeasurementsKnown: true),
+        ]
+        for event in events {
+            XCTAssertEqual(event.properties[.flowVersion], .int(2), "\(event)")
+        }
     }
 
     @MainActor func testPlanComesOnlyFromTheThreeProductIDs() {

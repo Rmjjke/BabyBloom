@@ -14,7 +14,7 @@ import StoreKitTest
 ///
 /// **What they cannot see.** They cover the manager's state, not the paywall's
 /// SwiftUI. The rule "an entitled user is never shown the selling paywall" is
-/// enforced in `PremiumPage` by branching on `hasResolvedEntitlements` and
+/// enforced in `PaywallView` by branching on `hasResolvedEntitlements` and
 /// `isPremium`; what is testable here is that those two properties tell the
 /// truth, which `testEntitlementIsUnresolvedUntilItIsAsked` and the purchase
 /// cases pin. The view branch itself is covered by the simulator pass.
@@ -150,7 +150,7 @@ final class SubscriptionPurchaseTests: XCTestCase {
         XCTAssertFalse(manager.purchasePending)
     }
 
-    /// The gate `PremiumPage` branches on. Before anything asks StoreKit,
+    /// The gate `PaywallView` branches on. Before anything asks StoreKit,
     /// `isEntitled == false` means "not asked", not "not subscribed" — selling
     /// on that unresolved `false` is the build-9 defect.
     @MainActor

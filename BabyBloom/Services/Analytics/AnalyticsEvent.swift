@@ -16,7 +16,8 @@ protocol AnalyticsToken: RawRepresentable, CaseIterable, Sendable where RawValue
 /// That is what keeps a baby's name or a note out of a payload without every
 /// call site remembering to. It is not the whole guarantee: `.int` takes any
 /// Int, so which numbers are sent is decided by the closed `AnalyticsEvent`
-/// enum and pinned by the allow-list test (only `seconds_visible` is an Int).
+/// enum and pinned by the allow-list test (the Ints are `seconds_visible` and
+/// `flow_version`).
 struct AnalyticsValue: Equatable, Sendable {
     enum Storage: Equatable, Sendable {
         case bool(Bool)
@@ -144,6 +145,8 @@ enum AnalyticsEvent: Equatable, Sendable {
         case content
         case expired
         case tracker
+        /// Which onboarding flow sent a page view or the completion.
+        case flowVersion = "flow_version"
         // `daily_activity`: whether each kind was logged at all, and one
         // bucketed total across kinds.
         case feeding, sleep, diaper, growth, event, total
@@ -179,9 +182,9 @@ enum AnalyticsEvent: Equatable, Sendable {
     var properties: [Key: AnalyticsValue] {
         switch self {
         case .onboardingPageViewed(let page):
-            return [.page: .token(page)]
+            return [.page: .token(page), .flowVersion: .int(OnboardingPage.flowVersion)]
         case .onboardingCompleted(let known):
-            return [.birthMeasurementsKnown: .bool(known)]
+            return [.birthMeasurementsKnown: .bool(known), .flowVersion: .int(OnboardingPage.flowVersion)]
         case .paywallShown(let source, let offer, let tracker):
             if source == .offer, let offer { return [.source: .token(source), .content: .token(offer)] }
             if source == .weeklyChart, let tracker { return [.source: .token(source), .tracker: .token(tracker)] }
@@ -242,7 +245,17 @@ extension AnalyticsEvent {
     enum OnboardingPage: String, AnalyticsToken {
         case welcome, name, birth, feeding, growth, fact
         case growthShowcase = "growth_showcase"
-        case notifications, widgets, generating, premium
+        case notifications, widgets
+        /// Retired with the flow that had a loader and a paywall after
+        /// `widgets`; no step sends them. Kept so the ids stay reserved in the
+        /// analytics history.
+        case generating, premium
+
+        /// Sent as `flow_version` with every page view and the completion, so
+        /// two flows are never mixed in one funnel. Events without it come from
+        /// the flow before 2 (the eleven pages ending on the paywall). Raise it
+        /// whenever pages are added, removed or reordered.
+        static let flowVersion = 2
 
         /// Exhaustive on purpose: a new onboarding page does not compile until
         /// it has an analytics id.
@@ -257,8 +270,6 @@ extension AnalyticsEvent {
             case .growthShowcase: self = .growthShowcase
             case .notifications:  self = .notifications
             case .widgets:        self = .widgets
-            case .generating:     self = .generating
-            case .premium:        self = .premium
             }
         }
     }
@@ -266,6 +277,8 @@ extension AnalyticsEvent {
     /// Where a paywall was opened from. Every presentation site names one, so a
     /// conversion can be traced to the surface that sold it.
     enum PaywallSource: String, AnalyticsToken, Identifiable {
+        /// Retired: onboarding has no paywall any more and nothing raises it.
+        /// Kept so the token stays reserved in the analytics history.
         case onboarding
         case settings
         case historyLock = "history_lock"
