@@ -1,0 +1,112 @@
+# The first week: seven record days, the first result already shown. Six
+# days after that offer the early gap still holds; on the seventh the card.
+#
+# Every launch pins the clock to a Thursday (-BBNow; the seeds are relative to
+# it) and the install to the 1.4.0 cohort (-BBOfferCohort new). The offer's
+# ledger survives clearState (one copy is in the Keychain), so a flow empties
+# it with -BBOfferLedgerReset on purpose and never on the relaunch.
+appId: com.nenita.app
+tags: [regression]
+---
+# Below the moment: Home stays as it was.
+- launchApp:
+    clearState: true
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-05T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBOfferLedgerReset": "true"
+      "-BBOfferShownMoments": "first_result"
+      "-BBOfferLastShownDaysAgo": "6"
+      "-BBSeedScenario": "offerDays7"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Weekly Dynamics"
+    timeout: 15000
+- tapOn:
+    point: "16%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 10000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "offer.card"
+# The moment: the card, its × there at once.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-05T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBOfferLedgerReset": "true"
+      "-BBOfferShownMoments": "first_result"
+      "-BBOfferLastShownDaysAgo": "7"
+      "-BBSeedScenario": "offerDays7"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "offer.card"
+    timeout: 15000
+- assertVisible: "Seven days of records.*"
+- assertVisible:
+    id: "offer.card.close"
+- assertVisible:
+    id: "offer.card.action"
+- tapOn:
+    id: "offer.card.close"
+- extendedWaitUntil:
+    notVisible:
+      id: "offer.card"
+    timeout: 5000
+# × is for the moment: a relaunch on the same records shows nothing.
+- launchApp:
+    stopApp: true
+    arguments:
+      "-BBSkipSplash": "true"
+      "-hasCompletedOnboarding": "true"
+      "-appLanguage": "en"
+      "-appAppearance": "light"
+      "-BBNow": "2026-03-05T12:00:00"
+      "-BBOfferCohort": "new"
+      "-BBSeedScenario": "offerDays7"
+- extendedWaitUntil:
+    visible: "Mia"
+    timeout: 15000
+- tapOn:
+    point: "33%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_feeding"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Weekly Dynamics"
+    timeout: 15000
+- tapOn:
+    point: "16%,94%"
+- extendedWaitUntil:
+    visible:
+      id: "tab_home"
+    timeout: 10000
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "offer.card"
