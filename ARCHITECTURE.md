@@ -966,10 +966,14 @@ measured the same way, and so is the paywalls' feature card
 (`PremiumFeatureList`, one list for both paywalls): its texts stand beside
 their 34-pt icons while every word of every row fits there, else every text
 goes under its icon and check, as at every accessibility size. The card takes
-one shape for all four rows, as the Nutrition card does: on 320 pt in ru
-«Неограниченная» misses the room beside from xLarge, so from there the whole
-list goes under; at Large there, and up to xxxLarge in en on 320 pt and in both
-languages on 375 pt, it stays beside. `SideBySideIdeal` (in
+one shape for all four rows, as the Nutrition card does: on 320 pt in ru the
+longest words miss the room beside from xLarge, so from there the whole list
+goes under; on 375 pt it stays beside below the accessibility sizes. Where
+even under its icon a row's widest word would not fit the line (a long
+compound at an accessibility size on 320 pt), the list steps its text down
+through the same sizes as the percentile label (`PercentileLabel.steps`), all
+rows together and never above the reader's own size, so no word breaks
+inside itself. `SideBySideIdeal` (in
 `DesignSystem/Components/SideBySideIdeal.swift`) does it for a label | Spacer
 | value row: its ideal width is the least at which the stack's own split (the
 less flexible text offered half the room, the other the rest) leaves each
@@ -1270,7 +1274,7 @@ How a card opens its explainer depends on what its own tap already does:
   an element that certainly exists and the place the "?" sits — which reaches
   the sheet through the closure `ExplainerCard` puts in the environment.
   Nothing is attached to the container itself.
-- **Locked** — a `LockedInsightCard`'s tap sells Premium and keeps it. The badge
+- **Locked** — a `BBLockedCard`'s tap sells Premium and keeps it. The badge
   is its own button there (`InfoBadgeRole.control`, a 44pt target held out of
   the layout by negative padding), and because that button is inside the sell
   Button's label it is invisible to VoiceOver, so the same named action is
@@ -1516,11 +1520,22 @@ pinned.
 
 What is gated: three cards on the Growth screen — `WeightGainCard`,
 `CentileTrendCard` and `FeedingBreakdownCard` — each falling back to a
-`LockedInsightCard` built from the SAME title key, which is why an e2e
-assertion on that title proves nothing without `-BBForcePremium`. Export,
-gated at the navigation point in the settings list rather than inside
-`ExportView`. The paid half of the Dashboard's Growth section, which falls
-back to a `LockedInsightCard` of its own. Creating an event is NOT gated:
+`BBLockedCard` (`DesignSystem/Components/`) built from the SAME title key,
+which is why an e2e assertion on that title proves nothing without
+`-BBForcePremium`. Export, gated at the navigation point in the settings list
+rather than inside `ExportView`. The paid half of the Dashboard's Growth
+section, which falls back to a `BBLockedCard` of its own. The weekly charts
+of Feeding, Sleep and Diaper: `WeeklyChartSection` (`Features/Premium/`)
+stands under each screen's «weekly chart» header and draws the chart for a
+subscriber and a title-less `BBLockedCard` for everyone else — no bars, no
+values, nothing for VoiceOver to read but the card's words — and nothing at
+all, header included, until `hasResolvedEntitlements`, so a subscriber never
+sees the lock flash before the chart nor a free user the chart before the
+lock (the states are `WeeklyChartLock`, pure, in `Core/Weekly/`). An empty
+week reads a neutral teaser instead of the tracker's. A purchase or a restore
+while the screen is open crossfades the card into the chart; nothing
+restarts. The weekly summary card on Home, its per-day bars and its Monday
+notification are NOT gated. Creating an event is NOT gated:
 the Dashboard quick action, `EventsView`'s toolbar button and its four
 quick-add tiles open their sheets for everyone, and `EventsView.addEvent(_:)`
 keeps only the Medication tile's routing to the dose sheet.
@@ -1529,6 +1544,38 @@ below, the only gate that bounds something already recorded. The
 pediatrician report's PDF is an export like any other: its share button wears
 the badge and opens `PaywallView(source: .doctorReport)` for a free parent,
 while the screen itself and visits stay free.
+
+**Who raises the paywall** — the whole list; `PaywallView(source:)` has no
+default, so a new site cannot slip in unnamed:
+
+| `PaywallSource` | Raised by |
+|---|---|
+| `onboarding` | `PremiumPage`, onboarding's Premium page |
+| `settings` | the Premium row in Settings, and Export's gated row |
+| `history_lock` | `BBLockedHistoryFooter` on Feeding, Sleep, Diapers, Events, Recent activity and a medicine's doses |
+| `locked_card` | the Growth cards' and the Dashboard Growth section's `BBLockedCard` |
+| `weekly_chart` | the weekly chart's `BBLockedCard` on Feeding, Sleep and Diaper; the event names the tracker |
+| `doctor_report` | the pediatrician report's «Share PDF» |
+| `offer` | the Premium offer card on Home, once Home draws it (`OfferService` decides it today; nothing presents it yet) |
+| `events` | nothing: retired when creating an event became free, kept so the token is never reused |
+
+The three tracker screens present their paywall from one
+`.sheet(item: $paywallSource)`, so the history footer and the weekly card
+cannot stack two sheets, and dismissing it leaves the scroll where it was.
+
+**The reason line on the weekly card.** An install that finished onboarding
+before 1.4.0 had the weekly charts free; above the teaser its card says why
+they are locked now (`premium.weekly_reason`). `WeeklyChartReasonWindow`
+(beside `WeeklyChartSection`) is one window for the three screens: it is open
+for `OfferCohort` `.beforeOffers` while fewer than 14 calendar days
+(`OfferRule.cohortQuietDays`, the same settling-in fortnight as the offers)
+have passed since the first 1.4.0 launch and no locked weekly card has been
+tapped; the first tap on any of them closes it everywhere
+(`weeklyChart.reasonClosedAt` in UserDefaults, the first date kept). A former
+subscriber (the offer ledger's `lastSeenPremiumAt`) reads no reason: the
+charts did not go from under them. The cohort is read at every render, so the
+window does not depend on the app root recording it first; the Keychain-backed
+ledger is read at most once per launch, and never for a new install.
 
 That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
@@ -2024,7 +2071,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `doctor_report` \| `offer` (`events` is retired: creating an event is free and nothing raises it); `content` (the offer card's name) only with `offer` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `weekly_chart` \| `doctor_report` \| `offer` (`events` is retired: creating an event is free and nothing raises it); `content` (the offer card's name) only with `offer`; `tracker` (`feeding` \| `sleep` \| `diaper`) only with `weekly_chart` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
@@ -2263,6 +2310,7 @@ entitlement, spends a rating prompt or swaps the analytics backend:
 | `-BBOfferLedgerReset true` | **Simulator only.** At launch, empties both copies of the offer ledger (UserDefaults and the Keychain item, which a reinstall does not clear). |
 | `-BBOfferLastShownDaysAgo <n>` `-BBOfferClosesInRow <k>` `-BBOfferShownMoments <m,…>` | **Simulator only.** At launch (after a reset, if both are given), any of the three writes a preset ledger: the last offer n days ago, k closes in a row, the listed moments (`first_result`, `first_week`, `history_edge`, `month_report`) already shown. |
 | `-BBOfferCohort pre\|new` `-BBOfferCohortLaunchDaysAgo <n>` | **Simulator only.** Reads the install cohort as given — `pre` with its first launch n days ago (default 0) — over the stored flag, never written into it. A fresh install launched with `-hasCompletedOnboarding true` records `pre` and holds every offer for 14 days, so a flow that wants a card passes `new`. |
+| `-BBWeeklyReasonReset true` | **Simulator only.** At launch, forgets the first tap on a locked weekly card, so the reason line reads again for a `pre` cohort inside its 14 days (pair it with `-BBOfferCohort pre -BBOfferCohortLaunchDaysAgo <n>`). |
 | `-BBForcePremium true` | **Simulator only.** Renders the paid branch. Without it, an assertion on a gated card passes whether the paid card works, throws, or renders blank — the half of the app people pay for would be structurally untestable. |
 | `-BBFailProductsOnce true` | **Simulator only.** The first `loadProducts` of the process fails exactly like a real load failure (so the paywall's retry card shows); the retry succeeds. Use it on an onboarded (seeded) run from Settings → Premium: onboarding loads products on its first page, which spends the one failure unseen. |
 | `-BBForceReviewPrompt true` | **Simulator only.** Skips the review prompt's thresholds (count, age, version, interval) but never its blockers, so a single save on a fresh seed reaches the system rating sheet — which development builds show on every request. |

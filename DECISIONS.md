@@ -14,6 +14,49 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-20 — The weekly charts of Feeding, Sleep and Diaper are Premium for everyone; the Home summary stays free
+
+**The weekly charts are Premium, for every install.** On Feeding, Sleep and
+Diaper the chart under «weekly chart» is drawn for a subscriber; everyone
+else finds a calm locked card in its place, under the same header, that names
+what the chart would show and opens the paywall. People who used the charts
+free before 1.4.0 are not grandfathered.
+
+**Why.** Recording is the free part of the app and reading the data is the
+paid part (2026-11-20, *Creating an event is free*): a chart of each day of a
+week is a reading of the records, of the same kind as the Growth figures and
+the report. Grandfathering would split the app into two products for good and
+leave the paywall list promising long-time users something they already have.
+
+**This supersedes, for these charts, a sentence of 2026-09-22**: «the last 15
+days stay free forever, so nothing ever vanishes from under a parent who was
+looking at it». A parent who looked at the weekly chart yesterday finds a lock
+today. The answer is the card itself, not a hidden section: it stands exactly
+where the chart stood, nothing else on the screen moves, and for an install
+from before 1.4.0 it opens with one line of why — «Weekly charts are now part
+of Premium. Recording stays free, and no record was deleted.» — for 14 days
+or until the first tap on any locked weekly card, whichever comes first. The
+14 days are the same settling-in fortnight that holds the first offer for
+those installs. A former subscriber does not read the line: the charts did not
+go from under them.
+
+**What stands.**
+- **The weekly summary on Home stays free**, with its per-day bars and its
+  Monday notification: it is the week told in one card, and it is what brings
+  a parent back on Monday. The chart that sells is the per-tracker one.
+- **The 15-day history window stands.** It no longer rests on "nothing ever
+  vanishes"; it rests on who meets it: the lock on older records is met only by
+  someone who has used the app for a while, has seen what it does, and is
+  asked for money for the part that grows with their own data.
+- **Nothing is deleted or windowed.** The charts read the same unwindowed
+  records; subscribing draws them at once, without a restart.
+
+**The paywall list names exactly what is paid**, in this order: unlimited
+history, the weekly charts, the weekly gain and centile trend, the
+pediatrician report and export. The events line is gone with the gate it sold.
+
+---
+
 ## 2026-11-20 — When the Premium offer is shown: moments in the person's data, holds, a slowing pace
 
 **The offer follows the person's data, not the calendar.** Four moments, each

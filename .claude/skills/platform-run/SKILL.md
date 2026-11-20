@@ -41,7 +41,8 @@ no product code at all. The ones that matter:
 | `-appAppearance light` \| `dark` \| `system` | pin the theme |
 | `-BBSkipSplash true` | skip the branded splash |
 | `-BBSeedScenario lowGain` \| `healthy` \| `sparseLogs` \| `newbornWindow` \| `newbornStalePair` \| `showcase` | **simulator only** — wipe the database and seed one deterministic growth scenario (see `.team/app-map.md` for what each produces) |
-| `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `LockedInsightCard` placeholder |
+| `-BBForcePremium true` | **simulator only** — render every Premium-gated card as the real thing instead of its `BBLockedCard` placeholder (the weekly charts of Feeding, Sleep and Diaper included) |
+| `-BBOfferCohort pre -BBOfferCohortLaunchDaysAgo <n> -BBWeeklyReasonReset true` | **simulator only** — an install from before 1.4.0, n days after its first 1.4.0 launch, that has not tapped a locked weekly card yet: the weekly charts' locked card reads its reason line while n < 14 |
 | `-BBForceReviewPrompt true` | **simulator only** — skip the review prompt's thresholds, quiet hours (22:00–07:00 local) included, but not its blockers, so one save at any hour on a fresh seed brings up the system rating sheet: at once for a quick add or timer stop on a tab, and only once the OUTERMOST entry sheet has dismissed for a save inside a sheet. The system sheet reads `Not Now` (en); a refused request logs `Review prompt not requested: …` at info level under category `ReviewPrompt` (see the log command below) |
 | `-BBAnalyticsSpy true` | **simulator only** — analytics payloads go to the unified log instead of the no-op backend: `Analytics spy event: <name> <key=value…>` at notice level under category `Analytics` (and `Analytics spy: optedOut=…` when the Settings toggle flips). Needs a non-empty key in the build — pass a dummy one, never the real key: `xcodebuild … AMPLITUDE_API_KEY=dummy-local-key build`. Stream with `--predicate 'subsystem == "com.nenita.app" AND category == "Analytics"'` |
 | `-BBAnalyticsDayOffset N` | **simulator only** — moves ONLY the analytics facade's clock N days ahead. Relaunch an install (no `clearState`) with `1` and the first foregrounding sends `daily_activity` for the real today (noon, no session) — pair it with `-BBAnalyticsSpy true` to see it in the log. ⚠️ It leaves the day and widget-probe markers IN THE FUTURE: the next launch without it pulls them back to today and sends nothing that day, so a walk that follows one using the hook starts from a quiet day — use `clearState` if you need a clean first day |
@@ -118,7 +119,7 @@ which is still a real build on a real device, and no shipped binary may carry a
 path that hands out a paid entitlement.
 
 **Why it has to exist.** `GrowthView` chooses between `FeedingBreakdownCard` and
-a `LockedInsightCard` built with the SAME title key (`breakdown.title`). Without
+a `BBLockedCard` built with the SAME title key (`breakdown.title`). Without
 a way to force the paid branch, an e2e assertion on that title passes whether
 the paid card works, throws, or renders blank — the half of the app people pay
 for would be structurally untestable.
