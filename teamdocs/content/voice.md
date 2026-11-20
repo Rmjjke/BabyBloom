@@ -749,8 +749,8 @@ renamed when it took a new argument by its new name.
     (`premium.teaser_weekly_*`, `premium.weekly_reason`,
     `premium.opens_a11y_hint`).
   - The paywall: the headline says what Premium adds; f3 and f5 are
-    reworded; the new f6 names the growth figures; f2 (events) leaves the
-    list, because events are free.
+    reworded; the new f6 names the growth figures; the events row leaves
+    the list, because events are free.
   - `notification.measurements_body` (day 3) drops "3 days", which the offer
     says on the same day.
   - New rules above: Paywall list, The Premium offer, Locked weekly chart.
@@ -768,9 +768,16 @@ renamed when it took a new argument by its new name.
     f3 row included. The short «Lääkärille» stays only in the More row and
     `report.title`, where the room is 219 pt.
   - ja and zh-Hant write the paywall's f3 as «…：PDF、CSV» with a
-    full-width colon, as f2 and the old f3 do, because CJK text takes no
-    space next to Latin. ko keeps its no-break space and dash, as its f2 does.
+    full-width colon, as the events row and the old f3 did, because CJK text
+    takes no space next to Latin. ko keeps its no-break space and dash, as
+    its events row did.
   - ko joins a digit to 일 / 주 with U+2060, as in the rest of the file.
   - The free side names no unlimited or forever history in any language.
     «Unlimited history» stays only in the paywall's f1, which is a Premium
     row.
+- 2026-11-20 — Onboarding keys nothing reads in 1.4.0 are deleted from all 15
+  languages: the loader's title and steps, the old last page, the widgets
+  page's old title and subtitle (the page now reads
+  `onboarding.widget.free_*` and `premium_*`), the old welcome subtitle
+  (unread since the onboarding redesign) and the paywall's events row.
+  Their ru and uk lines leave `brand-declined.txt`.

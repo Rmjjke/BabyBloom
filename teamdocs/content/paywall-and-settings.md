@@ -17,8 +17,8 @@ Voice and terms: `voice.md` in this folder.
     gain in grams and the centile trend, f3 the pediatrician report and
     data export (PDF, CSV). The rules: `voice.md` § Surface rules, Paywall
     list.
-  - Events (bath, walk, mood) are free from 1.4.0. f2 is not shown; its key
-    is deleted once nothing reads it.
+  - Events (bath, walk, mood) are free from 1.4.0. The paywall's events row
+    is gone, and its key with it.
   - Reminders are free and stay free: gating them would take a feature away
     from current users.
   - Medications are free (the list, doses, the early-dose confirmation and
@@ -48,10 +48,10 @@ Each row that looks tappable does one thing.
 
 ## Changes
 
-- 2026-10-28 — `onboarding.premium.f2` now sells events instead of the free
+- 2026-10-28 — The paywall's second row now sells events instead of the free
   reminders. New `about.version_fmt` for the About row, which opened nothing.
-- 2026-11-03 — `onboarding.premium.f2` lists baths, walks and mood: medications
-  are free in 1.3.0.
+- 2026-11-03 — The paywall's events row lists baths, walks and mood:
+  medications are free in 1.3.0.
 - 2026-11-04 — `settings.analytics_hint` under Usage Statistics.
 - 2026-11-08 — Settings has no sync row in 1.3.0: the entries stay on the
   device. Its four keys are deleted (`settings.icloud`, `settings.icloud_on`,
@@ -59,5 +59,7 @@ Each row that looks tappable does one thing.
 - 2026-11-20 — 1.4.0 (en, ru): four rows (f1, f5, f6, f3). The headline says
   what Premium adds instead of "Everything for confident baby care". f3
   names the pediatrician report with the export; f5 names the weekly charts;
-  the new f6 names the growth figures; f2 leaves the list, because events
-  are free.
+  the new f6 names the growth figures; the events row leaves the list,
+  because events are free.
+- 2026-11-20 — The events row's key is deleted from all 15 languages: no
+  list reads it in 1.4.0.

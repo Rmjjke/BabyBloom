@@ -5,12 +5,4 @@
 ru dashboard.welcome
 ru live_activity.continues_in_app
 ru onboarding.fact.older2
-ru onboarding.gen.title
-ru onboarding.gen.title_named
-ru onboarding.ready_welcome_fmt
-ru onboarding.ready_welcome_plain
 uk dashboard.welcome
-uk onboarding.gen.title
-uk onboarding.gen.title_named
-uk onboarding.ready_welcome_fmt
-uk onboarding.ready_welcome_plain

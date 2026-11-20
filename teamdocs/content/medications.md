@@ -177,8 +177,8 @@ Buttons of the feature use Title Case in en ("Log Dose", "End Course").
     142 pt in the PDF, and the ru caption «Доза не записана · 3 дозы ·
     2 нояб. – 3 нояб.» about 264 pt of the card's 338 pt.
 - **The paywall** never sells the confirmation or the reminder, which are
-  safety facts and free. Medications are free, so `onboarding.premium.f2`
-  lists baths, walks and mood only.
+  safety facts and free. Medications are free, and so are events in 1.4.0:
+  the paywall lists neither.
 
 ## Wiring the keys
 
@@ -315,7 +315,7 @@ space. The report's words also pass the pediatrician report's verdict list
 
 - 2026-11-03 — 1.3.0 medications: 77 keys added (`medication.*`,
   `notification.medication_*`, `export.csv.medication`, `export.csv.dose`).
-  `form.dose` en "Dosage" → "Dose". `onboarding.premium.f2` no longer lists
+  `form.dose` en "Dosage" → "Dose". The paywall's events row no longer lists
   medications (they are free).
 - 2026-11-03 — `medication.field_max_range_hint` added (the maximum outside
   1 to 24). No-break spaces, text unchanged: ru «или позже» and es «o más
