@@ -14,6 +14,40 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-20 — Creating an event is free; the Growth teaser, free deletion and the dose routing stand
+
+**Bath, walk, mood, medication and free-text events are created free.** The
+toolbar plus on Events, its four quick-add tiles and the Home Events tile wear
+no padlock, carry no "Requires Premium" in their accessibility value and open
+no paywall. `PaywallSource.events` stays in the enum, raised by nothing, so the
+token is never reused for another surface in the analytics history.
+
+**Why.** Logging is the app's basic tracking, and basic tracking is free: a
+parent who cannot write down a bath has no reason to trust the rest of the
+log. What stays paid is the reading of the data — the Growth figures, export,
+the report's PDF and history older than 15 days — where the value grows with
+what was logged. A gate on the act of logging sold the one thing that should
+cost nothing.
+
+**What stands.**
+- Deleting is free and total (2026-09-01): a paywall in front of it would hold
+  a person's own records hostage.
+- The permanent Growth teaser (2026-09-01): the calm word and the latest
+  weight stay free, the figures behind a `LockedInsightCard` that never goes
+  away.
+- The dose routing (2026-11-03): while a medication runs, the Medication tile
+  opens the dose sheet; with none it saves a one-tap entry. A nameless dose
+  cannot be linked, so it would time no interval. Only its exemption from the
+  padlock is gone, because there is no padlock left to be exempt from.
+- The 15-day history window (2026-09-22) on Events and every activity list:
+  creating is free, reading further back is not.
+
+Supersedes the events half of 2026-09-01 (*A permanent Growth teaser, and a
+gate on creating events only*) and the second paragraph of 2026-11-03 (*On
+Events a dose is free, outside the cap, and titled by its medicine*).
+
+---
+
 ## 2026-11-14 — A line that appears under a field while typing scrolls into view with the field
 
 On New and Edit Medication, a «Most doses in 24 hours» of 0, 25 or 41 turns Save
@@ -720,6 +754,10 @@ Four in a row give each word a quarter of the quick-actions card: 64 pt on a 320
 **A medication's name and dose stay one paragraph.** The fields wrap at large text, so Return would start a new line; the copies travel into every row, the alert's first line and the export, so Return ends editing instead.
 
 ## 2026-11-03 — On Events a dose is free, outside the cap, and titled by its medicine
+
+> **Partly superseded 2026-11-20** (*Creating an event is free*): the second
+> paragraph's padlocks are gone — every tile creates free. The dose routing it
+> describes stands.
 
 **Doses have twenty rows of their own on Events, and keep the 15-day window.** In the shared twenty, four a day would fill the list in five days and push every bath and walk off it. Uncapped like a visit, a year of daily drops on a subscriber's list would draw hundreds of rows in one stack. The medication's own screen lists every dose, so Events shows the latest. The window stays because it is the rule for every history list. Each half decides its own locked footer: a free account's footer under old doses sells rows a subscriber does see. Older and free-text medication events are not doses and count in the shared twenty as before.
 
@@ -2085,6 +2123,10 @@ non-quiz, so `isQuiz` / `quizProgress` and the shared bottom nav are untouched
 by any reordering among them — only the enum's case order defines the flow.
 
 ## 2026-09-01 — A permanent Growth teaser, and a gate on creating events only
+
+> **Partly superseded 2026-11-20** (*Creating an event is free*): event
+> creation is no longer gated, so the Consequence paragraph's single gate and
+> padlocks are gone. The permanent teaser and free deletion stand.
 
 > **Partly superseded 2026-09-22** (*The paywall's history promise becomes
 > true*): "viewing … stay[s] free" no longer holds — free accounts see the last

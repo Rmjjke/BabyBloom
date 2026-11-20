@@ -243,6 +243,8 @@ extension AnalyticsEvent {
         case settings
         case historyLock = "history_lock"
         case lockedCard  = "locked_card"
+        /// Retired: creating an event is free and nothing raises it any more.
+        /// Kept so the token stays reserved in the analytics history.
         case events
         /// The report's «Share PDF»: the PDF is Premium like every export.
         case doctorReport = "doctor_report"

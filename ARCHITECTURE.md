@@ -187,10 +187,9 @@ free-text event is never checked.
 
 **Medicines on Events.** One `MedicationStatusLine` per running medication
 sits above Quick input and pushes its detail. While a medication runs, the
-Medication tile opens `DoseSheet(choosingFrom:)` free and with no padlock: one
-running medication is preselected, with two or more the «Medication» menu
-shows «Choose» and Save waits. With none, the tile is the old one-tap entry
-behind the gate. The Add Event form, type Medication, shows the same menu
+Medication tile opens `DoseSheet(choosingFrom:)`: one running medication is
+preselected, with two or more the «Medication» menu shows «Choose» and Save
+waits. With none, the tile is the old one-tap entry. The Add Event form, type Medication, shows the same menu
 (`MedicationMenuField`) of running medications plus «Not in the list»: a
 chosen one logs a linked dose (`CustomEvent.dose(of:at:)`) with the status
 box (`MedicationStatusBox`) and no name or dose fields; «Not in the list», or
@@ -1521,13 +1520,10 @@ What is gated: three cards on the Growth screen — `WeightGainCard`,
 assertion on that title proves nothing without `-BBForcePremium`. Export,
 gated at the navigation point in the settings list rather than inside
 `ExportView`. The paid half of the Dashboard's Growth section, which falls
-back to a `LockedInsightCard` of its own. And **creating** an event: the
-Dashboard quick action, `EventsView`'s toolbar button and its four quick-add
-tiles all route through `EventsView.addEvent(_:)` or the Dashboard's own
-branch, and each wears a padlock badge so the gate is visible before the tap.
-The one exception is a dose: while a medication runs, the Medication tile
-branches in `addEvent(_:)` to the dose sheet before the gate and wears no
-badge, because a dose given to a sick baby is never sold.
+back to a `LockedInsightCard` of its own. Creating an event is NOT gated:
+the Dashboard quick action, `EventsView`'s toolbar button and its four
+quick-add tiles open their sheets for everyone, and `EventsView.addEvent(_:)`
+keeps only the Medication tile's routing to the dose sheet.
 And **how far back the five activity lists read** — the free history window
 below, the only gate that bounds something already recorded. The
 pediatrician report's PDF is an export like any other: its share button wears
@@ -1538,7 +1534,7 @@ That badge is one component, `LockBadge` (`DesignSystem/Components/`), drawn
 identically at every gate. It is `accessibilityHidden`; the words go on the
 enclosing button instead, via `View.bbLockedAccessibility(_:)`, which appends
 `premium.locked_a11y` as the control's accessibility **value** so VoiceOver
-reads "Events, Requires Premium" rather than losing the gate entirely.
+reads "Export, Requires Premium" rather than losing the gate entirely.
 
 **The free history window.** Activity lists show a free account the last 15
 calendar days and offer the rest for sale. `Core/History/HistoryWindow.swift`
@@ -1929,7 +1925,7 @@ re-read `Configuration`, `TrackingOptions`, `ContextPlugin`, `Sessions`,
 |---|---|---|
 | `onboarding_page_viewed` | `page` (11 page ids) | `OnboardingView`, `.onChange(of: step, initial: true)` — forward and back |
 | `onboarding_completed` | `birth_measurements_known` | `OnboardingView.createAndFinish` |
-| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `events` \| `doctor_report` | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
+| `paywall_shown` | `source`: `onboarding` \| `settings` \| `history_lock` \| `locked_card` \| `doctor_report` (`events` is retired: creating an event is free and nothing raises it) | `PremiumPage` / `PaywallView`, once StoreKit has answered AND the parent is not premium — a subscriber who opens the settings row sees the badge, not an offer. `PaywallView(source:)` has no default, so every presentation site names one |
 | `plan_selected` | `plan`: `weekly` \| `monthly` \| `yearly` | `PlanPickerSection`, on a CHANGE of plan |
 | `purchase_result` | `plan`, `result`: `success` \| `cancelled` \| `failed` \| `pending` \| `already_subscribed` | `SubscriptionManager.purchase`, each branch once, BEFORE `refreshEntitlements()` publishes — so it precedes `onboarding_completed`. `already_subscribed` is StoreKit's `.userCancelled` for an Apple ID that owns a plan. An Ask to Buy approved later arrives only via `Transaction.updates`: the listener reports `success` once for a plan the facade saw go `.pending` (`analytics.pendingPurchasePlans`, plan → when), and only for the parent's own purchase (`ownershipType == .purchased`, not family-shared), dated at or after that moment, with `tx.reason == .purchase`; the next purchase attempt and any restore clear the marker |
 | `restore_result` | `result`: `found` \| `not_found` \| `failed` \| `cancelled` | `SubscriptionManager.restorePurchases` |
