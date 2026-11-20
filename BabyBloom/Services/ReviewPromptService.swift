@@ -36,6 +36,10 @@ final class ReviewPromptService {
     /// lifetime, like the pending save.
     private(set) var suppressedForSession = false
 
+    /// Set when a rating was asked in this process: the visit has had its one
+    /// ask, so Home shows no Premium card until the process ends.
+    private(set) var askedThisSession = false
+
     init(defaults: UserDefaults = .standard,
          calendar: Calendar = .autoupdatingCurrent,
          clock: @escaping () -> Date = Date.init,
@@ -82,6 +86,8 @@ final class ReviewPromptService {
         hasPendingSave = false
     }
 
+    func noteAskedThisSession() { askedThisSession = true }
+
     /// Friction inside a quick sheet cancels the success before it: a parent
     /// who has just declined the paywall is not asked for a rating when they
     /// close the sheet. `PaywallView` calls this on appearing.
@@ -126,6 +132,7 @@ final class ReviewPromptService {
             return false
         }
         recordRequest(version: state.currentVersion, at: now)
+        noteAskedThisSession()
         // The system never says whether it showed anything, so this count of
         // how often we ASK is the only number there will ever be.
         track(.reviewPromptRequested)

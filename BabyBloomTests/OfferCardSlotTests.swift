@@ -104,6 +104,23 @@ final class OfferCardSlotTests: XCTestCase {
         XCTAssertFalse(events.contains(.offerShown(.firstResultDays)))
     }
 
+    func testAfterARatingAskNoCardShowsInTheProcessAndNothingIsSpent() throws {
+        let context = try makeContext()
+        let clock = Clock(at(2, 18))
+        let review = makeReview()
+        review.noteAskedThisSession()
+        let service = makeService(clock)
+        let slot = OfferSlotState(service: service, review: review)
+        evaluate(slot, context)
+        XCTAssertNil(slot.content)
+        XCTAssertNil(service.ledger.lastShownAt)
+        XCTAssertFalse(makeReview().askedThisSession, "a new process may show it")
+        let relaunched = OfferSlotState(service: makeService(clock), review: makeReview())
+        evaluate(relaunched, context)
+        XCTAssertEqual(relaunched.content, .firstResultDays, "the moment was kept for the next visit")
+        XCTAssertEqual(events, [.offerShown(.firstResultDays)])
+    }
+
     // MARK: - ×
 
     func testAClosedCardStaysClosedAlsoAfterARelaunch() throws {

@@ -30,6 +30,12 @@ final class OfferSlotState {
     func evaluate(in context: ModelContext, isPremium: Bool, entitlementsResolved: Bool,
                   situation: OfferRule.Situation) {
         guard !paywallOpen else { return }
+        // The other direction of one ask per visit: after a rating, no card.
+        // It holds like the rule's holds: nothing is spent.
+        guard !review.askedThisSession else {
+            removeWithoutAnimation()
+            return
+        }
         let decision = service.evaluate(in: context, isPremium: isPremium,
                                         entitlementsResolved: entitlementsResolved, situation: situation)
         guard let next = decision.content else {

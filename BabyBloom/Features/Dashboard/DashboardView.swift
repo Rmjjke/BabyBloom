@@ -34,6 +34,10 @@ struct DashboardView: View {
     @State private var offerForPaywall: OfferContent?
     /// Home is the shown tab: the offer is evaluated only at Home's appear.
     @State private var homeVisible = false
+    /// Only a return from the background is a new visit: Control Center or a
+    /// system alert also pass through `.inactive`, and the card must not come
+    /// back while Home has stayed on screen.
+    @State private var returningFromBackground = false
     @AppStorage("weekly.hiddenWeek") private var hiddenWeek = ""
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -145,7 +149,18 @@ struct DashboardView: View {
         }
         .onDisappear { homeVisible = false }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { evaluateOffer() }
+            if phase == .background {
+                returningFromBackground = true
+            } else if phase == .active, returningFromBackground {
+                returningFromBackground = false
+                // A warm tap's `didReceive` lands a moment after `.active`;
+                // evaluated at once, the card would show, and be counted,
+                // over a visit that began from a notification.
+                Task {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    evaluateOffer()
+                }
+            }
         }
         // Entitlements resolve a moment after launch: the launch's appear
         // waits for them rather than missing its card.
@@ -182,7 +197,8 @@ struct DashboardView: View {
     }
 
     private func evaluateOffer() {
-        guard homeVisible, scenePhase == .active else { return }
+        // No profile, no card to draw: nothing is evaluated, so nothing is spent.
+        guard homeVisible, scenePhase == .active, baby != nil else { return }
         offer.evaluate(in: modelContext, isPremium: store.isPremium,
                        entitlementsResolved: store.hasResolvedEntitlements, situation: offerSituation)
     }
