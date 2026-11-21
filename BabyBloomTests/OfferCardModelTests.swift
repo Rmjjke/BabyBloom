@@ -84,6 +84,72 @@ final class OfferCardModelTests: XCTestCase {
         XCTAssertEqual(thin.body, "offer.first_week.body".l)
     }
 
+    // MARK: - The number in the days titles
+
+    /// The plural titles glue the number to its word with a no-break space.
+    private let nbsp = "\u{00A0}"
+
+    private func inEnglishAndRussian(_ check: (SupportedLanguage) -> Void) {
+        for language in [SupportedLanguage.en, .ru] {
+            LocalizationManager.shared.setLanguage(language)
+            check(language)
+        }
+    }
+
+    func testTheFirstResultMetOnTheSeventhDayNamesSevenDays() {
+        let late = input(feeds: (0...6).map { at($0) }, diapers: (0...6).map { at($0, 15) }, now: at(6, 18))
+        inEnglishAndRussian { language in
+            let model = OfferCardModel.make(.firstResultDays, input: late)
+            XCTAssertEqual(model.visual, .bars(Array(repeating: 2, count: 7)))
+            XCTAssertEqual(model.title, language == .en ? "7\(nbsp)days of records" : "7\(nbsp)дней записей")
+            XCTAssertNotEqual(model.title, "offer.first_result_days.title".l)
+            XCTAssertTrue(model.accessibilityLabel.hasPrefix(model.title))
+        }
+    }
+
+    func testTheFirstResultKeepsItsDesignedTitleForExactlyThreeDays() {
+        let three = input(feeds: [at(0, 11), at(1, 8), at(2, 7)], now: at(2, 18))
+        inEnglishAndRussian { language in
+            let model = OfferCardModel.make(.firstResultDays, input: three)
+            XCTAssertEqual(model.title, language == .en ? "Three days of records" : "Три дня записей")
+        }
+    }
+
+    func testTheFirstWeekKeepsItsDesignedTitleOnlyForSevenDaysWithARecord() {
+        let full = input(feeds: (2...8).map { at($0) }, now: at(8, 18))
+        let gap = input(feeds: (2...8).filter { $0 != 5 }.map { at($0) }, now: at(8, 18))
+        inEnglishAndRussian { language in
+            let en = language == .en
+            XCTAssertEqual(OfferCardModel.make(.firstWeek, input: full).title,
+                           en ? "Seven days of records" : "Семь дней записей")
+            let model = OfferCardModel.make(.firstWeek, input: gap)
+            XCTAssertEqual(model.visual, .bars([1, 1, 1, 0, 1, 1, 1]))
+            XCTAssertEqual(model.title, en ? "6\(nbsp)days of records" : "6\(nbsp)дней записей", "many")
+        }
+    }
+
+    func testTheFirstWeekTitleCountsThroughEveryPluralCategory() {
+        let two = input(feeds: [at(6, 8), at(8, 9)], now: at(8, 18))
+        let one = input(feeds: [at(8, 9)], now: at(8, 18))
+        inEnglishAndRussian { language in
+            let en = language == .en
+            XCTAssertEqual(OfferCardModel.make(.firstWeek, input: two).title,
+                           en ? "2\(nbsp)days of records" : "2\(nbsp)дня записей", "few")
+            let thin = OfferCardModel.make(.firstWeek, input: one)
+            XCTAssertEqual(thin.visual, .thin)
+            XCTAssertEqual(thin.title, en ? "1\(nbsp)day of records" : "1\(nbsp)день записей", "one")
+        }
+    }
+
+    func testADayWithOnlyAnEventIsADayWithARecordForTheTitle() {
+        // The rule that picks the card counts events as days with a record, so
+        // the title does too, though an event draws no bar.
+        let model = OfferCardModel.make(.firstWeek, input: input(
+            feeds: (2...8).filter { $0 != 5 }.map { at($0) }, events: [at(5, 10)], now: at(8, 18)))
+        XCTAssertEqual(model.visual, .bars([1, 1, 1, 0, 1, 1, 1]))
+        XCTAssertEqual(model.title, "offer.first_week.title".l)
+    }
+
     // MARK: - Curve
 
     func testTheFirstResultPointNamesTheBabyAndShowsTheNewestWeighing() throws {
