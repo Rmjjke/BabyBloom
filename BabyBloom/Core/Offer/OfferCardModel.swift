@@ -78,7 +78,8 @@ struct OfferCardModel: Equatable {
             let today = input.calendar.startOfDay(for: input.now)
             let start = input.calendar.date(byAdding: .day, value: -(maxBars - 1), to: today) ?? today
             // first_week has no thin body: its sentence names no chart "like this".
-            return daysCard(content, input: input, window: (start, maxBars), designedDays: maxBars,
+            // The designed counts are the numbers the copy spells out, not the bar cap.
+            return daysCard(content, input: input, window: (start, maxBars), designedDays: 7,
                             title: "\(base).title".l, body: "\(base).body".l, thinBody: "\(base).body".l)
         case .firstResultPoint, .growthPoint:
             let name = input.babyName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -122,7 +123,8 @@ struct OfferCardModel: Equatable {
     /// `title` is the designed one, written for exactly `designedDays` days
     /// with a record; any other count in the drawn window — a card met late,
     /// a week with an empty day — names its real count through the history
-    /// edge's plural family, so the title never states a number the bars deny.
+    /// edge's plural family, so the title never states a number of days other
+    /// than the days with a record in the window.
     private static func daysCard(_ content: OfferContent, input: Input, window: (start: Date, count: Int),
                                  designedDays: Int, title designed: String,
                                  body: String, thinBody: String) -> OfferCardModel {
