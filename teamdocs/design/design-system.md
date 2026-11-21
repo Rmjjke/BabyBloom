@@ -405,9 +405,13 @@ medication path:
   CJK font under zxx, about 3 pt wider a character at footnote size: a known limit, and the fit holds, since the
   word measure uses the same typesetting. Korean running text outside these
   texts keeps the system's breaks between syllables. Japanese and Chinese
-  keep the app's typesetting in every text: it picks their glyph forms
-  (骨, 直) and breaks their lines at phrases, where zxx would break at any
-  character.
+  keep their own typesetting in every text: it picks their glyph forms
+  (骨, 直). Their lines break between any two characters, inside a word
+  too, and not at phrases: at AX2 on 320 pt the offer card sets ja
+  «グラ / フ» in a body, «Premiumででき / ること» in its action and
+  «曲線に新しい / 点» in a title (measured at 9656b9f). That is the
+  ordinary setting of Japanese and Chinese text and by design (decided
+  2026-11-12); only a number keeps its counter (below).
 - **Planned** (decided 2026-11-06): a dash never starts a line. A spaced em
   dash keeps a no-break space (U+00A0) before it, so a line that breaks
   there ends with the dash. The rule reaches every spaced em dash in the
