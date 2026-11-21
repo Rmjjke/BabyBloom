@@ -338,6 +338,10 @@ extension View {
     /// overlay it takes no room, so a tile is laid out the same selected or
     /// not; the gaps between tiles, 8 pt or more, keep 6.5. Apply it after
     /// `bbShadow`, so the shadow keeps the fill's outline.
+    ///
+    /// The ring is the tile's only sign of its choice, so it also carries
+    /// the Selected trait VoiceOver reads; the button the tile labels takes
+    /// it as its own.
     func bbSelectedBorder(_ selected: Bool, shape: BBSelectionShape = .tile) -> some View {
         let width: CGFloat = 1.5
         let color = selected ? BBTheme.Colors.primary : Color.clear
@@ -353,6 +357,7 @@ extension View {
                     .padding(-width)
             }
         }
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     /// A sheet's title: in the bar between its glyph buttons up to Large, and

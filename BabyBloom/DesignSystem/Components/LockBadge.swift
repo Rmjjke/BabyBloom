@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The one padlock treatment in the app. Every gate draws this — the Dashboard
-/// quick action, the Events toolbar plus, the Events quick-add tiles — so the
-/// user learns a single shape instead of three near-misses.
+/// The one padlock treatment in the app, kept for the two actions that open
+/// Premium: the export row in Settings and Share PDF on the report. Events
+/// and the quick actions are free and carry none.
 ///
 /// The surface-coloured disc is load-bearing: without it the glyph sits
 /// directly on a tinted circle or a coloured symbol and reads as part of the
