@@ -72,13 +72,13 @@ struct OfferCardModel: Equatable {
         switch content {
         case .firstResultDays:
             let window = firstResultWindow(input)
-            return daysCard(content, input: input, window: window,
+            return daysCard(content, input: input, window: window, designedDays: 3,
                             title: "\(base).title".l, body: "\(base).body".l, thinBody: "\(base).body_thin".l)
         case .firstWeek:
             let today = input.calendar.startOfDay(for: input.now)
             let start = input.calendar.date(byAdding: .day, value: -(maxBars - 1), to: today) ?? today
             // first_week has no thin body: its sentence names no chart "like this".
-            return daysCard(content, input: input, window: (start, maxBars),
+            return daysCard(content, input: input, window: (start, maxBars), designedDays: maxBars,
                             title: "\(base).title".l, body: "\(base).body".l, thinBody: "\(base).body".l)
         case .firstResultPoint, .growthPoint:
             let name = input.babyName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -119,12 +119,22 @@ struct OfferCardModel: Equatable {
         return (start, count)
     }
 
+    /// `title` is the designed one, written for exactly `designedDays` days
+    /// with a record; any other count in the drawn window — a card met late,
+    /// a week with an empty day — names its real count through the history
+    /// edge's plural family, so the title never states a number the bars deny.
     private static func daysCard(_ content: OfferContent, input: Input, window: (start: Date, count: Int),
-                                 title: String, body: String, thinBody: String) -> OfferCardModel {
+                                 designedDays: Int, title designed: String,
+                                 body: String, thinBody: String) -> OfferCardModel {
         let calendar = input.calendar
         let end = calendar.date(byAdding: .day, value: window.count, to: window.start) ?? input.now
         let inWindow = { (date: Date) in date >= window.start && date < end && date <= input.now }
         let index = { (date: Date) in OfferRule.days(from: window.start, to: date, calendar: calendar) }
+
+        // Events count as days with a record here too, as they do for the rule
+        // that picked this card and for the history edge's count.
+        let recordDays = Set(recordDates(input).filter(inWindow).map(calendar.startOfDay(for:))).count
+        let title = recordDays == designedDays ? designed : PluralFamily.offerHistoryEdgeTitle.text(recordDays)
 
         let feeds = input.feeds.filter(inWindow)
         let sleeps = input.sleeps.filter { inWindow($0.start) }
