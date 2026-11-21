@@ -106,5 +106,19 @@ struct WidgetShowcasePage: View {
         .frame(height: 160)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .bbShadow(BBTheme.Shadow.card)
+        // One element for VoiceOver: a picture of the widget, not its sample
+        // readings one by one and a control that does nothing here. It reads
+        // as the widget gallery names and describes it, which is where the
+        // caption below sends the parent.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Self.specimenLabel)
+        .accessibilityAddTraits(.isImage)
+    }
+
+    /// The gallery's own strings, read in the app's language rather than
+    /// through `WidgetGallery`, which first reloads the language from the App
+    /// Group for the extension's sake.
+    static var specimenLabel: String {
+        "\(String(format: "widget.name_medium".l, "brand.name".l)), \("widget.description_medium".l)"
     }
 }

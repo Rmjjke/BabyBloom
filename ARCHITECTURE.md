@@ -1826,8 +1826,13 @@ tab asks the policy at once; every sheet that can save an entry is presented
 with `.entrySheet` instead of `.sheet`, which hands its content a DEFERRED
 trigger and asks only from its `onDismiss` — the outermost one's, so the
 Dashboard's quick sheets (whole tab screens with their own add sheets) wait
-until the parent is back on a tab. Onboarding sits outside `MainTabView` and
-gets the inert default, so it cannot reach the prompt; nor can launch, a tab
+until the parent is back on a tab. A swipe down calls `onDismiss` when the
+drag begins, with the sheet still on screen, so the live trigger asks only
+once nothing is presented over the tabs and the app is active: with a save
+waiting it looks again every 0.1 s for up to 10 s, and a drag let go of
+leaves the save waiting for the sheet's real dismissal; with none it returns
+at once. Onboarding sits outside `MainTabView` and gets the inert default, so
+it cannot reach the prompt; nor can launch, a tab
 switch or Cancel, because only a save sets the flag; `PaywallView` clears it
 on appearing, so a declined upsell inside a quick sheet is not followed by a
 rating prompt. A Premium card shown on Home calls `suppressForSession()`:

@@ -15,6 +15,11 @@ final class ReviewPromptTriggerTests: XCTestCase {
     private var service: ReviewPromptService!
     private var context: ModelContext!
     private var requests = 0
+    /// Whether a sheet is still on screen, as the live trigger sees it, and
+    /// the retries it scheduled while one was: a test plays the animation by
+    /// running them.
+    private var presented = false
+    private var retries: [@MainActor () -> Void] = []
     /// An isolated facade: the trigger's analytics never touch the app's own
     /// `UserDefaults` from a test.
     private var analyticsSuite: String!
@@ -43,6 +48,8 @@ final class ReviewPromptTriggerTests: XCTestCase {
         }
         try context.save()
         requests = 0
+        presented = false
+        retries = []
         analyticsSuite = "ReviewPromptTriggerTests.analytics.\(UUID().uuidString)"
         analyticsSpy = SpyAnalyticsBackend()
         analytics = Analytics(backend: analyticsSpy, defaults: UserDefaults(suiteName: analyticsSuite)!)
@@ -53,11 +60,20 @@ final class ReviewPromptTriggerTests: XCTestCase {
         UserDefaults().removePersistentDomain(forName: analyticsSuite)
     }
 
+    /// Runs the retries scheduled so far, as the next run-loop turns would.
+    private func runRetries() {
+        let due = retries
+        retries = []
+        due.forEach { $0() }
+    }
+
     private func root() -> ReviewPromptTrigger {
         .live(service: service,
               context: context,
               analytics: analytics,
               transactionFailedThisSession: { false },
+              isAnythingPresented: { [unowned self] in self.presented },
+              retry: { [unowned self] in self.retries.append($0) },
               request: { [unowned self] in self.requests += 1 })
     }
 
@@ -132,5 +148,68 @@ final class ReviewPromptTriggerTests: XCTestCase {
         let expected: [AnalyticsValue?] = [.token(AnalyticsEvent.EntryKind.feeding),
                                            .token(AnalyticsEvent.EntryKind.diaper)]
         XCTAssertEqual(analyticsSpy.sent.map { $0.properties["kind"] }, expected)
+    }
+
+    // MARK: - A swipe-down
+
+    /// A swipe-down runs onDismiss as the drag begins, with the sheet still
+    /// presented: the save is asked about only once the sheet is gone.
+    func testASwipeDismissalWithAPendingSaveAsksOnlyOnceTheSheetIsGone() {
+        let tab = root()
+        tab.deferred.entrySaved(.feeding)
+        presented = true
+        tab.sheetDismissed()
+        XCTAssertEqual(requests, 0, "never with the sheet still up")
+        XCTAssertTrue(service.hasPendingSave)
+        XCTAssertEqual(retries.count, 1)
+
+        runRetries()                 // still going down
+        XCTAssertEqual(requests, 0)
+        XCTAssertEqual(retries.count, 1)
+
+        presented = false            // gone
+        runRetries()
+        XCTAssertEqual(requests, 1)
+        XCTAssertFalse(service.hasPendingSave)
+        XCTAssertTrue(retries.isEmpty)
+    }
+
+    /// The crash this guards against happened with no save at all: nothing
+    /// pending means nothing to wait for and nothing to ask.
+    func testASwipeDismissalWithNothingPendingNeitherAsksNorWaits() {
+        let tab = root()
+        presented = true
+        tab.sheetDismissed()
+        XCTAssertEqual(requests, 0)
+        XCTAssertTrue(retries.isEmpty)
+    }
+
+    /// A drag let go of halfway keeps the sheet: the waiting stops, and the
+    /// save is still there for the sheet's real dismissal.
+    func testADragLetGoOfKeepsTheSaveForTheRealDismissal() {
+        let tab = root()
+        tab.deferred.entrySaved(.feeding)
+        presented = true
+        tab.sheetDismissed()
+        for _ in 0...ReviewPromptTrigger.presentedTries { runRetries() }
+        XCTAssertTrue(retries.isEmpty, "the waiting is bounded")
+        XCTAssertEqual(requests, 0)
+        XCTAssertTrue(service.hasPendingSave)
+
+        presented = false            // closed for real later
+        tab.sheetDismissed()
+        XCTAssertEqual(requests, 1)
+    }
+
+    /// A save on a tab with something still presented over it waits the
+    /// same way.
+    func testASaveOnATabWithSomethingPresentedWaitsForIt() {
+        let tab = root()
+        presented = true
+        tab.entrySaved(.feeding)
+        XCTAssertEqual(requests, 0)
+        presented = false
+        runRetries()
+        XCTAssertEqual(requests, 1)
     }
 }

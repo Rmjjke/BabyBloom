@@ -54,29 +54,54 @@ struct ReviewPromptTrigger {
 
     /// The trigger `MainTabView` installs. `request` is the environment's
     /// `requestReview`, injected so tests can count calls; `analytics` so they
-    /// can hand in an isolated facade.
+    /// can hand in an isolated facade; `isAnythingPresented` and `retry` so
+    /// they can play a sheet that is still going down.
     @MainActor
     static func live(service: ReviewPromptService,
                      context: ModelContext,
                      analytics: Analytics,
                      transactionFailedThisSession: @escaping @MainActor () -> Bool,
+                     isAnythingPresented: @escaping @MainActor () -> Bool = { Self.isAnythingPresented },
+                     retry: @escaping @MainActor (@escaping @MainActor () -> Void) -> Void = Self.retrySoon,
                      request: @escaping @MainActor () -> Void) -> ReviewPromptTrigger {
-        ReviewPromptTrigger(
+        // The routing's promise, kept here in every build: an ask only ever
+        // happens with nothing presented over the tabs. A swipe-down runs the
+        // sheet's onDismiss when the drag BEGINS, with the sheet still up, so
+        // the ask waits for it to finish going down. A drag let go of keeps
+        // the sheet: the tries run out, the save stays pending, and the
+        // sheet's real dismissal asks about it later.
+        func askOnceNothingIsPresented(triesLeft: Int) {
+            guard service.hasPendingSave else { return }
+            guard !isAnythingPresented() else {
+                if triesLeft > 0 { retry { askOnceNothingIsPresented(triesLeft: triesLeft - 1) } }
+                return
+            }
+            if service.consumePendingSave(
+                in: context,
+                transactionFailedThisSession: transactionFailedThisSession()) {
+                request()
+            }
+        }
+        return ReviewPromptTrigger(
             note: { service.noteEntrySaved() },
-            flush: {
-                // The routing's promise, checked where it is kept: an ask only
-                // ever happens with nothing presented over the tabs. Debug
-                // builds only — `assert` compiles out of Release.
-                assert(!isAnythingPresented, "review prompt asked with a sheet still up")
-                if service.consumePendingSave(
-                    in: context,
-                    transactionFailedThisSession: transactionFailedThisSession()) {
-                    request()
-                }
-            },
+            flush: { askOnceNothingIsPresented(triesLeft: Self.presentedTries) },
             isDeferred: false,
             logged: { analytics.noteEntrySaved($0) }
         )
+    }
+
+    /// 100 × 0.1 s: a sheet's dismissal animation is well under a second, but
+    /// a finger may rest on a half-dragged sheet before letting it go down,
+    /// and a look every 0.1 s costs nothing. A drag let go of past this keeps
+    /// the save pending for the sheet's next dismissal.
+    static let presentedTries = 100
+
+    @MainActor
+    static func retrySoon(_ work: @escaping @MainActor () -> Void) {
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            work()
+        }
     }
 
     /// Whether the app's own window has a view controller presented over its
@@ -86,9 +111,16 @@ struct ReviewPromptTrigger {
     /// one: StoreKit's rating sheet lives in a window of its own that can
     /// linger after "Not Now", and counting it would crash a dev build on
     /// the next save with nothing of ours on screen.
+    ///
+    /// An app on its way to the background counts as covered too: an ask
+    /// there would spend the version's one prompt on a screen nobody sees.
+    /// Only foreground-active scenes count, so a sheet left open in another
+    /// iPad window does not hold the ask back.
     @MainActor
-    private static var isAnythingPresented: Bool {
-        UIApplication.shared.connectedScenes
+    static var isAnythingPresented: Bool {
+        guard UIApplication.shared.applicationState == .active else { return true }
+        return UIApplication.shared.connectedScenes
+            .filter { $0.activationState == .foregroundActive }
             .compactMap { ($0 as? UIWindowScene)?.keyWindow }
             .filter { !$0.isHidden && $0.windowLevel == .normal }
             .contains { $0.rootViewController?.presentedViewController != nil }
