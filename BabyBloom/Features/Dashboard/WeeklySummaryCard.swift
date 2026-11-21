@@ -288,24 +288,9 @@ struct WeeklySummaryCard: View {
     }
 
     /// The gain line without a figure, with the weighing button where the next
-    /// step is a weighing. It wraps, so it never decides the rows' shape.
+    /// step is a weighing.
     private func gainNote(_ text: String, asksForWeighing: Bool = false) -> some View {
-        WrapsToWidth {
-            VStack(alignment: .leading, spacing: 2) {
-                note(icon: "scalemass.fill", text: text)
-                if asksForWeighing {
-                    Button(action: onAddWeighing) {
-                        Text("growth.add_weighing".l)
-                            .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold))
-                            .foregroundStyle(BBTheme.Colors.primary)
-                            .frame(minHeight: 44)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.leading, indent)
-                    .accessibilityIdentifier("weekly.add_weighing")
-                }
-            }
-        }
+        WeeklyGainNote(text: text, onAddWeighing: asksForWeighing ? onAddWeighing : nil)
     }
 
     /// A value row. A nil value (nothing of that kind logged) leaves the row
@@ -357,18 +342,6 @@ struct WeeklySummaryCard: View {
                     .transition(.opacity)
                 }
             }
-        }
-    }
-
-    private func note(icon: String, text: String) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: glyph))
-                .foregroundStyle(BBTheme.Colors.growth)
-                .accessibilityHidden(true)
-            BBTheme.Typography.callout(text)
-                .foregroundStyle(BBTheme.Colors.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -472,6 +445,67 @@ struct WeeklyHiddenLine: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("weekly.undo")
+    }
+}
+
+/// The weekly card's gain line without a figure, and its weighing button
+/// when the next step is a weighing. It wraps, so it never decides the value
+/// rows' shape.
+///
+/// Beside its glyph while every word, the button's too, fits there whole;
+/// otherwise under the glyph at the card's width, as the value rows go. A
+/// word wider than the room beside the glyph broke inside itself: Finnish
+/// left its final period alone on a line at AX2 on a 320-pt phone.
+struct WeeklyGainNote: View {
+    let text: String
+    let onAddWeighing: (() -> Void)?
+    /// The text size to set the words at; nil reads the device (the test seam
+    /// of `BBTheme.Typography.scaled`).
+    var category: UIContentSizeCategory? = nil
+    /// Scaled as the card's row glyphs (15 pt, callout), so the note's glyph
+    /// sits in their column.
+    @ScaledMetric(relativeTo: .callout) private var glyph: CGFloat = 15
+
+    var body: some View {
+        WrapsToWidth {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    icon
+                    words
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    icon
+                    words
+                }
+            }
+        }
+    }
+
+    private var icon: some View {
+        Image(systemName: "scalemass.fill")
+            .font(.system(size: glyph))
+            .foregroundStyle(BBTheme.Colors.growth)
+            .accessibilityHidden(true)
+    }
+
+    /// Its ideal width is its widest word's, the width `ViewThatFits` compares.
+    private var words: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            WordWrappingText(text: text)
+                .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .regular, for: category))
+                .foregroundStyle(BBTheme.Colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let onAddWeighing {
+                Button(action: onAddWeighing) {
+                    WordWrappingText(text: "growth.add_weighing".l)
+                        .font(BBTheme.Typography.scaled(16, relativeTo: .callout, weight: .semibold, for: category))
+                        .foregroundStyle(BBTheme.Colors.primary)
+                        .frame(minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("weekly.add_weighing")
+            }
+        }
     }
 }
 

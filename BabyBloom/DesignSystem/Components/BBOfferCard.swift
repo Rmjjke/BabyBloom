@@ -56,7 +56,7 @@ struct BBOfferCard: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
 
-            actionRow
+            Self.actionRow()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .bbCard(radius: BBTheme.Radius.lg)
@@ -126,12 +126,17 @@ struct BBOfferCard: View {
     }
 
     /// No lock glyph and no price: the line names what opens, not its cost.
-    private var actionRow: some View {
+    /// The chevron is held to the last word by word joiners around the
+    /// space: a bare space, and the image's own attachment character, each
+    /// let the line break before the chevron, which then stood alone on a
+    /// line (en, da, de, ru at AX2 on a 320-pt phone). `category` is the
+    /// fonts' test seam.
+    static func actionRow(for category: UIContentSizeCategory? = nil) -> some View {
         (Text("offer.cta".l)
-            + Text("\u{2004}")
+            + Text("\u{2060}\u{2004}\u{2060}")
             + Text(Image(systemName: "chevron.right"))
-                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .semibold)))
-            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold))
+                .font(BBTheme.Typography.scaled(13, relativeTo: .body, weight: .semibold, for: category)))
+            .font(BBTheme.Typography.scaled(15, relativeTo: .body, weight: .semibold, for: category))
             .foregroundStyle(BBTheme.Colors.primary)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)

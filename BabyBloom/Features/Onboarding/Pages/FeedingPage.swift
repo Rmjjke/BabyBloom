@@ -73,11 +73,12 @@ struct FeedingPage: View {
             .cornerRadius(12)
         // Hidden on the other rows rather than left out: every name has the
         // same room, so picking a row never changes the shape or breaks a name.
+        // Silent: the row's ring carries the Selected trait, said once.
         let check = Image(systemName: "checkmark.circle.fill")
             .foregroundStyle(BBTheme.Colors.primary)
             .font(.system(size: 20))
             .opacity(selected ? 1 : 0)
-            .accessibilityHidden(!selected)
+            .accessibilityHidden(true)
         if stacked {
             VStack(alignment: .leading, spacing: BBTheme.Spacing.sm) {
                 HStack {

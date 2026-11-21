@@ -699,6 +699,17 @@ so the app's ceiling walks straight past it. The ceiling itself
 which `BabyBloomApp` derives its `.dynamicTypeSize` modifier — the two cannot
 drift apart. See [DECISIONS.md](DECISIONS.md), 2026-08-28.
 
+One view sits under a lower cap of its own: onboarding's birth calendar
+(`BirthCalendar` in `BirthPage.swift`), the system graphical picker. Its header
+grows with the text size from both edges and neither side gives way, so the
+view caps its own `.dynamicTypeSize` at the largest size where every month
+title of this year and the last, in the app's language, leaves the month
+button and the previous-month button apart. The model is UIKit's header as
+measured on iOS 26 (`headerMetrics`: title size, arrow and chevron widths per
+size, with Bold Text) and is checked against the drawn picker by
+`BirthCalendarHeaderTests` in every language on 320, 375 and 402-pt widths. A
+change in the system's header shows there first.
+
 The headers' and the caption's letter-spacing is tuned for SF's Latin. Every
 `.tracking` goes through `Typography.tracking(_:)`, which returns that value
 for every language except ja, ko and zh-Hant, where it is 0: their glyphs sit

@@ -14,6 +14,28 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-21 — The birth calendar keeps the system picker and caps its own text size
+
+**Onboarding's birth date stays the system graphical `DatePicker`, under a
+text-size cap of its own** (`BirthCalendar`): the largest size at which every
+month title of the app's language leaves the header's month button and
+previous-month button apart. On a 320-pt phone at AX2 that is Large for most
+languages, Medium for Ukrainian, Small for Spanish and Portuguese; on 375 and
+402 pt it is xLarge to xxxLarge (the system draws the picker no larger than
+accessibility1 anyway).
+
+**Why.** At AX2 on a 320-pt phone the system header put the month's chevron
+1.5 pt from the previous-month arrow, their hit areas overlapping; the picker
+has no API to shorten its title or move its arrows. A custom calendar would
+fix it at any size but trades the system's VoiceOver, locale calendars and
+first-weekday handling for code of our own on the one page every parent fills
+in. The days stay large (17 pt and up at the cap, Bold Text included), so the cap costs no
+readability where it matters.
+
+**Rejected:** a fixed cap for every width and language. Spanish needs Small on
+320 pt, while Japanese holds xxxLarge, and a 402-pt phone holds xxxLarge in
+English; one number would either keep the overlap or shrink everyone.
+
 ## 2026-11-20 — The app's notification delegate answers only the tap; a Premium card silences the rating for the process
 
 **The delegate implements `didReceive` and nothing else.** The offer must not
