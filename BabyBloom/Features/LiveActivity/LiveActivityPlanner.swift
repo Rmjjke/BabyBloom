@@ -64,9 +64,20 @@ enum LiveActivityPlanner {
     /// activity, so it also forgets them all: the switch or iOS turning Live
     /// Activities back on shows the running timer again, while an
     /// activity the user swiped away stays away.
+    ///
+    /// An app update ends the activities too, and the app cannot tell that
+    /// from a swipe: starts recorded under another build (or with no build
+    /// recorded, as before this rule) are forgotten, except for entries whose
+    /// activity is still live, so a running timer earns one fresh start per
+    /// update and the swipe rule holds inside one build.
     static func remembered(_ started: Set<UUID>, running: [RunningTimer],
-                           gate: LiveActivityGate) -> Set<UUID> {
-        gate.isOpen ? started.intersection(running.map(\.entryID)) : []
+                           activities: [ActivitySnapshot], gate: LiveActivityGate,
+                           startedBuild: String?, currentBuild: String) -> Set<UUID> {
+        guard gate.isOpen else { return [] }
+        let kept = startedBuild == currentBuild
+            ? started
+            : started.intersection(activities.filter { $0.phase == .live }.map(\.entryID))
+        return kept.intersection(running.map(\.entryID))
     }
 
     static func plan(running: [RunningTimer],
@@ -118,6 +129,11 @@ enum LiveActivityPlanner {
                   !covered.contains(timer.entryID),
                   !alreadyStarted.contains(timer.entryID),
                   now.timeIntervalSince(timer.startTime) < maxAge else { continue }
+            // An update may leave the old build's ended card on the Lock
+            // Screen: the fresh start replaces it instead of standing beside it.
+            for stale in activities where stale.phase == .ended && stale.entryID == timer.entryID {
+                actions.append(.endImmediately(activityID: stale.activityID))
+            }
             actions.append(.start(timer))
         }
         return actions

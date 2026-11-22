@@ -1185,6 +1185,16 @@ reaches this Lock Screen when the app next runs (2026-10-29).
 Rejected: calling `Activity.update` / `end` from each screen's button. It is
 simpler on day one, but leaves exactly the drift above.
 
+One start per entry, per build: an activity the user swiped away stays away,
+but an app update ends the activities too, and the app cannot tell the two
+apart. So the starts are remembered with the build that wrote them; at a launch
+under another build (or with none recorded, as from 1.3.0 and earlier) a
+running timer whose activity is gone gets one fresh start, and one whose
+activity survived is not started twice (an ended card the update left behind
+is replaced, never doubled). Why: updates often install at night, while a baby
+sleeps, and the nap would otherwise lose its Lock Screen card until it ends; a
+second appearance once per update is the smaller cost (2026-11-22).
+
 ## 2026-10-29 — The StoreKitTest money tests stay skipped; coverage stays with guard tests and live walks
 
 The 10 `SubscriptionPurchaseTests` cases skip on this machine with

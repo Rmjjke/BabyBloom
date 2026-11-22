@@ -86,6 +86,45 @@ final class OfferLedgerTests: XCTestCase {
         XCTAssertNil(ledger.settle(now: at(13), calendar: calendar), "settles once")
     }
 
+    /// A card left open before a reinstall: the new diary's onboarding ended
+    /// after it opened. It is dropped, still counting as shown.
+    func testACardOpenedBeforeThisOnboardingEndedIsDroppedAndStillCountsAsShown() {
+        var ledger = OfferLedger.empty
+        ledger.recordShown(.firstResultPoint, now: at(2, 9))
+        let closes = ledger.closesInRow
+        let stamp = ledger.updatedAt
+        XCTAssertTrue(ledger.dropCardOpened(before: at(2, 15)))
+        XCTAssertNil(ledger.open)
+        XCTAssertEqual(ledger.shownAt(.firstResult), at(2, 9), "the moment stays spent")
+        XCTAssertEqual(ledger.lastShownAt, at(2, 9), "the pace runs from its date")
+        XCTAssertEqual(ledger.closesInRow, closes, "not a close by the person")
+        XCTAssertEqual(ledger.updatedAt, stamp, "no newer stamp to win another device's merge")
+        XCTAssertFalse(ledger.dropCardOpened(before: at(2, 15)), "once")
+    }
+
+    /// A card of this install opened after its onboarding: it stays open,
+    /// also when it opened at the very moment onboarding ended.
+    func testACardOfThisInstallIsKept() {
+        var ledger = OfferLedger.empty
+        ledger.recordShown(.firstWeek, now: at(9))
+        let before = ledger
+        XCTAssertFalse(ledger.dropCardOpened(before: at(0, 10)))
+        XCTAssertFalse(ledger.dropCardOpened(before: at(9)), "opened at the onboarding end")
+        XCTAssertEqual(ledger, before)
+    }
+
+    /// Through iCloud Keychain a second device that onboarded after a card
+    /// opened on the first drops it on its own Home only: the first device's
+    /// merge keeps its card, and the second's keeps the drop.
+    func testADropOnASecondDeviceLeavesTheFirstDevicesCard() {
+        var phone = OfferLedger.empty
+        phone.recordShown(.firstResultDays, now: at(3))
+        var pad = phone
+        XCTAssertTrue(pad.dropCardOpened(before: at(5)))
+        XCTAssertEqual(OfferLedger.merge(phone, pad).open?.content, .firstResultDays)
+        XCTAssertNil(OfferLedger.merge(pad, phone).open)
+    }
+
     func testTheCohortSpendIsWrittenOnceAndNeverOverAShownMoment() {
         var ledger = OfferLedger.empty
         ledger.recordShown(.firstResultDays, now: at(1))
