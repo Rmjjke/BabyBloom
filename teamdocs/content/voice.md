@@ -111,9 +111,13 @@ and the Live Activity read the byte-identical copies in
   «С кормления», «Última toma». One key, two places: the medium widget's
   row title (10 pt, above the time since the feed) and the headline at 12+
   months (12 pt, above the same time as the hero). The row's title has
-  99.5 pt on a 10.2" iPad and 107.5 pt on the iPhone SE; «Последнее
-  кормление» (114.4 pt) was cut on both, and as a headline it took two lines
-  on the medium and shrank on the small. Not «Кормление»: above a duration
+  99.5 pt on a 10.2" iPad and 107.5 pt on the iPhone SE, and about 82 pt in
+  the sample widget on onboarding's widgets page at 320 pt, the narrowest;
+  «Последнее кормление» (114.4 pt) was cut on both, and as a headline it
+  took two lines on the medium and shrank on the small. Ukrainian follows
+  Russian: «Від годування», as «Від візиту», «Від народження» elsewhere in
+  the app. Every language stays under 82 pt at 10 pt medium rounded (the
+  longest are fi 81.5 and sv 81.0). Not «Кормление»: above a duration
   it reads as how long the feed lasted, and the capsule below it already
   says «Кормление».
 - **Time past a reminder** is told as elapsed time, never as a fault:
@@ -781,3 +785,7 @@ renamed when it took a new argument by its new name.
   `onboarding.widget.free_*` and `premium_*`), the old welcome subtitle
   (unread since the onboarding redesign) and the paywall's events row.
   Their ru and uk lines leave `brand-declined.txt`.
+- 2026-11-22 — Ukrainian `widget.last_feed` «Останнє годування» (97.6 pt) →
+  «Від годування» (71.1 pt), whole in the widget's row title in the
+  onboarding sample at 320 pt (about 82 pt), on the iPhone SE (107.5 pt)
+  and the 10.2" iPad (99.5 pt). The other 14 languages fit as they are.
