@@ -30,10 +30,10 @@ final class OfferServiceTests: XCTestCase {
 
     private let calendar = Calendar.autoupdatingCurrent
 
-    private func at(_ day: Int, _ hour: Int = 12) -> Date {
+    private func at(_ day: Int, _ hour: Int = 12, _ minute: Int = 0) -> Date {
         let start = calendar.date(from: DateComponents(year: 2026, month: 3, day: 2))!
         let date = calendar.date(byAdding: .day, value: day, to: start)!
-        return calendar.date(bySettingHour: hour, minute: 0, second: 0, of: date)!
+        return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date)!
     }
 
     private func encoded(_ ledger: OfferLedger) -> Data { try! JSONEncoder().encode(ledger) }
@@ -211,6 +211,60 @@ final class OfferServiceTests: XCTestCase {
         XCTAssertNil(service.ledger.open)
         XCTAssertEqual(service.ledger.closesInRow, 1)
         XCTAssertEqual(decision, .wait(.notDue))
+    }
+
+    /// The bug's steps: a card left open, the app deleted and installed again
+    /// (UserDefaults empty, the Keychain copy kept), onboarding walked anew.
+    /// Home draws no card, nothing is reported, and the card counts as shown.
+    func testACardLeftOpenBeforeAReinstallIsNotDrawnOnTheNewDiary() throws {
+        let vault = MemoryVault()
+        var events: [AnalyticsEvent] = []
+        let clock = Clock(at(3, 9))
+        let old = OfferService(store: OfferLedgerStore(defaults: defaults, keychain: vault),
+                               defaults: defaults, calendar: calendar, clock: { clock.now },
+                               track: { events.append($0) })
+        old.recordShown(.firstResultPoint)
+        events.removeAll()
+
+        // Reinstall: a fresh defaults domain; the vault survives.
+        defaults.removePersistentDomain(forName: suite)
+        clock.now = at(4, 10)
+        let context = try makeContext()
+        let baby = insertBaby(context)
+        baby.createdAt = at(4, 9, 58)
+        OnboardingEnd.record(now: at(4, 10), defaults: defaults)
+        clock.now = at(4, 10).addingTimeInterval(5)
+        let service = OfferService(store: OfferLedgerStore(defaults: defaults, keychain: vault),
+                                   defaults: defaults, calendar: calendar, clock: { clock.now },
+                                   track: { events.append($0) })
+        let decision = service.evaluate(in: context, isPremium: false, entitlementsResolved: true,
+                                        situation: .calm)
+        if case .show = decision { XCTFail("no card on the new diary: \(decision)") }
+        XCTAssertEqual(events, [], "no offer_shown and no offer_closed")
+        XCTAssertNil(service.ledger.open)
+        XCTAssertEqual(service.ledger.shownAt(.firstResult), at(3, 9))
+        XCTAssertEqual(service.ledger.lastShownAt, at(3, 9))
+        XCTAssertEqual(service.ledger.closesInRow, 0)
+        let kept = try XCTUnwrap(vault.data.flatMap { try? JSONDecoder().decode(OfferLedger.self, from: $0) })
+        XCTAssertNil(kept.open, "the Keychain copy carries the drop too")
+    }
+
+    /// Inside its stay a card of the same install still continues across launches.
+    func testACardOfTheSameInstallContinuesAcrossLaunches() throws {
+        let context = try makeContext()
+        insertBaby(context)
+        OnboardingEnd.record(now: at(0, 10), defaults: defaults)
+        let clock = Clock(at(3, 12))
+        var events: [AnalyticsEvent] = []
+        let service = makeService(clock: clock) { events.append($0) }
+        service.recordShown(.firstResultDays)
+        events.removeAll()
+        clock.now = at(4, 8)
+        let decision = service.evaluate(in: context, isPremium: false, entitlementsResolved: true,
+                                        situation: .calm)
+        XCTAssertEqual(decision, .show(.firstResultDays, continuing: true))
+        XCTAssertEqual(events, [])
+        XCTAssertEqual(service.ledger.open?.content, .firstResultDays)
     }
 
     func testAnOlderInstallSpendsWhatWasTrueAtItsLaunchWhileItIsQuiet() throws {

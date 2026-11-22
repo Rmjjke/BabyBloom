@@ -119,8 +119,11 @@ final class LiveActivitySync {
         let gate = LiveActivityGate(switchOn: LiveActivitySettings.isEnabled,
                                     systemEnabled: systemEnabled,
                                     isPad: UIDevice.current.userInterfaceIdiom == .pad)
+        let build = LiveActivitySettings.currentBuild
         var started = LiveActivityPlanner.remembered(LiveActivitySettings.startedEntryIDs,
-                                                     running: running, gate: gate)
+                                                     running: running, activities: snapshots, gate: gate,
+                                                     startedBuild: LiveActivitySettings.startedBuild,
+                                                     currentBuild: build)
         let actions = LiveActivityPlanner.plan(running: running, stopped: stopped,
                                                activities: snapshots, alreadyStarted: started,
                                                gate: gate, now: Date())
@@ -140,6 +143,7 @@ final class LiveActivitySync {
             }
         }
         LiveActivitySettings.startedEntryIDs = started
+        LiveActivitySettings.startedBuild = build
     }
 
     /// One call at a time, in the order reconcile decided them: a quick

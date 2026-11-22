@@ -148,12 +148,68 @@ final class LiveActivityPlannerTests: XCTestCase {
         let feed = timer(.feeding, .breastLeft, minutesAgo: 20)
         let gone = UUID()
         for gate in closedGates {
-            XCTAssertEqual(LiveActivityPlanner.remembered([feed.entryID], running: [feed], gate: gate), [],
-                           "\(gate)")
+            XCTAssertEqual(remembered([feed.entryID], running: [feed], gate: gate), [], "\(gate)")
         }
-        XCTAssertEqual(LiveActivityPlanner.remembered([feed.entryID, gone], running: [feed], gate: open),
-                       [feed.entryID])
+        XCTAssertEqual(remembered([feed.entryID, gone], running: [feed]), [feed.entryID])
         XCTAssertEqual(plan(running: [feed], alreadyStarted: []), [.start(feed)])
+    }
+
+    private func remembered(_ started: Set<UUID>, running: [RunningTimer],
+                            activities: [ActivitySnapshot] = [], gate: LiveActivityGate? = nil,
+                            startedBuild: String? = "1.4.0 (31)",
+                            currentBuild: String = "1.4.0 (31)") -> Set<UUID> {
+        LiveActivityPlanner.remembered(started, running: running, activities: activities,
+                                       gate: gate ?? open, startedBuild: startedBuild,
+                                       currentBuild: currentBuild)
+    }
+
+    /// An update ends the activity the way a swipe does: a start recorded
+    /// under another build, or with no build (1.3.0 and earlier), earns the
+    /// running timer one fresh start with its own start time.
+    func testAnUpdateGivesARunningTimerOneFreshStart() {
+        let nap = timer(.sleep, .nap, minutesAgo: 3)
+        for startedBuild in [nil, "1.3.0 (30)", "1.4.0 (30)"] as [String?] {
+            let started = remembered([nap.entryID], running: [nap], startedBuild: startedBuild)
+            XCTAssertEqual(started, [], "\(String(describing: startedBuild))")
+            let actions = plan(running: [nap], alreadyStarted: started)
+            XCTAssertEqual(actions, [.start(nap)], "\(String(describing: startedBuild))")
+            if case .start(let t) = actions.first {
+                XCTAssertEqual(t.startTime, nap.startTime)
+            }
+        }
+    }
+
+    /// Inside one build an activity the user swiped away stays away.
+    func testInsideOneBuildASwipedActivityStaysAway() {
+        let nap = timer(.sleep, .nap, minutesAgo: 3)
+        let swiped = activity(for: nap, phase: .gone)
+        let started = remembered([nap.entryID], running: [nap], activities: [swiped])
+        XCTAssertEqual(started, [nap.entryID])
+        XCTAssertEqual(plan(running: [nap], activities: [swiped], alreadyStarted: started), [])
+        XCTAssertEqual(plan(running: [nap], alreadyStarted: remembered([nap.entryID], running: [nap])), [])
+    }
+
+    /// An activity that survived the update is not started twice, and stays
+    /// remembered, so a swipe after the update keeps it away.
+    func testAnActivityThatSurvivedTheUpdateIsNotStartedTwice() {
+        let feed = timer(.feeding, .breastRight, minutesAgo: 10)
+        let live = activity(for: feed)
+        let started = remembered([feed.entryID], running: [feed], activities: [live], startedBuild: nil)
+        XCTAssertEqual(started, [feed.entryID])
+        XCTAssertEqual(plan(running: [feed], activities: [live], alreadyStarted: started), [])
+        XCTAssertEqual(plan(running: [feed], activities: [activity(for: feed, phase: .gone)],
+                            alreadyStarted: started), [])
+    }
+
+    /// An update that leaves the old build's activity ended but on the Lock
+    /// Screen: the fresh start replaces it, so the timer has one card.
+    func testAnEndedCardLeftByTheUpdateIsReplacedNotDoubled() {
+        let nap = timer(.sleep, .nap, minutesAgo: 30)
+        let ended = activity(for: nap, id: "old", phase: .ended)
+        let started = remembered([nap.entryID], running: [nap], activities: [ended], startedBuild: "1.3.0 (30)")
+        XCTAssertEqual(started, [])
+        XCTAssertEqual(plan(running: [nap], activities: [ended], alreadyStarted: started),
+                       [.endImmediately(activityID: "old"), .start(nap)])
     }
 
     func testTitleMapping() {

@@ -115,6 +115,22 @@ struct OfferLedger: Codable, Equatable, Sendable {
         return card.content
     }
 
+    /// The ledger outlives a reinstall in the Keychain, so a card opened
+    /// before this diary's onboarding ended belongs to an earlier install: it
+    /// leaves Home without being drawn again. It was shown, so its moment stays
+    /// used and the pace runs from its date; the person did not close it, so
+    /// the streak is unchanged. Returns whether a card was dropped.
+    ///
+    /// `updatedAt` is left as it was: through iCloud Keychain the card may be
+    /// another device's, still inside its stay there, and a newer stamp would
+    /// make this copy win that device's merge and take the card off its Home.
+    @discardableResult
+    mutating func dropCardOpened(before onboardingEndedAt: Date) -> Bool {
+        guard let card = open, card.shownAt < onboardingEndedAt else { return false }
+        open = nil
+        return true
+    }
+
     private mutating func stampShown(_ content: OfferContent, now: Date) {
         if let moment = content.moment, shownDates[moment.rawValue] == nil {
             shownDates[moment.rawValue] = now

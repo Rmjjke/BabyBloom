@@ -49,6 +49,13 @@ final class OfferService {
                                          onboardingEndedAt: OnboardingEnd.stored(defaults: defaults),
                                          now: now)
 
+        // Before `settle`: a card from an earlier install is reported neither
+        // as shown again nor as closed. Only the end onboarding recorded
+        // counts: an install from before the record cannot hold an earlier
+        // install's card, and its baby-based stand-in moves with a pinned clock.
+        if let ended = OnboardingEnd.stored(defaults: defaults) {
+            ledger.dropCardOpened(before: ended)
+        }
         if let expired = ledger.settle(now: now, calendar: calendar) {
             track(.offerClosed(expired, expired: true))
         }

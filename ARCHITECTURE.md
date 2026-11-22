@@ -1784,11 +1784,18 @@ rules:
 - a deleted entry, the switch off, iOS off or an iPad end it at once;
 - no start for a timer aged ≥ 8 h; an activity iOS ended at ~8 h (still on the
   Lock Screen) gets the same final content once its timer stops;
-- one start per entry (`liveActivity.startedEntryIDs`), so an activity the user
-  swiped away does not come back. A closed gate forgets them all
-  (`LiveActivityPlanner.remembered`), so the switch or iOS turning back on shows
-  the running timer again. iOS toggled off and on while the app was not running
-  cannot be told from a swipe: that timer stays without an activity.
+- one start per entry per build (`liveActivity.startedEntryIDs`, written with
+  `liveActivity.startedBuild`), so an activity the user swiped away does not
+  come back. A closed gate forgets them all (`LiveActivityPlanner.remembered`),
+  so the switch or iOS turning back on shows the running timer again. A launch
+  under another build (or with no build recorded, as from 1.3.0 and earlier)
+  forgets the starts whose activity is no longer live: an update ends the
+  activities, so a timer running through it gets one fresh start with its own
+  start time, and one whose activity survived is not started twice; an old
+  card the update left ended on the Lock Screen is dismissed as the fresh one
+  starts, so the timer never shows two. iOS toggled
+  off and on while the app was not running cannot be told from a swipe: that
+  timer stays without an activity.
 
 ActivityKit calls run one at a time in a queue (`LiveActivitySync.enqueue`), so
 quick side changes and a stop land in order; `settle()` waits for it. The Stop
@@ -1925,7 +1932,13 @@ is checked on its own and the strictest wins.
 
 **A shown card** stays on Home on its day and the two days after
 (`stayDays = 3`), the days running while a hold hides it; then it leaves and
-counts as a close (`offer_closed` with `expired: true`). × is a close; a tap
+counts as a close (`offer_closed` with `expired: true`). A card opened before
+the end of onboarding this install recorded (`OnboardingEnd.stored`, not the
+baby-based stand-in) was left by an earlier install (the ledger survives a
+reinstall): at the next evaluation it leaves without being drawn, with no
+event, counting as shown (its moment used, the pace from its date) but not as
+a close. The drop keeps the ledger's `updatedAt`, so through iCloud Keychain
+it never wins the merge of the device whose card it is. × is a close; a tap
 opens the paywall with `PaywallSource.offer`, counts as shown and ends the
 streak — closing that paywall does not bring the card back. `recordShown` for
 the card already open is a no-op, so a Home that redraws cannot restart the
