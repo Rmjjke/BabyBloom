@@ -14,6 +14,7 @@ struct RecentActivityView: View {
     @Query(sort: \FeedingEntry.startTime, order: .reverse) private var feedings: [FeedingEntry]
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var sleeps: [SleepEntry]
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
+    @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
 
     @Query(sort: [SortDescriptor(\DoctorVisit.date, order: .reverse),
                   SortDescriptor(\DoctorVisit.createdAt, order: .reverse)])
@@ -32,17 +33,11 @@ struct RecentActivityView: View {
     /// where the cap rather than the window is what costs rows.
     ///
     /// There is no delete-all here by design: this screen is a read-only view
-    /// onto three lists that each have their own, and every row it CAN reach
+    /// onto four lists that each have their own, and every row it CAN reach
     /// stays swipe-deletable.
     private var model: HistoryWindow.List<RecentEvent> {
-        let all: [RecentEvent] =
-            feedings.map(RecentEvent.feeding)
-            + sleeps.map(RecentEvent.sleep)
-            + diapers.map(RecentEvent.diaper)
-        return HistoryWindow.list(all.sorted { $0.eventTime > $1.eventTime },
-                                  date: { $0.eventTime },
-                                  cutoff: store.historyCutoff,
-                                  cap: 20)
+        RecentEvent.windowed(feeds: feedings, sleeps: sleeps, diapers: diapers, events: events,
+                             cutoff: store.historyCutoff)
     }
 
     /// `model` plus the visits, which bypass the window and the cap: the report
@@ -80,6 +75,14 @@ struct RecentActivityView: View {
                                 .buttonStyle(.plain)
                                 .accessibilityHint("report.a11y_period_hint".l)
                                 .accessibilityIdentifier("recent.visit_row.\(visitNumber(of: visit, in: rows))")
+                            } else if case .event(let customEvent) = event {
+                                // No tap: a dose is edited in its medicine's list.
+                                SwipeToDeleteRow(onDelete: { delete(event) }) {
+                                    // One element, read whole, as in the Events history.
+                                    row(for: event)
+                                        .accessibilityElement(children: .combine)
+                                        .accessibilityIdentifier("recent.event_row.\(eventNumber(of: customEvent, in: rows))")
+                                }
                             } else {
                                 SwipeToDeleteRow(onDelete: { delete(event) }) {
                                     row(for: event)
@@ -110,6 +113,15 @@ struct RecentActivityView: View {
             return nil
         }
         return (ids.firstIndex(of: visit.persistentModelID) ?? 0) + 1
+    }
+
+    /// 1-based position among the event rows, for the UI-test identifier.
+    private func eventNumber(of event: CustomEvent, in rows: [RecentEvent]) -> Int {
+        let ids = rows.compactMap { row -> PersistentIdentifier? in
+            if case .event(let e) = row { return e.persistentModelID }
+            return nil
+        }
+        return (ids.firstIndex(of: event.persistentModelID) ?? 0) + 1
     }
 
     @ViewBuilder
@@ -143,6 +155,16 @@ struct RecentActivityView: View {
                 time: entry.time.appTimeOfDay,
                 trailing: day
             )
+        case .event(let event):
+            let text = event.rowText
+            BBEventRow(
+                icon: event.type.icon,
+                iconColor: Color(hex: event.type.colorHex),
+                title: text.title,
+                subtitle: text.subtitle,
+                time: event.time.appTimeOfDay,
+                trailing: day
+            )
         case .visit(let visit):
             BBEventRow(
                 icon: "stethoscope",
@@ -160,6 +182,7 @@ struct RecentActivityView: View {
         case .feeding(let entry): deleteEntry(entry)
         case .sleep(let entry):   deleteEntry(entry)
         case .diaper(let entry):  deleteEntry(entry)
+        case .event(let event):   RecentEvent.delete(event, in: modelContext)
         // Unreachable, no swipe exists on a visit row: a visit changes only
         // in its detail.
         case .visit:              break
@@ -195,6 +218,7 @@ enum RecentEvent: Identifiable {
     case feeding(FeedingEntry)
     case sleep(SleepEntry)
     case diaper(DiaperEntry)
+    case event(CustomEvent)
     case visit(DoctorVisit)
 
     var id: PersistentIdentifier {
@@ -202,8 +226,32 @@ enum RecentEvent: Identifiable {
         case .feeding(let entry): return entry.persistentModelID
         case .sleep(let entry):   return entry.persistentModelID
         case .diaper(let entry):  return entry.persistentModelID
+        case .event(let event):   return event.persistentModelID
         case .visit(let visit):   return visit.persistentModelID
         }
+    }
+
+    /// The four lists merged newest first, then the free window, then the
+    /// twenty-row cap.
+    static func windowed(feeds: [FeedingEntry], sleeps: [SleepEntry], diapers: [DiaperEntry],
+                         events: [CustomEvent], cutoff: Date?) -> HistoryWindow.List<RecentEvent> {
+        let all: [RecentEvent] =
+            feeds.map(RecentEvent.feeding)
+            + sleeps.map(RecentEvent.sleep)
+            + diapers.map(RecentEvent.diaper)
+            + events.map(RecentEvent.event)
+        return HistoryWindow.list(all.sorted { $0.eventTime > $1.eventTime },
+                                  date: { $0.eventTime },
+                                  cutoff: cutoff,
+                                  cap: 20)
+    }
+
+    /// The save is what re-plans a medicine's reminder and redraws its card
+    /// (`MedicationReminderSync` hears `didSave`), so a dose deleted here acts
+    /// as one deleted from its medicine's list.
+    static func delete(_ event: CustomEvent, in context: ModelContext) {
+        context.delete(event)
+        try? context.save()
     }
 
     /// The date under the time for a row from an earlier day, in the history
@@ -220,6 +268,7 @@ enum RecentEvent: Identifiable {
         case .feeding(let entry): return entry.startTime
         case .sleep(let entry):   return entry.startTime
         case .diaper(let entry):  return entry.time
+        case .event(let event):   return event.time
         case .visit(let visit):   return visit.date
         }
     }
