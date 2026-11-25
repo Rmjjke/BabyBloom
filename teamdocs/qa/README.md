@@ -9,7 +9,7 @@ QA's working tree (checklists, Maestro flows, run evidence, bug reports)
 lives on the test machine, outside version control. Paths below are
 relative to its root.
 
-- **Regression base.** One checklist per feature, 35 in all:
+- **Regression base.** One checklist per feature, 37 in all:
   `<area>/<feature>/test-cases/regression-checklist.md`. Areas are
   onboarding, tracking, growth, dashboard-widget, premium, profile-export,
   notifications, doctor-visit and medications. Version 1.1.0 added three features:
@@ -36,9 +36,28 @@ relative to its root.
   the Premium screen carries the four-row 1.4.0 list (PREM-010,
   PREM-025…033); the free history window and the trackers' weekly-chart
   rows point to WLOCK. Retired checklists stay for history and are not
-  run, so the active count stays 35. Row ids are permanent
+  run. Row ids are permanent
   (`FEED-001`, …). The P1 rows form the smoke set. Format:
   `qa/rules/local/checklist-format.md`.
+- **Two cross-feature rules** (from 1.4.0 build 31, after two things a
+  user met that the regression passed over), each with its checklist
+  under `_cross/`:
+  - **OPEN-TIME** (`_cross/open-time`, OPEN; `qa/rules/local/open-time.md`):
+    every entry point (Home's quick actions and Today tiles, each tab,
+    each row of More) is opened cold (first open after a launch) and
+    warm, timed from a screen recording, and compared with its
+    neighbours. One that is slower than its group by more than 100 ms,
+    or over the stated time, is a bug.
+  - **TRACE** (`_cross/trace`, TRACE; `qa/rules/local/trace.md`): every
+    entry a person can create (feed, sleep, diaper, growth, each event
+    type, a dose, a visit, a medicine), from every place it can be
+    created, is seen back at that place, or the place says where it
+    lives. No trace is a bug, whatever a decision says about a
+    neighbour screen.
+  - A blind tester's "could not find it" or "expected it elsewhere"
+    note that a decision answers by design is not dropped: the run's
+    result lists it under its own heading with that decision, for the
+    owner to see.
 - **Bugs.** One file each, indexed in `bugs.md` (ids `Q-NNN`). Severity:
   - **blocker**: a crash, data loss or broken sync, or a core flow that
     does not work (logging an entry, purchase or restore, leaving

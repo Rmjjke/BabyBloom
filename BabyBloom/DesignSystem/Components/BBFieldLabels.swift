@@ -65,17 +65,51 @@ struct BBLabeledDateTimePicker<Picker: View>: View {
             if dynamicTypeSize.isAccessibilitySize {
                 stacked.labelsHidden()
             } else {
-                // The stacked shape comes last: a nested ViewThatFits offers
-                // its first child's width, so earlier it would win only by that.
-                ViewThatFits(in: .horizontal) {
+                BBFirstFit {
                     pair
-                    pair.dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                    stacked
+                } otherwise: {
+                    // The stacked shape comes last: a nested ViewThatFits offers
+                    // its first child's width, so earlier it would win only by that.
+                    ViewThatFits(in: .horizontal) {
+                        pair
+                        pair.dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                        stacked
+                    }
                 }
                 .labelsHidden()
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The first shape alone while it fits the width, else every shape of
+/// `otherwise`. A ViewThatFits builds each child it may choose, and each
+/// compact date picker in one is a UIDatePicker made and updated on every
+/// show: the date-and-time row's twelve shapes held a form's sheet back for
+/// a second. Where the first shape misses, a stand-in of no size is chosen
+/// in its place for one pass and the full set takes over from then on.
+struct BBFirstFit<First: View, Otherwise: View>: View {
+    private let first: First
+    private let otherwise: Otherwise
+    @State private var missed = false
+
+    init(@ViewBuilder _ first: () -> First, @ViewBuilder otherwise: () -> Otherwise) {
+        self.first = first()
+        self.otherwise = otherwise()
+    }
+
+    var body: some View {
+        if missed {
+            otherwise
+        } else {
+            ViewThatFits(in: .horizontal) {
+                first
+                Color.clear
+                    .frame(width: 0, height: 0)
+                    .onAppear { missed = true }
+            }
+        }
     }
 }
 

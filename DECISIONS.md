@@ -14,6 +14,38 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-25 — A ViewThatFits over UIKit-backed controls tries the likely shape alone first
+
+**`ViewThatFits` builds every child it may choose, on every show.** A
+compact `DatePicker` is a `UIDatePicker`, and each one is made, updated and
+laid out in full even where its shape is never drawn. The date-and-time row
+offered twelve pickers (the pair at the reader's size and at xxLarge, the
+date and the time apart at five text-size steps each), so a sheet built
+twelve. The New Event sheet's time row cost about a second on a
+cold open in a Release build (1.3 to 3.9 s from the tap to its first frame,
+against 0.35 to 1.4 s for Feeding, Sleep and Diapers). A Time Profiler
+trace put the difference under `ViewThatFits`'s size fitting: `UIDatePicker`
+creation, update and its compact view's `_updateUI`. With the change, and
+with no UI-test driver attached (its accessibility queries grow with the
+form and add to the open), the sheet's first frame came 281 ms after the tap
+on a cold open and 143 ms on a warm one, against 201 and 116 ms for the
+slowest of the other three (597 and 463 ms before).
+
+`BBFirstFit` offers the pair at the reader's size alone. A stand-in of no
+size takes its place where it misses, and from the next pass the full set
+does. At the default text sizes the pair fits, so the row holds one
+picker; where it misses (a narrow phone at the largest sizes below the
+accessibility ones, a long date, Bold Text) that sheet keeps the full set
+from then on, as before. The rejected way was caching the measured shape per text
+size and width: the cache would also have to follow the locale and the
+date, since the widest date changes by month. At accessibility sizes the
+date and the time still stand apart through `BBFitsByTextSize`, ten
+pickers: those sizes are rare and the fit there is the point. A
+`ViewThatFits` over plain text stays as it is, since a `Text` is cheap to
+measure.
+
+---
+
 ## 2026-11-21 — The birth calendar keeps the system picker and caps its own text size
 
 **Onboarding's birth date stays the system graphical `DatePicker`, under a

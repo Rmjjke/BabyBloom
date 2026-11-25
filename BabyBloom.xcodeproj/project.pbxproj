@@ -139,6 +139,7 @@
 		4CD3B0187A995508EABACD41 /* OfferService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF7FF92308A63381A013B07E /* OfferService.swift */; };
 		4DB21D42FA38930B577F01F2 /* OfferServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDB909F83AA580CCA477D464 /* OfferServiceTests.swift */; };
 		4ECBD3F67C650568EA0B22FE /* NewbornWeightLossTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D50F40144A0E8A7F73B4DD /* NewbornWeightLossTests.swift */; };
+		4F15897AAE4875FAC808E9FE /* BBFirstFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBED933D0080007139153A4F /* BBFirstFitTests.swift */; };
 		4FA1FC6EF847EBB826070C7C /* WeeklySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E1732FD1958FCFE2747431 /* WeeklySummary.swift */; };
 		4FEC10B6A0B0B75FD385F212 /* MedicationReminderCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887D938F6670A32C329A2F96 /* MedicationReminderCard.swift */; };
 		526C04993CAD4A155C0E67E1 /* WeeklySummary+Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF3FAB463AFECEC423F714 /* WeeklySummary+Store.swift */; };
@@ -739,6 +740,7 @@
 		B8FE2F53DE809CBCB728254C /* DoctorPeriodRowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoctorPeriodRowsTests.swift; sourceTree = "<group>"; };
 		BB4245A2693BB744519A3D47 /* MedicationHomeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationHomeCard.swift; sourceTree = "<group>"; };
 		BBD6084D02AF0B2470380CC4 /* sv.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sv.json; sourceTree = "<group>"; };
+		BBED933D0080007139153A4F /* BBFirstFitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BBFirstFitTests.swift; sourceTree = "<group>"; };
 		BDC1C148D2C64F3492DC8613 /* MedicationHomeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationHomeTests.swift; sourceTree = "<group>"; };
 		BF10A5E8D137D1B6AE247D14 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		BF126465F9A0E5D99EE0AD9A /* fr.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fr.json; sourceTree = "<group>"; };
@@ -1074,6 +1076,7 @@
 				03DCB1384549675BD1DE563D /* BabyBloomTests.swift */,
 				83D159D7A1D44A9E0B77C031 /* BBButtonInsetTests.swift */,
 				918ED2820ABAB2DB83D2A7AC /* BBButtonLabelFitTests.swift */,
+				BBED933D0080007139153A4F /* BBFirstFitTests.swift */,
 				CEDB039AFD50ADF3376CDFF1 /* BBScreenTitleFitTests.swift */,
 				AF407B922890E635700008AD /* BirthCalendarHeaderTests.swift */,
 				47CA8B63BDB860E74BA1F37A /* BirthDateChangeTests.swift */,
@@ -2120,6 +2123,7 @@
 				675834B5462A1970ED1581F0 /* AppSchemaTests.swift in Sources */,
 				89F85B792E32D376E18832E9 /* BBButtonInsetTests.swift in Sources */,
 				17FCD37009A2A664F512F7DB /* BBButtonLabelFitTests.swift in Sources */,
+				4F15897AAE4875FAC808E9FE /* BBFirstFitTests.swift in Sources */,
 				1D5821F38CAA5AA754208E09 /* BBScreenTitleFitTests.swift in Sources */,
 				B9B272926DD1709F762BF3B2 /* BabyBloomTests.swift in Sources */,
 				E1B0F582FD1824206AEE9B53 /* BirthCalendarHeaderTests.swift in Sources */,
