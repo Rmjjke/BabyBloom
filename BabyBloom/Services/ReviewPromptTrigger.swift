@@ -159,11 +159,15 @@ private struct ReviewPromptHost: ViewModifier {
 
 private struct EntrySheet<SheetContent: View>: ViewModifier {
     @Binding var isPresented: Bool
+    let onDismiss: (() -> Void)?
     let sheetContent: () -> SheetContent
     @Environment(\.reviewPrompt) private var outer
 
     func body(content: Content) -> some View {
-        content.sheet(isPresented: $isPresented, onDismiss: { outer.sheetDismissed() }) {
+        content.sheet(isPresented: $isPresented, onDismiss: {
+            outer.sheetDismissed()
+            onDismiss?()
+        }) {
             sheetContent().environment(\.reviewPrompt, outer.deferred)
         }
     }
@@ -187,9 +191,12 @@ extension View {
     /// `.sheet` for any sheet in which an entry can be saved. Use it for those
     /// and only those — a paywall or an editor presented this way would do no
     /// harm, but it would read as a place where entries are logged.
+    ///
+    /// `onDismiss` runs after the review prompt has heard the dismissal.
     func entrySheet<Content: View>(isPresented: Binding<Bool>,
+                                   onDismiss: (() -> Void)? = nil,
                                    @ViewBuilder content: @escaping () -> Content) -> some View {
-        modifier(EntrySheet(isPresented: isPresented, sheetContent: content))
+        modifier(EntrySheet(isPresented: isPresented, onDismiss: onDismiss, sheetContent: content))
     }
 
     func entrySheet<Item: Identifiable, Content: View>(item: Binding<Item?>,

@@ -12,8 +12,9 @@ struct DashboardView: View {
     @Query(sort: \SleepEntry.startTime, order: .reverse) private var sleeps: [SleepEntry]
     @Query(sort: \DiaperEntry.time, order: .reverse) private var diapers: [DiaperEntry]
     @Query(sort: \GrowthEntry.date, order: .reverse) private var growthEntries: [GrowthEntry]
-    /// Only for the weekly card's "days with entries": an event day counts.
-    @Query private var events: [CustomEvent]
+    /// Newest first for the Events section; the weekly card and the offer
+    /// read it as a set.
+    @Query(sort: \CustomEvent.time, order: .reverse) private var events: [CustomEvent]
     /// Only for the offer's hold: a dose that may be taken now.
     @Query private var medicines: [Medicine]
 
@@ -29,6 +30,20 @@ struct DashboardView: View {
     /// Drives the Growth push. A `@State` + `navigationDestination` rather than
     /// a `NavigationLink`, because the link is a Button — see `growthSection`.
     @State private var showGrowth = false
+    /// Drives the Events push; one tap target like Growth's.
+    @State private var showEvents = false
+    /// The saved event Events marks after a push from a save; nil from a tap.
+    @State private var eventsHighlight: PersistentIdentifier?
+    /// Set by the form on save, consumed when the sheet has closed: a cancel
+    /// never replays an old one.
+    @State private var pendingSave: CustomEvent?
+    /// The row to cue on Home, once the sheet has closed.
+    @State private var cueRow: PersistentIdentifier?
+    @State private var cue = SavedRowCueModel()
+    /// Bumped at midnight, so the Events section empties with the day even
+    /// when nothing else draws Home again.
+    @State private var dayTick = 0
+    @AccessibilityFocusState private var focus: SavedRowTarget?
     @State private var offer = OfferSlotState()
     /// The card the open paywall came from, for its `paywall_shown`.
     @State private var offerForPaywall: OfferContent?
@@ -76,6 +91,11 @@ struct DashboardView: View {
                                        growth: growthEntries, events: events))
     }
 
+    private var todayEvents: [CustomEvent] {
+        _ = dayTick
+        return HomeEvents.today(events, time: \.time, now: AppClock.now, calendar: .current)
+    }
+
     private var activeFeeding: FeedingEntry? {
         feedings.first(where: { $0.isActive })
     }
@@ -86,6 +106,7 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: BBTheme.Spacing.xl) {
                     headerSection
@@ -112,11 +133,34 @@ struct DashboardView: View {
                     }
                     quickActionsSection
                     statsSection
+                    if !todayEvents.isEmpty {
+                        eventsSection
+                    }
                     growthSection
                     progressSection
                 }
                 .padding(.horizontal, BBTheme.Spacing.md)
                 .padding(.bottom, BBTheme.Spacing.xl)
+            }
+            // On the always-drawn scroll view, not in the section: the section
+            // is absent on a day with no event, and a save dated yesterday
+            // still pushes Events.
+            .navigationDestination(isPresented: $showEvents) { EventsView(highlight: eventsHighlight) }
+            .onChange(of: showEvents) { _, shown in
+                if !shown { eventsHighlight = nil }
+            }
+            // Posted at midnight (queued while in the background).
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                dayTick += 1
+            }
+            .onChange(of: cueRow) { _, id in
+                guard let id else { return }
+                cueRow = nil
+                Task {
+                    await cue.run(.row(id), ring: true, holdFromScrollEnd: false,
+                                  proxy: proxy, reduceMotion: reduceMotion) { focus = $0 }
+                }
+            }
             }
             .background(BBTheme.Colors.background.ignoresSafeArea())
             // No navigation bar here, so nothing backs the status bar: scrolled
@@ -138,7 +182,9 @@ struct DashboardView: View {
         .entrySheet(isPresented: $showQuickFeedingSheet) { FeedingQuickSheet() }
         .entrySheet(isPresented: $showQuickSleepSheet)   { SleepQuickSheet() }
         .entrySheet(isPresented: $showQuickDiaperSheet)  { DiaperQuickSheet() }
-        .entrySheet(isPresented: $showQuickEventSheet)   { AddEventSheet() }
+        .entrySheet(isPresented: $showQuickEventSheet, onDismiss: savedEventSheetClosed) {
+            AddEventSheet(onSaved: { pendingSave = $0 })
+        }
         .entrySheet(isPresented: $showQuickGrowthSheet)  { AddGrowthSheet() }
         .sheet(item: $paywallSource) { source in
             PaywallView(source: source, offer: source == .offer ? offerForPaywall : nil)
@@ -177,6 +223,25 @@ struct DashboardView: View {
             if let baby {
                 BabyProfileEditSheet(baby: baby)
             }
+        }
+    }
+
+    // MARK: - Saved event
+
+    /// Once the form has closed: the row is on Home, so Home cues it; if not
+    /// (an earlier or later day, or a fourth event today) Events is pushed
+    /// and cues it there. The query may not have caught up with the save, so
+    /// the test counts the saved event itself.
+    private func savedEventSheetClosed() {
+        guard let saved = pendingSave else { return }
+        pendingSave = nil
+        let id = saved.persistentModelID
+        if HomeEvents.isOnHome(saved: saved, among: events, id: \.persistentModelID, time: \.time,
+                               now: AppClock.now, calendar: .current) {
+            cueRow = id
+        } else {
+            eventsHighlight = id
+            showEvents = true
         }
     }
 
@@ -361,6 +426,59 @@ struct DashboardView: View {
     private var lastFeedingText: String? {
         guard let last = feedings.first else { return nil }
         return ReportFormat.ago(from: last.startTime, to: AppClock.now)
+    }
+
+    // MARK: - Events
+
+    /// Today's events, newest first. Header and rows are one tap target to
+    /// Events, as on Growth, and for the same reason it is a gesture and not
+    /// a link: a link would flatten the rows into one VoiceOver element. The
+    /// way in without sight is the named action on the header title.
+    private var eventsSection: some View {
+        VStack(alignment: .leading, spacing: BBTheme.Spacing.md) {
+            HStack {
+                BBTheme.Typography.title3("nav.events".l)
+                    .foregroundStyle(BBTheme.Colors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("dashboard.events.title")
+                    .accessibilityActions {
+                        Button("dashboard.events.open".l) { openEvents() }
+                    }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(BBTheme.Colors.textSecondary.opacity(0.4))
+                    .accessibilityHidden(true)
+            }
+            VStack(spacing: BBTheme.Spacing.sm) {
+                ForEach(Array(todayEvents.enumerated()), id: \.element.persistentModelID) { index, event in
+                    let id = event.persistentModelID
+                    let text = event.rowText
+                    BBEventRow(
+                        icon: event.type.icon,
+                        iconColor: Color(hex: event.type.colorHex),
+                        title: text.title,
+                        subtitle: text.subtitle,
+                        time: event.time.appTimeOfDay
+                    )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityFocused($focus, equals: .row(id))
+                    .accessibilityIdentifier("dashboard.events.row.\(index + 1)")
+                    .savedRowRing(cue.ringed == .row(id))
+                    .savedRowAnchor(.row(id))
+                }
+            }
+        }
+        // Empty space in the header row does not answer taps without this.
+        .contentShape(Rectangle())
+        .onTapGesture { openEvents() }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("dashboard.events")
+    }
+
+    private func openEvents() {
+        eventsHighlight = nil
+        showEvents = true
     }
 
     // MARK: - Growth

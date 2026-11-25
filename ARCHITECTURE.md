@@ -1638,7 +1638,7 @@ delete have one: `BBHistorySection` hands `onDeleteAll` the full
 picker-filtered range, and `EventsView` grew a `BBDeleteHistoryButton` for
 exactly this reason — its older events had no swipe to reach them and export is
 itself paid. (`RecentActivityView` has none by design: it is a read-only view
-onto three lists that each have their own, and every row it can reach stays
+onto four lists that each have their own, and every row it can reach stays
 swipe-deletable.) `BBDeleteHistoryButton` warns whenever
 `deletable.count > visible.count` — deliberately broader than the footer's
 test, since the confirmation must own up to rows the cap is holding back too —
@@ -2173,7 +2173,7 @@ the App Store Connect answers in step.
 rather than in the bar;
 `RecentActivityView` is the Dashboard's former recent-events section, moved out
 whole. The Dashboard's own sections run header → activeTimers → quickActions →
-stats → growth → progress. Its Growth header AND the data card under it are one
+stats → events → growth → progress. Its Growth header AND the data card under it are one
 tap target into `GrowthView` — the second route to that screen — built as a
 `contentShape` + `onTapGesture` driving a `navigationDestination`, not as a
 `NavigationLink`: a link is a Button and would flatten the card's per-row
@@ -2185,6 +2185,32 @@ on one screen, deliberately merged from what used to be two More entries.
 Every tab carries an `accessibilityIdentifier` (`tab_home`, `tab_feeding`, …)
 because e2e flows select on them; the tab bar itself is reached as
 `childOf: {text: "Tab Bar"}`.
+
+**Where a saved event shows.** Home's Events section lists the three newest
+of today's events of every type, doses included (`HomeEvents`, pure), and is
+absent on a day with none. Header and rows are one tap target into
+`EventsView`, built like Growth's (a gesture driving a `navigationDestination`,
+the named action on the title), and that destination sits on Home's
+always-drawn scroll view, not in the section, so a push survives the section
+going away. A save from Home's quick action never ends in silence:
+`AddEventSheet(onSaved:)` hands the saved event to Home, and once the sheet's
+`onDismiss` has run (`entrySheet(isPresented:onDismiss:)`) Home asks one
+question, `HomeEvents.isOnHome`, counting the saved event itself because the
+`@Query` may not have caught up. On Home → Home cues the row; not on Home (an
+earlier or later day, or a fourth event today) → Home pushes
+`EventsView(highlight:)`, which cues it there after the push has ended. The
+cue is one piece, `SavedRowCueModel` (`DesignSystem/Components/SavedRowCue`):
+the least scroll (`anchor: nil`, easeInOut 0.25, none with Reduce Motion), a
+2 pt primary ring outside the row for 1.5 s and a fade that stays with Reduce
+Motion, and VoiceOver focus on the row. In Events, `SavedRowCue.target`
+picks the row when it is drawn; for a free account whose event is older than
+the window, the locked footer (scroll and focus, no ring); past the 20-row cap
+with no footer, nothing, and the screen opens at its top. More › Events
+passes no highlight. Recent activity lists every event too (`RecentEvent.event`),
+windowed before its cap like the other kinds, with the row text Events uses
+(`CustomEvent.rowText`); an event row swipes to delete and has no tap, and
+the delete saves at once, so a dose's reminder is re-planned as from its
+medicine's list.
 
 **«For the pediatrician»** (`Features/DoctorReport/DoctorReportView`, 1.2.0)
 comes right after Growth in More. Top to bottom: the name ①, the period line

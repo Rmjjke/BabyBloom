@@ -17,10 +17,22 @@ struct EventsView: View {
     /// Only the history footer sells on this screen; creating is free.
     @State private var paywallSource: AnalyticsEvent.PaywallSource?
     @State private var detailVisit: DoctorVisit?
+    /// The event Home's save pushed this screen for; nil from More.
+    private let highlight: PersistentIdentifier?
+    @State private var cue = SavedRowCueModel()
+    @AccessibilityFocusState private var focus: SavedRowTarget?
+    /// A re-appear (back from a medication detail) must not cue twice.
+    @State private var didCue = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(highlight: PersistentIdentifier? = nil) {
+        self.highlight = highlight
+    }
 
     // No NavigationStack of its own: the screen is pushed from More's, and a
     // second stack would hold the medication detail's push.
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: BBTheme.Spacing.lg) {
                 BBScreenHeading(title: "nav.events".l, horizontalPadding: BBTheme.Spacing.md)
@@ -36,6 +48,10 @@ struct EventsView: View {
                     .padding(.horizontal, BBTheme.Spacing.md)
             }
             .padding(.bottom, BBTheme.Spacing.xl)
+        }
+        // One shot, after the push has ended: a scroll during UIKit's push
+        // (about 0.35 s) would be lost.
+        .task { await runCue(proxy) }
         }
         .background(BBTheme.Colors.background.ignoresSafeArea())
         .bbScreenTitle("nav.events".l)
@@ -127,18 +143,6 @@ struct EventsView: View {
         }
     }
 
-    /// A medication shows its name and dose as typed; every other type its
-    /// note, or its mood.
-    private func rowText(_ event: CustomEvent) -> (title: String, subtitle: String) {
-        let typeWord = event.type.displayName.l
-        guard event.type == .medication else {
-            return (typeWord, event.notes ?? (event.mood?.displayName.l ?? ""))
-        }
-        return MedicationFormat.eventRow(typeWord: typeWord, isDose: event.isDose,
-                                         name: event.medicationName,
-                                         dose: event.medicationDose, note: event.notes)
-    }
-
     /// The free history window, applied BEFORE the twenty-row cap.
     ///
     /// Order matters for what the footer means. Windowing first makes the
@@ -170,7 +174,8 @@ struct EventsView: View {
                     ForEach(model.rows) { row in
                         switch row {
                         case .event(let event):
-                            let text = rowText(event)
+                            let text = event.rowText
+                            let id = event.persistentModelID
                             SwipeToDeleteRow(onDelete: { delete(event) }) {
                                 BBEventRow(
                                     icon: event.type.icon,
@@ -180,7 +185,14 @@ struct EventsView: View {
                                     time: event.time.appTimeOfDay,
                                     trailing: event.time.appDayMonth
                                 )
+                                // One element, so focus lands on the row and
+                                // VoiceOver reads it whole.
+                                .accessibilityElement(children: .combine)
+                                .accessibilityFocused($focus, equals: .row(id))
                             }
+                            // On the swipe row: its clip would cut a ring drawn inside.
+                            .savedRowRing(cue.ringed == .row(id))
+                            .savedRowAnchor(.row(id))
                         case .visit(let visit):
                             // No swipe: a visit changes only in its detail,
                             // never from a list.
@@ -201,6 +213,8 @@ struct EventsView: View {
                 }
                 if model.events.showsLockedFooter {
                     BBLockedHistoryFooter(surface: .events) { paywallSource = .historyLock }
+                        .id(SavedRowTarget.footer)
+                        .accessibilityFocused($focus, equals: .footer)
                 }
                 // This screen is the one windowed surface with no swipe reach
                 // to its unrendered rows: an event older than the free window
@@ -227,6 +241,24 @@ struct EventsView: View {
                 }
             }
         }
+    }
+
+    private func runCue(_ proxy: ScrollViewProxy) async {
+        guard !didCue, highlight != nil else { return }
+        try? await Task.sleep(for: .milliseconds(350))
+        guard !Task.isCancelled else { return }
+        didCue = true
+        let model = self.model
+        let rowIDs = model.rows.compactMap { row -> PersistentIdentifier? in
+            if case .event(let event) = row { return event.persistentModelID }
+            return nil
+        }
+        let saved = events.first { $0.persistentModelID == highlight }
+        guard let cued = SavedRowCue.target(highlight: highlight, rows: rowIDs,
+                                            footerShown: model.events.showsLockedFooter,
+                                            savedTime: saved?.time, cutoff: store.historyCutoff) else { return }
+        await cue.run(cued.target, ring: cued.ring, holdFromScrollEnd: true,
+                      proxy: proxy, reduceMotion: reduceMotion) { focus = $0 }
     }
 
     /// 1-based position among the visit rows, for the UI-test identifier.
@@ -281,8 +313,13 @@ struct AddEventSheet: View {
     /// Start at `.large` so all fields are visible without a manual drag.
     @State private var selectedDetent: PresentationDetent = .large
 
-    init(type: CustomEvent.EventType = .bath) {
+    /// Told of the saved event before the sheet closes; Home uses it to
+    /// show where the event went.
+    var onSaved: ((CustomEvent) -> Void)?
+
+    init(type: CustomEvent.EventType = .bath, onSaved: ((CustomEvent) -> Void)? = nil) {
         _selectedType = State(initialValue: type)
+        self.onSaved = onSaved
     }
 
     var body: some View {
@@ -527,6 +564,7 @@ struct AddEventSheet: View {
         if event.baby == nil { event.baby = babies.first }
         modelContext.insert(event)
         try? modelContext.save()
+        onSaved?(event)
         dismiss()
     }
 
@@ -546,6 +584,7 @@ struct AddEventSheet: View {
         // No rating prompt after a medication, from any path; the first-entry
         // count still hears a free-text one, as before.
         if selectedType != .medication { reviewPrompt.entrySaved(.event) } else { reviewPrompt.logged(.event) }
+        onSaved?(event)
         dismiss()
     }
 }

@@ -14,6 +14,33 @@ live with the workflow, outside this repository.
 
 ---
 
+## 2026-11-25 — A save from Home is shown where it went; events are on Home and in Recent activity
+
+**An entry is found from where it was created.** Events were listed only
+under More › Events, and a parent who added a bath from Home's quick action
+saw it nowhere on Home or in Recent activity. Creating events is free since
+1.4.0, so every new user would meet that. Home now lists today's three newest
+events, and Recent activity lists every event, which ends the 1.3.0 choice to
+keep events out of it.
+
+**The save never ends in silence.** When the new row is on Home, Home scrolls
+to it, rings it and moves VoiceOver focus there. When it is not (another day,
+or a fourth event today), Home pushes Events and cues the row in its history.
+Pushed alone, the parent would still hunt a column of look-alike rows and
+VoiceOver would start at the top. A note on Home ("Saved to Events · 24 Nov")
+was rejected: it needs a new string and a new component, where the ring and
+the focus are the cue Home already uses. Events and not Recent activity,
+because Events is the event's own list and the screen Home's section opens,
+while Recent activity shares its twenty rows with feeds, sleeps and diapers.
+A ring outside the row, not a tint, leaves the text's contrast alone. The
+test runs after the sheet has closed, not at the save: a scroll or a push
+under a sheet that is still sliding away is lost.
+
+**Three rows, today only, nothing when empty.** Three rows at Large stay
+shorter than the stat grid above them and still show a busy morning; an
+empty "No events today" block would lengthen Home for every parent and push
+Growth further down on a 320 pt screen.
+
 ## 2026-11-25 — A ViewThatFits over UIKit-backed controls tries the likely shape alone first
 
 **`ViewThatFits` builds every child it may choose, on every show.** A
