@@ -3,6 +3,7 @@
   "dashboard.welcome": "Bienvenue dans {brand}",
   "dashboard.growth.title": "Croissance",
   "dashboard.growth.open": "Voir la croissance",
+  "dashboard.events.open": "Voir les événements",
   "dashboard.growth.empty": "Ajoutez la première pesée : la courbe de croissance commence ici",
   "dashboard.growth.locked_title": "Prise de poids et percentiles",
   "dashboard.growth.locked_teaser": "La prise de poids de la semaine face aux repères de l’OMS, et la place de bébé sur la courbe",

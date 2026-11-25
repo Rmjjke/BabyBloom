@@ -3,6 +3,7 @@
   "dashboard.welcome": "歡迎使用{brand}",
   "dashboard.growth.title": "成長",
   "dashboard.growth.open": "查看成長",
+  "dashboard.events.open": "查看事件",
   "dashboard.growth.empty": "加入第一筆體重記錄，成長概況就從這裡開始",
   "dashboard.growth.locked_title": "體重增加與百分位",
   "dashboard.growth.locked_teaser": "查看每週體重增加與WHO參考範圍的對照，以及寶寶在曲線上的位置",

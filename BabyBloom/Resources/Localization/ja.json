@@ -3,6 +3,7 @@
   "dashboard.welcome": "{brand}へようこそ",
   "dashboard.growth.title": "成長",
   "dashboard.growth.open": "成長を開く",
+  "dashboard.events.open": "イベントを開く",
   "dashboard.growth.empty": "最初の体重測定を追加すると、成長の記録がここから始まります",
   "dashboard.growth.locked_title": "増加量とパーセンタイル",
   "dashboard.growth.locked_teaser": "週ごとの増加量をWHOの目安と並べて見られ、赤ちゃんが曲線のどのあたりにいるかも確認できます",

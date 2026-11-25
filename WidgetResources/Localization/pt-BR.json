@@ -3,6 +3,7 @@
   "dashboard.welcome": "Boas-vindas ao {brand}",
   "dashboard.growth.title": "Crescimento",
   "dashboard.growth.open": "Abrir crescimento",
+  "dashboard.events.open": "Abrir eventos",
   "dashboard.growth.empty": "Adicione a primeira pesagem para começar a acompanhar o crescimento aqui",
   "dashboard.growth.locked_title": "Ganho e percentis",
   "dashboard.growth.locked_teaser": "Veja o ganho semanal ao lado das referências da OMS e onde o bebê está na curva",

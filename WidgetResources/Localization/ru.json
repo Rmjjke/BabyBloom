@@ -3,6 +3,7 @@
   "dashboard.welcome": "Добро пожаловать в Ночку",
   "dashboard.growth.title": "Рост и развитие",
   "dashboard.growth.open": "Открыть раздел роста",
+  "dashboard.events.open": "Открыть раздел событий",
   "dashboard.growth.empty": "Добавьте первое взвешивание — и здесь появится картина роста",
   "dashboard.growth.locked_title": "Динамика и перцентили",
   "dashboard.growth.locked_teaser": "Смотрите прибавку за неделю рядом с ориентирами ВОЗ и место ребёнка на кривой",

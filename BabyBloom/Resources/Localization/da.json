@@ -3,6 +3,7 @@
   "dashboard.welcome": "Velkommen til {brand}",
   "dashboard.growth.title": "Vækst",
   "dashboard.growth.open": "Åbn vækst",
+  "dashboard.events.open": "Åbn hændelser",
   "dashboard.growth.empty": "Tilføj første vejning, så starter billedet af væksten her",
   "dashboard.growth.locked_title": "Vægtøgning og percentiler",
   "dashboard.growth.locked_teaser": "Se den ugentlige vægtøgning sammenlignet med WHO’s vejledende værdier, og hvor babyen ligger på kurven",
