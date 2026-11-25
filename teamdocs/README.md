@@ -72,8 +72,8 @@ compared with what the section lists.
 
 ## Project status
 
-- Last App Store release: 1.2.0, 2026-11-11, the doctor-visit report (built as 1.2.0 (28), tag v1.2.0+28, branch release/1.2.0).
-- Before it: 1.1.0 (build 27), Live Activity for running timers, the interactive widget, the weekly summary card; 1.0.3 (build 26), 2026-09-27, metadata only.
-- In TestFlight: 1.3.0 (30), medications with a dosing interval and 12 more languages (uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT, zh-Hant; 15 with en, ru, es). Tag v1.3.0+30 on main; the regression check and the check of the build's tree passed. Not submitted yet.
-- In work: 1.4.0, free tracking first. Creating events is free (on main since 2026-11-20); the weekly charts of Feeding, Sleep and Diaper move to Premium; onboarding ends without a paywall and Premium is offered later, on Home. The line between Free and Premium is in `content/free-premium.md`.
+- Last App Store release: 1.3.0, live since 2026-11-23, medications with a dosing interval and 12 more languages (uk, ja, ko, fr, de, sv, nb, da, fi, pt-BR, pt-PT, zh-Hant; 15 with en, ru, es). Built as 1.3.0 (30), tag v1.3.0+30.
+- Before it: 1.2.0, 2026-11-11, the doctor-visit report (1.2.0 (28), tag v1.2.0+28, branch release/1.2.0); 1.1.0 (build 27), Live Activity for running timers, the interactive widget, the weekly summary card; 1.0.3 (build 26), 2026-09-27, metadata only.
+- In TestFlight: 1.4.0 (31), free tracking first, uploaded 2026-11-24. Tag v1.4.0+31 on main; the full regression passed. Not submitted yet. Creating events is free; the weekly charts of Feeding, Sleep and Diaper are Premium; onboarding has nine steps and ends without a paywall; Premium is offered later by a card on Home. The line between Free and Premium is in `content/free-premium.md`.
+- In work: 1.4.0 (32), which replaces build 31 on TestFlight. Two changes: the New Event form opens from Home without a delay; today's events are shown on Home and every event is listed in Recent activity.
 - Team workflow files are local and untracked; nothing here depends on them.

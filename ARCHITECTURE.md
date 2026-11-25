@@ -732,8 +732,11 @@ A date-and-time picker (Sleep's start and end, Diaper, Events, the dose
 sheet) uses `BBLabeledDateTimePicker` instead: its compact style sets the
 date and time buttons side by side, and where that pair misses the width
 after the steps (xxLarge below the accessibility sizes), the time goes under
-the date, each button whole and stepping on its own. The pt-BR «12 de nov. de
-2026» with the time beside it outgrew the card at AX2 with Bold Text even at
+the date, each button whole and stepping on its own. Below the accessibility
+sizes the pair at the reader's size is offered alone first (`BBFirstFit`):
+`ViewThatFits` makes a `UIDatePicker` for every shape it holds, twelve here,
+on every show, and only where the pair misses does the full set take over.
+The pt-BR «12 de nov. de 2026» with the time beside it outgrew the card at AX2 with Bold Text even at
 xxLarge. At accessibility sizes the time always goes under the date: there
 the system wraps its own pair and sets the time at the trailing edge. The
 stacked buttons step with `BBFitsByTextSize(hugging: true)`, each step at the
