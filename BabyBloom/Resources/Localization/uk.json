@@ -3,6 +3,7 @@
   "dashboard.welcome": "Ласкаво просимо до Нічки",
   "dashboard.growth.title": "Ріст",
   "dashboard.growth.open": "Відкрити розділ «Ріст»",
+  "dashboard.events.open": "Відкрити розділ «Події»",
   "dashboard.growth.empty": "Додайте перше зважування, і тут зʼявиться картина росту",
   "dashboard.growth.locked_title": "Набір ваги й перцентилі",
   "dashboard.growth.locked_teaser": "Дивіться тижневий набір ваги поряд з орієнтирами ВООЗ і місце малюка на кривій росту",

@@ -3,6 +3,7 @@
   "dashboard.welcome": "Välkommen till {brand}",
   "dashboard.growth.title": "Tillväxt",
   "dashboard.growth.open": "Öppna tillväxt",
+  "dashboard.events.open": "Öppna händelser",
   "dashboard.growth.empty": "Lägg till första vägningen så börjar tillväxtbilden här",
   "dashboard.growth.locked_title": "Viktökning och percentiler",
   "dashboard.growth.locked_teaser": "Se veckans viktökning bredvid WHO:s riktvärden och var bebisen ligger på kurvan",

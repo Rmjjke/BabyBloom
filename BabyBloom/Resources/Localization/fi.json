@@ -3,6 +3,7 @@
   "dashboard.welcome": "Tervetuloa {brand}-appiin",
   "dashboard.growth.title": "Kasvu",
   "dashboard.growth.open": "Avaa kasvu",
+  "dashboard.events.open": "Avaa tapahtumat",
   "dashboard.growth.empty": "Lisää ensimmäinen punnitus, niin kasvun seuranta alkaa tästä",
   "dashboard.growth.locked_title": "Painonnousu ja persentiilit",
   "dashboard.growth.locked_teaser": "Näet viikoittaisen painonnousun WHO:n viitearvojen rinnalla ja sen, missä kohtaa käyrää vauva on",

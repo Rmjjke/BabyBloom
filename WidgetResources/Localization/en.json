@@ -3,6 +3,7 @@
   "dashboard.welcome": "Welcome to {brand}",
   "dashboard.growth.title": "Growth",
   "dashboard.growth.open": "Open growth",
+  "dashboard.events.open": "Open events",
   "dashboard.growth.empty": "Add the first weighing and the picture of growth starts here",
   "dashboard.growth.locked_title": "Gain and percentiles",
   "dashboard.growth.locked_teaser": "See the weekly gain beside WHO references, and where your baby sits on the curve",

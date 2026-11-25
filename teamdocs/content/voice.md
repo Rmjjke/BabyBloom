@@ -789,3 +789,9 @@ renamed when it took a new argument by its new name.
   «Від годування» (71.1 pt), whole in the widget's row title in the
   onboarding sample at 320 pt (about 82 pt), on the iPhone SE (107.5 pt)
   and the 10.2" iPad (99.5 pt). The other 14 languages fit as they are.
+- 2026-11-25 — New key `dashboard.events.open` ("Open events"): the
+  VoiceOver action on Home's Events header. In every language it is the
+  pair of `dashboard.growth.open` (the same verb form) with that
+  language's `nav.events` word: ru «Открыть раздел событий», uk
+  «Відкрити розділ «Події»», fr «Voir les événements», zh-Hant «查看事件».
+  Not drawn, so no width limit.

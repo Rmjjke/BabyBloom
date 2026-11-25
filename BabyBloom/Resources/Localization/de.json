@@ -3,6 +3,7 @@
   "dashboard.welcome": "Willkommen bei {brand}",
   "dashboard.growth.title": "Wachstum",
   "dashboard.growth.open": "Wachstum öffnen",
+  "dashboard.events.open": "Ereignisse öffnen",
   "dashboard.growth.empty": "Trag das erste Gewicht ein, dann beginnt hier der Wachstumsverlauf",
   "dashboard.growth.locked_title": "Zunahme und Perzentilen",
   "dashboard.growth.locked_teaser": "Sieh die wöchentliche Zunahme neben den WHO-Richtwerten und wo dein Baby auf der Kurve liegt",

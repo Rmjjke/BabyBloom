@@ -3,6 +3,7 @@
   "dashboard.welcome": "{brand}⁠에 오신 것을 환영해요",
   "dashboard.growth.title": "성장",
   "dashboard.growth.open": "성장 열기",
+  "dashboard.events.open": "이벤트 열기",
   "dashboard.growth.empty": "첫 체중 측정을 추가하면 여기서 성장 기록이 시작돼요",
   "dashboard.growth.locked_title": "체중 증가와 백분위수",
   "dashboard.growth.locked_teaser": "주간 체중 증가를 WHO 참고 범위와 나란히 보고, 우리 아기가 곡선의 어디쯤인지 확인해 보세요",
